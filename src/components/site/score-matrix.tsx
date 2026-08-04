@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { qualifiers, fmtNum, flagUrl, type QualPerf, type QualMap, type QualPlayer } from "@/lib/data";
+import { useDict } from "./lang";
 import { cn } from "@/lib/utils";
 
 const MOD_COLOR: Record<string, string> = {
@@ -17,6 +18,7 @@ const MEDAL = ["bg-[#e8c547] text-ink", "bg-[#c9ccd1] text-ink", "bg-[#c98a4b] t
 type Hover = { x: number; y: number; map: QualMap; perf: QualPerf; player: QualPlayer } | null;
 
 export function ScoreMatrix() {
+  const t = useDict();
   const [q, setQ] = useState("");
   const [hover, setHover] = useState<Hover>(null);
 
@@ -40,7 +42,8 @@ export function ScoreMatrix() {
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search for a player"
+          placeholder={t.qual.searchPlayer}
+          aria-label={t.qual.searchPlayer}
           className="h-10 w-full bg-transparent text-sm outline-none placeholder:text-ash"
         />
       </div>
@@ -49,10 +52,10 @@ export function ScoreMatrix() {
         <table className="w-full min-w-[1100px] border-collapse text-sm">
           <thead>
             <tr className="bg-slate text-left text-[0.7rem] font-black uppercase tracking-wide text-ash">
-              <th className="sticky left-0 z-10 bg-slate px-3 py-3">Seed</th>
-              <th className="sticky left-14 z-10 bg-slate px-3 py-3">Player</th>
-              <th className="px-3 py-3 text-right">Σ percentile</th>
-              <th className="px-3 py-3 text-right">Avg acc</th>
+              <th className="sticky left-0 z-10 bg-slate px-3 py-3">{t.qual.cols[0]}</th>
+              <th className="sticky left-14 z-10 bg-slate px-3 py-3">{t.qual.cols[1]}</th>
+              <th className="px-3 py-3 text-right">{t.qual.cols[2]}</th>
+              <th className="px-3 py-3 text-right">{t.qual.cols[3]}</th>
               {qualifiers.maps.map((m) => (
                 <th key={m.id} className={cn("px-2 py-3 text-right", MOD_COLOR[m.slot.slice(0, 2)])}>
                   {m.slot}
@@ -115,6 +118,7 @@ export function ScoreMatrix() {
 }
 
 function ScoreCard({ x, y, map, perf, player }: NonNullable<Hover>) {
+  const t = useDict();
   const W = 300;
   const H = 230;
   const left = Math.min(x + 8, window.innerWidth - W - 12);
@@ -133,12 +137,12 @@ function ScoreCard({ x, y, map, perf, player }: NonNullable<Hover>) {
       </div>
       <div className="grid grid-cols-2 gap-px bg-line text-sm">
         {[
-          ["Score", fmtNum(perf.score), "text-balkan"],
-          ["Accuracy", `${perf.acc.toFixed(2)}%`, "text-paper"],
-          ["Percentile", `${(perf.percentile * 100).toFixed(1)}%`, "text-paper"],
-          ["Map place", `#${perf.placement}`, "text-rose-hi"],
-          ["Mods", perf.mods, "text-paper"],
-          ["Grade", perf.rank, "text-paper"],
+          [t.qual.detail[0], fmtNum(perf.score), "text-balkan"],
+          [t.qual.detail[1], `${perf.acc.toFixed(2)}%`, "text-paper"],
+          [t.qual.detail[2], `${(perf.percentile * 100).toFixed(1)}%`, "text-paper"],
+          [t.qual.detail[3], `#${perf.placement}`, "text-rose-hi"],
+          [t.qual.detail[4], perf.mods, "text-paper"],
+          [t.qual.detail[5], perf.rank, "text-paper"],
         ].map(([k, v, c]) => (
           <div key={k} className="flex items-center justify-between gap-2 bg-coal px-3 py-2">
             <span className="text-[0.65rem] font-black uppercase text-ash">{k}</span>

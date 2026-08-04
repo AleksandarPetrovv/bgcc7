@@ -3,39 +3,33 @@
 import { useState } from "react";
 import { Check, Lock } from "lucide-react";
 import { Container, PageTitle, SectionHeading, SlantButton, Tag } from "@/components/site/page";
+import { useDict } from "@/components/site/lang";
 import { bracket, pickemLeaderboard, teamById, type Match } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
-const POINTS = [
-  ["Quarterfinals", 10],
-  ["Semifinals", 15],
-  ["Winners final", 25],
-  ["Losers final", 35],
-  ["Grand finals", 50],
-] as const;
-
 function PickCard({ m, pick, onPick }: { m: Match; pick?: string; onPick: (id: string) => void }) {
+  const t = useDict();
   return (
-    <div className="w-56 border border-line bg-coal">
-      <div className="bg-ink/70 px-2 py-0.5 text-[0.62rem] font-bold uppercase text-ash">{m.id}</div>
-      {[m.team1, m.team2].map((s) => {
-        const t = teamById(s.id);
-        const picked = pick === s.id && !!t;
+    <div className="w-56 divide-y divide-line border border-line bg-coal">
+      {[m.team1, m.team2].map((s, i) => {
+        const team = teamById(s.id);
+        const picked = pick === s.id && !!team;
         return (
           <button
-            key={s.id || s.name}
-            disabled={!t}
-            onClick={() => t && onPick(s.id)}
+            key={s.id || i}
+            type="button"
+            disabled={!team}
+            onClick={() => team && onPick(s.id)}
             className={cn(
-              "flex h-9 w-full items-center gap-2 px-2 text-left text-sm transition",
+              "flex h-10 w-full items-center gap-2 px-2 text-left text-sm transition",
               picked ? "bg-balkan/20 font-black text-balkan" : "font-bold hover:bg-slate",
-              !t && "cursor-default italic text-ash",
+              !team && "cursor-default italic text-ash",
             )}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {t && <img src={t.image} alt="" className="size-5 object-cover" />}
-            <span className="truncate">{t?.name ?? "TBD"}</span>
-            {picked && <Check className="ml-auto size-4 shrink-0" aria-label="Your pick" />}
+            {team && <img src={team.image} alt="" className="size-6 object-cover" />}
+            <span className="truncate">{team?.name ?? t.common.tbd}</span>
+            {picked && <Check className="ml-auto size-4 shrink-0" aria-label={t.pickems.yourPick} />}
           </button>
         );
       })}
@@ -44,34 +38,35 @@ function PickCard({ m, pick, onPick }: { m: Match; pick?: string; onPick: (id: s
 }
 
 export default function Pickems() {
+  const t = useDict();
   const [picks, setPicks] = useState<Record<string, string>>({});
   const made = Object.keys(picks).length;
   const cols = [...bracket.winners, ...bracket.losers.slice(0, 2)];
 
   return (
     <Container className="max-w-[1400px]">
-      <PageTitle accent="Pick'ems" right={<Tag tone="balkan" className="text-xs">Open until the first quarterfinal</Tag>}>
-        Bracket
+      <PageTitle accent={t.pickems.accent} right={<Tag tone="balkan" className="text-xs">{t.pickems.openTag}</Tag>}>
+        {t.pickems.title}
       </PageTitle>
 
       <div className="mb-8 grid gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-5">
-          {POINTS.map(([k, v]) => (
-            <div key={k} className="bg-ink p-3 last:col-span-2 sm:last:col-span-1">
+          {t.pickems.points.map(([k, v]) => (
+            <div key={k} className="bg-coal p-3 last:col-span-2 sm:last:col-span-1">
               <div className="min-h-[2lh] text-[0.65rem] font-black uppercase leading-tight tracking-wide text-ash">{k}</div>
               <div className="num text-3xl text-balkan">
                 {v}
-                <span className="text-base text-ash"> pts</span>
+                <span className="text-base text-ash"> {t.common.pts}</span>
               </div>
             </div>
           ))}
         </div>
-        <div className="flex items-center gap-4 bg-paper p-4 text-ink">
+        <div className="flex items-center gap-4 border border-line bg-coal p-4">
           <div>
-            <div className="text-[0.65rem] font-black uppercase text-rose-deep">Your picks</div>
+            <div className="text-[0.65rem] font-black uppercase text-rose-hi">{t.pickems.yourPicks}</div>
             <div className="num text-3xl">{made} / 15</div>
           </div>
-          <SlantButton tone="balkan" className="ml-auto">Save picks</SlantButton>
+          <SlantButton tone="balkan" className="ml-auto">{t.pickems.save}</SlantButton>
         </div>
       </div>
 
@@ -79,7 +74,7 @@ export default function Pickems() {
         <div className="flex min-w-max gap-10">
           {cols.map((r) => (
             <div key={r.title}>
-              <div className="mb-3 text-center text-sm font-black uppercase tracking-wider text-ash">{r.title}</div>
+              <div className="mb-3 text-center text-sm font-black uppercase tracking-wider text-ash">{t.rounds[r.title] ?? r.title}</div>
               <div className="flex flex-col justify-around gap-4" style={{ minHeight: 380 }}>
                 {r.matches.map((m) => (
                   <PickCard key={m.id} m={m} pick={picks[m.id]} onPick={(id) => setPicks({ ...picks, [m.id]: id })} />
@@ -90,21 +85,27 @@ export default function Pickems() {
         </div>
       </div>
 
-      <div className="mt-14"><SectionHeading>Leaderboard</SectionHeading></div>
-      <div className="overflow-hidden border border-line">
+      <div className="mt-14">
+        <SectionHeading>{t.pickems.leaderboard}</SectionHeading>
+      </div>
+      <div className="divide-y divide-line border border-line bg-coal">
         {pickemLeaderboard.map((e, i) => (
-          <div key={e.userId} className="grid grid-cols-[48px_1fr_auto] items-center gap-x-3 sm:grid-cols-[64px_1fr_110px_90px_150px] border-b border-line px-4 py-2.5 last:border-b-0">
-            <span className={cn("num text-2xl", i === 0 ? "text-[#e8c547]" : i === 1 ? "text-[#c9ccd1]" : i === 2 ? "text-[#c98a4b]" : "text-ash")}>#{i + 1}</span>
-            <span className="flex items-center gap-3 font-bold">
+          <div key={e.userId} className="grid min-h-14 grid-cols-[48px_1fr_auto] items-center gap-x-4 px-4 sm:grid-cols-[64px_1fr_110px_70px_160px]">
+            <span className={cn("num text-2xl leading-none", i === 0 ? "text-[#e8c547]" : i === 1 ? "text-[#c9ccd1]" : i === 2 ? "text-[#c98a4b]" : "text-ash")}>#{i + 1}</span>
+            <span className="flex min-w-0 items-center gap-3 font-bold">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={e.avatar} alt="" className="size-8" />
-              {e.username}
+              <img src={e.avatar} alt="" className="size-8 shrink-0" />
+              <span className="truncate">{e.username}</span>
             </span>
-            <span className="num text-right text-2xl text-balkan">{e.score} pts</span>
-            <span className="num hidden items-center justify-end gap-1 text-lg text-paper/70 sm:flex">{e.correct} <Check className="size-4" aria-label="correct" /></span>
-            <span className="hidden text-right sm:block">
-              <button className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-black uppercase text-rose-hi hover:text-paper">
-                <Lock className="size-3.5" /> View bracket
+            <span className="num text-right text-2xl leading-none text-balkan">
+              {e.score} <span className="text-base text-ash">{t.common.pts}</span>
+            </span>
+            <span className="num hidden items-center justify-end gap-1 text-lg leading-none text-paper/70 sm:flex">
+              {e.correct} <Check className="size-4" aria-label={t.pickems.correct} />
+            </span>
+            <span className="hidden justify-end sm:flex">
+              <button type="button" className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-black uppercase leading-none text-rose-hi hover:text-paper">
+                <Lock className="size-3.5" /> {t.pickems.viewBracket}
               </button>
             </span>
           </div>

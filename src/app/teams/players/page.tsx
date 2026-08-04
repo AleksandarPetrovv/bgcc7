@@ -1,10 +1,12 @@
 import { Container, PageTitle, Tag } from "@/components/site/page";
+import { getDict } from "@/lib/i18n/server";
 import { signups, fmtNum, flagUrl } from "@/lib/data";
 
-export default function Players() {
+export default async function Players() {
+  const t = await getDict();
   return (
     <Container>
-      <PageTitle right={<span className="num text-2xl text-balkan">{signups.length} players</span>}>Players</PageTitle>
+      <PageTitle right={<span className="num text-2xl text-balkan">{t.common.players(signups.length)}</span>}>{t.teams.playersTitle}</PageTitle>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {signups.map((p, i) => (
           <div key={p.userId} className="flex items-stretch border border-line bg-coal transition hover:border-balkan">
@@ -17,7 +19,7 @@ export default function Players() {
                 <img src={flagUrl(p.country)} alt="" className="h-2.5" />
                 <span className="truncate font-black">{p.username}</span>
                 <Tag tone={p.status === "approved" ? "balkan" : p.status === "pending" ? "paper" : "rose"} className="ml-auto">
-                  {p.status}
+                  {t.status[p.status]}
                 </Tag>
               </div>
               <div className="num mt-1 flex gap-4 text-sm text-paper/70">

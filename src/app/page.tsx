@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Radio } from "lucide-react";
-import { StitchText, SpeedLines, Tricolor } from "@/components/site/graphics";
+import { SpeedLines, Tricolor } from "@/components/site/graphics";
 import { SlantButton } from "@/components/site/page";
+import { Rich } from "@/components/site/rich";
+import { getDict } from "@/lib/i18n/server";
+import { fmtDay, roundName, type Dict } from "@/lib/i18n/dict";
 import { Countdown } from "@/components/site/countdown";
 import { MODS, allMatches, stages, staff, teams, timeline, teamById } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -63,7 +66,7 @@ function EntryCard({
   );
 }
 
-function RosterSlots() {
+function RosterSlots({ sub }: { sub: string }) {
   return (
     <div className="flex h-full items-center gap-2.5 px-5" aria-hidden>
       {["C", "2", "3"].map((s, i) => (
@@ -76,7 +79,7 @@ function RosterSlots() {
         </span>
       ))}
       <span className="flex h-16 w-14 -skew-x-12 items-center justify-center border-2 border-dashed border-ink/50">
-        <span className="skew-x-12 text-xs font-black uppercase text-ink/70">sub</span>
+        <span className="skew-x-12 text-xs font-black uppercase text-ink/70">{sub}</span>
       </span>
     </div>
   );
@@ -100,7 +103,7 @@ function TeamMosaic() {
     <div className="grid h-full grid-cols-4 grid-rows-2" aria-hidden>
       {teams.slice(0, 8).map((t) => (
         // eslint-disable-next-line @next/next/no-img-element
-        <img key={t.id} src={t.image} alt="" className="size-full object-cover mix-blend-luminosity transition duration-500 group-hover:mix-blend-normal" />
+        <img key={t.id} src={t.image} alt="" className="size-full object-cover" />
       ))}
     </div>
   );
@@ -121,16 +124,16 @@ function MiniBracket() {
   );
 }
 
-function Timeline() {
-  const at = timeline.findIndex((t) => t.key === CURRENT);
+function Timeline({ t }: { t: Dict }) {
+  const at = timeline.findIndex((e) => e.key === CURRENT);
   return (
     <ol className="relative mt-6">
       <span className="anim-stitch absolute bottom-3 left-[7px] top-3 border-l-2 border-dashed border-line" aria-hidden />
-      {timeline.map((t, i) => {
+      {timeline.map((e, i) => {
         const current = i === at;
         return (
           <li
-            key={t.key}
+            key={e.key}
             className={cn(
               "relative flex items-baseline gap-4 py-2 pl-8 pr-3 text-[0.95rem] uppercase",
               current ? "bg-balkan/10 font-black text-balkan" : i < at ? "text-ash" : "text-paper",
@@ -143,8 +146,8 @@ function Timeline() {
                 <span className={cn("size-2 rotate-45", i < at ? "bg-ash" : "border border-paper/60")} />
               )}
             </span>
-            <span className="flex-1">{t.label}</span>
-            <span className="num whitespace-nowrap text-base normal-case">{t.dates}</span>
+            <span className="flex-1">{t.timeline[e.key]}</span>
+            <span className="num whitespace-nowrap text-base normal-case">{fmtDay(t, e.dates)}</span>
           </li>
         );
       })}
@@ -152,7 +155,8 @@ function Timeline() {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const t = await getDict();
   const featured = allMatches.filter((m) => m.winner).slice(0, 3);
   return (
     <>
@@ -163,37 +167,25 @@ export default function Home() {
         >
           7
         </div>
-        <div className="relative mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-10 px-4 pb-14 pt-10 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:pt-14">
+        <div className="relative mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-10 px-4 pb-12 pt-10 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:items-end lg:pt-14">
           <div className="anim-rise">
             <HeroLockup />
           </div>
 
-          <div className="anim-rise flex min-w-0 flex-col justify-center" style={{ animationDelay: "0.15s" }}>
+          <div className="anim-rise flex min-w-0 flex-col justify-end" style={{ animationDelay: "0.15s" }}>
             <div className="flex items-stretch border border-paper">
               <div className="min-w-0 flex-1 px-3 py-2 font-display text-[clamp(0.95rem,2.4vw,2rem)] font-black lowercase leading-none tracking-tight sm:px-4">
-                bulgarian community cup
+                {t.home.badge}
               </div>
               <div className="flex items-center bg-paper px-2.5 font-display text-[clamp(1rem,2.4vw,2rem)] font-black italic text-rose sm:px-4">2026</div>
             </div>
-            <h1 className="mt-7 text-balance text-[clamp(1.6rem,3vw,2.6rem)] font-black leading-[1.05] tracking-tight">
-              <span className="text-rose-hi">Bulgaria&apos;s</span> 3v3 osu! cup is back for a{" "}
-              <span className="text-balkan">seventh</span> time.
+            <h1 className="mt-8 text-balance text-[clamp(1.8rem,3.4vw,3.1rem)] font-black leading-[1.03] tracking-tight">
+              <Rich text={t.home.headline} />
             </h1>
-            <p className="mt-4 max-w-[46ch] text-pretty text-paper/80">
-              Any rank can enter, so grab two or three friends and sign up before 22 November. Qualifiers are the weekend
-              after that.
-            </p>
-            <div className="mt-7 flex flex-wrap items-center gap-3">
-              <SlantButton href="/register" tone="balkan">Register your team</SlantButton>
-              <SlantButton href="/info" tone="outline">Read the rules</SlantButton>
-            </div>
-            <div className="mt-9 flex flex-wrap items-end gap-x-6 gap-y-3">
-              <StitchText value="BGCC 07" colors={["#e0242f", "#0fa06a"]} className="h-12 w-auto max-w-full" />
-              <div className="num pb-0.5 text-xs uppercase leading-tight tracking-widest text-ash">
-                3v3 · teamvs · scorev2
-                <br />
-                double elimination · bg only
-              </div>
+            <p className="mt-5 max-w-[48ch] text-pretty text-lg text-paper/80">{t.home.intro}</p>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <SlantButton href="/register" tone="balkan" className="px-5 py-2.5 text-base">{t.home.registerTeam}</SlantButton>
+              <SlantButton href="/info" tone="outline" className="px-5 py-2.5 text-base">{t.home.readRules}</SlantButton>
             </div>
           </div>
         </div>
@@ -202,34 +194,30 @@ export default function Home() {
 
       <section className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-12 px-4 pt-14 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)]">
         <div>
-          <h2 className="heading-slam text-3xl">
-            Timeline
-          </h2>
-          <Timeline />
+          <h2 className="heading-slam text-3xl">{t.home.timeline}</h2>
+          <Timeline t={t} />
           <div className="mt-8 border border-balkan/50 bg-balkan/10 p-4">
-            <div className="text-[0.7rem] font-black uppercase tracking-widest text-balkan">Registrations close in</div>
+            <div className="text-[0.7rem] font-black uppercase tracking-widest text-balkan">{t.home.closesIn}</div>
             <Countdown to={REG_CLOSES} />
           </div>
         </div>
 
         <div className="grid content-start gap-5 sm:grid-cols-2">
-          <EntryCard title="Registration" sub="Open until 22 Nov, 23:59 EET" href="/register" className="bg-rose">
-            <RosterSlots />
+          <EntryCard title={t.home.registration} sub={t.home.regSub} href="/register" className="bg-rose">
+            <RosterSlots sub={t.home.sub} />
           </EntryCard>
-          <EntryCard title="Qualifier mappool" sub="11 maps, with downloads and stats" href="/mappool" className="bg-paper">
+          <EntryCard title={t.home.mappool} sub={t.home.mapSub} href="/mappool" className="border border-line bg-slate">
             <ModChips />
           </EntryCard>
-          <EntryCard title="Teams" sub={`${teams.length} teams and ${teams.length * 3} players so far`} href="/teams" className="bg-balkan">
+          <EntryCard title={t.home.teams} sub={t.home.teamsSub(teams.length, teams.length * 3)} href="/teams" className="bg-balkan">
             <TeamMosaic />
           </EntryCard>
-          <EntryCard title="Bracket" sub="Fills in once qualifiers end" href="/schedule/bracket" className="border border-line bg-coal">
+          <EntryCard title={t.home.bracket} sub={t.home.bracketSub} href="/schedule/bracket" className="border border-line bg-coal">
             <MiniBracket />
           </EntryCard>
 
           <div className="flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-line pt-5 sm:col-span-2">
-            <span className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-ash">
-              Prize pool backed by
-            </span>
+            <span className="text-xs font-black uppercase tracking-widest text-ash">{t.home.backedBy}</span>
             {staff.sponsors.map((s) => (
               <div key={s.username} className="flex items-center gap-2.5 opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -243,9 +231,9 @@ export default function Home() {
 
       <section className="mx-auto max-w-[1400px] px-4 pt-20 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3">
-          <h2 className="heading-slam text-4xl">Previously on bgcc</h2>
+          <h2 className="heading-slam text-4xl">{t.home.previously}</h2>
           <Link href="/schedule" className="inline-flex items-center gap-1.5 text-sm font-black uppercase text-rose-hi hover:text-paper">
-            Full schedule <ArrowRight className="size-4" />
+            {t.home.fullSchedule} <ArrowRight className="size-4" />
           </Link>
         </div>
         <div className="mt-6 grid gap-5 lg:grid-cols-3">
@@ -253,17 +241,17 @@ export default function Home() {
             const a = teamById(m.team1.id);
             const b = teamById(m.team2.id);
             return (
-              <div key={m.id} className="group relative overflow-hidden bg-paper text-ink">
-                <div className="flex items-center justify-between bg-ink px-4 py-2 text-xs font-black uppercase text-ash">
-                  <span className="text-rose-hi">{m.round}</span>
+              <div key={m.id} className="border border-line bg-coal">
+                <div className="flex items-center justify-between border-b border-line px-4 py-2 text-xs font-black uppercase text-ash">
+                  <span className="text-rose-hi">{roundName(t, m.round)}</span>
                   <span className="num text-sm">{m.datetime}</span>
                 </div>
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 p-4">
-                  {[a, b].map((t, i) => (
+                  {[a, b].map((team, i) => (
                     <div key={i} className={cn("flex min-w-0 items-center gap-3", i === 1 && "order-3 flex-row-reverse text-right")}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={t?.image} alt="" className={cn("size-12 shrink-0 object-cover", m.winner !== i + 1 && "grayscale")} />
-                      <span className={cn("line-clamp-2 min-w-0 break-words text-sm leading-tight", m.winner === i + 1 ? "font-black text-ink" : "font-bold text-ink/60")}>{t?.name}</span>
+                      <img src={team?.image} alt="" className={cn("size-12 shrink-0 object-cover", m.winner !== i + 1 && "opacity-50 grayscale")} />
+                      <span className={cn("line-clamp-2 min-w-0 break-words text-sm leading-tight", m.winner === i + 1 ? "font-black text-paper" : "font-bold text-ash")}>{team?.name}</span>
                     </div>
                   ))}
                   <div className="order-2 -skew-x-12 bg-rose px-3 py-1.5">
@@ -279,12 +267,10 @@ export default function Home() {
 
         <div className="mt-8 flex flex-col items-start gap-4 border border-line bg-coal p-5 sm:flex-row sm:items-center">
           <span className="flex items-center gap-2 bg-slate px-2 py-1 text-xs font-black uppercase text-ash">
-            <Radio className="size-3.5" /> Offline
+            <Radio className="size-3.5" /> {t.home.offline}
           </span>
-          <p className="text-sm text-paper/75">
-            Every match goes out on stream with Bulgarian commentary. The next broadcast is the qualifier showcase on 28 November.
-          </p>
-          <SlantButton href="/streams" tone="paper" className="sm:ml-auto">Stream schedule</SlantButton>
+          <p className="text-sm text-paper/75">{t.home.streamNote}</p>
+          <SlantButton href="/streams" tone="paper" className="sm:ml-auto">{t.home.streamSchedule}</SlantButton>
         </div>
       </section>
     </>

@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { Download, Play, Sheet, Star } from "lucide-react";
 import { Container, PageTitle, SlantButton, StageTabs } from "@/components/site/page";
+import { useDict } from "@/components/site/lang";
 import { MODS, stages, fmtLen } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 export default function Mappool() {
+  const t = useDict();
   const [i, setI] = useState(0);
-  const [open, setOpen] = useState<Record<string, boolean>>({ NoMod: true, Hidden: true });
+  const [closed, setClosed] = useState<Record<string, boolean>>({});
   const stage = stages[i];
   const count = stage.pools.reduce((s, p) => s + p.maps.length, 0);
 
@@ -17,28 +19,28 @@ export default function Mappool() {
       <PageTitle
         right={
           <>
-            <StageTabs options={stages.map((s) => s.title.replace("-", " "))} index={i} onChange={setI} />
+            <StageTabs options={stages.map((s) => t.rounds[s.title] ?? s.title)} index={i} onChange={setI} />
             <SlantButton tone="rose" className="px-3 py-1.5">
-              <Sheet className="size-4" /> Sheets
+              <Sheet className="size-4" /> {t.common.sheets}
             </SlantButton>
             <SlantButton tone="balkan" className="px-3 py-1.5">
-              <Download className="size-4" /> Pack · {count} maps
+              <Download className="size-4" /> {t.mappool.pack(count)}
             </SlantButton>
           </>
         }
       >
-        Mappool
+        {t.mappool.title}
       </PageTitle>
 
       <div className="space-y-2.5">
         {stage.pools.map((p) => {
           const mod = MODS[p.category];
-          const isOpen = open[p.category];
+          const isOpen = !closed[p.category];
           const light = p.category === "Tiebreaker";
           return (
             <section key={p.category}>
               <button
-                onClick={() => setOpen({ ...open, [p.category]: !isOpen })}
+                onClick={() => setClosed({ ...closed, [p.category]: isOpen })}
                 className="flex w-full items-stretch gap-2.5 text-left"
                 aria-expanded={isOpen}
               >

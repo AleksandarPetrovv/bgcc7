@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { Crown } from "lucide-react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { type Team, fmtNum, flagUrl } from "@/lib/data";
+import { useDict } from "./lang";
 
 export function Roster({ team }: { team: Team }) {
   return (
@@ -25,34 +28,37 @@ export function Roster({ team }: { team: Team }) {
 }
 
 export function TeamCard({ team }: { team: Team }) {
+  const t = useDict();
   return (
     <HoverCard>
       <HoverCardTrigger
         delay={150}
         render={
-          <Link href={`/teams/${team.id}`} className="group block overflow-hidden bg-paper text-ink outline-offset-4">
+          <Link href={`/teams/${team.id}`} className="group block overflow-hidden border border-line bg-coal outline-offset-4 transition-colors hover:border-balkan">
             <div className="relative h-32 overflow-hidden bg-ink">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={team.image} alt="" className="size-full object-cover transition duration-500 group-hover:scale-105" />
-              <span className="num absolute bottom-0 left-0 flex size-10 items-center justify-center bg-ink text-2xl text-paper" aria-label={`Seed ${team.seed}`}>{team.seed}</span>
+              <span className="num absolute bottom-0 left-0 flex size-10 items-center justify-center bg-ink text-2xl text-paper" aria-label={`${t.common.seed} ${team.seed}`}>
+                {team.seed}
+              </span>
             </div>
             <div className="px-3.5 pb-3 pt-2">
               <div className="truncate text-xl font-black leading-tight">{team.name}</div>
-              <dl className="mt-1.5 flex gap-5 text-[0.65rem] font-bold uppercase text-ink/70">
+              <dl className="mt-1.5 flex gap-5 text-[0.65rem] font-bold uppercase text-ash">
                 <div>
-                  <dt>Avg rank</dt>
-                  <dd className="num text-xl leading-none text-ink">#{fmtNum(team.avgRank)}</dd>
+                  <dt>{t.common.avgRank}</dt>
+                  <dd className="num text-xl leading-none text-paper">#{fmtNum(team.avgRank)}</dd>
                 </div>
                 <div>
-                  <dt>Avg pp</dt>
-                  <dd className="num text-xl leading-none text-ink">{fmtNum(team.avgPp)}</dd>
+                  <dt>{t.common.avgPp}</dt>
+                  <dd className="num text-xl leading-none text-paper">{fmtNum(team.avgPp)}</dd>
                 </div>
               </dl>
             </div>
           </Link>
         }
       />
-      <HoverCardContent side="right" align="start" className="w-auto rounded-none border border-balkan bg-ink p-3 text-paper ring-0">
+      <HoverCardContent side="right" align="start" className="w-auto rounded-none border border-line bg-coal p-3 text-paper ring-0">
         <Roster team={team} />
       </HoverCardContent>
     </HoverCard>

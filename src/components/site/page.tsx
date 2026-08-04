@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { StitchRule, TriTick } from "./graphics";
+import { TriTick } from "./graphics";
+import { useDict } from "./lang";
 import { cn } from "@/lib/utils";
 
 export function SubNav({ items }: { items: { href: string; label: string }[] }) {
   const path = usePathname();
+  const t = useDict();
   return (
     <div className="sticky top-16 z-30 border-b border-line bg-coal/95 backdrop-blur lg:top-[72px]">
-      <nav className="mx-auto flex max-w-6xl items-stretch gap-1 overflow-x-auto px-4 sm:gap-6 sm:px-6" aria-label="Section">
+      <nav className="mx-auto flex max-w-6xl items-stretch gap-1 overflow-x-auto px-4 sm:gap-6 sm:px-6" aria-label={t.nav.section}>
         {items.map((i) => {
           const active = path === i.href;
           return (
@@ -23,7 +25,7 @@ export function SubNav({ items }: { items: { href: string; label: string }[] }) 
               )}
             >
               {i.label}
-              {active && <StitchRule className="absolute inset-x-2 bottom-1" />}
+              {active && <span className="absolute inset-x-2 bottom-0 h-0.5 bg-rose" aria-hidden />}
             </Link>
           );
         })}
@@ -106,6 +108,12 @@ export function SlantButton({
   }[tone];
   const cls = cn("inline-flex -skew-x-12 items-center px-4 py-2 text-sm font-black uppercase tracking-wide transition", t, className);
   const inner = <span className="inline-flex skew-x-12 items-center gap-2">{children}</span>;
+  if (href?.startsWith("http"))
+    return (
+      <a href={href} target="_blank" rel="noreferrer" className={cls}>
+        {inner}
+      </a>
+    );
   return href ? (
     <Link href={href} className={cls}>
       {inner}
@@ -118,8 +126,9 @@ export function SlantButton({
 }
 
 export function StageTabs({ options, index, onChange }: { options: string[]; index: number; onChange: (i: number) => void }) {
+  const t = useDict();
   return (
-    <div className="flex overflow-x-auto border border-line" role="tablist" aria-label="Stage">
+    <div className="flex overflow-x-auto border border-line" role="tablist" aria-label={t.common.stage}>
       {options.map((o, i) => (
         <button
           key={o}

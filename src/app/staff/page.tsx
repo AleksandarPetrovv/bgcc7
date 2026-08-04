@@ -1,46 +1,75 @@
-import { Container, PageTitle, SubHeading } from "@/components/site/page";
+import { Container, PageTitle, SectionHeading, SlantButton } from "@/components/site/page";
+import { getDict } from "@/lib/i18n/server";
+import { DISCORD_URL } from "@/lib/links";
 import { staff, flagUrl, type StaffMember } from "@/lib/data";
+import { cn } from "@/lib/utils";
 
 const ROLE_ORDER = ["Host", "Mappooler", "Playtester", "Referee", "Streamer", "Commentator", "GFX / Designer", "Developer"];
+const rank = (r: string) => (ROLE_ORDER.indexOf(r) + 1 || 99);
 
-function Card({ s }: { s: StaffMember }) {
-  return (
-    <div className="flex h-16 w-full items-center gap-3 border border-line bg-coal pr-3 transition hover:border-balkan sm:w-56">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={s.avatar} alt="" className="size-16 object-cover" />
-      <div className="flex min-w-0 flex-col justify-center">
-        <span className="truncate font-black">{s.username}</span>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={flagUrl(s.country)} alt="" className="mt-1 h-2.5 w-4" />
-      </div>
-    </div>
-  );
-}
+export default async function Staff() {
+  const t = await getDict();
+  const people = new Map<string, StaffMember>();
+  for (const p of [...staff.organizational, ...staff.assistive]) {
+    const prev = people.get(p.username);
+    people.set(p.username, prev ? { ...prev, roles: [...new Set([...prev.roles, ...p.roles])] } : p);
+  }
+  const list = [...people.values()]
+    .map((p) => ({ ...p, roles: [...p.roles].sort((a, b) => rank(a) - rank(b)) }))
+    .sort((a, b) => rank(a.roles[0]) - rank(b.roles[0]) || b.roles.length - a.roles.length);
+  const open = ROLE_ORDER.filter((r) => !list.some((p) => p.roles.includes(r)));
 
-export default function Staff() {
-  const people = [...staff.organizational, ...staff.assistive];
   return (
     <Container className="max-w-5xl">
-      <PageTitle>Staff</PageTitle>
-      <div className="space-y-7">
-        {ROLE_ORDER.map((role) => {
-          const inRole = people.filter((p) => p.roles.includes(role));
-          return (
-            <section key={role}>
-              <SubHeading>{role}</SubHeading>
-              {inRole.length ? (
-                <div className="flex flex-wrap gap-3">
-                  {inRole.map((s) => (
-                    <Card key={s.username} s={s} />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-ash">Nobody here yet. If you want this role, ask in the Discord.</p>
-              )}
-            </section>
-          );
-        })}
+      <PageTitle right={<span className="num text-2xl text-balkan">{list.length}</span>}>{t.staff.title}</PageTitle>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {list.map((p) => (
+          <article key={p.username} className="group flex border border-line bg-coal transition-colors hover:border-paper/30">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={p.avatar} alt="" className="size-28 shrink-0 object-cover sm:size-32" />
+            <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 p-4">
+              <div className="flex items-center gap-2.5">
+                <h2 className="heading-slam truncate text-2xl">{p.username}</h2>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={flagUrl(p.country)} alt={p.country} className="h-3 w-auto shrink-0" />
+              </div>
+              <ul className="flex flex-wrap gap-1.5">
+                {p.roles.map((r, i) => (
+                  <li
+                    key={r}
+                    className={cn(
+                      "px-2 py-1 text-[0.65rem] font-black uppercase leading-none tracking-wide",
+                      i === 0 ? "bg-rose text-white" : "border border-line text-paper/85",
+                    )}
+                  >
+                    {t.staff.roles[r] ?? r}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </article>
+        ))}
       </div>
+
+      {open.length > 0 && (
+        <>
+          <SectionHeading>{t.staff.openRoles}</SectionHeading>
+          <div className="flex flex-col gap-4 border border-dashed border-line p-5 sm:flex-row sm:items-center">
+            <div className="flex-1">
+              <ul className="flex flex-wrap gap-1.5">
+                {open.map((r) => (
+                  <li key={r} className="border border-balkan/60 px-2 py-1 text-[0.65rem] font-black uppercase leading-none tracking-wide text-balkan">
+                    {t.staff.roles[r] ?? r}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-sm text-ash">{t.staff.openText}</p>
+            </div>
+            <SlantButton tone="balkan" href={DISCORD_URL}>{t.common.discord}</SlantButton>
+          </div>
+        </>
+      )}
     </Container>
   );
 }

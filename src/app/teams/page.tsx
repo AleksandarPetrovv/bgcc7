@@ -1,29 +1,31 @@
 import { Search, SlidersHorizontal } from "lucide-react";
 import { Container, PageTitle } from "@/components/site/page";
 import { TeamCard } from "@/components/site/team-card";
+import { getDict } from "@/lib/i18n/server";
 import { teams } from "@/lib/data";
 
-export default function Teams() {
+export default async function Teams() {
+  const t = await getDict();
   return (
     <Container>
       <PageTitle
         right={
           <>
-            <button className="flex items-center gap-2 text-[0.65rem] font-black uppercase text-paper">
-              Filters <SlidersHorizontal className="size-5 text-rose-hi" />
+            <button type="button" className="flex items-center gap-2 text-[0.7rem] font-black uppercase text-paper">
+              {t.common.filters} <SlidersHorizontal className="size-5 text-rose-hi" />
             </button>
-            <div className="flex items-center gap-2 border border-line px-3">
+            <label className="flex items-center gap-2 border border-line px-3">
               <Search className="size-4 text-ash" />
-              <input type="search" aria-label="Search players and teams" placeholder="Search for a player or team" className="h-10 w-56 bg-transparent text-sm outline-none placeholder:text-ash" />
-            </div>
+              <input type="search" aria-label={t.common.searchLabel} placeholder={t.common.search} className="h-10 w-56 bg-transparent text-sm outline-none placeholder:text-ash" />
+            </label>
           </>
         }
       >
-        Team list
+        {t.teams.title}
       </PageTitle>
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {teams.map((t) => (
-          <TeamCard key={t.id} team={t} />
+        {teams.map((team) => (
+          <TeamCard key={team.id} team={team} />
         ))}
       </div>
     </Container>

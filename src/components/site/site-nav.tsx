@@ -4,35 +4,37 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { SpeedMark, StitchRule, Wordmark } from "./graphics";
+import { SpeedMark, Wordmark } from "./graphics";
+import { useDict } from "./lang";
 import { cn } from "@/lib/utils";
 
-export const NAV = [
-  { href: "/", label: "Home" },
-  { href: "/info", label: "Info" },
-  { href: "/qualifiers", label: "Qualifiers" },
-  { href: "/teams", label: "Teams" },
-  { href: "/schedule", label: "Schedule" },
-  { href: "/mappool", label: "Mappool" },
-  { href: "/pickems", label: "Pick'ems" },
-  { href: "/stats", label: "Stats" },
-  { href: "/streams", label: "Streams" },
-  { href: "/staff", label: "Staff" },
-];
+const NAV = [
+  { href: "/", key: "home" },
+  { href: "/info", key: "info" },
+  { href: "/qualifiers", key: "qualifiers" },
+  { href: "/teams", key: "teams" },
+  { href: "/schedule", key: "schedule" },
+  { href: "/mappool", key: "mappool" },
+  { href: "/pickems", key: "pickems" },
+  { href: "/stats", key: "stats" },
+  { href: "/streams", key: "streams" },
+  { href: "/staff", key: "staff" },
+] as const;
 
 const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 
 export function SiteNav() {
   const path = usePathname();
+  const t = useDict();
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-line bg-ink/90 backdrop-blur">
       <div className="flex h-16 items-center gap-6 pr-4 lg:h-[72px] lg:pr-6">
-        <Link href="/" className="group flex h-full items-center gap-1 pl-0" aria-label="BGCC7 home">
+        <Link href="/" className="group flex h-full items-center gap-1 pl-0" aria-label={t.nav.homeLabel}>
           <SpeedMark className="h-8 w-24 transition-transform duration-300 group-hover:translate-x-1 lg:h-10 lg:w-28" />
           <Wordmark size="md" className="text-paper" />
         </Link>
 
-        <nav className="ml-auto hidden h-full items-stretch xl:flex" aria-label="Main">
+        <nav className="ml-auto hidden h-full items-stretch xl:flex" aria-label={t.nav.main}>
           {NAV.map((n) => {
             const active = isActive(path, n.href);
             return (
@@ -45,8 +47,8 @@ export function SiteNav() {
                   active ? "text-paper" : "text-paper/60 hover:text-paper",
                 )}
               >
-                {n.label}
-                {active && <StitchRule tone="balkan" className="absolute inset-x-2.5 bottom-3 2xl:inset-x-4" />}
+                {t.nav[n.key]}
+                {active && <span className="absolute inset-x-2.5 bottom-0 h-0.5 bg-balkan 2xl:inset-x-4" aria-hidden />}
               </Link>
             );
           })}
@@ -57,22 +59,22 @@ export function SiteNav() {
             href="/register"
             className="hidden -skew-x-12 bg-balkan px-4 py-2 text-[0.8rem] font-black uppercase tracking-wide text-ink transition hover:bg-paper sm:inline-block"
           >
-            <span className="inline-block skew-x-12">Register</span>
+            <span className="inline-block skew-x-12">{t.nav.register}</span>
           </Link>
           <Link href="/admin" className="hidden px-3 py-2 text-[0.8rem] font-extrabold uppercase text-ash hover:text-paper 2xl:inline-block">
-            Admin
+            {t.nav.admin}
           </Link>
-          <button type="button" className="hidden items-center gap-2 whitespace-nowrap border border-line px-3 py-2 text-[0.8rem] font-extrabold text-paper transition hover:border-rose md:flex">
-            osu! LOGIN
+          <button type="button" className="hidden items-center whitespace-nowrap border border-line px-3 py-2 text-[0.8rem] font-extrabold text-paper transition hover:border-rose md:flex">
+            {t.nav.login}
           </button>
           <Sheet>
-            <SheetTrigger className="p-2 text-paper xl:hidden" aria-label="Open menu">
+            <SheetTrigger className="p-2 text-paper xl:hidden" aria-label={t.nav.openMenu}>
               <Menu className="size-6" />
             </SheetTrigger>
             <SheetContent side="right" className="w-full max-w-sm border-line bg-ink p-0">
-              <SheetTitle className="sr-only">Menu</SheetTitle>
+              <SheetTitle className="sr-only">{t.nav.menu}</SheetTitle>
               <div className="flex flex-col pt-14">
-                {[...NAV, { href: "/register", label: "Register" }, { href: "/admin", label: "Admin" }].map((n) => (
+                {[...NAV, { href: "/register", key: "register" } as const, { href: "/admin", key: "admin" } as const].map((n) => (
                   <Link
                     key={n.href}
                     href={n.href}
@@ -81,7 +83,7 @@ export function SiteNav() {
                       isActive(path, n.href) ? "bg-rose text-white" : "text-paper hover:bg-slate",
                     )}
                   >
-                    {n.label}
+                    {t.nav[n.key]}
                   </Link>
                 ))}
               </div>

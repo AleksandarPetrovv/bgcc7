@@ -1,40 +1,43 @@
+"use client";
+
 import Link from "next/link";
 import { Link2 } from "lucide-react";
 import { type Match, teamById, fmtNum } from "@/lib/data";
+import { useDict, useLang } from "./lang";
 import { cn } from "@/lib/utils";
 
-function when(dt: string | null) {
-  if (!dt) return { date: "TBD", time: "--:--" };
+function when(dt: string | null, locale: string) {
+  if (!dt) return null;
   const [d, t] = dt.split(" ");
   const [dd, mm, yyyy] = d.split("/").map(Number);
   const date = new Date(yyyy, mm - 1, dd);
-  const label = date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", weekday: "short" }).toUpperCase();
-  return { date: label, time: t };
+  return { date: date.toLocaleDateString(locale, { day: "2-digit", month: "short", weekday: "short" }), time: t };
 }
 
 function Side({ id, name, flip }: { id: string; name: string; flip?: boolean }) {
+  const t = useDict();
   const team = teamById(id);
   return (
     <div className={cn("flex min-w-0 flex-1 items-stretch", flip && "flex-row-reverse")}>
-      <div className="hidden w-28 shrink-0 overflow-hidden bg-ink md:block">
+      <div className="hidden w-24 shrink-0 overflow-hidden bg-ink md:block">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {team && <img src={team.image} alt="" className="size-full object-cover" />}
       </div>
-      <div className={cn("flex min-w-0 flex-1 flex-col justify-center bg-paper px-2.5 py-3 text-ink sm:px-4", flip && "items-end text-right")}>
+      <div className={cn("flex min-w-0 flex-1 flex-col justify-center bg-slate/60 px-2.5 py-3 sm:px-4", flip && "items-end text-right")}>
         {team ? (
-          <Link href={`/teams/${team.id}`} className="block max-w-full truncate text-base font-black leading-tight hover:text-rose-hi sm:text-xl lg:text-2xl">
+          <Link href={`/teams/${team.id}`} className="block max-w-full truncate text-base font-black leading-tight hover:text-rose-hi sm:text-xl">
             {team.name}
           </Link>
         ) : (
-          <span className="text-xl font-black text-ink/35">{name}</span>
+          <span className="text-base font-black text-ash sm:text-xl">{name || t.common.tbd}</span>
         )}
         {team && (
-          <div className="mt-1 hidden gap-3 text-[0.65rem] font-semibold uppercase text-rose-hi sm:flex">
+          <div className="mt-1 hidden gap-4 text-[0.65rem] font-bold uppercase text-ash sm:flex">
             <span>
-              Seed <span className="num text-base text-ink">{team.seed}</span>
+              {t.common.seed} <span className="num text-base text-paper">{team.seed}</span>
             </span>
             <span>
-              Avg rank <span className="num text-base text-ink">{fmtNum(team.avgRank)}</span>
+              {t.common.avgRank} <span className="num text-base text-paper">#{fmtNum(team.avgRank)}</span>
             </span>
           </div>
         )}
@@ -44,33 +47,41 @@ function Side({ id, name, flip }: { id: string; name: string; flip?: boolean }) 
 }
 
 export function MatchRow({ match }: { match: Match }) {
-  const w = when(match.datetime);
+  const t = useDict();
+  const lang = useLang();
+  const w = when(match.datetime, lang === "bg" ? "bg-BG" : "en-GB");
   const played = match.winner !== null;
   return (
-    <div className="flex items-stretch border border-line">
-      <div className="flex w-20 shrink-0 flex-col items-center justify-center px-1 py-3 text-center sm:w-36">
-        <span className="text-xs font-black text-rose-hi">{match.id}</span>
-        <span className="num text-sm text-paper/80">{w.date}</span>
-        <span className="num text-2xl leading-none sm:text-4xl">{w.time}</span>
-        <span className="text-[0.6rem] font-black text-rose-hi">EET</span>
+    <div className="flex items-stretch border border-line bg-coal">
+      <div className="flex w-20 shrink-0 flex-col items-center justify-center px-1 py-3 text-center sm:w-32">
+        <span className="num text-sm uppercase text-paper/80">{w?.date ?? t.common.tbd}</span>
+        <span className="num text-2xl leading-none sm:text-4xl">{w?.time ?? "--:--"}</span>
+        <span className="text-[0.6rem] font-black text-rose-hi">{t.common.eet}</span>
       </div>
       <Side id={match.team1.id} name={match.team1.name} />
-      <div className="flex w-11 shrink-0 flex-col items-center justify-between bg-ink py-3 text-paper sm:w-14">
-        <span className="heading-slam text-lg text-rose-hi sm:text-2xl">VS</span>
-        <span className="num text-lg sm:text-2xl">{played ? `${match.team1.score}-${match.team2.score}` : ""}</span>
+      <div className="flex w-12 shrink-0 flex-col items-center justify-center gap-1 bg-ink py-3 sm:w-16">
+        {played ? (
+          <span className="num text-xl sm:text-2xl">
+            <span className={cn(match.winner === 1 ? "text-paper" : "text-ash")}>{match.team1.score}</span>
+            <span className="text-ash">-</span>
+            <span className={cn(match.winner === 2 ? "text-paper" : "text-ash")}>{match.team2.score}</span>
+          </span>
+        ) : (
+          <span className="heading-slam text-lg text-rose-hi sm:text-2xl">{t.common.vs}</span>
+        )}
       </div>
       <Side id={match.team2.id} name={match.team2.name} flip />
-      <a
-        href={match.link ?? "#"}
-        target="_blank"
-        rel="noreferrer"
-        aria-label="Match link"
-        className="hidden w-16 shrink-0 items-center justify-center text-rose-hi hover:text-paper sm:flex"
-      >
-        <span className="bg-rose p-1.5 text-white">
-          <Link2 className="size-4" />
-        </span>
-      </a>
+      {match.link && (
+        <a
+          href={match.link}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={t.common.matchLink}
+          className="hidden w-14 shrink-0 items-center justify-center text-ash transition hover:text-paper sm:flex"
+        >
+          <Link2 className="size-5" />
+        </a>
+      )}
     </div>
   );
 }
