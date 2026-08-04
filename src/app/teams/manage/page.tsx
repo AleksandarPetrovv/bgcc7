@@ -14,7 +14,7 @@ export default function Manage() {
             <img src={team.image} alt="" className="size-16 object-cover" />
             <div>
               <div className="heading-slam text-3xl">{team.name}</div>
-              <div className="text-xs font-bold uppercase text-ash">Roster locks when you play your qualifier lobby</div>
+              <div className="text-xs font-bold uppercase text-ash">Your roster locks once you play your qualifier lobby</div>
             </div>
           </div>
           <ul className="divide-y divide-ink/10">
@@ -27,12 +27,12 @@ export default function Manage() {
                 <span className="font-bold">{p.username}</span>
                 {p.isCaptain && <Crown className="size-4 text-[#d4a72c]" />}
                 <span className="num ml-auto text-ink/60">#{fmtNum(p.rank)}</span>
-                {!p.isCaptain && <button className="text-xs font-black uppercase text-rose hover:underline">Remove</button>}
+                {!p.isCaptain && <button className="text-xs font-black uppercase text-rose-deep hover:underline">Remove</button>}
               </li>
             ))}
             <li className="flex items-center gap-3 px-4 py-3 text-ink/50">
               <Mail className="size-5" />
-              <span className="text-sm font-bold">Invite sent to a substitute · waiting for them to accept</span>
+              <span className="text-sm font-bold">Substitute invited, waiting for them to accept</span>
               <button className="ml-auto text-xs font-black uppercase text-ink hover:underline">Cancel invite</button>
             </li>
           </ul>
@@ -50,10 +50,10 @@ export default function Manage() {
             </div>
           </div>
           <div className="border border-line bg-coal p-5">
-            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-rose">
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-rose-hi">
               <Shield className="size-4" /> Reschedule request
             </div>
-            <p className="mt-2 text-sm text-ash">Ask the other captain for a new match time. Requests close Thursday 23:59 EET.</p>
+            <p className="mt-2 text-sm text-ash">Ask the other captain for a new match time. You have until Thursday 23:59 EET.</p>
             <div className="mt-4">
               <SlantButton tone="rose">Request reschedule</SlantButton>
             </div>

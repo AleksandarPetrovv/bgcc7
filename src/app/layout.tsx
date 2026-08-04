@@ -24,8 +24,8 @@ const unbounded = Unbounded({
 });
 
 export const metadata: Metadata = {
-  title: "BGCC7 — Bulgarian Community Cup 7",
-  description: "The seventh Bulgarian osu! community cup. 8 teams, 3v3, one trophy.",
+  title: "BGCC7 · Bulgarian Community Cup 7",
+  description: "The seventh Bulgarian Community Cup, a 3v3 osu! team tournament for players from Bulgaria.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

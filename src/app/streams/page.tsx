@@ -1,6 +1,6 @@
 import { Mic, Radio, Video } from "lucide-react";
-import { Container, PageTitle, Tag } from "@/components/site/page";
-import { Barcode, Shevitsa, SpeedMark, Wordmark } from "@/components/site/graphics";
+import { Container, PageTitle, SubHeading, Tag } from "@/components/site/page";
+import { StitchText, SpeedMark, Wordmark } from "@/components/site/graphics";
 import { bracket, teamById } from "@/lib/data";
 
 const CREW = ["Prahosnika", "Raregendary", "SynchroHD"];
@@ -20,13 +20,13 @@ export default function Streams() {
             <div className="flex items-center gap-2 bg-rose px-3 py-1 text-sm font-black uppercase text-white">
               <Radio className="size-4" /> Stream offline
             </div>
-            <p className="text-sm text-ash">The stream player appears here when a match goes live.</p>
+            <p className="text-sm text-ash">The player shows up here as soon as a match goes live.</p>
           </div>
-          <Barcode value="live" className="absolute bottom-4 right-4 h-8 w-40 text-line" />
+          <StitchText value="OFF AIR" className="absolute bottom-4 right-4 h-5 w-auto text-line" />
         </div>
 
         <div>
-          <div className="mb-3 text-sm font-black uppercase tracking-widest text-ash">Broadcast schedule</div>
+          <SubHeading>Broadcast schedule</SubHeading>
           <div className="space-y-2">
             {upcoming.map((m, i) => {
               const a = teamById(m.team1.id);
@@ -34,11 +34,11 @@ export default function Streams() {
               return (
                 <div key={m.id} className="border border-line bg-coal p-3">
                   <div className="flex items-center justify-between text-xs font-black uppercase">
-                    <span className="text-rose">{m.id}</span>
+                    <span className="text-rose-hi">{m.id}</span>
                     <span className="num text-sm text-paper">{m.datetime}</span>
                   </div>
                   <div className="mt-1 truncate font-black">
-                    {a?.name} <span className="text-rose">vs</span> {b?.name}
+                    {a?.name} <span className="text-rose-hi">vs</span> {b?.name}
                   </div>
                   <div className="mt-2 flex flex-wrap gap-3 text-xs text-ash">
                     <span className="flex items-center gap-1"><Video className="size-3.5" /> {CREW[i % 3]}</span>
@@ -49,7 +49,7 @@ export default function Streams() {
             })}
           </div>
           <div className="mt-4 flex items-center gap-2 text-xs font-bold uppercase text-ash">
-            <Shevitsa size={14} /> Commentary in Bulgarian
+            Commentary in Bulgarian
           </div>
         </div>
       </div>

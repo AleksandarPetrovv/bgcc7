@@ -1,5 +1,5 @@
 import { Check, ClipboardList, Gauge, Layers, ListChecks, Shield, Swords, Users, X } from "lucide-react";
-import { Tag } from "@/components/site/page";
+import { SubHeading, Tag } from "@/components/site/page";
 import { SpeedMark } from "@/components/site/graphics";
 import { signups, teams, fmtNum, flagUrl } from "@/lib/data";
 
@@ -51,7 +51,7 @@ export default function Admin() {
 
         <div className="mt-6 flex overflow-x-auto border border-line">
           {PHASES.map((p, i) => (
-            <div key={p} className={`flex min-w-36 flex-1 items-center gap-2 border-r border-line px-4 py-3 last:border-r-0 ${i === 0 ? "bg-balkan text-white" : i < 0 ? "" : "text-ash"}`}>
+            <div key={p} className={`flex min-w-36 flex-1 items-center gap-2 border-r border-line px-4 py-3 last:border-r-0 ${i === 0 ? "bg-balkan text-ink" : i < 0 ? "" : "text-ash"}`}>
               <span className="num text-xl">{i + 1}</span>
               <span className="text-sm font-black uppercase">{p}</span>
             </div>
@@ -61,7 +61,7 @@ export default function Admin() {
         <div className="mt-6 grid gap-4 sm:grid-cols-4">
           {[
             ["Signups", signups.length, "text-paper"],
-            ["Pending review", 6, "text-rose"],
+            ["Pending review", 6, "text-rose-hi"],
             ["Teams", teams.length, "text-balkan"],
             ["Staff", 5, "text-paper"],
           ].map(([k, v, c]) => (
@@ -74,7 +74,7 @@ export default function Admin() {
 
         <div className="mt-8 grid gap-6 xl:grid-cols-[1.3fr_1fr]">
           <section>
-            <h2 className="mb-3 border-b border-rose pb-1 text-sm font-black uppercase tracking-wide text-rose">Screening queue</h2>
+            <SubHeading>Screening queue</SubHeading>
             <div className="divide-y divide-line border border-line">
               {queue.map((p) => (
                 <div key={p.userId} className="flex items-center gap-3 px-3 py-2">
@@ -85,8 +85,8 @@ export default function Admin() {
                   <span className="font-bold">{p.username}</span>
                   <span className="num text-ash">#{fmtNum(p.rank)}</span>
                   <span className="ml-auto flex gap-1.5">
-                    <button className="flex items-center gap-1 bg-balkan px-2 py-1 text-xs font-black uppercase text-white"><Check className="size-3.5" /> Approve</button>
-                    <button className="flex items-center gap-1 border border-rose px-2 py-1 text-xs font-black uppercase text-rose"><X className="size-3.5" /> Deny</button>
+                    <button className="flex items-center gap-1 bg-balkan px-2 py-1 text-xs font-black uppercase text-ink"><Check className="size-3.5" /> Approve</button>
+                    <button className="flex items-center gap-1 border border-rose px-2 py-1 text-xs font-black uppercase text-rose-hi"><X className="size-3.5" /> Deny</button>
                   </span>
                 </div>
               ))}
@@ -94,7 +94,7 @@ export default function Admin() {
           </section>
 
           <section>
-            <h2 className="mb-3 border-b border-balkan pb-1 text-sm font-black uppercase tracking-wide text-balkan">Role permissions</h2>
+            <SubHeading>Role permissions</SubHeading>
             <div className="overflow-x-auto border border-line">
               <table className="w-full text-sm">
                 <thead>
@@ -109,7 +109,7 @@ export default function Admin() {
                       <td className="px-3 py-2 font-bold">{r.role}</td>
                       {r.perms.map((p, i) => (
                         <td key={i} className="px-2 py-2 text-center">
-                          {p ? <Check className="mx-auto size-4 text-balkan" /> : <span className="text-line">—</span>}
+                          {p ? <Check className="mx-auto size-4 text-balkan" /> : <span className="text-line" aria-label="no access">—</span>}
                         </td>
                       ))}
                     </tr>

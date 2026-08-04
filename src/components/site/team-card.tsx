@@ -2,12 +2,11 @@ import Link from "next/link";
 import { Crown } from "lucide-react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { type Team, fmtNum, flagUrl } from "@/lib/data";
-import { Tag } from "./page";
 
 export function Roster({ team }: { team: Team }) {
   return (
     <div className="w-64">
-      <div className="heading-slam mb-2 border-b border-rose pb-1 text-lg">{team.name}</div>
+      <div className="heading-slam mb-2 text-lg">{team.name}</div>
       <ul className="space-y-1.5">
         {team.players.map((p) => (
           <li key={p.userId} className="flex items-center gap-2 text-sm">
@@ -35,16 +34,20 @@ export function TeamCard({ team }: { team: Team }) {
             <div className="relative h-32 overflow-hidden bg-ink">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={team.image} alt="" className="size-full object-cover transition duration-500 group-hover:scale-105" />
-              <span className="num absolute left-0 top-0 bg-ink px-2 py-0.5 text-sm text-paper">SEED {team.seed}</span>
+              <span className="num absolute bottom-0 left-0 flex size-10 items-center justify-center bg-ink text-2xl text-paper" aria-label={`Seed ${team.seed}`}>{team.seed}</span>
             </div>
-            <div className="border-t-2 border-rose px-3.5 pb-2 pt-1.5">
+            <div className="px-3.5 pb-3 pt-2">
               <div className="truncate text-xl font-black leading-tight">{team.name}</div>
-              <div className="mt-0.5 flex items-center gap-2">
-                <Tag>Avg rank</Tag>
-                <span className="num text-2xl leading-none">{fmtNum(team.avgRank)}</span>
-                <Tag tone="balkan" className="ml-auto">Avg pp</Tag>
-                <span className="num text-2xl leading-none">{fmtNum(team.avgPp)}</span>
-              </div>
+              <dl className="mt-1.5 flex gap-5 text-[0.65rem] font-bold uppercase text-ink/70">
+                <div>
+                  <dt>Avg rank</dt>
+                  <dd className="num text-xl leading-none text-ink">#{fmtNum(team.avgRank)}</dd>
+                </div>
+                <div>
+                  <dt>Avg pp</dt>
+                  <dd className="num text-xl leading-none text-ink">{fmtNum(team.avgPp)}</dd>
+                </div>
+              </dl>
             </div>
           </Link>
         }

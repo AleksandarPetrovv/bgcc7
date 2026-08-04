@@ -20,7 +20,7 @@ export default function Stats() {
       <PageTitle accent="Qualifiers">Stats</PageTitle>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {HIGHLIGHTS.map((h, i) => (
-          <div key={h.k} className={i === 0 ? "bg-rose p-5 text-white" : i === 1 ? "bg-balkan p-5 text-white" : "bg-paper p-5 text-ink"}>
+          <div key={h.k} className={i === 0 ? "bg-rose p-5 text-white" : i === 1 ? "bg-balkan p-5 text-ink" : "bg-paper p-5 text-ink"}>
             <div className="text-[0.65rem] font-black uppercase tracking-widest opacity-80">{h.k}</div>
             <div className="num mt-1 text-5xl leading-none">{h.v}</div>
             <div className="mt-2 text-sm font-bold">{h.who}</div>
@@ -34,7 +34,7 @@ export default function Stats() {
         <MapDifficultyChart />
       </div>
 
-      <SectionHeading tone="balkan">Map leaders</SectionHeading>
+      <SectionHeading>Map leaders</SectionHeading>
       <div className="grid gap-3 md:grid-cols-2">
         {qualifiers.maps.map((m) => {
           const top = qualifiers.players

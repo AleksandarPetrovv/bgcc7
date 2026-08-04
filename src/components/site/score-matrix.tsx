@@ -125,7 +125,7 @@ function ScoreCard({ x, y, map, perf, player }: NonNullable<Hover>) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={map.cover} alt="" className="absolute inset-0 size-full object-cover opacity-50" />
         <div className="relative flex h-full flex-col justify-end bg-gradient-to-t from-ink to-transparent px-3 pb-1.5">
-          <span className="text-[0.65rem] font-black uppercase text-rose">
+          <span className="text-[0.65rem] font-black uppercase text-rose-hi">
             {map.slot} · {player.username}
           </span>
           <span className="truncate text-sm font-black">{map.title}</span>
@@ -136,7 +136,7 @@ function ScoreCard({ x, y, map, perf, player }: NonNullable<Hover>) {
           ["Score", fmtNum(perf.score), "text-balkan"],
           ["Accuracy", `${perf.acc.toFixed(2)}%`, "text-paper"],
           ["Percentile", `${(perf.percentile * 100).toFixed(1)}%`, "text-paper"],
-          ["Map place", `#${perf.placement}`, "text-rose"],
+          ["Map place", `#${perf.placement}`, "text-rose-hi"],
           ["Mods", perf.mods, "text-paper"],
           ["Grade", perf.rank, "text-paper"],
         ].map(([k, v, c]) => (

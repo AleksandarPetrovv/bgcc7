@@ -20,7 +20,7 @@ export default function Vods() {
                 <div className="absolute inset-0 flex items-center justify-center gap-4">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={a?.image} alt="" className="size-16 border-2 border-paper object-cover" />
-                  <span className="heading-slam text-3xl text-rose">VS</span>
+                  <span className="heading-slam text-3xl text-rose-hi">VS</span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={b?.image} alt="" className="size-16 border-2 border-paper object-cover" />
                 </div>
@@ -29,7 +29,7 @@ export default function Vods() {
                 </span>
                 <span className="num absolute bottom-2 right-2 bg-ink px-1.5 text-sm">1:{String(12 + i * 7).padStart(2, "0")}:40</span>
               </div>
-              <div className="mt-2 text-xs font-black uppercase text-rose">{m.round}</div>
+              <div className="mt-2 text-xs font-black uppercase text-rose-hi">{m.round}</div>
               <div className="truncate font-black">
                 {a?.name} {m.team1.score}–{m.team2.score} {b?.name}
               </div>

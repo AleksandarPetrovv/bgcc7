@@ -115,7 +115,7 @@ export function BracketView() {
           </div>
         ))}
         <div className="heading-slam absolute text-2xl text-[#e8c547]" style={{ left: 0, top: LB - 90 }}>
-          <span className="text-rose">Losers</span> bracket
+          <span className="text-rose-hi">Losers</span> bracket
         </div>
 
         {Object.entries(POS).map(([id, [c, y]]) => {

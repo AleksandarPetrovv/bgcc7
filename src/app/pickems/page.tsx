@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Lock } from "lucide-react";
-import { Container, PageTitle, SlantButton, Tag } from "@/components/site/page";
+import { Check, Lock } from "lucide-react";
+import { Container, PageTitle, SectionHeading, SlantButton, Tag } from "@/components/site/page";
 import { bracket, pickemLeaderboard, teamById, type Match } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
@@ -27,15 +27,15 @@ function PickCard({ m, pick, onPick }: { m: Match; pick?: string; onPick: (id: s
             disabled={!t}
             onClick={() => t && onPick(s.id)}
             className={cn(
-              "flex h-8 w-full items-center gap-2 border-l-[3px] px-2 text-left text-sm transition",
-              picked ? "border-l-balkan bg-balkan/20 font-black text-balkan" : "border-l-transparent font-bold hover:bg-slate",
+              "flex h-9 w-full items-center gap-2 px-2 text-left text-sm transition",
+              picked ? "bg-balkan/20 font-black text-balkan" : "font-bold hover:bg-slate",
               !t && "cursor-default italic text-ash",
             )}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {t && <img src={t.image} alt="" className="size-5 object-cover" />}
             <span className="truncate">{t?.name ?? "TBD"}</span>
-            {picked && <span className="ml-auto bg-balkan px-1 text-[0.55rem] font-black text-white">PICK</span>}
+            {picked && <Check className="ml-auto size-4 shrink-0" aria-label="Your pick" />}
           </button>
         );
       })}
@@ -55,10 +55,10 @@ export default function Pickems() {
       </PageTitle>
 
       <div className="mb-8 grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <div className="grid grid-cols-5 border border-line">
+        <div className="grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-5">
           {POINTS.map(([k, v]) => (
-            <div key={k} className="border-r border-line p-3 last:border-r-0">
-              <div className="text-[0.6rem] font-black uppercase tracking-wide text-ash">{k}</div>
+            <div key={k} className="bg-ink p-3 last:col-span-2 sm:last:col-span-1">
+              <div className="min-h-[2lh] text-[0.65rem] font-black uppercase leading-tight tracking-wide text-ash">{k}</div>
               <div className="num text-3xl text-balkan">
                 {v}
                 <span className="text-base text-ash"> pts</span>
@@ -68,7 +68,7 @@ export default function Pickems() {
         </div>
         <div className="flex items-center gap-4 bg-paper p-4 text-ink">
           <div>
-            <div className="text-[0.65rem] font-black uppercase text-rose">Your picks</div>
+            <div className="text-[0.65rem] font-black uppercase text-rose-deep">Your picks</div>
             <div className="num text-3xl">{made} / 15</div>
           </div>
           <SlantButton tone="balkan" className="ml-auto">Save picks</SlantButton>
@@ -90,10 +90,10 @@ export default function Pickems() {
         </div>
       </div>
 
-      <h2 className="heading-slam mb-4 mt-12 border-b border-rose pb-2 text-4xl">Leaderboard</h2>
+      <div className="mt-14"><SectionHeading>Leaderboard</SectionHeading></div>
       <div className="overflow-hidden border border-line">
         {pickemLeaderboard.map((e, i) => (
-          <div key={e.userId} className="grid grid-cols-[64px_1fr_110px_90px_150px] items-center border-b border-line px-4 py-2.5 last:border-b-0">
+          <div key={e.userId} className="grid grid-cols-[48px_1fr_auto] items-center gap-x-3 sm:grid-cols-[64px_1fr_110px_90px_150px] border-b border-line px-4 py-2.5 last:border-b-0">
             <span className={cn("num text-2xl", i === 0 ? "text-[#e8c547]" : i === 1 ? "text-[#c9ccd1]" : i === 2 ? "text-[#c98a4b]" : "text-ash")}>#{i + 1}</span>
             <span className="flex items-center gap-3 font-bold">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -101,9 +101,9 @@ export default function Pickems() {
               {e.username}
             </span>
             <span className="num text-right text-2xl text-balkan">{e.score} pts</span>
-            <span className="num text-right text-lg text-paper/70">{e.correct} ✓</span>
-            <span className="text-right">
-              <button className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-black uppercase text-rose hover:text-paper">
+            <span className="num hidden items-center justify-end gap-1 text-lg text-paper/70 sm:flex">{e.correct} <Check className="size-4" aria-label="correct" /></span>
+            <span className="hidden text-right sm:block">
+              <button className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-black uppercase text-rose-hi hover:text-paper">
                 <Lock className="size-3.5" /> View bracket
               </button>
             </span>

@@ -10,11 +10,11 @@ export default function Teams() {
         right={
           <>
             <button className="flex items-center gap-2 text-[0.65rem] font-black uppercase text-paper">
-              Filters <SlidersHorizontal className="size-5 text-rose" />
+              Filters <SlidersHorizontal className="size-5 text-rose-hi" />
             </button>
             <div className="flex items-center gap-2 border border-line px-3">
               <Search className="size-4 text-ash" />
-              <input placeholder="Search for a player or team" className="h-10 w-56 bg-transparent text-sm outline-none placeholder:text-ash" />
+              <input type="search" aria-label="Search players and teams" placeholder="Search for a player or team" className="h-10 w-56 bg-transparent text-sm outline-none placeholder:text-ash" />
             </div>
           </>
         }

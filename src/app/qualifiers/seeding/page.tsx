@@ -21,7 +21,7 @@ export default function Seeding() {
               <span className="num px-3 text-ink/60">avg #{fmtNum(t.avgRank)}</span>
             </div>
           ))}
-          <p className="pt-2 text-xs text-ash">Seeds 1–4 (green) start against seeds 5–8 in the upper bracket.</p>
+          <p className="pt-2 text-xs text-ash">Seeds 1 to 4 (in green) open the upper bracket against seeds 5 to 8.</p>
         </div>
       </div>
     </Container>

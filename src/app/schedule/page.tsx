@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Search, Sheet } from "lucide-react";
-import { Container, PageTitle, SlantButton, StageSelect } from "@/components/site/page";
+import { Container, PageTitle, SlantButton, StageTabs } from "@/components/site/page";
 import { MatchRow } from "@/components/site/match-row";
 import { bracket } from "@/lib/data";
 
@@ -19,16 +19,11 @@ export default function Schedule() {
   return (
     <Container>
       <PageTitle accent={r.label}>Schedule</PageTitle>
-      <div className="-mt-4 mb-8 flex flex-wrap items-center gap-5 border-b border-rose pb-4">
-        <StageSelect
-          label="Stage select"
-          value={r.title}
-          onPrev={() => setI((i + ROUNDS.length - 1) % ROUNDS.length)}
-          onNext={() => setI((i + 1) % ROUNDS.length)}
-        />
+      <div className="-mt-4 mb-8 flex flex-wrap items-center gap-4">
+        <StageTabs options={ROUNDS.map((x) => x.title)} index={i} onChange={setI} />
         <div className="flex items-center gap-2 border border-line px-3">
           <Search className="size-4 text-ash" />
-          <input placeholder="Search for a player or team" className="h-10 w-56 bg-transparent text-sm outline-none placeholder:text-ash" />
+          <input type="search" aria-label="Search players and teams" placeholder="Search for a player or team" className="h-10 w-56 bg-transparent text-sm outline-none placeholder:text-ash" />
         </div>
         <SlantButton tone="rose" className="px-3 py-1.5">
           <Sheet className="size-4" /> Sheets

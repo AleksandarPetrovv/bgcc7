@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { SpeedMark, Wordmark, Rhombus } from "./graphics";
+import { SpeedMark, StitchRule, Wordmark } from "./graphics";
 import { cn } from "@/lib/utils";
 
 export const NAV = [
@@ -39,13 +39,14 @@ export function SiteNav() {
               <Link
                 key={n.href}
                 href={n.href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
                   "relative flex items-center px-2.5 text-[0.78rem] font-extrabold uppercase tracking-wide transition-colors 2xl:px-4",
-                  active ? "text-paper" : "text-rose hover:text-paper",
+                  active ? "text-paper" : "text-paper/60 hover:text-paper",
                 )}
               >
                 {n.label}
-                {active && <Rhombus className="absolute bottom-3 left-1/2 -translate-x-1/2 text-balkan" />}
+                {active && <StitchRule tone="balkan" className="absolute inset-x-2.5 bottom-3 2xl:inset-x-4" />}
               </Link>
             );
           })}
@@ -54,15 +55,14 @@ export function SiteNav() {
         <div className="ml-auto flex items-center gap-2 xl:ml-4">
           <Link
             href="/register"
-            className="hidden -skew-x-12 bg-balkan px-4 py-2 text-[0.8rem] font-black uppercase tracking-wide text-white transition hover:bg-balkan-deep sm:inline-block"
+            className="hidden -skew-x-12 bg-balkan px-4 py-2 text-[0.8rem] font-black uppercase tracking-wide text-ink transition hover:bg-paper sm:inline-block"
           >
             <span className="inline-block skew-x-12">Register</span>
           </Link>
           <Link href="/admin" className="hidden px-3 py-2 text-[0.8rem] font-extrabold uppercase text-ash hover:text-paper 2xl:inline-block">
             Admin
           </Link>
-          <button className="hidden items-center gap-2 whitespace-nowrap border border-line px-3 py-2 text-[0.8rem] font-extrabold text-paper transition hover:border-rose md:flex">
-            <span className="inline-block size-2 rounded-full bg-[#ff66aa]" />
+          <button type="button" className="hidden items-center gap-2 whitespace-nowrap border border-line px-3 py-2 text-[0.8rem] font-extrabold text-paper transition hover:border-rose md:flex">
             osu! LOGIN
           </button>
           <Sheet>

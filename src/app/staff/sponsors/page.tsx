@@ -1,5 +1,4 @@
 import { Container, PageTitle, SlantButton } from "@/components/site/page";
-import { Shevitsa } from "@/components/site/graphics";
 import { staff } from "@/lib/data";
 
 export default function Sponsors() {
@@ -15,14 +14,13 @@ export default function Sponsors() {
               <div className="font-display text-2xl font-bold lowercase">{s.username}</div>
               <div className="text-sm text-ash">Prize pool donor</div>
             </div>
-            <span className={`num ml-auto text-4xl ${i % 2 ? "text-balkan" : "text-rose"}`}>#{i + 1}</span>
+            <span className={`num ml-auto text-4xl ${i % 2 ? "text-balkan" : "text-rose-hi"}`}>#{i + 1}</span>
           </div>
         ))}
       </div>
       <div className="mt-10 flex flex-col items-center gap-4 bg-paper p-8 text-center text-ink">
-        <Shevitsa size={32} />
         <div className="heading-slam text-3xl">Back the cup</div>
-        <p className="max-w-md text-sm text-ink/70">Every donation goes straight into the prize pool. Donors are listed here and thanked on stream.</p>
+        <p className="max-w-md text-sm text-ink/75">Everything you donate goes into the prize pool, and we thank every donor here and on stream.</p>
         <SlantButton tone="rose">Donate to the prize pool</SlantButton>
       </div>
     </Container>

@@ -1,4 +1,4 @@
-import { Container, PageTitle, Tag } from "@/components/site/page";
+import { Container, PageTitle, SectionHeading, Tag } from "@/components/site/page";
 import { qualifierLobbies } from "@/lib/data";
 
 export default function Lobbies() {
@@ -10,37 +10,35 @@ export default function Lobbies() {
   return (
     <Container className="max-w-5xl">
       <PageTitle right={<Tag tone="balkan" className="text-xs">Lobby booking opens 23 Nov</Tag>}>Qualifiers</PageTitle>
-      <div className="space-y-5">
-        {[...byDay.entries()].map(([day, lobbies]) => (
-          <section key={day}>
-            <h2 className="heading-slam bg-rose px-5 py-2.5 text-3xl text-ink">{day}</h2>
-            <div className="mt-4 space-y-3">
-              {lobbies.map((l) => (
-                <div key={l.name} className="group grid grid-cols-[88px_1fr] items-stretch sm:grid-cols-[110px_220px_1fr]">
-                  <div className="flex flex-col items-center justify-center">
-                    <span className="num text-4xl leading-none">{l.slot.split(" · ")[1]}</span>
-                    <span className="text-[0.6rem] font-black uppercase text-rose">EET</span>
+      {[...byDay.entries()].map(([day, lobbies]) => (
+        <section key={day} className="mt-12 first-of-type:mt-0">
+          <SectionHeading>{day}</SectionHeading>
+          <div className="grid gap-4 md:grid-cols-2">
+            {lobbies.map((l) => (
+              <article key={l.name} className="group relative flex bg-paper text-ink">
+                <div className="flex w-24 shrink-0 flex-col items-center justify-center bg-rose py-4 text-white sm:w-28">
+                  <span className="num text-4xl leading-none">{l.slot.split(" · ")[1]}</span>
+                  <span className="mt-1 text-[0.65rem] font-black uppercase tracking-widest">EET</span>
+                </div>
+                <span className="w-0 border-l-2 border-dashed border-ink/25" aria-hidden />
+                <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 px-4 py-3">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <h3 className="heading-slam text-2xl">{l.name}</h3>
+                    <span className="num text-sm text-ink/70">{l.players.length} players</span>
                   </div>
-                  <div className="hidden overflow-hidden sm:flex">
-                    {l.players.slice(0, 4).map((p) => (
+                  <div className="flex -space-x-2">
+                    {l.players.slice(0, 7).map((p) => (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img key={p.id} src={p.avatar} alt="" className="h-[76px] w-[55px] object-cover grayscale transition group-hover:grayscale-0" />
+                      <img key={p.id} src={p.avatar} alt="" className="size-8 border-2 border-paper object-cover grayscale transition group-hover:grayscale-0" />
                     ))}
                   </div>
-                  <div className="flex items-center gap-5 bg-gradient-to-r from-rose via-rose/60 to-transparent px-6 py-3 sm:max-w-xl">
-                    <div>
-                      <div className="text-2xl font-black">{l.name}</div>
-                      <div className="text-xs font-bold uppercase text-white/80">
-                        Referee · {l.referee} &nbsp;/&nbsp; {l.players.length} players
-                      </div>
-                    </div>
-                  </div>
+                  <div className="text-xs font-bold uppercase text-ink/70">Referee: {l.referee}</div>
                 </div>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ))}
     </Container>
   );
 }

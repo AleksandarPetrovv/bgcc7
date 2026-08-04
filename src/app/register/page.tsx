@@ -1,14 +1,14 @@
 import { Check, ImagePlus, UserPlus } from "lucide-react";
 import { Container, PageTitle, SlantButton, Tag } from "@/components/site/page";
-import { Barcode, Shevitsa } from "@/components/site/graphics";
+import { StitchText } from "@/components/site/graphics";
 import { Input } from "@/components/ui/input";
 import { signups, flagUrl, fmtNum } from "@/lib/data";
 
 const STEPS = [
-  { t: "Log in with osu!", d: "The captain signs in. We read your rank and country from osu!." },
-  { t: "Name your team", d: "Pick a name and upload a banner. Both can change until qualifiers." },
-  { t: "Invite teammates", d: "Send invites to 2–3 players. They accept from their own account." },
-  { t: "Book a qualifier lobby", d: "Choose a lobby time on 28 or 29 Nov." },
+  { t: "Log in with osu!", d: "The captain signs in, and we pull your rank and country straight from osu!." },
+  { t: "Name your team", d: "Pick a name and upload a banner. You can change either one until qualifiers start." },
+  { t: "Invite teammates", d: "Invite two or three players, and they accept from their own accounts." },
+  { t: "Book a qualifier lobby", d: "Choose a lobby slot on 28 or 29 November." },
 ];
 
 export default function Register() {
@@ -33,31 +33,31 @@ export default function Register() {
             </li>
           ))}
           <li className="!mt-10 border border-rose/40 bg-rose/10 p-4 text-sm">
-            <div className="mb-1 font-black uppercase text-rose">Who can play</div>
-            Players whose osu! country is Bulgaria, any rank. Restricted accounts and players with an active tournament ban can&apos;t register.
+            <div className="mb-1 font-black uppercase text-rose-hi">Who can play</div>
+            Anyone whose osu! country is Bulgaria, at any rank. Restricted accounts and players with an active tournament ban can&apos;t sign up.
           </li>
         </ol>
 
         <div className="bg-paper text-ink">
           <div className="flex items-center justify-between bg-ink px-5 py-3 text-paper">
             <span className="text-sm font-black uppercase tracking-wide">Your team</span>
-            <Barcode value="team-draft" className="h-5 w-32 text-line" />
+            <StitchText value="DRAFT" className="h-4 w-auto text-ash" />
           </div>
           <div className="space-y-6 p-5 sm:p-7">
             <label className="block">
-              <span className="text-xs font-black uppercase tracking-wide text-rose">Team name</span>
+              <span className="text-xs font-black uppercase tracking-wide text-rose-deep">Team name</span>
               <Input defaultValue="Rakia Rush" className="mt-1.5 h-11 rounded-none border-ink/20 bg-white text-lg font-bold text-ink" />
             </label>
 
             <div>
-              <span className="text-xs font-black uppercase tracking-wide text-rose">Banner</span>
+              <span className="text-xs font-black uppercase tracking-wide text-rose-deep">Banner</span>
               <div className="mt-1.5 flex h-28 items-center justify-center gap-3 border-2 border-dashed border-ink/25 text-sm font-bold text-ink/50">
                 <ImagePlus className="size-5" /> Drop a 1200×300 image or click to upload
               </div>
             </div>
 
             <div>
-              <span className="text-xs font-black uppercase tracking-wide text-rose">Roster</span>
+              <span className="text-xs font-black uppercase tracking-wide text-rose-deep">Roster</span>
               <div className="mt-2 space-y-2">
                 {[{ p: cap, state: "Captain" }, ...rest.map((p) => ({ p, state: "Invited" }))].map(({ p, state }) => (
                   <div key={p.userId} className="flex items-center gap-3 border border-ink/10 bg-white p-2 pr-3">
@@ -78,8 +78,7 @@ export default function Register() {
 
             <div className="flex flex-wrap items-center gap-3 border-t border-ink/10 pt-5">
               <SlantButton tone="balkan">Save team</SlantButton>
-              <span className="text-sm text-ink/60">2 of 3 players still need to accept.</span>
-              <Shevitsa size={20} className="ml-auto" />
+              <span className="text-sm text-ink/70">Waiting on 2 of your 3 players to accept.</span>
             </div>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Download, Play, Sheet, Star } from "lucide-react";
-import { Container, PageTitle, SlantButton, StageSelect } from "@/components/site/page";
+import { Container, PageTitle, SlantButton, StageTabs } from "@/components/site/page";
 import { MODS, stages, fmtLen } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +17,7 @@ export default function Mappool() {
       <PageTitle
         right={
           <>
-            <StageSelect label="Stage select" value={stage.title} onPrev={() => setI((i + stages.length - 1) % stages.length)} onNext={() => setI((i + 1) % stages.length)} />
+            <StageTabs options={stages.map((s) => s.title.replace("-", " "))} index={i} onChange={setI} />
             <SlantButton tone="rose" className="px-3 py-1.5">
               <Sheet className="size-4" /> Sheets
             </SlantButton>

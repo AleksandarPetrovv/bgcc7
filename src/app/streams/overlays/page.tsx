@@ -1,5 +1,5 @@
 import { Container, PageTitle, Tag } from "@/components/site/page";
-import { Barcode, Shevitsa, SpeedLines, SpeedMark, Tricolor, Wordmark } from "@/components/site/graphics";
+import { StitchText, SpeedLines, SpeedMark, Tricolor, Wordmark } from "@/components/site/graphics";
 import { stages, teams, MODS } from "@/lib/data";
 
 function Frame({ title, note, children }: { title: string; note: string; children: React.ReactNode }) {
@@ -46,7 +46,7 @@ export default function Overlays() {
           </div>
           <div className="num absolute inset-x-0 top-[16%] flex justify-between px-6 pt-2 text-3xl">
             <span>842,113</span>
-            <span className="text-rose">+ 64,020</span>
+            <span className="text-rose-hi">+ 64,020</span>
             <span>778,093</span>
           </div>
           <div className="absolute inset-x-[12%] top-[34%] bottom-[18%] border border-dashed border-line" />
@@ -54,7 +54,6 @@ export default function Overlays() {
             <span className="heading-slam text-2xl" style={{ color: MODS.HardRock.color }}>HR1</span>
             <span className="truncate font-black">{map.title} [{map.version}]</span>
             <span className="num ml-auto text-lg">{map.sr.toFixed(2)}★ · {Math.round(map.bpm)} BPM</span>
-            <Shevitsa size={18} />
           </div>
         </Frame>
 
@@ -82,10 +81,10 @@ export default function Overlays() {
               <SpeedMark className="h-14 w-40" />
               <Wordmark size="md" className="text-6xl" />
             </div>
-            <span className="heading-slam text-3xl text-rose">Starting soon</span>
+            <span className="heading-slam text-3xl text-rose-hi">Starting soon</span>
             <span className="num text-5xl">04:59</span>
           </div>
-          <Barcode value="soon" className="absolute bottom-4 left-4 h-8 w-44 text-line" />
+          <StitchText value="BGCC 07" colors={["#e0242f", "#0fa06a"]} className="absolute bottom-4 left-4 h-5 w-auto opacity-60" />
         </Frame>
 
         <Frame title="Mappool showcase" note="Stage reveal">

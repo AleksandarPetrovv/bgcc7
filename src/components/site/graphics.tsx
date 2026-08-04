@@ -23,47 +23,104 @@ export function Wordmark({ className, size = "md" }: { className?: string; size?
   );
 }
 
-export function Barcode({ value, className }: { value: string; className?: string }) {
-  const state = { seed: [...value].reduce((a, c) => a * 31 + c.charCodeAt(0), 7) >>> 0 };
-  const rnd = () => {
-    state.seed = (state.seed * 1664525 + 1013904223) >>> 0;
-    return state.seed / 4294967296;
-  };
-  const bars: { x: number; w: number }[] = [];
-  let x = 0;
-  while (x < 300) {
-    const w = rnd() < 0.3 ? 5 : rnd() < 0.6 ? 2.5 : 1.2;
-    bars.push({ x, w });
-    x += w + (rnd() < 0.5 ? 2 : 4.5);
-  }
-  return (
-    <svg viewBox="0 0 300 44" preserveAspectRatio="none" className={className} aria-hidden>
-      {bars.map((b, i) => (
-        <rect key={i} x={b.x} y={0} width={b.w} height={44} fill="currentColor" />
-      ))}
-    </svg>
-  );
-}
+const GLYPHS: Record<string, string> = {
+  A: "01110 10001 10001 11111 10001 10001 10001",
+  B: "11110 10001 10001 11110 10001 10001 11110",
+  C: "01111 10000 10000 10000 10000 10000 01111",
+  D: "11110 10001 10001 10001 10001 10001 11110",
+  E: "11111 10000 10000 11110 10000 10000 11111",
+  F: "11111 10000 10000 11110 10000 10000 10000",
+  G: "01111 10000 10000 10011 10001 10001 01111",
+  H: "10001 10001 10001 11111 10001 10001 10001",
+  I: "11111 00100 00100 00100 00100 00100 11111",
+  J: "00111 00010 00010 00010 10010 10010 01100",
+  K: "10001 10010 10100 11000 10100 10010 10001",
+  L: "10000 10000 10000 10000 10000 10000 11111",
+  M: "10001 11011 10101 10101 10001 10001 10001",
+  N: "10001 11001 10101 10011 10001 10001 10001",
+  O: "01110 10001 10001 10001 10001 10001 01110",
+  P: "11110 10001 10001 11110 10000 10000 10000",
+  Q: "01110 10001 10001 10001 10101 10010 01101",
+  R: "11110 10001 10001 11110 10100 10010 10001",
+  S: "01111 10000 10000 01110 00001 00001 11110",
+  T: "11111 00100 00100 00100 00100 00100 00100",
+  U: "10001 10001 10001 10001 10001 10001 01110",
+  V: "10001 10001 10001 10001 10001 01010 00100",
+  W: "10001 10001 10001 10101 10101 10101 01010",
+  X: "10001 10001 01010 00100 01010 10001 10001",
+  Y: "10001 10001 01010 00100 00100 00100 00100",
+  Z: "11111 00001 00010 00100 01000 10000 11111",
+  "0": "01110 10001 10011 10101 11001 10001 01110",
+  "1": "00100 01100 00100 00100 00100 00100 01110",
+  "2": "01110 10001 00001 00010 00100 01000 11111",
+  "3": "11110 00001 00001 01110 00001 00001 11110",
+  "4": "00010 00110 01010 10010 11111 00010 00010",
+  "5": "11111 10000 11110 00001 00001 10001 01110",
+  "6": "00110 01000 10000 11110 10001 10001 01110",
+  "7": "11111 00001 00010 00100 01000 01000 01000",
+  "8": "01110 10001 10001 01110 10001 10001 01110",
+  "9": "01110 10001 10001 01111 00001 00010 01100",
+  "-": "00000 00000 00000 01110 00000 00000 00000",
+  "#": "01010 01010 11111 01010 11111 01010 01010",
+  ".": "00000 00000 00000 00000 00000 00000 00100",
+  " ": "00000 00000 00000 00000 00000 00000 00000",
+};
 
-const MOTIF = ["0001000", "0101010", "0012100", "1122211", "0012100", "0101010", "0001000"];
-
-export function Shevitsa({ className, size = 28 }: { className?: string; size?: number }) {
+export function StitchText({
+  value,
+  colors = ["currentColor"],
+  label,
+  className,
+}: {
+  value: string;
+  colors?: string[];
+  label?: string;
+  className?: string;
+}) {
+  const chars = [...value.toUpperCase()].filter((c) => GLYPHS[c]);
+  const width = chars.length * 24 - 4;
   return (
-    <svg viewBox="0 0 28 28" width={size} height={size} className={className} shapeRendering="crispEdges" aria-hidden>
-      {MOTIF.flatMap((row, y) =>
-        [...row].map((c, x) =>
-          c === "0" ? null : <rect key={`${x}-${y}`} x={x * 4} y={y * 4} width={4} height={4} fill={c === "1" ? "#e0242f" : "#0fa06a"} />,
+    <svg
+      viewBox={`-1 -1 ${width + 2} 30`}
+      preserveAspectRatio="xMinYMid meet"
+      className={className}
+      role={label ? "img" : undefined}
+      aria-label={label}
+      aria-hidden={label ? undefined : true}
+    >
+      {chars.flatMap((c, ci) =>
+        GLYPHS[c].split(" ").flatMap((row, y) =>
+          [...row].map((on, x) => {
+            if (on === "0") return null;
+            const px = ci * 24 + x * 4;
+            const py = y * 4;
+            return (
+              <path
+                key={`${ci}-${x}-${y}`}
+                d={`M${px + 0.6} ${py + 0.6}L${px + 3.4} ${py + 3.4}M${px + 3.4} ${py + 0.6}L${px + 0.6} ${py + 3.4}`}
+                stroke={colors[ci % colors.length]}
+                strokeWidth={1.1}
+                strokeLinecap="square"
+              />
+            );
+          }),
         ),
       )}
     </svg>
   );
 }
 
-export function StitchRibbon({ className }: { className?: string }) {
+export function StitchRule({ className, tone = "rose" }: { className?: string; tone?: "rose" | "balkan" | "paper" }) {
+  return <span className={cn("stitch-rule block h-1.5", `stitch-rule-${tone}`, className)} aria-hidden />;
+}
+
+export function TriTick({ className }: { className?: string }) {
   return (
-    <div className={cn("relative h-9 overflow-hidden bg-paper", className)} aria-hidden>
-      <div className="stitch-bg absolute inset-x-0 top-1/2 h-7 -translate-y-1/2" style={{ backgroundSize: "36px 28px", backgroundPosition: "4px 0" }} />
-    </div>
+    <svg viewBox="0 0 30 16" className={cn("h-4 w-[30px] shrink-0", className)} aria-hidden>
+      <polygon points="4,0 10,0 6,16 0,16" fill="#f4f3ee" />
+      <polygon points="14,0 20,0 16,16 10,16" fill="#0fa06a" />
+      <polygon points="24,0 30,0 26,16 20,16" fill="#e0242f" />
+    </svg>
   );
 }
 

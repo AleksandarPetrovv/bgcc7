@@ -20,6 +20,7 @@
   --color-paper: #f4f3ee;
   --color-rose: #e0242f;
   --color-rose-deep: #a8141d;
+  --color-rose-hi: #f24a54;
   --color-balkan: #0fa06a;
   --color-balkan-deep: #0a6e49;
   --color-ash: #8a908b;
@@ -111,9 +112,19 @@
     @apply font-sans;
     color-scheme: dark;
     overflow-x: clip;
+    scrollbar-color: var(--color-line) var(--color-ink);
+    -webkit-tap-highlight-color: transparent;
   }
   body {
     @apply bg-ink text-paper;
+    caret-color: var(--color-rose-hi);
+  }
+  ::selection {
+    background: var(--color-rose);
+    color: #fff;
+  }
+  a {
+    text-underline-offset: 0.2em;
   }
   :focus-visible {
     outline: 2px solid var(--color-balkan);
@@ -136,11 +147,6 @@
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
-  }
-  .stitch-bg {
-    background-image: url("/shevitsa.svg");
-    background-size: 28px 28px;
-    background-repeat: repeat-x;
   }
   .grain {
     position: relative;
@@ -170,13 +176,37 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes stitch-draw {
+  from { clip-path: inset(0 0 100% 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
 .anim-rise {
-  animation: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anim-stitch {
+  animation: stitch-draw 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .anim-rise,
-  .anim-stripe {
+  .anim-stripe,
+  .anim-stitch {
     animation: none !important;
   }
+}
+
+.stitch-rule {
+  background-repeat: repeat-x;
+  background-size: 8px 6px;
+}
+.stitch-rule-rose {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='6'><path d='M1 1l4 4M5 1l-4 4' stroke='%23f24a54' stroke-width='1.3'/></svg>");
+}
+.stitch-rule-balkan {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='6'><path d='M1 1l4 4M5 1l-4 4' stroke='%230fa06a' stroke-width='1.3'/></svg>");
+}
+.stitch-rule-paper {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='6'><path d='M1 1l4 4M5 1l-4 4' stroke='%23f4f3ee' stroke-width='1.3'/></svg>");
 }
