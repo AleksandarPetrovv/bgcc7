@@ -28,8 +28,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       await db.insert(users).values({ osuId: p.id, ...row }).onConflictDoUpdate({ target: users.osuId, set: row });
       return true;
     },
+    jwt({ token, account }) {
+      if (account?.provider === "osu") token.osuId = account.providerAccountId;
+      return token;
+    },
     session({ session, token }) {
-      if (token.sub) session.user.id = token.sub;
+      if (typeof token.osuId === "string") session.user.id = token.osuId;
       return session;
     },
   },
