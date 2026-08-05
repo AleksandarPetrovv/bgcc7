@@ -103,7 +103,7 @@ const en = {
   } as Record<string, string>,
   home: {
     badge: "bulgarian community cup",
-    headline: "[[Bulgaria's]] 3v3 osu! cup is back for a {{seventh}} time.",
+    headline: "{{Bulgaria's}} 3v3 osu! cup is back for a [[seventh]] time.",
     intro: "Any rank can enter, and you sign up on your own before 22 November. Qualifiers are the weekend after, and the top 24 get split into teams of three by seed.",
     registerTeam: "Sign up",
     readRules: "Read the rules",
@@ -123,7 +123,7 @@ const en = {
     offline: "Offline",
     streamNote: "Every match goes out on stream with Bulgarian commentary. The next broadcast is the qualifier showcase on 28 November.",
     streamSchedule: "Stream schedule",
-    sub: "sub",
+    signups: (n: number): string => (n === 1 ? "player signed up" : "players signed up"),
   },
   info: {
     intro:
@@ -438,7 +438,7 @@ const bg: Dict = {
   },
   home: {
     badge: "bulgarian community cup",
-    headline: "[[Българската]] 3v3 osu! купа се завръща за {{седми}} път.",
+    headline: "{{Българската}} 3v3 osu! купа се завръща за [[седми]] път.",
     intro: "Може да участва всеки, независимо от ранга, и се записваш сам до 22 ноември. Квалификациите са следващия уикенд, а първите 24 се разпределят в отбори по трима според номера си.",
     registerTeam: "Запиши се",
     readRules: "Правилата",
@@ -458,7 +458,7 @@ const bg: Dict = {
     offline: "Офлайн",
     streamNote: "Всеки мач се излъчва с коментар на български. Следващото излъчване е шоуто за квалификациите на 28 ноември.",
     streamSchedule: "Програма на стрийма",
-    sub: "резерва",
+    signups: (n: number) => (n === 1 ? "записан играч" : "записани играчи"),
   },
   info: {
     intro:

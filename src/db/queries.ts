@@ -1,5 +1,5 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import { db } from "./index";
 import { pickems, registrations, users } from "./schema";
 import { resolve, score } from "@/lib/pickems";
@@ -50,3 +50,9 @@ export const isRegistered = (osuId: number) =>
     const [row] = await db.select({ osuId: registrations.osuId }).from(registrations).where(eq(registrations.osuId, osuId)).limit(1);
     return !!row;
   }, false);
+
+export const getSignupCount = () =>
+  safe(async () => {
+    const [row] = await db.select({ n: count() }).from(registrations);
+    return row?.n ?? 0;
+  }, 0);
