@@ -17,3 +17,10 @@ export const pickems = pgTable("pickems", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const registrations = pgTable("registrations", {
+  osuId: integer("osu_id")
+    .primaryKey()
+    .references(() => users.osuId, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

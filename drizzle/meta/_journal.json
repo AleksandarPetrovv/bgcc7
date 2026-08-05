@@ -8,6 +8,13 @@
       "when": 1790613261256,
       "tag": "0000_minor_absorbing_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790616540639,
+      "tag": "0001_groovy_norrin_radd",
+      "breakpoints": true
     }
   ]
 }

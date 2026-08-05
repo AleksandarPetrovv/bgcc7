@@ -1,103 +1,76 @@
 "use client";
 
-import { useState } from "react";
-import { Check, ImagePlus, UserPlus } from "lucide-react";
-import { SlantButton, Tag } from "./page";
+import { useState, useTransition } from "react";
+import { usePathname } from "next/navigation";
+import { Check } from "lucide-react";
+import { SlantButton } from "./page";
 import { useDict } from "./lang";
-import { Input } from "@/components/ui/input";
-import { signups, flagUrl, fmtNum } from "@/lib/data";
+import { login } from "@/app/pickems/actions";
+import { signUp, withdraw } from "@/app/register/actions";
 
-export function RegisterForm() {
+type Props = { user: { name: string; image: string | null } | null; registered: boolean };
+
+export function RegisterForm({ user, registered }: Props) {
   const t = useDict();
-  const [cap, ...rest] = signups.slice(3, 6);
-  const [banner, setBanner] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const path = usePathname();
+  const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  const run = (fn: typeof signUp) =>
+    start(async () => {
+      setError(null);
+      const res = await fn();
+      if (!res.ok) setError(res.error === "notBg" ? t.register.notBg : t.register.error);
+    });
 
   return (
-    <form
-      className="border border-line bg-coal"
-      onSubmit={(e) => {
-        e.preventDefault();
-        setSaved(true);
-      }}
-      onChange={() => setSaved(false)}
-    >
-      <div className="flex items-center justify-between border-b border-line px-5 py-3">
-        <span className="text-sm font-black uppercase tracking-wide">{t.register.yourTeam}</span>
-        <span className="text-xs font-black uppercase tracking-widest text-ash">{saved ? t.common.saved : t.register.draft}</span>
+    <div className="self-start border border-line bg-coal">
+      <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3">
+        <span className="text-sm font-black uppercase tracking-wide">{t.register.entry}</span>
+        <span className={registered ? "text-xs font-black uppercase tracking-widest text-balkan" : "text-xs font-black uppercase tracking-widest text-ash"}>
+          {registered ? t.register.signedUp : t.register.notSigned}
+        </span>
       </div>
-      <div className="space-y-6 p-5 sm:p-7">
-        <label className="block">
-          <span className="text-xs font-black uppercase tracking-wide text-ash">{t.register.teamName}</span>
-          <Input
-            name="team"
-            required
-            maxLength={40}
-            defaultValue="Rakia Rush"
-            className="mt-1.5 h-11 rounded-none border-line bg-ink text-lg font-bold text-paper focus-visible:border-balkan"
-          />
-        </label>
-
-        <div>
-          <span className="text-xs font-black uppercase tracking-wide text-ash">{t.register.banner}</span>
-          <label className="relative mt-1.5 flex h-28 cursor-pointer items-center justify-center gap-3 overflow-hidden border-2 border-dashed border-line bg-ink/60 px-4 text-center text-sm font-bold text-ash transition hover:border-balkan hover:text-paper">
-            {banner && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={banner} alt="" className="absolute inset-0 size-full object-cover opacity-60" />
-            )}
-            <span className="relative flex items-center gap-3">
-              <ImagePlus className="size-5 shrink-0" /> {banner ? t.register.changeBanner : t.register.bannerDrop}
-            </span>
-            <input
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                if (banner) URL.revokeObjectURL(banner);
-                setBanner(URL.createObjectURL(file));
-              }}
-            />
-          </label>
-        </div>
-
-        <div>
-          <span className="text-xs font-black uppercase tracking-wide text-ash">{t.register.roster}</span>
-          <div className="mt-2 space-y-2">
-            {[{ p: cap, captain: true }, ...rest.map((p) => ({ p, captain: false }))].map(({ p, captain }) => (
-              <div key={p.userId} className="flex items-center gap-3 border border-line bg-ink p-2 pr-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.avatar} alt="" className="size-10" />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={flagUrl(p.country)} alt="" className="h-3" />
-                <span className="truncate font-bold">{p.username}</span>
-                <span className="num ml-auto text-ash">#{fmtNum(p.rank)}</span>
-                <Tag tone={captain ? "rose" : "paper"}>{captain ? t.common.captain : t.common.invited}</Tag>
-              </div>
-            ))}
-            <button
-              type="button"
-              className="flex w-full items-center justify-center gap-2 border-2 border-dashed border-line p-3 text-sm font-black uppercase text-ash transition hover:border-balkan hover:text-balkan"
-            >
-              <UserPlus className="size-4" /> {t.register.inviteSub}
-            </button>
+      <div className="space-y-5 p-5 sm:p-7">
+        {user ? (
+          <div className="flex items-center gap-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {user.image && <img src={user.image} alt="" className="size-16 shrink-0" />}
+            <div className="min-w-0">
+              <div className="truncate font-display text-2xl font-bold lowercase">{user.name}</div>
+              {registered && (
+                <div className="mt-1 flex items-center gap-1.5 text-sm font-black uppercase text-balkan">
+                  <Check className="size-4" /> {t.register.signedUp}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div>
+            <div className="font-black uppercase">{t.register.loginFirst}</div>
+            <p className="mt-1 text-sm text-ash">{t.register.loginText}</p>
+          </div>
+        )}
 
-        <div className="flex flex-wrap items-center gap-3 border-t border-line pt-5">
-          {saved ? (
-            <span className="flex items-center gap-1.5 text-sm font-black uppercase text-balkan">
-              <Check className="size-4" /> {t.common.saved}
-            </span>
+        {registered && <p className="text-sm text-ash">{t.register.doneText}</p>}
+        {error && <p className="text-sm font-bold text-rose-hi">{error}</p>}
+
+        <div className="border-t border-line pt-5">
+          {!user ? (
+            <SlantButton tone="balkan" onClick={() => start(() => login(path))}>
+              {t.nav.login}
+            </SlantButton>
+          ) : registered ? (
+            <SlantButton tone="outline" onClick={() => run(withdraw)}>
+              {t.register.withdraw}
+            </SlantButton>
           ) : (
-            <SlantButton tone="balkan" type="submit">
-              {t.register.save}
+            <SlantButton tone="balkan" onClick={() => run(signUp)}>
+              {pending ? "…" : t.register.signUp}
             </SlantButton>
           )}
-          <span className="text-sm text-ash">{t.register.waiting}</span>
         </div>
       </div>
-    </form>
+    </div>
   );
 }
