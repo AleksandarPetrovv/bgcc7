@@ -1,6 +1,7 @@
 import { Container, PageTitle, Tag } from "@/components/site/page";
 import { getDict } from "@/lib/i18n/server";
 import { signups, fmtNum, flagUrl } from "@/lib/data";
+import { osuUser } from "@/lib/links";
 
 export default async function Players() {
   const t = await getDict();
@@ -17,7 +18,7 @@ export default async function Players() {
               <div className="flex items-center gap-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={flagUrl(p.country)} alt="" className="h-2.5" />
-                <span className="truncate font-black">{p.username}</span>
+                <a href={osuUser(p.userId)} target="_blank" rel="noreferrer" className="truncate font-black hover:text-rose-hi">{p.username}</a>
                 <Tag tone={p.status === "approved" ? "balkan" : p.status === "pending" ? "paper" : "rose"} className="ml-auto">
                   {t.status[p.status]}
                 </Tag>

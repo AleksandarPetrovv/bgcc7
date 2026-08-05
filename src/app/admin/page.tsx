@@ -1,8 +1,9 @@
-import { Check, ClipboardList, Gauge, Layers, ListChecks, Shield, Swords, Users, X } from "lucide-react";
+import { Check, ClipboardList, Gauge, Layers, ListChecks, Shield, Swords, Users } from "lucide-react";
 import { SubHeading, Tag } from "@/components/site/page";
+import { ScreeningQueue } from "@/components/site/screening-queue";
 import { SpeedMark } from "@/components/site/graphics";
 import { getDict } from "@/lib/i18n/server";
-import { signups, teams, fmtNum, flagUrl } from "@/lib/data";
+import { signups, teams } from "@/lib/data";
 
 const MENU = [Gauge, ClipboardList, Users, Layers, Swords, ListChecks, Shield];
 
@@ -16,7 +17,6 @@ const ROLES = [
 
 export default async function Admin() {
   const t = await getDict();
-  const queue = signups.slice(8, 14);
   return (
     <div className="flex min-h-[calc(100vh-72px)]">
       <aside className="hidden w-60 shrink-0 border-r border-line bg-coal lg:block">
@@ -66,22 +66,7 @@ export default async function Admin() {
         <div className="mt-8 grid gap-6 xl:grid-cols-[1.3fr_1fr]">
           <section>
             <SubHeading>{t.admin.queue}</SubHeading>
-            <div className="divide-y divide-line border border-line">
-              {queue.map((p) => (
-                <div key={p.userId} className="flex items-center gap-3 px-3 py-2">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.avatar} alt="" className="size-9" />
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={flagUrl(p.country)} alt="" className="h-2.5" />
-                  <span className="font-bold">{p.username}</span>
-                  <span className="num text-ash">#{fmtNum(p.rank)}</span>
-                  <span className="ml-auto flex gap-1.5">
-                    <button type="button" className="flex items-center gap-1 bg-balkan px-2 py-1 text-xs font-black uppercase text-ink"><Check className="size-3.5" /> {t.admin.approve}</button>
-                    <button type="button" className="flex items-center gap-1 border border-rose px-2 py-1 text-xs font-black uppercase text-rose-hi"><X className="size-3.5" /> {t.admin.deny}</button>
-                  </span>
-                </div>
-              ))}
-            </div>
+            <ScreeningQueue />
           </section>
 
           <section>

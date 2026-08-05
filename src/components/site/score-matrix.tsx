@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { qualifiers, fmtNum, flagUrl, type QualPerf, type QualMap, type QualPlayer } from "@/lib/data";
 import { useDict } from "./lang";
+import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
 const MOD_COLOR: Record<string, string> = {
@@ -77,7 +78,7 @@ export function ScoreMatrix() {
                       <img src={p.avatar} alt="" className="size-7" />
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={flagUrl(p.cc)} alt="" className="h-2.5" />
-                      {p.username}
+                      <a href={osuUser(p.id)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">{p.username}</a>
                     </span>
                   </td>
                   <td className="num px-3 py-2 text-right text-xl text-balkan">{p.zSum.toFixed(2)}</td>

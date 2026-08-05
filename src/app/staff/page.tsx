@@ -1,6 +1,6 @@
 import { Container, PageTitle, SectionHeading, SlantButton } from "@/components/site/page";
 import { getDict } from "@/lib/i18n/server";
-import { DISCORD_URL } from "@/lib/links";
+import { DISCORD_URL, osuUser } from "@/lib/links";
 import { staff, flagUrl, type StaffMember } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +30,9 @@ export default async function Staff() {
             <img src={p.avatar} alt="" className="size-28 shrink-0 object-cover sm:size-32" />
             <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 p-4">
               <div className="flex items-center gap-2.5">
-                <h2 className="heading-slam truncate text-2xl">{p.username}</h2>
+                <h2 className="heading-slam truncate text-2xl">
+                  <a href={osuUser(p.username)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">{p.username}</a>
+                </h2>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={flagUrl(p.country)} alt={p.country} className="h-3 w-auto shrink-0" />
               </div>

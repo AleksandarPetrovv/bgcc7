@@ -6,13 +6,13 @@ import { useDict } from "./lang";
 import type { Dict } from "@/lib/i18n/dict";
 import { cn } from "@/lib/utils";
 
-const W = 214;
-const G = 52;
-const H = 78;
-const LB = 520;
-const x = (c: number) => c * (W + G);
+export const W = 214;
+export const G = 52;
+export const H = 78;
+export const LB = 520;
+export const x = (c: number) => c * (W + G);
 
-const POS: Record<string, [number, number]> = {
+export const POS: Record<string, [number, number]> = {
   "WB-R1-M1": [0, 0], "WB-R1-M2": [0, 100], "WB-R1-M3": [0, 200], "WB-R1-M4": [0, 300],
   "WB-R2-M1": [1, 50], "WB-R2-M2": [1, 250],
   "WB-R3-M1": [2, 150],
@@ -23,7 +23,7 @@ const POS: Record<string, [number, number]> = {
   "GF-M1": [4, 300], "GF-M2": [4, 400],
 };
 
-const WIN: Record<string, string> = {
+export const WIN: Record<string, string> = {
   "WB-R1-M1": "WB-R2-M1", "WB-R1-M2": "WB-R2-M1", "WB-R1-M3": "WB-R2-M2", "WB-R1-M4": "WB-R2-M2",
   "WB-R2-M1": "WB-R3-M1", "WB-R2-M2": "WB-R3-M1", "WB-R3-M1": "GF-M1",
   "LB-R1-M1": "LB-R2-M1", "LB-R1-M2": "LB-R2-M2", "LB-R2-M1": "LB-R3-M1", "LB-R2-M2": "LB-R3-M1",
@@ -32,7 +32,7 @@ const WIN: Record<string, string> = {
 
 const DROPS = Object.entries(DROP_SOURCES).map(([to, from]) => ({ from, to: to.split(".")[0] }));
 
-const HEADERS = [
+export const HEADERS = [
   { c: 0, y: -34, t: "Round 1 (Quarter-Finals)" },
   { c: 1, y: -34, t: "Round 2 (Semi-Finals)" },
   { c: 2, y: -34, t: "Winners Finals" },

@@ -5,6 +5,7 @@ import { SpeedLines } from "@/components/site/graphics";
 import { MatchRow } from "@/components/site/match-row";
 import { getDict } from "@/lib/i18n/server";
 import { allMatches, teams, teamById, fmtNum, flagUrl } from "@/lib/data";
+import { osuUser } from "@/lib/links";
 
 export function generateStaticParams() {
   return teams.map((t) => ({ id: t.id }));
@@ -57,7 +58,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
               <img src={p.avatar} alt="" className="size-24 object-cover" />
               <div className="flex-1 p-3">
                 <div className="flex items-center gap-2 font-black">
-                  {p.username}
+                  <a href={osuUser(p.userId)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">{p.username}</a>
                   {p.isCaptain && <Crown className="size-4 text-[#d4a72c]" aria-label={t.common.captain} />}
                 </div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -32,7 +32,8 @@ export function TeamCard({ team }: { team: Team }) {
   return (
     <HoverCard>
       <HoverCardTrigger
-        delay={150}
+        delay={0}
+        closeDelay={0}
         render={
           <Link href={`/teams/${team.id}`} className="group block overflow-hidden border border-line bg-coal outline-offset-4 transition-colors hover:border-balkan">
             <div className="relative h-32 overflow-hidden bg-ink">

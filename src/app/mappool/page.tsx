@@ -5,6 +5,7 @@ import { Download, Play, Sheet, Star } from "lucide-react";
 import { Container, PageTitle, SlantButton, StageTabs } from "@/components/site/page";
 import { useDict } from "@/components/site/lang";
 import { MODS, stages, fmtLen } from "@/lib/data";
+import { osuMap } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
 export default function Mappool() {
@@ -58,7 +59,7 @@ export default function Mappool() {
               {isOpen && (
                 <div className="mt-2 space-y-2 pl-10">
                   {p.maps.map((m) => (
-                    <div key={m.slot} className="group relative flex h-20 items-stretch overflow-hidden bg-coal">
+                    <a key={m.slot} href={osuMap(m.id)} target="_blank" rel="noreferrer" aria-label={`${m.slot} ${m.title}, ${t.common.openMap}`} className="group relative flex h-20 items-stretch overflow-hidden border border-transparent bg-coal transition-colors hover:border-line">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={m.cover} alt="" className="absolute inset-0 size-full object-cover opacity-30 transition duration-500 group-hover:scale-105 group-hover:opacity-45" />
                       <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-transparent" />
@@ -81,7 +82,7 @@ export default function Mappool() {
                           CS {m.cs} · AR {m.ar} · OD {m.od}
                         </span>
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               )}

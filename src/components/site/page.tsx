@@ -94,11 +94,15 @@ export function SlantButton({
   tone = "rose",
   className,
   href,
+  onClick,
+  type = "button",
 }: {
   children: React.ReactNode;
   tone?: "rose" | "balkan" | "paper" | "outline";
   className?: string;
   href?: string;
+  onClick?: () => void;
+  type?: "button" | "submit";
 }) {
   const t = {
     rose: "bg-rose text-white hover:bg-rose-deep",
@@ -119,7 +123,7 @@ export function SlantButton({
       {inner}
     </Link>
   ) : (
-    <button type="button" className={cls}>
+    <button type={type} onClick={onClick} className={cls}>
       {inner}
     </button>
   );

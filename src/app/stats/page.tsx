@@ -2,6 +2,7 @@ import { Container, PageTitle, SectionHeading } from "@/components/site/page";
 import { MapDifficultyChart } from "@/components/site/map-chart";
 import { getDict } from "@/lib/i18n/server";
 import { qualifiers, fmtNum } from "@/lib/data";
+import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
 const TONES = ["bg-rose text-white", "bg-balkan text-ink", "border border-line bg-coal", "border border-line bg-coal"];
@@ -62,7 +63,7 @@ export default async function Stats() {
                 {top.map((p, i) => (
                   <li key={p.id} className="flex items-center gap-2 px-3 py-1.5 text-sm">
                     <span className={cn("num w-5", MEDAL[i])}>{i + 1}</span>
-                    <span className="font-bold">{p.username}</span>
+                    <a href={osuUser(p.id)} target="_blank" rel="noreferrer" className="font-bold hover:text-rose-hi">{p.username}</a>
                     <span className="num ml-auto text-base">{fmtNum(p.perf[m.id].score)}</span>
                   </li>
                 ))}
