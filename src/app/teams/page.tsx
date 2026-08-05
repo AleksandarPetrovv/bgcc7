@@ -6,7 +6,7 @@ export default async function Teams() {
   const t = await getDict();
   return (
     <Container>
-      <TeamGrid title={<h1 className="heading-slam text-5xl sm:text-6xl">{t.teams.title}</h1>} />
+      <TeamGrid title={<h1 className="heading-slam text-[clamp(2rem,8.5vw,3rem)] sm:text-6xl">{t.teams.title}</h1>} />
     </Container>
   );
 }

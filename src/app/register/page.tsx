@@ -3,9 +3,14 @@ import { Container, PageTitle, Tag } from "@/components/site/page";
 import { RegisterForm } from "@/components/site/register-form";
 import { getDict } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils";
+import { auth } from "@/auth";
+import { isRegistered } from "@/db/queries";
 
 export default async function Register() {
-  const t = await getDict();
+  const [t, session] = await Promise.all([getDict(), auth()]);
+  const osuId = Number(session?.user?.id) || null;
+  const user = osuId && session?.user?.name ? { name: session.user.name, image: session.user.image ?? null } : null;
+  const registered = osuId ? await isRegistered(osuId) : false;
   return (
     <Container>
       <PageTitle accent={t.register.accent} right={<Tag tone="balkan" className="text-xs">{t.register.openTag}</Tag>}>
@@ -31,7 +36,7 @@ export default async function Register() {
           </li>
         </ol>
 
-        <RegisterForm />
+        <RegisterForm user={user} registered={registered} />
       </div>
     </Container>
   );
