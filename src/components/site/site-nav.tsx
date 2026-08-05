@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Menu } from "lucide-react";
+import { LogOut, Menu, Shield } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { SpeedMark, Wordmark } from "./graphics";
 import { useDict } from "./lang";
@@ -66,8 +66,14 @@ export function SiteNav({ user }: { user: { name: string; image: string | null; 
             <span className="inline-block skew-x-12">{t.nav.register}</span>
           </Link>
           {user?.admin && (
-            <Link href="/admin" className="hidden px-3 py-2 text-[0.8rem] font-extrabold uppercase text-ash hover:text-paper 2xl:inline-block">
-              {t.nav.admin}
+            <Link
+              href="/admin"
+              title={t.nav.admin}
+              aria-label={t.nav.admin}
+              className="hidden size-9 items-center justify-center border border-line text-ash transition hover:border-balkan hover:text-balkan md:flex 2xl:w-auto 2xl:gap-2 2xl:px-3"
+            >
+              <Shield className="size-4" />
+              <span className="hidden text-[0.8rem] font-extrabold uppercase 2xl:inline">{t.nav.admin}</span>
             </Link>
           )}
           {user ? (
