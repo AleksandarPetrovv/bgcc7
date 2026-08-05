@@ -202,7 +202,7 @@ export default async function Home() {
           </div>
         </div>
 
-        <div className="grid content-start gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 content-start gap-5 sm:grid-cols-2">
           <EntryCard title={t.home.registration} sub={t.home.regSub} href="/register" className="bg-rose">
             <RosterSlots sub={t.home.sub} />
           </EntryCard>
@@ -236,7 +236,7 @@ export default async function Home() {
             {t.home.fullSchedule} <ArrowRight className="size-4" />
           </Link>
         </div>
-        <div className="mt-6 grid gap-5 lg:grid-cols-3">
+        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
           {featured.map((m) => {
             const a = teamById(m.team1.id);
             const b = teamById(m.team2.id);
@@ -248,10 +248,10 @@ export default async function Home() {
                 </div>
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 p-4">
                   {[a, b].map((team, i) => (
-                    <div key={i} className={cn("flex min-w-0 items-center gap-3", i === 1 && "order-3 flex-row-reverse text-right")}>
+                    <div key={i} className={cn("flex min-w-0 flex-col items-start gap-2", i === 1 && "order-3 items-end text-right")}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={team?.image} alt="" className={cn("size-12 shrink-0 object-cover", m.winner !== i + 1 && "opacity-50 grayscale")} />
-                      <span className={cn("line-clamp-2 min-w-0 break-words text-sm leading-tight", m.winner === i + 1 ? "font-black text-paper" : "font-bold text-ash")}>{team?.name}</span>
+                      <span className={cn("line-clamp-2 max-w-full break-words text-sm leading-tight", m.winner === i + 1 ? "font-black text-paper" : "font-bold text-ash")}>{team?.name}</span>
                     </div>
                   ))}
                   <div className="order-2 -skew-x-12 bg-rose px-3 py-1.5">

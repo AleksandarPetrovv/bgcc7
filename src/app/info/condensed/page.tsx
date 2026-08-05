@@ -6,7 +6,7 @@ export default async function Condensed() {
   return (
     <Container className="max-w-5xl">
       <PageTitle>{t.info.condensed}</PageTitle>
-      <div className="grid gap-px border border-line bg-line sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-3">
         {t.info.facts.map(([k, v]) => (
           <div key={k} className="bg-coal p-5">
             <div className="text-[0.65rem] font-black uppercase tracking-[0.2em] text-rose-hi">{k}</div>

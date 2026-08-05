@@ -47,7 +47,7 @@ export function PageTitle({
 }) {
   return (
     <div className={cn("mb-8 flex flex-wrap items-end gap-x-8 gap-y-4 border-b border-line pb-3", className)}>
-      <h1 className="heading-slam text-5xl sm:text-6xl">
+      <h1 className="heading-slam min-w-0 max-w-full text-[clamp(2rem,8.5vw,3rem)] break-words sm:text-6xl">
         {children}
         {accent && <span className="text-rose-hi"> / {accent}</span>}
       </h1>
@@ -62,9 +62,9 @@ export function Container({ children, className }: { children: React.ReactNode; 
 
 export function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="heading-slam mb-5 mt-14 flex items-center gap-3 text-4xl first:mt-0">
+    <h2 className="heading-slam mb-5 mt-14 flex items-center gap-3 text-[clamp(1.6rem,7.5vw,2.25rem)] first:mt-0">
       <TriTick />
-      <span className="min-w-0">{children}</span>
+      <span className="min-w-0 break-words">{children}</span>
       <span className="h-px flex-1 border-t border-dashed border-line" aria-hidden />
     </h2>
   );

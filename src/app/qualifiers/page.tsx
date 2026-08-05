@@ -16,7 +16,7 @@ export default async function Lobbies() {
       {[...byDay.entries()].map(([day, lobbies]) => (
         <section key={day} className="mt-12 first-of-type:mt-0">
           <SectionHeading>{fmtDay(t, day)}</SectionHeading>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {lobbies.map((l) => (
               <article key={l.name} className="group flex border border-line bg-coal transition-colors hover:border-rose/60">
                 <div className="flex w-24 shrink-0 flex-col items-center justify-center bg-rose py-4 text-white sm:w-28">

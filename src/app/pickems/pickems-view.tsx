@@ -65,7 +65,7 @@ export function PickemsView({ osuId, saved, leaderboard }: { osuId: number | nul
         {t.pickems.title}
       </PageTitle>
 
-      <div className="mb-8 grid gap-4 lg:grid-cols-[2fr_1fr]">
+      <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-5">
           {t.pickems.points.map(([k, v]) => (
             <div key={k} className="bg-coal p-3 last:col-span-2 sm:last:col-span-1">
