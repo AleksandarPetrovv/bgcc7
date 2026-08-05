@@ -25,7 +25,7 @@ const NAV = [
 
 const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 
-export function SiteNav({ user }: { user: { name: string; image: string | null } | null }) {
+export function SiteNav({ user }: { user: { name: string; image: string | null; admin: boolean } | null }) {
   const path = usePathname();
   const [pending, start] = useTransition();
   const t = useDict();
@@ -65,9 +65,11 @@ export function SiteNav({ user }: { user: { name: string; image: string | null }
           >
             <span className="inline-block skew-x-12">{t.nav.register}</span>
           </Link>
-          <Link href="/admin" className="hidden px-3 py-2 text-[0.8rem] font-extrabold uppercase text-ash hover:text-paper 2xl:inline-block">
-            {t.nav.admin}
-          </Link>
+          {user?.admin && (
+            <Link href="/admin" className="hidden px-3 py-2 text-[0.8rem] font-extrabold uppercase text-ash hover:text-paper 2xl:inline-block">
+              {t.nav.admin}
+            </Link>
+          )}
           {user ? (
             <div className="hidden items-center gap-2 border border-line py-1 pl-1 pr-1 md:flex">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -101,7 +103,7 @@ export function SiteNav({ user }: { user: { name: string; image: string | null }
             <SheetContent side="right" className="w-full max-w-sm border-line bg-ink p-0">
               <SheetTitle className="sr-only">{t.nav.menu}</SheetTitle>
               <div className="flex flex-col pt-14">
-                {[...NAV, { href: "/register", key: "register" } as const, { href: "/admin", key: "admin" } as const].map((n) => (
+                {[...NAV, { href: "/register", key: "register" } as const, ...(user?.admin ? [{ href: "/admin", key: "admin" } as const] : [])].map((n) => (
                   <Link
                     key={n.href}
                     href={n.href}

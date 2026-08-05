@@ -4,6 +4,9 @@ import { ScreeningQueue } from "@/components/site/screening-queue";
 import { SpeedMark } from "@/components/site/graphics";
 import { getDict } from "@/lib/i18n/server";
 import { signups, teams } from "@/lib/data";
+import { notFound } from "next/navigation";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/admins";
 
 const MENU = [Gauge, ClipboardList, Users, Layers, Swords, ListChecks, Shield];
 
@@ -16,6 +19,8 @@ const ROLES = [
 ];
 
 export default async function Admin() {
+  const session = await auth();
+  if (!isAdmin(Number(session?.user?.id) || null)) notFound();
   const t = await getDict();
   return (
     <div className="flex min-h-[calc(100vh-72px)]">
@@ -32,7 +37,7 @@ export default async function Admin() {
           ))}
         </nav>
         <div className="m-3 border border-line p-3 text-xs text-ash">
-          {t.admin.signedIn} <span className="font-bold text-paper">Raregendary</span>
+          {t.admin.signedIn} <span className="font-bold text-paper">{session?.user?.name}</span>
           <div className="mt-1"><Tag tone="balkan">{t.staff.roles.Host}</Tag></div>
         </div>
       </aside>

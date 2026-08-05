@@ -21,7 +21,7 @@ export async function savePickems(input: unknown) {
 }
 
 export async function login(redirectTo: string) {
-  await signIn("osu", { redirectTo: redirectTo.startsWith("/") ? redirectTo : "/" });
+  await signIn("osu", { redirectTo: /^\/(?![/\\])/.test(redirectTo) ? redirectTo : "/" });
 }
 
 export async function logout() {

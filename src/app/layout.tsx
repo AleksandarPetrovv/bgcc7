@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { LangProvider } from "@/components/site/lang";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { auth } from "@/auth";
+import { isAdmin } from "@/lib/admins";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -48,7 +49,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const [lang, session] = await Promise.all([getLang(), auth()]);
-  const user = session?.user?.name ? { name: session.user.name, image: session.user.image ?? null } : null;
+  const user = session?.user?.name ? { name: session.user.name, image: session.user.image ?? null, admin: isAdmin(Number(session.user.id) || null) } : null;
   return (
     <html lang={lang} className={`${archivo.variable} ${barlow.variable} ${unbounded.variable} ${montserrat.variable} ${robotoCondensed.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
