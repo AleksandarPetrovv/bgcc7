@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Radio } from "lucide-react";
-import { SpeedLines, Tricolor } from "@/components/site/graphics";
+import { TriTick, Tricolor } from "@/components/site/graphics";
 import { SlantButton } from "@/components/site/page";
 import { Rich } from "@/components/site/rich";
 import { getDict } from "@/lib/i18n/server";
@@ -8,30 +8,26 @@ import { fmtDay, roundName, type Dict } from "@/lib/i18n/dict";
 import { Countdown } from "@/components/site/countdown";
 import { MODS, allMatches, stages, staff, teams, timeline, teamById } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import { getSignupCount } from "@/db/queries";
 
 const CURRENT = "reg";
 const REG_CLOSES = "2026-11-22T23:59:00+02:00";
 
-function HeroLockup() {
+function HeroLockup({ label }: { label: string }) {
   return (
-    <div className="relative select-none">
-      <div className="font-display text-[clamp(4.5rem,15vw,13.5rem)] font-black lowercase leading-[0.8] tracking-[-0.05em] text-paper">
-        bgcc
-      </div>
-      <div className="relative -mt-[0.1em] flex items-end">
-        <div className="relative mb-[0.9em] mr-3 h-[clamp(2.4rem,6vw,5rem)] flex-1 text-[clamp(0.9rem,2vw,1.4rem)]">
-          <SpeedLines className="absolute inset-0 h-full w-full text-paper" count={12} />
-          <div className="absolute left-0 top-1/2 flex -translate-y-1/2 gap-2">
-            {["bg-paper", "bg-balkan", "bg-rose"].map((c, i) => (
-              <span
-                key={c}
-                className={cn("anim-stripe block h-[clamp(2.4rem,6vw,5rem)] w-[clamp(1.2rem,3vw,2.6rem)] -skew-x-[18deg]", c)}
-                style={{ animation: `stripe-in 0.6s ${0.15 + i * 0.1}s cubic-bezier(.16,1,.3,1) both` }}
-              />
-            ))}
-          </div>
+    <div className="inline-block select-none font-display font-black lowercase text-[clamp(4.5rem,14vw,12.5rem)] lg:text-[clamp(6rem,10vw,11.5rem)]">
+      <div className="whitespace-nowrap leading-[0.8] tracking-[-0.05em] text-paper">bgcc</div>
+      <div className="mt-[0.05em] flex items-end justify-between gap-4">
+        <div className="mb-[0.12em] flex min-w-0 flex-col gap-2 font-sans text-[clamp(0.6rem,1vw,0.75rem)] font-black uppercase leading-snug tracking-[0.2em] text-ash">
+          <TriTick className="h-3 w-[22px]" />
+          <span className="max-w-[26ch]">{label}</span>
         </div>
-        <div className="pr-[0.14em] font-display text-[clamp(4.5rem,15vw,14rem)] font-black italic leading-[0.72] tracking-[-0.06em] text-rose">7</div>
+        <span className="relative mr-[0.02em] text-[1.45em] italic leading-[0.74] tracking-[-0.06em]">
+          <span className="absolute left-[0.05em] top-[0.035em] text-transparent [-webkit-text-stroke:2px_rgba(244,243,238,0.35)]" aria-hidden>
+            7
+          </span>
+          <span className="relative text-rose">7</span>
+        </span>
       </div>
     </div>
   );
@@ -66,31 +62,21 @@ function EntryCard({
   );
 }
 
-function RosterSlots({ sub }: { sub: string }) {
+function SignupCount({ n, label }: { n: number; label: string }) {
   return (
-    <div className="flex h-full items-center gap-2.5 px-5" aria-hidden>
-      {["C", "2", "3"].map((s, i) => (
-        <span
-          key={s}
-          className="anim-rise flex h-16 w-14 -skew-x-12 items-center justify-center bg-ink/85"
-          style={{ animationDelay: `${0.2 + i * 0.08}s` }}
-        >
-          <span className="num skew-x-12 text-3xl text-paper">{s}</span>
-        </span>
-      ))}
-      <span className="flex h-16 w-14 -skew-x-12 items-center justify-center border-2 border-dashed border-ink/50">
-        <span className="skew-x-12 text-xs font-black uppercase text-ink/70">{sub}</span>
-      </span>
+    <div className="flex h-full items-end gap-3 px-5 pb-4" aria-hidden>
+      <span className="num text-7xl leading-[0.8] text-paper">{n}</span>
+      <span className="pb-1 text-sm font-bold uppercase text-ash">{label}</span>
     </div>
   );
 }
 
 function ModChips() {
-  const maps = stages[0].pools.flatMap((p) => p.maps.map((m) => ({ slot: m.slot, color: MODS[p.category].color, light: p.category === "Tiebreaker" || p.category === "Hidden" })));
+  const maps = stages[0].pools.flatMap((p) => p.maps.map((m) => ({ slot: m.slot, color: MODS[p.category].color })));
   return (
     <div className="flex h-full flex-wrap content-center gap-1.5 px-4" aria-hidden>
       {maps.map((m) => (
-        <span key={m.slot} className={cn("heading-slam px-2 py-1 text-lg", m.light ? "text-ink" : "text-white")} style={{ background: m.color }}>
+        <span key={m.slot} className="heading-slam border-l-[3px] bg-slate px-2 py-1 text-lg text-paper/85" style={{ borderColor: m.color }}>
           {m.slot}
         </span>
       ))}
@@ -103,7 +89,7 @@ function TeamMosaic() {
     <div className="grid h-full grid-cols-4 grid-rows-2" aria-hidden>
       {teams.slice(0, 8).map((t) => (
         // eslint-disable-next-line @next/next/no-img-element
-        <img key={t.id} src={t.image} alt="" className="size-full object-cover" />
+        <img key={t.id} src={t.image} alt="" className="size-full object-cover opacity-80 grayscale-[.7] transition duration-500 group-hover:opacity-100 group-hover:grayscale-0" />
       ))}
     </div>
   );
@@ -118,8 +104,8 @@ function MiniBracket() {
       <g className="stroke-line" fill="none" strokeWidth={1.5}>
         <path d="M46 8.5h11v26H46M57 21.5h11M46 60.5h11v26H46M57 73.5h11M114 21.5h11v52h-11M125 47.5h11" />
       </g>
-      <rect x={196} y={38} width={46} height={19} className="fill-rose/80" />
-      <path d="M182 47.5h14" className="stroke-rose" strokeWidth={1.5} strokeDasharray="3 3" />
+      <rect x={196} y={38} width={46} height={19} className="fill-paper/80" />
+      <path d="M182 47.5h14" className="stroke-paper/60" strokeWidth={1.5} strokeDasharray="3 3" />
     </svg>
   );
 }
@@ -136,12 +122,12 @@ function Timeline({ t }: { t: Dict }) {
             key={e.key}
             className={cn(
               "relative flex items-baseline gap-4 py-2 pl-8 pr-3 text-[0.95rem] uppercase",
-              current ? "bg-balkan/10 font-black text-balkan" : i < at ? "text-ash" : "text-paper",
+              current ? "bg-slate font-black text-paper" : i < at ? "text-ash" : "text-paper/80",
             )}
           >
             <span className="absolute left-0 top-1/2 flex size-4 -translate-y-1/2 items-center justify-center bg-ink">
               {current ? (
-                <span className="size-2.5 rotate-45 bg-balkan" />
+                <span className="size-2.5 rotate-45 bg-rose" />
               ) : (
                 <span className={cn("size-2 rotate-45", i < at ? "bg-ash" : "border border-paper/60")} />
               )}
@@ -156,60 +142,62 @@ function Timeline({ t }: { t: Dict }) {
 }
 
 export default async function Home() {
-  const t = await getDict();
+  const [t, signups] = await Promise.all([getDict(), getSignupCount()]);
   const featured = allMatches.filter((m) => m.winner).slice(0, 3);
   return (
     <>
       <section className="grain relative overflow-hidden border-b border-line">
         <div
-          className="pointer-events-none absolute -right-32 -top-24 font-display text-[44rem] font-black italic leading-none text-white/[0.025]"
+          className="pointer-events-none absolute right-[2%] top-1/2 -translate-y-1/2 font-display text-[clamp(20rem,42vw,40rem)] font-black italic leading-[0.8] text-white/[0.03]"
           aria-hidden
         >
           7
         </div>
-        <div className="relative mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-10 px-4 pb-12 pt-10 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:items-end lg:pt-14">
-          <div className="anim-rise">
-            <HeroLockup />
+        <div className="relative mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-10 px-4 pb-12 pt-10 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:items-end lg:pb-16 lg:pt-16">
+          <div className="anim-rise min-w-0">
+            <HeroLockup label={`${t.home.badge} · 2026`} />
           </div>
 
           <div className="anim-rise flex min-w-0 flex-col justify-end" style={{ animationDelay: "0.15s" }}>
-            <div className="flex items-stretch border border-paper">
-              <div className="min-w-0 flex-1 px-3 py-2 font-display text-[clamp(0.95rem,2.4vw,2rem)] font-black lowercase leading-none tracking-tight sm:px-4">
-                {t.home.badge}
-              </div>
-              <div className="flex items-center bg-paper px-2.5 font-display text-[clamp(1rem,2.4vw,2rem)] font-black italic text-rose sm:px-4">2026</div>
-            </div>
-            <h1 className="mt-8 text-balance text-[clamp(1.8rem,3.4vw,3.1rem)] font-black leading-[1.03] tracking-tight">
+            <h1 className="text-balance text-[clamp(1.8rem,3.2vw,2.9rem)] font-black leading-[1.05] tracking-tight">
               <Rich text={t.home.headline} />
             </h1>
-            <p className="mt-5 max-w-[48ch] text-pretty text-lg text-paper/80">{t.home.intro}</p>
+            <p className="mt-5 max-w-[48ch] text-pretty text-lg text-paper/70">{t.home.intro}</p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <SlantButton href="/register" tone="balkan" className="px-5 py-2.5 text-base">{t.home.registerTeam}</SlantButton>
+              <SlantButton href="/register" tone="paper" className="px-5 py-2.5 text-base">{t.home.registerTeam}</SlantButton>
               <SlantButton href="/info" tone="outline" className="px-5 py-2.5 text-base">{t.home.readRules}</SlantButton>
             </div>
           </div>
         </div>
-        <Tricolor className="h-2.5" vertical />
+        <dl className="relative mx-auto grid max-w-[1400px] grid-cols-2 border-t border-line sm:grid-cols-4">
+          {[1, 6, 7, 8].map((i, k) => (
+            <div key={i} className={cn("px-4 py-4 sm:px-6", k % 2 === 1 && "border-l border-line", k > 1 && "border-t border-line sm:border-t-0", k === 2 && "sm:border-l")}>
+              <dt className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-ash">{t.info.facts[i][0]}</dt>
+              <dd className="num mt-1 text-xl text-paper sm:text-2xl">{t.info.facts[i][1]}</dd>
+            </div>
+          ))}
+        </dl>
+        <Tricolor className="h-1" vertical />
       </section>
 
       <section className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-12 px-4 pt-14 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)]">
         <div>
           <h2 className="heading-slam text-3xl">{t.home.timeline}</h2>
           <Timeline t={t} />
-          <div className="mt-8 border border-balkan/50 bg-balkan/10 p-4">
-            <div className="text-[0.7rem] font-black uppercase tracking-widest text-balkan">{t.home.closesIn}</div>
+          <div className="mt-8 border border-line bg-coal p-4">
+            <div className="text-[0.7rem] font-black uppercase tracking-widest text-ash">{t.home.closesIn}</div>
             <Countdown to={REG_CLOSES} />
           </div>
         </div>
 
         <div className="grid grid-cols-1 content-start gap-5 sm:grid-cols-2">
-          <EntryCard title={t.home.registration} sub={t.home.regSub} href="/register" className="bg-rose">
-            <RosterSlots sub={t.home.sub} />
+          <EntryCard title={t.home.registration} sub={t.home.regSub} href="/register" className="border border-line bg-coal">
+            <SignupCount n={signups} label={t.home.signups(signups)} />
           </EntryCard>
           <EntryCard title={t.home.mappool} sub={t.home.mapSub} href="/mappool" className="border border-line bg-slate">
             <ModChips />
           </EntryCard>
-          <EntryCard title={t.home.teams} sub={t.home.teamsSub(teams.length, teams.length * 3)} href="/teams" className="bg-balkan">
+          <EntryCard title={t.home.teams} sub={t.home.teamsSub(teams.length, teams.length * 3)} href="/teams" className="border border-line bg-coal">
             <TeamMosaic />
           </EntryCard>
           <EntryCard title={t.home.bracket} sub={t.home.bracketSub} href="/schedule/bracket" className="border border-line bg-coal">
@@ -232,7 +220,7 @@ export default async function Home() {
       <section className="mx-auto max-w-[1400px] px-4 pt-20 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3">
           <h2 className="heading-slam text-4xl">{t.home.previously}</h2>
-          <Link href="/schedule" className="inline-flex items-center gap-1.5 text-sm font-black uppercase text-rose-hi hover:text-paper">
+          <Link href="/schedule" className="inline-flex items-center gap-1.5 text-sm font-black uppercase text-ash hover:text-paper">
             {t.home.fullSchedule} <ArrowRight className="size-4" />
           </Link>
         </div>
@@ -254,9 +242,9 @@ export default async function Home() {
                       <span className={cn("line-clamp-2 max-w-full break-words text-sm leading-tight", m.winner === i + 1 ? "font-black text-paper" : "font-bold text-ash")}>{team?.name}</span>
                     </div>
                   ))}
-                  <div className="order-2 -skew-x-12 bg-rose px-3 py-1.5">
-                    <span className="num block skew-x-12 text-2xl text-white">
-                      {m.team1.score}-{m.team2.score}
+                  <div className="order-2 -skew-x-12 border border-line bg-slate px-3 py-1.5">
+                    <span className="num block skew-x-12 text-2xl text-paper">
+                      {m.team1.score ?? 0}-{m.team2.score ?? 0}
                     </span>
                   </div>
                 </div>

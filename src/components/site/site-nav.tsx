@@ -61,7 +61,7 @@ export function SiteNav({ user }: { user: { name: string; image: string | null; 
         <div className="ml-auto flex items-center gap-2 xl:ml-4">
           <Link
             href="/register"
-            className="hidden -skew-x-12 bg-balkan px-4 py-2 text-[0.8rem] font-black uppercase tracking-wide text-ink transition hover:bg-paper sm:inline-block"
+            className="hidden -skew-x-12 bg-paper px-4 py-2 text-[0.8rem] font-black uppercase tracking-wide text-ink transition hover:bg-rose hover:text-white sm:inline-block"
           >
             <span className="inline-block skew-x-12">{t.nav.register}</span>
           </Link>
