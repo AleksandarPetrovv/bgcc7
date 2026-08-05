@@ -54,7 +54,7 @@ export default async function Admin() {
           ))}
         </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-4">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-4">
           {[
             [t.admin.kpis[0], signups.length, "text-paper"],
             [t.admin.kpis[1], 6, "text-rose-hi"],
@@ -68,7 +68,7 @@ export default async function Admin() {
           ))}
         </div>
 
-        <div className="mt-8 grid gap-6 xl:grid-cols-[1.3fr_1fr]">
+        <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.3fr_1fr]">
           <section>
             <SubHeading>{t.admin.queue}</SubHeading>
             <ScreeningQueue />

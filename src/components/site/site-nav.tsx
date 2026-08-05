@@ -100,22 +100,49 @@ export function SiteNav({ user }: { user: { name: string; image: string | null; 
             <SheetTrigger className="p-2 text-paper xl:hidden" aria-label={t.nav.openMenu}>
               <Menu className="size-6" />
             </SheetTrigger>
-            <SheetContent side="right" className="w-full max-w-sm border-line bg-ink p-0">
+            <SheetContent side="right" className="flex h-dvh w-full max-w-sm flex-col border-line bg-ink p-0">
               <SheetTitle className="sr-only">{t.nav.menu}</SheetTitle>
-              <div className="flex flex-col pt-14">
+              <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-14" aria-label={t.nav.main}>
                 {[...NAV, { href: "/register", key: "register" } as const, ...(user?.admin ? [{ href: "/admin", key: "admin" } as const] : [])].map((n) => (
                   <Link
                     key={n.href}
                     href={n.href}
                     onClick={() => setOpen(false)}
+                    aria-current={isActive(path, n.href) ? "page" : undefined}
                     className={cn(
-                      "heading-slam border-b border-line px-6 py-4 text-3xl",
+                      "heading-slam flex min-h-12 items-center border-b border-line px-6 py-2.5 text-2xl",
                       isActive(path, n.href) ? "bg-rose text-white" : "text-paper hover:bg-slate",
                     )}
                   >
                     {t.nav[n.key]}
                   </Link>
                 ))}
+              </nav>
+              <div className="shrink-0 border-t border-line bg-coal p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                {user ? (
+                  <div className="flex items-center gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {user.image && <img src={user.image} alt="" className="size-9" />}
+                    <span className="min-w-0 flex-1 truncate text-sm font-extrabold">{user.name}</span>
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() => start(() => logout())}
+                      className="flex min-h-11 items-center gap-2 border border-line px-3 text-[0.8rem] font-extrabold uppercase text-ash transition hover:text-paper disabled:opacity-60"
+                    >
+                      <LogOut className="size-4" /> {t.nav.logout}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={pending}
+                    onClick={() => start(() => login(path))}
+                    className="flex min-h-11 w-full items-center justify-center border border-line text-sm font-extrabold uppercase text-paper transition hover:border-rose disabled:opacity-60"
+                  >
+                    {t.nav.login}
+                  </button>
+                )}
               </div>
             </SheetContent>
           </Sheet>

@@ -23,7 +23,7 @@ export default async function InfoPage() {
     <Container className="max-w-5xl">
       <div className="border border-line bg-coal/80 px-6 py-8 sm:px-10">
         <p className="mx-auto max-w-3xl text-center leading-relaxed text-paper/90">{t.info.intro}</p>
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <SlantButton tone="rose" className="justify-center">{t.common.donate}</SlantButton>
           <SlantButton tone="balkan" href={DISCORD_URL} className="justify-center">{t.common.discord}</SlantButton>
         </div>
@@ -32,7 +32,7 @@ export default async function InfoPage() {
         <List items={t.info.generalItems} />
 
         <SectionHeading>{t.info.prizes}</SectionHeading>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {t.info.prizeRows.map((p, i) => (
             <div key={p.place} className="border border-line bg-slate/50">
               <div className={`h-1.5 ${PRIZE_BAR[i]}`} />

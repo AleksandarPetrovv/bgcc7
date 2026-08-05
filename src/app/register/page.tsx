@@ -12,7 +12,7 @@ export default async function Register() {
         BGCC7
       </PageTitle>
 
-      <div className="grid gap-10 lg:grid-cols-[1fr_1.4fr]">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_1.4fr]">
         <ol className="space-y-5">
           {t.register.steps.map((s, i) => (
             <li key={s.t} className="flex gap-4">

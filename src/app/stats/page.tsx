@@ -25,7 +25,7 @@ export default async function Stats() {
   return (
     <Container>
       <PageTitle accent={t.stats.accent}>{t.stats.title}</PageTitle>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {highlights.map((h, i) => (
           <div key={h.k} className={cn("p-5", TONES[i])}>
             <div className="text-[0.65rem] font-black uppercase tracking-widest opacity-80">{h.k}</div>
@@ -46,7 +46,7 @@ export default async function Stats() {
       </div>
 
       <SectionHeading>{t.stats.mapLeaders}</SectionHeading>
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {qualifiers.maps.map((m) => {
           const top = qualifiers.players
             .filter((p) => p.perf[m.id])

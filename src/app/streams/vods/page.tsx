@@ -12,7 +12,7 @@ export default async function Vods() {
   return (
     <Container className="max-w-[1400px]">
       <PageTitle>{t.streams.vods}</PageTitle>
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {played.map((m, i) => {
           const a = teamById(m.team1.id);
           const b = teamById(m.team2.id);

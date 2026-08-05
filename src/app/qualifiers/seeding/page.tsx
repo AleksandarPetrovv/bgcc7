@@ -10,7 +10,7 @@ export default async function Seeding() {
   return (
     <Container>
       <PageTitle right={<Tag tone="rose" className="text-xs">{t.qual.seedingTag}</Tag>}>{t.qual.seedingTitle}</PageTitle>
-      <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr_1fr]">
         <div className="border border-line bg-coal p-5">
           <div className="mb-3 text-xs font-black uppercase tracking-widest text-ash">{t.qual.chartLabel}</div>
           <SeedingChart />

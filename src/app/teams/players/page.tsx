@@ -8,7 +8,7 @@ export default async function Players() {
   return (
     <Container>
       <PageTitle right={<span className="num text-2xl text-balkan">{t.common.players(signups.length)}</span>}>{t.teams.playersTitle}</PageTitle>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {signups.map((p, i) => (
           <div key={p.userId} className="flex items-stretch border border-line bg-coal transition hover:border-balkan">
             <span className="num flex w-12 items-center justify-center bg-slate text-lg text-ash">{i + 1}</span>

@@ -14,7 +14,7 @@ export default async function Streams() {
   return (
     <Container className="max-w-[1400px]">
       <PageTitle right={<Tag tone="rose" className="text-xs normal-case">{t.streams.channelTag}</Tag>}>{t.streams.title}</PageTitle>
-      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
         <div>
           <div className="aspect-video overflow-hidden border border-line bg-coal">
             <TwitchEmbed title={t.streams.title} />

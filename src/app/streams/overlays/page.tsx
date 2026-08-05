@@ -22,7 +22,7 @@ export default async function Overlays() {
   return (
     <Container className="max-w-[1400px]">
       <PageTitle right={<Tag tone="balkan" className="text-xs">{d.streams.sources}</Tag>}>{d.streams.overlays}</PageTitle>
-      <div className="grid gap-8 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <Frame title={d.streams.gameplay} note={d.streams.gameplayNote}>
           <div className="absolute inset-x-0 top-0 flex h-[16%] items-stretch bg-ink">
             <div className="flex flex-1 items-center gap-3 bg-rose px-4">

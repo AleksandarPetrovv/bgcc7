@@ -23,7 +23,7 @@ export default async function Staff() {
     <Container className="max-w-5xl">
       <PageTitle right={<span className="num text-2xl text-balkan">{list.length}</span>}>{t.staff.title}</PageTitle>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {list.map((p) => (
           <article key={p.username} className="group flex border border-line bg-coal transition-colors hover:border-paper/30">
             {/* eslint-disable-next-line @next/next/no-img-element */}
