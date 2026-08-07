@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Link2 } from "lucide-react";
 import { type Match, teamById, fmtNum } from "@/lib/data";
 import { useDict, useLang } from "./lang";
 import { sourceLabel } from "@/lib/matches";
+import { MatchDialog } from "./match-dialog";
 import { cn } from "@/lib/utils";
 
 function when(dt: string | null, locale: string) {
@@ -72,16 +72,8 @@ export function MatchRow({ match }: { match: Match }) {
         )}
       </div>
       <Side id={match.team2.id} placeholder={sourceLabel(t, match.id, 2)} flip />
-      {match.link ? (
-        <a
-          href={match.link}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={t.common.matchLink}
-          className="hidden w-14 shrink-0 items-center justify-center text-ash transition hover:text-paper sm:flex"
-        >
-          <Link2 className="size-5" />
-        </a>
+      {match.links.length > 0 ? (
+        <MatchDialog match={match} />
       ) : (
         <span className="hidden w-14 shrink-0 sm:block" aria-hidden />
       )}
