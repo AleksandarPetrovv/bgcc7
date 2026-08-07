@@ -120,7 +120,7 @@ export type Match = {
   team1: MatchSide;
   team2: MatchSide;
   winner: 1 | 2 | null;
-  link?: string;
+  links: string[];
   round: string;
   bracket: "winners" | "losers" | "grand";
 };
@@ -151,7 +151,7 @@ const flatten = (
       team1: side(m.team1),
       team2: side(m.team2),
       winner: (m.winner === 1 || m.winner === 2 ? m.winner : null) as Match["winner"],
-      link: m.matchLink,
+      links: m.matchLink?.match(/\d{6,}/g) ?? [],
       round: r.title ?? "",
       bracket,
     })),
