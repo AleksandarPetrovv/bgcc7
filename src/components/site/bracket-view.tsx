@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { allMatches, DROP_SOURCES, teamById, type Match } from "@/lib/data";
+import { sourceLabel } from "@/lib/matches";
 import { useDict } from "./lang";
-import type { Dict } from "@/lib/i18n/dict";
 import { cn } from "@/lib/utils";
 
 export const W = 214;
@@ -45,15 +45,8 @@ export const HEADERS = [
 
 const byId = Object.fromEntries(allMatches.map((m) => [m.id, m]));
 
-const matchLabel = (t: Dict, id: string) => {
-  const m = byId[id];
-  if (!m) return t.common.tbd;
-  const same = allMatches.filter((o) => o.round === m.round);
-  const name = t.rounds[m.round] ?? m.round;
-  return same.length > 1 ? `${name} ${same.indexOf(m) + 1}` : name;
-};
 
-function Slot({ m, slot, dropFrom }: { m: Match; slot: 1 | 2; dropFrom?: string }) {
+function Slot({ m, slot }: { m: Match; slot: 1 | 2 }) {
   const t = useDict();
   const s = slot === 1 ? m.team1 : m.team2;
   const team = teamById(s.id);
@@ -64,9 +57,9 @@ function Slot({ m, slot, dropFrom }: { m: Match; slot: 1 | 2; dropFrom?: string 
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {team ? <img src={team.image} alt="" className="size-5 object-cover" /> : <span className="size-5 bg-slate" />}
       <span className={cn("min-w-0 flex-1 truncate text-[0.82rem]", team ? "font-bold" : "italic text-ash", won && "text-balkan")}>
-        {team ? team.name : dropFrom ? t.common.loserOf(matchLabel(t, dropFrom)) : t.common.tbd}
+        {team ? team.name : sourceLabel(t, m.id, slot)}
       </span>
-      <span className={cn("num w-5 text-right text-lg", won ? "text-balkan" : "text-paper/80")}>{s.score ?? ""}</span>
+      <span className={cn("num w-5 text-right text-lg", won ? "text-balkan" : "text-paper/80")}>{m.winner ? (s.score ?? 0) : ""}</span>
     </div>
   );
 }
@@ -150,8 +143,8 @@ export function BracketView() {
                 <span>{id === "GF-M2" ? t.rounds.reset : ""}</span>
                 <span className="num text-[0.7rem]">{m.datetime?.slice(0, 5).replace("/", ".") ?? ""}</span>
               </div>
-              <Slot m={m} slot={1} dropFrom={DROP_SOURCES[`${id}.team1`]} />
-              <Slot m={m} slot={2} dropFrom={DROP_SOURCES[`${id}.team2`]} />
+              <Slot m={m} slot={1} />
+              <Slot m={m} slot={2} />
             </div>
           );
         })}

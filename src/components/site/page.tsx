@@ -129,7 +129,7 @@ export function SlantButton({
   );
 }
 
-export function StageTabs({ options, index, onChange }: { options: string[]; index: number; onChange: (i: number) => void }) {
+export function StageTabs({ options, index, onChange, locked = [] }: { options: string[]; index: number; onChange: (i: number) => void; locked?: number[] }) {
   const t = useDict();
   return (
     <div className="flex overflow-x-auto border border-line" role="tablist" aria-label={t.common.stage}>
@@ -139,10 +139,12 @@ export function StageTabs({ options, index, onChange }: { options: string[]; ind
           type="button"
           role="tab"
           aria-selected={i === index}
+          disabled={locked.includes(i)}
           onClick={() => onChange(i)}
           className={cn(
             "num min-h-10 shrink-0 border-r border-line px-3.5 text-base uppercase transition-colors last:border-r-0",
             i === index ? "bg-paper text-ink" : "text-ash hover:bg-slate hover:text-paper",
+            "disabled:cursor-not-allowed disabled:text-ash/35 disabled:hover:bg-transparent",
           )}
         >
           {o}

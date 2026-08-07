@@ -3,7 +3,7 @@ import { allMatches } from "@/lib/data";
 
 type Src = { from: string; take: "W" | "L" };
 
-const FEED: Record<string, [Src, Src]> = {
+export const FEED: Record<string, [Src, Src]> = {
   "WB-R2-M1": [{ from: "WB-R1-M1", take: "W" }, { from: "WB-R1-M2", take: "W" }],
   "WB-R2-M2": [{ from: "WB-R1-M3", take: "W" }, { from: "WB-R1-M4", take: "W" }],
   "WB-R3-M1": [{ from: "WB-R2-M1", take: "W" }, { from: "WB-R2-M2", take: "W" }],

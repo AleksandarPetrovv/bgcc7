@@ -35,7 +35,7 @@ export default async function Vods() {
               </div>
               <div className="mt-2 text-xs font-black uppercase text-rose-hi">{roundName(t, m.round)}</div>
               <div className="truncate font-black">
-                {a?.name} {m.team1.score}–{m.team2.score} {b?.name}
+                {a?.name} {m.team1.score ?? 0}–{m.team2.score ?? 0} {b?.name}
               </div>
             </a>
           );

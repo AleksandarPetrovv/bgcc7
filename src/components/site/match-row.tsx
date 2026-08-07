@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Link2 } from "lucide-react";
 import { type Match, teamById, fmtNum } from "@/lib/data";
 import { useDict, useLang } from "./lang";
+import { sourceLabel } from "@/lib/matches";
 import { cn } from "@/lib/utils";
 
 function when(dt: string | null, locale: string) {
@@ -14,14 +15,14 @@ function when(dt: string | null, locale: string) {
   return { date: date.toLocaleDateString(locale, { day: "2-digit", month: "short", weekday: "short" }), time: t };
 }
 
-function Side({ id, name, flip }: { id: string; name: string; flip?: boolean }) {
+function Side({ id, placeholder, flip }: { id: string; placeholder: string; flip?: boolean }) {
   const t = useDict();
   const team = teamById(id);
   return (
     <div className={cn("flex min-w-0 flex-1 items-stretch", flip && "flex-row-reverse")}>
-      <div className="hidden w-24 shrink-0 overflow-hidden bg-ink md:block">
+      <div className="relative hidden w-24 shrink-0 overflow-hidden bg-ink md:block">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {team && <img src={team.image} alt="" className="size-full object-cover" />}
+        {team && <img src={team.image} alt="" className="absolute inset-0 size-full object-cover" />}
       </div>
       <div className={cn("flex min-w-0 flex-1 flex-col justify-center bg-slate/60 px-2.5 py-3 sm:px-4", flip && "items-end text-right")}>
         {team ? (
@@ -29,7 +30,7 @@ function Side({ id, name, flip }: { id: string; name: string; flip?: boolean }) 
             {team.name}
           </Link>
         ) : (
-          <span className="text-base font-black text-ash sm:text-xl">{name || t.common.tbd}</span>
+          <span className="line-clamp-2 text-sm font-bold uppercase leading-tight text-ash sm:text-base">{placeholder}</span>
         )}
         {team && (
           <div className="mt-1 hidden gap-4 text-[0.65rem] font-bold uppercase text-ash sm:flex">
@@ -52,26 +53,26 @@ export function MatchRow({ match }: { match: Match }) {
   const w = when(match.datetime, lang === "bg" ? "bg-BG" : "en-GB");
   const played = match.winner !== null;
   return (
-    <div className="flex items-stretch border border-line bg-coal">
+    <div className="flex h-24 items-stretch border border-line bg-coal">
       <div className="flex w-20 shrink-0 flex-col items-center justify-center px-1 py-3 text-center sm:w-32">
         <span className="num text-sm uppercase text-paper/80">{w?.date ?? t.common.tbd}</span>
         <span className="num text-2xl leading-none sm:text-4xl">{w?.time ?? "--:--"}</span>
         <span className="text-[0.6rem] font-black text-rose-hi">{t.common.eet}</span>
       </div>
-      <Side id={match.team1.id} name={match.team1.name} />
-      <div className="flex w-12 shrink-0 flex-col items-center justify-center gap-1 bg-ink py-3 sm:w-16">
+      <Side id={match.team1.id} placeholder={sourceLabel(t, match.id, 1)} />
+      <div className="flex w-14 shrink-0 flex-col items-center justify-center gap-1 bg-ink py-3 sm:w-20">
         {played ? (
           <span className="num text-xl sm:text-2xl">
-            <span className={cn(match.winner === 1 ? "text-paper" : "text-ash")}>{match.team1.score}</span>
+            <span className={cn(match.winner === 1 ? "text-paper" : "text-ash")}>{match.team1.score ?? 0}</span>
             <span className="text-ash">-</span>
-            <span className={cn(match.winner === 2 ? "text-paper" : "text-ash")}>{match.team2.score}</span>
+            <span className={cn(match.winner === 2 ? "text-paper" : "text-ash")}>{match.team2.score ?? 0}</span>
           </span>
         ) : (
           <span className="heading-slam text-lg text-rose-hi sm:text-2xl">{t.common.vs}</span>
         )}
       </div>
-      <Side id={match.team2.id} name={match.team2.name} flip />
-      {match.link && (
+      <Side id={match.team2.id} placeholder={sourceLabel(t, match.id, 2)} flip />
+      {match.link ? (
         <a
           href={match.link}
           target="_blank"
@@ -81,6 +82,8 @@ export function MatchRow({ match }: { match: Match }) {
         >
           <Link2 className="size-5" />
         </a>
+      ) : (
+        <span className="hidden w-14 shrink-0 sm:block" aria-hidden />
       )}
     </div>
   );
