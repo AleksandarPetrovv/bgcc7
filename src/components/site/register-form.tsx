@@ -15,11 +15,12 @@ type Props = {
   status: "pending" | "approved" | "denied" | null;
   state: WindowState;
   opensAt: string;
+  lobbyLink: boolean;
 };
 
 const TONE = { pending: "text-paper", approved: "text-balkan", denied: "text-rose-hi" };
 
-export function RegisterForm({ user, status, state, opensAt }: Props) {
+export function RegisterForm({ user, status, state, opensAt, lobbyLink }: Props) {
   const t = useDict();
   const path = usePathname();
   const [pending, start] = useTransition();
@@ -67,7 +68,12 @@ export function RegisterForm({ user, status, state, opensAt }: Props) {
         )}
         {error && <p className="text-sm font-bold text-rose-hi">{error}</p>}
 
-        <div className={cn("border-t border-line pt-5", pending && "pointer-events-none opacity-60")}>
+        <div className={cn("flex flex-wrap gap-3 border-t border-line pt-5", pending && "pointer-events-none opacity-60")}>
+          {lobbyLink && (
+            <SlantButton tone="balkan" href="/qualifiers">
+              {t.register.bookLobby}
+            </SlantButton>
+          )}
           {!user ? (
             <SlantButton tone="balkan" onClick={() => start(() => login(path))}>
               {t.nav.login}

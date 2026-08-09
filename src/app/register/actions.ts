@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { currentOsuId } from "@/auth";
 import { db } from "@/db";
-import { registrations } from "@/db/schema";
+import { lobbyBookings, registrations } from "@/db/schema";
 import { getSettings } from "@/db/settings";
 import { saveOsuUser } from "@/db/users";
 import { getUser } from "@/lib/osu-api";
@@ -28,6 +28,7 @@ export async function withdraw() {
   const osuId = await currentOsuId();
   if (!osuId) return { ok: false as const, error: "auth" };
   await db.delete(registrations).where(eq(registrations.osuId, osuId));
+  await db.delete(lobbyBookings).where(eq(lobbyBookings.osuId, osuId));
   revalidatePath("/", "layout");
   return { ok: true as const };
 }
