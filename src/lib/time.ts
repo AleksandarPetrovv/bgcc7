@@ -42,3 +42,6 @@ export const windowState = (opens: Date | null, closes: Date | null): WindowStat
   if (closes && now > closes.getTime()) return "closed";
   return "open";
 };
+
+export const fmtSofiaDay = (d: Date, locale: string) => d.toLocaleDateString(locale, { timeZone: TZ, weekday: "short", day: "numeric", month: "short" });
+export const fmtSofiaTime = (d: Date) => d.toLocaleTimeString("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });

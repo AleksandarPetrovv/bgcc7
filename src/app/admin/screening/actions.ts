@@ -2,7 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { registrations } from "@/db/schema";
+import { lobbyBookings, registrations } from "@/db/schema";
 import { isStatus } from "@/db/registrations";
 import { saveOsuUser } from "@/db/users";
 import { guard } from "@/lib/admin-action";
@@ -18,6 +18,7 @@ export async function decide(osuId: number, _: ActionResult, fd: FormData) {
       .update(registrations)
       .set({ status, note, decidedBy: status === "pending" ? null : by, decidedAt: status === "pending" ? null : new Date() })
       .where(eq(registrations.osuId, osuId));
+    if (status !== "approved") await db.delete(lobbyBookings).where(eq(lobbyBookings.osuId, osuId));
     return { osuId, status, note };
   });
 }
@@ -68,6 +69,7 @@ export async function addPlayer(_: ActionResult, fd: FormData) {
 export async function removeRegistration(osuId: number) {
   return guard("screening", "screening.remove", async () => {
     await db.delete(registrations).where(eq(registrations.osuId, osuId));
+    await db.delete(lobbyBookings).where(eq(lobbyBookings.osuId, osuId));
     return { osuId };
   });
 }

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { auth } from "@/auth";
 import { getRegistration } from "@/db/registrations";
 import { getSettings } from "@/db/settings";
+import { getBooking } from "@/db/lobbies";
 import { requireSection } from "@/lib/authz";
 import { fmtSofia, windowState } from "@/lib/time";
 
@@ -14,7 +15,7 @@ export default async function Register() {
   const [t, lang, session, settings] = await Promise.all([getDict(), getLang(), auth(), getSettings()]);
   const osuId = Number(session?.user?.id) || null;
   const user = osuId && session?.user?.name ? { name: session.user.name, image: session.user.image ?? null } : null;
-  const status = osuId ? await getRegistration(osuId) : null;
+  const [status, booking] = osuId ? await Promise.all([getRegistration(osuId), getBooking(osuId)]) : [null, null];
   const state = windowState(settings.regOpensAt, settings.regClosesAt);
   const fmt = (d: Date | null) => (d ? `${fmtSofia(d, lang === "bg" ? "bg-BG" : "en-GB")} EET` : "");
   const tag =
@@ -25,7 +26,8 @@ export default async function Register() {
     ) : (
       <Tag tone="rose" className="text-xs">{t.register.closedTag}</Tag>
     );
-  const done = user ? (status ? 2 : 1) : 0;
+  const done = user ? (status ? (booking ? 3 : 2) : 1) : 0;
+  const lobbyLink = status === "approved" && !booking && settings.sections.lobbies && windowState(settings.bookingOpensAt, settings.bookingClosesAt) === "open";
   return (
     <Container>
       <PageTitle accent={t.register.accent} right={tag}>
@@ -51,7 +53,7 @@ export default async function Register() {
           </li>
         </ol>
 
-        <RegisterForm user={user} status={status} state={state} opensAt={fmt(settings.regOpensAt)} />
+        <RegisterForm user={user} status={status} state={state} opensAt={fmt(settings.regOpensAt)} lobbyLink={lobbyLink} />
       </div>
     </Container>
   );

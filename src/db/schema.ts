@@ -75,3 +75,23 @@ export const adminLog = pgTable("admin_log", {
   payload: jsonb("payload"),
   at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const lobbies = pgTable("lobbies", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+  capacity: integer("capacity").notNull().default(8),
+  referee: text("referee"),
+  mpLinks: text("mp_links").notNull().default(""),
+  seeded: boolean("seeded").notNull().default(false),
+});
+
+export const lobbyBookings = pgTable("lobby_bookings", {
+  osuId: integer("osu_id")
+    .primaryKey()
+    .references(() => users.osuId, { onDelete: "cascade" }),
+  lobbyId: integer("lobby_id")
+    .notNull()
+    .references(() => lobbies.id, { onDelete: "cascade" }),
+  bookedAt: timestamp("booked_at", { withTimezone: true }).notNull().defaultNow(),
+});
