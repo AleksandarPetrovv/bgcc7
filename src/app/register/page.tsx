@@ -1,21 +1,34 @@
 import { Check } from "lucide-react";
 import { Container, PageTitle, Tag } from "@/components/site/page";
 import { RegisterForm } from "@/components/site/register-form";
-import { getDict } from "@/lib/i18n/server";
+import { getDict, getLang } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils";
 import { auth } from "@/auth";
-import { isRegistered } from "@/db/queries";
+import { getRegistration } from "@/db/registrations";
+import { getSettings } from "@/db/settings";
 import { requireSection } from "@/lib/authz";
+import { fmtSofia, windowState } from "@/lib/time";
 
 export default async function Register() {
   await requireSection("register");
-  const [t, session] = await Promise.all([getDict(), auth()]);
+  const [t, lang, session, settings] = await Promise.all([getDict(), getLang(), auth(), getSettings()]);
   const osuId = Number(session?.user?.id) || null;
   const user = osuId && session?.user?.name ? { name: session.user.name, image: session.user.image ?? null } : null;
-  const registered = osuId ? await isRegistered(osuId) : false;
+  const status = osuId ? await getRegistration(osuId) : null;
+  const state = windowState(settings.regOpensAt, settings.regClosesAt);
+  const fmt = (d: Date | null) => (d ? `${fmtSofia(d, lang === "bg" ? "bg-BG" : "en-GB")} EET` : "");
+  const tag =
+    state === "open" ? (
+      <Tag tone="balkan" className="text-xs">{settings.regClosesAt ? t.register.openTag(fmt(settings.regClosesAt)) : t.register.accent}</Tag>
+    ) : state === "soon" ? (
+      <Tag tone="paper" className="text-xs">{t.register.soonTag(fmt(settings.regOpensAt))}</Tag>
+    ) : (
+      <Tag tone="rose" className="text-xs">{t.register.closedTag}</Tag>
+    );
+  const done = user ? (status ? 2 : 1) : 0;
   return (
     <Container>
-      <PageTitle accent={t.register.accent} right={<Tag tone="balkan" className="text-xs">{t.register.openTag}</Tag>}>
+      <PageTitle accent={t.register.accent} right={tag}>
         BGCC7
       </PageTitle>
 
@@ -23,8 +36,8 @@ export default async function Register() {
         <ol className="space-y-5">
           {t.register.steps.map((s, i) => (
             <li key={s.t} className="flex gap-4">
-              <span className={cn("num flex size-11 shrink-0 items-center justify-center text-2xl", i < 1 ? "bg-balkan text-ink" : "border border-line text-ash")}>
-                {i < 1 ? <Check className="size-5" /> : i + 1}
+              <span className={cn("num flex size-11 shrink-0 items-center justify-center text-2xl", i < done ? "bg-balkan text-ink" : "border border-line text-ash")}>
+                {i < done ? <Check className="size-5" /> : i + 1}
               </span>
               <div>
                 <div className="font-black uppercase">{s.t}</div>
@@ -38,7 +51,7 @@ export default async function Register() {
           </li>
         </ol>
 
-        <RegisterForm user={user} registered={registered} />
+        <RegisterForm user={user} status={status} state={state} opensAt={fmt(settings.regOpensAt)} />
       </div>
     </Container>
   );
