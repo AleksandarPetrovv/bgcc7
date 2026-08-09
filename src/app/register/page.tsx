@@ -5,8 +5,10 @@ import { getDict } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils";
 import { auth } from "@/auth";
 import { isRegistered } from "@/db/queries";
+import { requireSection } from "@/lib/authz";
 
 export default async function Register() {
+  await requireSection("register");
   const [t, session] = await Promise.all([getDict(), auth()]);
   const osuId = Number(session?.user?.id) || null;
   const user = osuId && session?.user?.name ? { name: session.user.name, image: session.user.image ?? null } : null;

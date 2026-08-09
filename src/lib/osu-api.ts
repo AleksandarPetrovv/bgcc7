@@ -76,3 +76,21 @@ export async function getMpMatch(id: string) {
   }
   return { ...first, events, users: [...users.values()] };
 }
+
+export type OsuUserFull = {
+  id: number;
+  username: string;
+  avatar_url: string;
+  country_code: string;
+  statistics: { global_rank: number | null; country_rank: number | null; pp: number; hit_accuracy: number } | null;
+};
+
+export async function getUser(q: string | number) {
+  const key = /^\d+$/.test(String(q)) ? "id" : "username";
+  try {
+    return await get<OsuUserFull>(`/users/${encodeURIComponent(String(q).trim())}/osu?key=${key}`);
+  } catch (e) {
+    if (e instanceof Error && / 404$/.test(e.message)) return null;
+    throw e;
+  }
+}

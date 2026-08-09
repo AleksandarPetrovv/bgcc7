@@ -2,8 +2,10 @@ import { Container, PageTitle, Tag } from "@/components/site/page";
 import { getDict } from "@/lib/i18n/server";
 import { signups, fmtNum, flagUrl } from "@/lib/data";
 import { osuUser } from "@/lib/links";
+import { requireSection } from "@/lib/authz";
 
 export default async function Players() {
+  await requireSection("players");
   const t = await getDict();
   return (
     <Container>

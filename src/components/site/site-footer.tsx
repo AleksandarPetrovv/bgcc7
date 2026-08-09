@@ -12,7 +12,7 @@ const SOCIALS = [
   { label: "GitHub", icon: Code, href: "#" },
 ];
 
-export async function SiteFooter() {
+export async function SiteFooter({ sponsors }: { sponsors: boolean }) {
   const t = await getDict();
   return (
     <footer className="mt-24">
@@ -33,7 +33,7 @@ export async function SiteFooter() {
             ))}
           </div>
           <div className="ml-auto flex items-center gap-4 text-sm font-black">
-            <Link href="/staff/sponsors" className="hover:underline">{t.footer.sponsors}</Link>
+            {sponsors && <Link href="/staff/sponsors" className="hover:underline">{t.footer.sponsors}</Link>}
             <LangSwitch />
           </div>
         </div>

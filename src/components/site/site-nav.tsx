@@ -9,23 +9,13 @@ import { SpeedMark, Wordmark } from "./graphics";
 import { useDict } from "./lang";
 import { cn } from "@/lib/utils";
 import { login, logout } from "@/app/pickems/actions";
+import type { NavItem } from "@/lib/sections";
 
-const NAV = [
-  { href: "/", key: "home" },
-  { href: "/info", key: "info" },
-  { href: "/qualifiers", key: "qualifiers" },
-  { href: "/teams", key: "teams" },
-  { href: "/schedule", key: "schedule" },
-  { href: "/mappool", key: "mappool" },
-  { href: "/pickems", key: "pickems" },
-  { href: "/stats", key: "stats" },
-  { href: "/streams", key: "streams" },
-  { href: "/staff", key: "staff" },
-] as const;
+const isActive = (path: string, base: string) => (base === "/" ? path === "/" : path === base || path.startsWith(`${base}/`));
 
-const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+type Props = { user: { name: string; image: string | null; admin: boolean } | null; nav: NavItem[]; register: boolean };
 
-export function SiteNav({ user }: { user: { name: string; image: string | null; admin: boolean } | null }) {
+export function SiteNav({ user, nav, register }: Props) {
   const path = usePathname();
   const [pending, start] = useTransition();
   const t = useDict();
@@ -39,8 +29,8 @@ export function SiteNav({ user }: { user: { name: string; image: string | null; 
         </Link>
 
         <nav className="ml-auto hidden h-full items-stretch xl:flex" aria-label={t.nav.main}>
-          {NAV.map((n) => {
-            const active = isActive(path, n.href);
+          {nav.map((n) => {
+            const active = isActive(path, n.base);
             return (
               <Link
                 key={n.href}
@@ -49,6 +39,7 @@ export function SiteNav({ user }: { user: { name: string; image: string | null; 
                 className={cn(
                   "relative flex items-center px-2.5 text-[0.78rem] font-extrabold uppercase tracking-wide transition-colors 2xl:px-4",
                   active ? "text-paper" : "text-paper/60 hover:text-paper",
+                  n.hidden && "opacity-40",
                 )}
               >
                 {t.nav[n.key]}
@@ -59,14 +50,16 @@ export function SiteNav({ user }: { user: { name: string; image: string | null; 
         </nav>
 
         <div className="ml-auto flex items-center gap-2 xl:ml-4">
+          {register && (
           <Link
             href="/register"
             className="hidden -skew-x-12 bg-paper px-4 py-2 text-[0.8rem] font-black uppercase tracking-wide text-ink transition hover:bg-rose hover:text-white sm:inline-block"
           >
             <span className="inline-block skew-x-12">{t.nav.register}</span>
           </Link>
+          )}
           {user?.admin && (
-            <Link href="/admin" className="hidden px-3 py-2 text-[0.8rem] font-extrabold uppercase text-ash hover:text-paper 2xl:inline-block">
+            <Link href="/admin" className="hidden px-3 py-2 text-[0.8rem] font-extrabold uppercase text-ash hover:text-paper xl:inline-block">
               {t.nav.admin}
             </Link>
           )}
@@ -103,15 +96,20 @@ export function SiteNav({ user }: { user: { name: string; image: string | null; 
             <SheetContent side="right" className="flex h-dvh w-full max-w-sm flex-col border-line bg-ink p-0">
               <SheetTitle className="sr-only">{t.nav.menu}</SheetTitle>
               <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-14" aria-label={t.nav.main}>
-                {[...NAV, { href: "/register", key: "register" } as const, ...(user?.admin ? [{ href: "/admin", key: "admin" } as const] : [])].map((n) => (
+                {[
+                  ...nav,
+                  ...(register ? [{ key: "register", href: "/register", base: "/register", hidden: false } as const] : []),
+                  ...(user?.admin ? [{ key: "admin", href: "/admin", base: "/admin", hidden: false } as const] : []),
+                ].map((n) => (
                   <Link
                     key={n.href}
                     href={n.href}
                     onClick={() => setOpen(false)}
-                    aria-current={isActive(path, n.href) ? "page" : undefined}
+                    aria-current={isActive(path, n.base) ? "page" : undefined}
                     className={cn(
                       "heading-slam flex min-h-12 items-center border-b border-line px-6 py-2.5 text-2xl",
-                      isActive(path, n.href) ? "bg-rose text-white" : "text-paper hover:bg-slate",
+                      isActive(path, n.base) ? "bg-rose text-white" : "text-paper hover:bg-slate",
+                      n.hidden && "opacity-40",
                     )}
                   >
                     {t.nav[n.key]}

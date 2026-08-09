@@ -13,7 +13,8 @@
     "db:studio": "drizzle-kit studio",
     "host": "docker compose up -d --build",
     "host:stop": "docker compose down",
-    "host:logs": "docker compose logs -f app"
+    "host:logs": "docker compose logs -f app",
+    "db:seed": "node --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/seed-bgcc6.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

@@ -4,8 +4,10 @@ import { SiteNav } from "@/components/site/site-nav";
 import { SiteFooter } from "@/components/site/site-footer";
 import { LangProvider } from "@/components/site/lang";
 import { getDict, getLang } from "@/lib/i18n/server";
+import { HiddenBar } from "@/components/site/hidden-bar";
 import { auth } from "@/auth";
-import { isAdmin } from "@/lib/admins";
+import { getViewer, getVisibility } from "@/lib/authz";
+import { buildNav, SECTIONS } from "@/lib/sections";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -48,15 +50,17 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const [lang, session] = await Promise.all([getLang(), auth()]);
-  const user = session?.user?.name ? { name: session.user.name, image: session.user.image ?? null, admin: isAdmin(Number(session.user.id) || null) } : null;
+  const [lang, session, viewer, vis] = await Promise.all([getLang(), auth(), getViewer(), getVisibility()]);
+  const user = session?.user?.name ? { name: session.user.name, image: session.user.image ?? null, admin: !!viewer?.role } : null;
+  const hidden = vis.staff ? SECTIONS.filter((s) => !vis.sections[s]) : [];
   return (
     <html lang={lang} className={`${archivo.variable} ${barlow.variable} ${unbounded.variable} ${montserrat.variable} ${robotoCondensed.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <LangProvider lang={lang}>
-          <SiteNav user={user} />
+          <SiteNav user={user} nav={buildNav(vis.sections, vis.staff)} register={vis.staff || vis.sections.register} />
+          <HiddenBar hidden={hidden} />
           <main className="flex-1">{children}</main>
-          <SiteFooter />
+          <SiteFooter sponsors={vis.staff || vis.sections.sponsors} />
         </LangProvider>
       </body>
     </html>

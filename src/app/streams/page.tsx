@@ -5,10 +5,12 @@ import { getDict } from "@/lib/i18n/server";
 import { roundName } from "@/lib/i18n/dict";
 import { TWITCH_URL } from "@/lib/links";
 import { bracket, teamById } from "@/lib/data";
+import { requireSection } from "@/lib/authz";
 
 const CREW = ["Prahosnika", "Raregendary", "SynchroHD"];
 
 export default async function Streams() {
+  await requireSection("streams");
   const t = await getDict();
   const upcoming = bracket.winners[0].matches;
   return (

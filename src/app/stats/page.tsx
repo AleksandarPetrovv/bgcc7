@@ -4,11 +4,13 @@ import { getDict } from "@/lib/i18n/server";
 import { qualifiers, fmtNum } from "@/lib/data";
 import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
+import { requireSection } from "@/lib/authz";
 
 const TONES = ["bg-rose text-white", "bg-balkan text-ink", "border border-line bg-coal", "border border-line bg-coal"];
 const MEDAL = ["text-[#e8c547]", "text-[#c9ccd1]", "text-[#c98a4b]"];
 
 export default async function Stats() {
+  await requireSection("stats");
   const t = await getDict();
   const perfs = qualifiers.players.flatMap((p) => Object.entries(p.perf).map(([mid, v]) => ({ ...v, mid, player: p })));
   const best = perfs.reduce((a, b) => (b.score > a.score ? b : a));

@@ -5,8 +5,10 @@ import { Container, PageTitle } from "@/components/site/page";
 import { PickemsBracket } from "@/components/site/pickems-bracket";
 import { getBracketOf } from "@/db/queries";
 import { getDict } from "@/lib/i18n/server";
+import { requireSection } from "@/lib/authz";
 
 export default async function UserBracket({ params }: PageProps<"/pickems/[osuId]">) {
+  await requireSection("pickems");
   const { osuId } = await params;
   const id = Number(osuId);
   if (!Number.isInteger(id) || id <= 0) notFound();

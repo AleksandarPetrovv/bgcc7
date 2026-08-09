@@ -2,6 +2,7 @@ import { Container, SectionHeading, SlantButton } from "@/components/site/page";
 import { Rich } from "@/components/site/rich";
 import { getDict } from "@/lib/i18n/server";
 import { DISCORD_URL } from "@/lib/links";
+import { requireSection } from "@/lib/authz";
 
 function List({ items }: { items: string[] }) {
   return (
@@ -18,6 +19,7 @@ function List({ items }: { items: string[] }) {
 const PRIZE_BAR = ["bg-[#e8c547]", "bg-[#c9ccd1]", "bg-[#c98a4b]"];
 
 export default async function InfoPage() {
+  await requireSection("info");
   const t = await getDict();
   return (
     <Container className="max-w-5xl">

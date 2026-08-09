@@ -6,7 +6,7 @@ import { TriTick } from "./graphics";
 import { useDict } from "./lang";
 import { cn } from "@/lib/utils";
 
-export function SubNav({ items }: { items: { href: string; label: string }[] }) {
+export function SubNav({ items }: { items: { href: string; label: string; hidden?: boolean }[] }) {
   const path = usePathname();
   const t = useDict();
   return (
@@ -22,6 +22,7 @@ export function SubNav({ items }: { items: { href: string; label: string }[] }) 
               className={cn(
                 "relative flex min-h-11 shrink-0 items-center px-2 text-[0.8rem] font-black uppercase tracking-wide transition-colors",
                 active ? "text-paper" : "text-ash hover:text-paper",
+                i.hidden && "opacity-40",
               )}
             >
               {i.label}

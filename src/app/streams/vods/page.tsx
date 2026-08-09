@@ -4,8 +4,10 @@ import { getDict } from "@/lib/i18n/server";
 import { roundName } from "@/lib/i18n/dict";
 import { TWITCH_URL } from "@/lib/links";
 import { allMatches, stages, teamById } from "@/lib/data";
+import { requireSection } from "@/lib/authz";
 
 export default async function Vods() {
+  await requireSection("streams");
   const t = await getDict();
   const played = allMatches.filter((m) => m.winner);
   const covers = stages.flatMap((s) => s.pools.flatMap((p) => p.maps.map((m) => m.cover)));
