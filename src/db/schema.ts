@@ -24,3 +24,10 @@ export const registrations = pgTable("registrations", {
     .references(() => users.osuId, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const matchCache = pgTable("match_cache", {
+  matchId: text("match_id").primaryKey(),
+  links: text("links").notNull(),
+  data: jsonb("data").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
