@@ -15,6 +15,13 @@
       "when": 1790616540639,
       "tag": "0001_groovy_norrin_radd",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790621936170,
+      "tag": "0002_harsh_shiva",
+      "breakpoints": true
     }
   ]
 }
