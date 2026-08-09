@@ -6,12 +6,14 @@ import { MatchRow } from "@/components/site/match-row";
 import { getDict } from "@/lib/i18n/server";
 import { allMatches, teams, teamById, fmtNum, flagUrl } from "@/lib/data";
 import { osuUser } from "@/lib/links";
+import { requireSection } from "@/lib/authz";
 
 export function generateStaticParams() {
   return teams.map((t) => ({ id: t.id }));
 }
 
 export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
+  await requireSection("teams");
   const { id } = await params;
   const t = await getDict();
   const team = teamById(id);

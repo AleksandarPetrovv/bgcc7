@@ -1,7 +1,9 @@
 import { Container, PageTitle } from "@/components/site/page";
 import { getDict } from "@/lib/i18n/server";
+import { requireSection } from "@/lib/authz";
 
 export default async function Condensed() {
+  await requireSection("info");
   const t = await getDict();
   return (
     <Container className="max-w-5xl">

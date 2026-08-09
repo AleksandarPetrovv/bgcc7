@@ -1,8 +1,10 @@
 import { Container, PageTitle, SlantButton } from "@/components/site/page";
 import { getDict } from "@/lib/i18n/server";
 import { staff } from "@/lib/data";
+import { requireSection } from "@/lib/authz";
 
 export default async function Sponsors() {
+  await requireSection("sponsors");
   const t = await getDict();
   return (
     <Container className="max-w-5xl">

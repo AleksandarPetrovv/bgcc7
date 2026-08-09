@@ -4,8 +4,10 @@ import { SeedingChart } from "@/components/site/seeding-chart";
 import { getDict } from "@/lib/i18n/server";
 import { teams, fmtNum } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import { requireSection } from "@/lib/authz";
 
 export default async function Seeding() {
+  await requireSection("seeding");
   const t = await getDict();
   return (
     <Container>

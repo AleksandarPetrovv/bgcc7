@@ -1,21 +1,20 @@
 import { Container, PageTitle, SectionHeading, SlantButton } from "@/components/site/page";
 import { getDict } from "@/lib/i18n/server";
 import { DISCORD_URL, osuUser } from "@/lib/links";
-import { staff, flagUrl, type StaffMember } from "@/lib/data";
+import { flagUrl } from "@/lib/data";
+import { getPublicStaff } from "@/db/admin";
+import { STAFF_ROLES } from "@/lib/roles";
 import { cn } from "@/lib/utils";
+import { requireSection } from "@/lib/authz";
 
-const ROLE_ORDER = ["Host", "Mappooler", "Playtester", "Referee", "Streamer", "Commentator", "GFX / Designer", "Developer"];
+const ROLE_ORDER = STAFF_ROLES;
 const rank = (r: string) => (ROLE_ORDER.indexOf(r) + 1 || 99);
 
 export default async function Staff() {
-  const t = await getDict();
-  const people = new Map<string, StaffMember>();
-  for (const p of [...staff.organizational, ...staff.assistive]) {
-    const prev = people.get(p.username);
-    people.set(p.username, prev ? { ...prev, roles: [...new Set([...prev.roles, ...p.roles])] } : p);
-  }
-  const list = [...people.values()]
-    .map((p) => ({ ...p, roles: [...p.roles].sort((a, b) => rank(a) - rank(b)) }))
+  await requireSection("staff");
+  const [t, rows] = await Promise.all([getDict(), getPublicStaff()]);
+  const list = rows
+    .map((p) => ({ osuId: p.osuId, username: p.username, avatar: p.avatarUrl ?? "", country: p.country ?? "", roles: [...p.displayRoles].sort((a, b) => rank(a) - rank(b)) }))
     .sort((a, b) => rank(a.roles[0]) - rank(b.roles[0]) || b.roles.length - a.roles.length);
   const open = ROLE_ORDER.filter((r) => !list.some((p) => p.roles.includes(r)));
 
@@ -31,10 +30,10 @@ export default async function Staff() {
             <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 p-4">
               <div className="flex items-center gap-2.5">
                 <h2 className="heading-slam truncate text-2xl">
-                  <a href={osuUser(p.username)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">{p.username}</a>
+                  <a href={osuUser(p.osuId)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">{p.username}</a>
                 </h2>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={flagUrl(p.country)} alt={p.country} className="h-3 w-auto shrink-0" />
+                {p.country && <img src={flagUrl(p.country)} alt={p.country} className="h-3 w-auto shrink-0" />}
               </div>
               <ul className="flex flex-wrap gap-1.5">
                 {p.roles.map((r, i) => (

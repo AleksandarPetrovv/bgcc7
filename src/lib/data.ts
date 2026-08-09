@@ -270,15 +270,6 @@ export const qualifierLobbies = (() => {
     }));
 })();
 
-export const timeline = [
-  { label: "Registrations", dates: "2 Nov – 22 Nov", key: "reg" },
-  { label: "Screening", dates: "23 Nov – 25 Nov", key: "scr" },
-  { label: "Qualifiers", dates: "28 Nov – 29 Nov", key: "qual" },
-  { label: "Quarterfinals", dates: "5 Dec – 6 Dec", key: "qf" },
-  { label: "Semifinals", dates: "12 Dec – 13 Dec", key: "sf" },
-  { label: "Finals", dates: "19 Dec – 20 Dec", key: "f" },
-  { label: "Grand finals", dates: "27 Dec", key: "gf" },
-];
 
 export const fmtNum = (n: number) => n.toLocaleString("en-US");
 export const fmtLen = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;

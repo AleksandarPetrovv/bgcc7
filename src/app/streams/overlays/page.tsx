@@ -2,6 +2,7 @@ import { Container, PageTitle, Tag } from "@/components/site/page";
 import { SpeedLines, SpeedMark, Tricolor, Wordmark } from "@/components/site/graphics";
 import { getDict } from "@/lib/i18n/server";
 import { stages, teams, MODS } from "@/lib/data";
+import { requireSection } from "@/lib/authz";
 
 function Frame({ title, note, children }: { title: string; note: string; children: React.ReactNode }) {
   return (
@@ -16,6 +17,7 @@ function Frame({ title, note, children }: { title: string; note: string; childre
 }
 
 export default async function Overlays() {
+  await requireSection("streams");
   const d = await getDict();
   const [a, b] = [teams[0], teams[4]];
   const map = stages[2].pools[2].maps[0];

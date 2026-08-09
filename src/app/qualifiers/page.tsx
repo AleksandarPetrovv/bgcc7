@@ -2,8 +2,10 @@ import { Container, PageTitle, SectionHeading, Tag } from "@/components/site/pag
 import { getDict } from "@/lib/i18n/server";
 import { fmtDay } from "@/lib/i18n/dict";
 import { qualifierLobbies } from "@/lib/data";
+import { requireSection } from "@/lib/authz";
 
 export default async function Lobbies() {
+  await requireSection("lobbies");
   const t = await getDict();
   const byDay = new Map<string, typeof qualifierLobbies>();
   for (const l of qualifierLobbies) {

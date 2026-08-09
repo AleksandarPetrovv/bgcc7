@@ -6,12 +6,12 @@ import { Rich } from "@/components/site/rich";
 import { getDict } from "@/lib/i18n/server";
 import { fmtDay, roundName, type Dict } from "@/lib/i18n/dict";
 import { Countdown } from "@/components/site/countdown";
-import { MODS, allMatches, stages, staff, teams, timeline, teamById } from "@/lib/data";
+import { MODS, allMatches, stages, staff, teams, teamById } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { getSignupCount } from "@/db/queries";
-
-const CURRENT = "reg";
-const REG_CLOSES = "2026-11-22T23:59:00+02:00";
+import { getSettings } from "@/db/settings";
+import { getVisibility } from "@/lib/authz";
+import { isFuture } from "@/lib/time";
 
 function HeroLockup({ label }: { label: string }) {
   return (
@@ -110,8 +110,8 @@ function MiniBracket() {
   );
 }
 
-function Timeline({ t }: { t: Dict }) {
-  const at = timeline.findIndex((e) => e.key === CURRENT);
+function Timeline({ t, timeline, current }: { t: Dict; timeline: { key: string; dates: string }[]; current: string | null }) {
+  const at = current ? timeline.findIndex((e) => e.key === current) : timeline.length;
   return (
     <ol className="relative mt-6">
       <span className="anim-stitch absolute bottom-3 left-[7px] top-3 border-l-2 border-dashed border-line" aria-hidden />
@@ -142,7 +142,9 @@ function Timeline({ t }: { t: Dict }) {
 }
 
 export default async function Home() {
-  const [t, signups] = await Promise.all([getDict(), getSignupCount()]);
+  const [t, signups, settings, vis] = await Promise.all([getDict(), getSignupCount(), getSettings(), getVisibility()]);
+  const see = (s: keyof typeof vis.sections) => vis.staff || vis.sections[s];
+  const regCloses = see("register") && isFuture(settings.regClosesAt) ? settings.regClosesAt!.toISOString() : null;
   const featured = allMatches.filter((m) => m.winner).slice(0, 3);
   return (
     <>
@@ -164,8 +166,8 @@ export default async function Home() {
             </h1>
             <p className="mt-5 max-w-[48ch] text-pretty text-lg text-paper/70">{t.home.intro}</p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <SlantButton href="/register" tone="paper" className="px-5 py-2.5 text-base">{t.home.registerTeam}</SlantButton>
-              <SlantButton href="/info" tone="outline" className="px-5 py-2.5 text-base">{t.home.readRules}</SlantButton>
+              {see("register") && <SlantButton href="/register" tone="paper" className="px-5 py-2.5 text-base">{t.home.registerTeam}</SlantButton>}
+              {see("info") && <SlantButton href="/info" tone="outline" className="px-5 py-2.5 text-base">{t.home.readRules}</SlantButton>}
             </div>
           </div>
         </div>
@@ -183,26 +185,36 @@ export default async function Home() {
       <section className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-12 px-4 pt-14 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)]">
         <div>
           <h2 className="heading-slam text-3xl">{t.home.timeline}</h2>
-          <Timeline t={t} />
-          <div className="mt-8 border border-line bg-coal p-4">
-            <div className="text-[0.7rem] font-black uppercase tracking-widest text-ash">{t.home.closesIn}</div>
-            <Countdown to={REG_CLOSES} />
-          </div>
+          <Timeline t={t} timeline={settings.timeline} current={settings.timelineAt} />
+          {regCloses && (
+            <div className="mt-8 border border-line bg-coal p-4">
+              <div className="text-[0.7rem] font-black uppercase tracking-widest text-ash">{t.home.closesIn}</div>
+              <Countdown to={regCloses} />
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 content-start gap-5 sm:grid-cols-2">
-          <EntryCard title={t.home.registration} sub={t.home.regSub} href="/register" className="border border-line bg-coal">
-            <SignupCount n={signups} label={t.home.signups(signups)} />
-          </EntryCard>
-          <EntryCard title={t.home.mappool} sub={t.home.mapSub} href="/mappool" className="border border-line bg-slate">
-            <ModChips />
-          </EntryCard>
-          <EntryCard title={t.home.teams} sub={t.home.teamsSub(teams.length, teams.length * 3)} href="/teams" className="border border-line bg-coal">
-            <TeamMosaic />
-          </EntryCard>
-          <EntryCard title={t.home.bracket} sub={t.home.bracketSub} href="/schedule/bracket" className="border border-line bg-coal">
-            <MiniBracket />
-          </EntryCard>
+          {(see("register") || see("players")) && (
+            <EntryCard title={t.home.registration} sub={t.home.regSub} href={see("register") ? "/register" : "/teams/players"} className="border border-line bg-coal">
+              <SignupCount n={signups} label={t.home.signups(signups)} />
+            </EntryCard>
+          )}
+          {see("mappool") && (
+            <EntryCard title={t.home.mappool} sub={t.home.mapSub} href="/mappool" className="border border-line bg-slate">
+              <ModChips />
+            </EntryCard>
+          )}
+          {see("teams") && (
+            <EntryCard title={t.home.teams} sub={t.home.teamsSub(teams.length, teams.length * 3)} href="/teams" className="border border-line bg-coal">
+              <TeamMosaic />
+            </EntryCard>
+          )}
+          {see("bracket") && (
+            <EntryCard title={t.home.bracket} sub={t.home.bracketSub} href="/schedule/bracket" className="border border-line bg-coal">
+              <MiniBracket />
+            </EntryCard>
+          )}
 
           <div className="flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-line pt-5 sm:col-span-2">
             <span className="text-xs font-black uppercase tracking-widest text-ash">{t.home.backedBy}</span>
@@ -217,7 +229,10 @@ export default async function Home() {
         </div>
       </section>
 
+      {(see("schedule") || see("streams")) && (
       <section className="mx-auto max-w-[1400px] px-4 pt-20 sm:px-6">
+        {see("schedule") && featured.length > 0 && (
+        <>
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3">
           <h2 className="heading-slam text-4xl">{t.home.previously}</h2>
           <Link href="/schedule" className="inline-flex items-center gap-1.5 text-sm font-black uppercase text-ash hover:text-paper">
@@ -253,6 +268,9 @@ export default async function Home() {
           })}
         </div>
 
+        </>
+        )}
+        {see("streams") && (
         <div className="mt-8 flex flex-col items-start gap-4 border border-line bg-coal p-5 sm:flex-row sm:items-center">
           <span className="flex items-center gap-2 bg-slate px-2 py-1 text-xs font-black uppercase text-ash">
             <Radio className="size-3.5" /> {t.home.offline}
@@ -260,7 +278,9 @@ export default async function Home() {
           <p className="text-sm text-paper/75">{t.home.streamNote}</p>
           <SlantButton href="/streams" tone="paper" className="sm:ml-auto">{t.home.streamSchedule}</SlantButton>
         </div>
+        )}
       </section>
+      )}
     </>
   );
 }

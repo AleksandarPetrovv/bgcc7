@@ -6,7 +6,7 @@ import { resolve, score } from "@/lib/pickems";
 
 export type LeaderRow = { osuId: number; username: string; avatarUrl: string | null; points: number; correct: number };
 
-async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+export async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
     return await fn();
   } catch (e) {
