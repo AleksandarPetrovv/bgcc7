@@ -45,11 +45,6 @@ export const getLeaderboard = () =>
       .sort((a, b) => b.points - a.points || b.correct - a.correct || a.username.localeCompare(b.username));
   }, [] as LeaderRow[]);
 
-export const isRegistered = (osuId: number) =>
-  safe(async () => {
-    const [row] = await db.select({ osuId: registrations.osuId }).from(registrations).where(eq(registrations.osuId, osuId)).limit(1);
-    return !!row;
-  }, false);
 
 export const getSignupCount = () =>
   safe(async () => {

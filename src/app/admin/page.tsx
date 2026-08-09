@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { getSettings } from "@/db/settings";
-import { getSignupCount } from "@/db/queries";
+import { getRegistrations } from "@/db/registrations";
 import { getLog, getStaff } from "@/db/admin";
 import { ADMINS } from "@/lib/admins";
 import { getDict, getLang } from "@/lib/i18n/server";
@@ -11,11 +11,11 @@ import { SECTIONS } from "@/lib/sections";
 import { LogTable } from "./log/log-table";
 
 export default async function AdminOverview() {
-  const [t, lang, settings, signups, staff, log, viewer] = await Promise.all([
+  const [t, lang, settings, regs, staff, log, viewer] = await Promise.all([
     getDict(),
     getLang(),
     getSettings(),
-    getSignupCount(),
+    getRegistrations(),
     getStaff(),
     getLog(8),
     getViewer(),
@@ -24,13 +24,19 @@ export default async function AdminOverview() {
   const visible = SECTIONS.filter((s) => settings.sections[s]).length;
   const tiles = [
     { k: t.admin.phaseNow, v: t.admin.phases[settings.phase], sub: t.admin.visiblePages(visible), href: can(viewer?.role, "phase") ? "/admin/phase" : null },
-    { k: t.admin.registered, v: String(signups), sub: null, href: null },
+    { k: t.admin.registered, v: String(regs.length), sub: null, href: can(viewer?.role, "screening") ? "/admin/screening" : null },
+    {
+      k: t.admin.pendingReview,
+      v: String(regs.filter((r) => r.status === "pending").length),
+      sub: null,
+      href: can(viewer?.role, "screening") ? "/admin/screening?status=pending" : null,
+    },
     { k: t.admin.staffCount, v: String(staffCount), sub: null, href: can(viewer?.role, "staff") ? "/admin/staff" : null },
   ];
   return (
     <>
       <h1 className="heading-slam text-4xl sm:text-5xl">{t.admin.menu.overview}</h1>
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {tiles.map((tile) => {
           const body = (
             <>

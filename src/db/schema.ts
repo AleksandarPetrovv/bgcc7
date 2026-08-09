@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, integer, jsonb, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, doublePrecision, integer, jsonb, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   osuId: integer("osu_id").primaryKey(),
@@ -7,6 +7,11 @@ export const users = pgTable("users", {
   avatarUrl: text("avatar_url"),
   country: text("country"),
   seeded: boolean("seeded").notNull().default(false),
+  rank: integer("rank"),
+  countryRank: integer("country_rank"),
+  pp: doublePrecision("pp"),
+  accuracy: doublePrecision("accuracy"),
+  statsAt: timestamp("stats_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -24,6 +29,10 @@ export const registrations = pgTable("registrations", {
   osuId: integer("osu_id")
     .primaryKey()
     .references(() => users.osuId, { onDelete: "cascade" }),
+  status: text("status").notNull().default("pending"),
+  note: text("note"),
+  decidedBy: integer("decided_by"),
+  decidedAt: timestamp("decided_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
