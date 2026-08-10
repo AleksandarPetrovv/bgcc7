@@ -4,7 +4,9 @@ import { TriTick, Tricolor } from "@/components/site/graphics";
 import { SlantButton } from "@/components/site/page";
 import { Rich } from "@/components/site/rich";
 import { getDict } from "@/lib/i18n/server";
-import { fmtDay, roundName, type Dict } from "@/lib/i18n/dict";
+import { roundName, type Dict } from "@/lib/i18n/dict";
+import { fmtRange, type TimelineRow } from "@/lib/dates";
+import { getFill } from "@/db/copy";
 import { Countdown } from "@/components/site/countdown";
 import { MODS, type Stage, type Team } from "@/lib/data";
 import { getMatches, getSponsors, getTeams } from "@/db/tournament";
@@ -115,7 +117,7 @@ function MiniBracket() {
   );
 }
 
-function Timeline({ t, timeline, current }: { t: Dict; timeline: { key: string; dates: string }[]; current: string | null }) {
+function Timeline({ t, timeline, current, locale }: { t: Dict; timeline: TimelineRow[]; current: string | null; locale: string }) {
   const at = current ? timeline.findIndex((e) => e.key === current) : timeline.length;
   return (
     <ol className="relative mt-6">
@@ -138,7 +140,7 @@ function Timeline({ t, timeline, current }: { t: Dict; timeline: { key: string; 
               )}
             </span>
             <span className="flex-1">{t.timeline[e.key]}</span>
-            <span className="num whitespace-nowrap text-base normal-case">{fmtDay(t, e.dates)}</span>
+            <span className="num whitespace-nowrap text-base normal-case">{fmtRange(locale, e.from, e.to)}</span>
           </li>
         );
       })}
@@ -158,6 +160,8 @@ export default async function Home() {
     getMatches(),
     getSponsors(),
   ]);
+  const f = await getFill();
+  const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const teamById = (id: string) => teams.find((x) => x.id === id);
   const pool = pools.filter((s) => s.released && s.pools.length).at(-1);
   const see = (s: keyof typeof vis.sections) => vis.staff || vis.sections[s];
@@ -185,7 +189,7 @@ export default async function Home() {
             <h1 className="text-balance text-[clamp(1.8rem,3.2vw,2.9rem)] font-black leading-[1.05] tracking-tight">
               <Rich text={t.home.headline} />
             </h1>
-            <p className="mt-5 max-w-[48ch] text-pretty text-lg text-paper/70">{t.home.intro}</p>
+            <p className="mt-5 max-w-[48ch] text-pretty text-lg text-paper/70">{f(t.home.intro)}</p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               {see("register") && <SlantButton href="/register" tone="paper" className="px-5 py-2.5 text-base">{t.home.registerTeam}</SlantButton>}
               {see("info") && <SlantButton href="/info" tone="outline" className="px-5 py-2.5 text-base">{t.home.readRules}</SlantButton>}
@@ -196,7 +200,7 @@ export default async function Home() {
           {[1, 6, 7, 8].map((i, k) => (
             <div key={i} className={cn("px-4 py-4 sm:px-6", k % 2 === 1 && "border-l border-line", k > 1 && "border-t border-line sm:border-t-0", k === 2 && "sm:border-l")}>
               <dt className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-ash">{t.info.facts[i][0]}</dt>
-              <dd className="num mt-1 text-xl text-paper sm:text-2xl">{t.info.facts[i][1]}</dd>
+              <dd className="num mt-1 text-xl text-paper sm:text-2xl">{f(t.info.facts[i][1])}</dd>
             </div>
           ))}
         </dl>
@@ -206,7 +210,7 @@ export default async function Home() {
       <section className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-12 px-4 pt-14 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)]">
         <div>
           <h2 className="heading-slam text-3xl">{t.home.timeline}</h2>
-          <Timeline t={t} timeline={settings.timeline} current={settings.timelineAt} />
+          <Timeline t={t} timeline={settings.timeline} current={settings.timelineAt} locale={locale} />
           {regCloses && (
             <div className="mt-8 border border-line bg-coal p-4">
               <div className="text-[0.7rem] font-black uppercase tracking-widest text-ash">{t.home.closesIn}</div>
@@ -217,7 +221,7 @@ export default async function Home() {
 
         <div className="grid grid-cols-1 content-start gap-5 sm:grid-cols-2">
           {(see("register") || see("players")) && (
-            <EntryCard title={t.home.registration} sub={t.home.regSub} href={see("register") ? "/register" : "/teams/players"} className="border border-line bg-coal">
+            <EntryCard title={t.home.registration} sub={f(t.home.regSub)} href={see("register") ? "/register" : "/teams/players"} className="border border-line bg-coal">
               <SignupCount n={signups} label={t.home.signups(signups)} />
             </EntryCard>
           )}
@@ -270,7 +274,7 @@ export default async function Home() {
               <div key={m.id} className="border border-line bg-coal">
                 <div className="flex items-center justify-between border-b border-line px-4 py-2 text-xs font-black uppercase text-ash">
                   <span className="text-rose-hi">{roundName(t, m.round)}</span>
-                  <span className="num text-sm">{m.datetime && fmtSofia(new Date(m.datetime), lang === "bg" ? "bg-BG" : "en-GB")}</span>
+                  <span className="num text-sm">{m.datetime && fmtSofia(new Date(m.datetime), locale)}</span>
                 </div>
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 p-4">
                   {[a, b].map((team, i) => (

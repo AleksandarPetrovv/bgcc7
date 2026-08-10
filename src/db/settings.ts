@@ -4,7 +4,8 @@ import { eq } from "drizzle-orm";
 import { db } from "./index";
 import { settings } from "./schema";
 import { safe } from "./safe";
-import { DEFAULT_TIMELINE, PHASES, presetSections, type Phase, type Section } from "@/lib/sections";
+import { DEFAULT_TIMELINE, PHASES, presetSections, TIMELINE_KEYS, type Phase, type Section } from "@/lib/sections";
+import { sofiaDate, type TimelineRow } from "@/lib/dates";
 
 export type Settings = {
   phase: Phase;
@@ -14,7 +15,7 @@ export type Settings = {
   bookingOpensAt: Date | null;
   bookingClosesAt: Date | null;
   pickemsOpen: boolean;
-  timeline: { key: string; dates: string }[];
+  timeline: TimelineRow[];
   timelineAt: string | null;
   qualifyCount: number;
   links: Record<string, string>;
@@ -34,6 +35,15 @@ export const DEFAULT_SETTINGS: Settings = {
   links: {},
 };
 
+function withReg(stored: { key: string; from?: string | null; to?: string | null }[], opens: Date | null, closes: Date | null): TimelineRow[] {
+  return TIMELINE_KEYS.map((key) => {
+    if (key === "reg") return { key, from: opens ? sofiaDate(opens) : null, to: closes ? sofiaDate(closes) : null };
+    const s = stored.find((r) => r.key === key);
+    const d = DEFAULT_TIMELINE.find((r) => r.key === key)!;
+    return s && "from" in s ? { key, from: s.from ?? null, to: s.to ?? null } : { key, from: d.from, to: d.to };
+  });
+}
+
 export const getSettings = cache(() =>
   safe(async (): Promise<Settings> => {
     const [row] = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);
@@ -47,7 +57,7 @@ export const getSettings = cache(() =>
       bookingOpensAt: row.bookingOpensAt,
       bookingClosesAt: row.bookingClosesAt,
       pickemsOpen: row.pickemsOpen,
-      timeline: row.timeline,
+      timeline: withReg(row.timeline, row.regOpensAt, row.regClosesAt),
       timelineAt: row.timelineAt,
       qualifyCount: row.qualifyCount,
       links: row.links ?? {},

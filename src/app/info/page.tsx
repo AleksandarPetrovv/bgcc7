@@ -2,6 +2,7 @@ import { Container, SectionHeading, SlantButton } from "@/components/site/page";
 import { Rich } from "@/components/site/rich";
 import { getDict } from "@/lib/i18n/server";
 import { DISCORD_URL } from "@/lib/links";
+import { getFill } from "@/db/copy";
 import { requireSection } from "@/lib/authz";
 
 function List({ items }: { items: string[] }) {
@@ -20,11 +21,11 @@ const PRIZE_BAR = ["bg-[#e8c547]", "bg-[#c9ccd1]", "bg-[#c98a4b]"];
 
 export default async function InfoPage() {
   await requireSection("info");
-  const t = await getDict();
+  const [t, f] = await Promise.all([getDict(), getFill()]);
   return (
     <Container className="max-w-5xl">
       <div className="border border-line bg-coal/80 px-6 py-8 sm:px-10">
-        <p className="mx-auto max-w-3xl text-center leading-relaxed text-paper/90">{t.info.intro}</p>
+        <p className="mx-auto max-w-3xl text-center leading-relaxed text-paper/90">{f(t.info.intro)}</p>
         <div className="mt-6 flex justify-center">
           <SlantButton tone="balkan" href={DISCORD_URL} className="justify-center">{t.common.discord}</SlantButton>
         </div>
@@ -47,26 +48,24 @@ export default async function InfoPage() {
         </div>
 
         <SectionHeading>{t.info.regTitle}</SectionHeading>
-        <List items={t.info.regItems} />
+        <List items={t.info.regItems.map(f)} />
 
         <SectionHeading>{t.info.qualTitle}</SectionHeading>
-        <List items={t.info.qualItems} />
+        <List items={t.info.qualItems.map(f)} />
 
         <SectionHeading>{t.info.structure}</SectionHeading>
         <div className="overflow-hidden border border-line">
-          {t.info.formatRows.map((f, i) => (
-            <div key={f.stage} className={`grid grid-cols-[1.2fr_1.5fr_1fr] items-center gap-3 px-4 py-3 ${i % 2 ? "bg-slate/60" : ""}`}>
-              <span className="font-black uppercase">{f.stage}</span>
-              <span className="text-paper/80">{f.format}</span>
-              <span className="num text-right text-lg text-rose-hi">{f.when}</span>
+          {t.info.formatRows.map((r, i) => (
+            <div key={r.stage} className={`grid grid-cols-[1.2fr_1.5fr_1fr] items-center gap-3 px-4 py-3 ${i % 2 ? "bg-slate/60" : ""}`}>
+              <span className="font-black uppercase">{r.stage}</span>
+              <span className="text-paper/80">{f(r.format)}</span>
+              <span className="num text-right text-lg text-rose-hi">{f(r.when)}</span>
             </div>
           ))}
         </div>
 
         <SectionHeading>{t.info.procedure}</SectionHeading>
         <List items={t.info.procItems} />
-
-        <div className="mt-12 text-center text-xs font-black uppercase tracking-[0.3em] text-ash">{t.common.lastUpdated}</div>
       </div>
     </Container>
   );

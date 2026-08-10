@@ -7,12 +7,13 @@ import { auth } from "@/auth";
 import { getRegistration } from "@/db/registrations";
 import { getSettings } from "@/db/settings";
 import { getBooking } from "@/db/lobbies";
+import { getFill } from "@/db/copy";
 import { requireSection } from "@/lib/authz";
 import { fmtSofia, windowState } from "@/lib/time";
 
 export default async function Register() {
   await requireSection("register");
-  const [t, lang, session, settings] = await Promise.all([getDict(), getLang(), auth(), getSettings()]);
+  const [t, lang, session, settings, f] = await Promise.all([getDict(), getLang(), auth(), getSettings(), getFill()]);
   const osuId = Number(session?.user?.id) || null;
   const user = osuId && session?.user?.name ? { name: session.user.name, image: session.user.image ?? null } : null;
   const [status, booking] = osuId ? await Promise.all([getRegistration(osuId), getBooking(osuId)]) : [null, null];
@@ -43,7 +44,7 @@ export default async function Register() {
               </span>
               <div>
                 <div className="font-black uppercase">{s.t}</div>
-                <p className="text-sm text-ash">{s.d}</p>
+                <p className="text-sm text-ash">{f(s.d)}</p>
               </div>
             </li>
           ))}
