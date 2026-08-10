@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, doublePrecision, integer, jsonb, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, doublePrecision, integer, jsonb, pgTable, serial, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   osuId: integer("osu_id").primaryKey(),
@@ -95,3 +95,52 @@ export const lobbyBookings = pgTable("lobby_bookings", {
     .references(() => lobbies.id, { onDelete: "cascade" }),
   bookedAt: timestamp("booked_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const stages = pgTable("stages", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  order: integer("order").notNull(),
+  firstTo: integer("first_to"),
+  poolReleased: boolean("pool_released").notNull().default(false),
+});
+
+export const maps = pgTable("maps", {
+  id: serial("id").primaryKey(),
+  stageId: integer("stage_id")
+    .notNull()
+    .references(() => stages.id, { onDelete: "cascade" }),
+  mod: text("mod").notNull(),
+  order: integer("order").notNull().default(0),
+  beatmapId: integer("beatmap_id").notNull(),
+  title: text("title").notNull(),
+  artist: text("artist").notNull().default(""),
+  version: text("version").notNull(),
+  creator: text("creator").notNull(),
+  sr: doublePrecision("sr").notNull(),
+  bpm: doublePrecision("bpm").notNull(),
+  length: integer("length").notNull(),
+  ar: doublePrecision("ar").notNull(),
+  od: doublePrecision("od").notNull(),
+  cs: doublePrecision("cs").notNull(),
+  cover: text("cover").notNull(),
+  seeded: boolean("seeded").notNull().default(false),
+});
+
+export const qualScores = pgTable(
+  "qual_scores",
+  {
+    id: serial("id").primaryKey(),
+    osuId: integer("osu_id")
+      .notNull()
+      .references(() => users.osuId, { onDelete: "cascade" }),
+    beatmapId: integer("beatmap_id").notNull(),
+    lobbyId: integer("lobby_id").references(() => lobbies.id, { onDelete: "set null" }),
+    score: integer("score").notNull(),
+    acc: doublePrecision("acc").notNull(),
+    mods: text("mods").notNull().default(""),
+    grade: text("grade").notNull().default(""),
+    seeded: boolean("seeded").notNull().default(false),
+  },
+  (t) => [unique().on(t.osuId, t.beatmapId)],
+);

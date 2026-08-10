@@ -94,3 +94,40 @@ export async function getUser(q: string | number) {
     throw e;
   }
 }
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`https://osu.ppy.sh/api/v2${path}`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${await getToken()}`, accept: "application/json", "content-type": "application/json" },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`osu ${path} ${res.status}`);
+  return res.json() as Promise<T>;
+}
+
+export type OsuBeatmap = {
+  id: number;
+  version: string;
+  difficulty_rating: number;
+  bpm: number;
+  total_length: number;
+  ar: number;
+  accuracy: number;
+  cs: number;
+  beatmapset: { title: string; artist: string; creator: string; covers: { cover: string } };
+};
+
+export async function getBeatmap(id: number) {
+  try {
+    return await get<OsuBeatmap>(`/beatmaps/${id}`);
+  } catch (e) {
+    if (e instanceof Error && / 404$/.test(e.message)) return null;
+    throw e;
+  }
+}
+
+export async function getStarRating(id: number, mods: string[]) {
+  const r = await post<{ attributes: { star_rating: number } }>(`/beatmaps/${id}/attributes`, { mods, ruleset: "osu" });
+  return r.attributes.star_rating;
+}

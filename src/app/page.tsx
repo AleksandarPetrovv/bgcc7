@@ -6,7 +6,8 @@ import { Rich } from "@/components/site/rich";
 import { getDict } from "@/lib/i18n/server";
 import { fmtDay, roundName, type Dict } from "@/lib/i18n/dict";
 import { Countdown } from "@/components/site/countdown";
-import { MODS, allMatches, stages, staff, teams, teamById } from "@/lib/data";
+import { MODS, allMatches, staff, teams, teamById, type Stage } from "@/lib/data";
+import { getPoolStages } from "@/db/mappools";
 import { cn } from "@/lib/utils";
 import { getSignupCount } from "@/db/queries";
 import { getSettings } from "@/db/settings";
@@ -71,8 +72,8 @@ function SignupCount({ n, label }: { n: number; label: string }) {
   );
 }
 
-function ModChips() {
-  const maps = stages[0].pools.flatMap((p) => p.maps.map((m) => ({ slot: m.slot, color: MODS[p.category].color })));
+function ModChips({ stage }: { stage: Stage }) {
+  const maps = stage.pools.flatMap((p) => p.maps.map((m) => ({ slot: m.slot, color: MODS[p.category].color })));
   return (
     <div className="flex h-full flex-wrap content-center gap-1.5 px-4" aria-hidden>
       {maps.map((m) => (
@@ -142,7 +143,8 @@ function Timeline({ t, timeline, current }: { t: Dict; timeline: { key: string; 
 }
 
 export default async function Home() {
-  const [t, signups, settings, vis] = await Promise.all([getDict(), getSignupCount(), getSettings(), getVisibility()]);
+  const [t, signups, settings, vis, pools] = await Promise.all([getDict(), getSignupCount(), getSettings(), getVisibility(), getPoolStages()]);
+  const pool = pools.filter((s) => s.released && s.pools.length).at(-1);
   const see = (s: keyof typeof vis.sections) => vis.staff || vis.sections[s];
   const regCloses = see("register") && isFuture(settings.regClosesAt) ? settings.regClosesAt!.toISOString() : null;
   const featured = allMatches.filter((m) => m.winner).slice(0, 3);
@@ -200,9 +202,9 @@ export default async function Home() {
               <SignupCount n={signups} label={t.home.signups(signups)} />
             </EntryCard>
           )}
-          {see("mappool") && (
-            <EntryCard title={t.home.mappool} sub={t.home.mapSub} href="/mappool" className="border border-line bg-slate">
-              <ModChips />
+          {see("mappool") && pool && (
+            <EntryCard title={t.home.mappool} sub={t.home.mapSub(pool.pools.reduce((n, p) => n + p.maps.length, 0))} href="/mappool" className="border border-line bg-slate">
+              <ModChips stage={pool} />
             </EntryCard>
           )}
           {see("teams") && (
