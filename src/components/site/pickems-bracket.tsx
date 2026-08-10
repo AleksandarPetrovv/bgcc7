@@ -3,16 +3,18 @@
 import { Check, Crown } from "lucide-react";
 import { H, HEADERS, LB, POS, W, WIN, x } from "./bracket-view";
 import { useDict } from "./lang";
-import { flagUrl, fmtNum, teamById } from "@/lib/data";
-import { ORDER, resolve, type Picks } from "@/lib/pickems";
+import { flagUrl, fmtNum } from "@/lib/data";
+import { ORDER, resolve, seedingOf, type Picks } from "@/lib/pickems";
+import { useTournament } from "./tournament";
 
 export type { Picks };
 import { cn } from "@/lib/utils";
 
-export function PickemsBracket({ picks, onPick }: { picks: Picks; onPick?: (match: string, team: string) => void }) {
+export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; onPick?: (match: string, team: string) => void; locked?: string[] }) {
   const readOnly = !onPick;
   const t = useDict();
-  const { slots, picks: clean, resetLive, champion } = resolve(picks);
+  const { teamById, matches } = useTournament();
+  const { slots, picks: clean, resetLive, champion } = resolve(picks, seedingOf(matches));
   const champ = champion ? teamById(champion) : undefined;
   const width = x(4) + W;
   const height = LB + 100 + H + 8;
@@ -90,7 +92,7 @@ export function PickemsBracket({ picks, onPick }: { picks: Picks; onPick?: (matc
                   <button
                     key={i}
                     type="button"
-                    disabled={readOnly || !team || !pair[0] || !pair[1]}
+                    disabled={readOnly || locked.includes(id) || !team || !pair[0] || !pair[1]}
                     onClick={() => team && onPick?.(id, team.id)}
                     className={cn(
                       "flex min-h-0 flex-1 items-center gap-2 px-2 text-left text-[0.82rem] transition-colors",

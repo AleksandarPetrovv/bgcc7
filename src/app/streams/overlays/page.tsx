@@ -1,7 +1,9 @@
 import { Container, PageTitle, Tag } from "@/components/site/page";
 import { SpeedLines, SpeedMark, Tricolor, Wordmark } from "@/components/site/graphics";
 import { getDict } from "@/lib/i18n/server";
-import { stages, teams, MODS } from "@/lib/data";
+import { MODS } from "@/lib/data";
+import { getTeams } from "@/db/tournament";
+import { getPoolStages } from "@/db/mappools";
 import { requireSection } from "@/lib/authz";
 
 function Frame({ title, note, children }: { title: string; note: string; children: React.ReactNode }) {
@@ -18,9 +20,17 @@ function Frame({ title, note, children }: { title: string; note: string; childre
 
 export default async function Overlays() {
   await requireSection("streams");
-  const d = await getDict();
-  const [a, b] = [teams[0], teams[4]];
-  const map = stages[2].pools[2].maps[0];
+  const [d, teams, stages] = await Promise.all([getDict(), getTeams(), getPoolStages()]);
+  const [a, b] = [teams[0], teams[1]];
+  const stage = stages.filter((s) => s.pools.length).at(-1);
+  const map = stage?.pools.flatMap((p) => p.maps)[0];
+  if (!a || !b || !stage || !map)
+    return (
+      <Container className="max-w-[1400px]">
+        <PageTitle>{d.streams.overlays}</PageTitle>
+        <p className="py-10 text-center text-ash">{d.streams.overlaysEmpty}</p>
+      </Container>
+    );
   return (
     <Container className="max-w-[1400px]">
       <PageTitle right={<Tag tone="balkan" className="text-xs">{d.streams.sources}</Tag>}>{d.streams.overlays}</PageTitle>
@@ -55,7 +65,7 @@ export default async function Overlays() {
           </div>
           <div className="absolute inset-x-[12%] top-[34%] bottom-[18%] border border-dashed border-line" />
           <div className="absolute inset-x-0 bottom-0 flex h-[14%] items-center gap-4 bg-ink/90 px-4">
-            <span className="heading-slam text-2xl" style={{ color: MODS.HardRock.color }}>HR1</span>
+            <span className="heading-slam text-2xl" style={{ color: MODS[map.mod]?.color }}>{map.slot}</span>
             <span className="truncate font-black">{map.title} [{map.version}]</span>
             <span className="num ml-auto text-lg">{map.sr.toFixed(2)}★ · {Math.round(map.bpm)} BPM</span>
           </div>
@@ -92,7 +102,7 @@ export default async function Overlays() {
 
         <Frame title={d.streams.showcase} note={d.streams.showcaseNote}>
           <div className="absolute inset-0 grid grid-cols-2 gap-1.5 p-4">
-            {stages[2].pools.flatMap((p) => p.maps.map((m) => ({ ...m, color: MODS[p.category].color }))).slice(0, 10).map((m) => (
+            {stage.pools.flatMap((p) => p.maps.map((m) => ({ ...m, color: MODS[p.category].color }))).slice(0, 10).map((m) => (
               <div key={m.slot} className="relative flex items-center overflow-hidden bg-coal">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={m.cover} alt="" className="absolute inset-0 size-full object-cover opacity-30" />

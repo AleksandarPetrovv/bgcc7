@@ -2,7 +2,7 @@ import "server-only";
 import { desc, eq } from "drizzle-orm";
 import { db } from "./index";
 import { registrations, users } from "./schema";
-import { safe } from "./queries";
+import { safe } from "./safe";
 
 export const STATUSES = ["pending", "approved", "denied"] as const;
 export type Status = (typeof STATUSES)[number];

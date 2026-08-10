@@ -2,7 +2,7 @@ import "server-only";
 import { asc, eq } from "drizzle-orm";
 import { db } from "./index";
 import { lobbies, lobbyBookings, users } from "./schema";
-import { safe } from "./queries";
+import { safe } from "./safe";
 
 export type LobbyPlayer = { osuId: number; username: string; avatarUrl: string | null; country: string | null };
 export type Lobby = { id: number; name: string; startsAt: Date; capacity: number; referee: string | null; mpLinks: string; players: LobbyPlayer[] };

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { type Match, teamById, fmtNum } from "@/lib/data";
+import { type Match, fmtNum } from "@/lib/data";
+import { useTournament } from "./tournament";
 import { useDict, useLang } from "./lang";
 import { sourceLabel } from "@/lib/matches";
 import { MatchDialog } from "./match-dialog";
@@ -9,14 +10,16 @@ import { cn } from "@/lib/utils";
 
 function when(dt: string | null, locale: string) {
   if (!dt) return null;
-  const [d, t] = dt.split(" ");
-  const [dd, mm, yyyy] = d.split("/").map(Number);
-  const date = new Date(yyyy, mm - 1, dd);
-  return { date: date.toLocaleDateString(locale, { day: "2-digit", month: "short", weekday: "short" }), time: t };
+  const d = new Date(dt);
+  return {
+    date: d.toLocaleDateString(locale, { timeZone: "Europe/Sofia", day: "2-digit", month: "short", weekday: "short" }),
+    time: d.toLocaleTimeString("en-GB", { timeZone: "Europe/Sofia", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
+  };
 }
 
 function Side({ id, placeholder, flip }: { id: string; placeholder: string; flip?: boolean }) {
   const t = useDict();
+  const { teamById } = useTournament();
   const team = teamById(id);
   return (
     <div className={cn("flex min-w-0 flex-1 items-stretch", flip && "flex-row-reverse")}>
@@ -50,6 +53,7 @@ function Side({ id, placeholder, flip }: { id: string; placeholder: string; flip
 export function MatchRow({ match }: { match: Match }) {
   const t = useDict();
   const lang = useLang();
+  const { matches } = useTournament();
   const w = when(match.datetime, lang === "bg" ? "bg-BG" : "en-GB");
   const played = match.winner !== null;
   return (
@@ -59,7 +63,7 @@ export function MatchRow({ match }: { match: Match }) {
         <span className="num text-2xl leading-none sm:text-4xl">{w?.time ?? "--:--"}</span>
         <span className="text-[0.6rem] font-black text-rose-hi">{t.common.eet}</span>
       </div>
-      <Side id={match.team1.id} placeholder={sourceLabel(t, match.id, 1)} />
+      <Side id={match.team1.id} placeholder={sourceLabel(t, matches, match.id, 1)} />
       <div className="flex w-14 shrink-0 flex-col items-center justify-center gap-1 bg-ink py-3 sm:w-20">
         {played ? (
           <span className="num text-xl sm:text-2xl">
@@ -71,7 +75,7 @@ export function MatchRow({ match }: { match: Match }) {
           <span className="heading-slam text-lg text-rose-hi sm:text-2xl">{t.common.vs}</span>
         )}
       </div>
-      <Side id={match.team2.id} placeholder={sourceLabel(t, match.id, 2)} flip />
+      <Side id={match.team2.id} placeholder={sourceLabel(t, matches, match.id, 2)} flip />
       {match.links.length > 0 ? (
         <MatchDialog match={match} />
       ) : (

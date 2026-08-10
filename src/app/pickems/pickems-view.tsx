@@ -6,7 +6,8 @@ import { Check } from "lucide-react";
 import { Container, PageTitle, SectionHeading, SlantButton, Tag } from "@/components/site/page";
 import { useDict } from "@/components/site/lang";
 import { PickemsBracket } from "@/components/site/pickems-bracket";
-import { resolve, type Picks } from "@/lib/pickems";
+import { resolve, seedingOf, type Picks } from "@/lib/pickems";
+import { useTournament } from "@/components/site/tournament";
 import { osuUser } from "@/lib/links";
 import type { LeaderRow } from "@/db/queries";
 import { cn } from "@/lib/utils";
@@ -15,13 +16,17 @@ import { login, savePickems } from "./actions";
 const DRAFT = "bgcc7-pickems";
 const MEDAL = ["text-[#e8c547]", "text-[#c9ccd1]", "text-[#c98a4b]"];
 
-export function PickemsView({ osuId, saved, leaderboard }: { osuId: number | null; saved: Picks | null; leaderboard: LeaderRow[] }) {
+type Props = { osuId: number | null; saved: Picks | null; leaderboard: LeaderRow[]; open: boolean; locked: string[] };
+
+export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) {
   const t = useDict();
+  const { matches } = useTournament();
+  const seeding = seedingOf(matches);
   const [picks, setPicks] = useState<Picks>(saved ?? {});
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState(false);
   const [pending, start] = useTransition();
-  const { picks: clean, total } = resolve(picks);
+  const { picks: clean, total } = resolve(picks, seeding);
   const made = Object.keys(clean).length;
 
   useEffect(() => {
@@ -30,14 +35,15 @@ export function PickemsView({ osuId, saved, leaderboard }: { osuId: number | nul
       const raw = localStorage.getItem(DRAFT);
       if (raw) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setPicks(resolve(JSON.parse(raw)).picks);
+        setPicks(resolve(JSON.parse(raw), seeding).picks);
         setDirty(true);
       }
     } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saved]);
 
   const pick = (match: string, team: string) => {
-    const next = resolve({ ...clean, [match]: team }).picks;
+    const next = resolve({ ...clean, [match]: team }, seeding).picks;
     setPicks(next);
     setDirty(true);
     setError(false);
@@ -61,7 +67,7 @@ export function PickemsView({ osuId, saved, leaderboard }: { osuId: number | nul
 
   return (
     <Container className="max-w-[1400px]">
-      <PageTitle accent={t.pickems.accent} right={<Tag tone="balkan" className="text-xs">{t.pickems.openTag}</Tag>}>
+      <PageTitle accent={t.pickems.accent} right={open ? <Tag tone="balkan" className="text-xs">{t.pickems.openTag}</Tag> : <Tag tone="rose" className="text-xs">{t.pickems.closedTag}</Tag>}>
         {t.pickems.title}
       </PageTitle>
 
@@ -85,7 +91,9 @@ export function PickemsView({ osuId, saved, leaderboard }: { osuId: number | nul
             </div>
           </div>
           <div className="ml-auto flex flex-col items-end gap-1">
-            {!dirty && made > 0 && osuId ? (
+            {!open ? (
+              <span className="text-sm font-black uppercase text-ash">{t.pickems.closedTag}</span>
+            ) : !dirty && made > 0 && osuId ? (
               <span className="flex items-center gap-1.5 text-sm font-black uppercase text-balkan">
                 <Check className="size-4" /> {t.common.saved}
               </span>
@@ -99,7 +107,7 @@ export function PickemsView({ osuId, saved, leaderboard }: { osuId: number | nul
         </div>
       </div>
 
-      <PickemsBracket picks={clean} onPick={pick} />
+      <PickemsBracket picks={clean} onPick={open ? pick : undefined} locked={locked} />
 
       <div className="mt-14">
         <SectionHeading>{t.pickems.leaderboard}</SectionHeading>

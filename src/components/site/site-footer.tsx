@@ -3,17 +3,17 @@ import { Code, Tv, CirclePlay, MessageCircle, Sheet } from "lucide-react";
 import { LangSwitch } from "./lang";
 import { getDict } from "@/lib/i18n/server";
 import { DISCORD_URL, TWITCH_URL } from "@/lib/links";
-
-const SOCIALS = [
-  { label: "Discord", icon: MessageCircle, href: DISCORD_URL },
-  { label: "Twitch", icon: Tv, href: TWITCH_URL },
-  { label: "YouTube", icon: CirclePlay, href: "#" },
-  { label: "Spreadsheet", icon: Sheet, href: "#" },
-  { label: "GitHub", icon: Code, href: "#" },
-];
+import { getSettings } from "@/db/settings";
 
 export async function SiteFooter({ sponsors }: { sponsors: boolean }) {
-  const t = await getDict();
+  const [t, settings] = await Promise.all([getDict(), getSettings()]);
+  const SOCIALS = [
+    { label: "Discord", icon: MessageCircle, href: DISCORD_URL },
+    { label: "Twitch", icon: Tv, href: TWITCH_URL },
+    { label: "YouTube", icon: CirclePlay, href: settings.links.youtube },
+    { label: "Spreadsheet", icon: Sheet, href: settings.links.sheets },
+    { label: "GitHub", icon: Code, href: settings.links.github },
+  ].filter((s) => s.href);
   return (
     <footer className="mt-24">
       <div className="bg-balkan text-ink">
@@ -24,8 +24,8 @@ export async function SiteFooter({ sponsors }: { sponsors: boolean }) {
                 key={s.label}
                 href={s.href}
                 aria-label={s.label}
-                target={s.href === "#" ? undefined : "_blank"}
-                rel={s.href === "#" ? undefined : "noreferrer"}
+                target="_blank"
+                rel="noreferrer"
                 className="p-2.5 transition hover:bg-ink/10"
               >
                 <s.icon className="size-5" />

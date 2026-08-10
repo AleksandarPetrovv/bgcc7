@@ -14,6 +14,9 @@ const MENU: { href: string; perm: Perm }[] = [
   { href: "/admin/lobbies", perm: "lobbies" },
   { href: "/admin/qualifiers", perm: "qualifiers" },
   { href: "/admin/mappools", perm: "mappools" },
+  { href: "/admin/teams", perm: "teams" },
+  { href: "/admin/matches", perm: "matches" },
+  { href: "/admin/site", perm: "phase" },
   { href: "/admin/staff", perm: "staff" },
   { href: "/admin/log", perm: "log" },
 ];
@@ -21,7 +24,7 @@ const MENU: { href: string; perm: Perm }[] = [
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const [viewer, session, t] = await Promise.all([getViewer(), auth(), getDict()]);
   if (!viewer?.role) notFound();
-  const items = MENU.filter((m) => can(viewer.role, m.perm)).map((m) => ({ href: m.href, label: t.admin.menu[m.perm] }));
+  const items = MENU.filter((m) => can(viewer.role, m.perm)).map((m) => ({ href: m.href, label: t.admin.menu[m.href.split("/")[2] ?? "overview"] }));
   return (
     <div className="flex min-h-[calc(100vh-72px)] flex-col lg:flex-row">
       <aside className="shrink-0 border-b border-line bg-coal lg:w-60 lg:border-b-0 lg:border-r">

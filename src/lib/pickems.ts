@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { allMatches } from "@/lib/data";
+import type { Match } from "@/lib/data";
 
 type Src = { from: string; take: "W" | "L" };
 
@@ -33,13 +33,22 @@ export const POINTS: Record<string, number> = {
 };
 const pointsFor = (id: string) => POINTS[id.startsWith("GF") ? "GF" : id.slice(0, 5)] ?? 0;
 
-const seeded = Object.fromEntries(allMatches.filter((m) => m.id.startsWith("WB-R1")).map((m) => [m.id, [m.team1.id, m.team2.id] as const]));
+export type Seeding = Record<string, readonly [string, string]>;
+export const seedingOf = (matches: Match[]): Seeding =>
+  Object.fromEntries(matches.filter((m) => m.id.startsWith("WB-R1")).map((m) => [m.id, [m.team1.id, m.team2.id] as const]));
+export const actualOf = (matches: Match[]): Picks =>
+  Object.fromEntries(matches.filter((m) => m.winner).map((m) => [m.id, m.winner === 1 ? m.team1.id : m.team2.id]));
 
 export type Picks = Record<string, string>;
 
 export const picksSchema = z.record(z.enum(ORDER), z.string().min(1).max(64));
 
-export function resolve(picks: Picks) {
+export const lockedMatches = (matches: Match[]) => {
+  const now = Date.now();
+  return matches.filter((m) => m.winner || (m.datetime && new Date(m.datetime).getTime() <= now)).map((m) => m.id);
+};
+
+export function resolve(picks: Picks, seeded: Seeding) {
   const slots: Record<string, [string | null, string | null]> = {};
   const clean: Picks = {};
   const result = (id: string, take: "W" | "L") => {
@@ -60,11 +69,7 @@ export function resolve(picks: Picks) {
   return { slots, picks: clean, total, resetLive, champion };
 }
 
-const actual = Object.fromEntries(
-  allMatches.filter((m) => m.winner).map((m) => [m.id, m.winner === 1 ? m.team1.id : m.team2.id]),
-);
-
-export function score(picks: Picks) {
+export function score(picks: Picks, actual: Picks) {
   let points = 0;
   let correct = 0;
   for (const [id, team] of Object.entries(picks)) {

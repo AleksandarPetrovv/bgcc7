@@ -4,19 +4,16 @@ import { Container, SectionHeading, Tag } from "@/components/site/page";
 import { SpeedLines } from "@/components/site/graphics";
 import { MatchRow } from "@/components/site/match-row";
 import { getDict } from "@/lib/i18n/server";
-import { allMatches, teams, teamById, fmtNum, flagUrl } from "@/lib/data";
+import { fmtNum, flagUrl } from "@/lib/data";
+import { getMatches, getTeams } from "@/db/tournament";
 import { osuUser } from "@/lib/links";
 import { requireSection } from "@/lib/authz";
-
-export function generateStaticParams() {
-  return teams.map((t) => ({ id: t.id }));
-}
 
 export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
   await requireSection("teams");
   const { id } = await params;
-  const t = await getDict();
-  const team = teamById(id);
+  const [t, teams, allMatches] = await Promise.all([getDict(), getTeams(), getMatches()]);
+  const team = teams.find((x) => x.id === id);
   if (!team) notFound();
   const matches = allMatches.filter((m) => m.team1.id === id || m.team2.id === id);
   const wins = matches.filter((m) => (m.team1.id === id && m.winner === 1) || (m.team2.id === id && m.winner === 2)).length;

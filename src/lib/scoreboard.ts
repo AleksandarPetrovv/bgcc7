@@ -1,6 +1,6 @@
 import "server-only";
 import { getMpMatch, type OsuGame } from "./osu-api";
-import { stages, teamById, type Match } from "./data";
+import type { Match, Stage, Team } from "./data";
 
 export type PlayerLine = {
   id: number;
@@ -41,15 +41,17 @@ export type Scoreboard = {
   totals: PlayerTotal[];
 };
 
-const POOL = new Map<number, { slot: string; mod: string }>();
-for (const s of stages) for (const p of s.pools) for (const m of p.maps) if (!POOL.has(m.id)) POOL.set(m.id, { slot: m.slot, mod: m.mod });
-
-const rosterIds = (teamId: string) =>
-  new Set((teamById(teamId)?.players ?? []).map((p) => Number(/a\.ppy\.sh\/(\d+)/.exec(p.avatar)?.[1])).filter(Boolean));
+export function poolOf(stages: Stage[], preferred: string) {
+  const pool = new Map<number, { slot: string; mod: string }>();
+  for (const s of [...stages].sort((a, b) => Number(b.slug === preferred) - Number(a.slug === preferred)))
+    for (const p of s.pools) for (const m of p.maps) if (!pool.has(m.id)) pool.set(m.id, { slot: m.slot, mod: m.mod });
+  return pool;
+}
 
 const shownMods = (mods: string[]) => mods.filter((m) => m !== "NF");
 
-export async function buildScoreboard(match: Match): Promise<Scoreboard> {
+export async function buildScoreboard(match: Match, teams: Team[], POOL: Map<number, { slot: string; mod: string }>): Promise<Scoreboard> {
+  const rosterIds = (teamId: string) => new Set((teams.find((t) => t.id === teamId)?.players ?? []).map((p) => p.userId));
   const ids: [Set<number>, Set<number>] = [rosterIds(match.team1.id), rosterIds(match.team2.id)];
   const lobbies = await Promise.all(match.links.map((id) => getMpMatch(id)));
 

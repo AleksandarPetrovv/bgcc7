@@ -1,11 +1,13 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { eq } from "drizzle-orm";
-import { lobbies, lobbyBookings, maps, qualScores, registrations, stages, staff, users } from "../src/db/schema.ts";
-import mappoolsJson from "../src/data/mappools.json" with { type: "json" };
-import qualifiersJson from "../src/data/qualifiers.json" with { type: "json" };
-import staffJson from "../src/data/staff.json" with { type: "json" };
-import signupsJson from "../src/data/signups.json" with { type: "json" };
+import { lobbies, lobbyBookings, maps, matches, qualScores, registrations, sponsors, stages, staff, teamMembers, teams, users } from "../src/db/schema.ts";
+import teamsJson from "./bgcc6/teams.json" with { type: "json" };
+import bracketJson from "./bgcc6/bracket.json" with { type: "json" };
+import mappoolsJson from "./bgcc6/mappools.json" with { type: "json" };
+import qualifiersJson from "./bgcc6/qualifiers.json" with { type: "json" };
+import staffJson from "./bgcc6/staff.json" with { type: "json" };
+import signupsJson from "./bgcc6/signups.json" with { type: "json" };
 
 const client = postgres(process.env.DATABASE_URL, { max: 1 });
 const db = drizzle(client);
@@ -134,10 +136,63 @@ async function seedQualScores() {
   console.log(`qual scores: ${n}`);
 }
 
+async function seedTeams() {
+  const [has] = await db.select({ id: teams.id }).from(teams).limit(1);
+  if (has) return console.log("teams: already there");
+  const list = teamsJson.teams
+    .map((t) => ({ ...t, avgPp: t.players.reduce((n, p) => n + p.pp, 0) / t.players.length }))
+    .sort((a, b) => b.avgPp - a.avgPp);
+  for (const [i, t] of list.entries()) {
+    await db.insert(teams).values({ id: t.id, name: t.name, image: t.image, seed: i + 1, seeded: true });
+    for (const p of t.players) {
+      const stats = { rank: p.rank, countryRank: p.countryRank, pp: p.pp, accuracy: p.accuracy };
+      await db
+        .insert(users)
+        .values({ osuId: p.userId, username: p.username, avatarUrl: p.pfp, country: p.country.toUpperCase(), seeded: true, ...stats })
+        .onConflictDoNothing();
+      await db.insert(teamMembers).values({ osuId: p.userId, teamId: t.id, isCaptain: p.isCaptain }).onConflictDoNothing();
+    }
+  }
+  console.log(`teams: ${list.length}`);
+}
+
+async function seedMatches() {
+  const rows = await db.select().from(matches);
+  if (rows.some((m) => m.team1Id || m.team2Id)) return console.log("matches: already filled");
+  const all = ["winnersBracket", "losersBracket", "grandFinals"].flatMap((k) => bracketJson[k].rounds.flatMap((r) => r.matches));
+  for (const m of all) {
+    const dt = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}:\d{2})$/.exec(m.datetime ?? "");
+    await db
+      .update(matches)
+      .set({
+        team1Id: m.team1?.id || null,
+        team2Id: m.team2?.id || null,
+        score1: m.team1?.score ?? (m.winner ? 0 : null),
+        score2: m.team2?.score ?? (m.winner ? 0 : null),
+        winner: m.winner === 1 || m.winner === 2 ? m.winner : null,
+        startsAt: dt ? new Date(`${dt[3]}-${dt[2]}-${dt[1]}T${dt[4]}:00+03:00`) : null,
+        mpLinks: (m.matchLink?.match(/\d{6,}/g) ?? []).join(","),
+      })
+      .where(eq(matches.id, m.id));
+  }
+  console.log(`matches: ${all.length}`);
+}
+
+async function seedSponsors() {
+  const [has] = await db.select({ id: sponsors.id }).from(sponsors).limit(1);
+  if (has) return console.log("sponsors: already there");
+  for (const [order, s] of staffJson.sponsors.entries())
+    await db.insert(sponsors).values({ name: s.username, image: s.picture, order, seeded: true });
+  console.log(`sponsors: ${staffJson.sponsors.length}`);
+}
+
 await seedStaff();
+await seedSponsors();
 await seedMaps();
 await seedSignups();
 await seedQualPlayers();
 await seedLobbies();
 await seedQualScores();
+await seedTeams();
+await seedMatches();
 await client.end();

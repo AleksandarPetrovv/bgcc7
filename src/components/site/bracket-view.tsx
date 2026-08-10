@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { allMatches, DROP_SOURCES, teamById, type Match } from "@/lib/data";
+import type { Match } from "@/lib/data";
+import { useTournament } from "./tournament";
 import { sourceLabel } from "@/lib/matches";
 import { useDict } from "./lang";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,15 @@ export const WIN: Record<string, string> = {
   "LB-R3-M1": "LB-R4-M1", "LB-R4-M1": "GF-M1",
 };
 
+const DROP_SOURCES: Record<string, string> = {
+  "LB-R1-M1.team1": "WB-R1-M1",
+  "LB-R1-M1.team2": "WB-R1-M4",
+  "LB-R1-M2.team1": "WB-R1-M2",
+  "LB-R1-M2.team2": "WB-R1-M3",
+  "LB-R2-M1.team1": "WB-R2-M2",
+  "LB-R2-M2.team1": "WB-R2-M1",
+  "LB-R4-M1.team1": "WB-R3-M1",
+};
 const DROPS = Object.entries(DROP_SOURCES).map(([to, from]) => ({ from, to: to.split(".")[0] }));
 
 export const HEADERS = [
@@ -43,11 +53,11 @@ export const HEADERS = [
   { c: 3, y: LB - 34, t: "Losers Finals" },
 ];
 
-const byId = Object.fromEntries(allMatches.map((m) => [m.id, m]));
 
 
 function Slot({ m, slot }: { m: Match; slot: 1 | 2 }) {
   const t = useDict();
+  const { teamById, matches } = useTournament();
   const s = slot === 1 ? m.team1 : m.team2;
   const team = teamById(s.id);
   const won = m.winner === slot;
@@ -57,7 +67,7 @@ function Slot({ m, slot }: { m: Match; slot: 1 | 2 }) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {team ? <img src={team.image} alt="" className="size-5 object-cover" /> : <span className="size-5 bg-slate" />}
       <span className={cn("min-w-0 flex-1 truncate text-[0.82rem]", team ? "font-bold" : "italic text-ash", won && "text-balkan")}>
-        {team ? team.name : sourceLabel(t, m.id, slot)}
+        {team ? team.name : sourceLabel(t, matches, m.id, slot)}
       </span>
       <span className={cn("num w-5 text-right text-lg", won ? "text-balkan" : "text-paper/80")}>{m.winner ? (s.score ?? 0) : ""}</span>
     </div>
@@ -66,6 +76,7 @@ function Slot({ m, slot }: { m: Match; slot: 1 | 2 }) {
 
 export function BracketView() {
   const t = useDict();
+  const { matchById } = useTournament();
   const [hover, setHover] = useState<string | null>(null);
   const linked = new Set<string>();
   if (hover) {
@@ -124,7 +135,7 @@ export function BracketView() {
         </div>
 
         {Object.entries(POS).map(([id, [c, y]]) => {
-          const m = byId[id];
+          const m = matchById(id);
           if (!m) return null;
           const isGf = id.startsWith("GF");
           return (

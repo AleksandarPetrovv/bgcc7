@@ -8,7 +8,7 @@ import { MODS, fmtLen, type Stage } from "@/lib/data";
 import { osuMap } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
-export function MappoolView({ stages }: { stages: Stage[] }) {
+export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<string, string> }) {
   const t = useDict();
   const [i, setI] = useState(Math.max(0, stages.length - 1));
   const [closed, setClosed] = useState<Record<string, boolean>>({});
@@ -28,12 +28,16 @@ export function MappoolView({ stages }: { stages: Stage[] }) {
         right={
           <>
             <StageTabs options={stages.map((s) => t.rounds[s.title] ?? s.title)} index={i} onChange={setI} />
-            <SlantButton tone="rose" className="px-3 py-1.5">
-              <Sheet className="size-4" /> {t.common.sheets}
-            </SlantButton>
-            <SlantButton tone="balkan" className="px-3 py-1.5">
-              <Download className="size-4" /> {t.mappool.pack(count)}
-            </SlantButton>
+            {links.sheets && (
+              <SlantButton tone="rose" href={links.sheets} className="px-3 py-1.5">
+                <Sheet className="size-4" /> {t.common.sheets}
+              </SlantButton>
+            )}
+            {links.mappack && (
+              <SlantButton tone="balkan" href={links.mappack} className="px-3 py-1.5">
+                <Download className="size-4" /> {t.mappool.pack(count)}
+              </SlantButton>
+            )}
           </>
         }
       >
