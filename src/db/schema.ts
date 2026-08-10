@@ -192,3 +192,20 @@ export const sponsors = pgTable("sponsors", {
   order: integer("order").notNull().default(0),
   seeded: boolean("seeded").notNull().default(false),
 });
+
+export const reschedules = pgTable("reschedules", {
+  id: serial("id").primaryKey(),
+  matchId: text("match_id")
+    .notNull()
+    .references(() => matches.id, { onDelete: "cascade" }),
+  teamId: text("team_id")
+    .notNull()
+    .references(() => teams.id, { onDelete: "cascade" }),
+  requestedBy: integer("requested_by").notNull(),
+  proposedAt: timestamp("proposed_at", { withTimezone: true }).notNull(),
+  reason: text("reason"),
+  status: text("status").notNull().default("pending"),
+  answeredBy: integer("answered_by"),
+  decidedBy: integer("decided_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

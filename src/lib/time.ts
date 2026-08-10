@@ -45,3 +45,16 @@ export const windowState = (opens: Date | null, closes: Date | null): WindowStat
 
 export const fmtSofiaDay = (d: Date, locale: string) => d.toLocaleDateString(locale, { timeZone: TZ, weekday: "short", day: "numeric", month: "short" });
 export const fmtSofiaTime = (d: Date) => d.toLocaleTimeString("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+
+const dayFmt = new Intl.DateTimeFormat("en-US", { timeZone: TZ, weekday: "short", year: "numeric", month: "2-digit", day: "2-digit" });
+
+export function rescheduleDeadline(startsAt: Date) {
+  const p = Object.fromEntries(dayFmt.formatToParts(startsAt).map((x) => [x.type, x.value]));
+  const dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(p.weekday);
+  const back = (dow - 4 + 7) % 7;
+  const day = new Date(Date.UTC(+p.year, +p.month - 1, +p.day - back));
+  const deadline = fromSofiaInput(`${day.toISOString().slice(0, 10)}T23:59`)!;
+  return deadline.getTime() < startsAt.getTime() ? deadline : new Date(deadline.getTime() - 7 * 86_400_000);
+}
+
+export const isPast = (d: Date | null | undefined) => !!d && d.getTime() <= Date.now();

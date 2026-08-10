@@ -23,7 +23,7 @@ const hit = (m: Match, q: string, teamById: (id: string) => Team | undefined) =>
     return norm(team?.name ?? side.name ?? "").includes(q) || !!team?.players.some((p) => norm(p.username).includes(q));
   });
 
-export function ScheduleView({ sheets }: { sheets?: string }) {
+export function ScheduleView({ sheets, top }: { sheets?: string; top?: React.ReactNode }) {
   const t = useDict();
   const { matches: all, teamById } = useTournament();
   const ROUNDS = STAGES.map((s) => ({ title: s.title, matches: all.filter((m) => m.stage === s.slug) }));
@@ -36,6 +36,7 @@ export function ScheduleView({ sheets }: { sheets?: string }) {
   return (
     <Container>
       <PageTitle>{t.schedule.title}</PageTitle>
+      {top}
       <div className="-mt-2 mb-8 flex flex-wrap items-center gap-4">
         <StageTabs options={ROUNDS.map((x) => t.rounds[x.title])} index={i} onChange={setI} locked={LOCKED} />
         <TeamSearch value={q} onChange={setQ} />
