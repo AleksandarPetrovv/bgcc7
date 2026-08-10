@@ -3,7 +3,7 @@ import { cache } from "react";
 import { asc } from "drizzle-orm";
 import { db } from "./index";
 import { maps, stages } from "./schema";
-import { safe } from "./queries";
+import { safe } from "./safe";
 import { MODS, type Beatmap } from "@/lib/data";
 
 export type MapRow = typeof maps.$inferSelect;

@@ -3,7 +3,7 @@ import { cache } from "react";
 import { eq } from "drizzle-orm";
 import { db } from "./index";
 import { settings } from "./schema";
-import { safe } from "./queries";
+import { safe } from "./safe";
 import { DEFAULT_TIMELINE, PHASES, presetSections, type Phase, type Section } from "@/lib/sections";
 
 export type Settings = {
@@ -17,6 +17,7 @@ export type Settings = {
   timeline: { key: string; dates: string }[];
   timelineAt: string | null;
   qualifyCount: number;
+  links: Record<string, string>;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -30,6 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
   timeline: DEFAULT_TIMELINE,
   timelineAt: "reg",
   qualifyCount: 24,
+  links: {},
 };
 
 export const getSettings = cache(() =>
@@ -48,6 +50,7 @@ export const getSettings = cache(() =>
       timeline: row.timeline,
       timelineAt: row.timelineAt,
       qualifyCount: row.qualifyCount,
+      links: row.links ?? {},
     };
   }, DEFAULT_SETTINGS),
 );

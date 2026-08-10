@@ -4,7 +4,8 @@ import { Fragment, useState } from "react";
 import { ExternalLink, ListOrdered } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useDict } from "./lang";
-import { MODS, teamById, fmtNum, type Match } from "@/lib/data";
+import { MODS, fmtNum, type Match } from "@/lib/data";
+import { useTournament } from "./tournament";
 import { roundName } from "@/lib/i18n/dict";
 import type { MapResult, PlayerLine, Scoreboard } from "@/lib/scoreboard";
 import { cn } from "@/lib/utils";
@@ -76,6 +77,7 @@ function MapCard({ m }: { m: MapResult }) {
 
 function Board({ match, data }: { match: Match; data: Scoreboard }) {
   const t = useDict();
+  const { teamById } = useTournament();
   const teams = [teamById(match.team1.id), teamById(match.team2.id)];
   return (
     <div className="space-y-3 p-4 sm:p-6">
@@ -145,6 +147,7 @@ function Board({ match, data }: { match: Match; data: Scoreboard }) {
 export function MatchDialog({ match }: { match: Match }) {
   const t = useDict();
   const [data, setData] = useState<Scoreboard | "error" | null>(null);
+  const { teamById } = useTournament();
   const teams = [teamById(match.team1.id), teamById(match.team2.id)];
   const score = data && data !== "error" ? data.score : [match.team1.score ?? 0, match.team2.score ?? 0];
 

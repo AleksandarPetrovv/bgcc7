@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Container, PageTitle, Tag } from "@/components/site/page";
 import { SeedingChart } from "@/components/site/seeding-chart";
 import { getDict } from "@/lib/i18n/server";
-import { teams, fmtNum } from "@/lib/data";
+import { fmtNum } from "@/lib/data";
+import { getTeams } from "@/db/tournament";
 import { cn } from "@/lib/utils";
 import { requireSection } from "@/lib/authz";
 import { getQualResults } from "@/db/qualifiers";
@@ -10,7 +11,7 @@ import { getSettings } from "@/db/settings";
 
 export default async function Seeding() {
   await requireSection("seeding");
-  const [t, qualifiers, settings] = await Promise.all([getDict(), getQualResults(), getSettings()]);
+  const [t, qualifiers, settings, teams] = await Promise.all([getDict(), getQualResults(), getSettings(), getTeams()]);
   return (
     <Container>
       <PageTitle right={<Tag tone="rose" className="text-xs">{t.qual.seedingTag}</Tag>}>{t.qual.seedingTitle}</PageTitle>

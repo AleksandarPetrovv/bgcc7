@@ -4,15 +4,16 @@ import { TwitchEmbed } from "@/components/site/twitch-embed";
 import { getDict } from "@/lib/i18n/server";
 import { roundName } from "@/lib/i18n/dict";
 import { TWITCH_URL } from "@/lib/links";
-import { bracket, teamById } from "@/lib/data";
+import { getMatches, getTeams } from "@/db/tournament";
+import { getLang } from "@/lib/i18n/server";
+import { fmtSofia } from "@/lib/time";
 import { requireSection } from "@/lib/authz";
-
-const CREW = ["Prahosnika", "Raregendary", "SynchroHD"];
 
 export default async function Streams() {
   await requireSection("streams");
-  const t = await getDict();
-  const upcoming = bracket.winners[0].matches;
+  const [t, lang, matches, teams] = await Promise.all([getDict(), getLang(), getMatches(), getTeams()]);
+  const teamById = (id: string) => teams.find((x) => x.id === id);
+  const upcoming = matches.filter((m) => !m.winner && m.datetime && m.team1.id && m.team2.id).sort((a, b) => a.datetime!.localeCompare(b.datetime!));
   return (
     <Container className="max-w-[1400px]">
       <PageTitle right={<Tag tone="rose" className="text-xs normal-case">{t.streams.channelTag}</Tag>}>{t.streams.title}</PageTitle>
@@ -32,26 +33,33 @@ export default async function Streams() {
         <div>
           <SubHeading>{t.streams.schedule}</SubHeading>
           <div className="space-y-2">
-            {upcoming.map((m, i) => {
+            {upcoming.length === 0 && <p className="border border-line bg-coal p-4 text-sm text-ash">{t.streams.noUpcoming}</p>}
+            {upcoming.map((m) => {
               const a = teamById(m.team1.id);
               const b = teamById(m.team2.id);
               return (
                 <div key={m.id} className="border border-line bg-coal p-3">
                   <div className="flex items-center justify-between text-xs font-black uppercase">
                     <span className="text-rose-hi">{roundName(t, m.round)}</span>
-                    <span className="num text-sm text-paper">{m.datetime}</span>
+                    <span className="num text-sm text-paper">{fmtSofia(new Date(m.datetime!), lang === "bg" ? "bg-BG" : "en-GB")}</span>
                   </div>
                   <div className="mt-1 truncate font-black">
                     {a?.name} <span className="text-rose-hi">{t.common.vs}</span> {b?.name}
                   </div>
-                  <div className="mt-2 flex flex-wrap gap-3 text-xs text-ash">
-                    <span className="flex items-center gap-1">
-                      <Video className="size-3.5" /> {CREW[i % 3]}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Mic className="size-3.5" /> {CREW[(i + 1) % 3]}, {CREW[(i + 2) % 3]}
-                    </span>
-                  </div>
+                  {(m.streamer || m.commentators) && (
+                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-ash">
+                      {m.streamer && (
+                        <span className="flex items-center gap-1">
+                          <Video className="size-3.5" /> {m.streamer}
+                        </span>
+                      )}
+                      {m.commentators && (
+                        <span className="flex items-center gap-1">
+                          <Mic className="size-3.5" /> {m.commentators}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}

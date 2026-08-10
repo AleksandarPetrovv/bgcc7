@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { TeamCard } from "./team-card";
 import { useDict } from "./lang";
-import { teams } from "@/lib/data";
+import { useTournament } from "./tournament";
 
 const norm = (s: string) => s.toLowerCase().trim();
 
@@ -27,6 +27,7 @@ export function TeamSearch({ value, onChange }: { value: string; onChange: (v: s
 
 export function TeamGrid({ title }: { title: React.ReactNode }) {
   const t = useDict();
+  const { teams } = useTournament();
   const [q, setQ] = useState("");
   const shown = teams.filter(
     (team) => !q || norm(team.name).includes(norm(q)) || team.players.some((p) => norm(p.username).includes(norm(q))),

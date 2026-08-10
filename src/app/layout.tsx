@@ -5,6 +5,8 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { LangProvider } from "@/components/site/lang";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { HiddenBar } from "@/components/site/hidden-bar";
+import { TournamentProvider } from "@/components/site/tournament";
+import { getMatches, getTeams } from "@/db/tournament";
 import { auth } from "@/auth";
 import { getViewer, getVisibility } from "@/lib/authz";
 import { buildNav, SECTIONS } from "@/lib/sections";
@@ -50,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const [lang, session, viewer, vis] = await Promise.all([getLang(), auth(), getViewer(), getVisibility()]);
+  const [lang, session, viewer, vis, teams, matches] = await Promise.all([getLang(), auth(), getViewer(), getVisibility(), getTeams(), getMatches()]);
   const user = session?.user?.name ? { name: session.user.name, image: session.user.image ?? null, admin: !!viewer?.role } : null;
   const hidden = vis.staff ? SECTIONS.filter((s) => !vis.sections[s]) : [];
   return (
@@ -59,7 +61,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <LangProvider lang={lang}>
           <SiteNav user={user} nav={buildNav(vis.sections, vis.staff)} register={vis.staff || vis.sections.register} />
           <HiddenBar hidden={hidden} />
-          <main className="flex-1">{children}</main>
+          <TournamentProvider teams={teams} matches={matches}>
+            <main className="flex-1">{children}</main>
+          </TournamentProvider>
           <SiteFooter sponsors={vis.staff || vis.sections.sponsors} />
         </LangProvider>
       </body>

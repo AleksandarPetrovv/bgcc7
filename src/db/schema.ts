@@ -55,6 +55,7 @@ export const settings = pgTable("settings", {
   timeline: jsonb("timeline").$type<{ key: string; dates: string }[]>().notNull(),
   timelineAt: text("timeline_at"),
   qualifyCount: integer("qualify_count").notNull().default(24),
+  links: jsonb("links").$type<Record<string, string>>().notNull().default({}),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -144,3 +145,50 @@ export const qualScores = pgTable(
   },
   (t) => [unique().on(t.osuId, t.beatmapId)],
 );
+
+export const teams = pgTable("teams", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  image: text("image").notNull().default(""),
+  seed: integer("seed").notNull().default(0),
+  seeded: boolean("seeded").notNull().default(false),
+});
+
+export const teamMembers = pgTable("team_members", {
+  osuId: integer("osu_id")
+    .primaryKey()
+    .references(() => users.osuId, { onDelete: "cascade" }),
+  teamId: text("team_id")
+    .notNull()
+    .references(() => teams.id, { onDelete: "cascade" }),
+  isCaptain: boolean("is_captain").notNull().default(false),
+});
+
+export const matches = pgTable("matches", {
+  id: text("id").primaryKey(),
+  stageSlug: text("stage_slug").notNull(),
+  bracket: text("bracket").notNull(),
+  round: text("round").notNull(),
+  order: integer("order").notNull(),
+  team1Id: text("team1_id").references(() => teams.id, { onDelete: "set null" }),
+  team2Id: text("team2_id").references(() => teams.id, { onDelete: "set null" }),
+  score1: integer("score1"),
+  score2: integer("score2"),
+  winner: integer("winner"),
+  startsAt: timestamp("starts_at", { withTimezone: true }),
+  mpLinks: text("mp_links").notNull().default(""),
+  referee: text("referee"),
+  streamer: text("streamer"),
+  commentators: text("commentators"),
+  vodUrl: text("vod_url"),
+  manual: boolean("manual").notNull().default(false),
+});
+
+export const sponsors = pgTable("sponsors", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  image: text("image").notNull().default(""),
+  url: text("url"),
+  order: integer("order").notNull().default(0),
+  seeded: boolean("seeded").notNull().default(false),
+});

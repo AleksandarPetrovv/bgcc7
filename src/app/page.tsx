@@ -6,7 +6,10 @@ import { Rich } from "@/components/site/rich";
 import { getDict } from "@/lib/i18n/server";
 import { fmtDay, roundName, type Dict } from "@/lib/i18n/dict";
 import { Countdown } from "@/components/site/countdown";
-import { MODS, allMatches, staff, teams, teamById, type Stage } from "@/lib/data";
+import { MODS, type Stage, type Team } from "@/lib/data";
+import { getMatches, getSponsors, getTeams } from "@/db/tournament";
+import { getLang } from "@/lib/i18n/server";
+import { fmtSofia } from "@/lib/time";
 import { getPoolStages } from "@/db/mappools";
 import { cn } from "@/lib/utils";
 import { getSignupCount } from "@/db/queries";
@@ -85,7 +88,7 @@ function ModChips({ stage }: { stage: Stage }) {
   );
 }
 
-function TeamMosaic() {
+function TeamMosaic({ teams }: { teams: Team[] }) {
   return (
     <div className="grid h-full grid-cols-4 grid-rows-2" aria-hidden>
       {teams.slice(0, 8).map((t) => (
@@ -143,11 +146,25 @@ function Timeline({ t, timeline, current }: { t: Dict; timeline: { key: string; 
 }
 
 export default async function Home() {
-  const [t, signups, settings, vis, pools] = await Promise.all([getDict(), getSignupCount(), getSettings(), getVisibility(), getPoolStages()]);
+  const [t, lang, signups, settings, vis, pools, teams, matches, sponsors] = await Promise.all([
+    getDict(),
+    getLang(),
+    getSignupCount(),
+    getSettings(),
+    getVisibility(),
+    getPoolStages(),
+    getTeams(),
+    getMatches(),
+    getSponsors(),
+  ]);
+  const teamById = (id: string) => teams.find((x) => x.id === id);
   const pool = pools.filter((s) => s.released && s.pools.length).at(-1);
   const see = (s: keyof typeof vis.sections) => vis.staff || vis.sections[s];
   const regCloses = see("register") && isFuture(settings.regClosesAt) ? settings.regClosesAt!.toISOString() : null;
-  const featured = allMatches.filter((m) => m.winner).slice(0, 3);
+  const featured = matches
+    .filter((m) => m.winner)
+    .sort((a, b) => (b.datetime ?? "").localeCompare(a.datetime ?? ""))
+    .slice(0, 3);
   return (
     <>
       <section className="grain relative overflow-hidden border-b border-line">
@@ -209,7 +226,7 @@ export default async function Home() {
           )}
           {see("teams") && (
             <EntryCard title={t.home.teams} sub={t.home.teamsSub(teams.length, teams.length * 3)} href="/teams" className="border border-line bg-coal">
-              <TeamMosaic />
+              <TeamMosaic teams={teams} />
             </EntryCard>
           )}
           {see("bracket") && (
@@ -218,16 +235,18 @@ export default async function Home() {
             </EntryCard>
           )}
 
-          <div className="flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-line pt-5 sm:col-span-2">
-            <span className="text-xs font-black uppercase tracking-widest text-ash">{t.home.backedBy}</span>
-            {staff.sponsors.map((s) => (
-              <div key={s.username} className="flex items-center gap-2.5 opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={s.avatar} alt="" className="size-8" />
-                <span className="font-display text-base font-bold lowercase">{s.username}</span>
-              </div>
-            ))}
-          </div>
+          {sponsors.length > 0 && (
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-line pt-5 sm:col-span-2">
+              <span className="text-xs font-black uppercase tracking-widest text-ash">{t.home.backedBy}</span>
+              {sponsors.map((s) => (
+                <div key={s.id} className="flex items-center gap-2.5 opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {s.image && <img src={s.image} alt="" className="size-8 object-cover" />}
+                  <span className="font-display text-base font-bold lowercase">{s.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -249,7 +268,7 @@ export default async function Home() {
               <div key={m.id} className="border border-line bg-coal">
                 <div className="flex items-center justify-between border-b border-line px-4 py-2 text-xs font-black uppercase text-ash">
                   <span className="text-rose-hi">{roundName(t, m.round)}</span>
-                  <span className="num text-sm">{m.datetime}</span>
+                  <span className="num text-sm">{m.datetime && fmtSofia(new Date(m.datetime), lang === "bg" ? "bg-BG" : "en-GB")}</span>
                 </div>
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 p-4">
                   {[a, b].map((team, i) => (

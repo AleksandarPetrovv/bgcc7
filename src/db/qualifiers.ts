@@ -3,7 +3,7 @@ import { cache } from "react";
 import { eq } from "drizzle-orm";
 import { db } from "./index";
 import { lobbies, qualScores, users } from "./schema";
-import { safe } from "./queries";
+import { safe } from "./safe";
 import { getQualifierMaps } from "./mappools";
 import type { QualMap, QualPlayer } from "@/lib/data";
 import { rankQualifiers } from "@/lib/qualifiers";

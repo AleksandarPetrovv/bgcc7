@@ -2,7 +2,7 @@ import "server-only";
 import { asc, desc, eq } from "drizzle-orm";
 import { db } from "./index";
 import { adminLog, staff, users } from "./schema";
-import { safe } from "./queries";
+import { safe } from "./safe";
 
 export type LogRow = { id: number; action: string; payload: unknown; at: Date; username: string | null; osuId: number };
 
