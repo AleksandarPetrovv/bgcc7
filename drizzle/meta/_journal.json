@@ -71,6 +71,13 @@
       "when": 1790652909910,
       "tag": "0009_smooth_dreadnoughts",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790653679768,
+      "tag": "0010_adorable_havok",
+      "breakpoints": true
     }
   ]
 }

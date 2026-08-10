@@ -2,7 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { matchCache, matches, stages, teams } from "@/db/schema";
+import { matchCache, matches, reschedules, stages, teams } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
 import { FEED } from "@/lib/pickems";
 import type { ActionResult } from "@/lib/roles";
@@ -107,5 +107,15 @@ export async function clearCache(id: string) {
   return guard("matches", "match.clearCache", async () => {
     await db.delete(matchCache).where(eq(matchCache.matchId, id));
     return { id };
+  });
+}
+
+export async function decideReschedule(id: number, approve: boolean) {
+  return guard("matches", approve ? "reschedule.approve" : "reschedule.deny", async (by) => {
+    const [r] = await db.select().from(reschedules).where(eq(reschedules.id, id)).limit(1);
+    if (!r || !["pending", "accepted"].includes(r.status)) return { ok: false, error: "notFound" };
+    await db.update(reschedules).set({ status: approve ? "approved" : "denied", decidedBy: by }).where(eq(reschedules.id, id));
+    if (approve) await db.update(matches).set({ startsAt: r.proposedAt }).where(eq(matches.id, r.matchId));
+    return { id, matchId: r.matchId, proposedAt: r.proposedAt };
   });
 }
