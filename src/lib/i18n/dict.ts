@@ -557,6 +557,11 @@ const en = {
     change: "Change",
   },
   footer: { sponsors: "Sponsors", language: "Language" },
+  notFound: {
+    title: "Nothing here",
+    text: "This page doesn't exist, or it isn't open yet. Pages show up as the tournament gets to them.",
+    home: "Back home",
+  },
 };
 
 export type Dict = typeof en;
@@ -1117,6 +1122,11 @@ const bg: Dict = {
     change: "Промени",
   },
   footer: { sponsors: "Спонсори", language: "Език" },
+  notFound: {
+    title: "Тук няма нищо",
+    text: "Тази страница не съществува или още не е отворена. Страниците се появяват, когато турнирът стигне до тях.",
+    home: "Към началото",
+  },
 };
 
 export const dicts: Record<Lang, Dict> = { en, bg };
