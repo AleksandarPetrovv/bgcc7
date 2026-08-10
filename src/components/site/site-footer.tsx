@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Code, Tv, CirclePlay, MessageCircle, Sheet } from "lucide-react";
+import { Tv, CirclePlay, MessageCircle, Sheet } from "lucide-react";
 import { LangSwitch } from "./lang";
 import { getDict } from "@/lib/i18n/server";
 import { DISCORD_URL, TWITCH_URL } from "@/lib/links";
@@ -12,7 +12,6 @@ export async function SiteFooter({ sponsors }: { sponsors: boolean }) {
     { label: "Twitch", icon: Tv, href: TWITCH_URL },
     { label: "YouTube", icon: CirclePlay, href: settings.links.youtube },
     { label: "Spreadsheet", icon: Sheet, href: settings.links.sheets },
-    { label: "GitHub", icon: Code, href: settings.links.github },
   ].filter((s) => s.href);
   return (
     <footer className="mt-24">
