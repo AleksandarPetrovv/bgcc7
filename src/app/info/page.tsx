@@ -2,7 +2,6 @@ import { Container, SectionHeading, SlantButton } from "@/components/site/page";
 import { Rich } from "@/components/site/rich";
 import { getDict } from "@/lib/i18n/server";
 import { DISCORD_URL } from "@/lib/links";
-import { getSettings } from "@/db/settings";
 import { requireSection } from "@/lib/authz";
 
 function List({ items }: { items: string[] }) {
@@ -21,17 +20,12 @@ const PRIZE_BAR = ["bg-[#e8c547]", "bg-[#c9ccd1]", "bg-[#c98a4b]"];
 
 export default async function InfoPage() {
   await requireSection("info");
-  const [t, settings] = await Promise.all([getDict(), getSettings()]);
+  const t = await getDict();
   return (
     <Container className="max-w-5xl">
       <div className="border border-line bg-coal/80 px-6 py-8 sm:px-10">
         <p className="mx-auto max-w-3xl text-center leading-relaxed text-paper/90">{t.info.intro}</p>
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {settings.links.donate && (
-            <SlantButton tone="rose" href={settings.links.donate} className="justify-center">
-              {t.common.donate}
-            </SlantButton>
-          )}
+        <div className="mt-6 flex justify-center">
           <SlantButton tone="balkan" href={DISCORD_URL} className="justify-center">{t.common.discord}</SlantButton>
         </div>
 

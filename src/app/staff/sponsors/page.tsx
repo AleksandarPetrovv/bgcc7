@@ -1,12 +1,11 @@
-import { Container, PageTitle, SlantButton } from "@/components/site/page";
+import { Container, PageTitle } from "@/components/site/page";
 import { getDict } from "@/lib/i18n/server";
 import { getSponsors } from "@/db/tournament";
-import { getSettings } from "@/db/settings";
 import { requireSection } from "@/lib/authz";
 
 export default async function Sponsors() {
   await requireSection("sponsors");
-  const [t, sponsors, settings] = await Promise.all([getDict(), getSponsors(), getSettings()]);
+  const [t, sponsors] = await Promise.all([getDict(), getSponsors()]);
   return (
     <Container className="max-w-5xl">
       <PageTitle>{t.staff.sponsorsTitle}</PageTitle>
@@ -30,15 +29,6 @@ export default async function Sponsors() {
             <span className={`num ml-auto shrink-0 text-3xl sm:text-4xl ${i % 2 ? "text-balkan" : "text-rose-hi"}`}>#{i + 1}</span>
           </div>
         ))}
-      </div>
-      <div className="mt-10 flex flex-col items-center gap-4 border border-line bg-coal p-8 text-center">
-        <div className="heading-slam text-3xl">{t.staff.backTitle}</div>
-        <p className="max-w-md text-sm text-ash">{t.staff.backText}</p>
-        {settings.links.donate && (
-          <SlantButton tone="rose" href={settings.links.donate}>
-            {t.common.donate}
-          </SlantButton>
-        )}
       </div>
     </Container>
   );
