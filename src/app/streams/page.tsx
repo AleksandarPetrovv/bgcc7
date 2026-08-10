@@ -7,16 +7,33 @@ import { TWITCH_URL } from "@/lib/links";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getLang } from "@/lib/i18n/server";
 import { fmtSofia } from "@/lib/time";
+import { getLive } from "@/lib/twitch";
 import { requireSection } from "@/lib/authz";
 
 export default async function Streams() {
   await requireSection("streams");
-  const [t, lang, matches, teams] = await Promise.all([getDict(), getLang(), getMatches(), getTeams()]);
+  const [t, lang, matches, teams, live] = await Promise.all([getDict(), getLang(), getMatches(), getTeams(), getLive()]);
   const teamById = (id: string) => teams.find((x) => x.id === id);
   const upcoming = matches.filter((m) => !m.winner && m.datetime && m.team1.id && m.team2.id).sort((a, b) => a.datetime!.localeCompare(b.datetime!));
   return (
     <Container className="max-w-[1400px]">
-      <PageTitle right={<Tag tone="rose" className="text-xs normal-case">{t.streams.channelTag}</Tag>}>{t.streams.title}</PageTitle>
+      <PageTitle
+        right={
+          <>
+            {live && (
+              <Tag tone="rose" className="flex items-center gap-1.5 text-xs">
+                <span className="size-1.5 animate-pulse rounded-full bg-white" /> {t.home.live}
+                {live.viewers !== null && <span className="num opacity-80">· {live.viewers}</span>}
+              </Tag>
+            )}
+            <Tag tone={live ? "paper" : "rose"} className="text-xs normal-case">
+              {t.streams.channelTag}
+            </Tag>
+          </>
+        }
+      >
+        {t.streams.title}
+      </PageTitle>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
         <div>
           <div className="aspect-video overflow-hidden border border-line bg-coal">

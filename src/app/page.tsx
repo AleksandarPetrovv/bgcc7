@@ -10,6 +10,7 @@ import { MODS, type Stage, type Team } from "@/lib/data";
 import { getMatches, getSponsors, getTeams } from "@/db/tournament";
 import { getLang } from "@/lib/i18n/server";
 import { fmtSofia } from "@/lib/time";
+import { getLive } from "@/lib/twitch";
 import { getPoolStages } from "@/db/mappools";
 import { cn } from "@/lib/utils";
 import { getSignupCount } from "@/db/queries";
@@ -160,6 +161,7 @@ export default async function Home() {
   const teamById = (id: string) => teams.find((x) => x.id === id);
   const pool = pools.filter((s) => s.released && s.pools.length).at(-1);
   const see = (s: keyof typeof vis.sections) => vis.staff || vis.sections[s];
+  const live = see("streams") ? await getLive() : null;
   const regCloses = see("register") && isFuture(settings.regClosesAt) ? settings.regClosesAt!.toISOString() : null;
   const featured = matches
     .filter((m) => m.winner)
@@ -293,11 +295,19 @@ export default async function Home() {
         )}
         {see("streams") && (
         <div className="mt-8 flex flex-col items-start gap-4 border border-line bg-coal p-5 sm:flex-row sm:items-center">
-          <span className="flex items-center gap-2 bg-slate px-2 py-1 text-xs font-black uppercase text-ash">
-            <Radio className="size-3.5" /> {t.home.offline}
-          </span>
-          <p className="text-sm text-paper/75">{t.home.streamNote}</p>
-          <SlantButton href="/streams" tone="paper" className="sm:ml-auto">{t.home.streamSchedule}</SlantButton>
+          {live ? (
+            <span className="flex items-center gap-2 bg-rose px-2 py-1 text-xs font-black uppercase text-white">
+              <span className="size-2 animate-pulse rounded-full bg-white" /> {t.home.live}
+            </span>
+          ) : (
+            <span className="flex items-center gap-2 bg-slate px-2 py-1 text-xs font-black uppercase text-ash">
+              <Radio className="size-3.5" /> {t.home.offline}
+            </span>
+          )}
+          <p className="text-sm text-paper/75">{live ? (live.title ?? t.home.liveNote) : t.home.streamNote}</p>
+          <SlantButton href="/streams" tone={live ? "rose" : "paper"} className="sm:ml-auto">
+            {live ? t.home.watchNow : t.home.streamSchedule}
+          </SlantButton>
         </div>
         )}
       </section>

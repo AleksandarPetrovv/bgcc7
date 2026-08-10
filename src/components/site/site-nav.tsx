@@ -13,9 +13,11 @@ import type { NavItem } from "@/lib/sections";
 
 const isActive = (path: string, base: string) => (base === "/" ? path === "/" : path === base || path.startsWith(`${base}/`));
 
-type Props = { user: { name: string; image: string | null; admin: boolean } | null; nav: NavItem[]; register: boolean };
+type Props = { user: { name: string; image: string | null; admin: boolean } | null; nav: NavItem[]; register: boolean; live: boolean };
 
-export function SiteNav({ user, nav, register }: Props) {
+const LiveDot = () => <span className="ml-1.5 inline-block size-2 shrink-0 animate-pulse rounded-full bg-rose" aria-hidden />;
+
+export function SiteNav({ user, nav, register, live }: Props) {
   const path = usePathname();
   const [pending, start] = useTransition();
   const t = useDict();
@@ -43,6 +45,7 @@ export function SiteNav({ user, nav, register }: Props) {
                 )}
               >
                 {t.nav[n.key]}
+                {live && n.key === "streams" && <LiveDot />}
                 {active && <span className="absolute inset-x-2.5 bottom-0 h-0.5 bg-balkan 2xl:inset-x-4" aria-hidden />}
               </Link>
             );
@@ -90,8 +93,9 @@ export function SiteNav({ user, nav, register }: Props) {
             </button>
           )}
           <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger className="p-2 text-paper xl:hidden" aria-label={t.nav.openMenu}>
+            <SheetTrigger className="relative p-2 text-paper xl:hidden" aria-label={t.nav.openMenu}>
               <Menu className="size-6" />
+              {live && <span className="absolute right-1.5 top-1.5 size-2 animate-pulse rounded-full bg-rose" aria-hidden />}
             </SheetTrigger>
             <SheetContent side="right" className="flex h-dvh w-full max-w-sm flex-col border-line bg-ink p-0">
               <SheetTitle className="sr-only">{t.nav.menu}</SheetTitle>
@@ -113,6 +117,7 @@ export function SiteNav({ user, nav, register }: Props) {
                     )}
                   >
                     {t.nav[n.key]}
+                    {live && n.key === "streams" && <LiveDot />}
                   </Link>
                 ))}
               </nav>
