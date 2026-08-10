@@ -1,7 +1,8 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { eq } from "drizzle-orm";
-import { lobbies, lobbyBookings, registrations, staff, users } from "../src/db/schema.ts";
+import { lobbies, lobbyBookings, maps, qualScores, registrations, stages, staff, users } from "../src/db/schema.ts";
+import mappoolsJson from "../src/data/mappools.json" with { type: "json" };
 import qualifiersJson from "../src/data/qualifiers.json" with { type: "json" };
 import staffJson from "../src/data/staff.json" with { type: "json" };
 import signupsJson from "../src/data/signups.json" with { type: "json" };
@@ -83,8 +84,60 @@ async function seedLobbies() {
   console.log(`lobbies: ${groups.length}`);
 }
 
+async function seedMaps() {
+  const slugOf = { Qualifiers: "qualifiers", Quarterfinals: "quarterfinals", "Semi-Finals": "semifinals" };
+  for (const s of mappoolsJson.mappools) {
+    const [stage] = await db.select().from(stages).where(eq(stages.slug, slugOf[s.title])).limit(1);
+    if (!stage) continue;
+    const [has] = await db.select({ id: maps.id }).from(maps).where(eq(maps.stageId, stage.id)).limit(1);
+    if (has) continue;
+    for (const p of s.pools) {
+      for (const [order, m] of p.maps.entries()) {
+        await db.insert(maps).values({
+          stageId: stage.id,
+          mod: p.category,
+          order,
+          beatmapId: m.beatmap_id,
+          title: m.title,
+          version: m.version,
+          creator: m.creator,
+          sr: m.sr,
+          bpm: m.bpm,
+          length: m.length,
+          ar: m.ar,
+          od: m.od,
+          cs: m.cs,
+          cover: m.cover_url,
+          seeded: true,
+        });
+      }
+    }
+    await db.update(stages).set({ poolReleased: true }).where(eq(stages.id, stage.id));
+    console.log(`maps: ${s.title}`);
+  }
+}
+
+async function seedQualScores() {
+  const [has] = await db.select({ id: qualScores.id }).from(qualScores).limit(1);
+  if (has) return console.log("qual scores: already there");
+  const booked = new Map((await db.select().from(lobbyBookings)).map((b) => [b.osuId, b.lobbyId]));
+  let n = 0;
+  for (const p of qualifiersJson.players) {
+    for (const [beatmapId, v] of Object.entries(p.perf)) {
+      await db
+        .insert(qualScores)
+        .values({ osuId: p.id, beatmapId: Number(beatmapId), lobbyId: booked.get(p.id) ?? null, score: v.score, acc: v.acc, mods: v.mods, grade: v.rank, seeded: true })
+        .onConflictDoNothing();
+      n++;
+    }
+  }
+  console.log(`qual scores: ${n}`);
+}
+
 await seedStaff();
+await seedMaps();
 await seedSignups();
 await seedQualPlayers();
 await seedLobbies();
+await seedQualScores();
 await client.end();

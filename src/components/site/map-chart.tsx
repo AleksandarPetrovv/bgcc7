@@ -1,16 +1,16 @@
 "use client";
 
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { qualifiers } from "@/lib/data";
+import type { QualMap, QualPlayer } from "@/lib/data";
 import { useDict } from "./lang";
 
 const COLOR: Record<string, string> = { NM: "#3b82f6", HD: "#f5b820", HR: "#e0242f", DT: "#a78bfa" };
 
-export function MapDifficultyChart() {
+export function MapDifficultyChart({ qualifiers }: { qualifiers: { maps: QualMap[]; players: QualPlayer[] } }) {
   const t = useDict();
   const data = qualifiers.maps.map((m) => {
     const scores = qualifiers.players.map((p) => p.perf[m.id]?.score).filter(Boolean) as number[];
-    return { slot: m.slot, avg: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length), title: m.title };
+    return { slot: m.slot, avg: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0, title: m.title };
   });
   return (
     <div className="h-72">

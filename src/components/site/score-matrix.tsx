@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { qualifiers, fmtNum, flagUrl, type QualPerf, type QualMap, type QualPlayer } from "@/lib/data";
+import { fmtNum, flagUrl, type QualPerf, type QualMap, type QualPlayer } from "@/lib/data";
 import { useDict } from "./lang";
 import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,7 @@ const MEDAL = ["bg-[#e8c547] text-ink", "bg-[#c9ccd1] text-ink", "bg-[#c98a4b] t
 
 type Hover = { x: number; y: number; map: QualMap; perf: QualPerf; player: QualPlayer } | null;
 
-export function ScoreMatrix() {
+export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]; players: QualPlayer[] }; cut: number }) {
   const t = useDict();
   const [q, setQ] = useState("");
   const [hover, setHover] = useState<Hover>(null);
@@ -32,7 +32,7 @@ export function ScoreMatrix() {
       out[m.id] = Object.fromEntries(ranked.map((p, i) => [p.id, i]));
     }
     return out;
-  }, []);
+  }, [qualifiers]);
 
   const rows = qualifiers.players.filter((p) => p.username.toLowerCase().includes(q.toLowerCase()));
 
@@ -68,7 +68,7 @@ export function ScoreMatrix() {
             {rows.map((p) => {
               const seed = qualifiers.players.indexOf(p) + 1;
               return (
-                <tr key={p.id} className={cn("border-t border-line", seed <= 24 ? "" : "opacity-60")}>
+                <tr key={p.id} className={cn("border-t border-line", seed <= cut ? "" : "opacity-60")}>
                   <td className="sticky left-0 z-10 bg-ink px-3 py-2">
                     <span className={cn("num inline-block min-w-9 px-1.5 text-center text-base", seed <= 3 ? MEDAL[seed - 1] : "bg-slate text-paper")}>#{seed}</span>
                   </td>
@@ -77,7 +77,7 @@ export function ScoreMatrix() {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={p.avatar} alt="" className="size-7" />
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={flagUrl(p.cc)} alt="" className="h-2.5" />
+                      {p.cc && <img src={flagUrl(p.cc)} alt="" className="h-2.5" />}
                       <a href={osuUser(p.id)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">{p.username}</a>
                     </span>
                   </td>
@@ -151,7 +151,7 @@ function ScoreCard({ x, y, map, perf, player }: NonNullable<Hover>) {
           </div>
         ))}
       </div>
-      <div className="px-3 py-1.5 text-[0.65rem] font-bold uppercase text-ash">{perf.matchName.replace("BGCC6", "BGCC7")}</div>
+      <div className="px-3 py-1.5 text-[0.65rem] font-bold uppercase text-ash">{perf.matchName}</div>
     </div>
   );
 }

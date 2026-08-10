@@ -5,17 +5,19 @@ import { getDict } from "@/lib/i18n/server";
 import { teams, fmtNum } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { requireSection } from "@/lib/authz";
+import { getQualResults } from "@/db/qualifiers";
+import { getSettings } from "@/db/settings";
 
 export default async function Seeding() {
   await requireSection("seeding");
-  const t = await getDict();
+  const [t, qualifiers, settings] = await Promise.all([getDict(), getQualResults(), getSettings()]);
   return (
     <Container>
       <PageTitle right={<Tag tone="rose" className="text-xs">{t.qual.seedingTag}</Tag>}>{t.qual.seedingTitle}</PageTitle>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr_1fr]">
         <div className="border border-line bg-coal p-5">
           <div className="mb-3 text-xs font-black uppercase tracking-widest text-ash">{t.qual.chartLabel}</div>
-          <SeedingChart />
+          <SeedingChart players={qualifiers.players} cut={settings.qualifyCount} />
         </div>
         <div className="space-y-2">
           {teams.map((team) => (

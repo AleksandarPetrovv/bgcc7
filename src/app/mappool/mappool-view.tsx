@@ -4,15 +4,22 @@ import { useState } from "react";
 import { Download, Play, Sheet, Star } from "lucide-react";
 import { Container, PageTitle, SlantButton, StageTabs } from "@/components/site/page";
 import { useDict } from "@/components/site/lang";
-import { MODS, stages, fmtLen } from "@/lib/data";
+import { MODS, fmtLen, type Stage } from "@/lib/data";
 import { osuMap } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
-export function MappoolView() {
+export function MappoolView({ stages }: { stages: Stage[] }) {
   const t = useDict();
-  const [i, setI] = useState(0);
+  const [i, setI] = useState(Math.max(0, stages.length - 1));
   const [closed, setClosed] = useState<Record<string, boolean>>({});
   const stage = stages[i];
+  if (!stage)
+    return (
+      <Container className="max-w-5xl">
+        <PageTitle>{t.mappool.title}</PageTitle>
+        <p className="py-10 text-center text-ash">{t.mappool.empty}</p>
+      </Container>
+    );
   const count = stage.pools.reduce((s, p) => s + p.maps.length, 0);
 
   return (

@@ -1,7 +1,8 @@
 import { Container, PageTitle, SectionHeading } from "@/components/site/page";
 import { MapDifficultyChart } from "@/components/site/map-chart";
 import { getDict } from "@/lib/i18n/server";
-import { qualifiers, fmtNum } from "@/lib/data";
+import { fmtNum } from "@/lib/data";
+import { getQualResults } from "@/db/qualifiers";
 import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
 import { requireSection } from "@/lib/authz";
@@ -11,8 +12,15 @@ const MEDAL = ["text-[#e8c547]", "text-[#c9ccd1]", "text-[#c98a4b]"];
 
 export default async function Stats() {
   await requireSection("stats");
-  const t = await getDict();
+  const [t, qualifiers] = await Promise.all([getDict(), getQualResults()]);
   const perfs = qualifiers.players.flatMap((p) => Object.entries(p.perf).map(([mid, v]) => ({ ...v, mid, player: p })));
+  if (!perfs.length)
+    return (
+      <Container>
+        <PageTitle accent={t.stats.accent}>{t.stats.title}</PageTitle>
+        <p className="py-10 text-center text-ash">{t.qual.noResults}</p>
+      </Container>
+    );
   const best = perfs.reduce((a, b) => (b.score > a.score ? b : a));
   const acc = perfs.reduce((a, b) => (b.acc > a.acc ? b : a));
   const mapBy = (id: string) => qualifiers.maps.find((m) => String(m.id) === id)!;
@@ -44,7 +52,7 @@ export default async function Stats() {
 
       <SectionHeading>{t.stats.avgPerMap}</SectionHeading>
       <div className="border border-line bg-coal p-5">
-        <MapDifficultyChart />
+        <MapDifficultyChart qualifiers={qualifiers} />
       </div>
 
       <SectionHeading>{t.stats.mapLeaders}</SectionHeading>

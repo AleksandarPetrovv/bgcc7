@@ -1,12 +1,12 @@
 "use client";
 
 import { Bar, BarChart, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { qualifiers } from "@/lib/data";
+import type { QualPlayer } from "@/lib/data";
 import { useDict } from "./lang";
 
-export function SeedingChart() {
+export function SeedingChart({ players, cut }: { players: QualPlayer[]; cut: number }) {
   const t = useDict();
-  const data = qualifiers.players.slice(0, 24).map((p, i) => ({ name: p.username, z: p.zSum, seed: i + 1 }));
+  const data = players.slice(0, cut).map((p, i) => ({ name: p.username, z: p.zSum, seed: i + 1 }));
   return (
     <div className="h-[420px]">
       <ResponsiveContainer width="100%" height="100%">
