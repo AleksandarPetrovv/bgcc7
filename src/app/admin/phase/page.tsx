@@ -20,7 +20,7 @@ export default async function AdminPhase() {
     ["bookingOpensAt", t.admin.bookingOpens, s.bookingOpensAt],
     ["bookingClosesAt", t.admin.bookingCloses, s.bookingClosesAt],
   ] as const;
-  const dateOf = (k: string) => s.timeline.find((e) => e.key === k)?.dates ?? "";
+  const row = (k: string) => s.timeline.find((e) => e.key === k);
 
   return (
     <>
@@ -77,12 +77,19 @@ export default async function AdminPhase() {
         </Panel>
 
         <Panel title={t.admin.timeline} help={t.admin.timelineHelp} className="xl:col-span-2">
-          <ActionForm key={s.timelineAt ?? "none"} action={setTimeline} className="space-y-4">
+          <ActionForm key={JSON.stringify(s.timeline) + (s.timelineAt ?? "")} action={setTimeline} className="space-y-4">
             <div className="divide-y divide-line border border-line">
               {TIMELINE_KEYS.map((k) => (
-                <div key={k} className="grid grid-cols-[1fr_1.2fr_auto] items-center gap-3 px-3 py-2">
+                <div key={k} className="grid grid-cols-1 items-center gap-2 px-3 py-2 sm:grid-cols-[1fr_auto_auto_auto] sm:gap-3">
                   <span className="text-sm font-black uppercase">{t.timeline[k]}</span>
-                  <input name={`dates.${k}`} defaultValue={dateOf(k)} maxLength={40} className={inputCls} aria-label={t.timeline[k]} />
+                  {k === "reg" ? (
+                    <span className="text-xs text-ash sm:col-span-2">{t.admin.regFromDates}</span>
+                  ) : (
+                    <>
+                      <input type="date" name={`from.${k}`} defaultValue={row(k)?.from ?? ""} aria-label={`${t.timeline[k]} · ${t.admin.from}`} className={cn(inputCls, "[color-scheme:dark]")} />
+                      <input type="date" name={`to.${k}`} defaultValue={row(k)?.to ?? ""} aria-label={`${t.timeline[k]} · ${t.admin.to}`} className={cn(inputCls, "[color-scheme:dark]")} />
+                    </>
+                  )}
                   <label className="flex cursor-pointer items-center gap-2 text-xs font-bold uppercase text-ash">
                     <input type="radio" name="current" value={k} defaultChecked={s.timelineAt === k} className={check} />
                     {t.admin.current}

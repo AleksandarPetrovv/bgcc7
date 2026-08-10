@@ -44,7 +44,11 @@ export async function setDates(_: ActionResult, fd: FormData) {
 
 export async function setTimeline(_: ActionResult, fd: FormData) {
   return guard("phase", "phase.timeline", async () => {
-    const timeline = TIMELINE_KEYS.map((key) => ({ key, dates: String(fd.get(`dates.${key}`) ?? "").trim().slice(0, 40) }));
+    const date = (k: string) => {
+      const v = String(fd.get(k) ?? "");
+      return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null;
+    };
+    const timeline = TIMELINE_KEYS.filter((k) => k !== "reg").map((key) => ({ key, from: date(`from.${key}`), to: date(`to.${key}`) }));
     const cur = String(fd.get("current") ?? "");
     const timelineAt = (TIMELINE_KEYS as readonly string[]).includes(cur) ? cur : null;
     await saveSettings({ timeline, timelineAt });

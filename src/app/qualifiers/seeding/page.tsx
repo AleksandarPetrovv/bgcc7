@@ -8,16 +8,17 @@ import { cn } from "@/lib/utils";
 import { requireSection } from "@/lib/authz";
 import { getQualResults } from "@/db/qualifiers";
 import { getSettings } from "@/db/settings";
+import { getFill } from "@/db/copy";
 
 export default async function Seeding() {
   await requireSection("seeding");
-  const [t, qualifiers, settings, teams] = await Promise.all([getDict(), getQualResults(), getSettings(), getTeams()]);
+  const [t, qualifiers, settings, teams, f] = await Promise.all([getDict(), getQualResults(), getSettings(), getTeams(), getFill()]);
   return (
     <Container>
       <PageTitle right={<Tag tone="rose" className="text-xs">{t.qual.seedingTag}</Tag>}>{t.qual.seedingTitle}</PageTitle>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr_1fr]">
         <div className="border border-line bg-coal p-5">
-          <div className="mb-3 text-xs font-black uppercase tracking-widest text-ash">{t.qual.chartLabel}</div>
+          <div className="mb-3 text-xs font-black uppercase tracking-widest text-ash">{f(t.qual.chartLabel)}</div>
           <SeedingChart players={qualifiers.players} cut={settings.qualifyCount} />
         </div>
         <div className="space-y-2">

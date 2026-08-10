@@ -39,13 +39,13 @@ export const presetSections = (p: Phase) => Object.fromEntries(SECTIONS.map((s) 
 export const TIMELINE_KEYS = ["reg", "scr", "qual", "qf", "sf", "f", "gf"] as const;
 
 export const DEFAULT_TIMELINE = [
-  { key: "reg", dates: "2 Nov – 22 Nov" },
-  { key: "scr", dates: "23 Nov – 25 Nov" },
-  { key: "qual", dates: "28 Nov – 29 Nov" },
-  { key: "qf", dates: "5 Dec – 6 Dec" },
-  { key: "sf", dates: "12 Dec – 13 Dec" },
-  { key: "f", dates: "19 Dec – 20 Dec" },
-  { key: "gf", dates: "27 Dec" },
+  { key: "reg", from: "2026-11-02", to: "2026-11-22" },
+  { key: "scr", from: "2026-11-23", to: "2026-11-25" },
+  { key: "qual", from: "2026-11-28", to: "2026-11-29" },
+  { key: "qf", from: "2026-12-05", to: "2026-12-06" },
+  { key: "sf", from: "2026-12-12", to: "2026-12-13" },
+  { key: "f", from: "2026-12-19", to: "2026-12-20" },
+  { key: "gf", from: "2026-12-27", to: null },
 ];
 
 export const PHASE_TIMELINE: Record<Phase, string | null> = {
