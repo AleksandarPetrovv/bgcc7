@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { PageTitle } from "@/components/site/page";
 import { ActionForm, inputCls, Panel } from "@/components/admin/form";
 import { getStaff } from "@/db/admin";
 import { getViewer } from "@/lib/authz";
@@ -13,8 +14,8 @@ export default async function AdminStaff() {
   if (!can(viewer?.role, "staff")) notFound();
   return (
     <>
-      <h1 className="heading-slam mb-2 text-4xl sm:text-5xl">{t.admin.menu.staff}</h1>
-      <p className="mb-6 max-w-2xl text-sm text-ash">{t.admin.staffHelp}</p>
+      <PageTitle>{t.admin.menu.staff}</PageTitle>
+      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">{t.admin.staffHelp}</p>
 
       <Panel title={t.admin.addStaff} className="mb-6">
         <ActionForm action={addStaff} submit={t.admin.add} className="flex flex-wrap items-center gap-3">

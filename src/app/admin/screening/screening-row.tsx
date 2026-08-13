@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { Check, Undo2, X } from "lucide-react";
-import { ActionForm, ghostBtnCls, inputCls } from "@/components/admin/form";
+import { ActionForm, Btn, inputCls } from "@/components/admin/form";
 import { Tag } from "@/components/site/page";
 import { useDict } from "@/components/site/lang";
 import type { RegRow } from "@/db/registrations";
@@ -45,25 +45,25 @@ export function ScreeningRow({ p, signedAt }: { p: RegRow; signedAt: string }) {
       </div>
       <form action={action} className={cn("flex flex-wrap items-center gap-2 border-t border-line px-3 py-2.5", pending && "opacity-60")}>
         <input name="note" defaultValue={p.note ?? ""} maxLength={300} placeholder={t.admin.note} aria-label={t.admin.note} className={cn(inputCls, "min-w-40 flex-1")} />
-        <button name="status" value={p.status} disabled={pending} className={ghostBtnCls}>
+        <Btn name="status" value={p.status} disabled={pending} tone="outline" small>
           {t.admin.save}
-        </button>
+        </Btn>
         {p.status !== "approved" && (
-          <button name="status" value="approved" disabled={pending} className="inline-flex min-h-10 items-center gap-1.5 bg-balkan px-3 text-xs font-black uppercase text-ink transition hover:bg-paper">
+          <Btn name="status" value="approved" disabled={pending} tone="balkan" small>
             <Check className="size-4" /> {t.admin.approve}
-          </button>
+          </Btn>
         )}
         {p.status !== "denied" && (
-          <button name="status" value="denied" disabled={pending} className="inline-flex min-h-10 items-center gap-1.5 border border-rose px-3 text-xs font-black uppercase text-rose-hi transition hover:bg-rose/10">
+          <Btn name="status" value="denied" disabled={pending} tone="danger" small>
             <X className="size-4" /> {t.admin.deny}
-          </button>
+          </Btn>
         )}
         {p.status !== "pending" && (
-          <button name="status" value="pending" disabled={pending} className={ghostBtnCls}>
+          <Btn name="status" value="pending" disabled={pending} tone="outline" small>
             <Undo2 className="size-4" /> {t.admin.reset}
-          </button>
+          </Btn>
         )}
-        {state && !pending && !state.ok && <span className="text-xs font-bold text-rose-hi">{t.admin.error}</span>}
+        {state && !pending && !state.ok && <span className="text-xs font-bold uppercase tracking-wide text-rose-hi">{t.admin.error}</span>}
       </form>
     </div>
   );

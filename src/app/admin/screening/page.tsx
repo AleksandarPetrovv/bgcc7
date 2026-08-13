@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { LinkTabs } from "@/components/site/tabs";
+import { PageTitle } from "@/components/site/page";
 import { notFound } from "next/navigation";
 import { ActionForm, inputCls, Panel } from "@/components/admin/form";
 import { getRegistrations, STATUSES, isStatus } from "@/db/registrations";
@@ -20,8 +21,8 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
 
   return (
     <>
-      <h1 className="heading-slam mb-2 text-4xl sm:text-5xl">{t.admin.menu.screening}</h1>
-      <p className="mb-6 max-w-2xl text-sm text-ash">{t.admin.screeningHelp}</p>
+      <PageTitle>{t.admin.menu.screening}</PageTitle>
+      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">{t.admin.screeningHelp}</p>
 
       <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-[1fr_auto]">
         <Panel title={t.admin.addPlayer} help={t.admin.addPlayerHelp}>
@@ -35,20 +36,19 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
         </div>
       </div>
 
-      <nav className="mb-4 flex overflow-x-auto border border-line" aria-label={t.admin.menu.screening}>
-        {[null, ...STATUSES].map((s) => (
-          <Link
-            key={s ?? "all"}
-            href={s ? `/admin/screening?status=${s}` : "/admin/screening"}
-            className={cn(
-              "flex shrink-0 items-center gap-2 border-r border-line px-4 py-2.5 text-sm font-black uppercase last:border-r-0",
-              filter === s ? "bg-paper text-ink" : "text-ash hover:bg-slate hover:text-paper",
-            )}
-          >
-            {s ? t.status[s] : t.admin.all} <span className="num text-base">{count(s)}</span>
-          </Link>
-        ))}
-      </nav>
+      <LinkTabs
+        className="mb-4"
+        label={t.admin.menu.screening}
+        items={[null, ...STATUSES].map((s) => ({
+          href: s ? `/admin/screening?status=${s}` : "/admin/screening",
+          active: filter === s,
+          label: (
+            <>
+              {s ? t.status[s] : t.admin.all} <span className="num text-sm opacity-80">{count(s)}</span>
+            </>
+          ),
+        }))}
+      />
 
       {shown.length ? (
         <div className="space-y-2">

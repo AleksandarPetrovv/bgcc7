@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { ActionForm, inputCls, Panel } from "@/components/admin/form";
+import { PageTitle } from "@/components/site/page";
+import { ActionForm, dateCls, inputCls, Panel } from "@/components/admin/form";
 import { getLobbies, type Lobby } from "@/db/lobbies";
 import { getRegistrations } from "@/db/registrations";
 import { getViewer } from "@/lib/authz";
@@ -21,7 +22,7 @@ function LobbyFields({ t, l }: { t: Dict; l?: Lobby }) {
       </label>
       <label className={label}>
         {t.admin.startsAt}
-        <input type="datetime-local" name="startsAt" required defaultValue={toSofiaInput(l?.startsAt)} className={cn(inputCls, "[color-scheme:dark]")} />
+        <input type="datetime-local" name="startsAt" required defaultValue={toSofiaInput(l?.startsAt)} className={dateCls} />
       </label>
       <label className={label}>
         {t.admin.capacity}
@@ -51,7 +52,7 @@ export default async function AdminLobbies() {
 
   return (
     <>
-      <h1 className="heading-slam mb-6 text-4xl sm:text-5xl">{t.admin.menu.lobbies}</h1>
+      <PageTitle>{t.admin.menu.lobbies}</PageTitle>
 
       <Panel title={t.admin.newLobby} className="mb-6">
         <ActionForm action={createLobby} submit={t.admin.create} className="space-y-4">

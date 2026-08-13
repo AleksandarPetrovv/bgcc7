@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { AdminNav } from "./admin-nav";
-import { SpeedMark } from "@/components/site/graphics";
+import { TriTick } from "@/components/site/graphics";
 import { Tag } from "@/components/site/page";
 import { auth } from "@/auth";
 import { getViewer } from "@/lib/authz";
@@ -25,22 +25,42 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const [viewer, session, t] = await Promise.all([getViewer(), auth(), getDict()]);
   if (!viewer?.role) notFound();
   const items = MENU.filter((m) => can(viewer.role, m.perm)).map((m) => ({ href: m.href, label: t.admin.menu[m.href.split("/")[2] ?? "overview"] }));
+  const name = session?.user?.name;
+  const avatar = session?.user?.image;
   return (
-    <div className="flex min-h-[calc(100vh-72px)] flex-col lg:flex-row">
-      <aside className="shrink-0 border-b border-line bg-coal lg:w-60 lg:border-b-0 lg:border-r">
-        <div className="hidden items-center gap-2 border-b border-line p-4 lg:flex">
-          <SpeedMark className="h-6 w-16" />
-          <span className="text-xs font-black uppercase tracking-widest text-ash">{t.admin.title}</span>
-        </div>
-        <AdminNav items={items} />
-        <div className="m-3 hidden border border-line p-3 text-xs text-ash lg:block">
-          {t.admin.signedIn} <span className="font-bold text-paper">{session?.user?.name}</span>
-          <div className="mt-1">
-            <Tag tone="balkan">{t.admin.roles[viewer.role]}</Tag>
+    <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 pb-16 pt-6 sm:px-6 lg:flex-row lg:gap-10 lg:pt-10">
+      <aside className="shrink-0 lg:sticky lg:top-[96px] lg:w-72 lg:self-start">
+        <div className="relative overflow-hidden border border-line bg-coal">
+          <div className="relative hidden border-b border-dashed border-line p-5 lg:block">
+            <span className="anim-twinkle absolute right-5 top-4 text-lg text-rose-hi" aria-hidden>
+              ✦
+            </span>
+            <span className="anim-twinkle absolute right-11 top-10 text-xs text-balkan [animation-delay:0.8s]" aria-hidden>
+              ✦
+            </span>
+            <span className="anim-twinkle absolute right-7 top-14 text-[0.6rem] text-paper/60 [animation-delay:1.6s]" aria-hidden>
+              ✦
+            </span>
+            <TriTick className="h-3 w-[22px]" />
+            <div className="mt-4 flex items-center gap-3">
+              {avatar && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatar} alt="" className="size-12 shrink-0 rounded-full object-cover ring-2 ring-rose ring-offset-2 ring-offset-coal" />
+              )}
+              <div className="min-w-0">
+                <div className="break-words font-display text-xl font-black leading-tight tracking-tight">
+                  {t.admin.hello}, {name}!
+                </div>
+                <Tag tone="balkan" className="mt-1.5">
+                  {t.admin.roles[viewer.role]}
+                </Tag>
+              </div>
+            </div>
           </div>
+          <AdminNav items={items} />
         </div>
       </aside>
-      <div className="min-w-0 flex-1 p-4 sm:p-8">{children}</div>
+      <div className="min-w-0 flex-1">{children}</div>
     </div>
   );
 }
