@@ -3,7 +3,7 @@
 import { saveSettings } from "@/db/settings";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
-import { PHASE_TIMELINE, PHASES, presetSections, SECTIONS, TIMELINE_KEYS, type Phase } from "@/lib/sections";
+import { PHASES, presetSections, SECTIONS, TIMELINE_KEYS, type Phase } from "@/lib/sections";
 import { fromSofiaInput } from "@/lib/time";
 
 export async function setPhase(_: ActionResult, fd: FormData) {
@@ -11,7 +11,7 @@ export async function setPhase(_: ActionResult, fd: FormData) {
     const phase = String(fd.get("phase"));
     if (!(PHASES as readonly string[]).includes(phase)) return { ok: false, error: "invalid" };
     const p = phase as Phase;
-    await saveSettings({ phase: p, sections: presetSections(p), timelineAt: PHASE_TIMELINE[p] });
+    await saveSettings({ phase: p, sections: presetSections(p) });
     return { phase: p };
   });
 }
@@ -49,9 +49,7 @@ export async function setTimeline(_: ActionResult, fd: FormData) {
       return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null;
     };
     const timeline = TIMELINE_KEYS.filter((k) => k !== "reg").map((key) => ({ key, from: date(`from.${key}`), to: date(`to.${key}`) }));
-    const cur = String(fd.get("current") ?? "");
-    const timelineAt = (TIMELINE_KEYS as readonly string[]).includes(cur) ? cur : null;
-    await saveSettings({ timeline, timelineAt });
-    return { timeline, timelineAt };
+    await saveSettings({ timeline });
+    return { timeline };
   });
 }

@@ -16,7 +16,6 @@ export type Settings = {
   bookingClosesAt: Date | null;
   pickemsOpen: boolean;
   timeline: TimelineRow[];
-  timelineAt: string | null;
   qualifyCount: number;
   links: Record<string, string>;
 };
@@ -30,7 +29,6 @@ export const DEFAULT_SETTINGS: Settings = {
   bookingClosesAt: new Date("2026-11-27T23:59:00+02:00"),
   pickemsOpen: false,
   timeline: DEFAULT_TIMELINE,
-  timelineAt: "reg",
   qualifyCount: 24,
   links: {},
 };
@@ -58,7 +56,6 @@ export const getSettings = cache(() =>
       bookingClosesAt: row.bookingClosesAt,
       pickemsOpen: row.pickemsOpen,
       timeline: withReg(row.timeline, row.regOpensAt, row.regClosesAt),
-      timelineAt: row.timelineAt,
       qualifyCount: row.qualifyCount,
       links: row.links ?? {},
     };

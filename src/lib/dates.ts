@@ -6,6 +6,12 @@ const day = (iso: string) => new Date(`${iso}T12:00:00Z`);
 
 export const sofiaDate = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d);
 
+export type TimelineState = "done" | "now" | "next";
+
+export function timelineStates(rows: TimelineRow[], today = sofiaDate(new Date())): TimelineState[] {
+  return rows.map((r) => (!r.from || today < r.from ? "next" : today > (r.to ?? r.from) ? "done" : "now"));
+}
+
 export function fmtRange(locale: string, from: string | null, to: string | null) {
   if (!from) return "";
   const a = day(from);

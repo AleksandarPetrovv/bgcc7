@@ -48,15 +48,6 @@ export const DEFAULT_TIMELINE = [
   { key: "gf", from: "2026-12-27", to: null },
 ];
 
-export const PHASE_TIMELINE: Record<Phase, string | null> = {
-  registration: "reg",
-  screening: "scr",
-  qualifiers: "qual",
-  seeding: "qual",
-  playoffs: "qf",
-  finished: null,
-};
-
 const ROUTES: [string, Section][] = [
   ["/info", "info"],
   ["/register", "register"],
@@ -142,4 +133,4 @@ export function subNav<T extends { href: string }>(items: T[], sections: Record<
     .filter((i) => staff || !i.hidden);
 }
 
-export const LINK_KEYS = ["sheets", "mappack", "youtube"] as const;
+export const LINK_KEYS = ["sheets"] as const;
