@@ -13,9 +13,17 @@ import type { NavItem } from "@/lib/sections";
 
 const isActive = (path: string, base: string) => (base === "/" ? path === "/" : path === base || path.startsWith(`${base}/`));
 
-type Props = { user: { name: string; image: string | null; admin: boolean } | null; nav: NavItem[]; register: boolean; live: boolean };
+type Props = { user: { name: string; image: string | null; admin: boolean } | null; nav: NavItem[]; register: boolean; live: string[] };
 
-const LiveDot = () => <span className="ml-1.5 inline-block size-2 shrink-0 animate-pulse rounded-full bg-rose" aria-hidden />;
+function LivePill({ big }: { big?: boolean }) {
+  const t = useDict();
+  return (
+    <span className={cn("ml-2 inline-flex shrink-0 items-center gap-1 bg-rose px-1.5 py-0.5 font-black uppercase leading-none tracking-wider text-white", big ? "text-xs" : "text-[0.55rem]")}>
+      <span className="size-1.5 animate-pulse rounded-full bg-white" aria-hidden />
+      {t.home.live}
+    </span>
+  );
+}
 
 export function SiteNav({ user, nav, register, live }: Props) {
   const path = usePathname();
@@ -45,7 +53,7 @@ export function SiteNav({ user, nav, register, live }: Props) {
                 )}
               >
                 {t.nav[n.key]}
-                {live && n.key === "streams" && <LiveDot />}
+                {live.includes(n.key) && <LivePill />}
                 {active && <span className="absolute inset-x-2.5 bottom-0 h-0.5 bg-balkan 2xl:inset-x-4" aria-hidden />}
               </Link>
             );
@@ -95,7 +103,7 @@ export function SiteNav({ user, nav, register, live }: Props) {
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger className="relative p-2 text-paper xl:hidden" aria-label={t.nav.openMenu}>
               <Menu className="size-6" />
-              {live && <span className="absolute right-1.5 top-1.5 size-2 animate-pulse rounded-full bg-rose" aria-hidden />}
+              {live.length > 0 && <span className="absolute right-1.5 top-1.5 size-2 animate-pulse rounded-full bg-rose" aria-hidden />}
             </SheetTrigger>
             <SheetContent side="right" className="flex h-dvh w-full max-w-sm flex-col border-line bg-ink p-0">
               <SheetTitle className="sr-only">{t.nav.menu}</SheetTitle>
@@ -117,7 +125,7 @@ export function SiteNav({ user, nav, register, live }: Props) {
                     )}
                   >
                     {t.nav[n.key]}
-                    {live && n.key === "streams" && <LiveDot />}
+                    {live.includes(n.key) && <LivePill big />}
                   </Link>
                 ))}
               </nav>
