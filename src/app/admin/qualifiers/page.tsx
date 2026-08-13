@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { PageTitle, SubHeading } from "@/components/site/page";
 import { ActionForm, inputCls, Panel } from "@/components/admin/form";
 import { getLobbies, mpIds } from "@/db/lobbies";
 import { getQualResults, getQualScoreRows } from "@/db/qualifiers";
@@ -19,8 +20,8 @@ export default async function AdminQualifiers() {
 
   return (
     <>
-      <h1 className="heading-slam mb-2 text-4xl sm:text-5xl">{t.admin.menu.qualifiers}</h1>
-      <p className="mb-6 max-w-2xl text-sm text-ash">{t.admin.qualHelp}</p>
+      <PageTitle>{t.admin.menu.qualifiers}</PageTitle>
+      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">{t.admin.qualHelp}</p>
 
       <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Panel title={t.admin.importTitle} help={t.admin.importHelp}>
@@ -70,7 +71,7 @@ export default async function AdminQualifiers() {
         </Panel>
       </div>
 
-      <h2 className="mb-3 text-sm font-black uppercase tracking-wide">{t.admin.ranking(settings.qualifyCount)}</h2>
+      <SubHeading>{t.admin.ranking(settings.qualifyCount)}</SubHeading>
       {results.players.length === 0 && <p className="border border-line bg-coal p-4 text-sm text-ash">{t.admin.noScores}</p>}
       <div className="space-y-1.5">
         {results.players.map((p, i) => {

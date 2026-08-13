@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { PageTitle } from "@/components/site/page";
 import { ActionForm, inputCls, Panel } from "@/components/admin/form";
 import { getQualResults } from "@/db/qualifiers";
 import { getRegistrations } from "@/db/registrations";
@@ -25,8 +26,8 @@ export default async function AdminTeams() {
 
   return (
     <>
-      <h1 className="heading-slam mb-2 text-4xl sm:text-5xl">{t.admin.menu.teams}</h1>
-      <p className="mb-6 max-w-2xl text-sm text-ash">{t.admin.teamsHelp(settings.qualifyCount)}</p>
+      <PageTitle>{t.admin.menu.teams}</PageTitle>
+      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">{t.admin.teamsHelp(settings.qualifyCount)}</p>
 
       <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Panel title={t.admin.generate} help={t.admin.generateHelp}>

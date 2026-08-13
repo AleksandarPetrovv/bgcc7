@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { ActionForm, inputCls, Panel } from "@/components/admin/form";
+import { PageTitle } from "@/components/site/page";
+import { ActionForm, dateCls, inputCls, Panel } from "@/components/admin/form";
 import { getPoolStages } from "@/db/mappools";
 import { getMatchRows, getTeams } from "@/db/tournament";
 import { getViewer } from "@/lib/authz";
@@ -32,8 +33,8 @@ export default async function AdminMatches() {
 
   return (
     <>
-      <h1 className="heading-slam mb-2 text-4xl sm:text-5xl">{t.admin.menu.matches}</h1>
-      <p className="mb-6 max-w-2xl text-sm text-ash">{t.admin.matchesHelp}</p>
+      <PageTitle>{t.admin.menu.matches}</PageTitle>
+      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">{t.admin.matchesHelp}</p>
 
       <div className="mb-6 flex flex-wrap gap-3 border border-line bg-coal p-4">
         <ActionForm action={fillFromSeeds} submit={t.admin.fillSeeds} ghost confirm={t.admin.confirmFillSeeds} />
@@ -98,7 +99,7 @@ export default async function AdminMatches() {
                         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                           <label className={cn(label, "col-span-2")}>
                             {t.admin.startsAt}
-                            <input type="datetime-local" name="startsAt" defaultValue={toSofiaInput(m.startsAt)} className={cn(inputCls, "[color-scheme:dark]")} />
+                            <input type="datetime-local" name="startsAt" defaultValue={toSofiaInput(m.startsAt)} className={dateCls} />
                           </label>
                           <label className={label}>
                             {t.admin.referee}
@@ -152,7 +153,7 @@ export default async function AdminMatches() {
                           </label>
                         </div>
                         {FEED[m.id] && (
-                          <label className="flex min-h-10 cursor-pointer items-center gap-2.5 text-sm">
+                          <label className="flex min-h-10 cursor-pointer items-center gap-2.5 text-sm font-bold uppercase tracking-wide">
                             <input type="checkbox" name="manual" defaultChecked={m.manual} className="size-4 accent-rose" />
                             {t.admin.lockTeams}
                           </label>
