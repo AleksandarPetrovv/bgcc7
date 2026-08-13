@@ -16,3 +16,5 @@ export function sourceLabel(t: Dict, matches: Match[], id: string, slot: 1 | 2) 
   const label = matchLabel(t, matches, src.from);
   return src.take === "W" ? t.common.winnerOf(label) : t.common.loserOf(label);
 }
+
+export const isLive = (m: Match) => m.links.length > 0 && !m.winner && !!m.team1.id && !!m.team2.id;

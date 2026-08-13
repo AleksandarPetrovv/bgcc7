@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Sheet } from "lucide-react";
 import { Container, PageTitle, SlantButton, StageTabs } from "@/components/site/page";
 import { MatchRow } from "@/components/site/match-row";
@@ -23,8 +24,15 @@ const hit = (m: Match, q: string, teamById: (id: string) => Team | undefined) =>
     return norm(team?.name ?? side.name ?? "").includes(q) || !!team?.players.some((p) => norm(p.username).includes(q));
   });
 
-export function ScheduleView({ sheets, top }: { sheets?: string; top?: React.ReactNode }) {
+export function ScheduleView({ sheets, top, live = {} }: { sheets?: string; top?: React.ReactNode; live?: Record<string, [number, number] | null> }) {
   const t = useDict();
+  const router = useRouter();
+  const anyLive = Object.keys(live).length > 0;
+  useEffect(() => {
+    if (!anyLive) return;
+    const id = setInterval(() => router.refresh(), 30_000);
+    return () => clearInterval(id);
+  }, [anyLive, router]);
   const { matches: all, teamById } = useTournament();
   const ROUNDS = STAGES.map((s) => ({ title: s.title, matches: all.filter((m) => m.stage === s.slug) }));
   const CURRENT = Math.max(0, ROUNDS.findIndex((r) => r.matches.some((m) => m.winner === null)));
@@ -49,7 +57,7 @@ export function ScheduleView({ sheets, top }: { sheets?: string; top?: React.Rea
       {shown.length ? (
         <div className="space-y-4">
           {shown.map((m) => (
-            <MatchRow key={m.id} match={m} />
+            <MatchRow key={m.id} match={m} live={m.id in live ? live[m.id] : undefined} />
           ))}
         </div>
       ) : (

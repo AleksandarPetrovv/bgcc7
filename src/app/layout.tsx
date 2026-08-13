@@ -11,6 +11,7 @@ import { auth } from "@/auth";
 import { getViewer, getVisibility } from "@/lib/authz";
 import { buildNav, SECTIONS } from "@/lib/sections";
 import { getLive } from "@/lib/twitch";
+import { isLive } from "@/lib/matches";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -56,7 +57,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const [lang, session, viewer, vis, teams, matches] = await Promise.all([getLang(), auth(), getViewer(), getVisibility(), getTeams(), getMatches()]);
   const user = session?.user?.name ? { name: session.user.name, image: session.user.image ?? null, admin: !!viewer?.role } : null;
   const hidden = vis.staff ? SECTIONS.filter((s) => !vis.sections[s]) : [];
-  const live = vis.sections.streams || vis.staff ? !!(await getLive()) : false;
+  const twitch = vis.sections.streams || vis.staff ? !!(await getLive()) : false;
+  const live = [...(twitch ? ["streams"] : []), ...(matches.some(isLive) && (vis.sections.schedule || vis.staff) ? ["schedule"] : [])];
   return (
     <html lang={lang} className={`${archivo.variable} ${barlow.variable} ${unbounded.variable} ${montserrat.variable} ${robotoCondensed.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">

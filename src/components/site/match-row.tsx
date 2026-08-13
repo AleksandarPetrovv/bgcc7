@@ -50,14 +50,24 @@ function Side({ id, placeholder, flip }: { id: string; placeholder: string; flip
   );
 }
 
-export function MatchRow({ match }: { match: Match }) {
+export function LiveTag({ className }: { className?: string }) {
+  const t = useDict();
+  return (
+    <span className={cn("inline-flex items-center gap-1 bg-rose px-1.5 py-0.5 text-[0.6rem] font-black uppercase leading-none tracking-wider text-white", className)}>
+      <span className="size-1.5 animate-pulse rounded-full bg-white" aria-hidden />
+      {t.home.live}
+    </span>
+  );
+}
+
+export function MatchRow({ match, live }: { match: Match; live?: [number, number] | null }) {
   const t = useDict();
   const lang = useLang();
   const { matches } = useTournament();
   const w = when(match.datetime, lang === "bg" ? "bg-BG" : "en-GB");
   const played = match.winner !== null;
   return (
-    <div className="flex h-24 items-stretch border border-line bg-coal">
+    <div className={cn("flex h-24 items-stretch border bg-coal", live !== undefined ? "border-rose/70" : "border-line")}>
       <div className="flex w-20 shrink-0 flex-col items-center justify-center px-1 py-3 text-center sm:w-32">
         <span className="num text-sm uppercase text-paper/80">{w?.date ?? t.common.tbd}</span>
         <span className="num text-2xl leading-none sm:text-4xl">{w?.time ?? "--:--"}</span>
@@ -65,7 +75,18 @@ export function MatchRow({ match }: { match: Match }) {
       </div>
       <Side id={match.team1.id} placeholder={sourceLabel(t, matches, match.id, 1)} />
       <div className="flex w-14 shrink-0 flex-col items-center justify-center gap-1 bg-ink py-3 sm:w-20">
-        {played ? (
+        {live !== undefined ? (
+          <>
+            <LiveTag />
+            {live && (
+              <span className="num text-xl text-paper sm:text-2xl">
+                {live[0]}
+                <span className="text-ash">-</span>
+                {live[1]}
+              </span>
+            )}
+          </>
+        ) : played ? (
           <span className="num text-xl sm:text-2xl">
             <span className={cn(match.winner === 1 ? "text-paper" : "text-ash")}>{match.team1.score ?? 0}</span>
             <span className="text-ash">-</span>

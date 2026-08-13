@@ -3,7 +3,9 @@ import { ScheduleView } from "./schedule-view";
 import { RescheduleBox, type RescheduleItem } from "./reschedule-box";
 import { getSettings } from "@/db/settings";
 import { currentOsuId } from "@/auth";
-import { getMatchRows, getTeams } from "@/db/tournament";
+import { getMatches, getMatchRows, getTeams } from "@/db/tournament";
+import { getPoolStages } from "@/db/mappools";
+import { getLiveScores } from "@/db/scoreboards";
 import { getReschedules, OPEN } from "@/db/reschedules";
 import { getLang } from "@/lib/i18n/server";
 import { fmtSofia, isPast, rescheduleDeadline } from "@/lib/time";
@@ -41,6 +43,7 @@ async function myItems(): Promise<RescheduleItem[]> {
 
 export default async function Schedule() {
   await requireSection("schedule");
-  const [settings, items] = await Promise.all([getSettings(), myItems()]);
-  return <ScheduleView sheets={settings.links.sheets} top={<RescheduleBox items={items} />} />;
+  const [settings, items, matches, teams, stages] = await Promise.all([getSettings(), myItems(), getMatches(), getTeams(), getPoolStages()]);
+  const live = await getLiveScores(matches, teams, stages);
+  return <ScheduleView sheets={settings.links.sheets} top={<RescheduleBox items={items} />} live={live} />;
 }
