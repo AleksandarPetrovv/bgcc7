@@ -68,3 +68,23 @@ export function CheckerStitch({ className }: { className?: string }) {
 export function Rhombus({ className }: { className?: string }) {
   return <span className={cn("inline-block size-1.5 rotate-45 bg-current", className)} aria-hidden />;
 }
+
+const STAR = "M12 0C12.9 7.6 16.4 11.1 24 12C16.4 12.9 12.9 16.4 12 24C11.1 16.4 7.6 12.9 0 12C7.6 11.1 11.1 7.6 12 0Z";
+
+export function Sparkle({ className, delay = 0 }: { className?: string; delay?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" className={cn("anim-twinkle pointer-events-none absolute fill-current", className)} style={{ animationDelay: `${delay}s` }} aria-hidden>
+      <path d={STAR} />
+    </svg>
+  );
+}
+
+export function Sparkles({ className }: { className?: string }) {
+  return (
+    <span className={cn("pointer-events-none absolute block size-12", className)} aria-hidden>
+      <Sparkle className="right-0 top-0 size-4 text-rose-hi" />
+      <Sparkle className="bottom-1 left-1 size-2.5 text-balkan" delay={0.8} />
+      <Sparkle className="bottom-0 right-3 size-1.5 text-paper/60" delay={1.6} />
+    </span>
+  );
+}

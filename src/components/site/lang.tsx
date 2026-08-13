@@ -19,7 +19,7 @@ export function LangSwitch() {
   const t = useDict();
   const [pending, start] = useTransition();
   return (
-    <div className={cn("flex overflow-hidden border border-ink/40", pending && "opacity-60")} role="group" aria-label={t.footer.language}>
+    <div className={cn("flex overflow-hidden border border-line text-xs font-black", pending && "opacity-60")} role="group" aria-label={t.footer.language}>
       {LANGS.map((l) => (
         <button
           key={l}
@@ -27,7 +27,7 @@ export function LangSwitch() {
           aria-pressed={l === lang}
           disabled={pending}
           onClick={() => l !== lang && start(() => setLang(l))}
-          className={cn("min-h-8 px-2.5 uppercase transition-colors", l === lang ? "bg-ink text-paper" : "hover:bg-ink/10")}
+          className={cn("min-h-8 px-2.5 uppercase transition-colors", l === lang ? "bg-slate text-paper" : "text-ash hover:text-paper")}
         >
           {l}
         </button>
