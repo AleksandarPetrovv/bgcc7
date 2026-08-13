@@ -8,6 +8,7 @@ import { lobbyBookings, registrations } from "@/db/schema";
 import { getSettings } from "@/db/settings";
 import { saveOsuUser } from "@/db/users";
 import { getUser } from "@/lib/osu-api";
+import { log } from "@/lib/authz";
 import { windowState } from "@/lib/time";
 
 export async function signUp() {
@@ -19,7 +20,8 @@ export async function signUp() {
   if (!u) return { ok: false as const, error: "osu" };
   await saveOsuUser(u);
   if (u.country_code !== "BG") return { ok: false as const, error: "notBg" };
-  await db.insert(registrations).values({ osuId }).onConflictDoNothing();
+  const added = await db.insert(registrations).values({ osuId }).onConflictDoNothing().returning({ osuId: registrations.osuId });
+  if (added.length) await log(osuId, "register.signup");
   revalidatePath("/", "layout");
   return { ok: true as const };
 }
@@ -27,8 +29,9 @@ export async function signUp() {
 export async function withdraw() {
   const osuId = await currentOsuId();
   if (!osuId) return { ok: false as const, error: "auth" };
-  await db.delete(registrations).where(eq(registrations.osuId, osuId));
+  const gone = await db.delete(registrations).where(eq(registrations.osuId, osuId)).returning({ osuId: registrations.osuId });
   await db.delete(lobbyBookings).where(eq(lobbyBookings.osuId, osuId));
+  if (gone.length) await log(osuId, "register.withdraw");
   revalidatePath("/", "layout");
   return { ok: true as const };
 }

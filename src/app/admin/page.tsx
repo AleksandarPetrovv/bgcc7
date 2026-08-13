@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { PageTitle, SubHeading } from "@/components/site/page";
 import { ArrowUpRight } from "lucide-react";
 import { getSettings } from "@/db/settings";
 import { getRegistrations } from "@/db/registrations";
-import { getLog, getStaff } from "@/db/admin";
+import { getLog, getLogCtx, getStaff } from "@/db/admin";
 import { ADMINS } from "@/lib/admins";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { getViewer } from "@/lib/authz";
@@ -11,14 +12,15 @@ import { SECTIONS } from "@/lib/sections";
 import { LogTable } from "./log/log-table";
 
 export default async function AdminOverview() {
-  const [t, lang, settings, regs, staff, log, viewer] = await Promise.all([
+  const [t, lang, settings, regs, staff, log, viewer, ctx] = await Promise.all([
     getDict(),
     getLang(),
     getSettings(),
     getRegistrations(),
     getStaff(),
-    getLog(8),
+    getLog(10),
     getViewer(),
+    getLogCtx(),
   ]);
   const staffCount = new Set([...ADMINS, ...staff.filter((s) => s.permRole).map((s) => s.osuId)]).size;
   const visible = SECTIONS.filter((s) => settings.sections[s]).length;
@@ -35,8 +37,8 @@ export default async function AdminOverview() {
   ];
   return (
     <>
-      <h1 className="heading-slam text-4xl sm:text-5xl">{t.admin.menu.overview}</h1>
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <PageTitle>{t.admin.menu.overview}</PageTitle>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {tiles.map((tile) => {
           const body = (
             <>
@@ -61,8 +63,8 @@ export default async function AdminOverview() {
       </div>
       {can(viewer?.role, "log") && (
         <section className="mt-8">
-          <h2 className="mb-3 text-sm font-black uppercase tracking-wide">{t.admin.recent}</h2>
-          <LogTable rows={log} lang={lang} empty={t.admin.noLog} head={[t.admin.when, t.admin.who, t.admin.what]} />
+          <SubHeading>{t.admin.recent}</SubHeading>
+          <LogTable rows={log} ctx={ctx} lang={lang} t={t} empty={t.admin.noLog} />
         </section>
       )}
     </>

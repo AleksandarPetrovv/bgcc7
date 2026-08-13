@@ -37,8 +37,8 @@ export async function updateLobby(id: number, _: ActionResult, fd: FormData) {
 
 export async function deleteLobby(id: number) {
   return guard("lobbies", "lobby.delete", async () => {
-    await db.delete(lobbies).where(eq(lobbies.id, id));
-    return { id };
+    const [row] = await db.delete(lobbies).where(eq(lobbies.id, id)).returning({ name: lobbies.name });
+    return { id, name: row?.name ?? null };
   });
 }
 
