@@ -70,14 +70,14 @@ export async function moveMap(id: number, dir: -1 | 1) {
     const ids = siblings.map((s) => s.id);
     [ids[i], ids[j]] = [ids[j], ids[i]];
     for (const [order, sid] of ids.entries()) await db.update(maps).set({ order }).where(eq(maps.id, sid));
-    return { id, dir };
+    return { id, dir, title: m.title, version: m.version };
   });
 }
 
 export async function deleteMap(id: number) {
   return guard("mappools", "map.delete", async () => {
-    await db.delete(maps).where(eq(maps.id, id));
-    return { id };
+    const [row] = await db.delete(maps).where(eq(maps.id, id)).returning({ title: maps.title, version: maps.version, stageId: maps.stageId });
+    return { id, ...row };
   });
 }
 

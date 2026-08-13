@@ -1,38 +1,103 @@
+import { Fragment } from "react";
 import type { LogRow } from "@/db/admin";
-import { fmtSofia } from "@/lib/time";
+import { Avatar } from "@/components/site/avatar";
+import { Stagger, StaggerItem } from "@/components/site/motion";
+import type { Dict } from "@/lib/i18n/dict";
+import { describe, type LogCtx } from "@/lib/log-text";
+import { fmtSofia, fmtSofiaDay, fmtSofiaTime } from "@/lib/time";
+import { cn } from "@/lib/utils";
 
-const short = (p: unknown) => {
-  if (p === null || p === undefined) return "";
-  const s = JSON.stringify(p);
-  return s.length > 140 ? `${s.slice(0, 140)}…` : s;
+export const LOG_GROUPS: Record<string, string[]> = {
+  players: ["register.", "lobby.book", "lobby.leave", "reschedule.request", "reschedule.accepted", "reschedule.declined", "reschedule.cancelled"],
+  phase: ["phase."],
+  screening: ["screening."],
+  lobbies: ["lobby."],
+  qualifiers: ["qual."],
+  mappools: ["stage.", "map.", "pack."],
+  teams: ["team"],
+  matches: ["match.", "reschedule.approve", "reschedule.deny"],
+  site: ["site.", "sponsor."],
+  staff: ["staff."],
 };
 
-export function LogTable({ rows, lang, empty, head }: { rows: LogRow[]; lang: string; empty: string; head: [string, string, string] }) {
-  if (!rows.length) return <p className="border border-line bg-coal p-4 text-sm text-ash">{empty}</p>;
+export const groupOf = (action: string) => {
+  if (LOG_GROUPS.players.some((p) => action.startsWith(p))) return "players";
+  return Object.keys(LOG_GROUPS).find((g) => g !== "players" && LOG_GROUPS[g].some((p) => action.startsWith(p))) ?? "site";
+};
+
+const DOT: Record<string, string> = {
+  players: "bg-balkan",
+  screening: "bg-balkan",
+  phase: "bg-paper",
+  lobbies: "bg-rose",
+  qualifiers: "bg-rose",
+  mappools: "bg-[#a78bfa]",
+  teams: "bg-[#f5b820]",
+  matches: "bg-rose-hi",
+  site: "bg-ash",
+  staff: "bg-paper",
+};
+
+function Rich({ text }: { text: string }) {
   return (
-    <div className="overflow-x-auto border border-line">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="bg-slate text-left text-[0.65rem] font-black uppercase text-ash">
-            {head.map((h) => (
-              <th key={h} className="px-3 py-2">
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.id} className="border-t border-line align-top">
-              <td className="num whitespace-nowrap px-3 py-2 text-ash">{fmtSofia(r.at, lang === "bg" ? "bg-BG" : "en-GB")}</td>
-              <td className="whitespace-nowrap px-3 py-2 font-bold">{r.username ?? r.osuId}</td>
-              <td className="px-3 py-2">
-                <span className="font-bold">{r.action}</span> <span className="break-all text-xs text-ash">{short(r.payload)}</span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <>
+      {text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+        part.startsWith("**") ? (
+          <span key={i} className="font-bold text-paper">
+            {part.slice(2, -2)}
+          </span>
+        ) : (
+          <Fragment key={i}>{part}</Fragment>
+        ),
+      )}
+    </>
+  );
+}
+
+export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: LogCtx; lang: string; t: Dict; empty: string }) {
+  if (!rows.length) return <p className="border border-line bg-coal p-4 text-sm text-ash">{empty}</p>;
+  const locale = lang === "bg" ? "bg-BG" : "en-GB";
+  const helpers = {
+    lang,
+    phase: (p: string) => t.admin.phases[p as keyof typeof t.admin.phases] ?? p,
+    round: (s: string) => t.rounds[s] ?? s,
+    role: (r: string) => t.admin.roles[r] ?? r,
+    date: (d: string) => `${fmtSofia(new Date(d), locale)} EET`,
+  };
+  const days = new Map<string, LogRow[]>();
+  for (const r of rows) {
+    const d = fmtSofiaDay(r.at, locale);
+    days.set(d, [...(days.get(d) ?? []), r]);
+  }
+  return (
+    <div className="space-y-6">
+      {[...days.entries()].map(([day, list]) => (
+        <section key={day}>
+          <h3 className="mb-2 flex items-center gap-3 text-xs font-black uppercase tracking-widest text-ash">
+            {day}
+            <span className="h-px flex-1 border-t border-dashed border-line" aria-hidden />
+          </h3>
+          <Stagger as="ol" className="relative border border-line bg-coal" gap={0.025}>
+            {list.map((r) => {
+              const g = groupOf(r.action);
+              return (
+                <StaggerItem as="li" key={r.id} className="group relative flex items-center gap-3 border-b border-line px-3 py-2.5 transition-colors last:border-b-0 hover:bg-white/[0.02]">
+                  <span className={cn("absolute inset-y-0 left-0 w-0.5 origin-top scale-y-0 transition-transform duration-300 group-hover:scale-y-100", DOT[g])} aria-hidden />
+                  <Avatar src={r.avatarUrl} className="size-7 ring-offset-1" />
+                  <p className="min-w-0 flex-1 text-sm leading-snug text-paper/70">
+                    <span className="font-black text-paper">{r.username ?? `#${r.osuId}`}</span>{" "}
+                    <Rich text={describe(r.action, r.payload, ctx, helpers)} />
+                  </p>
+                  <span className={cn("size-1.5 shrink-0 rotate-45", DOT[g])} title={t.admin.logGroups[g]} aria-hidden />
+                  <time className="num w-12 shrink-0 text-right text-sm text-ash" dateTime={r.at.toISOString()}>
+                    {fmtSofiaTime(r.at)}
+                  </time>
+                </StaggerItem>
+              );
+            })}
+          </Stagger>
+        </section>
+      ))}
     </div>
   );
 }

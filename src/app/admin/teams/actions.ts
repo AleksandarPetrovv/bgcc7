@@ -60,8 +60,8 @@ export async function updateTeam(id: string, _: ActionResult, fd: FormData) {
 
 export async function deleteTeam(id: string) {
   return guard("teams", "team.delete", async () => {
-    await db.delete(teams).where(eq(teams.id, id));
-    return { id };
+    const [row] = await db.delete(teams).where(eq(teams.id, id)).returning({ name: teams.name });
+    return { id, name: row?.name ?? null };
   });
 }
 

@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { lobbies, lobbyBookings, registrations } from "@/db/schema";
 import { getSettings } from "@/db/settings";
 import { windowState } from "@/lib/time";
+import { log } from "@/lib/authz";
 
 type Res = { ok: true } | { ok: false; error: "auth" | "approved" | "closed" | "full" | "error" };
 
@@ -42,6 +43,7 @@ export async function bookLobby(lobbyId: number): Promise<Res> {
       console.error("[book]", e);
       return "error" as const;
     });
+  if (!res) await log(who.osuId, "lobby.book", { lobbyId });
   revalidatePath("/", "layout");
   return res ? { ok: false, error: res } : { ok: true };
 }
@@ -50,6 +52,7 @@ export async function leaveLobby(): Promise<Res> {
   const who = await allowed();
   if ("ok" in who) return who;
   await db.delete(lobbyBookings).where(eq(lobbyBookings.osuId, who.osuId));
+  await log(who.osuId, "lobby.leave");
   revalidatePath("/", "layout");
   return { ok: true };
 }
