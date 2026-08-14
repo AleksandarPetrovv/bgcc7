@@ -1,11 +1,12 @@
 "use server";
 
-import { eq, inArray } from "drizzle-orm";
+import { asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { lobbies, maps, matchCache, matches, qualScores, registrations, sponsors, teams, users } from "@/db/schema";
 import { saveSettings } from "@/db/settings";
 import { guard } from "@/lib/admin-action";
 import { requireRole } from "@/lib/authz";
+import { getUser } from "@/lib/osu-api";
 import type { ActionResult } from "@/lib/roles";
 import { LINK_KEYS } from "@/lib/sections";
 
@@ -18,36 +19,57 @@ export async function saveLinks(_: ActionResult, fd: FormData) {
   return guard("phase", "site.links", async () => {
     const links = Object.fromEntries(LINK_KEYS.map((k) => [k, url(fd.get(k))]).filter(([, v]) => v));
     await saveSettings({ links });
-    return links;
+    return { set: Object.keys(links) };
   });
+}
+
+const osuQuery = (v: FormDataEntryValue | null) => {
+  const s = String(v ?? "").trim().slice(0, 200);
+  const m = /osu\.ppy\.sh\/(?:users|u)\/([^/?#\s]+)/i.exec(s);
+  return decodeURIComponent(m ? m[1] : s);
+};
+
+async function sponsorFrom(fd: FormData) {
+  const q = osuQuery(fd.get("q"));
+  if (!q || q.length > 40) return null;
+  const u = await getUser(q);
+  if (!u) return null;
+  return { osuId: u.id, name: u.username, image: u.avatar_url, url: `https://osu.ppy.sh/users/${u.id}` };
 }
 
 export async function addSponsor(_: ActionResult, fd: FormData) {
   return guard("phase", "sponsor.add", async () => {
-    const name = String(fd.get("name") ?? "").trim().slice(0, 60);
-    if (!name) return { ok: false, error: "invalid" };
+    const row = await sponsorFrom(fd);
+    if (!row) return { ok: false, error: "notFound" };
     const all = await db.select({ id: sponsors.id }).from(sponsors);
-    const row = { name, image: url(fd.get("image")), url: url(fd.get("url")) || null, order: all.length };
-    await db.insert(sponsors).values(row);
-    return row;
+    await db.insert(sponsors).values({ ...row, order: all.length });
+    return { name: row.name };
   });
 }
 
 export async function updateSponsor(id: number, _: ActionResult, fd: FormData) {
   return guard("phase", "sponsor.update", async () => {
-    const name = String(fd.get("name") ?? "").trim().slice(0, 60);
-    const order = Math.max(0, Math.min(999, Math.round(Number(fd.get("order")) || 0)));
-    if (!name) return { ok: false, error: "invalid" };
-    const row = { name, image: url(fd.get("image")), url: url(fd.get("url")) || null, order };
+    const row = await sponsorFrom(fd);
+    if (!row) return { ok: false, error: "notFound" };
+    const [old] = await db.select({ name: sponsors.name }).from(sponsors).where(eq(sponsors.id, id)).limit(1);
     await db.update(sponsors).set(row).where(eq(sponsors.id, id));
-    return { id, ...row };
+    return { from: old?.name ?? null, name: row.name };
+  });
+}
+
+export async function reorderSponsors(ids: number[]) {
+  return guard("phase", "sponsor.reorder", async () => {
+    if (!Array.isArray(ids) || !ids.every((i) => Number.isInteger(i))) return { ok: false, error: "invalid" };
+    for (const [order, id] of ids.entries()) await db.update(sponsors).set({ order }).where(eq(sponsors.id, id));
+    const rows = await db.select({ name: sponsors.name }).from(sponsors).orderBy(asc(sponsors.order));
+    return { names: rows.map((r) => r.name) };
   });
 }
 
 export async function deleteSponsor(id: number) {
   return guard("phase", "sponsor.delete", async () => {
-    await db.delete(sponsors).where(eq(sponsors.id, id));
-    return { id };
+    const [row] = await db.delete(sponsors).where(eq(sponsors.id, id)).returning({ name: sponsors.name });
+    return { name: row?.name ?? null };
   });
 }
 
