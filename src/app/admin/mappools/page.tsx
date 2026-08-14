@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { LinkTabs } from "@/components/site/tabs";
+import { PageTitle } from "@/components/site/page";
 import { notFound } from "next/navigation";
 import { Star } from "lucide-react";
 import { ActionForm, inputCls, Panel } from "@/components/admin/form";
@@ -7,7 +8,6 @@ import { getViewer } from "@/lib/authz";
 import { fmtLen, MODS } from "@/lib/data";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
-import { cn } from "@/lib/utils";
 import { addMap, deleteMap, moveMap, refreshStage, updateStage } from "./actions";
 
 const label = "flex flex-col gap-1 text-xs font-bold uppercase text-ash";
@@ -21,24 +21,23 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
 
   return (
     <>
-      <h1 className="heading-slam mb-6 text-4xl sm:text-5xl">{t.admin.menu.mappools}</h1>
+      <PageTitle>{t.admin.menu.mappools}</PageTitle>
 
-      <nav className="mb-6 flex overflow-x-auto border border-line" aria-label={t.admin.menu.mappools}>
-        {stages.map((s) => (
-          <Link
-            key={s.slug}
-            href={`/admin/mappools?stage=${s.slug}`}
-            className={cn(
-              "flex shrink-0 items-center gap-2 border-r border-line px-4 py-2.5 text-sm font-black uppercase last:border-r-0",
-              s.id === stage.id ? "bg-paper text-ink" : "text-ash hover:bg-slate hover:text-paper",
-            )}
-          >
-            {name(s)}
-            <span className="num text-base">{s.pools.reduce((n, p) => n + p.maps.length, 0)}</span>
-            {!s.released && <span className="text-[0.6rem] opacity-70">{t.admin.poolHidden}</span>}
-          </Link>
-        ))}
-      </nav>
+      <LinkTabs
+        className="mb-6"
+        label={t.admin.menu.mappools}
+        items={stages.map((s) => ({
+          href: `/admin/mappools?stage=${s.slug}`,
+          active: s.id === stage.id,
+          label: (
+            <>
+              {name(s)}
+              <span className="num text-sm opacity-80">{s.pools.reduce((n, p) => n + p.maps.length, 0)}</span>
+              {!s.released && <span className="text-[0.6rem] opacity-70">{t.admin.poolHidden}</span>}
+            </>
+          ),
+        }))}
+      />
 
       <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Panel title={name(stage)}>
@@ -53,7 +52,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                 <input type="number" name="firstTo" min={1} max={20} defaultValue={stage.firstTo ?? ""} className={inputCls} />
               </label>
             </div>
-            <label className="flex min-h-10 cursor-pointer items-center gap-2.5 text-sm">
+            <label className="flex min-h-10 cursor-pointer items-center gap-2.5 text-sm font-bold uppercase tracking-wide">
               <input type="checkbox" name="poolReleased" defaultChecked={stage.released} className="size-4 accent-rose" />
               {t.admin.poolReleased}
             </label>
