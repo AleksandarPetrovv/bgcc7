@@ -4,7 +4,7 @@ import { asc } from "drizzle-orm";
 import { db } from "./index";
 import { maps, stages } from "./schema";
 import { safe } from "./safe";
-import { MODS, type Beatmap } from "@/lib/data";
+import { MODS, type Beatmap, type Pack } from "@/lib/data";
 
 export type MapRow = typeof maps.$inferSelect;
 export type PoolStage = {
@@ -13,6 +13,7 @@ export type PoolStage = {
   title: string;
   firstTo: number | null;
   released: boolean;
+  pack: Pack | null;
   pools: { category: string; maps: (Beatmap & { rowId: number })[] }[];
 };
 
@@ -33,6 +34,7 @@ export const getPoolStages = cache(() =>
         title: s.title,
         firstTo: s.firstTo,
         released: s.poolReleased,
+        pack: s.packSize ? { size: s.packSize, at: s.packAt?.toISOString() ?? null } : null,
         pools: MOD_ORDER.map((mod) => ({
           category: mod,
           maps: ms

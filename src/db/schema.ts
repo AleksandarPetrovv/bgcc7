@@ -104,6 +104,8 @@ export const stages = pgTable("stages", {
   order: integer("order").notNull(),
   firstTo: integer("first_to"),
   poolReleased: boolean("pool_released").notNull().default(false),
+  packSize: integer("pack_size"),
+  packAt: timestamp("pack_at", { withTimezone: true }),
 });
 
 export const maps = pgTable("maps", {
@@ -186,6 +188,7 @@ export const matches = pgTable("matches", {
 
 export const sponsors = pgTable("sponsors", {
   id: serial("id").primaryKey(),
+  osuId: integer("osu_id"),
   name: text("name").notNull(),
   image: text("image").notNull().default(""),
   url: text("url"),
