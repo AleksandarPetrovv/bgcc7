@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Archivo, Barlow_Condensed, Montserrat, Roboto_Condensed, Unbounded } from "next/font/google";
 import { SiteNav } from "@/components/site/site-nav";
+import { Backdrop } from "@/components/site/backdrop";
 import { SiteFooter } from "@/components/site/site-footer";
 import { LangProvider } from "@/components/site/lang";
+import { MotionProvider } from "@/components/site/motion";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { HiddenBar } from "@/components/site/hidden-bar";
 import { TournamentProvider } from "@/components/site/tournament";
@@ -63,12 +65,15 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html lang={lang} className={`${archivo.variable} ${barlow.variable} ${unbounded.variable} ${montserrat.variable} ${robotoCondensed.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <LangProvider lang={lang}>
+          <MotionProvider>
+          <Backdrop />
           <SiteNav user={user} nav={buildNav(vis.sections, vis.staff)} register={vis.staff || vis.sections.register} live={live} />
           <HiddenBar hidden={hidden} />
           <TournamentProvider teams={teams} matches={matches}>
             <main className="flex-1">{children}</main>
           </TournamentProvider>
           <SiteFooter sponsors={vis.staff || vis.sections.sponsors} />
+          </MotionProvider>
         </LangProvider>
       </body>
     </html>
