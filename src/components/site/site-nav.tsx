@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { Fragment, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "motion/react";
 import { LogOut, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { SpeedMark, Wordmark } from "./graphics";
+import { Sparkle, SpeedMark, Wordmark } from "./graphics";
 import { useDict } from "./lang";
 import { cn } from "@/lib/utils";
 import { login, logout } from "@/app/pickems/actions";
 import type { NavItem } from "@/lib/sections";
+
+const spring = { type: "spring", stiffness: 500, damping: 38 } as const;
 
 const isActive = (path: string, base: string) => (base === "/" ? path === "/" : path === base || path.startsWith(`${base}/`));
 
@@ -31,7 +34,10 @@ export function SiteNav({ user, nav, register, live }: Props) {
   const t = useDict();
   const [open, setOpen] = useState(false);
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-ink/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-line bg-ink/85 backdrop-blur-md">
+      <span className="pointer-events-none absolute inset-x-0 -bottom-px h-px overflow-hidden" aria-hidden>
+        <span className="anim-comet absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-transparent via-rose to-transparent" />
+      </span>
       <div className="flex h-16 items-center gap-6 pr-4 lg:h-[72px] lg:pr-6">
         <Link href="/" className="group flex h-full items-center gap-1 pl-0" aria-label={t.nav.homeLabel}>
           <SpeedMark className="h-8 w-24 transition-transform duration-300 group-hover:translate-x-1 lg:h-10 lg:w-28" />
@@ -39,23 +45,34 @@ export function SiteNav({ user, nav, register, live }: Props) {
         </Link>
 
         <nav className="ml-auto hidden h-full items-stretch xl:flex" aria-label={t.nav.main}>
-          {nav.map((n) => {
+          {nav.map((n, i) => {
             const active = isActive(path, n.base);
             return (
-              <Link
-                key={n.href}
-                href={n.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "relative flex items-center px-2.5 text-[0.78rem] font-extrabold uppercase tracking-wide transition-colors 2xl:px-4",
-                  active ? "text-paper" : "text-paper/60 hover:text-paper",
-                  n.hidden && "opacity-40",
-                )}
-              >
-                {t.nav[n.key]}
-                {live.includes(n.key) && <LivePill />}
-                {active && <span className="absolute inset-x-2.5 bottom-0 h-0.5 bg-balkan 2xl:inset-x-4" aria-hidden />}
-              </Link>
+              <Fragment key={n.href}>
+                {i > 0 && <span className="my-auto size-1 shrink-0 rotate-45 bg-line" aria-hidden />}
+                <Link
+                  href={n.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "group relative flex items-center px-2.5 text-[0.78rem] font-extrabold uppercase tracking-wide transition-colors 2xl:px-3.5",
+                    active ? "text-paper" : "text-paper/60 hover:text-paper",
+                    n.hidden && "opacity-40",
+                  )}
+                >
+                  {!active && <span className="absolute inset-x-0.5 inset-y-4 -skew-x-12 scale-90 bg-white/0 transition duration-200 group-hover:scale-100 group-hover:bg-white/[0.05]" aria-hidden />}
+                  <span className="relative transition-transform duration-200 group-hover:-translate-y-px">{t.nav[n.key]}</span>
+                  {live.includes(n.key) && <LivePill />}
+                  {active && (
+                    <>
+                      <motion.span layoutId="nav-under-shadow" className="absolute inset-x-2 bottom-0 h-1 translate-x-[3px] -skew-x-[30deg] bg-rose-deep" transition={spring} aria-hidden />
+                      <motion.span layoutId="nav-under" className="absolute inset-x-2 bottom-1 h-1 -skew-x-[30deg] bg-rose" transition={spring} aria-hidden />
+                      <motion.span layoutId="nav-glint" className="absolute right-0 top-3.5 size-2.5 text-rose-hi" transition={spring} aria-hidden>
+                        <Sparkle className="inset-0 size-full" />
+                      </motion.span>
+                    </>
+                  )}
+                </Link>
+              </Fragment>
             );
           })}
         </nav>
@@ -64,30 +81,39 @@ export function SiteNav({ user, nav, register, live }: Props) {
           {register && (
           <Link
             href="/register"
-            className="hidden -skew-x-12 bg-paper px-4 py-2 text-[0.8rem] font-black uppercase tracking-wide text-ink transition hover:bg-rose hover:text-white sm:inline-block"
+            className="lift-sm sheen hidden h-9 -skew-x-12 items-center bg-paper px-4 text-[0.8rem] font-black uppercase tracking-wide text-ink [--lift:var(--color-rose)] hover:bg-white sm:inline-flex"
           >
             <span className="inline-block skew-x-12">{t.nav.register}</span>
           </Link>
           )}
           {user?.admin && (
-            <Link href="/admin" className="hidden px-3 py-2 text-[0.8rem] font-extrabold uppercase text-ash hover:text-paper xl:inline-block">
-              {t.nav.admin}
+            <Link
+              href="/admin"
+              aria-current={isActive(path, "/admin") ? "page" : undefined}
+              className={cn(
+                "lift-sm hidden h-9 -skew-x-12 items-center border px-3.5 text-[0.8rem] font-black uppercase tracking-wide [--lift:var(--color-rose)] xl:inline-flex",
+                isActive(path, "/admin") ? "border-rose bg-rose text-white" : "border-line text-ash hover:border-rose hover:text-paper",
+              )}
+            >
+              <span className="inline-block skew-x-12">{t.nav.admin}</span>
             </Link>
           )}
           {user ? (
-            <div className="hidden items-center gap-2 border border-line py-1 pl-1 pr-1 md:flex">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              {user.image && <img src={user.image} alt="" className="size-7" />}
-              <span className="max-w-32 truncate text-[0.8rem] font-extrabold">{user.name}</span>
+            <div className="hidden h-9 -skew-x-12 items-center border border-line pl-1 md:flex">
+              <span className="flex h-full skew-x-12 items-center gap-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {user.image && <img src={user.image} alt="" className="size-7 object-cover" />}
+                <span className="max-w-32 truncate text-[0.8rem] font-black">{user.name}</span>
+              </span>
               <button
                 type="button"
                 disabled={pending}
                 onClick={() => start(() => logout())}
                 aria-label={t.nav.logout}
                 title={t.nav.logout}
-                className="p-1.5 text-ash transition hover:text-paper"
+                className="ml-1 flex h-full items-center border-l border-line px-2.5 text-ash transition-colors hover:bg-rose hover:text-white"
               >
-                <LogOut className="size-4" />
+                <LogOut className="size-4 skew-x-12" />
               </button>
             </div>
           ) : (
@@ -95,9 +121,9 @@ export function SiteNav({ user, nav, register, live }: Props) {
               type="button"
               disabled={pending}
               onClick={() => start(() => login(path))}
-              className="hidden items-center whitespace-nowrap border border-line px-3 py-2 text-[0.8rem] font-extrabold text-paper transition hover:border-rose disabled:opacity-60 md:flex"
+              className="lift-sm hidden h-9 -skew-x-12 items-center whitespace-nowrap border border-line px-3.5 text-[0.8rem] font-black text-paper [--lift:var(--color-rose)] hover:border-rose disabled:opacity-60 md:inline-flex"
             >
-              {t.nav.login}
+              <span className="inline-block skew-x-12">{t.nav.login}</span>
             </button>
           )}
           <Sheet open={open} onOpenChange={setOpen}>
@@ -133,7 +159,7 @@ export function SiteNav({ user, nav, register, live }: Props) {
                 {user ? (
                   <div className="flex items-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {user.image && <img src={user.image} alt="" className="size-9" />}
+                    {user.image && <img src={user.image} alt="" className="size-9 object-cover" />}
                     <span className="min-w-0 flex-1 truncate text-sm font-extrabold">{user.name}</span>
                     <button
                       type="button"
