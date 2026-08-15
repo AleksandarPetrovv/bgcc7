@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Tv, CirclePlay, MessageCircle, Sheet } from "lucide-react";
+import { Tv, MessageCircle, Sheet } from "lucide-react";
 import { LangSwitch } from "./lang";
+import { TriTick } from "./graphics";
 import { getDict } from "@/lib/i18n/server";
 import { DISCORD_URL, TWITCH_URL } from "@/lib/links";
 import { getSettings } from "@/db/settings";
@@ -10,31 +11,36 @@ export async function SiteFooter({ sponsors }: { sponsors: boolean }) {
   const SOCIALS = [
     { label: "Discord", icon: MessageCircle, href: DISCORD_URL },
     { label: "Twitch", icon: Tv, href: TWITCH_URL },
-    { label: "YouTube", icon: CirclePlay, href: settings.links.youtube },
     { label: "Spreadsheet", icon: Sheet, href: settings.links.sheets },
   ].filter((s) => s.href);
   return (
-    <footer className="mt-24">
-      <div className="bg-balkan text-ink">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 lg:px-6">
-          <div className="flex items-center gap-1">
-            {SOCIALS.map((s) => (
-              <a
-                key={s.label}
-                href={s.href}
-                aria-label={s.label}
-                target="_blank"
-                rel="noreferrer"
-                className="p-2.5 transition hover:bg-ink/10"
-              >
-                <s.icon className="size-5" />
-              </a>
-            ))}
-          </div>
-          <div className="ml-auto flex items-center gap-4 text-sm font-black">
-            {sponsors && <Link href="/staff/sponsors" className="hover:underline">{t.footer.sponsors}</Link>}
-            <LangSwitch />
-          </div>
+    <footer className="mt-24 border-t border-dashed border-line">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-4 sm:px-6">
+        <div className="flex items-center gap-3">
+          <TriTick className="h-3 w-[22px] opacity-70" />
+          <span className="font-display text-sm font-black lowercase text-ash">bgcc7</span>
+        </div>
+        <div className="flex items-center gap-1">
+          {SOCIALS.map((s) => (
+            <a
+              key={s.label}
+              href={s.href}
+              aria-label={s.label}
+              target="_blank"
+              rel="noreferrer"
+              className="p-2 text-ash transition-colors hover:text-paper"
+            >
+              <s.icon className="size-4" />
+            </a>
+          ))}
+        </div>
+        <div className="ml-auto flex items-center gap-4 text-xs font-black uppercase tracking-wide text-ash">
+          {sponsors && (
+            <Link href="/staff/sponsors" className="transition-colors hover:text-paper">
+              {t.footer.sponsors}
+            </Link>
+          )}
+          <LangSwitch />
         </div>
       </div>
     </footer>
