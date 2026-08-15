@@ -4,6 +4,8 @@ import { fmtNum, flagUrl } from "@/lib/data";
 import { osuUser } from "@/lib/links";
 import { requireSection } from "@/lib/authz";
 import { getRegistrations } from "@/db/registrations";
+import { Avatar } from "@/components/site/avatar";
+import { Stagger, StaggerItem } from "@/components/site/motion";
 
 export default async function Players() {
   await requireSection("players");
@@ -13,12 +15,13 @@ export default async function Players() {
     <Container>
       <PageTitle right={<span className="num text-2xl text-balkan">{t.common.players(players.length)}</span>}>{t.teams.playersTitle}</PageTitle>
       {players.length === 0 && <p className="py-10 text-center text-ash">{t.teams.playersEmpty}</p>}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <Stagger className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" gap={0.03}>
         {players.map((p, i) => (
-          <div key={p.osuId} className="flex items-stretch border border-line bg-coal transition hover:border-balkan">
+          <StaggerItem key={p.osuId} className="lift group flex items-stretch border border-line bg-coal [--lift:var(--color-balkan)] hover:border-balkan">
             <span className="num flex w-12 items-center justify-center bg-slate text-lg text-ash">{i + 1}</span>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            {p.avatarUrl ? <img src={p.avatarUrl} alt="" className="size-16 object-cover" /> : <span className="size-16 bg-ink" />}
+            <span className="flex items-center pl-3">
+              <Avatar src={p.avatarUrl} className="size-11 transition-transform duration-300 group-hover:scale-105" />
+            </span>
             <div className="min-w-0 flex-1 px-3 py-2">
               <div className="flex items-center gap-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -36,9 +39,9 @@ export default async function Players() {
                 {p.pp !== null && <span>{fmtNum(Math.round(p.pp))}pp</span>}
               </div>
             </div>
-          </div>
+          </StaggerItem>
         ))}
-      </div>
+      </Stagger>
     </Container>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { Download, Play, Sheet, Star } from "lucide-react";
 import { Container, PageTitle, SlantButton, StageTabs } from "@/components/site/page";
 import { useDict } from "@/components/site/lang";
@@ -33,8 +34,8 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
                 <Sheet className="size-4" /> {t.common.sheets}
               </SlantButton>
             )}
-            {links.mappack && (
-              <SlantButton tone="balkan" href={links.mappack} className="px-3 py-1.5">
+            {stage.pack && (
+              <SlantButton tone="balkan" download href={`/download/${stage.slug}`} className="px-3 py-1.5">
                 <Download className="size-4" /> {t.mappool.pack(count)}
               </SlantButton>
             )}
@@ -44,7 +45,7 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
         {t.mappool.title}
       </PageTitle>
 
-      <div className="space-y-2.5">
+      <motion.div key={stage.slug} className="space-y-2.5" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
         {stage.pools.map((p) => {
           const mod = MODS[p.category];
           const isOpen = !closed[p.category];
@@ -53,7 +54,7 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
             <section key={p.category}>
               <button
                 onClick={() => setClosed({ ...closed, [p.category]: isOpen })}
-                className="flex w-full items-stretch gap-2.5 text-left"
+                className="group flex w-full items-stretch gap-2.5 text-left transition-transform duration-300 hover:translate-x-1"
                 aria-expanded={isOpen}
               >
                 <span className="flex w-8 items-center justify-center" style={{ background: mod.color }}>
@@ -67,10 +68,23 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
                   <span className="num text-lg opacity-80">{p.maps.length}</span>
                 </span>
               </button>
+              <AnimatePresence initial={false}>
               {isOpen && (
+                <motion.div
+                  className="overflow-hidden"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                >
                 <div className="mt-2 space-y-2 pl-10">
-                  {p.maps.map((m) => (
-                    <a key={m.slot} href={osuMap(m.id)} target="_blank" rel="noreferrer" aria-label={`${m.slot} ${m.title}, ${t.common.openMap}`} className="group relative flex h-20 items-stretch overflow-hidden border border-transparent bg-coal transition-colors hover:border-line">
+                  {p.maps.map((m, k) => (
+                    <motion.a
+                      initial={{ opacity: 0, x: -14 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.45, delay: 0.05 + k * 0.04, ease: [0.16, 1, 0.3, 1] }}
+                      key={m.slot} href={osuMap(m.id)} target="_blank" rel="noreferrer" aria-label={`${m.slot} ${m.title}, ${t.common.openMap}`} className="lift group relative flex h-20 items-stretch overflow-hidden border border-transparent bg-coal hover:border-line"
+                      style={{ "--lift": mod.color } as React.CSSProperties}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={m.cover} alt="" className="absolute inset-0 size-full object-cover opacity-30 transition duration-500 group-hover:scale-105 group-hover:opacity-45" />
                       <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-transparent" />
@@ -93,14 +107,16 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
                           CS {m.cs} · AR {m.ar} · OD {m.od}
                         </span>
                       </div>
-                    </a>
+                    </motion.a>
                   ))}
                 </div>
+                </motion.div>
               )}
+              </AnimatePresence>
             </section>
           );
         })}
-      </div>
+      </motion.div>
     </Container>
   );
 }

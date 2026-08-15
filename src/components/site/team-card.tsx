@@ -14,7 +14,7 @@ export function Roster({ team }: { team: Team }) {
         {team.players.map((p) => (
           <li key={p.userId} className="flex items-center gap-2 text-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.avatar} alt="" className="size-6" />
+            <img src={p.avatar} alt="" className="size-6 rounded-full object-cover ring-1 ring-rose ring-offset-1 ring-offset-coal" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={flagUrl(p.country)} alt="" className="h-2.5" />
             <span className="font-bold">{p.username}</span>
@@ -35,7 +35,7 @@ export function TeamCard({ team }: { team: Team }) {
         delay={0}
         closeDelay={0}
         render={
-          <Link href={`/teams/${team.id}`} className="group block overflow-hidden border border-line bg-coal outline-offset-4 transition-colors hover:border-balkan">
+          <Link href={`/teams/${team.id}`} className="lift group block overflow-hidden border border-line bg-coal outline-offset-4 [--lift:var(--color-balkan)] hover:border-balkan">
             <div className="relative h-32 overflow-hidden bg-ink">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={team.image} alt="" className="size-full object-cover transition duration-500 group-hover:scale-105" />
