@@ -8,6 +8,7 @@ import { getSettings } from "@/db/settings";
 import { fmtSofia, fmtSofiaDay, fmtSofiaTime, windowState } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { LobbyButton } from "./lobby-button";
+import { Stagger, StaggerItem } from "@/components/site/motion";
 
 export default async function Lobbies() {
   await requireSection("lobbies");
@@ -43,12 +44,12 @@ export default async function Lobbies() {
       {[...byDay.entries()].map(([day, list]) => (
         <section key={day} className="mt-12 first-of-type:mt-0">
           <SectionHeading>{day}</SectionHeading>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Stagger className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {list.map((l) => {
               const mine = l.id === mineId;
               const full = l.players.length >= l.capacity;
               return (
-                <article key={l.id} className={cn("group flex border bg-coal transition-colors", mine ? "border-balkan" : "border-line hover:border-rose/60")}>
+                <StaggerItem as="article" key={l.id} className={cn("lift group flex border bg-coal", mine ? "border-balkan [--lift:var(--color-balkan)]" : "border-line hover:border-rose/60")}>
                   <div className={cn("flex w-24 shrink-0 flex-col items-center justify-center py-4 text-white sm:w-28", mine ? "bg-balkan text-ink" : "bg-rose")}>
                     <span className="num text-4xl leading-none">{fmtSofiaTime(l.startsAt)}</span>
                     <span className="mt-1 text-[0.65rem] font-black uppercase tracking-widest">{t.common.eet}</span>
@@ -63,7 +64,7 @@ export default async function Lobbies() {
                     <div className="flex min-h-8 -space-x-2">
                       {l.players.slice(0, 8).map((p) => (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img key={p.osuId} src={p.avatarUrl ?? ""} alt={p.username} title={p.username} className="size-8 border-2 border-coal object-cover" />
+                        <img key={p.osuId} src={p.avatarUrl ?? ""} alt={p.username} title={p.username} className="size-8 rounded-full border-2 border-coal object-cover transition-transform duration-300 hover:z-10 hover:-translate-y-1 hover:scale-110" />
                       ))}
                     </div>
                     <div className="flex items-end justify-between gap-3">
@@ -74,10 +75,10 @@ export default async function Lobbies() {
                       {canBook && <LobbyButton lobbyId={l.id} mine={mine} full={full} hasBooking={mineId !== null} />}
                     </div>
                   </div>
-                </article>
+                </StaggerItem>
               );
             })}
-          </div>
+          </Stagger>
         </section>
       ))}
     </Container>

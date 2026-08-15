@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "motion/react";
 import { Sheet } from "lucide-react";
 import { Container, PageTitle, SlantButton, StageTabs } from "@/components/site/page";
 import { MatchRow } from "@/components/site/match-row";
@@ -55,11 +56,21 @@ export function ScheduleView({ sheets, top, live = {} }: { sheets?: string; top?
         )}
       </div>
       {shown.length ? (
-        <div className="space-y-4">
-          {shown.map((m) => (
-            <MatchRow key={m.id} match={m} live={m.id in live ? live[m.id] : undefined} />
-          ))}
-        </div>
+        <motion.div layout className="space-y-4">
+          <AnimatePresence mode="popLayout" initial={false}>
+            {shown.map((m, k) => (
+              <motion.div
+                key={m.id}
+                layout
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0, transition: { duration: 0.5, delay: Math.min(k, 8) * 0.04, ease: [0.16, 1, 0.3, 1] } }}
+                exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.2 } }}
+              >
+                <MatchRow match={m} live={m.id in live ? live[m.id] : undefined} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
       ) : (
         <p className="py-10 text-center text-ash">{t.common.noResults}</p>
       )}

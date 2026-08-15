@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Search } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { TeamCard } from "./team-card";
 import { useDict } from "./lang";
 import { useTournament } from "./tournament";
@@ -41,11 +42,21 @@ export function TeamGrid({ title }: { title: React.ReactNode }) {
         </div>
       </div>
       {shown.length ? (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {shown.map((team) => (
-            <TeamCard key={team.id} team={team} />
-          ))}
-        </div>
+        <motion.div layout className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <AnimatePresence mode="popLayout">
+            {shown.map((team, k) => (
+              <motion.div
+                key={team.id}
+                layout
+                initial={{ opacity: 0, y: 20, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, delay: Math.min(k, 12) * 0.04, ease: [0.16, 1, 0.3, 1] } }}
+                exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+              >
+                <TeamCard team={team} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
       ) : (
         <p className="py-10 text-center text-ash">{t.common.noResults}</p>
       )}

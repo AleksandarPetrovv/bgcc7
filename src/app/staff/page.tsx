@@ -6,6 +6,7 @@ import { getPublicStaff } from "@/db/admin";
 import { STAFF_ROLES } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { requireSection } from "@/lib/authz";
+import { Stagger, StaggerItem } from "@/components/site/motion";
 
 const ROLE_ORDER = STAFF_ROLES;
 const rank = (r: string) => (ROLE_ORDER.indexOf(r) + 1 || 99);
@@ -22,11 +23,13 @@ export default async function Staff() {
     <Container className="max-w-5xl">
       <PageTitle right={<span className="num text-2xl text-balkan">{list.length}</span>}>{t.staff.title}</PageTitle>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {list.map((p) => (
-          <article key={p.username} className="group flex border border-line bg-coal transition-colors hover:border-paper/30">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.avatar} alt="" className="size-28 shrink-0 object-cover sm:size-32" />
+          <StaggerItem as="article" key={p.username} className="lift group flex border border-line bg-coal hover:border-paper/30">
+            <div className="flex shrink-0 items-center justify-center p-4 sm:p-5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.avatar} alt="" className="size-20 rounded-full object-cover ring-2 ring-rose ring-offset-4 ring-offset-coal transition-transform duration-500 group-hover:rotate-[-4deg] group-hover:scale-105 sm:size-24" />
+            </div>
             <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 p-4">
               <div className="flex items-center gap-2.5">
                 <h2 className="heading-slam truncate text-2xl">
@@ -49,9 +52,9 @@ export default async function Staff() {
                 ))}
               </ul>
             </div>
-          </article>
+          </StaggerItem>
         ))}
-      </div>
+      </Stagger>
 
       {open.length > 0 && (
         <>
