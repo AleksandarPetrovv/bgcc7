@@ -29,7 +29,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const avatar = session?.user?.image;
   return (
     <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 pb-16 pt-6 sm:px-6 lg:flex-row lg:gap-10 lg:pt-10">
-      <aside className="shrink-0 lg:sticky lg:top-[96px] lg:w-72 lg:self-start">
+      <aside className="shrink-0 lg:sticky lg:top-[104px] lg:w-72 lg:self-start">
         <div className="relative overflow-hidden border border-line bg-coal">
           <div className="relative hidden border-b border-dashed border-line p-5 lg:block">
             <span className="anim-twinkle absolute right-5 top-4 text-lg text-rose-hi" aria-hidden>
@@ -45,7 +45,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
             <div className="mt-4 flex items-center gap-3">
               {avatar && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatar} alt="" className="size-12 shrink-0 rounded-full object-cover ring-2 ring-rose ring-offset-2 ring-offset-coal" />
+                <img src={avatar} alt="" className="size-12 shrink-0 rounded-full object-cover ring-2 ring-rose/40 ring-offset-2 ring-offset-coal" />
               )}
               <div className="min-w-0">
                 <div className="break-words font-display text-xl font-black leading-tight tracking-tight">
