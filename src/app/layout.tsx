@@ -2,16 +2,16 @@ import type { Metadata } from "next";
 import { Archivo, Barlow_Condensed, Montserrat, Roboto_Condensed, Unbounded } from "next/font/google";
 import { SiteNav } from "@/components/site/site-nav";
 import { Backdrop } from "@/components/site/backdrop";
+import { LiteSettle } from "@/components/site/lite-settle";
 import { SiteFooter } from "@/components/site/site-footer";
 import { LangProvider } from "@/components/site/lang";
 import { MotionProvider } from "@/components/site/motion";
 import { getDict, getLang } from "@/lib/i18n/server";
-import { HiddenBar } from "@/components/site/hidden-bar";
 import { TournamentProvider } from "@/components/site/tournament";
 import { getMatches, getTeams } from "@/db/tournament";
 import { auth } from "@/auth";
 import { getViewer, getVisibility } from "@/lib/authz";
-import { buildNav, SECTIONS } from "@/lib/sections";
+import { buildNav } from "@/lib/sections";
 import { getLive } from "@/lib/twitch";
 import { isLive } from "@/lib/matches";
 import "./globals.css";
@@ -55,20 +55,24 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t.meta.title, description: t.meta.description };
 }
 
+const LITE = "try{var c=document.createElement(\"canvas\"),g=c.getContext(\"webgl\"),r=\"\";if(g){var e=g.getExtension(\"WEBGL_debug_renderer_info\");r=e?String(g.getParameter(e.UNMASKED_RENDERER_WEBGL)):\"\";var x=g.getExtension(\"WEBGL_lose_context\");x&&x.loseContext()}if(!g||/swiftshader|llvmpipe|software|basic render/i.test(r)){var h=document.documentElement;h.classList.add(\"lite\")}}catch(_){}";
+
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const [lang, session, viewer, vis, teams, matches] = await Promise.all([getLang(), auth(), getViewer(), getVisibility(), getTeams(), getMatches()]);
   const user = session?.user?.name ? { name: session.user.name, image: session.user.image ?? null, admin: !!viewer?.role } : null;
-  const hidden = vis.staff ? SECTIONS.filter((s) => !vis.sections[s]) : [];
   const twitch = vis.sections.streams || vis.staff ? !!(await getLive()) : false;
   const live = [...(twitch ? ["streams"] : []), ...(matches.some(isLive) && (vis.sections.schedule || vis.staff) ? ["schedule"] : [])];
   return (
-    <html lang={lang} className={`${archivo.variable} ${barlow.variable} ${unbounded.variable} ${montserrat.variable} ${robotoCondensed.variable} h-full antialiased`}>
+    <html lang={lang} className={`${archivo.variable} ${barlow.variable} ${unbounded.variable} ${montserrat.variable} ${robotoCondensed.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: LITE }} />
+      </head>
       <body className="flex min-h-full flex-col">
         <LangProvider lang={lang}>
           <MotionProvider>
           <Backdrop />
+          <LiteSettle />
           <SiteNav user={user} nav={buildNav(vis.sections, vis.staff)} register={vis.staff || vis.sections.register} live={live} />
-          <HiddenBar hidden={hidden} />
           <TournamentProvider teams={teams} matches={matches}>
             <main className="flex-1">{children}</main>
           </TournamentProvider>
