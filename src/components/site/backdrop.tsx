@@ -1,7 +1,3 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-
 const STAR = "M12 0C12.9 7.6 16.4 11.1 24 12C16.4 12.9 12.9 16.4 12 24C11.1 16.4 7.6 12.9 0 12C7.6 11.1 11.1 7.6 12 0Z";
 
 const BITS: { kind: "star" | "plus" | "diamond" | "slash" | "ring"; pos: React.CSSProperties; size: number; color: string; delay: number }[] = [
@@ -39,39 +35,11 @@ function Bit({ kind, size }: { kind: string; size: number }) {
 }
 
 export function Backdrop() {
-  const spot = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-    let frame = 0;
-    const move = (e: PointerEvent) => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        spot.current?.style.setProperty("--mx", `${e.clientX}px`);
-        spot.current?.style.setProperty("--my", `${e.clientY}px`);
-        spot.current?.style.setProperty("opacity", "1");
-      });
-    };
-    const leave = () => spot.current?.style.setProperty("opacity", "0");
-    window.addEventListener("pointermove", move, { passive: true });
-    document.documentElement.addEventListener("pointerleave", leave);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("pointermove", move);
-      document.documentElement.removeEventListener("pointerleave", leave);
-    };
-  }, []);
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden>
       <div className="anim-blob-a absolute -left-[20vw] -top-[25vh] h-[80vh] w-[70vw] bg-[radial-gradient(closest-side,rgb(15_160_106/0.09),transparent)]" />
       <div className="anim-blob-b absolute -bottom-[30vh] -right-[20vw] h-[85vh] w-[75vw] bg-[radial-gradient(closest-side,rgb(224_36_47/0.09),transparent)]" />
       <div className="backdrop-dots absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_at_50%_0%,black,transparent_75%)]" />
-      <div
-        ref={spot}
-        className="absolute inset-0 opacity-0 transition-opacity duration-500 [--mx:50vw] [--my:-50vh] [mask-image:radial-gradient(260px_circle_at_var(--mx)_var(--my),black,transparent)]"
-      >
-        <div className="backdrop-dots backdrop-dots-hi absolute inset-0" />
-        <div className="absolute inset-0 bg-[radial-gradient(260px_circle_at_var(--mx)_var(--my),rgb(224_36_47/0.07),transparent)]" />
-      </div>
       <div className="absolute inset-0 hidden 2xl:block">
         {BITS.map((b, i) => (
           <span key={i} className={`anim-float absolute opacity-25 ${b.color}`} style={{ ...b.pos, animationDelay: `-${b.delay}s`, animationDuration: `${7 + (i % 3) * 2}s` }}>
