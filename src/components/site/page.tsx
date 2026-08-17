@@ -12,8 +12,8 @@ export function SubNav({ items }: { items: { href: string; label: string; hidden
   const path = usePathname();
   const t = useDict();
   return (
-    <div className="sticky top-16 z-30 border-b border-line bg-coal/95 backdrop-blur lg:top-[72px]">
-      <nav className="mx-auto flex max-w-6xl items-stretch gap-1 overflow-x-auto px-4 sm:gap-6 sm:px-6" aria-label={t.nav.section}>
+    <div className="sticky top-16 z-30 border-b border-line bg-coal/95 backdrop-blur lg:top-20">
+      <nav className="mx-auto flex max-w-6xl items-stretch gap-1 overflow-x-auto px-2 sm:gap-6 sm:px-4" aria-label={t.nav.section}>
         {items.map((i) => {
           const active = path === i.href;
           return (
@@ -69,9 +69,9 @@ function Dots() {
 function Glints() {
   return (
     <span className="relative mb-[0.08em] inline-block h-[0.85em] w-[1em] self-end text-paper" aria-hidden>
-      <Sparkle className="left-0 top-[0.05em] size-[0.55em] text-rose-hi" delay={0.2} />
-      <Sparkle className="bottom-0 right-0 size-[0.36em]" delay={0.9} />
-      <Sparkle className="right-[0.05em] top-0 size-[0.2em] text-balkan" delay={1.5} />
+      <Sparkle className="left-0 top-[0.05em] size-[0.55em] text-rose-hi" enter={0.3} />
+      <Sparkle className="bottom-0 right-0 size-[0.36em]" enter={0.45} delay={0.6} />
+      <Sparkle className="right-[0.05em] top-0 size-[0.2em] text-balkan" enter={0.58} delay={1.1} />
     </span>
   );
 }
@@ -87,7 +87,7 @@ function Squiggle() {
 
 function Chevrons() {
   return (
-    <span className="mb-[0.18em] flex self-end" aria-hidden>
+    <span className="anim-rise mb-[0.18em] flex self-end" style={{ animationDelay: "0.25s" }} aria-hidden>
       {[0, 1, 2].map((i) => (
         <svg key={i} viewBox="0 0 10 16" className="anim-chevron -ml-[0.06em] h-[0.42em] w-[0.26em] fill-rose first:ml-0" style={{ animationDelay: `${i * 0.18}s` }}>
           <polygon points="0,0 4,0 10,8 4,16 0,16 6,8" />
@@ -101,8 +101,8 @@ function Orbit() {
   return (
     <span className="relative mb-[0.12em] inline-flex size-[0.62em] items-center justify-center self-end" aria-hidden>
       <span className="anim-pop block size-[0.22em] rotate-45 bg-rose" style={{ animationDelay: "0.25s" }} />
-      <span className="absolute inset-0 rounded-full border border-dashed border-line" />
-      <span className="anim-orbit absolute inset-0">
+      <span className="anim-appear absolute inset-0 rounded-full border border-dashed border-line" style={{ animationDelay: "0.35s" }} />
+      <span className="anim-orbit anim-orbit-in absolute inset-0">
         <span className="absolute -top-[0.05em] left-1/2 block size-[0.1em] -translate-x-1/2 rounded-full bg-paper" />
       </span>
     </span>
@@ -143,7 +143,7 @@ export function PageTitle({
 }) {
   const mark = markFor(children);
   return (
-    <div className={cn("relative mb-8 flex flex-wrap items-end gap-x-8 gap-y-4 pb-3", className)}>
+    <div className={cn("no-enter relative mb-8 flex flex-wrap items-end gap-x-8 gap-y-4 pb-3", className)}>
       <h1 className="heading-slam flex min-w-0 max-w-full flex-wrap items-end gap-x-[0.3em] break-words text-[clamp(2rem,8.5vw,3rem)] sm:text-6xl">
         <span className="anim-letter">{children}</span>
         {accent && (
@@ -163,8 +163,12 @@ export function PageTitle({
   );
 }
 
-export function Container({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn("mx-auto w-full max-w-6xl px-4 pt-10 sm:px-6", className)}>{children}</div>;
+export function Container({ children, className, plain }: { children: React.ReactNode; className?: string; plain?: boolean }) {
+  return <div className={cn(!plain && "enter-kids", "mx-auto w-full max-w-6xl px-4 pt-10 sm:px-6", className)}>{children}</div>;
+}
+
+export function Wide({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <div className={cn("ml-[calc(50%-min(750px,50vw-1.5rem))] w-[min(1500px,calc(100vw-3rem))]", className)}>{children}</div>;
 }
 
 export function SectionHeading({ children }: { children: React.ReactNode }) {
