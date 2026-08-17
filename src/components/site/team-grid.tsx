@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PageTitle } from "./page";
 import { Search } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { TeamCard } from "./team-card";
@@ -26,7 +27,7 @@ export function TeamSearch({ value, onChange }: { value: string; onChange: (v: s
   );
 }
 
-export function TeamGrid({ title }: { title: React.ReactNode }) {
+export function TeamGrid({ title }: { title: string }) {
   const t = useDict();
   const { teams } = useTournament();
   const [q, setQ] = useState("");
@@ -35,18 +36,14 @@ export function TeamGrid({ title }: { title: React.ReactNode }) {
   );
   return (
     <>
-      <div className="mb-8 flex flex-wrap items-end gap-x-8 gap-y-4 border-b border-line pb-3">
-        {title}
-        <div className="ml-auto">
-          <TeamSearch value={q} onChange={setQ} />
-        </div>
-      </div>
+      <PageTitle right={<TeamSearch value={q} onChange={setQ} />}>{title}</PageTitle>
       {shown.length ? (
-        <motion.div layout className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <motion.div layout className="relative grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <AnimatePresence mode="popLayout">
             {shown.map((team, k) => (
               <motion.div
                 key={team.id}
+                style={{ "--i": Math.min(k, 12), "--s": "0.05s" } as React.CSSProperties}
                 layout
                 initial={{ opacity: 0, y: 20, scale: 0.97 }}
                 animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, delay: Math.min(k, 12) * 0.04, ease: [0.16, 1, 0.3, 1] } }}

@@ -14,7 +14,7 @@ export function Roster({ team }: { team: Team }) {
         {team.players.map((p) => (
           <li key={p.userId} className="flex items-center gap-2 text-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.avatar} alt="" className="size-6 rounded-full object-cover ring-1 ring-rose ring-offset-1 ring-offset-coal" />
+            <img src={p.avatar} alt="" className="size-6 rounded-full object-cover ring-1 ring-rose/40 ring-offset-1 ring-offset-coal" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={flagUrl(p.country)} alt="" className="h-2.5" />
             <span className="font-bold">{p.username}</span>
@@ -38,14 +38,14 @@ export function TeamCard({ team }: { team: Team }) {
           <Link href={`/teams/${team.id}`} className="lift group block overflow-hidden border border-line bg-coal outline-offset-4 [--lift:var(--color-balkan)] hover:border-balkan">
             <div className="relative h-32 overflow-hidden bg-ink">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={team.image} alt="" className="size-full object-cover transition duration-500 group-hover:scale-105" />
-              <span className="num absolute bottom-0 left-0 flex size-10 items-center justify-center bg-ink text-2xl text-paper" aria-label={`${t.common.seed} ${team.seed}`}>
+              <img src={team.image} alt="" className="in-wipe size-full object-cover transition duration-500 group-hover:scale-105 [--d:0.1s]" />
+              <span className="in-pop num absolute bottom-0 left-0 flex size-10 origin-bottom-left items-center justify-center bg-ink text-2xl text-paper [--d:0.45s]" aria-label={`${t.common.seed} ${team.seed}`}>
                 {team.seed}
               </span>
             </div>
             <div className="px-3.5 pb-3 pt-2">
-              <div className="truncate text-xl font-black leading-tight">{team.name}</div>
-              <dl className="mt-1.5 flex gap-5 text-[0.65rem] font-bold uppercase text-ash">
+              <div className="in-left truncate text-xl font-black leading-tight [--d:0.3s]">{team.name}</div>
+              <dl className="in-up mt-1.5 flex gap-5 text-[0.65rem] font-bold uppercase text-ash [--d:0.45s]">
                 <div>
                   <dt>{t.common.avgRank}</dt>
                   <dd className="num text-xl leading-none text-paper">#{fmtNum(team.avgRank)}</dd>
