@@ -31,7 +31,7 @@ export default async function Register() {
   const lobbyLink = status === "approved" && !booking && settings.sections.lobbies && windowState(settings.bookingOpensAt, settings.bookingClosesAt) === "open";
   return (
     <Container plain>
-      <PageTitle accent={t.register.accent} right={tag}>
+      <PageTitle mark="glints" accent={t.register.accent} right={tag}>
         BGCC7
       </PageTitle>
 

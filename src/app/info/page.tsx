@@ -27,7 +27,7 @@ export default async function InfoPage() {
   const [t, f] = await Promise.all([getDict(), getFill()]);
   return (
     <Container plain>
-      <PageTitle>{t.nav.info}</PageTitle>
+      <PageTitle mark="bubble">{t.nav.info}</PageTitle>
       <div className="in-up border border-line bg-coal/80 px-6 py-8 sm:px-10" style={v({ "--d": "0.1s" })}>
         <p className="mx-auto max-w-3xl text-center leading-relaxed text-paper/90">
           <Words text={f(t.info.intro)} d={0.3} s={0.014} />

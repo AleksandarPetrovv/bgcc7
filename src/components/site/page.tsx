@@ -49,7 +49,7 @@ function Blocks() {
 function Streaks() {
     return (
       <span className="mb-[0.22em] flex w-[1.4em] flex-col items-end gap-[0.07em] self-end" aria-hidden>
-        {["w-full bg-rose", "w-3/4 bg-paper/70", "w-1/2 bg-balkan"].map((c, i) => (
+        {["w-full bg-paper", "w-3/4 bg-balkan", "w-1/2 bg-rose"].map((c, i) => (
           <span key={c} className={cn("anim-streak block h-[0.07em] origin-right -skew-x-[30deg]", c)} style={{ animationDelay: `${0.25 + i * 0.08}s` }} />
         ))}
       </span>
@@ -97,37 +97,88 @@ function Chevrons() {
   );
 }
 
-function Orbit() {
+function Bubble() {
   return (
-    <span className="relative mb-[0.12em] inline-flex size-[0.62em] items-center justify-center self-end" aria-hidden>
-      <span className="anim-pop block size-[0.22em] rotate-45 bg-rose" style={{ animationDelay: "0.25s" }} />
-      <span className="anim-appear absolute inset-0 rounded-full border border-dashed border-line" style={{ animationDelay: "0.35s" }} />
-      <span className="anim-orbit anim-orbit-in absolute inset-0">
-        <span className="absolute -top-[0.05em] left-1/2 block size-[0.1em] -translate-x-1/2 rounded-full bg-paper" />
-      </span>
+    <svg viewBox="0 0 26 26" className="mb-[0.1em] h-[0.66em] w-[0.66em] self-end overflow-visible" aria-hidden>
+      <g className="mk-bubble">
+        <path d="M3 1h20a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H11l-6 5v-5H3a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2Z" className="fill-rose" />
+        <rect x="11.3" y="8.4" width="3.4" height="8" className="mk-stem fill-paper" />
+      </g>
+      <circle cx="13" cy="5" r="2" className="mk-dot fill-paper" />
+    </svg>
+  );
+}
+
+function Person({ className, delay }: { className: string; delay: number }) {
+  return (
+    <svg viewBox="0 0 24 24" className={cn("mk-pop block", className)} style={{ animationDelay: `${delay}s` }}>
+      <circle cx="12" cy="7" r="5" />
+      <path d="M2 24c0-6 4.5-10 10-10s10 4 10 10Z" />
+    </svg>
+  );
+}
+
+function People() {
+  return (
+    <span className="mb-[0.2em] flex items-end gap-[0.08em] self-end" aria-hidden>
+      <Person className="size-[0.34em] fill-paper" delay={0.25} />
+      <Person className="size-[0.27em] fill-balkan" delay={0.35} />
+      <Person className="size-[0.22em] fill-rose" delay={0.45} />
     </span>
   );
 }
 
-function Burst() {
+function Cards() {
   return (
-    <span className="relative mb-[0.08em] inline-block size-[0.7em] self-end" aria-hidden>
-      {[0, 45, 90, 135, 180, 225, 270, 315].map((r, i) => (
-        <span key={r} className="absolute left-1/2 top-1/2 block h-[0.05em] w-[0.5em] origin-left" style={{ transform: `rotate(${r}deg)` }}>
-          <span className={cn("anim-burst block h-full w-[0.18em] translate-x-[0.12em]", i % 2 ? "bg-paper/60" : "bg-rose")} style={{ animationDelay: `${0.25 + i * 0.03}s` }} />
-        </span>
+    <span className="relative mb-[0.18em] inline-block h-[0.46em] w-[0.72em] self-end" aria-hidden>
+      {[
+        ["bg-paper", "-16deg"],
+        ["bg-balkan", "0deg"],
+        ["bg-rose", "16deg"],
+      ].map(([c, r], i) => (
+        <span
+          key={c}
+          className={cn("mk-fan absolute bottom-0 left-1/2 -ml-[0.13em] block h-[0.4em] w-[0.26em] origin-bottom border border-ink/60", c)}
+          style={{ "--r": r, animationDelay: `${0.25 + i * 0.07}s` } as React.CSSProperties}
+        />
       ))}
     </span>
   );
 }
 
-const MARKS = [Blocks, Streaks, Dots, Glints, Squiggle, Chevrons, Orbit, Burst];
+function Tick() {
+  return (
+    <svg viewBox="0 0 24 24" className="mb-[0.16em] h-[0.5em] w-[0.5em] self-end overflow-visible" aria-hidden>
+      <rect x="1.5" y="1.5" width="21" height="21" className="mk-pop fill-none stroke-paper/50" strokeWidth={2.4} style={{ animationDelay: "0.2s" }} />
+      <path d="M6 12.5 10.5 17 19.5 6.5" pathLength={1} className="anim-draw fill-none stroke-balkan" strokeWidth={3.6} strokeLinecap="square" style={{ animationDelay: "0.45s" }} />
+    </svg>
+  );
+}
 
-const markFor = (node: React.ReactNode) => {
+function Bars() {
+  return (
+    <span className="mb-[0.2em] flex h-[0.5em] items-end gap-[0.06em] self-end" aria-hidden>
+      {[
+        ["h-[45%] bg-paper/70", 0.25],
+        ["h-[80%] bg-balkan", 0.33],
+        ["h-[60%] bg-paper/70", 0.41],
+        ["h-full bg-rose", 0.49],
+      ].map(([c, d]) => (
+        <span key={c as string} className={cn("mk-rise block w-[0.1em] origin-bottom", c as string)} style={{ animationDelay: `${d}s` }} />
+      ))}
+    </span>
+  );
+}
+
+const MARKS = { blocks: Blocks, streaks: Streaks, dots: Dots, glints: Glints, squiggle: Squiggle, chevrons: Chevrons, bubble: Bubble, people: People, cards: Cards, tick: Tick, bars: Bars };
+export type Mark = keyof typeof MARKS;
+const FALLBACK: Mark[] = ["blocks", "streaks", "dots", "glints", "squiggle", "chevrons", "bars"];
+
+const markFor = (node: React.ReactNode): Mark => {
   const s = typeof node === "string" ? node : "";
   let h = 0;
   for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return h % MARKS.length;
+  return FALLBACK[h % FALLBACK.length];
 };
 
 export function PageTitle({
@@ -135,13 +186,15 @@ export function PageTitle({
   accent,
   right,
   className,
+  mark,
 }: {
   children: React.ReactNode;
+  mark?: Mark;
   accent?: React.ReactNode;
   right?: React.ReactNode;
   className?: string;
 }) {
-  const mark = markFor(children);
+  const M = MARKS[mark ?? markFor(children)];
   return (
     <div className={cn("no-enter relative mb-8 flex flex-wrap items-end gap-x-8 gap-y-4 pb-3", className)}>
       <h1 className="heading-slam flex min-w-0 max-w-full flex-wrap items-end gap-x-[0.3em] break-words text-[clamp(2rem,8.5vw,3rem)] sm:text-6xl">
@@ -151,7 +204,7 @@ export function PageTitle({
             / {accent}
           </span>
         )}
-        {MARKS.map((M, i) => i === mark && <M key={i} />)}
+        <M />
       </h1>
       {right && (
         <div className="anim-rise ml-auto flex flex-wrap items-center gap-3" style={{ animationDelay: "0.15s" }}>
@@ -167,8 +220,12 @@ export function Container({ children, className, plain }: { children: React.Reac
   return <div className={cn(!plain && "enter-kids", "mx-auto w-full max-w-6xl px-4 pt-10 sm:px-6", className)}>{children}</div>;
 }
 
-export function Wide({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn("ml-[calc(50%-min(750px,50vw-1.5rem))] w-[min(1500px,calc(100vw-3rem))]", className)}>{children}</div>;
+export function Wide({ children, className, full }: { children: React.ReactNode; className?: string; full?: boolean }) {
+  return (
+    <div className={cn(full ? "ml-[calc(50%-min(960px,50vw-2rem))] w-[min(1920px,calc(100vw-4rem))]" : "ml-[calc(50%-min(750px,50vw-1.5rem))] w-[min(1500px,calc(100vw-3rem))]", className)}>
+      {children}
+    </div>
+  );
 }
 
 export function SectionHeading({ children }: { children: React.ReactNode }) {
@@ -177,7 +234,7 @@ export function SectionHeading({ children }: { children: React.ReactNode }) {
       className="heading-slam mb-5 mt-14 flex items-center gap-3 text-[clamp(1.6rem,7.5vw,2.25rem)] first:mt-0"
       initial="hidden"
       whileInView="show"
-      viewport={{ once: true, margin: "0px 0px -10% 0px" }}
+      viewport={{ once: true, amount: "some" }}
     >
       <motion.span variants={{ hidden: { opacity: 0, x: -12 }, show: { opacity: 1, x: 0 } }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
         <TriTick />

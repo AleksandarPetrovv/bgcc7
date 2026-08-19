@@ -10,7 +10,7 @@ export default async function Scores() {
   const [t, qualifiers, settings] = await Promise.all([getDict(), getQualResults(), getSettings()]);
   return (
     <Container>
-      <PageTitle right={<span className="max-w-md text-sm text-ash">{t.qual.scoresHint}</span>}>{t.qual.scoresTitle}</PageTitle>
+      <PageTitle mark="squiggle" right={<span className="max-w-md text-sm text-ash">{t.qual.scoresHint}</span>}>{t.qual.scoresTitle}</PageTitle>
       {qualifiers.players.length ? <Wide>
           <ScoreMatrix qualifiers={qualifiers} cut={settings.qualifyCount} />
         </Wide> : <p className="py-10 text-center text-ash">{t.qual.noResults}</p>}

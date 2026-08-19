@@ -17,7 +17,7 @@ export default async function Streams() {
   const upcoming = matches.filter((m) => !m.winner && m.datetime && m.team1.id && m.team2.id).sort((a, b) => a.datetime!.localeCompare(b.datetime!));
   return (
     <Container plain>
-      <PageTitle
+      <PageTitle mark="glints"
         right={
           <Tag tone="paper" className="text-xs normal-case">
             {t.streams.channelTag}
