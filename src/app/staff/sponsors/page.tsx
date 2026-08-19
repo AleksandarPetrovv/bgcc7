@@ -9,12 +9,12 @@ export default async function Sponsors() {
   await requireSection("sponsors");
   const [t, sponsors] = await Promise.all([getDict(), getSponsors()]);
   return (
-    <Container className="max-w-5xl">
+    <Container>
       <PageTitle>{t.staff.sponsorsTitle}</PageTitle>
       <Stagger className="grid grid-cols-1 gap-5 sm:grid-cols-2" gap={0.08}>
         {sponsors.map((s) => (
           <StaggerItem key={s.id} className="lift group flex items-center gap-4 border border-line bg-coal p-4 hover:border-paper/30 sm:gap-5 sm:p-5">
-            <Avatar src={s.image} className="size-16 ring-offset-4 transition-transform duration-500 group-hover:rotate-[-4deg] group-hover:scale-105 sm:size-20" />
+            <Avatar src={s.image} className="in-spin size-16 ring-offset-4 transition-transform duration-500 group-hover:rotate-[-4deg] group-hover:scale-105 sm:size-20" />
             <div className="min-w-0">
               <div className="truncate font-display text-xl font-bold lowercase sm:text-2xl">
                 {s.url ? (

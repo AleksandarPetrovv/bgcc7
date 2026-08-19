@@ -30,7 +30,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
       <div className="relative mx-auto mt-10" style={{ width, height }}>
         <svg className="pointer-events-none absolute inset-0" width={width} height={height} aria-hidden>
           {Object.entries(WIN).map(([a, b]) => (
-            <path key={a} d={wire(a, b)} fill="none" stroke={clean[a] ? "#0fa06a" : "#2b302d"} strokeOpacity={clean[a] ? 0.6 : 1} strokeWidth={2} />
+            <path key={a} d={wire(a, b)} pathLength={1} className="in-draw" style={{ "--d": `${0.55 + POS[a][0] * 0.14}s` } as React.CSSProperties} fill="none" stroke={clean[a] ? "#0fa06a" : "#2b302d"} strokeOpacity={clean[a] ? 0.6 : 1} strokeWidth={2} />
           ))}
           {resetLive && <path d={`M${x(4) + W / 2} ${300 + H} V400`} stroke="#e8c547" strokeWidth={2} strokeDasharray="3 3" />}
         </svg>
@@ -38,13 +38,13 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
         {HEADERS.map((h) => (
           <div
             key={h.t}
-            className={cn("absolute text-center text-sm font-black uppercase tracking-wider", h.gold ? "text-[#e8c547]" : "text-ash")}
-            style={{ left: x(h.c), top: h.y, width: W }}
+            className={cn("in-drop absolute text-center text-sm font-black uppercase tracking-wider", h.gold ? "text-[#e8c547]" : "text-ash")}
+            style={{ left: x(h.c), top: h.y, width: W, "--i": h.c, "--s": "0.14s", "--d": "0.1s" } as React.CSSProperties}
           >
             {t.rounds[h.t] ?? h.t}
           </div>
         ))}
-        <div className="heading-slam absolute text-2xl text-[#e8c547]" style={{ left: 0, top: LB - 90 }}>
+        <div className="in-wipe heading-slam absolute text-2xl text-[#e8c547]" style={{ left: 0, top: LB - 90, "--d": "0.4s" } as React.CSSProperties}>
           <span className="text-rose-hi">{t.rounds.losers}</span> {t.rounds.bracket}
         </div>
 
@@ -81,8 +81,8 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
           return (
             <div
               key={id}
-              className={cn("absolute flex flex-col divide-y divide-line border bg-coal", isGf ? "border-[#e8c547]/50" : "border-line")}
-              style={{ left: x(c), top: y, width: W, height: H }}
+              className={cn("in-left absolute flex flex-col divide-y divide-line border bg-coal", isGf ? "border-[#e8c547]/50" : "border-line")}
+              style={{ left: x(c), top: y, width: W, height: H, "--i": c, "--s": "0.14s", "--d": `${0.15 + (y % 400) / 2500}s` } as React.CSSProperties}
             >
               {pair.map((tid, i) => {
                 const team = tid ? teamById(tid) : undefined;

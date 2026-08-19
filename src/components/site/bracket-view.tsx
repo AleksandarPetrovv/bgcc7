@@ -104,7 +104,7 @@ export function BracketView() {
       <div className="relative mx-auto mt-10" style={{ width, height }}>
         <svg className="pointer-events-none absolute inset-0" width={width} height={height}>
           {Object.entries(WIN).map(([a, b]) => (
-            <path key={a} d={pathWin(a, b)} fill="none" stroke="#2b302d" strokeWidth={2} />
+            <path key={a} d={pathWin(a, b)} pathLength={1} className="in-draw" style={{ "--d": `${0.55 + POS[a][0] * 0.14}s` } as React.CSSProperties} fill="none" stroke="#2b302d" strokeWidth={2} />
           ))}
           {DROPS.map((d) => (
             <path
@@ -124,13 +124,13 @@ export function BracketView() {
         {HEADERS.map((h) => (
           <div
             key={h.t}
-            className={cn("absolute text-center text-sm font-black uppercase tracking-wider", h.gold ? "text-[#e8c547]" : "text-ash")}
-            style={{ left: x(h.c), top: h.y, width: W }}
+            className={cn("in-drop absolute text-center text-sm font-black uppercase tracking-wider", h.gold ? "text-[#e8c547]" : "text-ash")}
+            style={{ left: x(h.c), top: h.y, width: W, "--i": h.c, "--s": "0.14s", "--d": "0.1s" } as React.CSSProperties}
           >
             {t.rounds[h.t] ?? h.t}
           </div>
         ))}
-        <div className="heading-slam absolute text-2xl text-[#e8c547]" style={{ left: 0, top: LB - 90 }}>
+        <div className="in-wipe heading-slam absolute text-2xl text-[#e8c547]" style={{ left: 0, top: LB - 90, "--d": "0.4s" } as React.CSSProperties}>
           <span className="text-rose-hi">{t.rounds.losers}</span> {t.rounds.bracket}
         </div>
 
@@ -144,11 +144,11 @@ export function BracketView() {
               onMouseEnter={() => setHover(id)}
               onMouseLeave={() => setHover(null)}
               className={cn(
-                "absolute overflow-hidden border bg-coal transition-colors",
+                "in-left absolute overflow-hidden border bg-coal transition-colors",
                 isGf ? "border-[#e8c547]/50" : "border-line",
                 linked.has(id) && "border-rose/80 shadow-[0_0_0_1px_rgba(224,36,47,0.35)]",
               )}
-              style={{ left: x(c), top: y, width: W, height: H }}
+              style={{ left: x(c), top: y, width: W, height: H, "--i": c, "--s": "0.14s", "--d": `${0.15 + (y % 400) / 2500}s` } as React.CSSProperties}
             >
               <div className="flex h-5 items-center justify-between bg-ink/70 px-2 text-[0.62rem] font-bold uppercase text-ash">
                 <span>{id === "GF-M2" ? t.rounds.reset : ""}</span>

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { InView } from "@/components/site/in-view";
 import Link from "next/link";
 import { Check } from "lucide-react";
-import { Container, PageTitle, SectionHeading, SlantButton, Tag } from "@/components/site/page";
+import { Container, PageTitle, SectionHeading, SlantButton, Tag, Wide } from "@/components/site/page";
 import { useDict } from "@/components/site/lang";
 import { PickemsBracket } from "@/components/site/pickems-bracket";
 import { resolve, seedingOf, type Picks } from "@/lib/pickems";
@@ -66,27 +67,27 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
     });
 
   return (
-    <Container className="max-w-[1400px]">
+    <Container plain>
       <PageTitle accent={t.pickems.accent} right={open ? <Tag tone="balkan" className="text-xs">{t.pickems.openTag}</Tag> : <Tag tone="rose" className="text-xs">{t.pickems.closedTag}</Tag>}>
         {t.pickems.title}
       </PageTitle>
 
       <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-5">
-          {t.pickems.points.map(([k, v]) => (
-            <div key={k} className="bg-coal p-3 last:col-span-2 sm:last:col-span-1">
+          {t.pickems.points.map(([k, v], i) => (
+            <div key={k} className="in-flip bg-coal p-3 last:col-span-2 sm:last:col-span-1" style={{ "--i": i, "--s": "0.08s", "--d": "0.15s" } as React.CSSProperties}>
               <div className="min-h-[2lh] text-[0.65rem] font-black uppercase leading-tight tracking-wide text-ash">{k}</div>
-              <div className="num text-3xl text-balkan">
+              <div className="in-pop num origin-left text-3xl text-balkan [--d:0.45s]">
                 {v}
                 <span className="text-base text-ash"> {t.common.pts}</span>
               </div>
             </div>
           ))}
         </div>
-        <div className="flex flex-wrap items-center gap-4 border border-line bg-coal p-4">
+        <div className="in-right flex flex-wrap items-center gap-4 border border-line bg-coal p-4 [--d:0.3s]">
           <div>
             <div className="text-[0.65rem] font-black uppercase text-rose-hi">{t.pickems.yourPicks}</div>
-            <div className="num text-3xl">
+            <div className="in-pop num origin-left text-3xl [--d:0.55s]">
               {made} / {total}
             </div>
           </div>
@@ -107,22 +108,25 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
         </div>
       </div>
 
-      <PickemsBracket picks={clean} onPick={open ? pick : undefined} locked={locked} />
+      <Wide>
+        <PickemsBracket picks={clean} onPick={open ? pick : undefined} locked={locked} />
+      </Wide>
 
       <div className="mt-14">
         <SectionHeading>{t.pickems.leaderboard}</SectionHeading>
       </div>
       {leaderboard.length ? (
-        <div className="divide-y divide-line border border-line bg-coal">
+        <InView className="divide-y divide-line border border-line bg-coal">
           {leaderboard.map((e, i) => (
             <div
               key={e.osuId}
+              style={{ "--i": Math.min(i, 15), "--s": "0.05s" } as React.CSSProperties}
               className={cn(
-                "grid min-h-14 grid-cols-[48px_1fr_auto] items-center gap-x-4 px-4 sm:grid-cols-[64px_1fr_110px_70px_160px]",
+                "in-left grid min-h-14 grid-cols-[48px_1fr_auto] items-center gap-x-4 px-4 sm:grid-cols-[64px_1fr_110px_70px_160px]",
                 e.osuId === osuId && "bg-balkan/10",
               )}
             >
-              <span className={cn("num text-2xl leading-none", MEDAL[i] ?? "text-ash")}>#{i + 1}</span>
+              <span className={cn("in-pop num text-2xl leading-none [--d:0.2s]", MEDAL[i] ?? "text-ash")}>#{i + 1}</span>
               <span className="flex min-w-0 items-center gap-3 font-bold">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {e.avatarUrl && <img src={e.avatarUrl} alt="" className="size-8 shrink-0" />}
@@ -144,7 +148,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
               </span>
             </div>
           ))}
-        </div>
+        </InView>
       ) : (
         <p className="border border-dashed border-line py-10 text-center text-ash">{t.pickems.noEntries}</p>
       )}
