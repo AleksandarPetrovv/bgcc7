@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
 import { ActionForm, dateCls, inputCls, Panel } from "@/components/admin/form";
 import { getPoolStages } from "@/db/mappools";
@@ -34,20 +35,22 @@ export default async function AdminMatches() {
   return (
     <>
       <PageTitle>{t.admin.menu.matches}</PageTitle>
-      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">{t.admin.matchesHelp}</p>
+      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
+        <Words text={t.admin.matchesHelp} d={0.15} s={0.012} />
+      </p>
 
-      <div className="mb-6 flex flex-wrap gap-3 border border-line bg-coal p-4">
+      <div className="in-right mb-6 flex flex-wrap gap-3 border border-line bg-coal p-4 [--d:0.25s]">
         <ActionForm action={fillFromSeeds} submit={t.admin.fillSeeds} ghost confirm={t.admin.confirmFillSeeds} />
         <ActionForm action={resetBracket} submit={t.admin.resetBracket} ghost confirm={t.admin.confirmResetBracket} />
       </div>
 
-      <Panel title={t.admin.reschedules} className="mb-8">
+      <Panel title={t.admin.reschedules} className="mb-8" i={1}>
         {open.length === 0 && <p className="text-sm text-ash">{t.admin.noReschedules}</p>}
         <div className="space-y-2">
-          {open.map((r) => {
+          {open.map((r, k) => {
             const m = rows.find((x) => x.id === r.matchId);
             return (
-              <div key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 border border-line bg-ink px-3 py-2.5">
+              <div key={r.id} style={{ "--i": k, "--s": "0.07s", "--d": "0.6s" } as React.CSSProperties} className="in-right-far flex flex-wrap items-center gap-x-4 gap-y-2 border border-line bg-ink px-3 py-2.5">
                 <div className="min-w-0 flex-1 text-sm">
                   <div className="font-bold">
                     {r.matchId} · {name(m?.team1Id ?? null)} vs {name(m?.team2Id ?? null)}
@@ -78,21 +81,21 @@ export default async function AdminMatches() {
       </Panel>
 
       <div className="space-y-8">
-        {bracketStages.map((s) => (
-          <Panel key={s.slug} title={`${t.rounds[s.title] ?? s.title} · ${t.admin.firstToShort(s.firstTo ?? 7)}`}>
+        {bracketStages.map((s, n) => (
+          <Panel key={s.slug} i={n < 2 ? n + 2 : 0} title={`${t.rounds[s.title] ?? s.title} · ${t.admin.firstToShort(s.firstTo ?? 7)}`}>
             <div className="space-y-2">
               {rows
                 .filter((m) => m.stageSlug === s.slug)
-                .map((m) => (
-                  <details key={m.id} className="border border-line bg-ink">
+                .map((m, k) => (
+                  <details key={m.id} style={{ "--i": k, "--s": "0.05s", "--d": "0.6s" } as React.CSSProperties} className="in-left border border-line bg-ink">
                     <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2.5">
                       <span className="num w-20 text-sm text-ash">{m.id}</span>
                       <span className="text-xs font-black uppercase text-rose-hi">{t.rounds[m.round] ?? m.round}</span>
                       <span className="min-w-0 flex-1 truncate font-bold">
-                        {name(m.team1Id)} <span className="num text-balkan">{m.score1 ?? "-"}</span> : <span className="num text-balkan">{m.score2 ?? "-"}</span> {name(m.team2Id)}
+                        {name(m.team1Id)} <span className="in-slam num inline-block text-balkan [--d:0.85s]">{m.score1 ?? "-"}</span> : <span className="in-slam num inline-block text-balkan [--d:0.9s]">{m.score2 ?? "-"}</span> {name(m.team2Id)}
                       </span>
                       <span className="num text-sm text-ash">{m.startsAt ? fmtSofia(m.startsAt, locale) : t.common.tbd}</span>
-                      {m.winner && <span className="text-xs font-black uppercase text-balkan">{t.admin.done}</span>}
+                      {m.winner && <span className="in-pop text-xs font-black uppercase text-balkan [--d:0.95s]">{t.admin.done}</span>}
                     </summary>
                     <div className="border-t border-line p-3">
                       <ActionForm key={JSON.stringify(m)} action={saveMatch.bind(null, m.id)} className="space-y-3">

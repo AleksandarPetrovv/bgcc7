@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import type { LogRow } from "@/db/admin";
 import { Avatar } from "@/components/site/avatar";
-import { Stagger, StaggerItem } from "@/components/site/motion";
+import { InView } from "@/components/site/in-view";
 import type { Dict } from "@/lib/i18n/dict";
 import { describe, type LogCtx } from "@/lib/log-text";
 import { fmtSofia, fmtSofiaDay, fmtSofiaTime } from "@/lib/time";
@@ -74,28 +74,30 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
       {[...days.entries()].map(([day, list]) => (
         <section key={day}>
           <h3 className="mb-2 flex items-center gap-3 text-xs font-black uppercase tracking-widest text-ash">
-            {day}
-            <span className="h-px flex-1 border-t border-dashed border-line" aria-hidden />
+            <span className="in-wipe [--d:0.15s]">{day}</span>
+            <span className="in-grow h-px flex-1 border-t border-dashed border-line [--d:0.25s]" aria-hidden />
           </h3>
-          <Stagger as="ol" className="relative border border-line bg-coal" gap={0.025}>
-            {list.map((r) => {
+          <InView as="ol" className="relative border border-line bg-coal">
+            {list.map((r, i) => {
               const g = groupOf(r.action);
               return (
-                <StaggerItem as="li" key={r.id} className="group relative flex items-center gap-3 border-b border-line px-3 py-2.5 transition-colors last:border-b-0 hover:bg-white/[0.02]">
+                <li key={r.id} className="in-left group relative flex items-center gap-3 border-b border-line px-3 py-2.5 transition-colors last:border-b-0 hover:bg-white/[0.02]" style={{ "--i": Math.min(i, 20), "--s": "0.04s", "--d": "0.2s" } as React.CSSProperties}>
                   <span className={cn("absolute inset-y-0 left-0 w-0.5 origin-top scale-y-0 transition-transform duration-300 group-hover:scale-y-100", DOT[g])} aria-hidden />
-                  <Avatar src={r.avatarUrl} className="size-7 ring-offset-1" />
+                  <span className="in-spin inline-flex [--d:0.3s]">
+                    <Avatar src={r.avatarUrl} className="size-7 ring-offset-1" />
+                  </span>
                   <p className="min-w-0 flex-1 text-sm leading-snug text-paper/70">
                     <span className="font-black text-paper">{r.username ?? `#${r.osuId}`}</span>{" "}
                     <Rich text={describe(r.action, r.payload, ctx, helpers)} />
                   </p>
-                  <span className={cn("size-1.5 shrink-0 rotate-45", DOT[g])} title={t.admin.logGroups[g]} aria-hidden />
-                  <time className="num w-12 shrink-0 text-right text-sm text-ash" dateTime={r.at.toISOString()}>
+                  <span className={cn("in-pop size-1.5 shrink-0 rotate-45 [--d:0.5s]", DOT[g])} title={t.admin.logGroups[g]} aria-hidden />
+                  <time className="in-wipe-r num w-12 shrink-0 text-right text-sm text-ash [--d:0.45s]" dateTime={r.at.toISOString()}>
                     {fmtSofiaTime(r.at)}
                   </time>
-                </StaggerItem>
+                </li>
               );
             })}
-          </Stagger>
+          </InView>
         </section>
       ))}
     </div>

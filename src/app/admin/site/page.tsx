@@ -34,12 +34,12 @@ export default async function AdminSite() {
             </ActionForm>
           </Panel>
 
-          <Panel title={t.admin.packs} help={t.admin.packsHelp}>
+          <Panel title={t.admin.packs} help={t.admin.packsHelp} i={2}>
             <PackUploader stages={stages.map((s) => ({ slug: s.slug, title: s.title, pack: s.pack }))} locale={lang === "bg" ? "bg-BG" : "en-GB"} />
           </Panel>
         </div>
 
-        <Panel title={t.admin.sponsors} help={t.admin.sponsorHelp}>
+        <Panel title={t.admin.sponsors} help={t.admin.sponsorHelp} i={1}>
           <ActionForm action={addSponsor} submit={t.admin.add} className="mb-5 flex flex-wrap items-end gap-3">
             <label className={cn(labelCls, "min-w-56 flex-1")}>
               {t.admin.sponsorQ}
@@ -50,7 +50,7 @@ export default async function AdminSite() {
         </Panel>
 
         {viewer?.role === "host" && (
-          <Panel title={t.admin.danger} help={t.admin.wipeHelp} className="border-rose/50 xl:col-span-2">
+          <Panel title={t.admin.danger} help={t.admin.wipeHelp} className="border-rose/50 xl:col-span-2" i={3}>
             <ActionForm action={wipeTestData} submit={t.admin.wipe} confirm={t.admin.confirmWipe} />
           </Panel>
         )}

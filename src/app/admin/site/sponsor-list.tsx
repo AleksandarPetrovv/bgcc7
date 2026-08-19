@@ -34,9 +34,11 @@ function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
         >
           <GripVertical className="size-4" />
         </button>
-        <span className="num w-6 text-center text-lg text-ash">{i + 1}</span>
-        <Avatar src={s.image} className="size-9" />
-        <a href={s.url ?? undefined} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate font-black transition-colors hover:text-rose-hi">
+        <span className="in-drop num w-6 text-center text-lg text-ash" style={{ "--i": i, "--s": "0.08s", "--d": "0.6s" } as React.CSSProperties}>{i + 1}</span>
+        <span className="in-spin inline-flex" style={{ "--i": i, "--s": "0.08s", "--d": "0.65s" } as React.CSSProperties}>
+          <Avatar src={s.image} className="size-9" />
+        </span>
+        <a href={s.url ?? undefined} target="_blank" rel="noreferrer" className="in-wipe min-w-0 flex-1 truncate font-black transition-colors hover:text-rose-hi" style={{ "--i": i, "--s": "0.08s", "--d": "0.75s" } as React.CSSProperties}>
           {s.name}
         </a>
         <button

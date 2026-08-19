@@ -70,17 +70,19 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
   );
 }
 
-export function Panel({ title, help, children, className }: { title: string; help?: string; children: React.ReactNode; className?: string }) {
+export function Panel({ title, help, children, className, i = 0 }: { title: string; help?: string; children: React.ReactNode; className?: string; i?: number }) {
   return (
-    <section className={cn("border border-line bg-coal", className)}>
+    <section className={cn("in-up border border-line bg-coal", className)} style={{ "--i": i, "--s": "0.1s", "--d": "0.1s" } as React.CSSProperties}>
       <div className="border-b border-line px-4 py-3 sm:px-5">
         <h2 className="heading-slam flex items-center gap-3 text-xl sm:text-2xl">
-          <TriTick className="h-3 w-[22px]" />
-          <span className="min-w-0 break-words">{title}</span>
+          <span className="in-left-far inline-flex [--d:0.25s]">
+            <TriTick className="h-3 w-[22px]" />
+          </span>
+          <span className="in-wipe min-w-0 break-words [--d:0.3s]">{title}</span>
         </h2>
-        {help && <p className="mt-1 text-sm text-ash">{help}</p>}
+        {help && <p className="in-up mt-1 text-sm text-ash [--d:0.4s]">{help}</p>}
       </div>
-      <div className="p-4 sm:p-5">{children}</div>
+      <div className="in-up p-4 sm:p-5 [--d:0.45s]">{children}</div>
     </section>
   );
 }

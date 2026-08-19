@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { InView } from "@/components/site/in-view";
+import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
 import { ActionForm, inputCls, Panel } from "@/components/admin/form";
 import { getQualResults } from "@/db/qualifiers";
@@ -27,13 +29,15 @@ export default async function AdminTeams() {
   return (
     <>
       <PageTitle>{t.admin.menu.teams}</PageTitle>
-      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">{t.admin.teamsHelp(settings.qualifyCount)}</p>
+      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
+        <Words text={t.admin.teamsHelp(settings.qualifyCount)} d={0.15} s={0.012} />
+      </p>
 
       <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Panel title={t.admin.generate} help={t.admin.generateHelp}>
           <ActionForm action={generateTeams} submit={t.admin.generate} confirm={t.admin.confirmGenerate} />
         </Panel>
-        <Panel title={t.admin.newTeam}>
+        <Panel title={t.admin.newTeam} i={1}>
           <ActionForm action={createTeam} submit={t.admin.create} className="flex flex-wrap items-center gap-3">
             <input name="name" required maxLength={40} placeholder={t.admin.teamName} aria-label={t.admin.teamName} className={cn(inputCls, "w-64")} />
           </ActionForm>
@@ -42,13 +46,13 @@ export default async function AdminTeams() {
 
       {teams.length === 0 && <p className="border border-line bg-coal p-4 text-sm text-ash">{t.admin.noTeams}</p>}
       <div className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
-        {teams.map((team) => (
-          <section key={team.id} className="border border-line bg-coal">
+        {teams.map((team, n) => (
+          <InView as="section" self key={team.id} className="in-flip border border-line bg-coal" style={{ "--i": n < 8 ? n % 2 : 0, "--s": "0.12s", "--d": "0.3s" } as React.CSSProperties}>
             <div className="flex items-center gap-3 border-b border-line px-4 py-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {team.image && <img src={team.image} alt="" className="size-9 object-cover" />}
-              <span className="num text-xl text-balkan">#{team.seed}</span>
-              <span className="heading-slam truncate text-2xl">{team.name}</span>
+              {team.image && <img src={team.image} alt="" className="in-spin size-9 object-cover [--d:0.45s]" />}
+              <span className="in-slam num text-xl text-balkan [--d:0.55s]">#{team.seed}</span>
+              <span className="in-wipe heading-slam truncate text-2xl [--d:0.55s]">{team.name}</span>
               <span className="num ml-auto text-sm text-ash">{team.players.length}/3</span>
             </div>
             <div className="space-y-4 p-4">
@@ -86,8 +90,8 @@ export default async function AdminTeams() {
               </ActionForm>
 
               <ul className="divide-y divide-line border border-line">
-                {team.players.map((p) => (
-                  <li key={p.userId} className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
+                {team.players.map((p, k) => (
+                  <li key={p.userId} style={{ "--i": k, "--s": "0.08s", "--d": "0.7s" } as React.CSSProperties} className="in-left flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.avatar} alt="" className="size-7" />
                     <span className="font-bold">{p.username}</span>
@@ -139,7 +143,7 @@ export default async function AdminTeams() {
                 <ActionForm action={deleteTeam.bind(null, team.id)} submit={t.admin.deleteTeam} ghost confirm={t.admin.confirmDeleteTeam} />
               </div>
             </div>
-          </section>
+          </InView>
         ))}
       </div>
     </>

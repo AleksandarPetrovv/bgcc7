@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { InView } from "@/components/site/in-view";
 import { PageTitle } from "@/components/site/page";
 import { ActionForm, dateCls, inputCls, Panel } from "@/components/admin/form";
 import { getLobbies, type Lobby } from "@/db/lobbies";
@@ -61,21 +62,21 @@ export default async function AdminLobbies() {
       </Panel>
 
       {free.length > 0 && (
-        <p className="mb-4 border border-line bg-coal px-4 py-3 text-sm">
+        <p className="in-left mb-4 border border-line bg-coal px-4 py-3 text-sm [--d:0.35s]">
           <span className="font-black text-rose-hi">{t.admin.notBooked(free.length)}:</span>{" "}
           <span className="text-ash">{free.map((r) => r.username).join(", ")}</span>
         </p>
       )}
 
       <div className="space-y-4">
-        {lobbies.map((l) => (
-          <section key={l.id} className="border border-line bg-coal">
+        {lobbies.map((l, n) => (
+          <InView as="section" self key={l.id} className="in-up border border-line bg-coal" style={{ "--i": n < 6 ? n : 0, "--s": "0.1s", "--d": "0.3s" } as React.CSSProperties}>
             <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3">
-              <span className="heading-slam text-2xl">{l.name}</span>
-              <span className="num text-sm text-ash">
+              <span className="in-wipe heading-slam text-2xl [--d:0.45s]">{l.name}</span>
+              <span className="in-drop num text-sm text-ash [--d:0.55s]">
                 {fmtSofiaDay(l.startsAt, locale)} · {fmtSofiaTime(l.startsAt)}
               </span>
-              <span className={cn("num ml-auto text-lg", l.players.length >= l.capacity ? "text-rose-hi" : "text-balkan")}>
+              <span className={cn("in-slam num ml-auto text-lg [--d:0.6s]", l.players.length >= l.capacity ? "text-rose-hi" : "text-balkan")}>
                 {l.players.length}/{l.capacity}
               </span>
             </div>
@@ -86,10 +87,10 @@ export default async function AdminLobbies() {
 
               {l.players.length > 0 && (
                 <ul className="divide-y divide-line border border-line">
-                  {l.players.map((p) => (
-                    <li key={p.osuId} className="flex flex-wrap items-center gap-3 px-3 py-2">
+                  {l.players.map((p, k) => (
+                    <li key={p.osuId} style={{ "--i": k, "--s": "0.05s", "--d": "0.7s" } as React.CSSProperties} className="in-left flex flex-wrap items-center gap-3 px-3 py-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      {p.avatarUrl && <img src={p.avatarUrl} alt="" className="size-7" />}
+                      {p.avatarUrl && <img src={p.avatarUrl} alt="" className="in-pop size-7 [--d:0.8s]" />}
                       <span className="font-bold">{p.username}</span>
                       <div className="ml-auto flex flex-wrap items-center gap-2">
                         {lobbies.length > 1 && (
@@ -137,7 +138,7 @@ export default async function AdminLobbies() {
                 <ActionForm action={deleteLobby.bind(null, l.id)} submit={t.admin.deleteLobby} ghost confirm={t.admin.confirmDeleteLobby} />
               </div>
             </div>
-          </section>
+          </InView>
         ))}
       </div>
     </>
