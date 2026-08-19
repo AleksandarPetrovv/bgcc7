@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { InView } from "@/components/site/in-view";
+import { Words } from "@/components/site/rich";
 import { PageTitle, SubHeading } from "@/components/site/page";
 import { ActionForm, inputCls, Panel } from "@/components/admin/form";
 import { getLobbies, mpIds } from "@/db/lobbies";
@@ -21,13 +23,15 @@ export default async function AdminQualifiers() {
   return (
     <>
       <PageTitle>{t.admin.menu.qualifiers}</PageTitle>
-      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">{t.admin.qualHelp}</p>
+      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
+        <Words text={t.admin.qualHelp} d={0.15} s={0.012} />
+      </p>
 
       <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Panel title={t.admin.importTitle} help={t.admin.importHelp}>
           <ul className="mb-4 divide-y divide-line border border-line">
-            {lobbies.map((l) => (
-              <li key={l.id} className="flex flex-wrap items-center gap-3 px-3 py-2">
+            {lobbies.map((l, k) => (
+              <li key={l.id} style={{ "--i": k, "--s": "0.06s", "--d": "0.55s" } as React.CSSProperties} className="in-left flex flex-wrap items-center gap-3 px-3 py-2">
                 <span className="font-bold">{l.name}</span>
                 <span className="num text-xs text-ash">{mpIds(l.mpLinks).join(", ") || t.admin.noMp}</span>
                 {mpIds(l.mpLinks).length > 0 && <ActionForm action={importOne.bind(null, l.id)} submit={t.admin.import} ghost className="ml-auto" />}
@@ -37,7 +41,7 @@ export default async function AdminQualifiers() {
           <ActionForm action={importAll} submit={t.admin.importAll} />
         </Panel>
 
-        <Panel title={t.admin.setScore} help={t.admin.setScoreHelp}>
+        <Panel title={t.admin.setScore} help={t.admin.setScoreHelp} i={1}>
           <ActionForm action={setScore} className="space-y-4">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <label className={cn(label, "col-span-2 sm:col-span-1")}>
@@ -71,19 +75,21 @@ export default async function AdminQualifiers() {
         </Panel>
       </div>
 
-      <SubHeading>{t.admin.ranking(settings.qualifyCount)}</SubHeading>
+      <div className="in-left [--d:0.4s]">
+        <SubHeading>{t.admin.ranking(settings.qualifyCount)}</SubHeading>
+      </div>
       {results.players.length === 0 && <p className="border border-line bg-coal p-4 text-sm text-ash">{t.admin.noScores}</p>}
-      <div className="space-y-1.5">
+      <InView className="space-y-1.5">
         {results.players.map((p, i) => {
           const own = rows.filter((r) => r.osuId === p.id).sort((a, b) => (slotOf.get(a.beatmapId) ?? "").localeCompare(slotOf.get(b.beatmapId) ?? ""));
           return (
-            <details key={p.id} className={cn("border border-line bg-coal", i >= settings.qualifyCount && "opacity-60")}>
+            <details key={p.id} style={{ "--i": Math.min(i, 24), "--s": "0.03s", "--d": "0.45s" } as React.CSSProperties} className={cn("in-left-far border border-line bg-coal", i >= settings.qualifyCount && "opacity-60")}>
               <summary className="flex cursor-pointer list-none flex-wrap items-center gap-3 px-3 py-2">
-                <span className={cn("num w-10 text-center text-lg", i < settings.qualifyCount ? "text-balkan" : "text-ash")}>#{i + 1}</span>
+                <span className={cn("in-slam num w-10 text-center text-lg [--d:0.6s]", i < settings.qualifyCount ? "text-balkan" : "text-ash")}>#{i + 1}</span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.avatar} alt="" className="size-7" />
                 <span className="font-bold">{p.username}</span>
-                <span className="num ml-auto text-balkan">{p.zSum.toFixed(2)}</span>
+                <span className="in-wipe-r num ml-auto text-balkan [--d:0.7s]">{p.zSum.toFixed(2)}</span>
                 <span className="num w-28 text-right text-sm text-ash">{t.admin.mapsPlayed(Object.keys(p.perf).length, results.maps.length)}</span>
               </summary>
               <div className="border-t border-line p-3">
@@ -103,7 +109,7 @@ export default async function AdminQualifiers() {
             </details>
           );
         })}
-      </div>
+      </InView>
     </>
   );
 }

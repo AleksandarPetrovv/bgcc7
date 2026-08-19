@@ -1,4 +1,5 @@
 import { LinkTabs } from "@/components/site/tabs";
+import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
 import { notFound } from "next/navigation";
 import { ActionForm, inputCls, Panel } from "@/components/admin/form";
@@ -22,7 +23,9 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
   return (
     <>
       <PageTitle>{t.admin.menu.screening}</PageTitle>
-      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">{t.admin.screeningHelp}</p>
+      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
+        <Words text={t.admin.screeningHelp} d={0.15} s={0.012} />
+      </p>
 
       <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-[1fr_auto]">
         <Panel title={t.admin.addPlayer} help={t.admin.addPlayerHelp}>
@@ -30,7 +33,7 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
             <input name="q" required maxLength={32} placeholder={t.admin.addPlaceholder} aria-label={t.admin.addPlaceholder} className={cn(inputCls, "w-64")} />
           </ActionForm>
         </Panel>
-        <div className="flex flex-wrap content-start gap-3 border border-line bg-coal p-4">
+        <div className="in-right flex flex-wrap content-start gap-3 border border-line bg-coal p-4 [--d:0.3s]">
           <ActionForm action={approveAllPending} submit={t.admin.approveAll} ghost confirm={t.admin.confirmApproveAll} />
           <ActionForm action={refreshStats} submit={t.admin.refreshStats} ghost />
         </div>
@@ -52,8 +55,8 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
 
       {shown.length ? (
         <div className="space-y-2">
-          {shown.map((p) => (
-            <ScreeningRow key={`${p.osuId}-${p.status}`} p={p} signedAt={fmtSofia(p.createdAt, locale)} />
+          {shown.map((p, i) => (
+            <ScreeningRow key={`${p.osuId}-${p.status}`} p={p} i={i} signedAt={fmtSofia(p.createdAt, locale)} />
           ))}
         </div>
       ) : (
