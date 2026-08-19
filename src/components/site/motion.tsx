@@ -51,16 +51,16 @@ export function StaggerItem({ children, className, as = "div" }: { children: Rea
   );
 }
 
-export function CountUp({ to, className }: { to: number; className?: string }) {
+export function CountUp({ to, className, decimals = 0, suffix = "", delay = 0 }: { to: number; className?: string; decimals?: number; suffix?: string; delay?: number }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true });
   const value = useMotionValue(0);
-  const shown = useTransform(value, (v) => Math.round(v).toLocaleString("en-US"));
+  const shown = useTransform(value, (v) => v.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + suffix);
   useEffect(() => {
     if (!inView) return;
-    const c = animate(value, to, { duration: 1.4, ease: EASE });
+    const c = animate(value, to, { duration: 1.6, ease: EASE, delay });
     return () => c.stop();
-  }, [inView, to, value]);
+  }, [inView, to, value, delay]);
   return (
     <motion.span ref={ref} className={className}>
       {shown}
