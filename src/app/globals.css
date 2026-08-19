@@ -140,9 +140,6 @@
     background-image: radial-gradient(circle at center, rgb(244 243 238 / 0.09) 1px, transparent 1.4px);
     background-size: 22px 22px;
   }
-  .backdrop-dots-hi {
-    background-image: radial-gradient(circle at center, rgb(242 74 84 / 0.55) 1.2px, transparent 1.7px);
-  }
   .heading-slam {
     font-family: var(--font-archivo), var(--font-mont), sans-serif;
     font-weight: 900;
@@ -184,7 +181,7 @@
 
 @keyframes rise {
   from { transform: translateY(18px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  to { transform: none; opacity: 1; }
 }
 
 @keyframes stitch-draw {
@@ -208,14 +205,14 @@
 }
 
 @keyframes slam {
-  0% { opacity: 0; transform: scale(1.4) rotate(-8deg); }
-  55% { opacity: 1; transform: scale(0.96) rotate(1.5deg); }
-  100% { opacity: 1; transform: none; }
+  0% { opacity: 0; transform: translateZ(0) scale(1.4) rotate(-8deg); }
+  55% { opacity: 1; transform: translateZ(0) scale(0.96) rotate(1.5deg); }
+  100% { opacity: 1; transform: translateZ(0) scale(1) rotate(0deg); }
 }
 
 @keyframes letter-in {
-  from { opacity: 0; transform: translateY(45%) skewX(-10deg); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0; transform: translate3d(0, 0.45em, 0) skewX(-10deg); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) skewX(0deg); }
 }
 
 @keyframes grow-x {
@@ -244,7 +241,7 @@
 
 .anim-letter {
   display: inline-block;
-  backface-visibility: hidden;
+  will-change: transform, opacity;
   animation: letter-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -430,8 +427,174 @@
 .anim-blob-a { will-change: transform; animation: blob-a 26s ease-in-out infinite; }
 .anim-blob-b { will-change: transform; animation: blob-b 32s ease-in-out infinite; }
 
+.hero-gate:not([data-ready]) *,
+.hero-gate:not([data-ready]) *::after {
+  animation-play-state: paused;
+}
+
+@keyframes star-in {
+  0% { opacity: 0; scale: 0; rotate: -140deg; }
+  70% { opacity: 1; scale: 1.25; rotate: 10deg; }
+  100% { opacity: 1; scale: 1; rotate: 0deg; }
+}
+
+.anim-twinkle.star-in {
+  animation: star-in 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2) both, twinkle 2.4s ease-in-out infinite;
+}
+
+.anim-orbit-in {
+  animation: appear 0.4s ease-out 0.45s both, orbit 3.2s linear 0.45s infinite;
+}
+
+@keyframes k-up { from { opacity: 0; transform: translate3d(0, 14px, 0); } }
+@keyframes k-left { from { opacity: 0; transform: translate3d(-22px, 0, 0); } }
+@keyframes k-right { from { opacity: 0; transform: translate3d(22px, 0, 0); } }
+@keyframes k-drop { from { opacity: 0; transform: translate3d(0, -12px, 0); } }
+@keyframes k-pop { 0% { opacity: 0; transform: scale(0.6); } 70% { opacity: 1; transform: scale(1.06); } }
+@keyframes k-flip { from { opacity: 0; transform: perspective(700px) rotateX(-75deg); } }
+@keyframes k-spin { from { opacity: 0; transform: scale(0.4) rotate(-120deg); } }
+@keyframes k-wipe { from { clip-path: inset(0 100% 0 0); } }
+@keyframes k-wipe-r { from { clip-path: inset(0 0 0 100%); } }
+@keyframes k-grow { from { transform: scaleX(0); } }
+@keyframes k-draw { from { stroke-dashoffset: 1; } }
+@keyframes k-word { from { opacity: 0; transform: translate3d(0, 0.5em, 0) rotate(5deg); } }
+
+.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word {
+  animation-duration: 0.7s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: backwards;
+  animation-delay: calc(var(--d, 0s) + var(--i, 0) * var(--s, 0.06s));
+}
+.in-up { animation-name: k-up; }
+.in-left { animation-name: k-left; }
+.in-right { animation-name: k-right; }
+.in-drop { animation-name: k-drop; }
+.in-pop { animation-name: k-pop; animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+.in-flip { animation-name: k-flip; transform-origin: 50% 0; }
+.in-spin { animation-name: k-spin; animation-duration: 0.9s; }
+.in-wipe { animation-name: k-wipe; animation-duration: 0.9s; }
+.in-wipe-r { animation-name: k-wipe-r; animation-duration: 0.9s; }
+.in-grow { animation-name: k-grow; transform-origin: 0 50%; }
+.in-draw { animation-name: k-draw; animation-duration: 1.1s; stroke-dasharray: 1; }
+.word { display: inline-block; animation-name: k-word; transform-origin: 0 100%; }
+
+.iv:not(.in) :is(.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word) {
+  animation-play-state: paused;
+}
+
+@keyframes k-left-far { from { opacity: 0; transform: translate3d(-70px, 0, 0) skewX(-10deg); } }
+@keyframes k-right-far { from { opacity: 0; transform: translate3d(70px, 0, 0) skewX(10deg); } }
+@keyframes k-slam { 0% { opacity: 0; transform: scale(2.2) rotate(-10deg); } 60% { opacity: 1; transform: scale(0.9) rotate(2deg); } }
+@keyframes k-curtain { from { clip-path: inset(100% 0 0 0); transform: translate3d(0, 24px, 0); } }
+@keyframes k-launch { 0% { opacity: 0; transform: translate3d(0, 90px, 0) rotate(5deg) scale(0.85); } 55% { opacity: 1; transform: translate3d(0, -8px, 0) rotate(-1.5deg) scale(1.03); } 80% { transform: translate3d(0, 2px, 0) rotate(0.4deg) scale(0.995); } }
+@keyframes k-grow-y { from { transform: scaleY(0); } }
+@keyframes k-sweep { from { opacity: 1; transform: translateX(-120%); } to { opacity: 1; transform: translateX(420%); } }
+.in-left-far, .in-right-far, .in-slam, .in-curtain, .in-launch, .in-grow-y, .in-sweep {
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: backwards;
+  animation-delay: calc(var(--d, 0s) + var(--i, 0) * var(--s, 0.06s));
+}
+.in-left-far { animation-name: k-left-far; }
+.in-right-far { animation-name: k-right-far; }
+.in-slam { animation-name: k-slam; animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1); }
+.in-curtain { animation-name: k-curtain; animation-duration: 0.9s; }
+.in-launch { animation-name: k-launch; animation-duration: 1.1s; animation-timing-function: cubic-bezier(0.25, 0.8, 0.3, 1); transform-origin: 50% 100%; }
+.in-grow-y { animation-name: k-grow-y; animation-duration: 1s; transform-box: fill-box; transform-origin: 50% 100%; }
+.in-sweep { animation-name: k-sweep; animation-duration: 1.1s; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+.iv:not(.in) :is(.in-left-far, .in-right-far, .in-slam, .in-curtain, .in-launch, .in-grow-y, .in-sweep),
+.iv.iv-self:not(.in) {
+  animation-play-state: paused;
+}
+
+.enter-kids > * {
+  animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.36s backwards;
+}
+
+.enter-kids > .no-enter {
+  animation: none;
+}
+
+.enter-kids > :nth-child(1) {
+  animation-delay: 0.11s;
+}
+
+.enter-kids > :nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.enter-kids > :nth-child(3) {
+  animation-delay: 0.25s;
+}
+
+.enter-kids > :nth-child(4) {
+  animation-delay: 0.32s;
+}
+
+.enter-kids > :nth-child(5) {
+  animation-delay: 0.39s;
+}
+
+.enter-kids > :nth-child(6) {
+  animation-delay: 0.46s;
+}
+
+.enter-kids > :nth-child(7) {
+  animation-delay: 0.53s;
+}
+
+.enter-kids > :nth-child(8) {
+  animation-delay: 0.60s;
+}
+
+html.lite header {
+  backdrop-filter: none;
+  background-color: var(--color-ink);
+}
+
+html.lite .grain::after {
+  display: none;
+}
+
+html.lite .anim-page {
+  animation: none !important;
+}
+
+html.lite:not(.settled) .anim-blob-a,
+html.lite:not(.settled) .anim-blob-b,
+html.lite:not(.settled) .anim-float,
+html.lite:not(.settled) .anim-drift,
+html.lite:not(.settled) .anim-echo,
+html.lite:not(.settled) .anim-twinkle,
+html.lite:not(.settled) .anim-chevron,
+html.lite:not(.settled) .anim-orbit {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-rise,
+  .enter-kids > *,
+  .in-left-far,
+  .in-right-far,
+  .in-slam,
+  .in-curtain,
+  .in-launch,
+  .in-grow-y,
+  .in-sweep,
+  .in-up,
+  .in-left,
+  .in-right,
+  .in-drop,
+  .in-pop,
+  .in-flip,
+  .in-spin,
+  .in-wipe,
+  .in-wipe-r,
+  .in-grow,
+  .in-draw,
+  .word,
+  .anim-twinkle.star-in,
+  .anim-orbit-in,
   .anim-stripe,
   .anim-stitch,
   .anim-twinkle,

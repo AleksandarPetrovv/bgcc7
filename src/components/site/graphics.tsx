@@ -71,9 +71,14 @@ export function Rhombus({ className }: { className?: string }) {
 
 const STAR = "M12 0C12.9 7.6 16.4 11.1 24 12C16.4 12.9 12.9 16.4 12 24C11.1 16.4 7.6 12.9 0 12C7.6 11.1 11.1 7.6 12 0Z";
 
-export function Sparkle({ className, delay = 0 }: { className?: string; delay?: number }) {
+export function Sparkle({ className, delay = 0, enter }: { className?: string; delay?: number; enter?: number }) {
   return (
-    <svg viewBox="0 0 24 24" className={cn("anim-twinkle pointer-events-none absolute fill-current", className)} style={{ animationDelay: `${delay}s` }} aria-hidden>
+    <svg
+      viewBox="0 0 24 24"
+      className={cn("anim-twinkle pointer-events-none absolute fill-current", enter !== undefined && "star-in", className)}
+      style={{ animationDelay: enter !== undefined ? `${enter}s, ${enter + 0.7 + delay}s` : `${delay}s` }}
+      aria-hidden
+    >
       <path d={STAR} />
     </svg>
   );
