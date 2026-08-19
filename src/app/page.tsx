@@ -284,8 +284,8 @@ export default async function Home() {
         <TeamMosaic teams={teams} />
       </EntryCard>
     ),
-    see("bracket") && (
-      <EntryCard key="bracket" title={t.home.bracket} sub={t.home.bracketSub} href="/schedule/bracket" className="bg-coal">
+    see("schedule") && (
+      <EntryCard key="bracket" title={t.home.bracket} sub={t.home.bracketSub} href="/matches" className="bg-coal">
         <MiniBracket />
       </EntryCard>
     ),
@@ -409,7 +409,7 @@ export default async function Home() {
             <>
               <Reveal className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3">
                 <h2 className="heading-slam text-4xl">{t.home.previously}</h2>
-                <Link href="/schedule" className="group inline-flex items-center gap-1.5 text-sm font-black uppercase text-ash transition-colors hover:text-paper">
+                <Link href="/matches" className="group inline-flex items-center gap-1.5 text-sm font-black uppercase text-ash transition-colors hover:text-paper">
                   {t.home.fullSchedule} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
               </Reveal>

@@ -144,7 +144,7 @@ function Board({ match, data }: { match: Match; data: Scoreboard }) {
   );
 }
 
-export function MatchDialog({ match }: { match: Match }) {
+export function MatchDialog({ match, compact }: { match: Match; compact?: boolean }) {
   const t = useDict();
   const [data, setData] = useState<Scoreboard | "error" | null>(null);
   const { teamById } = useTournament();
@@ -165,9 +165,12 @@ export function MatchDialog({ match }: { match: Match }) {
       <DialogTrigger
         aria-label={t.match.details}
         title={t.match.details}
-        className="flex w-10 shrink-0 items-center justify-center text-ash transition hover:bg-slate hover:text-paper sm:w-14"
+        className={cn(
+          "flex shrink-0 items-center justify-center text-ash transition hover:text-paper",
+          compact ? "size-6 -skew-x-12 border border-line hover:border-rose hover:bg-rose/15" : "w-10 hover:bg-slate sm:w-14",
+        )}
       >
-        <ListOrdered className="size-5" />
+        <ListOrdered className={cn(compact ? "size-3.5 skew-x-12" : "size-5")} />
       </DialogTrigger>
       <DialogContent className="max-h-[90dvh] gap-0 overflow-y-auto rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
         <div className="sticky top-0 z-10 border-b border-line bg-ink/95 px-4 py-4 backdrop-blur sm:px-6">

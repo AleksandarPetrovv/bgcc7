@@ -20,7 +20,7 @@ export default async function UserBracket({ params }: PageProps<"/pickems/[osuId
       <Link href="/pickems" className="mb-4 inline-flex items-center gap-1.5 text-xs font-black uppercase text-ash hover:text-paper">
         <ArrowLeft className="size-4" /> {t.pickems.back}
       </Link>
-      <PageTitle
+      <PageTitle mark="tick"
         right={
           entry.picks && (
             <span className="in-pop num inline-block text-2xl text-balkan [--d:0.4s]">

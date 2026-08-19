@@ -1,5 +1,7 @@
 import { requireSection } from "@/lib/authz";
-import { ScheduleView } from "./schedule-view";
+import { Sheet } from "lucide-react";
+import { Container, PageTitle, SlantButton, Wide } from "@/components/site/page";
+import { MatchBracket } from "@/components/site/match-bracket";
 import { RescheduleBox, type RescheduleItem } from "./reschedule-box";
 import { getSettings } from "@/db/settings";
 import { currentOsuId } from "@/auth";
@@ -7,7 +9,7 @@ import { getMatches, getMatchRows, getTeams } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
 import { getLiveScores } from "@/db/scoreboards";
 import { getReschedules, OPEN } from "@/db/reschedules";
-import { getLang } from "@/lib/i18n/server";
+import { getDict, getLang } from "@/lib/i18n/server";
 import { fmtSofia, isPast, rescheduleDeadline } from "@/lib/time";
 
 async function myItems(): Promise<RescheduleItem[]> {
@@ -41,9 +43,29 @@ async function myItems(): Promise<RescheduleItem[]> {
     });
 }
 
-export default async function Schedule() {
+export default async function Matches() {
   await requireSection("schedule");
-  const [settings, items, matches, teams, stages] = await Promise.all([getSettings(), myItems(), getMatches(), getTeams(), getPoolStages()]);
+  const [t, settings, items, matches, teams, stages] = await Promise.all([getDict(), getSettings(), myItems(), getMatches(), getTeams(), getPoolStages()]);
   const live = await getLiveScores(matches, teams, stages);
-  return <ScheduleView sheets={settings.links.sheets} top={<RescheduleBox items={items} />} live={live} />;
+  return (
+    <Container plain>
+      <PageTitle mark="chevrons"
+        right={
+          <>
+            {settings.links.sheets && (
+              <SlantButton tone="rose" href={settings.links.sheets} className="px-3 py-1.5">
+                <Sheet className="size-4" /> {t.common.sheets}
+              </SlantButton>
+            )}
+          </>
+        }
+      >
+        {t.schedule.title}
+      </PageTitle>
+      <RescheduleBox items={items} />
+      <Wide full>
+        <MatchBracket live={live} />
+      </Wide>
+    </Container>
+  );
 }

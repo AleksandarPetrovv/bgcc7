@@ -68,7 +68,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
 
   return (
     <Container plain>
-      <PageTitle accent={t.pickems.accent} right={open ? <Tag tone="balkan" className="text-xs">{t.pickems.openTag}</Tag> : <Tag tone="rose" className="text-xs">{t.pickems.closedTag}</Tag>}>
+      <PageTitle mark="tick" accent={t.pickems.accent} right={open ? <Tag tone="balkan" className="text-xs">{t.pickems.openTag}</Tag> : <Tag tone="rose" className="text-xs">{t.pickems.closedTag}</Tag>}>
         {t.pickems.title}
       </PageTitle>
 

@@ -6,6 +6,13 @@ const nextConfig: NextConfig = {
   output: "standalone",
   devIndicators: false,
   poweredByHeader: false,
+  async redirects() {
+    return [
+      { source: "/schedule", destination: "/matches", permanent: true },
+      { source: "/schedule/:path*", destination: "/matches", permanent: true },
+      { source: "/matches/bracket", destination: "/matches", permanent: true },
+    ];
+  },
   experimental: { serverActions: { allowedOrigins: publicHost ? [publicHost] : [] } },
   async headers() {
     return [
