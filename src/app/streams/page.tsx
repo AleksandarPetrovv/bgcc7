@@ -1,4 +1,4 @@
-import { ExternalLink, Mic, Video } from "lucide-react";
+import { ExternalLink, Mic, User, Video } from "lucide-react";
 import { Container, PageTitle, SlantButton, SubHeading, Tag } from "@/components/site/page";
 import { TwitchEmbed } from "@/components/site/twitch-embed";
 import { getDict } from "@/lib/i18n/server";
@@ -16,31 +16,27 @@ export default async function Streams() {
   const teamById = (id: string) => teams.find((x) => x.id === id);
   const upcoming = matches.filter((m) => !m.winner && m.datetime && m.team1.id && m.team2.id).sort((a, b) => a.datetime!.localeCompare(b.datetime!));
   return (
-    <Container className="max-w-[1400px]">
+    <Container plain>
       <PageTitle
         right={
-          <>
-            {live && (
-              <Tag tone="rose" className="flex items-center gap-1.5 text-xs">
-                <span className="size-1.5 animate-pulse rounded-full bg-white" /> {t.home.live}
-                {live.viewers !== null && <span className="num opacity-80">· {live.viewers}</span>}
-              </Tag>
-            )}
-            <Tag tone={live ? "paper" : "rose"} className="text-xs normal-case">
-              {t.streams.channelTag}
-            </Tag>
-          </>
+          <Tag tone="paper" className="text-xs normal-case">
+            {t.streams.channelTag}
+          </Tag>
         }
       >
         {t.streams.title}
       </PageTitle>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
-        <div>
-          <div className="aspect-video overflow-hidden border border-line bg-coal">
+        <div className="relative">
+          {live?.viewers != null && (
+            <span className="in-pop num absolute -top-6 right-0 flex items-center gap-1 text-sm text-rose-hi" style={{ "--d": "0.9s" } as React.CSSProperties} title={t.home.live}>
+              <User className="size-4" /> {live.viewers}
+            </span>
+          )}
+          <div className="in-wipe aspect-video overflow-hidden border border-line bg-coal" style={{ "--d": "0.15s" } as React.CSSProperties}>
             <TwitchEmbed title={t.streams.title} />
           </div>
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <span className="text-xs font-bold uppercase text-ash">{t.streams.commentary}</span>
+          <div className="in-up mt-4 flex flex-wrap items-center justify-end gap-3" style={{ "--d": "0.7s" } as React.CSSProperties}>
             <SlantButton href={TWITCH_URL} tone="paper">
               {t.streams.openTwitch} <ExternalLink className="size-4" />
             </SlantButton>
@@ -48,14 +44,16 @@ export default async function Streams() {
         </div>
 
         <div>
-          <SubHeading>{t.streams.schedule}</SubHeading>
+          <div className="in-drop" style={{ "--d": "0.25s" } as React.CSSProperties}>
+            <SubHeading>{t.streams.schedule}</SubHeading>
+          </div>
           <div className="space-y-2">
-            {upcoming.length === 0 && <p className="border border-line bg-coal p-4 text-sm text-ash">{t.streams.noUpcoming}</p>}
-            {upcoming.map((m) => {
+            {upcoming.length === 0 && <p className="in-right border border-line bg-coal p-4 text-sm text-ash" style={{ "--d": "0.35s" } as React.CSSProperties}>{t.streams.noUpcoming}</p>}
+            {upcoming.map((m, i) => {
               const a = teamById(m.team1.id);
               const b = teamById(m.team2.id);
               return (
-                <div key={m.id} className="border border-line bg-coal p-3">
+                <div key={m.id} className="in-right border border-line bg-coal p-3" style={{ "--i": Math.min(i, 8), "--s": "0.08s", "--d": "0.35s" } as React.CSSProperties}>
                   <div className="flex items-center justify-between text-xs font-black uppercase">
                     <span className="text-rose-hi">{roundName(t, m.round)}</span>
                     <span className="num text-sm text-paper">{fmtSofia(new Date(m.datetime!), lang === "bg" ? "bg-BG" : "en-GB")}</span>

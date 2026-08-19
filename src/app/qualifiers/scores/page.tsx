@@ -1,4 +1,4 @@
-import { Container, PageTitle } from "@/components/site/page";
+import { Container, PageTitle, Wide } from "@/components/site/page";
 import { ScoreMatrix } from "@/components/site/score-matrix";
 import { getDict } from "@/lib/i18n/server";
 import { requireSection } from "@/lib/authz";
@@ -9,9 +9,11 @@ export default async function Scores() {
   await requireSection("qualScores");
   const [t, qualifiers, settings] = await Promise.all([getDict(), getQualResults(), getSettings()]);
   return (
-    <Container className="max-w-[1400px]">
+    <Container>
       <PageTitle right={<span className="max-w-md text-sm text-ash">{t.qual.scoresHint}</span>}>{t.qual.scoresTitle}</PageTitle>
-      {qualifiers.players.length ? <ScoreMatrix qualifiers={qualifiers} cut={settings.qualifyCount} /> : <p className="py-10 text-center text-ash">{t.qual.noResults}</p>}
+      {qualifiers.players.length ? <Wide>
+          <ScoreMatrix qualifiers={qualifiers} cut={settings.qualifyCount} />
+        </Wide> : <p className="py-10 text-center text-ash">{t.qual.noResults}</p>}
     </Container>
   );
 }

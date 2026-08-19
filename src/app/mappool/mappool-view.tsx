@@ -16,7 +16,7 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
   const stage = stages[i];
   if (!stage)
     return (
-      <Container className="max-w-5xl">
+      <Container>
         <PageTitle>{t.mappool.title}</PageTitle>
         <p className="py-10 text-center text-ash">{t.mappool.empty}</p>
       </Container>
@@ -24,7 +24,7 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
   const count = stage.pools.reduce((s, p) => s + p.maps.length, 0);
 
   return (
-    <Container className="max-w-5xl">
+    <Container plain>
       <PageTitle
         right={
           <>
@@ -46,26 +46,26 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
       </PageTitle>
 
       <motion.div key={stage.slug} className="space-y-2.5" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
-        {stage.pools.map((p) => {
+        {stage.pools.map((p, pi) => {
           const mod = MODS[p.category];
           const isOpen = !closed[p.category];
           const light = p.category === "Tiebreaker";
           return (
-            <section key={p.category}>
+            <section key={p.category} style={{ "--i": pi, "--s": "0.09s" } as React.CSSProperties}>
               <button
                 onClick={() => setClosed({ ...closed, [p.category]: isOpen })}
                 className="group flex w-full items-stretch gap-2.5 text-left transition-transform duration-300 hover:translate-x-1"
                 aria-expanded={isOpen}
               >
-                <span className="flex w-8 items-center justify-center" style={{ background: mod.color }}>
+                <span className="in-pop flex w-8 items-center justify-center" style={{ background: mod.color }}>
                   <Play className={cn("size-4 fill-current transition-transform", isOpen && "rotate-90", light ? "text-ink" : "text-white")} />
                 </span>
                 <span
-                  className={cn("flex flex-1 items-center justify-between px-3 py-1.5 font-black uppercase", light ? "text-ink" : "text-white")}
+                  className={cn("in-grow flex flex-1 items-center justify-between px-3 py-1.5 font-black uppercase [--d:0.08s]", light ? "text-ink" : "text-white")}
                   style={{ background: mod.color }}
                 >
                   {mod.label}
-                  <span className="num text-lg opacity-80">{p.maps.length}</span>
+                  <span className="in-pop num text-lg opacity-80 [--d:0.4s]">{p.maps.length}</span>
                 </span>
               </button>
               <AnimatePresence initial={false}>
@@ -84,11 +84,11 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.45, delay: 0.05 + k * 0.04, ease: [0.16, 1, 0.3, 1] }}
                       key={m.slot} href={osuMap(m.id)} target="_blank" rel="noreferrer" aria-label={`${m.slot} ${m.title}, ${t.common.openMap}`} className="lift group relative flex h-20 items-stretch overflow-hidden border border-transparent bg-coal hover:border-line"
-                      style={{ "--lift": mod.color } as React.CSSProperties}>
+                      style={{ "--lift": mod.color, "--i": pi + k, "--s": "0.05s" } as React.CSSProperties}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={m.cover} alt="" className="absolute inset-0 size-full object-cover opacity-30 transition duration-500 group-hover:scale-105 group-hover:opacity-45" />
+                      <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-30 transition duration-500 group-hover:scale-105 group-hover:opacity-45 [--d:0.15s]" />
                       <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-transparent" />
-                      <span className="heading-slam relative flex w-24 shrink-0 items-center justify-center text-2xl" style={{ color: mod.color }}>
+                      <span className="in-pop heading-slam relative flex w-24 shrink-0 items-center justify-center text-2xl [--d:0.3s]" style={{ color: mod.color }}>
                         {m.slot}
                       </span>
                       <div className="relative flex min-w-0 flex-1 flex-col justify-center">
@@ -97,7 +97,7 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
                           [{m.version}] <span className="text-ash">by {m.creator}</span>
                         </span>
                       </div>
-                      <div className="num relative hidden items-center gap-5 pr-5 text-base sm:flex">
+                      <div className="in-right num relative hidden items-center gap-5 pr-5 text-base sm:flex [--d:0.35s]">
                         <span className="flex items-center gap-1 text-[#e8c547]">
                           <Star className="size-4 fill-current" /> {m.sr.toFixed(2)}
                         </span>

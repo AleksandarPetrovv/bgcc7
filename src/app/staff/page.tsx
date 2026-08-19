@@ -20,15 +20,15 @@ export default async function Staff() {
   const open = ROLE_ORDER.filter((r) => !list.some((p) => p.roles.includes(r)));
 
   return (
-    <Container className="max-w-5xl">
+    <Container>
       <PageTitle right={<span className="num text-2xl text-balkan">{list.length}</span>}>{t.staff.title}</PageTitle>
 
       <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {list.map((p) => (
+        {list.map((p, i) => (
           <StaggerItem as="article" key={p.username} className="lift group flex border border-line bg-coal hover:border-paper/30">
-            <div className="flex shrink-0 items-center justify-center p-4 sm:p-5">
+            <div className="flex shrink-0 items-center justify-center p-4 sm:p-5" style={{ "--i": i, "--s": "0.08s", "--d": "0.2s" } as React.CSSProperties}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.avatar} alt="" className="size-20 rounded-full object-cover ring-2 ring-rose ring-offset-4 ring-offset-coal transition-transform duration-500 group-hover:rotate-[-4deg] group-hover:scale-105 sm:size-24" />
+              <img src={p.avatar} alt="" className="in-spin size-20 rounded-full object-cover ring-2 ring-rose/40 ring-offset-4 ring-offset-coal transition-transform duration-500 group-hover:rotate-[-4deg] group-hover:scale-105 sm:size-24" />
             </div>
             <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 p-4">
               <div className="flex items-center gap-2.5">
@@ -39,12 +39,13 @@ export default async function Staff() {
                 {p.country && <img src={flagUrl(p.country)} alt={p.country} className="h-3 w-auto shrink-0" />}
               </div>
               <ul className="flex flex-wrap gap-1.5">
-                {p.roles.map((r, i) => (
+                {p.roles.map((r, j) => (
                   <li
                     key={r}
+                    style={{ "--i": i + j, "--s": "0.08s", "--d": "0.45s" } as React.CSSProperties}
                     className={cn(
-                      "px-2 py-1 text-[0.65rem] font-black uppercase leading-none tracking-wide",
-                      i === 0 ? "bg-rose text-white" : "border border-line text-paper/85",
+                      "in-pop px-2 py-1 text-[0.65rem] font-black uppercase leading-none tracking-wide",
+                      j === 0 ? "bg-rose text-white" : "border border-line text-paper/85",
                     )}
                   >
                     {t.staff.roles[r] ?? r}

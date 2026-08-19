@@ -25,7 +25,22 @@ export function MapDifficultyChart({ qualifiers }: { qualifiers: { maps: QualMap
             itemStyle={{ color: "#f4f3ee" }}
             formatter={(v) => [Number(v).toLocaleString("en-US"), t.stats.avgScore]}
           />
-          <Bar dataKey="avg" radius={0}>
+          <Bar
+            dataKey="avg"
+            radius={0}
+            isAnimationActive={false}
+            shape={(props: { x?: number; y?: number; width?: number; height?: number; fill?: string; index?: number }) => (
+              <rect
+                x={props.x}
+                y={props.y}
+                width={props.width}
+                height={props.height}
+                fill={props.fill}
+                className="in-grow-y"
+                style={{ "--i": props.index ?? 0, "--s": "0.07s", "--d": "0.15s" } as React.CSSProperties}
+              />
+            )}
+          >
             {data.map((d) => (
               <Cell key={d.slot} fill={COLOR[d.slot.slice(0, 2)]} />
             ))}

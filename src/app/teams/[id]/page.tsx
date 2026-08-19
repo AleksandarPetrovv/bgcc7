@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Words } from "@/components/site/rich";
 import { Crown } from "lucide-react";
 import { Container, SectionHeading, Tag } from "@/components/site/page";
 import { SpeedLines } from "@/components/site/graphics";
@@ -23,22 +24,26 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
       <section className="relative overflow-hidden border-b border-line">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={team.image} alt="" className="absolute inset-0 size-full scale-110 object-cover opacity-25 blur-2xl" />
-        <SpeedLines className="absolute -right-10 bottom-6 h-24 w-[40rem] text-rose/40" />
+        <SpeedLines className="in-wipe-r absolute -right-10 bottom-6 h-24 w-[40rem] text-rose/40" />
         <div className="relative mx-auto flex max-w-6xl flex-wrap items-end gap-8 px-4 py-12 sm:px-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={team.image} alt="" className="size-40 border-4 border-paper object-cover" />
+          <img src={team.image} alt="" className="in-spin size-40 border-4 border-paper object-cover" style={{ "--d": "0.1s" } as React.CSSProperties} />
           <div>
-            <Tag tone="balkan" className="text-xs">
-              {t.common.seed} {team.seed}
-            </Tag>
-            <h1 className="heading-slam mt-2 max-w-3xl text-4xl sm:text-6xl">{team.name}</h1>
+            <span className="in-pop inline-block origin-left" style={{ "--d": "0.35s" } as React.CSSProperties}>
+              <Tag tone="balkan" className="text-xs">
+                {t.common.seed} {team.seed}
+              </Tag>
+            </span>
+            <h1 className="heading-slam mt-2 max-w-3xl text-4xl sm:text-6xl">
+              <Words text={team.name} d={0.4} s={0.08} />
+            </h1>
             <div className="mt-3 flex gap-8">
               {[
                 [t.common.avgRank, `#${fmtNum(team.avgRank)}`],
                 [t.common.avgPp, fmtNum(team.avgPp)],
                 [t.common.record, `${wins}–${matches.filter((m) => m.winner).length - wins}`],
-              ].map(([k, v]) => (
-                <div key={k}>
+              ].map(([k, v], i) => (
+                <div key={k} className="in-up" style={{ "--i": i, "--s": "0.1s", "--d": "0.7s" } as React.CSSProperties}>
                   <div className="text-[0.65rem] font-black uppercase tracking-widest text-rose-hi">{k}</div>
                   <div className="num text-3xl">{v}</div>
                 </div>

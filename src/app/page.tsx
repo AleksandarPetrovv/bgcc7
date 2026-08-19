@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Radio } from "lucide-react";
 import { Sparkle, TriTick, Tricolor } from "@/components/site/graphics";
 import { SlantButton } from "@/components/site/page";
-import { Rich } from "@/components/site/rich";
+import { Words } from "@/components/site/rich";
 import { Avatar } from "@/components/site/avatar";
 import { CountUp, Reveal, Stagger, StaggerItem } from "@/components/site/motion";
 import { getDict } from "@/lib/i18n/server";
@@ -22,6 +22,8 @@ import { getPublicStaff } from "@/db/admin";
 import { cn } from "@/lib/utils";
 import { getSettings } from "@/db/settings";
 import { getVisibility } from "@/lib/authz";
+import { InView } from "@/components/site/in-view";
+import { HeroGate } from "@/components/site/hero-gate";
 
 function HeroLockup({ label }: { label: string }) {
   return (
@@ -44,7 +46,7 @@ function HeroLockup({ label }: { label: string }) {
           </span>
           <span className="relative text-rose">7</span>
           <span
-            className="anim-shine pointer-events-none absolute left-0 top-0 bg-[linear-gradient(105deg,transparent_42%,rgba(255,255,255,0.55)_50%,transparent_58%)] bg-[length:300%_100%] bg-clip-text text-transparent"
+            className="anim-shine pointer-events-none absolute -left-[0.3em] -top-[0.3em] p-[0.3em] bg-[linear-gradient(105deg,transparent_42%,rgba(255,255,255,0.55)_50%,transparent_58%)] bg-[length:300%_100%] bg-clip-text text-transparent"
             aria-hidden
           >
             7
@@ -190,7 +192,7 @@ function MiniBracket() {
 function Timeline({ t, timeline, locale }: { t: Dict; timeline: TimelineRow[]; locale: string }) {
   const states = timelineStates(timeline);
   return (
-    <ol className="relative mt-6">
+    <InView as="ol" className="relative mt-6">
       <span className="anim-stitch absolute bottom-3 left-[7px] top-3 border-l-2 border-dashed border-line" aria-hidden />
       {timeline.map((e, i) => {
         const current = states[i] === "now";
@@ -199,12 +201,12 @@ function Timeline({ t, timeline, locale }: { t: Dict; timeline: TimelineRow[]; l
           <li
             key={e.key}
             className={cn(
-              "anim-rise relative flex items-baseline gap-4 py-2 pl-8 pr-3 text-[0.95rem] uppercase transition-colors",
+              "in-left relative flex items-baseline gap-4 py-2 pl-8 pr-3 text-[0.95rem] uppercase transition-colors",
               current ? "bg-slate font-black text-paper" : done ? "text-ash" : "text-paper/80 hover:text-paper",
             )}
-            style={{ animationDelay: `${0.2 + i * 0.06}s` }}
+            style={{ "--d": "0.3s", "--i": i, "--s": "0.08s" } as React.CSSProperties}
           >
-            <span className="absolute left-0 top-1/2 flex size-4 -translate-y-1/2 items-center justify-center bg-ink">
+            <span className="in-pop absolute left-0 top-1/2 flex size-4 -translate-y-1/2 items-center justify-center bg-ink" style={{ "--d": "0.45s", "--i": i, "--s": "0.08s" } as React.CSSProperties}>
               {current ? (
                 <>
                   <span className="anim-ping-diamond absolute size-2.5 bg-rose" aria-hidden />
@@ -216,11 +218,11 @@ function Timeline({ t, timeline, locale }: { t: Dict; timeline: TimelineRow[]; l
             </span>
             {current && <span className="absolute inset-y-0 left-0 w-0.5 bg-rose" aria-hidden />}
             <span className="flex-1">{t.timeline[e.key]}</span>
-            <span className="num whitespace-nowrap text-base normal-case">{fmtRange(locale, e.from, e.to)}</span>
+            <span className="in-wipe num whitespace-nowrap text-base normal-case" style={{ "--d": "0.55s", "--i": i, "--s": "0.08s" } as React.CSSProperties}>{fmtRange(locale, e.from, e.to)}</span>
           </li>
         );
       })}
-    </ol>
+    </InView>
   );
 }
 
@@ -308,7 +310,7 @@ export default async function Home() {
 
   return (
     <>
-      <section className="grain relative overflow-hidden border-b border-line">
+      <HeroGate className="grain relative overflow-hidden border-b border-line">
         <div className="pointer-events-none absolute inset-y-0 right-0 w-[70%] overflow-hidden [mask-image:linear-gradient(to_left,black,transparent)]" aria-hidden>
           <div className="anim-drift h-full w-[calc(100%+120px)] bg-[repeating-linear-gradient(115deg,transparent_0_52.4px,rgba(255,255,255,0.03)_52.4px_54.4px)]" />
         </div>
@@ -325,15 +327,23 @@ export default async function Home() {
           </div>
 
           <div className="flex min-w-0 flex-col justify-end">
-            <h1 className="anim-rise text-balance text-[clamp(1.8rem,3.2vw,2.9rem)] font-black leading-[1.05] tracking-tight" style={{ animationDelay: "0.25s" }}>
-              <Rich text={t.home.headline} />
+            <h1 className="text-balance text-[clamp(1.8rem,3.2vw,2.9rem)] font-black leading-[1.05] tracking-tight">
+              <Words text={t.home.headline} d={0.35} s={0.055} />
             </h1>
-            <p className="anim-rise mt-5 max-w-[48ch] text-pretty text-lg text-paper/70" style={{ animationDelay: "0.4s" }}>
-              {f(t.home.intro)}
+            <p className="mt-5 max-w-[48ch] text-pretty text-lg text-paper/70">
+              <Words text={f(t.home.intro)} d={0.85} s={0.018} />
             </p>
-            <div className="anim-rise mt-8 flex flex-wrap items-center gap-3" style={{ animationDelay: "0.55s" }}>
-              {see("register") && <SlantButton href="/register" tone="paper" className="px-5 py-2.5 text-base">{t.home.registerTeam}</SlantButton>}
-              {see("info") && <SlantButton href="/info" tone="outline" className="px-5 py-2.5 text-base">{t.home.readRules}</SlantButton>}
+            <div className="mt-8 flex flex-wrap items-center gap-3" style={{ "--d": "1.45s", "--s": "0.1s" } as React.CSSProperties}>
+              {see("register") && (
+                <span className="in-pop inline-flex">
+                  <SlantButton href="/register" tone="paper" className="px-5 py-2.5 text-base">{t.home.registerTeam}</SlantButton>
+                </span>
+              )}
+              {see("info") && (
+                <span className="in-pop inline-flex" style={{ "--i": 1 } as React.CSSProperties}>
+                  <SlantButton href="/info" tone="outline" className="px-5 py-2.5 text-base">{t.home.readRules}</SlantButton>
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -341,18 +351,18 @@ export default async function Home() {
           {[1, 6, 7, 8].map((i, k) => (
             <div
               key={i}
-              className={cn("anim-rise group px-4 py-4 transition-colors hover:bg-white/[0.02] sm:px-6", k % 2 === 1 && "border-l border-line", k > 1 && "border-t border-line sm:border-t-0", k === 2 && "sm:border-l")}
-              style={{ animationDelay: `${0.7 + k * 0.08}s` }}
+              className={cn("in-up group px-4 py-4 transition-colors hover:bg-white/[0.02] sm:px-6", k % 2 === 1 && "border-l border-line", k > 1 && "border-t border-line sm:border-t-0", k === 2 && "sm:border-l")}
+              style={{ "--d": "1.1s", "--i": k, "--s": "0.09s" } as React.CSSProperties}
             >
               <dt className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-ash transition-colors group-hover:text-rose-hi">{t.info.facts[i][0]}</dt>
-              <dd className="num mt-1 text-xl text-paper sm:text-2xl">{f(t.info.facts[i][1])}</dd>
+              <dd className="in-wipe num mt-1 text-xl text-paper sm:text-2xl" style={{ "--d": "1.3s", "--i": k, "--s": "0.09s" } as React.CSSProperties}>{f(t.info.facts[i][1])}</dd>
             </div>
           ))}
         </dl>
         <div className="anim-grow-x">
           <Tricolor className="h-1" vertical />
         </div>
-      </section>
+      </HeroGate>
 
       <section className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-12 px-4 pt-14 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)]">
         <div>

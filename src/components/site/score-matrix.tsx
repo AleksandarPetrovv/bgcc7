@@ -65,10 +65,10 @@ export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]
             </tr>
           </thead>
           <tbody>
-            {rows.map((p) => {
+            {rows.map((p, i) => {
               const seed = qualifiers.players.indexOf(p) + 1;
               return (
-                <tr key={p.id} className={cn("border-t border-line", seed <= cut ? "" : "opacity-60")}>
+                <tr key={p.id} className={cn("in-left border-t border-line", seed <= cut ? "" : "opacity-60")} style={{ "--i": Math.min(i, 24), "--s": "0.03s", "--d": "0.2s" } as React.CSSProperties}>
                   <td className="sticky left-0 z-10 bg-ink px-3 py-2">
                     <span className={cn("num inline-block min-w-9 px-1.5 text-center text-base", seed <= 3 ? MEDAL[seed - 1] : "bg-slate text-paper")}>#{seed}</span>
                   </td>

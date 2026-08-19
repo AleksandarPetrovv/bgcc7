@@ -55,25 +55,36 @@ export function ScheduleView({ sheets, top, live = {} }: { sheets?: string; top?
           </SlantButton>
         )}
       </div>
-      {shown.length ? (
-        <motion.div layout className="space-y-4">
-          <AnimatePresence mode="popLayout" initial={false}>
-            {shown.map((m, k) => (
-              <motion.div
-                key={m.id}
-                layout
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0, transition: { duration: 0.5, delay: Math.min(k, 8) * 0.04, ease: [0.16, 1, 0.3, 1] } }}
-                exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.2 } }}
-              >
-                <MatchRow match={m} live={m.id in live ? live[m.id] : undefined} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
+      <div>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={query ? "search" : i}
+          className="relative space-y-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, transition: { duration: 0.15 } }}
+        >
+          {shown.length ? (
+            <AnimatePresence mode="popLayout">
+              {shown.map((m, k) => (
+                <motion.div
+                  key={m.id}
+                  layout="position"
+                  style={{ "--i": Math.min(k, 10), "--s": "0.09s" } as React.CSSProperties}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, transition: { duration: 0.3, delay: Math.min(k, 10) * 0.09 } }}
+                  exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                >
+                  <MatchRow match={m} live={m.id in live ? live[m.id] : undefined} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          ) : (
+            <p className="py-10 text-center text-ash">{t.common.noResults}</p>
+          )}
         </motion.div>
-      ) : (
-        <p className="py-10 text-center text-ash">{t.common.noResults}</p>
-      )}
+      </AnimatePresence>
+      </div>
     </Container>
   );
 }
