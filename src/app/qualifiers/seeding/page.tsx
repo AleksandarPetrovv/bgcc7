@@ -15,7 +15,7 @@ export default async function Seeding() {
   const [t, qualifiers, settings, teams, f] = await Promise.all([getDict(), getQualResults(), getSettings(), getTeams(), getFill()]);
   return (
     <Container>
-      <PageTitle right={<Tag tone="rose" className="text-xs">{t.qual.seedingTag}</Tag>}>{t.qual.seedingTitle}</PageTitle>
+      <PageTitle mark="chevrons" right={<Tag tone="rose" className="text-xs">{t.qual.seedingTag}</Tag>}>{t.qual.seedingTitle}</PageTitle>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr_1fr]">
         <div className="in-up border border-line bg-coal p-5" style={{ "--d": "0.15s" } as React.CSSProperties}>
           <div className="mb-3 text-xs font-black uppercase tracking-widest text-ash">{f(t.qual.chartLabel)}</div>

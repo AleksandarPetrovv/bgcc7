@@ -21,7 +21,7 @@ export default async function Staff() {
 
   return (
     <Container>
-      <PageTitle right={<span className="num text-2xl text-balkan">{list.length}</span>}>{t.staff.title}</PageTitle>
+      <PageTitle mark="dots" right={<span className="num text-2xl text-balkan">{list.length}</span>}>{t.staff.title}</PageTitle>
 
       <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {list.map((p, i) => (

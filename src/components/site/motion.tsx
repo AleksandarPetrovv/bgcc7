@@ -19,7 +19,7 @@ export function Reveal({ children, className, delay = 0, y = 24 }: { children: R
       className={className}
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "0px 0px -8% 0px" }}
+      viewport={{ once: true, amount: "some" }}
       transition={{ duration: 0.7, ease: EASE, delay }}
     >
       {children}
@@ -36,7 +36,7 @@ const item: Variants = {
 export function Stagger({ children, className, gap = 0.06, as = "div" }: { children: React.ReactNode; className?: string; gap?: number; as?: "div" | "ul" | "ol" }) {
   const Tag = motion[as];
   return (
-    <Tag className={className} variants={group} custom={gap} initial="hidden" whileInView="show" viewport={{ once: true, margin: "0px 0px -5% 0px" }}>
+    <Tag className={className} variants={group} custom={gap} initial="hidden" whileInView="show" viewport={{ once: true, amount: "some" }}>
       {children}
     </Tag>
   );

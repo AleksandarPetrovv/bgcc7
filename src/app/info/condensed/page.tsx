@@ -9,7 +9,7 @@ export default async function Condensed() {
   const [t, f] = await Promise.all([getDict(), getFill()]);
   return (
     <Container plain>
-      <PageTitle>{t.info.condensed}</PageTitle>
+      <PageTitle mark="bubble">{t.info.condensed}</PageTitle>
       <div className="grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-3">
         {t.info.facts.map(([k, v], i) => (
           <div key={k} className="in-flip bg-coal p-5" style={{ "--i": i, "--s": "0.07s", "--d": "0.15s" } as React.CSSProperties}>
