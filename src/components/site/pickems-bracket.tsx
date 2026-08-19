@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Crown } from "lucide-react";
-import { H, HEADERS, LB, POS, W, WIN, x } from "./bracket-view";
+import { G, H, HEADERS, LB, POS, W, WIN, x } from "./bracket-layout";
 import { useDict } from "./lang";
 import { flagUrl, fmtNum } from "@/lib/data";
 import { ORDER, resolve, seedingOf, type Picks } from "@/lib/pickems";
@@ -16,12 +16,12 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
   const { teamById, matches } = useTournament();
   const { slots, picks: clean, resetLive, champion } = resolve(picks, seedingOf(matches));
   const champ = champion ? teamById(champion) : undefined;
-  const width = x(4) + W;
+  const width = x(5) + W;
   const height = LB + 100 + H + 8;
   const wire = (a: string, b: string) => {
     const [ca, ya] = POS[a];
     const [cb, yb] = POS[b];
-    const x1 = x(ca) + W, y1 = ya + H / 2, x2 = x(cb), y2 = yb + H / 2, mx = (x1 + x2) / 2;
+    const x1 = x(ca) + W, y1 = ya + H / 2, x2 = x(cb), y2 = yb + H / 2, mx = x2 - G / 2;
     return `M${x1} ${y1} H${mx} V${y2} H${x2}`;
   };
 
@@ -32,7 +32,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
           {Object.entries(WIN).map(([a, b]) => (
             <path key={a} d={wire(a, b)} pathLength={1} className="in-draw" style={{ "--d": `${0.55 + POS[a][0] * 0.14}s` } as React.CSSProperties} fill="none" stroke={clean[a] ? "#0fa06a" : "#2b302d"} strokeOpacity={clean[a] ? 0.6 : 1} strokeWidth={2} />
           ))}
-          {resetLive && <path d={`M${x(4) + W / 2} ${300 + H} V400`} stroke="#e8c547" strokeWidth={2} strokeDasharray="3 3" />}
+          {resetLive && <path d={`M${x(5) + W / 2} ${POS["GF-M1"][1] + H} V${POS["GF-M2"][1]}`} stroke="#e8c547" strokeWidth={2} strokeDasharray="3 3" />}
         </svg>
 
         {HEADERS.map((h) => (
@@ -44,12 +44,12 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
             {t.rounds[h.t] ?? h.t}
           </div>
         ))}
-        <div className="in-wipe heading-slam absolute text-2xl text-[#e8c547]" style={{ left: 0, top: LB - 90, "--d": "0.4s" } as React.CSSProperties}>
-          <span className="text-rose-hi">{t.rounds.losers}</span> {t.rounds.bracket}
+        <div className="in-wipe heading-slam absolute text-2xl text-[#e8c547]" style={{ left: x(1), top: LB - 90, "--d": "0.4s" } as React.CSSProperties}>
+          <span className="text-rose-hi">{t.schedule.lower}</span>
         </div>
 
         {champ && (
-          <div key={champ.id} className="anim-rise absolute border border-[#e8c547]/70 bg-coal" style={{ left: x(4) - 60, top: 36, width: W + 60 }}>
+          <div key={champ.id} className="anim-rise absolute border border-[#e8c547]/40 bg-coal" style={{ left: x(5) - 30, top: POS["GF-M2"][1] + H + 30, width: W + 30 }}>
             <div className="flex items-center gap-1.5 bg-[#e8c547] px-2.5 py-1 text-[0.7rem] font-black uppercase tracking-widest text-ink">
               <Crown className="size-3.5" /> {t.pickems.champion}
             </div>
@@ -81,7 +81,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
           return (
             <div
               key={id}
-              className={cn("in-left absolute flex flex-col divide-y divide-line border bg-coal", isGf ? "border-[#e8c547]/50" : "border-line")}
+              className={cn("in-left absolute flex flex-col divide-y divide-line border bg-coal", isGf ? "border-[#e8c547]/25" : "border-line")}
               style={{ left: x(c), top: y, width: W, height: H, "--i": c, "--s": "0.14s", "--d": `${0.15 + (y % 400) / 2500}s` } as React.CSSProperties}
             >
               {pair.map((tid, i) => {
@@ -101,9 +101,13 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
                       !team && "cursor-default italic text-ash",
                     )}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {team ? <img src={team.image} alt="" className={cn("size-5 object-cover", lost && "opacity-50")} /> : <span className="size-5 bg-slate" />}
-                    <span className="min-w-0 flex-1 truncate">{team?.name ?? (id === "GF-M2" ? t.rounds.reset : t.common.tbd)}</span>
+                    {team && (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={team.image} alt="" className={cn("size-5 object-cover", lost && "opacity-50")} />
+                        <span className="min-w-0 flex-1 truncate">{team.name}</span>
+                      </>
+                    )}
                     {picked && <Check className="size-4 shrink-0" aria-label={t.pickems.yourPick} />}
                   </button>
                 );

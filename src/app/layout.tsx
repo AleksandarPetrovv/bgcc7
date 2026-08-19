@@ -76,7 +76,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <TournamentProvider teams={teams} matches={matches}>
             <main className="flex-1">{children}</main>
           </TournamentProvider>
-          <SiteFooter sponsors={vis.staff || vis.sections.sponsors} />
+          <SiteFooter />
           </MotionProvider>
         </LangProvider>
       </body>

@@ -5,7 +5,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   const t = await getDict();
   return (
     <>
-      <GatedSubNav items={[{ href: "/schedule", label: t.sub.schedule }, { href: "/schedule/bracket", label: t.sub.bracket }]} />
+      <GatedSubNav items={[{ href: "/matches", label: t.sub.schedule }]} />
       {children}
     </>
   );

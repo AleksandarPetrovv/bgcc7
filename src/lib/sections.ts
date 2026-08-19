@@ -8,7 +8,6 @@ export const SECTIONS = [
   "teams",
   "mappool",
   "schedule",
-  "bracket",
   "pickems",
   "stats",
   "streams",
@@ -23,7 +22,7 @@ export type Phase = (typeof PHASES)[number];
 const early: Section[] = ["info", "register", "players", "staff", "sponsors"];
 const quals: Section[] = [...early, "lobbies", "mappool", "streams"];
 const seeded: Section[] = [...quals, "qualScores", "seeding", "teams", "stats"];
-const playoffs: Section[] = [...seeded.filter((s) => s !== "register"), "schedule", "bracket", "pickems"];
+const playoffs: Section[] = [...seeded.filter((s) => s !== "register"), "schedule", "pickems"];
 
 export const PRESETS: Record<Phase, Section[]> = {
   registration: early,
@@ -57,8 +56,7 @@ const ROUTES: [string, Section][] = [
   ["/qualifiers/seeding", "seeding"],
   ["/qualifiers", "lobbies"],
   ["/mappool", "mappool"],
-  ["/schedule/bracket", "bracket"],
-  ["/schedule", "schedule"],
+  ["/matches", "schedule"],
   ["/pickems", "pickems"],
   ["/stats", "stats"],
   ["/streams", "streams"],
@@ -92,11 +90,8 @@ const NAV: { key: NavKey; base: string; items: { href: string; section: Section 
   },
   {
     key: "schedule",
-    base: "/schedule",
-    items: [
-      { href: "/schedule", section: "schedule" },
-      { href: "/schedule/bracket", section: "bracket" },
-    ],
+    base: "/matches",
+    items: [{ href: "/matches", section: "schedule" }],
   },
   { key: "mappool", base: "/mappool", items: [{ href: "/mappool", section: "mappool" }] },
   { key: "pickems", base: "/pickems", items: [{ href: "/pickems", section: "pickems" }] },

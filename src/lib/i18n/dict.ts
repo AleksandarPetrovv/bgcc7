@@ -96,8 +96,6 @@ const en = {
     Qualifiers: "Qualifiers",
     "Semi-Finals": "Semifinals",
     reset: "Bracket reset",
-    losers: "Losers",
-    bracket: "bracket",
   } as Record<string, string>,
   home: {
     badge: "bulgarian community cup",
@@ -169,7 +167,7 @@ const en = {
       "Every player books a qualifier lobby run by a referee",
       "The pool has [[11 maps]] ([[4 NM / 2 HD / 2 HR / 3 DT]]), each played [[once]]",
       "Seeding uses the sum of each player's {{per-map percentile}} across all maps",
-      "The top [[%qualify% players]] qualify and are split into [[%teams% teams]] by seed, which then go into the upper bracket",
+      "The top [[%qualify% players]] qualify and are split into [[%teams% teams]] by seed, which then go into the winners bracket",
     ],
     structure: "Tournament structure",
     formatRows: [
@@ -262,7 +260,7 @@ const en = {
     seedingTag: "Based on qualifier results",
     noResults: "Qualifier results aren't in yet.",
     chartLabel: "Player percentile sum · top %qualify%",
-    seedingNote: "Seeds 1 to 4 (in green) open the upper bracket against seeds 5 to 8.",
+    seedingNote: "Seeds 1 to 4 (in green) open the winners bracket against seeds 5 to 8.",
     avg: (n: string) => `avg #${n}`,
     percentile: "percentile sum",
     top12: "top 12",
@@ -294,8 +292,11 @@ const en = {
   },
   schedule: {
     title: "Matches",
+    upper: "Winners bracket",
+    lower: "Losers bracket",
+    upperWord: "winners",
+    lowerWord: "losers",
     bracketTitle: "Bracket",
-    bracketHint: "Hover a match to see where its loser drops.",
     resched: {
       yourMatches: "Your matches",
       vs: (n: string) => `vs ${n}`,
@@ -333,6 +334,9 @@ const en = {
   mappool: {
     title: "Mappool",
     pack: (n: number) => `Pack · ${n} maps`,
+    packSoon: "Pack coming soon",
+    direct: "osu!direct",
+    page: "Beatmap page",
     empty: "The mappool isn't out yet.",
   },
   pickems: {
@@ -633,7 +637,7 @@ const en = {
     what: "What",
     when: "When",
   },
-  footer: { sponsors: "Sponsors", language: "Language" },
+  footer: { language: "Language" },
   notFound: {
     title: "Nothing here",
     text: "This page doesn't exist, or it isn't open yet. Pages show up as the tournament gets to them.",
@@ -727,10 +731,10 @@ const bg: Dict = {
     "Round 1 (Quarter-Finals)": "Четвъртфинали",
     "Round 2 (Semi-Finals)": "Полуфинали",
     "Winners Finals": "Финал на победителите",
-    "Losers Round 1": "Долна схема, кръг 1",
-    "Losers Round 2": "Долна схема, кръг 2",
-    "Losers Round 3": "Долна схема, кръг 3",
-    "Losers Finals": "Финал на долната схема",
+    "Losers Round 1": "Загубили, кръг 1",
+    "Losers Round 2": "Загубили, кръг 2",
+    "Losers Round 3": "Загубили, кръг 3",
+    "Losers Finals": "Финал на загубилите",
     "Grand Finals": "Голям финал",
     Quarterfinals: "Четвъртфинали",
     Semifinals: "Полуфинали",
@@ -738,8 +742,6 @@ const bg: Dict = {
     Qualifiers: "Квалификации",
     "Semi-Finals": "Полуфинали",
     reset: "Реванш",
-    losers: "Долна",
-    bracket: "схема",
   },
   home: {
     badge: "bulgarian community cup",
@@ -811,7 +813,7 @@ const bg: Dict = {
       "Всеки играч си запазва квалификационно лоби с рефер",
       "Пулът има [[11 мапа]] ([[4 NM / 2 HD / 2 HR / 3 DT]]), всеки се играе [[веднъж]]",
       "Поставянето е по сбора от {{перцентила на всеки мап}} на всеки играч",
-      "Първите [[%qualify% играчи]] се класират и се разпределят в [[%teams% отбора]] според номера си, които влизат в горната схема",
+      "Първите [[%qualify% играчи]] се класират и се разпределят в [[%teams% отбора]] според номера си, които влизат в схемата на победителите",
     ],
     structure: "Структура на турнира",
     formatRows: [
@@ -904,7 +906,7 @@ const bg: Dict = {
     seedingTag: "По резултатите от квалификациите",
     noResults: "Резултатите от квалификациите още ги няма.",
     chartLabel: "Сбор перцентили на играч · топ %qualify%",
-    seedingNote: "Номера 1 до 4 (в зелено) започват в горната схема срещу номера 5 до 8.",
+    seedingNote: "Номера 1 до 4 (в зелено) започват в схемата на победителите срещу номера 5 до 8.",
     avg: (n: string) => `ср. #${n}`,
     percentile: "сбор перцентили",
     top12: "топ 12",
@@ -936,8 +938,11 @@ const bg: Dict = {
   },
   schedule: {
     title: "Мачове",
+    upper: "Схема на победителите",
+    lower: "Схема на загубилите",
+    upperWord: "победители",
+    lowerWord: "загубили",
     bracketTitle: "Схема",
-    bracketHint: "Задръж върху мач, за да видиш къде отива загубилият.",
     resched: {
       yourMatches: "Твоите мачове",
       vs: (n: string) => `срещу ${n}`,
@@ -975,6 +980,9 @@ const bg: Dict = {
   mappool: {
     title: "Мапове",
     pack: (n: number) => `Пакет · ${n} мапа`,
+    packSoon: "Пакетът идва скоро",
+    direct: "osu!direct",
+    page: "Страница на мапа",
     empty: "Мапповете още не са публикувани.",
   },
   pickems: {
@@ -1000,7 +1008,7 @@ const bg: Dict = {
       ["Четвъртфинали", 10],
       ["Полуфинали", 15],
       ["Финал на победителите", 25],
-      ["Финал на долната схема", 35],
+      ["Финал на загубилите", 35],
       ["Голям финал", 50],
     ],
   },
@@ -1275,7 +1283,7 @@ const bg: Dict = {
     what: "Какво",
     when: "Кога",
   },
-  footer: { sponsors: "Спонсори", language: "Език" },
+  footer: { language: "Език" },
   notFound: {
     title: "Тук няма нищо",
     text: "Тази страница не съществува или още не е отворена. Страниците се появяват, когато турнирът стигне до тях.",
