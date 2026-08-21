@@ -43,3 +43,15 @@ export function Words({ text, d = 0, s = 0.04, className }: { text: string; d?: 
     </span>
   );
 }
+
+export function Letters({ text, d = 0, s = 0.035, className }: { text: string; d?: number; s?: number; className?: string }) {
+  return (
+    <span className={className} style={{ "--d": `${d}s`, "--s": `${s}s` } as React.CSSProperties} aria-label={text}>
+      {[...text].map((c, i) => (
+        <span key={i} className="ltr" style={{ "--i": i } as React.CSSProperties} aria-hidden>
+          {c === " " ? "\u00a0" : c}
+        </span>
+      ))}
+    </span>
+  );
+}
