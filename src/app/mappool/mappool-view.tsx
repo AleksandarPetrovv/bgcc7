@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Download, Play, Sheet, Star } from "lucide-react";
+import { Download, ExternalLink, Play, Sheet, Star, Zap } from "lucide-react";
 import { Container, PageTitle, SlantButton, StageTabs } from "@/components/site/page";
 import { useDict } from "@/components/site/lang";
 import { MODS, fmtLen, type Stage } from "@/lib/data";
@@ -17,7 +17,7 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
   if (!stage)
     return (
       <Container>
-        <PageTitle>{t.mappool.title}</PageTitle>
+        <PageTitle mark="cards">{t.mappool.title}</PageTitle>
         <p className="py-10 text-center text-ash">{t.mappool.empty}</p>
       </Container>
     );
@@ -25,7 +25,7 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
 
   return (
     <Container plain>
-      <PageTitle
+      <PageTitle mark="cards"
         right={
           <>
             <StageTabs options={stages.map((s) => t.rounds[s.title] ?? s.title)} index={i} onChange={setI} />
@@ -34,10 +34,16 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
                 <Sheet className="size-4" /> {t.common.sheets}
               </SlantButton>
             )}
-            {stage.pack && (
+            {stage.pack ? (
               <SlantButton tone="balkan" download href={`/download/${stage.slug}`} className="px-3 py-1.5">
                 <Download className="size-4" /> {t.mappool.pack(count)}
               </SlantButton>
+            ) : (
+              <span className="inline-flex -skew-x-12 items-center border border-dashed border-line px-3 py-1.5 text-sm font-black uppercase tracking-wide text-ash" title={t.mappool.packSoon}>
+                <span className="inline-flex skew-x-12 items-center gap-2">
+                  <Download className="size-4" /> {t.mappool.packSoon}
+                </span>
+              </span>
             )}
           </>
         }
@@ -79,11 +85,11 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
                 >
                 <div className="mt-2 space-y-2 pl-10">
                   {p.maps.map((m, k) => (
-                    <motion.a
+                    <motion.div
                       initial={{ opacity: 0, x: -14 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.45, delay: 0.05 + k * 0.04, ease: [0.16, 1, 0.3, 1] }}
-                      key={m.slot} href={osuMap(m.id)} target="_blank" rel="noreferrer" aria-label={`${m.slot} ${m.title}, ${t.common.openMap}`} className="lift group relative flex h-20 items-stretch overflow-hidden border border-transparent bg-coal hover:border-line"
+                      key={m.slot} className="lift group relative flex h-20 items-stretch overflow-hidden border border-transparent bg-coal hover:border-line"
                       style={{ "--lift": mod.color, "--i": pi + k, "--s": "0.05s" } as React.CSSProperties}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-30 transition duration-500 group-hover:scale-105 group-hover:opacity-45 [--d:0.15s]" />
@@ -92,12 +98,14 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
                         {m.slot}
                       </span>
                       <div className="relative flex min-w-0 flex-1 flex-col justify-center">
-                        <span className="truncate text-lg font-black">{m.title}</span>
+                        <a href={osuMap(m.id)} target="_blank" rel="noreferrer" className="truncate text-lg font-black transition-colors hover:text-[var(--lift)]">
+                          {m.title}
+                        </a>
                         <span className="truncate text-sm text-paper/70">
                           [{m.version}] <span className="text-ash">by {m.creator}</span>
                         </span>
                       </div>
-                      <div className="in-right num relative hidden items-center gap-5 pr-5 text-base sm:flex [--d:0.35s]">
+                      <div className="in-right num relative hidden items-center gap-5 pr-4 text-base lg:flex [--d:0.35s]">
                         <span className="flex items-center gap-1 text-[#e8c547]">
                           <Star className="size-4 fill-current" /> {m.sr.toFixed(2)}
                         </span>
@@ -107,7 +115,32 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
                           CS {m.cs} · AR {m.ar} · OD {m.od}
                         </span>
                       </div>
-                    </motion.a>
+                      <div className="in-right relative flex shrink-0 flex-col justify-center gap-1.5 pr-3 [--d:0.45s]">
+                        <a
+                          href={osuMap(m.id)}
+                          target="_blank"
+                          rel="noreferrer"
+                          title={t.mappool.page}
+                          aria-label={`${m.slot} ${t.mappool.page}`}
+                          className="flex h-7 -skew-x-12 items-center gap-1.5 border border-line bg-ink/80 px-2.5 text-[0.65rem] font-black uppercase tracking-wide text-paper/80 transition hover:border-[var(--lift)] hover:text-paper"
+                        >
+                          <span className="flex skew-x-12 items-center gap-1.5">
+                            <ExternalLink className="size-3.5" /> <span className="hidden sm:inline">osu!</span>
+                          </span>
+                        </a>
+                        <a
+                          href={`osu://b/${m.id}`}
+                          title={t.mappool.direct}
+                          aria-label={`${m.slot} ${t.mappool.direct}`}
+                          className="flex h-7 -skew-x-12 items-center gap-1.5 border border-transparent px-2.5 text-[0.65rem] font-black uppercase tracking-wide text-ink transition hover:brightness-110"
+                          style={{ background: mod.color }}
+                        >
+                          <span className={cn("flex skew-x-12 items-center gap-1.5", !light && "text-white")}>
+                            <Zap className="size-3.5 fill-current" /> <span className="hidden sm:inline">direct</span>
+                          </span>
+                        </a>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
                 </motion.div>
