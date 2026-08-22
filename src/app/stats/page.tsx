@@ -19,7 +19,7 @@ export default async function Stats() {
   if (!perfs.length)
     return (
       <Container>
-        <PageTitle accent={t.stats.accent}>{t.stats.title}</PageTitle>
+        <PageTitle mark="bars" accent={t.stats.accent}>{t.stats.title}</PageTitle>
         <p className="py-10 text-center text-ash">{t.qual.noResults}</p>
       </Container>
     );
@@ -36,7 +36,7 @@ export default async function Stats() {
 
   return (
     <Container plain>
-      <PageTitle accent={t.stats.accent}>{t.stats.title}</PageTitle>
+      <PageTitle mark="bars" accent={t.stats.accent}>{t.stats.title}</PageTitle>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {highlights.map((h, i) => (
           <div key={h.k} className={cn("in-launch relative overflow-hidden p-5", TONES[i])} style={{ "--i": i, "--s": "0.16s", "--d": "0.2s" } as React.CSSProperties}>
@@ -70,7 +70,7 @@ export default async function Stats() {
               <div className="relative w-28 shrink-0 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={m.cover} alt="" className="absolute inset-0 size-full object-cover opacity-50" />
-                <span className="in-pop heading-slam relative flex h-full items-center justify-center text-3xl" style={{ "--d": "0.25s" } as React.CSSProperties}>{m.slot}</span>
+                <span className="in-pop heading-slam relative flex h-full items-center justify-center text-3xl [text-shadow:0_2px_6px_rgb(0_0_0/0.85),0_0_2px_rgb(0_0_0/0.9)]" style={{ "--d": "0.25s" } as React.CSSProperties}>{m.slot}</span>
               </div>
               <ol className="flex-1 divide-y divide-line">
                 {top.map((p, i) => (
