@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Download, ExternalLink, Play, Sheet, Star, Zap } from "lucide-react";
+import { ArrowDownToLine, ArrowUpRight, Download, Play, Star } from "lucide-react";
 import { Container, PageTitle, SlantButton, StageTabs } from "@/components/site/page";
 import { useDict } from "@/components/site/lang";
 import { MODS, fmtLen, type Stage } from "@/lib/data";
 import { osuMap } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
-export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<string, string> }) {
+export function MappoolView({ stages }: { stages: Stage[] }) {
   const t = useDict();
   const [i, setI] = useState(Math.max(0, stages.length - 1));
   const [closed, setClosed] = useState<Record<string, boolean>>({});
@@ -17,7 +17,7 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
   if (!stage)
     return (
       <Container>
-        <PageTitle mark="cards">{t.mappool.title}</PageTitle>
+        <PageTitle mark="notes">{t.mappool.title}</PageTitle>
         <p className="py-10 text-center text-ash">{t.mappool.empty}</p>
       </Container>
     );
@@ -25,15 +25,10 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
 
   return (
     <Container plain>
-      <PageTitle mark="cards"
+      <PageTitle mark="notes"
         right={
           <>
             <StageTabs options={stages.map((s) => t.rounds[s.title] ?? s.title)} index={i} onChange={setI} />
-            {links.sheets && (
-              <SlantButton tone="rose" href={links.sheets} className="px-3 py-1.5">
-                <Sheet className="size-4" /> {t.common.sheets}
-              </SlantButton>
-            )}
             {stage.pack ? (
               <SlantButton tone="balkan" download href={`/download/${stage.slug}`} className="px-3 py-1.5">
                 <Download className="size-4" /> {t.mappool.pack(count)}
@@ -105,38 +100,51 @@ export function MappoolView({ stages, links }: { stages: Stage[]; links: Record<
                           [{m.version}] <span className="text-ash">by {m.creator}</span>
                         </span>
                       </div>
-                      <div className="in-right num relative hidden items-center gap-5 pr-4 text-base lg:flex [--d:0.35s]">
-                        <span className="flex items-center gap-1 text-[#e8c547]">
+                      <div className="in-right num relative hidden shrink-0 items-center pr-6 text-base lg:grid lg:grid-cols-[4.25rem_5.25rem_3rem_3.5rem_3.5rem_3.5rem] [--d:0.35s]">
+                        <span className="flex items-center justify-end gap-1 text-[#e8c547]">
                           <Star className="size-4 fill-current" /> {m.sr.toFixed(2)}
                         </span>
-                        <span>{Math.round(m.bpm)} bpm</span>
-                        <span>{fmtLen(m.length)}</span>
-                        <span className="text-ash">
-                          CS {m.cs} · AR {m.ar} · OD {m.od}
+                        <span className="text-right">
+                          {Math.round(m.bpm)} <span className="text-sm text-ash">bpm</span>
                         </span>
+                        <span className="text-right">{fmtLen(m.length)}</span>
+                        {(
+                          [
+                            ["CS", m.cs],
+                            ["AR", m.ar],
+                            ["OD", m.od],
+                          ] as const
+                        ).map(([k, val]) => (
+                          <span key={k} className="text-right text-paper/80">
+                            <span className="text-xs text-ash">{k}</span> {val}
+                          </span>
+                        ))}
                       </div>
-                      <div className="in-right relative flex shrink-0 flex-col justify-center gap-1.5 pr-3 [--d:0.45s]">
+                      <div className="in-right relative flex w-36 shrink-0 flex-col [clip-path:polygon(14px_0,100%_0,100%_100%,0_100%)] [--d:0.45s]">
+                        <a
+                          href={`osu://b/${m.id}`}
+                          title={t.mappool.direct}
+                          aria-label={`${m.slot} ${t.mappool.direct}`}
+                          className={cn("group/b flex flex-1 items-center justify-center pl-3 transition-[filter] hover:brightness-110", light ? "text-ink" : "text-white")}
+                          style={{ background: mod.color }}
+                        >
+                          <span className={cn("heading-slam flex items-center gap-2 text-[0.95rem]", light ? "[text-shadow:0_1px_2px_rgb(255_255_255/0.35)]" : "[text-shadow:0_1px_3px_rgb(0_0_0/0.45)]")}>
+                            <ArrowDownToLine className="size-4 drop-shadow-[0_1px_2px_rgb(0_0_0/0.35)] transition-transform group-hover/b:translate-y-0.5" strokeWidth={3} />
+                            direct
+                          </span>
+                        </a>
                         <a
                           href={osuMap(m.id)}
                           target="_blank"
                           rel="noreferrer"
                           title={t.mappool.page}
                           aria-label={`${m.slot} ${t.mappool.page}`}
-                          className="flex h-7 -skew-x-12 items-center gap-1.5 border border-line bg-ink/80 px-2.5 text-[0.65rem] font-black uppercase tracking-wide text-paper/80 transition hover:border-[var(--lift)] hover:text-paper"
+                          className="group/b flex flex-1 items-center justify-center bg-ink/90 pl-1.5 transition-colors hover:bg-ink"
+                          style={{ color: mod.color }}
                         >
-                          <span className="flex skew-x-12 items-center gap-1.5">
-                            <ExternalLink className="size-3.5" /> <span className="hidden sm:inline">osu!</span>
-                          </span>
-                        </a>
-                        <a
-                          href={`osu://b/${m.id}`}
-                          title={t.mappool.direct}
-                          aria-label={`${m.slot} ${t.mappool.direct}`}
-                          className="flex h-7 -skew-x-12 items-center gap-1.5 border border-transparent px-2.5 text-[0.65rem] font-black uppercase tracking-wide text-ink transition hover:brightness-110"
-                          style={{ background: mod.color }}
-                        >
-                          <span className={cn("flex skew-x-12 items-center gap-1.5", !light && "text-white")}>
-                            <Zap className="size-3.5 fill-current" /> <span className="hidden sm:inline">direct</span>
+                          <span className="heading-slam flex items-center gap-2 text-[0.95rem] [text-shadow:0_1px_3px_rgb(0_0_0/0.6)]">
+                            <ArrowUpRight className="size-4 transition-transform group-hover/b:-translate-y-0.5 group-hover/b:translate-x-0.5" strokeWidth={3} />
+                            osu!
                           </span>
                         </a>
                       </div>

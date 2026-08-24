@@ -146,6 +146,42 @@ function Cards() {
   );
 }
 
+function Note({ className, delay, beamed }: { className: string; delay: number; beamed?: boolean }) {
+  return (
+    <span className="anim-bob block" style={{ animationDelay: `${delay + 0.6}s` }}>
+      <svg viewBox="0 0 24 24" className={cn("mk-pop block overflow-visible", className)} style={{ animationDelay: `${delay}s` }}>
+        {beamed ? (
+          <>
+            <ellipse cx="6" cy="19" rx="4" ry="3" transform="rotate(-20 6 19)" />
+            <ellipse cx="18" cy="16.5" rx="4" ry="3" transform="rotate(-20 18 16.5)" />
+            <rect x="8.6" y="4" width="2" height="15" />
+            <rect x="20.6" y="1.5" width="2" height="15" />
+            <path d="M8.6 4 22.6 1.5V5L8.6 7.5Z" />
+          </>
+        ) : (
+          <>
+            <ellipse cx="9" cy="19" rx="4.4" ry="3.2" transform="rotate(-20 9 19)" />
+            <rect x="12" y="2" width="2.1" height="17" />
+            <path d="M14.1 2c1 3 6 4.5 5 10-.6-3.2-2.6-4.6-5-5Z" />
+          </>
+        )}
+      </svg>
+    </span>
+  );
+}
+
+function Notes() {
+  return (
+    <span className="mb-[0.16em] flex items-end gap-[0.04em] self-end" aria-hidden>
+      <Note className="size-[0.4em] fill-paper" delay={0.25} beamed />
+      <span className="mb-[0.18em]">
+        <Note className="size-[0.3em] fill-balkan" delay={0.37} />
+      </span>
+      <Note className="size-[0.26em] fill-rose" delay={0.49} />
+    </span>
+  );
+}
+
 function Tick() {
   return (
     <svg viewBox="0 0 24 24" className="mb-[0.16em] h-[0.5em] w-[0.5em] self-end overflow-visible" aria-hidden>
@@ -170,7 +206,7 @@ function Bars() {
   );
 }
 
-const MARKS = { blocks: Blocks, streaks: Streaks, dots: Dots, glints: Glints, squiggle: Squiggle, chevrons: Chevrons, bubble: Bubble, people: People, cards: Cards, tick: Tick, bars: Bars };
+const MARKS = { blocks: Blocks, streaks: Streaks, dots: Dots, glints: Glints, squiggle: Squiggle, chevrons: Chevrons, bubble: Bubble, people: People, cards: Cards, notes: Notes, tick: Tick, bars: Bars };
 export type Mark = keyof typeof MARKS;
 const FALLBACK: Mark[] = ["blocks", "streaks", "dots", "glints", "squiggle", "chevrons", "bars"];
 
