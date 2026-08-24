@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
@@ -7,26 +8,23 @@ import { getMatchRows, getTeams } from "@/db/tournament";
 import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { FEED } from "@/lib/pickems";
+import { matchSlug } from "@/lib/matches";
 import { can } from "@/lib/roles";
 import { fmtSofia, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
-import { clearCache, decideReschedule, fillFromSeeds, resetBracket, saveMatch } from "./actions";
-import { getReschedules, OPEN } from "@/db/reschedules";
+import { clearCache, fillFromSeeds, resetBracket, saveMatch } from "./actions";
 
 const label = "flex flex-col gap-1 text-xs font-bold uppercase text-ash";
 
 export default async function AdminMatches() {
-  const [t, lang, viewer, rows, teams, stages, requests] = await Promise.all([
+  const [t, lang, viewer, rows, teams, stages] = await Promise.all([
     getDict(),
     getLang(),
     getViewer(),
     getMatchRows(),
     getTeams(),
     getPoolStages(),
-    getReschedules(),
   ]);
-  const open = requests.filter((r) => OPEN.includes(r.status));
-  const recent = requests.filter((r) => !OPEN.includes(r.status)).slice(0, 5);
   if (!can(viewer?.role, "matches")) notFound();
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? t.common.tbd;
@@ -44,45 +42,9 @@ export default async function AdminMatches() {
         <ActionForm action={resetBracket} submit={t.admin.resetBracket} ghost confirm={t.admin.confirmResetBracket} />
       </div>
 
-      <Panel title={t.admin.reschedules} className="mb-8" i={1}>
-        {open.length === 0 && <p className="text-sm text-ash">{t.admin.noReschedules}</p>}
-        <div className="space-y-2">
-          {open.map((r, k) => {
-            const m = rows.find((x) => x.id === r.matchId);
-            return (
-              <div key={r.id} style={{ "--i": k, "--s": "0.07s", "--d": "0.6s" } as React.CSSProperties} className="in-right-far flex flex-wrap items-center gap-x-4 gap-y-2 border border-line bg-ink px-3 py-2.5">
-                <div className="min-w-0 flex-1 text-sm">
-                  <div className="font-bold">
-                    {r.matchId} · {name(m?.team1Id ?? null)} vs {name(m?.team2Id ?? null)}
-                  </div>
-                  <div className="text-ash">
-                    {t.admin.rescheduleLine(name(r.teamId), r.requester ?? String(r.requestedBy), m?.startsAt ? fmtSofia(m.startsAt, locale) : t.common.tbd, fmtSofia(r.proposedAt, locale))}
-                    {r.reason && <> · {r.reason}</>}
-                  </div>
-                  <div className={cn("text-xs font-black uppercase", r.status === "accepted" ? "text-balkan" : "text-ash")}>
-                    {r.status === "accepted" ? t.admin.opponentAgreed : t.admin.opponentPending}
-                  </div>
-                </div>
-                <ActionForm action={decideReschedule.bind(null, r.id, true)} submit={t.admin.approve} />
-                <ActionForm action={decideReschedule.bind(null, r.id, false)} submit={t.admin.deny} ghost />
-              </div>
-            );
-          })}
-        </div>
-        {recent.length > 0 && (
-          <ul className="mt-4 space-y-1 text-xs text-ash">
-            {recent.map((r) => (
-              <li key={r.id}>
-                {r.matchId} · {name(r.teamId)} · {fmtSofia(r.proposedAt, locale)} · <span className="font-black uppercase">{t.schedule.resched.status[r.status] ?? r.status}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
-
       <div className="space-y-8">
         {bracketStages.map((s, n) => (
-          <Panel key={s.slug} i={n < 2 ? n + 2 : 0} title={`${t.rounds[s.title] ?? s.title} · ${t.admin.firstToShort(s.firstTo ?? 7)}`}>
+          <Panel key={s.slug} i={n < 3 ? n + 1 : 0} title={`${t.rounds[s.title] ?? s.title} · ${t.admin.firstToShort(s.firstTo ?? 7)}`}>
             <div className="space-y-2">
               {rows
                 .filter((m) => m.stageSlug === s.slug)
@@ -163,7 +125,10 @@ export default async function AdminMatches() {
                         )}
                       </ActionForm>
                       {m.mpLinks && (
-                        <div className="mt-3 border-t border-line pt-3">
+                        <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-line pt-3">
+                          <Link href={`/admin/matches/${matchSlug(m.id)}`} className="lift-sm inline-flex min-h-9 -skew-x-12 items-center bg-balkan px-3 text-xs font-black uppercase tracking-wide text-ink hover:bg-paper">
+                            <span className="skew-x-12">{t.admin.ms.open}</span>
+                          </Link>
                           <ActionForm action={clearCache.bind(null, m.id)} submit={t.admin.clearCache} ghost />
                         </div>
                       )}

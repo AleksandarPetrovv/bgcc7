@@ -85,6 +85,13 @@
       "when": 1790693706650,
       "tag": "0011_illegal_alex_power",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1790710895366,
+      "tag": "0012_military_lady_deathstrike",
+      "breakpoints": true
     }
   ]
 }

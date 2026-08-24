@@ -212,3 +212,23 @@ export const reschedules = pgTable("reschedules", {
   decidedBy: integer("decided_by"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const scoreEdits = pgTable(
+  "score_edits",
+  {
+    id: serial("id").primaryKey(),
+    matchId: text("match_id")
+      .notNull()
+      .references(() => matches.id, { onDelete: "cascade" }),
+    gameId: integer("game_id").notNull(),
+    osuId: integer("osu_id").notNull(),
+    team: integer("team").notNull(),
+    score: integer("score").notNull().default(0),
+    acc: doublePrecision("acc").notNull().default(1),
+    mods: text("mods").notNull().default(""),
+    removed: boolean("removed").notNull().default(false),
+    editedBy: integer("edited_by"),
+    editedAt: timestamp("edited_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique().on(t.matchId, t.gameId, t.osuId)],
+);

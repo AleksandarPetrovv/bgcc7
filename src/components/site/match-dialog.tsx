@@ -7,6 +7,7 @@ import { useDict } from "./lang";
 import { MODS, fmtNum, type Match } from "@/lib/data";
 import { useTournament } from "./tournament";
 import { roundName } from "@/lib/i18n/dict";
+import { matchSlug } from "@/lib/matches";
 import type { MapResult, PlayerLine, Scoreboard } from "@/lib/scoreboard";
 import { cn } from "@/lib/utils";
 
@@ -154,7 +155,7 @@ export function MatchDialog({ match, compact }: { match: Match; compact?: boolea
   const load = () => {
     if (data && data !== "error" && Math.max(...data.score) >= 7) return;
     if (data === "error") setData(null);
-    fetch(`/api/matches/${match.id}`)
+    fetch(`/api/matches/${matchSlug(match.id)}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d: Scoreboard) => setData(d))
       .catch(() => setData("error"));
