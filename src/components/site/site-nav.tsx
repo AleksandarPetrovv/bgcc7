@@ -141,10 +141,10 @@ export function SiteNav({ user, nav, register, live }: Props) {
           )}
           {user ? (
             <div className="hidden h-9 -skew-x-12 items-center border border-line pl-1 md:flex">
-              <span className="flex h-full skew-x-12 items-center gap-2">
+              <span className="flex h-full skew-x-12 items-center gap-2.5 pr-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {user.image && <img src={user.image} alt="" className="size-7 object-cover" />}
-                <span className="max-w-32 truncate text-[0.8rem] font-black">{user.name}</span>
+                <span className="max-w-32 truncate text-[0.8rem] font-black leading-none">{user.name}</span>
               </span>
               <button
                 type="button"
@@ -152,7 +152,7 @@ export function SiteNav({ user, nav, register, live }: Props) {
                 onClick={() => start(() => logout())}
                 aria-label={t.nav.logout}
                 title={t.nav.logout}
-                className="ml-1 flex h-full items-center border-l border-line px-2.5 text-ash transition-colors hover:bg-rose hover:text-white"
+                className="flex h-full items-center border-l border-line px-2.5 text-ash transition-colors hover:bg-rose hover:text-white"
               >
                 <LogOut className="size-4 skew-x-12" />
               </button>
