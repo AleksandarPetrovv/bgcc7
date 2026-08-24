@@ -1,11 +1,11 @@
 import "server-only";
 import { eq } from "drizzle-orm";
 import { db } from "./index";
-import { matchCache } from "./schema";
+import { matchCache, scoreEdits } from "./schema";
 import { finishMatch } from "./bracket";
 import type { PoolStage } from "./mappools";
 import type { Match, Team } from "@/lib/data";
-import { buildScoreboard, poolOf, type Scoreboard } from "@/lib/scoreboard";
+import { buildScoreboard, poolOf, SCOREBOARD_V, type ScoreEdit, type Scoreboard } from "@/lib/scoreboard";
 import { isLive } from "@/lib/matches";
 
 const LIVE_TTL = 30_000;
@@ -14,11 +14,26 @@ const live = new Map<string, { at: number; data: Scoreboard }>();
 async function stored(id: string, links: string) {
   try {
     const [row] = await db.select().from(matchCache).where(eq(matchCache.matchId, id)).limit(1);
-    return row && row.links === links ? (row.data as Scoreboard) : null;
+    return row && row.links === links && (row.data as Scoreboard).v === SCOREBOARD_V ? (row.data as Scoreboard) : null;
   } catch (e) {
     console.error("[match cache]", e);
     return null;
   }
+}
+
+export async function getEdits(matchId: string): Promise<ScoreEdit[]> {
+  try {
+    const rows = await db.select().from(scoreEdits).where(eq(scoreEdits.matchId, matchId));
+    return rows.map((r) => ({ gameId: r.gameId, osuId: r.osuId, team: r.team === 2 ? 2 : 1, score: r.score, acc: r.acc, mods: r.mods ? r.mods.split(",") : [], removed: r.removed }));
+  } catch (e) {
+    console.error("[score edits]", e);
+    return [];
+  }
+}
+
+export async function forgetScoreboard(matchId: string) {
+  live.delete(matchId);
+  await db.delete(matchCache).where(eq(matchCache.matchId, matchId));
 }
 
 export async function getScoreboard(match: Match, teams: Team[], stages: PoolStage[]): Promise<Scoreboard | null> {
@@ -32,7 +47,7 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
 
   const firstTo = stages.find((s) => s.slug === match.stage)?.firstTo ?? 7;
   try {
-    const data = await buildScoreboard(match, teams, poolOf(stages, match.stage));
+    const data = await buildScoreboard(match, teams, poolOf(stages, match.stage), await getEdits(match.id));
     if (Math.max(...data.score) >= firstTo) {
       await db
         .insert(matchCache)
