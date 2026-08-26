@@ -15,7 +15,7 @@ export function SubNav({ items }: { items: { href: string; label: string; hidden
     <div className="sticky top-16 z-30 border-b border-line bg-coal/95 backdrop-blur lg:top-20">
       <nav className="mx-auto flex max-w-6xl items-stretch gap-1 overflow-x-auto px-2 sm:gap-6 sm:px-4" aria-label={t.nav.section}>
         {items.map((i) => {
-          const active = path === i.href;
+          const active = path === i.href || (path.startsWith(`${i.href}/`) && !items.some((o) => o.href.length > i.href.length && (path === o.href || path.startsWith(`${o.href}/`))));
           return (
             <Link
               key={i.href}

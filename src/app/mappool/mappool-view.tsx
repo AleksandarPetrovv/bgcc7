@@ -9,9 +9,14 @@ import { MODS, fmtLen, type Stage } from "@/lib/data";
 import { osuMap } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
-export function MappoolView({ stages }: { stages: Stage[] }) {
+export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: string }) {
   const t = useDict();
-  const [i, setI] = useState(Math.max(0, stages.length - 1));
+  const start = stages.findIndex((s) => s.slug === initial);
+  const [i, setI] = useState(start >= 0 ? start : Math.max(0, stages.length - 1));
+  const pick = (n: number) => {
+    setI(n);
+    if (stages[n]) window.history.replaceState(null, "", `/mappool/${stages[n].slug}`);
+  };
   const [closed, setClosed] = useState<Record<string, boolean>>({});
   const stage = stages[i];
   if (!stage)
@@ -28,7 +33,7 @@ export function MappoolView({ stages }: { stages: Stage[] }) {
       <PageTitle mark="notes"
         right={
           <>
-            <StageTabs options={stages.map((s) => t.rounds[s.title] ?? s.title)} index={i} onChange={setI} />
+            <StageTabs options={stages.map((s) => t.rounds[s.title] ?? s.title)} index={i} onChange={pick} />
             {stage.pack ? (
               <SlantButton tone="balkan" download href={`/download/${stage.slug}`} className="px-3 py-1.5">
                 <Download className="size-4" /> {t.mappool.pack(count)}
