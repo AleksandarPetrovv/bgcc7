@@ -16,7 +16,7 @@ export default async function Sponsors() {
           <StaggerItem key={s.id} className="lift group flex items-center gap-4 border border-line bg-coal p-4 hover:border-paper/30 sm:gap-5 sm:p-5">
             <Avatar src={s.image} className="in-spin size-16 ring-offset-4 transition-transform duration-500 group-hover:rotate-[-4deg] group-hover:scale-105 sm:size-20" />
             <div className="min-w-0">
-              <div className="truncate font-display text-xl font-bold lowercase sm:text-2xl">
+              <div className="truncate text-xl font-black sm:text-2xl">
                 {s.url ? (
                   <a href={s.url} target="_blank" rel="noreferrer" className="hover:text-rose-hi">
                     {s.name}

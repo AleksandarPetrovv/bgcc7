@@ -60,7 +60,7 @@ export default async function Lobbies() {
                 <article key={l.id} style={dv(base)} className={cn("in-up lift group flex border bg-coal", mine ? "border-balkan [--lift:var(--color-balkan)]" : "border-line hover:border-rose/60")}>
                   <div style={dv(base + 0.1)} className={cn("in-drop flex w-24 shrink-0 flex-col items-center justify-center py-4 text-white sm:w-28", mine ? "bg-balkan text-ink" : "bg-rose")}>
                     <span className="in-pop num text-4xl leading-none" style={dv(base + 0.25)}>{fmtSofiaTime(l.startsAt)}</span>
-                    <span className="mt-1 text-[0.65rem] font-black uppercase tracking-widest">{t.common.eet}</span>
+                    <span className="mt-1 text-[0.65rem] font-black uppercase tracking-[0.14em]">{t.common.eet}</span>
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 border-l-2 border-dashed border-ink px-4 py-3">
                     <div className="flex items-baseline justify-between gap-3">

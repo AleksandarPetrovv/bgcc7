@@ -48,7 +48,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
                 <img src={avatar} alt="" className="size-12 shrink-0 rounded-full object-cover ring-2 ring-rose/40 ring-offset-2 ring-offset-coal" />
               )}
               <div className="min-w-0">
-                <div className="break-words font-display text-xl font-black leading-tight tracking-tight">
+                <div className="heading-slam break-words text-xl leading-tight">
                   {t.admin.hello}, {name}!
                 </div>
                 <Tag tone="balkan" className="mt-1.5">

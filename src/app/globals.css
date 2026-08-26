@@ -8,10 +8,10 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-archivo), var(--font-mont), sans-serif;
-  --font-mono: var(--font-barlow), var(--font-roboto-c), sans-serif;
+  --font-mono: var(--font-archivo), var(--font-mont), sans-serif;
   --font-heading: var(--font-archivo), var(--font-mont), sans-serif;
   --font-display: var(--font-unbounded), sans-serif;
-  --font-num: var(--font-barlow), var(--font-roboto-c), sans-serif;
+  --font-num: var(--font-archivo), var(--font-mont), sans-serif;
 
   --color-ink: #0d0f0e;
   --color-coal: #161917;
@@ -150,7 +150,8 @@
     line-height: 0.95;
   }
   .num {
-    font-family: var(--font-barlow), var(--font-roboto-c), sans-serif;
+    font-family: var(--font-archivo), var(--font-mont), sans-serif;
+    font-stretch: 78%;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;

@@ -44,7 +44,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
                 [t.common.record, `${wins}–${matches.filter((m) => m.winner).length - wins}`],
               ].map(([k, v], i) => (
                 <div key={k} className="in-up" style={{ "--i": i, "--s": "0.1s", "--d": "0.7s" } as React.CSSProperties}>
-                  <div className="text-[0.65rem] font-black uppercase tracking-widest text-rose-hi">{k}</div>
+                  <div className="text-[0.65rem] font-black uppercase tracking-[0.14em] text-rose-hi">{k}</div>
                   <div className="num text-3xl">{v}</div>
                 </div>
               ))}

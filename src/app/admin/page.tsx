@@ -43,7 +43,7 @@ export default async function AdminOverview() {
         {tiles.map((tile, i) => {
           const body = (
             <>
-              <div className="flex items-center justify-between text-[0.65rem] font-black uppercase tracking-widest text-ash">
+              <div className="flex items-center justify-between text-[0.65rem] font-black uppercase tracking-[0.14em] text-ash">
                 {tile.k}
                 {tile.href && <ArrowUpRight className="size-4" />}
               </div>
