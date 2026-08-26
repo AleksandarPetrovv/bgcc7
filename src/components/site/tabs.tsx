@@ -63,17 +63,23 @@ export function Tabs({
   );
 }
 
-export function LinkTabs({ items, label, className }: { items: { href: string; label: React.ReactNode; active: boolean }[]; label?: string; className?: string }) {
+export function LinkTabs({ items, label, className }: { items: { href: string; label: React.ReactNode; active: boolean; disabled?: boolean }[]; label?: string; className?: string }) {
   const id = useId();
   return (
     <nav className={cn("flex flex-wrap gap-1", className)} aria-label={label}>
-      {items.map((t) => (
+      {items.map((t) =>
+        t.disabled ? (
+          <span key={t.href} aria-disabled className={item(false, "cursor-not-allowed opacity-35 hover:text-ash")}>
+            {t.label}
+          </span>
+        ) : (
         <Link key={t.href} href={t.href} scroll={false} aria-current={t.active ? "page" : undefined} className={item(t.active)}>
           {!t.active && <span className={hoverBg} aria-hidden />}
           <Pill id={id} active={t.active} />
           <span className="relative inline-flex items-center gap-2">{t.label}</span>
         </Link>
-      ))}
+        ),
+      )}
     </nav>
   );
 }
