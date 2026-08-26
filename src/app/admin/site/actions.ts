@@ -3,25 +3,10 @@
 import { asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { lobbies, maps, matchCache, matches, qualScores, registrations, sponsors, teams, users } from "@/db/schema";
-import { saveSettings } from "@/db/settings";
 import { guard } from "@/lib/admin-action";
 import { requireRole } from "@/lib/authz";
 import { getUser } from "@/lib/osu-api";
 import type { ActionResult } from "@/lib/roles";
-import { LINK_KEYS } from "@/lib/sections";
-
-const url = (v: FormDataEntryValue | null) => {
-  const s = String(v ?? "").trim().slice(0, 500);
-  return /^https:\/\/\S+$/.test(s) ? s : "";
-};
-
-export async function saveLinks(_: ActionResult, fd: FormData) {
-  return guard("phase", "site.links", async () => {
-    const links = Object.fromEntries(LINK_KEYS.map((k) => [k, url(fd.get(k))]).filter(([, v]) => v));
-    await saveSettings({ links });
-    return { set: Object.keys(links) };
-  });
-}
 
 const osuQuery = (v: FormDataEntryValue | null) => {
   const s = String(v ?? "").trim().slice(0, 200);
