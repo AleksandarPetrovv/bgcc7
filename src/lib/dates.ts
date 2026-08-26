@@ -44,3 +44,11 @@ export function buildTokens(opts: {
   for (const [slug, ft] of Object.entries(firstTo)) if (ft) tokens[`bo.${slug}`] = String(ft * 2 - 1);
   return tokens;
 }
+
+const PHASE_KEY: Record<string, string> = { registration: "reg", screening: "scr", qualifiers: "qual", seeding: "seed", playoffs: "play", finished: "done" };
+
+export function phaseStates(rows: TimelineRow[], phase: string): TimelineState[] {
+  const at = rows.findIndex((r) => r.key === PHASE_KEY[phase]);
+  if (at < 0) return timelineStates(rows);
+  return rows.map((_, i) => (i < at ? "done" : i === at ? "now" : "next"));
+}

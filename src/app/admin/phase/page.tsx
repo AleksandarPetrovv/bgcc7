@@ -7,7 +7,7 @@ import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { PHASES, SECTIONS, TIMELINE_KEYS } from "@/lib/sections";
 import { toSofiaInput } from "@/lib/time";
-import { timelineStates } from "@/lib/dates";
+import { phaseStates } from "@/lib/dates";
 import { setDates, setPhase, setSections, setTimeline } from "./actions";
 
 const check = "size-4 shrink-0 accent-rose";
@@ -22,7 +22,7 @@ export default async function AdminPhase() {
     ["bookingClosesAt", t.admin.bookingCloses, s.bookingClosesAt],
   ] as const;
   const row = (k: string) => s.timeline.find((e) => e.key === k);
-  const states = timelineStates(s.timeline);
+  const states = phaseStates(s.timeline, s.phase);
 
   return (
     <>
