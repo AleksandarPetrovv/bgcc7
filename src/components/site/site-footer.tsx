@@ -1,16 +1,13 @@
-import { Tv, MessageCircle, Sheet } from "lucide-react";
+import { Tv, MessageCircle } from "lucide-react";
 import { LangSwitch } from "./lang";
 import { TriTick } from "./graphics";
 import { DISCORD_URL, TWITCH_URL } from "@/lib/links";
-import { getSettings } from "@/db/settings";
 
-export async function SiteFooter() {
-  const settings = await getSettings();
+export function SiteFooter() {
   const SOCIALS = [
     { label: "Discord", icon: MessageCircle, href: DISCORD_URL },
     { label: "Twitch", icon: Tv, href: TWITCH_URL },
-    { label: "Spreadsheet", icon: Sheet, href: settings.links.sheets },
-  ].filter((s) => s.href);
+  ];
   return (
     <footer className="mt-24 border-t border-dashed border-line">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-5 gap-y-3 px-4 py-5 sm:px-6">

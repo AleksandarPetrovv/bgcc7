@@ -127,5 +127,3 @@ export function subNav<T extends { href: string }>(items: T[], sections: Record<
     })
     .filter((i) => staff || !i.hidden);
 }
-
-export const LINK_KEYS = ["sheets"] as const;
