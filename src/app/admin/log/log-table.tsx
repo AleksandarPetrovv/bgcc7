@@ -73,7 +73,7 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
     <div className="space-y-6">
       {[...days.entries()].map(([day, list]) => (
         <section key={day}>
-          <h3 className="mb-2 flex items-center gap-3 text-xs font-black uppercase tracking-widest text-ash">
+          <h3 className="mb-2 flex items-center gap-3 text-xs font-black uppercase tracking-[0.14em] text-ash">
             <span className="in-wipe [--d:0.15s]">{day}</span>
             <span className="in-grow h-px flex-1 border-t border-dashed border-line [--d:0.25s]" aria-hidden />
           </h3>

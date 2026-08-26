@@ -30,7 +30,7 @@ function Side({ players, won, lost, total, flip }: { players: PlayerLine[]; won:
         ))}
       </ul>
       <div className="mt-2 flex items-baseline justify-between border-t border-line pt-2">
-        <span className="text-[0.65rem] font-black uppercase tracking-widest text-ash">{t.match.total}</span>
+        <span className="text-[0.65rem] font-black uppercase tracking-[0.14em] text-ash">{t.match.total}</span>
         <span className={cn("num text-xl", won ? "text-paper" : "text-ash")}>{fmtNum(total)}</span>
       </div>
     </div>
@@ -85,7 +85,7 @@ function Board({ match, data }: { match: Match; data: Scoreboard }) {
       {data.maps.map((m, i) => (
         <div key={`${m.lobby}-${i}`}>
           {data.lobbies.length > 1 && (i === 0 || data.maps[i - 1].lobby !== m.lobby) && (
-            <div className="mb-3 mt-2 flex items-center gap-3 text-xs font-black uppercase tracking-widest text-ash">
+            <div className="mb-3 mt-2 flex items-center gap-3 text-xs font-black uppercase tracking-[0.14em] text-ash">
               {t.match.lobby(m.lobby + 1)}
               <span className="h-px flex-1 border-t border-dashed border-line" />
             </div>
@@ -96,11 +96,11 @@ function Board({ match, data }: { match: Match; data: Scoreboard }) {
 
       {data.totals.length > 0 && (
         <div className="pt-4">
-          <div className="mb-2 text-xs font-black uppercase tracking-widest text-ash">{t.match.players}</div>
+          <div className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-ash">{t.match.players}</div>
           <div className="overflow-x-auto border border-line">
             <table className="w-full min-w-[420px] text-sm">
               <thead>
-                <tr className="border-b border-line text-[0.65rem] font-black uppercase tracking-widest text-ash">
+                <tr className="border-b border-line text-[0.65rem] font-black uppercase tracking-[0.14em] text-ash">
                   <th className="px-3 py-2 text-left">{t.match.players}</th>
                   <th className="px-3 py-2 text-right">{t.match.mapsPlayed}</th>
                   <th className="px-3 py-2 text-right">{t.match.avgAcc}</th>
@@ -175,7 +175,7 @@ export function MatchDialog({ match, compact }: { match: Match; compact?: boolea
       </DialogTrigger>
       <DialogContent className="max-h-[90dvh] gap-0 overflow-y-auto rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
         <div className="sticky top-0 z-10 border-b border-line bg-ink/95 px-4 py-4 backdrop-blur sm:px-6">
-          <DialogTitle className="text-xs font-black uppercase tracking-widest text-rose-hi">
+          <DialogTitle className="text-xs font-black uppercase tracking-[0.14em] text-rose-hi">
             {roundName(t, match.round)} · {t.match.details}
           </DialogTitle>
           <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3 pr-8">
