@@ -19,32 +19,29 @@ export type Section = (typeof SECTIONS)[number];
 export const PHASES = ["registration", "screening", "qualifiers", "seeding", "playoffs", "finished"] as const;
 export type Phase = (typeof PHASES)[number];
 
-const early: Section[] = ["info", "register", "players", "staff", "sponsors"];
-const quals: Section[] = [...early, "lobbies", "mappool", "streams"];
-const seeded: Section[] = [...quals, "qualScores", "seeding", "teams", "stats"];
-const playoffs: Section[] = [...seeded.filter((s) => s !== "register"), "schedule", "pickems"];
+const base: Section[] = ["info", "staff", "sponsors"];
+const seeded: Section[] = [...base, "players", "qualScores", "seeding", "teams", "mappool", "stats"];
 
 export const PRESETS: Record<Phase, Section[]> = {
-  registration: early,
-  screening: early,
-  qualifiers: quals,
+  registration: [...base, "register", "players"],
+  screening: [...base, "players"],
+  qualifiers: [...base, "players", "lobbies", "mappool"],
   seeding: seeded,
-  playoffs,
-  finished: playoffs,
+  playoffs: [...seeded, "schedule", "pickems", "streams"],
+  finished: [...seeded.filter((s) => s !== "players"), "schedule", "pickems", "streams"],
 };
 
 export const presetSections = (p: Phase) => Object.fromEntries(SECTIONS.map((s) => [s, PRESETS[p].includes(s)])) as Record<Section, boolean>;
 
-export const TIMELINE_KEYS = ["reg", "scr", "qual", "qf", "sf", "f", "gf"] as const;
+export const TIMELINE_KEYS = ["reg", "scr", "qual", "seed", "play", "done"] as const;
 
 export const DEFAULT_TIMELINE = [
   { key: "reg", from: "2026-11-02", to: "2026-11-22" },
   { key: "scr", from: "2026-11-23", to: "2026-11-25" },
   { key: "qual", from: "2026-11-28", to: "2026-11-29" },
-  { key: "qf", from: "2026-12-05", to: "2026-12-06" },
-  { key: "sf", from: "2026-12-12", to: "2026-12-13" },
-  { key: "f", from: "2026-12-19", to: "2026-12-20" },
-  { key: "gf", from: "2026-12-27", to: null },
+  { key: "seed", from: "2026-11-30", to: "2026-12-04" },
+  { key: "play", from: "2026-12-05", to: "2026-12-27" },
+  { key: "done", from: "2026-12-28", to: null },
 ];
 
 const ROUTES: [string, Section][] = [
@@ -66,10 +63,11 @@ const ROUTES: [string, Section][] = [
 
 export const sectionOf = (path: string) => ROUTES.find(([p]) => path === p || path.startsWith(`${p}/`))?.[1] ?? null;
 
-export type NavKey = "home" | "info" | "qualifiers" | "teams" | "players" | "schedule" | "mappool" | "pickems" | "stats" | "streams" | "staff";
+export type NavKey = "home" | "me" | "info" | "qualifiers" | "teams" | "players" | "schedule" | "mappool" | "pickems" | "stats" | "streams" | "staff";
 
 const NAV: { key: NavKey; base: string; items: { href: string; section: Section | null; key?: NavKey }[] }[] = [
   { key: "home", base: "/", items: [{ href: "/", section: null }] },
+  { key: "me", base: "/me", items: [{ href: "/me", section: null }] },
   { key: "info", base: "/info", items: [{ href: "/info", section: "info" }] },
   {
     key: "qualifiers",

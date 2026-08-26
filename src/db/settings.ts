@@ -36,7 +36,10 @@ export const DEFAULT_SETTINGS: Settings = {
 function withReg(stored: { key: string; from?: string | null; to?: string | null }[], opens: Date | null, closes: Date | null): TimelineRow[] {
   return TIMELINE_KEYS.map((key) => {
     if (key === "reg") return { key, from: opens ? sofiaDate(opens) : null, to: closes ? sofiaDate(closes) : null };
-    const s = stored.find((r) => r.key === key);
+    const old = (k: string) => stored.find((r) => r.key === k);
+    const legacy =
+      key === "play" && old("qf") ? { key, from: old("qf")?.from ?? null, to: old("gf")?.to ?? old("gf")?.from ?? null } : undefined;
+    const s = stored.find((r) => r.key === key) ?? legacy;
     const d = DEFAULT_TIMELINE.find((r) => r.key === key)!;
     return s && "from" in s ? { key, from: s.from ?? null, to: s.to ?? null } : { key, from: d.from, to: d.to };
   });

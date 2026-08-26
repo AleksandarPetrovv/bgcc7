@@ -1,13 +1,13 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Radio } from "lucide-react";
-import { Sparkle, TriTick, Tricolor } from "@/components/site/graphics";
+import { ArrowRight, ArrowUpRight, Check, Crown, Radio } from "lucide-react";
+import { Sparkle, TriTick } from "@/components/site/graphics";
 import { SlantButton } from "@/components/site/page";
 import { Words } from "@/components/site/rich";
 import { Avatar } from "@/components/site/avatar";
 import { CountUp, Reveal, Stagger, StaggerItem } from "@/components/site/motion";
 import { getDict } from "@/lib/i18n/server";
 import { roundName, type Dict } from "@/lib/i18n/dict";
-import { fmtRange, timelineStates, type TimelineRow } from "@/lib/dates";
+import { fmtRange, phaseStates, type TimelineRow } from "@/lib/dates";
 import { getFill } from "@/db/copy";
 import { Countdown } from "@/components/site/countdown";
 import { MODS, type Stage, type Team } from "@/lib/data";
@@ -23,6 +23,8 @@ import { cn } from "@/lib/utils";
 import { getSettings } from "@/db/settings";
 import { getVisibility } from "@/lib/authz";
 import { InView } from "@/components/site/in-view";
+import { currentOsuId } from "@/auth";
+import { login } from "@/app/pickems/actions";
 import { HeroGate } from "@/components/site/hero-gate";
 
 function HeroLockup({ label }: { label: string }) {
@@ -36,7 +38,7 @@ function HeroLockup({ label }: { label: string }) {
         ))}
       </div>
       <div className="mt-[0.05em] flex items-end justify-between gap-4">
-        <div className="anim-rise mb-[0.12em] flex min-w-0 flex-col gap-2 font-sans text-[clamp(0.6rem,1vw,0.75rem)] font-black uppercase leading-snug tracking-[0.2em] text-ash" style={{ animationDelay: "0.6s" }}>
+        <div className="anim-rise mb-[0.12em] flex min-w-0 flex-col gap-2 font-sans text-[clamp(0.6rem,1vw,0.75rem)] font-black uppercase leading-snug tracking-[0.14em] text-ash" style={{ animationDelay: "0.6s" }}>
           <TriTick className="h-3 w-[22px]" />
           <span className="max-w-[26ch]">{label}</span>
         </div>
@@ -112,6 +114,51 @@ function ModChips({ stage }: { stage: Stage }) {
   );
 }
 
+const POOL_MODS = ["NoMod", "Hidden", "HardRock", "DoubleTime", "FreeMod", "Tiebreaker"];
+
+function PoolStack({ stages }: { stages: Stage[] }) {
+  const mods = POOL_MODS.filter((m) => MODS[m]);
+  return (
+    <div className="flex h-full flex-col justify-center gap-2 px-5" aria-hidden>
+      <div className="flex gap-1.5">
+        {mods.map((m, i) => (
+          <span key={m} className="anim-rise h-9 flex-1 -skew-x-12 opacity-80 transition-opacity group-hover:opacity-100" style={{ background: MODS[m].color, animationDelay: `${0.3 + i * 0.05}s` }} />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-x-3 text-[0.7rem] font-black uppercase tracking-[0.14em] text-ash">
+        {stages.map((st) => (
+          <span key={st.slug}>{st.title}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Champion({ t, team, other }: { t: Dict; team: Team; other?: Team }) {
+  return (
+    <Reveal className="relative mb-6 overflow-hidden border border-[#e8c547]/35 bg-coal">
+      <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={team.image} alt="" className="size-24 shrink-0 object-cover ring-2 ring-[#e8c547]/60 ring-offset-4 ring-offset-coal" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-[#e8c547]">
+            <Crown className="size-4" /> {t.home.champion}
+          </div>
+          <div className="heading-slam mt-1 break-words text-4xl">{team.name}</div>
+          {other && <div className="mt-1 text-sm text-ash">{t.home.runnerUp(other.name)}</div>}
+        </div>
+        <div className="flex -space-x-2">
+          {team.players.map((p) => (
+            <Avatar key={p.userId} src={p.avatar} className="size-11" />
+          ))}
+        </div>
+      </div>
+      <Sparkle className="right-5 top-4 size-4 text-[#e8c547]" />
+      <Sparkle className="right-12 top-10 size-2 text-paper/60" delay={0.9} />
+    </Reveal>
+  );
+}
+
 function TeamMosaic({ teams }: { teams: Team[] }) {
   return (
     <div className="grid h-full grid-cols-4 grid-rows-2" aria-hidden>
@@ -163,7 +210,7 @@ function FormatBadge({ tags }: { tags: readonly string[] }) {
       <span className="heading-slam text-7xl leading-none text-paper transition-transform duration-500 group-hover:-rotate-3 group-hover:scale-105">
         3<span className="text-rose">v</span>3
       </span>
-      <span className="flex flex-col gap-1 text-[0.65rem] font-black uppercase tracking-[0.18em] text-ash">
+      <span className="flex flex-col gap-1 text-[0.65rem] font-black uppercase tracking-[0.14em] text-ash">
         {tags.map((x) => (
           <span key={x}>{x}</span>
         ))}
@@ -189,8 +236,7 @@ function MiniBracket() {
   );
 }
 
-function Timeline({ t, timeline, locale }: { t: Dict; timeline: TimelineRow[]; locale: string }) {
-  const states = timelineStates(timeline);
+function Timeline({ t, timeline, locale, states }: { t: Dict; timeline: TimelineRow[]; locale: string; states: ReturnType<typeof phaseStates> }) {
   return (
     <InView as="ol" className="relative mt-6">
       <span className="anim-stitch absolute bottom-3 left-[7px] top-3 border-l-2 border-dashed border-line" aria-hidden />
@@ -240,17 +286,29 @@ export default async function Home() {
     getLobbies(),
     getPublicStaff(),
   ]);
-  const f = await getFill();
+  const [f, me] = await Promise.all([getFill(), currentOsuId()]);
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const teamById = (id: string) => teams.find((x) => x.id === id);
   const see = (s: keyof typeof vis.sections) => vis.sections[s];
   const visiblePools = pools.filter((s) => s.pools.length && s.released);
-  const early = settings.phase === "qualifiers" || settings.phase === "seeding";
-  const pool = early ? visiblePools.find((s) => s.slug === "qualifiers") : visiblePools.at(-1);
+  const phase = settings.phase;
+  const signup = phase === "registration" || phase === "screening";
+  const playing = phase === "seeding" || phase === "playoffs";
+  const big = "px-8 py-4 text-xl shadow-[4px_4px_0_0_var(--color-rose-deep)]";
+  const qualPool = phase === "qualifiers" ? visiblePools.find((s) => s.slug === "qualifiers") : undefined;
+  const byId = new Map(matches.map((m) => [m.id, m]));
+  const gf1 = byId.get("GF-M1");
+  const gf2 = byId.get("GF-M2");
+  const champSide = gf2?.winner ? gf2 : gf1?.winner === 1 ? gf1 : null;
+  const champ = phase === "finished" && champSide ? teamById(champSide.winner === 1 ? champSide.team1.id : champSide.team2.id) : undefined;
+  const runnerUp = champ && champSide ? teamById(champSide.winner === 1 ? champSide.team2.id : champSide.team1.id) : undefined;
+  const ctaHref: Record<string, string> = { screening: "/teams/players", qualifiers: "/qualifiers", seeding: "/teams", playoffs: "/matches", finished: "/matches" };
+  const ctaOk: Record<string, boolean> = { screening: see("players"), qualifiers: see("lobbies"), seeding: see("teams"), playoffs: see("schedule"), finished: see("schedule") };
   const live = see("streams") ? await getLive() : null;
   const regState = windowState(settings.regOpensAt, settings.regClosesAt);
-  const regCloses = see("register") && isFuture(settings.regClosesAt) ? settings.regClosesAt!.toISOString() : null;
+  const regCloses = phase === "registration" && see("register") && isFuture(settings.regClosesAt) ? settings.regClosesAt!.toISOString() : null;
   const players = regs.filter((r) => r.status !== "denied");
+  const mine = me ? regs.find((r) => r.osuId === me) : undefined;
   const booking = windowState(settings.bookingOpensAt, settings.bookingClosesAt);
   const featured = matches
     .filter((m) => m.winner)
@@ -258,34 +316,39 @@ export default async function Home() {
     .slice(0, 3);
 
   const cards = [
-    (see("register") || see("players")) && (
+    signup && (see("register") || see("players")) && (
       <EntryCard
         key="reg"
         title={t.home.registration}
-        sub={regState === "open" ? f(t.home.regSub) : regState === "soon" ? f(t.home.regSoon) : t.home.regClosed}
+        sub={phase === "screening" ? t.home.regScreening : regState === "open" ? f(t.home.regSub) : regState === "soon" ? f(t.home.regSoon) : t.home.regClosed}
         href={see("register") ? "/register" : "/teams/players"}
         className="bg-coal"
       >
         <SignupCount n={players.length} label={t.home.signups(players.length)} />
       </EntryCard>
     ),
-    see("lobbies") && lobbies.length > 0 && (
+    phase === "qualifiers" && see("lobbies") && lobbies.length > 0 && (
       <EntryCard key="lobbies" title={t.home.lobbies} sub={booking === "open" ? t.home.lobbiesSub(lobbies.length) : t.home.lobbiesClosed(lobbies.length)} href="/qualifiers" className="bg-coal">
         <LobbySlots lobbies={lobbies} />
       </EntryCard>
     ),
-    see("mappool") && pool && (
-      <EntryCard key="pool" title={t.home.mappool(t.rounds[pool.title] ?? pool.title)} sub={t.home.mapSub(pool.pools.reduce((n, p) => n + p.maps.length, 0))} href="/mappool" className="bg-slate">
-        <ModChips stage={pool} />
+    see("mappool") && qualPool && (
+      <EntryCard key="pool" title={t.home.mappool(t.rounds[qualPool.title] ?? qualPool.title)} sub={t.home.mapSub(qualPool.pools.reduce((n, p) => n + p.maps.length, 0))} href="/mappool" className="bg-slate">
+        <ModChips stage={qualPool} />
+      </EntryCard>
+    ),
+    see("mappool") && !qualPool && visiblePools.length > 0 && (
+      <EntryCard key="pools" title={t.home.mappools} sub={t.home.poolsSub(visiblePools.length)} href="/mappool" className="bg-slate">
+        <PoolStack stages={visiblePools.map((st) => ({ ...st, title: t.rounds[st.title] ?? st.title }))} />
       </EntryCard>
     ),
     see("teams") && teams.length > 0 && (
-      <EntryCard key="teams" title={t.home.teams} sub={t.home.teamsSub(teams.length, teams.length * 3)} href="/teams" className="bg-coal">
+      <EntryCard key="teams" title={t.home.teams} sub={phase === "playoffs" || phase === "finished" ? t.home.teamsDone(teams.length, teams.length * 3) : t.home.teamsSub(teams.length, teams.length * 3)} href="/teams" className="bg-coal">
         <TeamMosaic teams={teams} />
       </EntryCard>
     ),
     see("schedule") && (
-      <EntryCard key="bracket" title={t.home.bracket} sub={t.home.bracketSub} href="/matches" className="bg-coal">
+      <EntryCard key="bracket" title={t.home.bracket} sub={phase === "finished" ? t.home.bracketDone : phase === "playoffs" ? t.home.bracketLive : t.home.bracketSub} href="/matches" className="bg-coal">
         <MiniBracket />
       </EntryCard>
     ),
@@ -328,55 +391,73 @@ export default async function Home() {
 
           <div className="flex min-w-0 flex-col justify-end">
             <h1 className="text-balance text-[clamp(1.8rem,3.2vw,2.9rem)] font-black leading-[1.05] tracking-tight">
-              <Words text={t.home.headline} d={0.35} s={0.055} />
+              <Words text={phase === "finished" ? t.home.headlineDone : t.home.headline} d={0.35} s={0.055} />
             </h1>
             <p className="mt-5 max-w-[48ch] text-pretty text-lg text-paper/70">
-              <Words text={f(t.home.intro)} d={0.85} s={0.018} />
+              <Words text={f(phase === "registration" ? t.home.intro : (t.home.introBy[phase] ?? t.home.intro))} d={0.85} s={0.018} />
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3" style={{ "--d": "1.45s", "--s": "0.1s" } as React.CSSProperties}>
-              {see("register") && (
+            <div className="mt-9 flex flex-wrap items-center gap-4" style={{ "--d": "1.45s", "--s": "0.1s" } as React.CSSProperties}>
+              {phase === "registration" && see("register") ? (
                 <span className="in-pop inline-flex">
-                  <SlantButton href="/register" tone="paper" className="px-5 py-2.5 text-base">{t.home.registerTeam}</SlantButton>
+                  {mine && mine.status !== "denied" ? (
+                    <span className="inline-flex -skew-x-12 cursor-default items-center border border-line bg-slate px-8 py-4 text-xl font-black uppercase tracking-wide text-ash" aria-disabled>
+                      <span className="inline-flex skew-x-12 items-center gap-2">
+                        <Check className="size-5" /> {mine.status === "approved" ? t.me.signedUp : t.me.signedUpPending}
+                      </span>
+                    </span>
+                  ) : (
+                    <SlantButton href="/register" tone="paper" className={big}>
+                      {t.home.registerTeam} <ArrowRight className="size-5" />
+                    </SlantButton>
+                  )}
                 </span>
+              ) : playing ? (
+                <span className="in-pop inline-flex">
+                  {me ? (
+                    <SlantButton href="/me" tone="paper" className={big}>
+                      {t.home.myPage} <ArrowRight className="size-5" />
+                    </SlantButton>
+                  ) : (
+                    <form action={login.bind(null, "/me")}>
+                      <SlantButton type="submit" tone="paper" className={big}>
+                        {t.home.login} <ArrowRight className="size-5" />
+                      </SlantButton>
+                    </form>
+                  )}
+                </span>
+              ) : (
+                ctaOk[phase] && (
+                  <span className="in-pop inline-flex">
+                    <SlantButton href={ctaHref[phase]} tone="paper" className={big}>
+                      {t.home.cta[phase]} <ArrowRight className="size-5" />
+                    </SlantButton>
+                  </span>
+                )
               )}
               {see("info") && (
                 <span className="in-pop inline-flex" style={{ "--i": 1 } as React.CSSProperties}>
-                  <SlantButton href="/info" tone="outline" className="px-5 py-2.5 text-base">{t.home.readRules}</SlantButton>
+                  <SlantButton href="/info" tone="outline" className="px-7 py-4 text-lg">{t.home.readRules}</SlantButton>
                 </span>
               )}
             </div>
           </div>
-        </div>
-        <dl className="relative mx-auto grid max-w-[1400px] grid-cols-2 border-t border-line sm:grid-cols-4">
-          {[1, 6, 7, 8].map((i, k) => (
-            <div
-              key={i}
-              className={cn("in-up group px-4 py-4 transition-colors hover:bg-white/[0.02] sm:px-6", k % 2 === 1 && "border-l border-line", k > 1 && "border-t border-line sm:border-t-0", k === 2 && "sm:border-l")}
-              style={{ "--d": "1.1s", "--i": k, "--s": "0.09s" } as React.CSSProperties}
-            >
-              <dt className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-ash transition-colors group-hover:text-rose-hi">{t.info.facts[i][0]}</dt>
-              <dd className="in-wipe num mt-1 text-xl text-paper sm:text-2xl" style={{ "--d": "1.3s", "--i": k, "--s": "0.09s" } as React.CSSProperties}>{f(t.info.facts[i][1])}</dd>
-            </div>
-          ))}
-        </dl>
-        <div className="anim-grow-x">
-          <Tricolor className="h-1" vertical />
         </div>
       </HeroGate>
 
       <section className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-12 px-4 pt-14 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)]">
         <div>
           <h2 className="heading-slam text-3xl">{t.home.timeline}</h2>
-          <Timeline t={t} timeline={settings.timeline} locale={locale} />
+          <Timeline t={t} timeline={settings.timeline} locale={locale} states={phaseStates(settings.timeline, phase)} />
           {regCloses && (
             <Reveal className="relative mt-8 overflow-hidden border border-line bg-coal p-4" delay={0.2}>
-              <div className="text-[0.7rem] font-black uppercase tracking-widest text-ash">{t.home.closesIn}</div>
+              <div className="text-[0.7rem] font-black uppercase tracking-[0.14em] text-ash">{t.home.closesIn}</div>
               <Countdown to={regCloses} from={settings.regOpensAt?.toISOString()} />
             </Reveal>
           )}
         </div>
 
         <div className="content-start">
+          {champ && <Champion t={t} team={champ} other={runnerUp} />}
           <Stagger className="grid grid-cols-1 gap-5 sm:grid-cols-2" gap={0.08}>
             {cards.map((c, i) => (
               <StaggerItem key={i}>{c}</StaggerItem>
@@ -385,7 +466,7 @@ export default async function Home() {
 
           {sponsors.length > 0 && see("sponsors") && (
             <Reveal className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-line pt-5" delay={0.1}>
-              <span className="text-xs font-black uppercase tracking-widest text-ash">{t.home.backedBy}</span>
+              <span className="text-xs font-black uppercase tracking-[0.14em] text-ash">{t.home.backedBy}</span>
               {sponsors.map((s) => (
                 <a
                   key={s.id}
@@ -395,7 +476,7 @@ export default async function Home() {
                   className="group flex items-center gap-2.5 opacity-80 transition duration-300 hover:-translate-y-0.5 hover:opacity-100"
                 >
                   <Avatar src={s.image} className="size-8 grayscale transition duration-300 group-hover:grayscale-0" />
-                  <span className="font-display text-base font-bold lowercase">{s.name}</span>
+                  <span className="text-base font-black">{s.name}</span>
                 </a>
               ))}
             </Reveal>
@@ -454,9 +535,9 @@ export default async function Home() {
                   <Radio className="size-3.5" /> {t.home.offline}
                 </span>
               )}
-              <p className="text-sm text-paper/75">{live ? (live.title ?? t.home.liveNote) : t.home.streamNote}</p>
-              <SlantButton href="/streams" tone={live ? "rose" : "paper"} className="sm:ml-auto">
-                {live ? t.home.watchNow : t.home.streamSchedule}
+              <p className="text-sm text-paper/75">{live ? (live.title ?? t.home.liveNote) : phase === "finished" ? t.home.vodNote : t.home.streamNote}</p>
+              <SlantButton href={!live && phase === "finished" ? "/streams/vods" : "/streams"} tone={live ? "rose" : "paper"} className="sm:ml-auto">
+                {live ? t.home.watchNow : phase === "finished" ? t.home.watchVods : t.home.streamSchedule}
               </SlantButton>
             </Reveal>
           )}
