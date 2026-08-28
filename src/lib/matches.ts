@@ -21,7 +21,7 @@ export const isLive = (m: Match) => m.links.length > 0 && !m.winner && !!m.team1
 
 const ROUND_SLUG: Record<string, string> = {
   "WB-R1": "w-qf", "WB-R2": "w-sf", "WB-R3": "w-f",
-  "LB-R1": "l-qf", "LB-R2": "l-sf", "LB-R3": "l-po", "LB-R4": "l-f",
+  "LB-R1": "l-r1", "LB-R2": "l-r2", "LB-R3": "l-po", "LB-R4": "l-f",
   GF: "gf",
 };
 const SINGLE = new Set(["WB-R3", "LB-R3", "LB-R4"]);

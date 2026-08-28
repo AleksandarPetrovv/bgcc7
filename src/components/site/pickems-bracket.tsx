@@ -38,7 +38,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
         {HEADERS.map((h) => (
           <div
             key={h.t}
-            className={cn("in-drop absolute text-center text-sm font-black uppercase tracking-wider", h.gold ? "text-[#e8c547]" : "text-ash")}
+            className={cn("in-drop absolute truncate whitespace-nowrap text-center text-xs font-black uppercase tracking-[0.14em]", h.gold ? "text-[#e8c547]" : "text-ash")}
             style={{ left: x(h.c), top: h.y, width: W, "--i": h.c, "--s": "0.14s", "--d": "0.1s" } as React.CSSProperties}
           >
             {t.rounds[h.t] ?? h.t}
@@ -49,8 +49,8 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
         </div>
 
         {champ && (
-          <div key={champ.id} className="anim-rise absolute border border-[#e8c547]/40 bg-coal" style={{ left: x(5) - 30, top: POS["GF-M2"][1] + H + 30, width: W + 30 }}>
-            <div className="flex items-center gap-1.5 bg-[#e8c547] px-2.5 py-1 text-[0.7rem] font-black uppercase tracking-widest text-ink">
+          <div key={champ.id} className="anim-rise absolute border border-[#e8c547]/40 bg-coal" style={{ left: x(5), top: POS["GF-M2"][1] + H + 30, width: W }}>
+            <div className="flex items-center gap-1.5 bg-[#e8c547] px-2.5 py-1 text-[0.7rem] font-black uppercase tracking-[0.14em] text-ink">
               <Crown className="size-3.5" /> {t.pickems.champion}
             </div>
             <div className="flex items-center gap-3 p-2.5">
