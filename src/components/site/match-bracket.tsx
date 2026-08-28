@@ -11,7 +11,7 @@ import { MatchDialog } from "./match-dialog";
 import { TriTick } from "./graphics";
 import { cn } from "@/lib/utils";
 
-const G = 40;
+const G = 28;
 const H = 92;
 const P = H + 18;
 const TOP = 72;
@@ -69,15 +69,15 @@ function Line({ m, slot, live }: { m: Match; slot: 1 | 2; live?: [number, number
   const leads = !!live && !tie && live[slot - 1] > live[2 - slot];
   const score = live ? live[slot - 1] : m.winner !== null ? (side.score ?? 0) : null;
   return (
-    <div className={cn("relative flex min-h-0 flex-1 items-center gap-2.5 px-2.5", won && "bg-balkan/12", leads && "bg-rose/10", lost && "opacity-45")}>
+    <div className={cn("relative flex min-h-0 flex-1 items-center gap-2 px-2", won && "bg-balkan/12", leads && "bg-rose/10", lost && "opacity-45")}>
       {(won || leads) && <span className={cn("absolute inset-y-1 left-0 w-0.5", won ? "bg-balkan" : "bg-rose/60")} aria-hidden />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={team.image} alt="" className="in-pop size-7 shrink-0 object-cover" style={v({ "--d": "0.45s" })} />
-      <span className={cn("in-wipe min-w-0 flex-1 truncate text-sm font-bold", won && "font-black text-balkan", leads && "font-black text-[#e8868b]")} style={v({ "--d": "0.5s" })}>
+      <img src={team.image} alt="" className="in-pop size-6 shrink-0 object-cover" style={v({ "--d": "0.45s" })} />
+      <span className={cn("in-wipe min-w-0 flex-1 truncate text-[0.82rem] font-bold", won && "font-black text-balkan", leads && "font-black text-[#e8868b]")} style={v({ "--d": "0.5s" })}>
         {team.name}
       </span>
       {score !== null && (
-        <span className={cn("in-slam num w-6 text-right text-xl leading-none", won ? "text-balkan" : leads || tie ? "text-[#e8868b]" : "text-paper/80")} style={v({ "--d": "0.65s" })}>
+        <span className={cn("in-slam num w-5 shrink-0 text-right text-xl leading-none", won ? "text-balkan" : leads || tie ? "text-[#e8868b]" : "text-paper/80")} style={v({ "--d": "0.65s" })}>
           {score}
         </span>
       )}
@@ -117,7 +117,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
     return () => ro.disconnect();
   }, []);
 
-  const W = Math.round(Math.min(280, Math.max(210, (avail - 5 * G) / 6)));
+  const W = Math.round(Math.min(290, Math.max(210, (avail - 5 * G) / 6)));
   const col = (c: number) => c * (W + G);
   const byId = new Map(matches.map((m) => [m.id, m]));
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
@@ -204,14 +204,14 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
         {HEADERS.map((h) => (
           <div
             key={h.t}
-            className="in-drop absolute border-b border-line pb-1 text-xs font-black uppercase tracking-widest text-ash"
+            className="in-drop absolute border-b border-line pb-1 text-xs font-black uppercase tracking-[0.14em] text-ash"
             style={{ left: col(h.c), top: (h.s === "u" ? TOP : LOW) - 30, width: W, ...v({ "--i": h.c, "--s": "0.12s", "--d": h.s === "u" ? "0.15s" : "0.45s" }) }}
           >
             {t.rounds[h.t] ?? h.t}
           </div>
         ))}
         <div
-          className="in-drop absolute flex items-center gap-2 border-b border-[#e8c547]/20 pb-1 text-xs font-black uppercase tracking-widest text-[#e8c547]/80"
+          className="in-drop absolute flex items-center gap-2 border-b border-[#e8c547]/20 pb-1 text-xs font-black uppercase tracking-[0.14em] text-[#e8c547]/80"
           style={{ left: col(5), top: top("GF-M1") - 30, width: W, ...v({ "--d": "0.7s" }) }}
         >
           <Crown className="size-3.5" /> {t.rounds["Grand Finals"]}

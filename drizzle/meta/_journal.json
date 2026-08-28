@@ -92,6 +92,13 @@
       "when": 1790710895366,
       "tag": "0012_military_lady_deathstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1790716209640,
+      "tag": "0013_losers_pools",
+      "breakpoints": true
     }
   ]
 }

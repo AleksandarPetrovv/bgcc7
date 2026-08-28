@@ -1,4 +1,4 @@
-export const W = 200;
+export const W = 214;
 export const G = 40;
 export const H = 78;
 export const LB = 520;
