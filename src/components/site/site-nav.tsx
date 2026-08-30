@@ -3,7 +3,7 @@
 import { Fragment, useLayoutEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Menu } from "lucide-react";
+import { LogOut, Menu, UserRound } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Sparkle, SpeedMark, Wordmark } from "./graphics";
 import { useDict } from "./lang";
@@ -105,12 +105,26 @@ export function SiteNav({ user, nav, register, live }: Props) {
                   }}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "group relative flex items-center whitespace-nowrap px-2.5 text-[0.78rem] font-extrabold uppercase tracking-wide transition-colors 2xl:px-3.5",
+                    "group relative flex items-center whitespace-nowrap px-2.5 text-[0.78rem] font-black uppercase tracking-wide transition-colors 2xl:px-3.5",
                     active ? "text-paper" : "text-paper/60 hover:text-paper",
                   )}
                 >
-                  {!active && <span className="absolute inset-x-0.5 inset-y-4 -skew-x-12 scale-90 bg-white/0 transition duration-200 group-hover:scale-100 group-hover:bg-white/[0.05]" aria-hidden />}
-                  <span className={cn("relative transition-transform duration-200 group-hover:-translate-y-px", n.hidden && "opacity-40")}>{t.nav[n.key]}</span>
+                  {!active && n.key !== "me" && <span className="absolute inset-x-0.5 inset-y-4 -skew-x-12 scale-90 bg-white/0 transition duration-200 group-hover:scale-100 group-hover:bg-white/[0.05]" aria-hidden />}
+                  {n.key === "me" ? (
+                    <span
+                      className={cn(
+                        "relative inline-flex -skew-x-12 items-center border px-2.5 py-1 transition-colors duration-200",
+                        active ? "border-rose bg-rose/20 text-paper" : "border-rose/50 bg-rose/10 text-rose-hi group-hover:border-rose group-hover:text-paper",
+                      )}
+                    >
+                      <span className="inline-flex skew-x-12 items-center gap-1.5">
+                        <UserRound className="size-3.5" strokeWidth={3} />
+                        {t.nav.me}
+                      </span>
+                    </span>
+                  ) : (
+                    <span className={cn("relative transition-transform duration-200 group-hover:-translate-y-px", n.hidden && "opacity-40")}>{t.nav[n.key]}</span>
+                  )}
                   {live.includes(n.key) && <LivePill />}
                 </Link>
               </Fragment>
@@ -141,11 +155,11 @@ export function SiteNav({ user, nav, register, live }: Props) {
           )}
           {user ? (
             <div className="hidden h-9 -skew-x-12 items-center border border-line pl-1 md:flex">
-              <span className="flex h-full skew-x-12 items-center gap-2.5 pr-3">
+              <Link href="/me" title={t.nav.me} className="flex h-full skew-x-12 items-center gap-2.5 pr-3 transition-colors hover:text-rose-hi">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {user.image && <img src={user.image} alt="" className="size-7 object-cover" />}
                 <span className="max-w-32 truncate text-[0.8rem] font-black leading-none">{user.name}</span>
-              </span>
+              </Link>
               <button
                 type="button"
                 disabled={pending}
@@ -199,14 +213,16 @@ export function SiteNav({ user, nav, register, live }: Props) {
               <div className="shrink-0 border-t border-line bg-coal p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                 {user ? (
                   <div className="flex items-center gap-3">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {user.image && <img src={user.image} alt="" className="size-9 object-cover" />}
-                    <span className="min-w-0 flex-1 truncate text-sm font-extrabold">{user.name}</span>
+                    <Link href="/me" onClick={() => setOpen(false)} className="flex min-w-0 flex-1 items-center gap-3 hover:text-rose-hi">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      {user.image && <img src={user.image} alt="" className="size-9 object-cover" />}
+                      <span className="min-w-0 flex-1 truncate text-sm font-black">{user.name}</span>
+                    </Link>
                     <button
                       type="button"
                       disabled={pending}
                       onClick={() => start(() => logout())}
-                      className="flex min-h-11 items-center gap-2 border border-line px-3 text-[0.8rem] font-extrabold uppercase text-ash transition hover:text-paper disabled:opacity-60"
+                      className="flex min-h-11 items-center gap-2 border border-line px-3 text-[0.8rem] font-black uppercase text-ash transition hover:text-paper disabled:opacity-60"
                     >
                       <LogOut className="size-4" /> {t.nav.logout}
                     </button>
@@ -216,7 +232,7 @@ export function SiteNav({ user, nav, register, live }: Props) {
                     type="button"
                     disabled={pending}
                     onClick={() => start(() => login(path))}
-                    className="flex min-h-11 w-full items-center justify-center border border-line text-sm font-extrabold uppercase text-paper transition hover:border-rose disabled:opacity-60"
+                    className="flex min-h-11 w-full items-center justify-center border border-line text-sm font-black uppercase text-paper transition hover:border-rose disabled:opacity-60"
                   >
                     {t.nav.login}
                   </button>
