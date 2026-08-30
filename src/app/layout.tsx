@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, Barlow_Condensed, Montserrat, Roboto_Condensed, Unbounded } from "next/font/google";
+import { Archivo, Montserrat, Unbounded } from "next/font/google";
 import { SiteNav } from "@/components/site/site-nav";
 import { Backdrop } from "@/components/site/backdrop";
 import { LiteSettle } from "@/components/site/lite-settle";
@@ -14,6 +14,8 @@ import { getViewer, getVisibility } from "@/lib/authz";
 import { buildNav } from "@/lib/sections";
 import { getLive } from "@/lib/twitch";
 import { isLive } from "@/lib/matches";
+import { getSettings } from "@/db/settings";
+import { windowState } from "@/lib/time";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -29,19 +31,6 @@ const montserrat = Montserrat({
   variable: "--font-mont",
   subsets: ["cyrillic"],
   style: ["normal", "italic"],
-});
-
-const robotoCondensed = Roboto_Condensed({
-  variable: "--font-roboto-c",
-  subsets: ["cyrillic"],
-});
-
-const barlow = Barlow_Condensed({
-  variable: "--font-barlow",
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
-  adjustFontFallback: false,
-  fallback: [],
 });
 
 const unbounded = Unbounded({
@@ -60,10 +49,12 @@ const LITE = "try{var c=document.createElement(\"canvas\"),g=c.getContext(\"webg
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const [lang, session, viewer, vis, teams, matches] = await Promise.all([getLang(), auth(), getViewer(), getVisibility(), getTeams(), getMatches()]);
   const user = session?.user?.name ? { name: session.user.name, image: session.user.image ?? null, admin: !!viewer?.role } : null;
+  const settings = await getSettings();
+  const regOpen = vis.sections.register && settings.phase === "registration" && windowState(settings.regOpensAt, settings.regClosesAt) === "open";
   const twitch = vis.sections.streams || vis.staff ? !!(await getLive()) : false;
   const live = [...(twitch ? ["streams"] : []), ...(matches.some(isLive) && (vis.sections.schedule || vis.staff) ? ["schedule"] : [])];
   return (
-    <html lang={lang} className={`${archivo.variable} ${barlow.variable} ${unbounded.variable} ${montserrat.variable} ${robotoCondensed.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang={lang} className={`${archivo.variable} ${unbounded.variable} ${montserrat.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: LITE }} />
       </head>
@@ -72,7 +63,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <MotionProvider>
           <Backdrop />
           <LiteSettle />
-          <SiteNav user={user} nav={buildNav(vis.sections, vis.staff)} register={vis.staff || vis.sections.register} live={live} />
+          <SiteNav user={user} nav={buildNav(vis.sections, vis.staff)} register={regOpen} live={live} />
           <TournamentProvider teams={teams} matches={matches}>
             <main className="flex-1">{children}</main>
           </TournamentProvider>
