@@ -15,12 +15,11 @@ type Props = {
   status: "pending" | "approved" | "denied" | null;
   state: WindowState;
   opensAt: string;
-  lobbyLink: boolean;
 };
 
 const TONE = { pending: "text-paper", approved: "text-balkan", denied: "text-rose-hi" };
 
-export function RegisterForm({ user, status, state, opensAt, lobbyLink }: Props) {
+export function RegisterForm({ user, status, state, opensAt }: Props) {
   const t = useDict();
   const path = usePathname();
   const [pending, start] = useTransition();
@@ -37,7 +36,7 @@ export function RegisterForm({ user, status, state, opensAt, lobbyLink }: Props)
     <div className="self-start border border-line bg-coal">
       <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3">
         <span className="text-sm font-black uppercase tracking-wide">{t.register.entry}</span>
-        <span className={cn("text-xs font-black uppercase tracking-widest", status ? TONE[status] : "text-ash")}>
+        <span className={cn("text-xs font-black uppercase tracking-[0.14em]", status ? TONE[status] : "text-ash")}>
           {status ? t.register.statusText[status] : t.register.notSigned}
         </span>
       </div>
@@ -47,7 +46,7 @@ export function RegisterForm({ user, status, state, opensAt, lobbyLink }: Props)
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {user.image && <img src={user.image} alt="" className="size-16 shrink-0" />}
             <div className="min-w-0">
-              <div className="truncate font-display text-2xl font-bold lowercase">{user.name}</div>
+              <div className="truncate text-2xl font-black">{user.name}</div>
               {status && (
                 <div className={cn("mt-1 flex items-center gap-1.5 text-sm font-black uppercase", TONE[status])}>
                   <Check className="size-4" /> {t.register.signedUp}
@@ -69,11 +68,6 @@ export function RegisterForm({ user, status, state, opensAt, lobbyLink }: Props)
         {error && <p className="text-sm font-bold text-rose-hi">{error}</p>}
 
         <div className={cn("flex flex-wrap gap-3 border-t border-line pt-5", pending && "pointer-events-none opacity-60")}>
-          {lobbyLink && (
-            <SlantButton tone="balkan" href="/qualifiers">
-              {t.register.bookLobby}
-            </SlantButton>
-          )}
           {!user ? (
             <SlantButton tone="balkan" onClick={() => start(() => login(path))}>
               {t.nav.login}
