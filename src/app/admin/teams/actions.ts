@@ -46,15 +46,14 @@ export async function updateTeam(id: string, _: ActionResult, fd: FormData) {
   return guard("teams", "team.update", async () => {
     const name = String(fd.get("name") ?? "").trim().slice(0, 40);
     const image = String(fd.get("image") ?? "").trim().slice(0, 500);
-    const seed = Math.round(Number(fd.get("seed")));
-    if (!name || !Number.isInteger(seed) || seed < 0 || seed > 99 || (image && !/^https:\/\//.test(image))) return { ok: false, error: "invalid" };
+    if (!name || (image && !/^https:\/\//.test(image))) return { ok: false, error: "invalid" };
     const captain = Number(fd.get("captain"));
-    await db.update(teams).set({ name, image, seed }).where(eq(teams.id, id));
+    await db.update(teams).set({ name, image }).where(eq(teams.id, id));
     if (Number.isInteger(captain) && captain > 0) {
       await db.update(teamMembers).set({ isCaptain: false }).where(and(eq(teamMembers.teamId, id), ne(teamMembers.osuId, captain)));
       await db.update(teamMembers).set({ isCaptain: true }).where(and(eq(teamMembers.teamId, id), eq(teamMembers.osuId, captain)));
     }
-    return { id, name, image, seed, captain };
+    return { id, name, image, captain };
   });
 }
 

@@ -57,15 +57,12 @@ export default async function AdminTeams() {
             </div>
             <div className="space-y-4 p-4">
               <ActionForm key={`${team.id}-${team.name}-${team.seed}-${team.players.map((p) => p.userId + String(p.isCaptain)).join()}`} action={updateTeam.bind(null, team.id)} className="space-y-3">
-                <div className="grid grid-cols-[1fr_5rem] gap-3">
+                <div className="grid gap-2">
                   <label className={label}>
                     {t.admin.teamName}
                     <input name="name" required maxLength={40} defaultValue={team.name} className={inputCls} />
                   </label>
-                  <label className={label}>
-                    {t.common.seed}
-                    <input type="number" name="seed" min={0} max={99} defaultValue={team.seed} className={inputCls} />
-                  </label>
+                  <p className="self-end text-xs text-ash">{t.admin.seedLocked}</p>
                 </div>
                 <label className={label}>
                   {t.admin.teamImage}

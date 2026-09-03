@@ -68,7 +68,7 @@ export type Match = {
 export type Sponsor = { id: number; name: string; image: string; url: string | null };
 
 export type QualMap = { slot: string; title: string; version: string; creator: string; sr: number; bpm: number; cover: string; id: number; length: number };
-export type QualPerf = { score: number; acc: number; placement: number; percentile: number; mods: string; rank: string; matchName: string };
+export type QualPerf = { score: number; acc: number; placement: number; percentile: number; mods: string; rank: string; matchName: string; manual?: boolean };
 export type QualPlayer = { id: number; username: string; avatar: string; cc: string; avgAcc: number; avgScore: number; zSum: number; perf: Record<string, QualPerf> };
 
 export const fmtNum = (n: number) => n.toLocaleString("en-US");
