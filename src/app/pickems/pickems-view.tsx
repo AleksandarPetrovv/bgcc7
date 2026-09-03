@@ -72,12 +72,12 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
         {t.pickems.title}
       </PageTitle>
 
-      <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
-        <div className="grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-5">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:gap-4 lg:grid-cols-[2fr_1fr]">
+        <div className="grid grid-cols-3 gap-px border border-line bg-line sm:grid-cols-5">
           {t.pickems.points.map(([k, v], i) => (
-            <div key={k} className="in-flip bg-coal p-3 last:col-span-2 sm:last:col-span-1" style={{ "--i": i, "--s": "0.08s", "--d": "0.15s" } as React.CSSProperties}>
-              <div className="min-h-[2lh] text-[0.65rem] font-black uppercase leading-tight tracking-wide text-ash">{k}</div>
-              <div className="in-pop num origin-left text-3xl text-balkan [--d:0.45s]">
+            <div key={k} className="in-flip bg-coal p-2.5 last:col-span-2 sm:p-3 sm:last:col-span-1" style={{ "--i": i, "--s": "0.08s", "--d": "0.15s" } as React.CSSProperties}>
+              <div className="min-h-[2lh] text-[0.6rem] font-black uppercase leading-tight text-ash sm:text-[0.65rem]">{k}</div>
+              <div className="in-pop num origin-left text-2xl sm:text-3xl text-balkan [--d:0.45s]">
                 {v}
                 <span className="text-base text-ash"> {t.common.pts}</span>
               </div>
@@ -92,9 +92,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
             </div>
           </div>
           <div className="ml-auto flex flex-col items-end gap-1">
-            {!open ? (
-              <span className="text-sm font-black uppercase text-ash">{t.pickems.closedTag}</span>
-            ) : !dirty && made > 0 && osuId ? (
+            {!open ? null : !dirty && made > 0 && osuId ? (
               <span className="flex items-center gap-1.5 text-sm font-black uppercase text-balkan">
                 <Check className="size-4" /> {t.common.saved}
               </span>

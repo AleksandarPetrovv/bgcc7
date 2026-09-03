@@ -30,12 +30,12 @@ const label = "text-[0.65rem] font-black uppercase tracking-[0.14em] text-ash";
 function Card({ title, children, className, i = 0, right, flush }: { title: string; children: React.ReactNode; className?: string; i?: number; right?: React.ReactNode; flush?: boolean }) {
   return (
     <section className={cn("in-up relative overflow-hidden border border-line bg-coal", className)} style={v({ "--i": i, "--s": "0.08s", "--d": "0.2s" })}>
-      <div className="flex items-center gap-2.5 px-5 pb-1 pt-4">
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-4 pb-1 pt-4 sm:px-5">
         <TriTick className="h-2.5 w-[18px]" />
         <h2 className="heading-slam text-lg">{title}</h2>
         {right && <div className="ml-auto">{right}</div>}
       </div>
-      <div className={flush ? "pt-3" : "p-5 pt-3"}>{children}</div>
+      <div className={flush ? "pt-3" : "p-4 pt-3 sm:p-5 sm:pt-3"}>{children}</div>
     </section>
   );
 }
@@ -44,7 +44,7 @@ function Stat({ k, n, className }: { k: string; n: string; className?: string })
   return (
     <div className={cn("border-l-2 border-line pl-3", className)}>
       <div className={label}>{k}</div>
-      <div className="num mt-1 text-3xl leading-none">{n}</div>
+      <div className="num mt-1 text-2xl leading-none sm:text-3xl">{n}</div>
     </div>
   );
 }
@@ -61,14 +61,14 @@ function TeamCard({ t, team, me, record, i }: { t: Dict; team: Team; me: number;
   const avg = Math.round(team.players.reduce((n, p) => n + p.rank, 0) / Math.max(1, team.players.length));
   return (
     <Card title={t.me.team} i={i} flush>
-      <div className="relative mx-5 flex items-center gap-4 overflow-hidden border border-line bg-ink p-3">
+      <div className="relative mx-4 flex items-center gap-3 overflow-hidden border border-line bg-ink p-3 sm:mx-5 sm:gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={team.image} alt="" className="pointer-events-none absolute inset-0 size-full scale-110 object-cover opacity-15 blur-md" aria-hidden />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={team.image} alt="" className="relative size-16 shrink-0 object-cover" />
+        <img src={team.image} alt="" className="relative size-12 shrink-0 object-cover sm:size-16" />
         <div className="relative min-w-0 flex-1">
-          <div className="heading-slam break-words text-2xl leading-tight">{team.name}</div>
-          <div className="num mt-1 flex flex-wrap gap-x-4 text-sm text-paper/70">
+          <div className="heading-slam break-words text-lg leading-tight sm:text-2xl">{team.name}</div>
+          <div className="num mt-1 flex flex-wrap gap-x-3 text-sm text-paper/70 sm:gap-x-4">
             <span>{t.me.seed(team.seed)}</span>
             {record && <span className="text-balkan">{t.me.record(record[0], record[1])}</span>}
             <span>
@@ -79,19 +79,19 @@ function TeamCard({ t, team, me, record, i }: { t: Dict; team: Team; me: number;
       </div>
       <ul className="mt-2 divide-y divide-line">
         {team.players.map((p) => (
-          <li key={p.userId} className="flex items-center gap-3 px-5 py-2.5">
-            <Avatar src={p.avatar} className="size-9" />
+          <li key={p.userId} className="flex items-center gap-2.5 px-4 py-2.5 sm:gap-3 sm:px-5">
+            <Avatar src={p.avatar} className="size-8 sm:size-9" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={flagUrl(p.country)} alt="" className="h-3" />
             <PlayerLink id={p.userId} name={p.username} className={cn("min-w-0 truncate font-black", p.userId === me && "text-balkan")} />
             {p.userId === me && <span className="text-[0.6rem] font-black uppercase text-ash">{t.me.you}</span>}
             {p.isCaptain && <Crown className="size-3.5 shrink-0 text-[#e8c547]" aria-label={t.common.captain} />}
             <span className="num ml-auto text-sm text-paper/80">#{fmtNum(p.rank)}</span>
-            <span className="num w-16 text-right text-sm text-ash">{fmtNum(Math.round(p.pp))}pp</span>
+            <span className="num hidden w-16 text-right text-sm text-ash sm:block">{fmtNum(Math.round(p.pp))}pp</span>
           </li>
         ))}
       </ul>
-      <div className="border-t border-line px-5 py-3">
+      <div className="border-t border-line px-4 py-3 sm:px-5">
         <Link href={`/teams/${team.id}`} className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wide text-ash transition-colors hover:text-paper">
           {t.me.teamPage} <ArrowRight className="size-3.5" />
         </Link>
@@ -102,17 +102,17 @@ function TeamCard({ t, team, me, record, i }: { t: Dict; team: Team; me: number;
 
 function Side({ team, flip, fallback }: { team?: Team; flip?: boolean; fallback?: string }) {
   return (
-    <div className={cn("flex min-w-0 items-center gap-4", flip && "flex-row-reverse text-right")}>
+    <div className={cn("flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4", flip && "items-end text-right sm:flex-row-reverse")}>
       {team ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={team.image} alt="" className="size-16 shrink-0 object-cover sm:size-20" />
+        <img src={team.image} alt="" className="size-14 shrink-0 object-cover sm:size-20" />
       ) : (
-        <span className="size-16 shrink-0 border border-dashed border-line sm:size-20" />
+        <span className="size-14 shrink-0 border border-dashed border-line sm:size-20" />
       )}
       <div className="min-w-0">
-        <div className="heading-slam break-words text-xl leading-tight sm:text-2xl">{team?.name ?? fallback}</div>
+        <div className="heading-slam line-clamp-2 break-words text-sm leading-tight sm:text-2xl">{team?.name ?? fallback}</div>
         {team && (
-          <div className={cn("mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-sm text-paper/70", flip && "justify-end")}>
+          <div className={cn("mt-1.5 hidden flex-wrap sm:flex gap-x-3 gap-y-1 text-sm text-paper/70", flip && "justify-end")}>
             {team.players.map((p) => (
               <PlayerLink key={p.userId} id={p.userId} name={p.username} />
             ))}
@@ -220,16 +220,16 @@ export default async function Me() {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={team.image} alt="" className="pointer-events-none absolute inset-y-0 right-0 h-full w-1/2 object-cover opacity-[0.12] [mask-image:linear-gradient(to_left,black,transparent)]" aria-hidden />
       )}
-      <div className="relative flex flex-wrap items-center gap-5 p-5 sm:p-6">
-        <Avatar src={reg?.avatarUrl} className="size-20" />
+      <div className="relative flex items-center gap-4 p-4 sm:gap-5 sm:p-6">
+        <Avatar src={reg?.avatarUrl} className="size-14 shrink-0 sm:size-20" />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {reg?.country && <img src={flagUrl(reg.country)} alt="" className="h-4" />}
-            <span className="heading-slam break-words text-4xl">{reg?.username ?? t.me.title}</span>
+            <span className="heading-slam min-w-0 truncate text-2xl sm:text-4xl">{reg?.username ?? t.me.title}</span>
           </div>
           {reg && (
-            <div className="num mt-2 flex flex-wrap gap-x-5 text-base text-paper/70">
+            <div className="num mt-1.5 flex flex-wrap gap-x-4 text-sm text-paper/70 sm:mt-2 sm:gap-x-5 sm:text-base">
               {reg.rank !== null && <span>#{fmtNum(reg.rank)}</span>}
               {reg.countryRank !== null && (
                 <span className="text-balkan">
@@ -240,8 +240,8 @@ export default async function Me() {
             </div>
           )}
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <span className="inline-flex -skew-x-12 border border-line bg-ink px-3 py-1">
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <span className="hidden -skew-x-12 sm:inline-flex border border-line bg-ink px-3 py-1">
             <span className="skew-x-12 text-xs font-black uppercase tracking-[0.14em] text-paper/80">{t.timeline[phaseKey[phase]]}</span>
           </span>
           {reg && signupPhase && (
@@ -429,7 +429,7 @@ export default async function Me() {
   const placementCard = qp && (
     <Card title={t.me.placement} i={1}>
       <div className="flex items-end gap-3">
-        <span className="num text-7xl leading-[0.8]">#{myQual + 1}</span>
+        <span className="num text-6xl leading-[0.8] sm:text-7xl">#{myQual + 1}</span>
         <span className="pb-1 text-sm text-ash">{t.me.ofN(qual.players.length)}</span>
         <Tag tone={myQual < cut ? "balkan" : "rose"} className="mb-1 ml-auto text-xs">
           {myQual < cut ? t.me.qualified : t.me.notQualified}
@@ -506,7 +506,7 @@ export default async function Me() {
             const other = teamById(us === 1 ? m.team2.id : m.team1.id);
             const won = usWon(m);
             return (
-              <li key={m.id} className={cn("relative flex items-center gap-3 px-5 py-3 text-sm", won ? "bg-balkan/[0.06]" : "bg-rose/[0.05]")}>
+              <li key={m.id} className={cn("relative flex items-center gap-3 px-4 py-3 text-sm sm:px-5", won ? "bg-balkan/[0.06]" : "bg-rose/[0.05]")}>
                 <span className={cn("absolute inset-y-0 left-0 w-0.5", won ? "bg-balkan" : "bg-rose/70")} />
                 <span className={cn("num w-4 text-center text-lg", won ? "text-balkan" : "text-rose-hi")}>{won ? t.me.won : t.me.lost}</span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -566,7 +566,7 @@ export default async function Me() {
     const stage = stages.find((s) => s.slug === m.stage);
     nextCard = (
       <Card title={t.me.next} i={1} className="lg:col-span-2" right={pathTag} flush>
-        <div className="px-5">
+        <div className="px-4 sm:px-5">
           <div className="flex items-center gap-3">
             <span className="text-xs font-black uppercase tracking-[0.14em] text-rose-hi">{roundName(t, m.round)}</span>
             {live && (
@@ -575,10 +575,10 @@ export default async function Me() {
               </a>
             )}
           </div>
-          <div className="grid grid-cols-1 items-center gap-5 py-6 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 py-5 sm:gap-5 sm:py-6">
             <Side team={team} />
-            <span className="mx-auto -skew-x-12 bg-rose px-4 py-2 shadow-[3px_3px_0_0_var(--color-rose-deep)]">
-              <span className="heading-slam block skew-x-12 text-2xl text-white">{t.common.vs}</span>
+            <span className="mx-auto -skew-x-12 bg-rose px-2.5 py-1 shadow-[3px_3px_0_0_var(--color-rose-deep)] sm:px-4 sm:py-2">
+              <span className="heading-slam block skew-x-12 text-base text-white sm:text-2xl">{t.common.vs}</span>
             </span>
             <Side team={other} flip fallback={sourceLabel(t, matches, m.id, us === 1 ? 2 : 1)} />
           </div>
@@ -589,15 +589,15 @@ export default async function Me() {
           <Info icon={Video} k={t.me.stream} n={m.streamer ?? t.common.tbd} />
           <Info icon={Mic} k={t.me.casters} n={m.commentators ?? t.common.tbd} />
         </div>
-        <div className="flex flex-wrap items-center gap-3 p-5">
-          <SlantButton href={`/mappool/${m.stage}`} tone="paper" className="px-6 py-3 text-base">
+        <div className="grid grid-cols-2 gap-3 p-4 sm:flex sm:flex-wrap sm:items-center sm:p-5">
+          <SlantButton href={`/mappool/${m.stage}`} tone="paper" className="col-span-2 justify-center px-6 py-3 text-sm sm:text-base">
             {t.me.pool} · {roundName(t, stage?.title ?? m.stage)} <ArrowRight className="size-4" />
           </SlantButton>
-          <SlantButton href="/matches" tone="outline" className="px-5 py-3">
+          <SlantButton href="/matches" tone="outline" className="justify-center px-4 py-2.5 sm:px-5 sm:py-3">
             {t.home.bracket}
           </SlantButton>
-          <SlantButton href={TWITCH_URL} tone="outline" className="px-5 py-3">
-            <Tv className="size-4" /> {t.me.watch}
+          <SlantButton href={TWITCH_URL} tone="outline" className="justify-center px-4 py-2.5 sm:px-5 sm:py-3">
+            <Tv className="size-4" /> <span className="sm:hidden">Twitch</span><span className="hidden sm:inline">{t.me.watch}</span>
           </SlantButton>
         </div>
       </Card>

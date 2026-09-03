@@ -43,12 +43,12 @@ function HeroLockup({ label }: { label: string }) {
           <span className="max-w-[26ch]">{label}</span>
         </div>
         <span className="anim-slam relative mr-[0.02em] text-[1.45em] italic leading-[0.74] tracking-[-0.06em]" style={{ animationDelay: "0.35s" }}>
-          <span className="anim-echo absolute left-[0.05em] top-[0.035em] text-transparent [-webkit-text-stroke:2px_rgba(244,243,238,0.35)]" aria-hidden>
+          <span className="anim-echo absolute left-[0.05em] top-[0.035em] pr-[0.3em] text-transparent [-webkit-text-stroke:2px_rgba(244,243,238,0.35)]" aria-hidden>
             7
           </span>
-          <span className="relative text-rose">7</span>
+          <span className="relative -mr-[0.3em] pr-[0.3em] text-rose">7</span>
           <span
-            className="anim-shine pointer-events-none absolute -left-[0.3em] -top-[0.3em] p-[0.3em] bg-[linear-gradient(105deg,transparent_42%,rgba(255,255,255,0.55)_50%,transparent_58%)] bg-[length:300%_100%] bg-clip-text text-transparent"
+            className="anim-shine pointer-events-none absolute -left-[0.3em] -top-[0.3em] p-[0.3em] pr-[0.7em] bg-[linear-gradient(105deg,transparent_42%,rgba(255,255,255,0.55)_50%,transparent_58%)] bg-[length:300%_100%] bg-clip-text text-transparent"
             aria-hidden
           >
             7
@@ -73,7 +73,7 @@ function EntryCard({
   children: React.ReactNode;
 }) {
   return (
-    <Link href={href} className={cn("lift group relative flex h-44 flex-col overflow-hidden border border-line hover:border-paper/30", className)}>
+    <Link href={href} className={cn("lift group relative flex h-36 flex-col sm:h-44 overflow-hidden border border-line hover:border-paper/30", className)}>
       <div className="relative min-h-0 flex-1 overflow-hidden transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.03]">
         {children}
       </div>
@@ -122,10 +122,10 @@ function PoolStack({ stages }: { stages: Stage[] }) {
     <div className="flex h-full flex-col justify-center gap-2 px-5" aria-hidden>
       <div className="flex gap-1.5">
         {mods.map((m, i) => (
-          <span key={m} className="anim-rise h-9 flex-1 -skew-x-12 opacity-80 transition-opacity group-hover:opacity-100" style={{ background: MODS[m].color, animationDelay: `${0.3 + i * 0.05}s` }} />
+          <span key={m} className="anim-rise h-7 flex-1 sm:h-9 -skew-x-12 opacity-80 transition-opacity group-hover:opacity-100" style={{ background: MODS[m].color, animationDelay: `${0.3 + i * 0.05}s` }} />
         ))}
       </div>
-      <div className="flex flex-wrap gap-x-3 text-[0.7rem] font-black uppercase tracking-[0.14em] text-ash">
+      <div className="flex gap-x-3 overflow-hidden whitespace-nowrap text-[0.65rem] font-black uppercase text-ash [mask-image:linear-gradient(to_left,transparent,black_2rem)]">
         {stages.map((st) => (
           <span key={st.slug}>{st.title}</span>
         ))}
@@ -294,7 +294,7 @@ export default async function Home() {
   const phase = settings.phase;
   const signup = phase === "registration" || phase === "screening";
   const playing = phase === "seeding" || phase === "playoffs";
-  const big = "px-8 py-4 text-xl shadow-[4px_4px_0_0_var(--color-rose-deep)]";
+  const big = "px-6 py-3 text-base sm:px-8 sm:py-4 sm:text-xl shadow-[4px_4px_0_0_var(--color-rose-deep)]";
   const qualPool = phase === "qualifiers" ? visiblePools.find((s) => s.slug === "qualifiers") : undefined;
   const byId = new Map(matches.map((m) => [m.id, m]));
   const gf1 = byId.get("GF-M1");
@@ -384,7 +384,7 @@ export default async function Home() {
         >
           7
         </div>
-        <div className="relative mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-10 px-4 pb-12 pt-10 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:items-end lg:pb-16 lg:pt-16">
+        <div className="relative mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-8 px-4 pb-10 pt-8 sm:gap-10 sm:px-6 sm:pb-12 sm:pt-10 lg:grid-cols-[1.1fr_1fr] lg:items-end lg:pb-16 lg:pt-16">
           <div className="min-w-0">
             <HeroLockup label={`${t.home.badge} · 2026`} />
           </div>
@@ -393,14 +393,14 @@ export default async function Home() {
             <h1 className="text-balance text-[clamp(1.8rem,3.2vw,2.9rem)] font-black leading-[1.05] tracking-tight">
               <Words text={phase === "finished" ? t.home.headlineDone : t.home.headline} d={0.35} s={0.055} />
             </h1>
-            <p className="mt-5 max-w-[48ch] text-pretty text-lg text-paper/70">
+            <p className="mt-4 max-w-[48ch] text-pretty text-base text-paper/70 sm:mt-5 sm:text-lg">
               <Words text={f(phase === "registration" ? t.home.intro : (t.home.introBy[phase] ?? t.home.intro))} d={0.85} s={0.018} />
             </p>
-            <div className="mt-9 flex flex-wrap items-center gap-4" style={{ "--d": "1.45s", "--s": "0.1s" } as React.CSSProperties}>
+            <div className="mt-7 flex flex-wrap items-center gap-3 sm:mt-9 sm:gap-4" style={{ "--d": "1.45s", "--s": "0.1s" } as React.CSSProperties}>
               {phase === "registration" && see("register") ? (
                 <span className="in-pop inline-flex">
                   {mine && mine.status !== "denied" ? (
-                    <span className="inline-flex -skew-x-12 cursor-default items-center border border-line bg-slate px-8 py-4 text-xl font-black uppercase tracking-wide text-ash" aria-disabled>
+                    <span className="inline-flex -skew-x-12 cursor-default items-center border border-line bg-slate px-6 py-3 text-base font-black sm:px-8 sm:py-4 sm:text-xl uppercase tracking-wide text-ash" aria-disabled>
                       <span className="inline-flex skew-x-12 items-center gap-2">
                         <Check className="size-5" /> {mine.status === "approved" ? t.me.signedUp : t.me.signedUpPending}
                       </span>
@@ -436,7 +436,7 @@ export default async function Home() {
               )}
               {see("info") && (
                 <span className="in-pop inline-flex" style={{ "--i": 1 } as React.CSSProperties}>
-                  <SlantButton href="/info" tone="outline" className="px-7 py-4 text-lg">{t.home.readRules}</SlantButton>
+                  <SlantButton href="/info" tone="outline" className="px-5 py-3 text-sm sm:px-7 sm:py-4 sm:text-lg">{t.home.readRules}</SlantButton>
                 </span>
               )}
             </div>
@@ -465,8 +465,8 @@ export default async function Home() {
           </Stagger>
 
           {sponsors.length > 0 && see("sponsors") && (
-            <Reveal className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-line pt-5" delay={0.1}>
-              <span className="text-xs font-black uppercase tracking-[0.14em] text-ash">{t.home.backedBy}</span>
+            <Reveal className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line pt-5" delay={0.1}>
+              <span className="basis-full text-xs font-black uppercase text-ash sm:basis-auto">{t.home.backedBy}</span>
               {sponsors.map((s) => (
                 <a
                   key={s.id}
@@ -476,7 +476,7 @@ export default async function Home() {
                   className="group flex items-center gap-2.5 opacity-80 transition duration-300 hover:-translate-y-0.5 hover:opacity-100"
                 >
                   <Avatar src={s.image} className="size-8 grayscale transition duration-300 group-hover:grayscale-0" />
-                  <span className="text-base font-black">{s.name}</span>
+                  <span className="text-sm font-black sm:text-base">{s.name}</span>
                 </a>
               ))}
             </Reveal>
@@ -485,21 +485,21 @@ export default async function Home() {
       </section>
 
       {(see("schedule") || see("streams")) && (
-        <section className="mx-auto max-w-[1400px] px-4 pt-20 sm:px-6">
+        <section className="mx-auto max-w-[1400px] px-4 pt-14 sm:px-6 sm:pt-20">
           {see("schedule") && featured.length > 0 && (
             <>
               <Reveal className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3">
-                <h2 className="heading-slam text-4xl">{t.home.previously}</h2>
+                <h2 className="heading-slam text-3xl sm:text-4xl">{t.home.previously}</h2>
                 <Link href="/matches" className="group inline-flex items-center gap-1.5 text-sm font-black uppercase text-ash transition-colors hover:text-paper">
                   {t.home.fullSchedule} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
               </Reveal>
               <Stagger className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-3" gap={0.1}>
-                {featured.map((m) => {
+                {featured.map((m, fi) => {
                   const a = teamById(m.team1.id);
                   const b = teamById(m.team2.id);
                   return (
-                    <StaggerItem key={m.id} className="lift border border-line bg-coal hover:border-paper/30">
+                    <StaggerItem key={m.id} className={cn("lift border border-line bg-coal hover:border-paper/30", fi === 2 && "hidden lg:block")}>
                       <div className="flex items-center justify-between border-b border-line px-4 py-2 text-xs font-black uppercase text-ash">
                         <span className="text-rose-hi">{roundName(t, m.round)}</span>
                         <span className="num text-sm">{m.datetime && fmtSofia(new Date(m.datetime), locale)}</span>

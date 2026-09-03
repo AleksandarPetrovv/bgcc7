@@ -40,7 +40,7 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
   if (!data || !perfs.length)
     return (
       <Container plain>
-        <PageTitle mark="bars" accent={current ? name(current.title) : undefined} right={tabs}>
+        <PageTitle mark="bars" right={tabs}>
           {t.stats.title}
         </PageTitle>
         <p className="py-10 text-center text-ash">{t.qual.noResults}</p>
@@ -63,7 +63,7 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
 
   return (
     <Container plain>
-      <PageTitle mark="bars" accent={name(current!.title)} right={tabs}>
+      <PageTitle mark="bars" right={tabs}>
         {t.stats.title}
       </PageTitle>
       <div key={current!.slug} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
