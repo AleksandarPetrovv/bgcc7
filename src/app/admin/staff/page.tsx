@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { TriangleAlert } from "lucide-react";
+import { getRegistrations } from "@/db/registrations";
 import { InView } from "@/components/site/in-view";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
@@ -12,7 +14,10 @@ import { flagUrl } from "@/lib/data";
 import { addStaff, removeStaff, updateStaff } from "./actions";
 
 export default async function AdminStaff() {
-  const [t, viewer, rows] = await Promise.all([getDict(), getViewer(), getStaff()]);
+  const [t, viewer, rows, regs] = await Promise.all([getDict(), getViewer(), getStaff(), getRegistrations()]);
+  const playing = new Set(regs.filter((r) => r.status !== "denied").map((r) => r.osuId));
+  const CAN_PLAY = ["Streamer", "Commentator", "GFX / Designer"];
+  const clash = (s: (typeof rows)[number]) => playing.has(s.osuId) && (!!s.permRole || s.displayRoles.some((r) => !CAN_PLAY.includes(r)));
   if (!can(viewer?.role, "staff")) notFound();
   return (
     <>
@@ -41,6 +46,11 @@ export default async function AdminStaff() {
                 <span className="num text-xs text-ash">#{s.osuId}</span>
                 {builtIn && <span className="in-slam ml-auto text-xs font-black uppercase text-balkan [--d:0.75s]">{t.admin.builtIn}</span>}
               </div>
+              {clash(s) && (
+                <p className="flex items-start gap-2 border-b border-line bg-rose/10 px-4 py-2.5 text-sm text-rose-hi">
+                  <TriangleAlert className="mt-0.5 size-4 shrink-0" /> {t.admin.staffPlays}
+                </p>
+              )}
               <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-end">
                 <ActionForm action={updateStaff.bind(null, s.osuId)} className="flex flex-1 flex-col gap-4">
                   <div className="flex flex-wrap gap-4">
