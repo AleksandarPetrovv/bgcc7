@@ -35,7 +35,7 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
       <Link href="/admin/matches" className="in-left mb-4 inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wide text-ash hover:text-paper">
         <ArrowLeft className="size-3.5" /> {t.admin.ms.back}
       </Link>
-      <PageTitle mark="bars" right={sb && <span className="num text-3xl text-balkan">{sb.score.join(" - ")}</span>}>
+      <PageTitle mark="bars" right={sb && <span className="num text-3xl text-paper">{sb.score.join(" - ")}</span>}>
         {`${sides[0]?.name ?? t.common.tbd} vs ${sides[1]?.name ?? t.common.tbd}`}
       </PageTitle>
       <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
@@ -58,9 +58,9 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
                 <div className="mb-3 flex items-center gap-3 text-sm">
                   <span className="h-4 w-1" style={{ background: color ?? "var(--color-line)" }} />
                   <span className="num text-lg">
-                    <span className={m.winner === 1 ? "text-balkan" : "text-ash"}>{fmtNum(m.team1)}</span>
+                    <span className={m.winner === 1 ? "text-rose-hi" : "text-ash"}>{fmtNum(m.team1)}</span>
                     <span className="text-ash"> vs </span>
-                    <span className={m.winner === 2 ? "text-balkan" : "text-ash"}>{fmtNum(m.team2)}</span>
+                    <span className={m.winner === 2 ? "text-azure-hi" : "text-ash"}>{fmtNum(m.team2)}</span>
                   </span>
                   <span className="num ml-auto text-ash">{m.running.join(" - ")}</span>
                 </div>
@@ -72,9 +72,9 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
                     const out = new Set(gone.map((e) => e.osuId));
                     const blank = (team?.players ?? []).filter((p) => !lines.some((l) => l.id === p.userId) && !out.has(p.userId));
                     return (
-                      <div key={k} className={cn("border-l-[3px] bg-ink p-3", k === 0 ? "border-l-rose" : "border-l-balkan")}>
+                      <div key={k} className={cn("border-l-[3px] bg-ink p-3", k === 0 ? "border-l-rose" : "border-l-azure")}>
                         <div className="mb-2 flex items-center gap-2">
-                          <span className={cn("text-xs font-black uppercase tracking-wide", k === 0 ? "text-rose-hi" : "text-balkan")}>{team?.name ?? t.common.tbd}</span>
+                          <span className={cn("text-xs font-black uppercase tracking-wide", k === 0 ? "text-rose-hi" : "text-azure-hi")}>{team?.name ?? t.common.tbd}</span>
                           {missing > 0 && (
                             <span className="ml-auto inline-flex items-center gap-1 bg-rose/15 px-1.5 py-0.5 text-[0.65rem] font-black uppercase text-rose-hi">
                               <TriangleAlert className="size-3" /> {t.admin.ms.missing(missing)}
