@@ -54,7 +54,7 @@ export default async function AdminMatches() {
                       <span className="num w-20 text-sm text-ash">{m.id}</span>
                       <span className="text-xs font-black uppercase text-rose-hi">{t.rounds[m.round] ?? m.round}</span>
                       <span className="min-w-0 flex-1 truncate font-bold">
-                        {name(m.team1Id)} <span className="in-slam num inline-block text-balkan [--d:0.85s]">{m.score1 ?? "-"}</span> : <span className="in-slam num inline-block text-balkan [--d:0.9s]">{m.score2 ?? "-"}</span> {name(m.team2Id)}
+                        {name(m.team1Id)} <span className="in-slam num inline-block text-rose-hi [--d:0.85s]">{m.score1 ?? "-"}</span> : <span className="in-slam num inline-block text-azure-hi [--d:0.9s]">{m.score2 ?? "-"}</span> {name(m.team2Id)}
                       </span>
                       <span className="num text-sm text-ash">{m.startsAt ? fmtSofia(m.startsAt, locale) : t.common.tbd}</span>
                       {m.winner && <span className="in-pop text-xs font-black uppercase text-balkan [--d:0.95s]">{t.admin.done}</span>}

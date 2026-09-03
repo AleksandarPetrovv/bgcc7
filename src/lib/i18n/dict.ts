@@ -370,6 +370,9 @@ const en = {
     players: "Players",
     mapsPlayed: "Maps",
     avgAcc: "Avg acc",
+    cost: "Match cost",
+    costHint: "Your score against the median on each map you played, adjusted for how many maps you played. 1.00 is an average performance.",
+    mapsShort: (n: number) => `${n} ${n === 1 ? "map" : "maps"}`,
     notes: { warmup: "Warmup, not counted", aborted: "Aborted", replayed: "Replayed" } as Record<string, string>,
   },
   schedule: {
@@ -1089,6 +1092,9 @@ const bg: Dict = {
     players: "Играчи",
     mapsPlayed: "Мапове",
     avgAcc: "Ср. точн.",
+    cost: "Match cost",
+    costHint: "Резултатът ти спрямо медианата на всеки изигран мап, съобразен с броя изиграни мапове. 1.00 е средно представяне.",
+    mapsShort: (n: number) => `${n} ${n === 1 ? "мап" : "мапа"}`,
     notes: { warmup: "Загрявка, не се брои", aborted: "Прекъснат", replayed: "Изигран отново" } as Record<string, string>,
   },
   schedule: {
