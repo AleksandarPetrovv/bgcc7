@@ -2,6 +2,7 @@ import { LinkTabs } from "@/components/site/tabs";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
 import { notFound } from "next/navigation";
+import { Download } from "lucide-react";
 import { ActionForm, inputCls, Panel } from "@/components/admin/form";
 import { getRegistrations, STATUSES, isStatus } from "@/db/registrations";
 import { getViewer } from "@/lib/authz";
@@ -37,6 +38,20 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
           <ActionForm action={approveAllPending} submit={t.admin.approveAll} ghost confirm={t.admin.confirmApproveAll} />
           <ActionForm action={refreshStats} submit={t.admin.refreshStats} ghost />
         </div>
+        <Panel title={t.admin.exportPlayers} help={t.admin.exportHelp} className="xl:col-span-2">
+          <div className="flex flex-wrap gap-3">
+            <a href="/admin/screening/export" className="lift-sm inline-flex min-h-10 -skew-x-12 items-center bg-balkan px-4 text-sm font-black uppercase tracking-wide text-ink hover:bg-paper">
+              <span className="inline-flex skew-x-12 items-center gap-2">
+                <Download className="size-4" /> {t.admin.exportPlayers}
+              </span>
+            </a>
+            <a href="/admin/screening/export?teams=1" className="lift-sm inline-flex min-h-10 -skew-x-12 items-center border border-line px-4 text-sm font-black uppercase tracking-wide text-paper hover:border-rose">
+              <span className="inline-flex skew-x-12 items-center gap-2">
+                <Download className="size-4" /> {t.admin.exportTeams}
+              </span>
+            </a>
+          </div>
+        </Panel>
       </div>
 
       <LinkTabs

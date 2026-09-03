@@ -66,7 +66,7 @@ export function ScreeningRow({ p, signedAt, i }: { p: RegRow; signedAt: string; 
             <Undo2 className="size-4" /> {t.admin.reset}
           </Btn>
         )}
-        {state && !pending && !state.ok && <span className="text-xs font-bold uppercase tracking-wide text-rose-hi">{t.admin.error}</span>}
+        {state && !pending && !state.ok && <span className="text-xs font-bold uppercase tracking-wide text-rose-hi">{state.error === "note" ? t.admin.denyNote : t.admin.error}</span>}
       </form>
     </InView>
   );

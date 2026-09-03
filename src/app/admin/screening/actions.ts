@@ -14,6 +14,7 @@ export async function decide(osuId: number, _: ActionResult, fd: FormData) {
     const status = fd.get("status");
     if (!isStatus(status)) return { ok: false, error: "invalid" };
     const note = String(fd.get("note") ?? "").trim().slice(0, 300) || null;
+    if (status === "denied" && !note) return { ok: false, error: "note" };
     await db
       .update(registrations)
       .set({ status, note, decidedBy: status === "pending" ? null : by, decidedAt: status === "pending" ? null : new Date() })
