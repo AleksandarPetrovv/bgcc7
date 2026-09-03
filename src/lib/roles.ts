@@ -16,4 +16,4 @@ export const isRole = (v: unknown): v is Role => typeof v === "string" && (ROLES
 
 export const STAFF_ROLES = ["Host", "Mappooler", "Playtester", "Referee", "Streamer", "Commentator", "GFX / Designer", "Developer"];
 
-export type ActionResult = { ok: boolean; error?: "forbidden" | "notFound" | "invalid" } | null;
+export type ActionResult = { ok: boolean; error?: "forbidden" | "notFound" | "invalid" | "note" } | null;
