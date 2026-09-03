@@ -131,3 +131,22 @@ export async function getStarRating(id: number, mods: string[]) {
   const r = await post<{ attributes: { star_rating: number } }>(`/beatmaps/${id}/attributes`, { mods, ruleset: "osu" });
   return r.attributes.star_rating;
 }
+
+export type MapCheck = { status: string; dmca: boolean };
+
+export async function getMapChecks(ids: number[]) {
+  const out = new Map<number, MapCheck>();
+  for (let i = 0; i < ids.length; i += 50) {
+    const q = ids
+      .slice(i, i + 50)
+      .map((id) => `ids[]=${id}`)
+      .join("&");
+    try {
+      const r = await get<{ beatmaps: { id: number; status: string; beatmapset?: { availability?: { download_disabled: boolean } } }[] }>(`/beatmaps?${q}`);
+      for (const b of r.beatmaps) out.set(b.id, { status: b.status, dmca: !!b.beatmapset?.availability?.download_disabled });
+    } catch (e) {
+      console.error("[map checks]", e);
+    }
+  }
+  return out;
+}
