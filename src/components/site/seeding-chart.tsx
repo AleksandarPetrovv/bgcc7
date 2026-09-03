@@ -8,10 +8,10 @@ export function SeedingChart({ players, cut }: { players: QualPlayer[]; cut: num
   const t = useDict();
   const data = players.slice(0, cut).map((p, i) => ({ name: p.username, z: p.zSum, seed: i + 1 }));
   return (
-    <div className="h-[420px]">
+    <div className="h-[320px] sm:h-[420px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 60, left: -12 }}>
-          <XAxis dataKey="name" angle={-55} textAnchor="end" interval={0} tick={{ fill: "#8a908b", fontSize: 11, fontWeight: 700 }} axisLine={{ stroke: "#2b302d" }} tickLine={false} />
+          <XAxis dataKey="name" angle={-55} textAnchor="end" interval={0} tick={{ fill: "#8a908b", fontSize: 10, fontWeight: 700 }} axisLine={{ stroke: "#2b302d" }} tickLine={false} />
           <YAxis tick={{ fill: "#8a908b", fontSize: 11 }} axisLine={false} tickLine={false} />
           <Tooltip
             cursor={{ fill: "rgba(255,255,255,0.04)" }}

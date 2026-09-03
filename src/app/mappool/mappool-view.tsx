@@ -83,7 +83,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 >
-                <div className="mt-2 space-y-2 pl-10">
+                <div className="mt-2 space-y-2 sm:pl-10">
                   {p.maps.map((m, k) => (
                     <motion.div
                       initial={{ opacity: 0, x: -14 }}
@@ -94,15 +94,22 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-30 transition duration-500 group-hover:scale-105 group-hover:opacity-45 [--d:0.15s]" />
                       <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-transparent" />
-                      <span className="in-pop heading-slam relative flex w-24 shrink-0 items-center justify-center text-2xl [--d:0.3s]" style={{ color: mod.color }}>
+                      <span className="in-pop heading-slam relative flex w-14 shrink-0 items-center justify-center text-lg sm:w-24 sm:text-2xl [--d:0.3s]" style={{ color: mod.color }}>
                         {m.slot}
                       </span>
                       <div className="relative flex min-w-0 flex-1 flex-col justify-center">
-                        <a href={osuMap(m.id)} target="_blank" rel="noreferrer" className="truncate text-lg font-black transition-colors hover:text-[var(--lift)]">
+                        <a href={osuMap(m.id)} target="_blank" rel="noreferrer" className="truncate text-base font-black transition-colors hover:text-[var(--lift)] sm:text-lg">
                           {m.title}
                         </a>
-                        <span className="truncate text-sm text-paper/70">
+                        <span className="truncate text-xs text-paper/70 sm:text-sm">
                           [{m.version}] <span className="text-ash">by {m.creator}</span>
+                        </span>
+                        <span className="num mt-0.5 flex items-center gap-2 text-xs text-ash lg:hidden">
+                          <span className="flex items-center gap-0.5 text-[#e8c547]">
+                            <Star className="size-3 fill-current" /> {m.sr.toFixed(2)}
+                          </span>
+                          <span>{Math.round(m.bpm)}bpm</span>
+                          <span>{fmtLen(m.length)}</span>
                         </span>
                       </div>
                       <div className="in-right num relative hidden shrink-0 items-center pr-6 text-base lg:grid lg:grid-cols-[4.25rem_5.25rem_3rem_3.5rem_3.5rem_3.5rem] [--d:0.35s]">
@@ -125,7 +132,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                           </span>
                         ))}
                       </div>
-                      <div className="in-right relative flex w-36 shrink-0 flex-col [clip-path:polygon(14px_0,100%_0,100%_100%,0_100%)] [--d:0.45s]">
+                      <div className="in-right relative flex w-14 shrink-0 flex-col sm:w-36 [clip-path:polygon(14px_0,100%_0,100%_100%,0_100%)] [--d:0.45s]">
                         <a
                           href={`osu://b/${m.id}`}
                           title={t.mappool.direct}
@@ -135,7 +142,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                         >
                           <span className={cn("heading-slam flex items-center gap-2 text-[0.95rem]", light ? "[text-shadow:0_1px_2px_rgb(255_255_255/0.35)]" : "[text-shadow:0_1px_3px_rgb(0_0_0/0.45)]")}>
                             <ArrowDownToLine className="size-4 drop-shadow-[0_1px_2px_rgb(0_0_0/0.35)] transition-transform group-hover/b:translate-y-0.5" strokeWidth={3} />
-                            direct
+                            <span className="hidden sm:inline">direct</span>
                           </span>
                         </a>
                         <a
@@ -149,7 +156,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                         >
                           <span className="heading-slam flex items-center gap-2 text-[0.95rem] [text-shadow:0_1px_3px_rgb(0_0_0/0.6)]">
                             <ArrowUpRight className="size-4 transition-transform group-hover/b:-translate-y-0.5 group-hover/b:translate-x-0.5" strokeWidth={3} />
-                            osu!
+                            <span className="hidden sm:inline">osu!</span>
                           </span>
                         </a>
                       </div>

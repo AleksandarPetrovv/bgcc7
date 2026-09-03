@@ -35,16 +35,16 @@ export function TeamCard({ team }: { team: Team }) {
         delay={0}
         closeDelay={0}
         render={
-          <Link href={`/teams/${team.id}`} className="lift group block overflow-hidden border border-line bg-coal outline-offset-4 [--lift:var(--color-balkan)] hover:border-balkan">
-            <div className="relative h-32 overflow-hidden bg-ink">
+          <Link href={`/teams/${team.id}`} className="lift group flex overflow-hidden border sm:block border-line bg-coal outline-offset-4 [--lift:var(--color-balkan)] hover:border-balkan">
+            <div className="relative w-24 shrink-0 overflow-hidden bg-ink sm:h-32 sm:w-auto">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={team.image} alt="" className="in-wipe size-full object-cover transition duration-500 group-hover:scale-105 [--d:0.1s]" />
-              <span className="in-pop num absolute bottom-0 left-0 flex size-10 origin-bottom-left items-center justify-center bg-ink text-2xl text-paper [--d:0.45s]" aria-label={`${t.common.seed} ${team.seed}`}>
+              <img src={team.image} alt="" className="in-wipe absolute inset-0 size-full object-cover sm:static transition duration-500 group-hover:scale-105 [--d:0.1s]" />
+              <span className="in-pop num absolute bottom-0 left-0 flex size-8 origin-bottom-left items-center justify-center bg-ink text-lg sm:size-10 sm:text-2xl text-paper [--d:0.45s]" aria-label={`${t.common.seed} ${team.seed}`}>
                 {team.seed}
               </span>
             </div>
-            <div className="px-3.5 pb-3 pt-2">
-              <div className="in-left truncate text-xl font-black leading-tight [--d:0.3s]">{team.name}</div>
+            <div className="min-w-0 flex-1 px-3.5 pb-3 pt-2">
+              <div className="in-left truncate text-lg font-black sm:text-xl leading-tight [--d:0.3s]">{team.name}</div>
               <dl className="in-up mt-1.5 flex gap-5 text-[0.65rem] font-bold uppercase text-ash [--d:0.45s]">
                 <div>
                   <dt>{t.common.avgRank}</dt>
@@ -55,6 +55,7 @@ export function TeamCard({ team }: { team: Team }) {
                   <dd className="num text-xl leading-none text-paper">{fmtNum(team.avgPp)}</dd>
                 </div>
               </dl>
+              <div className="mt-1.5 truncate text-xs text-ash sm:hidden">{team.players.map((p) => p.username).join(" · ")}</div>
             </div>
           </Link>
         }

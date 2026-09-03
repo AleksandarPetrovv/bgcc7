@@ -232,7 +232,7 @@ export function PageTitle({
 }) {
   const M = MARKS[mark ?? markFor(children)];
   return (
-    <div className={cn("no-enter relative mb-8 flex flex-wrap items-end gap-x-8 gap-y-4 pb-3", className)}>
+    <div className={cn("no-enter relative mb-6 flex flex-wrap items-end gap-x-8 gap-y-3 pb-3 sm:mb-8 sm:gap-y-4", className)}>
       <h1 className="heading-slam flex min-w-0 max-w-full flex-wrap items-end gap-x-[0.3em] break-words text-[clamp(2rem,8.5vw,3rem)] sm:text-6xl">
         <span className="anim-letter">{children}</span>
         {accent && (
@@ -253,7 +253,7 @@ export function PageTitle({
 }
 
 export function Container({ children, className, plain }: { children: React.ReactNode; className?: string; plain?: boolean }) {
-  return <div className={cn(!plain && "enter-kids", "mx-auto w-full max-w-6xl px-4 pt-10 sm:px-6", className)}>{children}</div>;
+  return <div className={cn(!plain && "enter-kids", "mx-auto w-full max-w-6xl px-4 pt-6 sm:px-6 sm:pt-10", className)}>{children}</div>;
 }
 
 export function Wide({ children, className, full }: { children: React.ReactNode; className?: string; full?: boolean }) {

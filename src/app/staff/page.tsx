@@ -23,16 +23,16 @@ export default async function Staff() {
     <Container>
       <PageTitle mark="dots" right={<span className="num text-2xl text-balkan">{list.length}</span>}>{t.staff.title}</PageTitle>
 
-      <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <Stagger className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         {list.map((p, i) => (
           <StaggerItem as="article" key={p.username} className="lift group flex border border-line bg-coal hover:border-paper/30">
-            <div className="flex shrink-0 items-center justify-center p-4 sm:p-5" style={{ "--i": i, "--s": "0.08s", "--d": "0.2s" } as React.CSSProperties}>
+            <div className="flex shrink-0 items-center justify-center p-3 pr-1 sm:p-5" style={{ "--i": i, "--s": "0.08s", "--d": "0.2s" } as React.CSSProperties}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.avatar} alt="" className="in-spin size-20 rounded-full object-cover ring-2 ring-rose/40 ring-offset-4 ring-offset-coal transition-transform duration-500 group-hover:rotate-[-4deg] group-hover:scale-105 sm:size-24" />
+              <img src={p.avatar} alt="" className="in-spin size-14 rounded-full object-cover ring-2 ring-rose/40 ring-offset-2 sm:ring-offset-4 ring-offset-coal transition-transform duration-500 group-hover:rotate-[-4deg] group-hover:scale-105 sm:size-24" />
             </div>
-            <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 p-4">
+            <div className="flex min-w-0 flex-1 flex-col justify-between gap-2.5 p-3 sm:gap-3 sm:p-4">
               <div className="flex items-center gap-2.5">
-                <h2 className="heading-slam truncate text-2xl">
+                <h2 className="heading-slam truncate text-xl sm:text-2xl">
                   <a href={osuUser(p.osuId)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">{p.username}</a>
                 </h2>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
