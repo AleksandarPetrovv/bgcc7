@@ -34,6 +34,8 @@ export const getQualResults = cache(async (): Promise<QualResults> => {
           mods: qualScores.mods,
           grade: qualScores.grade,
           lobby: lobbies.name,
+          lobbyId: qualScores.lobbyId,
+          seeded: qualScores.seeded,
           username: users.username,
           avatar: users.avatarUrl,
           cc: users.country,
@@ -44,7 +46,7 @@ export const getQualResults = cache(async (): Promise<QualResults> => {
     [],
   );
   const players = new Map(rows.map((r) => [r.osuId, { osuId: r.osuId, username: r.username, avatar: r.avatar ?? "", cc: r.cc ?? "" }]));
-  const scores = rows.filter((r) => maps.some((m) => m.id === r.beatmapId)).map((r) => ({ ...r, lobby: r.lobby ?? "" }));
+  const scores = rows.filter((r) => maps.some((m) => m.id === r.beatmapId)).map((r) => ({ ...r, lobby: r.lobby ?? "", manual: r.lobbyId === null && !r.seeded }));
   return { maps, players: rankQualifiers(maps, scores, players) };
 });
 

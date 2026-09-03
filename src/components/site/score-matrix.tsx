@@ -97,7 +97,7 @@ export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]
                         }}
                       >
                         {perf ? (
-                          <span className={cn(place === 0 && "text-[#e8c547]", place === 1 && "text-[#c9ccd1]", place === 2 && "text-[#c98a4b]")}>
+                          <span className={cn(place === 0 && "text-[#e8c547]", place === 1 && "text-[#c9ccd1]", place === 2 && "text-[#c98a4b]", perf.manual && "underline decoration-[#e8c547] decoration-dotted underline-offset-4")}>
                             {fmtNum(perf.score)}
                           </span>
                         ) : (
@@ -151,7 +151,7 @@ function ScoreCard({ x, y, map, perf, player }: NonNullable<Hover>) {
           </div>
         ))}
       </div>
-      <div className="px-3 py-1.5 text-[0.65rem] font-bold uppercase text-ash">{perf.matchName}</div>
+      <div className="px-3 py-1.5 text-[0.65rem] font-bold uppercase text-ash">{perf.manual ? <span className="text-[#e8c547]">{t.qual.manual}</span> : perf.matchName}</div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import type { QualMap, QualPerf, QualPlayer } from "./data";
 
-export type ScoreIn = { osuId: number; beatmapId: number; score: number; acc: number; mods: string; grade: string; lobby: string };
+export type ScoreIn = { osuId: number; beatmapId: number; score: number; acc: number; mods: string; grade: string; lobby: string; manual?: boolean };
 export type PlayerIn = { osuId: number; username: string; avatar: string; cc: string };
 
 function erf(x: number) {
@@ -29,6 +29,7 @@ export function rankQualifiers(maps: QualMap[], scores: ScoreIn[], players: Map<
         mods: r.mods,
         rank: r.grade,
         matchName: r.lobby,
+        manual: r.manual,
       };
       perf.set(r.osuId, p);
     });
