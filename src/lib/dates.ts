@@ -41,6 +41,11 @@ export function buildTokens(opts: {
   }
   tokens.qualify = String(qualifyCount);
   tokens.teams = String(Math.floor(qualifyCount / 3));
+  const n = Math.floor(qualifyCount / 3);
+  tokens.teams2 = String(2 * n);
+  tokens.teams2m = String(2 * n - 1);
+  tokens.teams2p = String(2 * n + 1);
+  tokens.teams2p2 = String(2 * n + 2);
   for (const [slug, ft] of Object.entries(firstTo)) if (ft) tokens[`bo.${slug}`] = String(ft * 2 - 1);
   return tokens;
 }
