@@ -1,35 +1,30 @@
-# BGCC7 demo
+# BGCC7
 
-design-only mock of the BGCC7 tournament site. no backend, no auth, no database: every page renders static BGCC6 data from `src/data/*.json` so the layout can be judged with real names, maps and scores.
+the site for BGCC7, the seventh Bulgarian Community Cup: a 3v3, open rank osu! tournament for players from Bulgaria.
 
-stack follows `stack.txt` where it matters for UI: Next.js App Router, TypeScript, pnpm, Tailwind CSS, shadcn/ui and Recharts.
+it handles sign-ups, qualifier lobbies, qualifier results and seeding, teams, the double elimination bracket, mappools, pick'ems, stats and streams. staff run everything from `/admin`.
 
-## run
+**how seeding, teams and match results are calculated:** [docs/seeding.md](docs/seeding.md)
+
+## stack
+
+Next.js (App Router), TypeScript, Postgres with Drizzle, Auth.js with osu! login, Tailwind CSS. match data comes from the osu! API v2.
+
+## run it locally
 
 ```bash
 pnpm install
+cp .env.example .env.local
+pnpm db:migrate
 pnpm dev
 ```
 
-then open http://localhost:3000.
+you need a Postgres database (put its url in `DATABASE_URL`) and your own osu! OAuth app (`AUTH_OSU_ID`, `AUTH_OSU_SECRET`) and an `AUTH_SECRET`. `pnpm db:seed` loads test data from the previous cup so pages aren't empty.
 
-## pages
+## where things live
 
-- `/` home, timeline, entry points
-- `/info`, `/info/condensed` rules
-- `/register` team registration
-- `/qualifiers`, `/qualifiers/scores`, `/qualifiers/seeding`
-- `/teams`, `/teams/[id]`, `/teams/players`, `/teams/manage`
-- `/schedule`, `/schedule/bracket`
-- `/mappool`
-- `/pickems`
-- `/stats`
-- `/streams`, `/streams/vods`, `/streams/overlays`
-- `/staff`, `/staff/sponsors`
-- `/admin`
-
-## design
-
-- palette: ink `#0d0f0e`, paper `#f4f3ee`, rose `#e0242f`, balkan green `#0fa06a`
-- type: Unbounded (wordmark), Archivo black italic (headings), Barlow Condensed (numbers)
-- signatures: tricolor speed-stripe mark, barcode, and a Bulgarian shevitsa cross-stitch motif used as ribbons and markers
+- `src/app` pages, one folder per route, admin under `src/app/admin`
+- `src/lib/qualifiers.ts` qualifier seeding
+- `src/lib/scoreboard.ts` match results from mp links
+- `src/db` database schema and queries
+- `drizzle` migrations
