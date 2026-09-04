@@ -28,7 +28,7 @@ export default async function AdminSite() {
 
         <Panel title={t.admin.sponsors} help={t.admin.sponsorHelp} i={1}>
           <ActionForm action={addSponsor} submit={t.admin.add} className="mb-5 flex flex-wrap items-end gap-3">
-            <label className={cn(labelCls, "min-w-56 flex-1")}>
+            <label className={cn(labelCls, "w-full sm:min-w-56 sm:flex-1")}>
               {t.admin.sponsorQ}
               <input name="q" required maxLength={200} placeholder="https://osu.ppy.sh/users/…" className={inputCls} />
             </label>

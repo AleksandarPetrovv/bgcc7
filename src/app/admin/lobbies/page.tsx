@@ -12,11 +12,11 @@ import { fmtSofiaDay, fmtSofiaTime, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { createLobby, deleteLobby, placePlayer, unbook, updateLobby } from "./actions";
 
-const label = "flex flex-col gap-1 text-xs font-bold uppercase text-ash";
+const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
 function LobbyFields({ t, l }: { t: Dict; l?: Lobby }) {
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-[1.2fr_1.3fr_0.6fr_1fr]">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.2fr_1.3fr_0.6fr_1fr]">
       <label className={label}>
         {t.admin.lobbyName}
         <input name="name" required maxLength={40} defaultValue={l?.name} className={inputCls} />
@@ -34,7 +34,7 @@ function LobbyFields({ t, l }: { t: Dict; l?: Lobby }) {
         <input name="referee" maxLength={60} defaultValue={l?.referee ?? ""} className={inputCls} />
       </label>
       {l && (
-        <label className={cn(label, "col-span-2 md:col-span-4")}>
+        <label className={cn(label, "sm:col-span-2 lg:col-span-4")}>
           {t.admin.mpLinks}
           <input name="mpLinks" defaultValue={l.mpLinks.split(",").filter(Boolean).map((id) => `https://osu.ppy.sh/mp/${id}`).join(", ")} className={inputCls} />
         </label>
@@ -91,12 +91,12 @@ export default async function AdminLobbies() {
                     <li key={p.osuId} style={{ "--i": k, "--s": "0.05s", "--d": "0.7s" } as React.CSSProperties} className="in-left flex flex-wrap items-center gap-3 px-3 py-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       {p.avatarUrl && <img src={p.avatarUrl} alt="" className="in-pop size-7 [--d:0.8s]" />}
-                      <span className="font-bold">{p.username}</span>
-                      <div className="ml-auto flex flex-wrap items-center gap-2">
+                      <span className="min-w-0 truncate font-bold">{p.username}</span>
+                      <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto">
                         {lobbies.length > 1 && (
-                          <ActionForm action={placePlayer} submit={t.admin.move} ghost className="flex items-center gap-2">
+                          <ActionForm action={placePlayer} submit={t.admin.move} ghost className="flex flex-1 items-center gap-2 sm:flex-none">
                             <input type="hidden" name="osuId" value={p.osuId} />
-                            <select name="lobbyId" defaultValue="" required aria-label={t.admin.moveTo} className={cn(inputCls, "h-10 w-40")}>
+                            <select name="lobbyId" defaultValue="" required aria-label={t.admin.moveTo} className={cn(inputCls, "w-full sm:w-44")}>
                               <option value="" disabled>
                                 {t.admin.moveTo}
                               </option>
@@ -119,9 +119,9 @@ export default async function AdminLobbies() {
 
               <div className="flex flex-wrap items-end justify-between gap-3">
                 {free.length > 0 ? (
-                  <ActionForm action={placePlayer} submit={t.admin.addToLobby} ghost className="flex flex-wrap items-center gap-2">
+                  <ActionForm action={placePlayer} submit={t.admin.addToLobby} ghost className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                     <input type="hidden" name="lobbyId" value={l.id} />
-                    <select name="osuId" defaultValue="" required aria-label={t.admin.addToLobby} className={cn(inputCls, "w-56")}>
+                    <select name="osuId" defaultValue="" required aria-label={t.admin.addToLobby} className={cn(inputCls, "w-full sm:w-56")}>
                       <option value="" disabled>
                         {t.admin.addToLobby}
                       </option>

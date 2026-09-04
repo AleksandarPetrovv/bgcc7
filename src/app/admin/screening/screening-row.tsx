@@ -28,8 +28,8 @@ export function ScreeningRow({ p, signedAt, i }: { p: RegRow; signedAt: string; 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {p.avatarUrl && <img src={p.avatarUrl} alt="" className="in-spin size-10 [--d:0.45s]" />}
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {p.country && <img src={flagUrl(p.country)} alt={p.country} className="h-2.5" />}
             <a href={osuUser(p.osuId)} target="_blank" rel="noreferrer" className="truncate font-black hover:text-rose-hi">
@@ -47,7 +47,7 @@ export function ScreeningRow({ p, signedAt, i }: { p: RegRow; signedAt: string; 
         <ActionForm action={removeRegistration.bind(null, p.osuId)} submit={t.admin.removeReg} ghost confirm={t.admin.confirmRemoveReg} className="ml-auto" />
       </div>
       <form action={action} className={cn("in-up flex flex-wrap items-center gap-2 border-t border-line px-3 py-2.5 [--d:0.65s]", pending && "opacity-60")}>
-        <input name="note" defaultValue={p.note ?? ""} maxLength={300} placeholder={t.admin.note} aria-label={t.admin.note} className={cn(inputCls, "min-w-40 flex-1")} />
+        <input name="note" defaultValue={p.note ?? ""} maxLength={300} placeholder={t.admin.note} aria-label={t.admin.note} className={cn(inputCls, "w-full sm:w-auto sm:min-w-40 sm:flex-1")} />
         <Btn name="status" value={p.status} disabled={pending} tone="outline" small>
           {t.admin.save}
         </Btn>

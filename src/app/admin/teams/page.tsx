@@ -14,7 +14,7 @@ import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { createTeam, deleteTeam, generateTeams, placeMember, removeMember, updateTeam } from "./actions";
 
-const label = "flex flex-col gap-1 text-xs font-bold uppercase text-ash";
+const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
 export default async function AdminTeams() {
   const [t, viewer, teams, results, regs, settings] = await Promise.all([getDict(), getViewer(), getTeams(), getQualResults(), getRegistrations(), getSettings()]);
@@ -39,7 +39,7 @@ export default async function AdminTeams() {
         </Panel>
         <Panel title={t.admin.newTeam} i={1}>
           <ActionForm action={createTeam} submit={t.admin.create} className="flex flex-wrap items-center gap-3">
-            <input name="name" required maxLength={40} placeholder={t.admin.teamName} aria-label={t.admin.teamName} className={cn(inputCls, "w-64")} />
+            <input name="name" required maxLength={40} placeholder={t.admin.teamName} aria-label={t.admin.teamName} className={cn(inputCls, "w-full sm:w-64")} />
           </ActionForm>
         </Panel>
       </div>
@@ -52,8 +52,8 @@ export default async function AdminTeams() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {team.image && <img src={team.image} alt="" className="in-spin size-9 object-cover [--d:0.45s]" />}
               <span className="in-slam num text-xl text-balkan [--d:0.55s]">#{team.seed}</span>
-              <span className="in-wipe heading-slam truncate text-2xl [--d:0.55s]">{team.name}</span>
-              <span className="num ml-auto text-sm text-ash">{team.players.length}/3</span>
+              <span className="in-wipe heading-slam min-w-0 truncate text-xl sm:text-2xl [--d:0.55s]">{team.name}</span>
+              <span className="num ml-auto shrink-0 text-sm text-ash">{team.players.length}/3</span>
             </div>
             <div className="space-y-4 p-4">
               <ActionForm key={`${team.id}-${team.name}-${team.seed}-${team.players.map((p) => p.userId + String(p.isCaptain)).join()}`} action={updateTeam.bind(null, team.id)} className="space-y-3">
@@ -94,11 +94,11 @@ export default async function AdminTeams() {
                     <span className="font-bold">{p.username}</span>
                     {seedOf.has(p.userId) && <span className="num text-xs text-ash">Q#{seedOf.get(p.userId)}</span>}
                     {p.rank > 0 && <span className="num text-xs text-ash">#{fmtNum(p.rank)}</span>}
-                    <div className="ml-auto flex flex-wrap items-center gap-2">
+                    <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto">
                       {teams.length > 1 && (
-                        <ActionForm action={placeMember} submit={t.admin.move} ghost className="flex items-center gap-2">
+                        <ActionForm action={placeMember} submit={t.admin.move} ghost className="flex flex-1 items-center gap-2 sm:flex-none">
                           <input type="hidden" name="osuId" value={p.userId} />
-                          <select name="teamId" defaultValue="" required aria-label={t.admin.moveTo} className={cn(inputCls, "w-40")}>
+                          <select name="teamId" defaultValue="" required aria-label={t.admin.moveTo} className={cn(inputCls, "w-full sm:w-44")}>
                             <option value="" disabled>
                               {t.admin.moveTo}
                             </option>
@@ -120,9 +120,9 @@ export default async function AdminTeams() {
 
               <div className="flex flex-wrap items-end justify-between gap-3">
                 {pool.length > 0 ? (
-                  <ActionForm action={placeMember} submit={t.admin.add} ghost className="flex flex-wrap items-center gap-2">
+                  <ActionForm action={placeMember} submit={t.admin.add} ghost className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                     <input type="hidden" name="teamId" value={team.id} />
-                    <select name="osuId" defaultValue="" required aria-label={t.admin.addToTeam} className={cn(inputCls, "w-56")}>
+                    <select name="osuId" defaultValue="" required aria-label={t.admin.addToTeam} className={cn(inputCls, "w-full sm:w-56")}>
                       <option value="" disabled>
                         {t.admin.addToTeam}
                       </option>

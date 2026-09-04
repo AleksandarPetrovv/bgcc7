@@ -13,7 +13,7 @@ import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { clearPlayer, deleteScore, importAll, importOne, setScore } from "./actions";
 
-const label = "flex flex-col gap-1 text-xs font-bold uppercase text-ash";
+const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
 export default async function AdminQualifiers() {
   const [t, viewer, lobbies, results, rows, settings] = await Promise.all([getDict(), getViewer(), getLobbies(), getQualResults(), getQualScoreRows(), getSettings()]);
@@ -43,8 +43,8 @@ export default async function AdminQualifiers() {
 
         <Panel title={t.admin.setScore} help={t.admin.setScoreHelp} i={1}>
           <ActionForm action={setScore} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <label className={cn(label, "col-span-2 sm:col-span-1")}>
+            <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:grid-cols-3">
+              <label className={cn(label, "min-[420px]:col-span-2 sm:col-span-1")}>
                 {t.admin.player}
                 <input name="player" required maxLength={32} placeholder={t.admin.addPlaceholder} className={inputCls} />
               </label>
@@ -84,13 +84,13 @@ export default async function AdminQualifiers() {
           const own = rows.filter((r) => r.osuId === p.id).sort((a, b) => (slotOf.get(a.beatmapId) ?? "").localeCompare(slotOf.get(b.beatmapId) ?? ""));
           return (
             <details key={p.id} style={{ "--i": Math.min(i, 24), "--s": "0.03s", "--d": "0.45s" } as React.CSSProperties} className={cn("in-left-far border border-line bg-coal", i >= settings.qualifyCount && "opacity-60")}>
-              <summary className="flex cursor-pointer list-none flex-wrap items-center gap-3 px-3 py-2">
+              <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-2">
                 <span className={cn("in-slam num w-10 text-center text-lg [--d:0.6s]", i < settings.qualifyCount ? "text-balkan" : "text-ash")}>#{i + 1}</span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.avatar} alt="" className="size-7" />
-                <span className="font-bold">{p.username}</span>
+                <span className="min-w-0 truncate font-bold">{p.username}</span>
                 <span className="in-wipe-r num ml-auto text-balkan [--d:0.7s]">{p.zSum.toFixed(2)}</span>
-                <span className="num w-28 text-right text-sm text-ash">{t.admin.mapsPlayed(Object.keys(p.perf).length, results.maps.length)}</span>
+                <span className="num hidden w-28 text-right text-sm text-ash sm:block">{t.admin.mapsPlayed(Object.keys(p.perf).length, results.maps.length)}</span>
               </summary>
               <div className="border-t border-line p-3">
                 <ul className="mb-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">

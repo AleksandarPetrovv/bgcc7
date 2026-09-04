@@ -28,7 +28,7 @@ export default async function AdminStaff() {
 
       <Panel title={t.admin.addStaff} className="mb-6">
         <ActionForm action={addStaff} submit={t.admin.add} className="flex flex-wrap items-center gap-3">
-          <input name="q" required maxLength={32} placeholder={t.admin.addPlaceholder} className={`${inputCls} w-64`} aria-label={t.admin.addPlaceholder} />
+          <input name="q" required maxLength={32} placeholder={t.admin.addPlaceholder} className={`${inputCls} w-full sm:w-64`} aria-label={t.admin.addPlaceholder} />
         </ActionForm>
       </Panel>
 
@@ -42,7 +42,7 @@ export default async function AdminStaff() {
                 {s.avatarUrl && <img src={s.avatarUrl} alt="" className="in-spin size-9 [--d:0.5s]" />}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {s.country && <img src={flagUrl(s.country)} alt="" className="h-2.5" />}
-                <span className="in-wipe font-black [--d:0.6s]">{s.username}</span>
+                <span className="in-wipe min-w-0 truncate font-black [--d:0.6s]">{s.username}</span>
                 <span className="num text-xs text-ash">#{s.osuId}</span>
                 {builtIn && <span className="in-slam ml-auto text-xs font-black uppercase text-balkan [--d:0.75s]">{t.admin.builtIn}</span>}
               </div>
@@ -53,8 +53,8 @@ export default async function AdminStaff() {
               )}
               <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-end">
                 <ActionForm action={updateStaff.bind(null, s.osuId)} className="flex flex-1 flex-col gap-4">
-                  <div className="flex flex-wrap gap-4">
-                    <label className="flex flex-col gap-1 text-xs font-bold uppercase text-ash">
+                  <div className="grid grid-cols-[minmax(0,1fr)_6rem] gap-3 sm:flex sm:flex-wrap sm:gap-4">
+                    <label className="flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors">
                       {t.admin.permission}
                       <select name="permRole" defaultValue={builtIn ? "host" : (s.permRole ?? "")} disabled={builtIn} className={inputCls}>
                         <option value="">{t.admin.noPerm}</option>
@@ -65,9 +65,9 @@ export default async function AdminStaff() {
                         ))}
                       </select>
                     </label>
-                    <label className="flex flex-col gap-1 text-xs font-bold uppercase text-ash">
+                    <label className="flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors">
                       {t.admin.order}
-                      <input type="number" name="order" min={0} max={999} defaultValue={s.order} className={`${inputCls} w-24`} />
+                      <input type="number" name="order" min={0} max={999} defaultValue={s.order} className={`${inputCls} w-full sm:w-24`} />
                     </label>
                   </div>
                   <fieldset>
