@@ -1,0 +1,1 @@
+ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "phase_prompts" jsonb DEFAULT '{}'::jsonb NOT NULL;
