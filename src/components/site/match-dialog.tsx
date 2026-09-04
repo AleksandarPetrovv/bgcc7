@@ -10,45 +10,20 @@ import { roundName } from "@/lib/i18n/dict";
 import { matchSlug } from "@/lib/matches";
 import type { MapResult, PlayerLine, Scoreboard } from "@/lib/scoreboard";
 import { cn } from "@/lib/utils";
+import { matchCosts, MEDAL } from "@/lib/match-cost";
 
 const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
+const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 const cache = new Map<string, Scoreboard>();
 const TEAM = ["border-rose", "border-azure"];
 const TEAM_TEXT = ["text-rose-hi", "text-azure-hi"];
-
-type Cost = { id: number; name: string; avatar: string; team: 1 | 2; maps: number; score: number; acc: number; cost: number };
-
-function matchCosts(data: Scoreboard): Cost[] {
-  const maps = data.maps.filter((m) => !m.note);
-  const acc = new Map<number, Cost & { ratio: number; accSum: number }>();
-  for (const m of maps) {
-    const all = [...m.players[0], ...m.players[1]].map((p) => p.score).filter((s) => s > 0).sort((a, b) => a - b);
-    if (!all.length) continue;
-    const mid = all.length % 2 ? all[(all.length - 1) / 2] : (all[all.length / 2 - 1] + all[all.length / 2]) / 2;
-    m.players.forEach((side, k) =>
-      side.forEach((p) => {
-        const c = acc.get(p.id) ?? { id: p.id, name: p.name, avatar: p.avatar, team: (k + 1) as 1 | 2, maps: 0, score: 0, acc: 0, cost: 0, ratio: 0, accSum: 0 };
-        c.maps++;
-        c.score += p.score;
-        c.accSum += p.acc;
-        c.ratio += mid ? p.score / mid : 0;
-        acc.set(p.id, c);
-      }),
-    );
-  }
-  const rows = [...acc.values()].filter((c) => c.score > 0);
-  const avgMaps = rows.reduce((n, c) => n + c.maps, 0) / (rows.length || 1);
-  return rows
-    .map(({ ratio, accSum, ...c }) => ({ ...c, acc: accSum / c.maps, cost: (ratio / c.maps) * Math.cbrt(c.maps / avgMaps) }))
-    .sort((a, b) => b.cost - a.cost);
-}
 
 function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; flip?: boolean }) {
   const t = useDict();
   return (
     <ul className={cn("min-w-0 space-y-2", !won && "opacity-60")}>
-      {players.map((p) => (
-        <li key={p.id} className={cn("flex min-w-0 items-center gap-2", flip && "flex-row-reverse text-right")}>
+      {players.map((p, r) => (
+        <li key={p.id} className={cn("flex min-w-0 items-center gap-2", flip ? "in-right flex-row-reverse text-right" : "in-left")} style={v({ "--d": `${0.45 + r * 0.06}s` })}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={p.avatar} alt="" loading="lazy" decoding="async" className="size-8 shrink-0" />
           <div className="min-w-0 flex-1 leading-tight">
@@ -65,19 +40,19 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
   );
 }
 
-function MapCard({ m }: { m: MapResult }) {
+function MapCard({ m, i }: { m: MapResult; i: number }) {
   const t = useDict();
   const color = m.mod ? MODS[m.mod]?.color : undefined;
   const sum = m.team1 + m.team2;
   const share = sum ? (m.team1 / sum) * 100 : 50;
   return (
-    <article className={cn("relative overflow-hidden border border-line bg-coal", m.note && "opacity-50")}>
+    <article className={cn("in-up relative overflow-hidden border border-line bg-coal", m.note && "opacity-50")} style={v({ "--i": Math.min(i, 6), "--s": "0.08s", "--d": "0.12s" })}>
       {m.cover && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={m.cover} alt="" loading="lazy" decoding="async" className="pointer-events-none absolute inset-x-0 top-0 h-24 w-full object-cover opacity-20 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
       )}
       <header className="relative flex items-start gap-3 px-3.5 pt-3">
-        <span className="heading-slam shrink-0 text-2xl leading-none" style={{ color: color ?? "var(--color-ash)" }}>
+        <span className="in-slam heading-slam shrink-0 text-2xl leading-none" style={{ color: color ?? "var(--color-ash)", ...v({ "--d": "0.22s" }) }}>
           {m.slot ?? "—"}
         </span>
         <div className="min-w-0 flex-1 pt-0.5">
@@ -89,7 +64,7 @@ function MapCard({ m }: { m: MapResult }) {
           </div>
         </div>
         {!m.note && (
-          <span className="num shrink-0 text-lg leading-none">
+          <span className="in-pop num shrink-0 text-lg leading-none" style={v({ "--d": "0.5s" })}>
             <span className={m.winner === 1 ? "text-rose-hi" : "text-ash"}>{m.running[0]}</span>
             <span className="px-1 text-ash/40">/</span>
             <span className={m.winner === 2 ? "text-azure-hi" : "text-ash"}>{m.running[1]}</span>
@@ -99,13 +74,13 @@ function MapCard({ m }: { m: MapResult }) {
       {!m.note && (
         <div className="relative px-3.5 pb-3.5 pt-3">
           <div className="flex items-end justify-between gap-3">
-            <span className={cn("num text-xl leading-none", m.winner === 1 ? "text-rose-hi" : "text-ash")}>{fmtNum(m.team1)}</span>
-            {sum > 0 && <span className="num text-[0.7rem] text-ash">{fmtNum(Math.abs(m.team1 - m.team2))}</span>}
-            <span className={cn("num text-xl leading-none", m.winner === 2 ? "text-azure-hi" : "text-ash")}>{fmtNum(m.team2)}</span>
+            <span className={cn("in-left num text-xl leading-none", m.winner === 1 ? "text-rose-hi" : "text-ash")} style={v({ "--d": "0.3s" })}>{fmtNum(m.team1)}</span>
+            {sum > 0 && <span className="in-drop num text-[0.7rem] text-ash" style={v({ "--d": "0.55s" })}>{fmtNum(Math.abs(m.team1 - m.team2))}</span>}
+            <span className={cn("in-right num text-xl leading-none", m.winner === 2 ? "text-azure-hi" : "text-ash")} style={v({ "--d": "0.3s" })}>{fmtNum(m.team2)}</span>
           </div>
           <div className="mt-2 flex h-1 gap-0.5">
-            <span className={cn("h-full bg-rose transition-[width] duration-700", m.winner !== 1 && "opacity-40")} style={{ width: `${share}%` }} />
-            <span className={cn("h-full flex-1 bg-azure", m.winner !== 2 && "opacity-40")} />
+            <span className={cn("in-grow h-full bg-rose", m.winner !== 1 && "opacity-40")} style={{ width: `${share}%`, ...v({ "--d": "0.35s" }) }} />
+            <span className={cn("in-grow h-full flex-1 bg-azure", m.winner !== 2 && "opacity-40")} style={{ transformOrigin: "100% 50%", ...v({ "--d": "0.35s" }) }} />
           </div>
           <div className="mt-3.5 grid grid-cols-2 gap-x-4">
             <Side players={m.players[0]} won={m.winner !== 2} />
@@ -117,15 +92,14 @@ function MapCard({ m }: { m: MapResult }) {
   );
 }
 
-function Costs({ data, names }: { data: Scoreboard; names: (string | undefined)[] }) {
+function Costs({ data, names, finished }: { data: Scoreboard; names: (string | undefined)[]; finished: boolean }) {
   const t = useDict();
-  const rows = matchCosts(data);
+  const rows = matchCosts(data, finished);
   if (!rows.length) return null;
-  const best = rows[0].id;
+  const place = new Map(rows.map((r, i) => [r.id, i]));
   return (
-    <section className="pt-3">
-      <h3 className="text-sm font-black uppercase">{t.match.cost}</h3>
-      <p className="mb-3 mt-1 text-xs text-ash">{t.match.costHint}</p>
+    <section className="in-up pt-3" style={v({ "--d": "0.35s" })}>
+      <h3 className="in-wipe mb-3 text-sm font-black uppercase" style={v({ "--d": "0.45s" })}>{t.match.cost}</h3>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {([1, 2] as const).map((k) => (
           <div key={k} className={cn("border border-l-[3px] border-line bg-coal", TEAM[k - 1])}>
@@ -133,8 +107,8 @@ function Costs({ data, names }: { data: Scoreboard; names: (string | undefined)[
             <ul>
               {rows
                 .filter((r) => r.team === k)
-                .map((r) => (
-                  <li key={r.id} className="flex items-center gap-3 border-b border-line px-3 py-2 last:border-b-0">
+                .map((r, n) => (
+                  <li key={r.id} className={cn("flex items-center gap-3 border-b border-line px-3 py-2 last:border-b-0", k === 1 ? "in-left" : "in-right")} style={v({ "--i": n, "--s": "0.07s", "--d": "0.55s" })}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={r.avatar} alt="" loading="lazy" decoding="async" className="size-8 shrink-0" />
                     <div className="min-w-0 flex-1">
@@ -143,7 +117,7 @@ function Costs({ data, names }: { data: Scoreboard; names: (string | undefined)[
                         {t.match.mapsShort(r.maps)} · {pct(r.acc)} · {fmtNum(r.score)}
                       </div>
                     </div>
-                    <span className={cn("num shrink-0 text-2xl", r.id === best ? "text-[#e8c547]" : r.cost >= 1 ? "text-paper" : "text-ash")}>{r.cost.toFixed(2)}</span>
+                    <span className={cn("in-slam num shrink-0 text-2xl", MEDAL[place.get(r.id)!] ?? "text-paper/60")} style={v({ "--d": `${0.75 + place.get(r.id)! * 0.06}s` })}>{r.cost.toFixed(2)}</span>
                   </li>
                 ))}
             </ul>
@@ -166,15 +140,15 @@ function Board({ match, data, names }: { match: Match; data: Scoreboard; names: 
               <span className="h-px flex-1 border-t border-dashed border-line" />
             </div>
           )}
-          <MapCard m={m} />
+          <MapCard m={m} i={i} />
         </div>
       ))}
-      {match.winner ? <Costs data={data} names={names} /> : null}
+      <Costs data={data} names={names} finished={!!match.winner} />
     </div>
   );
 }
 
-export function MatchDialog({ match, compact }: { match: Match; compact?: boolean }) {
+export function MatchDialog({ match, compact, children, className }: { match: Match; compact?: boolean; children?: React.ReactNode; className?: string }) {
   const t = useDict();
   const slug = matchSlug(match.id);
   const [data, setData] = useState<Scoreboard | "error" | null>(() => cache.get(slug) ?? null);
@@ -202,25 +176,26 @@ export function MatchDialog({ match, compact }: { match: Match; compact?: boolea
       <DialogTrigger
         aria-label={t.match.details}
         title={t.match.details}
-        className={cn(
-          "flex shrink-0 items-center justify-center text-ash transition hover:text-paper",
-          compact ? "size-6 -skew-x-12 border border-line hover:border-rose hover:bg-rose/15" : "w-10 hover:bg-slate sm:w-14",
-        )}
+        className={
+          children
+            ? className
+            : cn("flex shrink-0 items-center justify-center text-ash transition hover:text-paper", compact ? "size-6 -skew-x-12 border border-line hover:border-rose hover:bg-rose/15" : "w-10 hover:bg-slate sm:w-14")
+        }
       >
-        <ListOrdered className={cn(compact ? "size-3.5 skew-x-12" : "size-5")} />
+        {children ?? <ListOrdered className={cn(compact ? "size-3.5 skew-x-12" : "size-5")} />}
       </DialogTrigger>
-      <DialogContent className="max-h-[88dvh] grid-cols-[minmax(0,1fr)] gap-0 overflow-y-auto overscroll-contain rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
+      <DialogContent className="mdlg max-h-[88dvh] grid-cols-[minmax(0,1fr)] content-start gap-0 overflow-y-auto [-webkit-overflow-scrolling:touch] [touch-action:pan-y] rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
         <div className="sticky top-0 z-10 min-w-0 border-b border-line bg-ink px-3 py-3 sm:px-5 sm:py-4">
-          <DialogTitle className="pr-8 text-xs font-black uppercase text-rose-hi">{roundName(t, match.round)}</DialogTitle>
+          <DialogTitle className="in-wipe pr-8 text-xs font-black uppercase text-rose-hi" style={v({ "--d": "0.1s" })}>{roundName(t, match.round)}</DialogTitle>
           <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-4">
             {teams.map((team, i) => (
-              <div key={i} className={cn("flex min-w-0 items-center gap-2 sm:gap-3", i === 1 && "order-3 flex-row-reverse text-right")}>
+              <div key={i} className={cn("flex min-w-0 items-center gap-2 sm:gap-3", i === 1 ? "in-right order-3 flex-row-reverse text-right" : "in-left")} style={v({ "--d": "0.12s" })}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {team && <img src={team.image} alt="" className={cn("size-8 shrink-0 border-b-[3px] object-cover sm:size-12", i ? "border-azure" : "border-rose")} />}
                 <span className={cn("line-clamp-2 min-w-0 break-words text-xs font-black leading-tight sm:text-lg", match.winner && match.winner !== i + 1 && "text-ash")}>{names[i]}</span>
               </div>
             ))}
-            <span className="num order-2 whitespace-nowrap text-2xl sm:text-4xl">
+            <span className="in-slam num order-2 whitespace-nowrap text-2xl sm:text-4xl" style={v({ "--d": "0.25s" })}>
               <span className={match.winner === 2 ? "text-ash" : "text-paper"}>{score[0]}</span>
               <span className="text-ash">-</span>
               <span className={match.winner === 1 ? "text-ash" : "text-paper"}>{score[1]}</span>
@@ -243,7 +218,20 @@ export function MatchDialog({ match, compact }: { match: Match; compact?: boolea
           )}
         </div>
         {data === null ? (
-          <p className="p-10 text-center text-sm text-ash">{t.match.loading}</p>
+          <div className="space-y-4 p-3 sm:p-5" aria-busy>
+            <p className="text-center text-xs font-black uppercase text-ash">{t.match.loading}</p>
+            {[0, 1, 2].map((k) => (
+              <div key={k} className="in-up relative h-40 overflow-hidden border border-line bg-coal" style={v({ "--i": k, "--s": "0.1s" })}>
+                <span className="mdlg-shine absolute inset-0" style={{ animationDelay: `${k * 0.15}s` }} />
+                <span className="absolute left-3.5 top-3 h-6 w-12 -skew-x-12 bg-slate" />
+                <span className="absolute left-20 top-3.5 h-3 w-1/2 bg-slate" />
+                <span className="absolute inset-x-3.5 top-16 flex h-1 gap-0.5">
+                  <span className="w-1/2 bg-rose/30" />
+                  <span className="flex-1 bg-azure/30" />
+                </span>
+              </div>
+            ))}
+          </div>
         ) : data === "error" ? (
           <p className="p-10 text-center text-sm text-rose-hi">{t.match.error}</p>
         ) : (

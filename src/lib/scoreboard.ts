@@ -17,7 +17,7 @@ export type PlayerLine = {
 
 export type ScoreEdit = { gameId: number; osuId: number; team: 1 | 2; score: number; acc: number; mods: string[]; removed: boolean };
 
-export const SCOREBOARD_V = 2;
+export const SCOREBOARD_V = 5;
 
 export type MapResult = {
   lobby: number;
@@ -42,22 +42,22 @@ export type PlayerTotal = { id: number; name: string; avatar: string; team: 1 | 
 
 export type Scoreboard = {
   v?: number;
+  ez?: number;
   lobbies: { id: string; name: string }[];
   maps: MapResult[];
   score: [number, number];
   totals: PlayerTotal[];
 };
 
-export function poolOf(stages: Stage[], preferred: string) {
-  const pool = new Map<number, { slot: string; mod: string }>();
-  for (const s of [...stages].sort((a, b) => Number(b.slug === preferred) - Number(a.slug === preferred)))
-    for (const p of s.pools) for (const m of p.maps) if (!pool.has(m.id)) pool.set(m.id, { slot: m.slot, mod: m.mod });
-  return pool;
-}
+type Pool = Map<number, { slot: string; mod: string }>;
+
+export const playoffPools = (stages: Stage[]): Pool[] =>
+  stages.filter((s) => s.slug !== "qualifiers").map((s) => new Map(s.pools.flatMap((p) => p.maps.map((m) => [m.id, { slot: m.slot, mod: m.mod }] as const))));
 
 const shownMods = (mods: string[]) => mods.filter((m) => m !== "NF");
+const withEz = (score: number, mods: string[], ez: number) => (mods.includes("EZ") ? Math.floor(score * ez) : score);
 
-export async function buildScoreboard(match: Match, teams: Team[], POOL: Map<number, { slot: string; mod: string }>, edits: ScoreEdit[] = []): Promise<Scoreboard> {
+export async function buildScoreboard(match: Match, teams: Team[], pools: Pool[], edits: ScoreEdit[] = [], ez = 1): Promise<Scoreboard> {
   const rosterIds = (teamId: string) => new Set((teams.find((t) => t.id === teamId)?.players ?? []).map((p) => p.userId));
   const ids: [Set<number>, Set<number>] = [rosterIds(match.team1.id), rosterIds(match.team2.id)];
   const lobbies = await Promise.all(match.links.map((id) => getMpMatch(id)));
@@ -90,6 +90,8 @@ export async function buildScoreboard(match: Match, teams: Team[], POOL: Map<num
     return c === "red" || c === "blue" ? colorTeam[lobby][c] : null;
   };
 
+  const POOL: Pool = pools.find((p) => games.some(({ game }) => p.has(game.beatmap_id))) ?? new Map();
+
   for (const t of teams) for (const p of t.players) if (!users.has(p.userId)) users.set(p.userId, { name: p.username, avatar: p.avatar });
 
   const noteOf = (i: number): MapResult["note"] => {
@@ -105,15 +107,16 @@ export async function buildScoreboard(match: Match, teams: Team[], POOL: Map<num
       const team = teamOf(lobby, s);
       if (!team || mine.some((e) => e.osuId === s.user_id)) continue;
       const u = users.get(s.user_id);
+      const mods = s.mods?.length ? s.mods : game.mods;
       players[team - 1].push({
         id: s.user_id,
         name: u?.name ?? String(s.user_id),
         avatar: u?.avatar ?? `https://a.ppy.sh/${s.user_id}`,
-        score: s.score,
+        score: withEz(s.score, mods, ez),
         acc: s.accuracy,
         combo: s.max_combo,
         miss: s.statistics?.count_miss ?? 0,
-        mods: shownMods(s.mods?.length ? s.mods : game.mods),
+        mods: shownMods(mods),
         rank: s.rank,
       });
     }
@@ -124,7 +127,7 @@ export async function buildScoreboard(match: Match, teams: Team[], POOL: Map<num
         id: e.osuId,
         name: u?.name ?? String(e.osuId),
         avatar: u?.avatar ?? `https://a.ppy.sh/${e.osuId}`,
-        score: e.score,
+        score: withEz(e.score, e.mods.length ? e.mods : game.mods, ez),
         acc: e.acc,
         combo: 0,
         miss: 0,
@@ -149,6 +152,7 @@ export async function buildScoreboard(match: Match, teams: Team[], POOL: Map<num
   games.forEach(({ lobby, game }, i) => {
     const pool = POOL.get(game.beatmap_id) ?? null;
     const note = noteOf(i);
+    if (note === "warmup" || note === "aborted") return;
     const players = linesOf(lobby, game).map((side) => side.filter((p) => p.score > 0 || played.has(p.id))) as [PlayerLine[], PlayerLine[]];
     for (const side of players) side.sort((a, b) => b.score - a.score);
     const team1 = players[0].reduce((n, p) => n + p.score, 0);
@@ -188,6 +192,7 @@ export async function buildScoreboard(match: Match, teams: Team[], POOL: Map<num
 
   return {
     v: SCOREBOARD_V,
+    ez,
     lobbies: lobbies.map((l, i) => ({ id: match.links[i], name: l.match.name })),
     maps,
     score,
