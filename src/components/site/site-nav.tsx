@@ -15,6 +15,26 @@ const bar = "pointer-events-none absolute left-0 h-1 w-[100px] origin-left opaci
 
 const isActive = (path: string, base: string) => (base === "/" ? path === "/" : path === base || path.startsWith(`${base}/`));
 
+function AdminCrest({ on }: { on: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" className="adm-crest size-[1.35rem] overflow-visible" aria-hidden>
+      <g className={cn("adm-sword-a", on ? "fill-white stroke-white" : "fill-rose stroke-rose")}>
+        <path d="M5.1 17.1 16.6 5.6 20 4 18.4 7.4 6.9 18.9Z" stroke="none" />
+        <path d="M4.2 14.2 9.8 19.8" strokeWidth={2.4} strokeLinecap="round" fill="none" />
+        <path d="M6 18 3.8 20.2" strokeWidth={2.2} strokeLinecap="round" />
+        <circle cx="3.1" cy="20.9" r="1.4" stroke="none" />
+      </g>
+      <g className="adm-sword-b fill-paper stroke-paper">
+        <path d="M18.9 17.1 7.4 5.6 4 4 5.6 7.4 17.1 18.9Z" stroke="none" />
+        <path d="M19.8 14.2 14.2 19.8" strokeWidth={2.4} strokeLinecap="round" fill="none" />
+        <path d="M18 18 20.2 20.2" strokeWidth={2.2} strokeLinecap="round" />
+        <circle cx="20.9" cy="20.9" r="1.4" stroke="none" />
+      </g>
+      <path d="M12 0.2 12.8 2.4 15 3.2 12.8 4 12 6.2 11.2 4 9 3.2 11.2 2.4Z" className="adm-spark fill-[#e8c547]" />
+    </svg>
+  );
+}
+
 type Props = { user: { name: string; image: string | null; admin: boolean } | null; nav: NavItem[]; register: boolean; live: string[] };
 
 function LivePill({ big }: { big?: boolean }) {
@@ -181,6 +201,20 @@ export function SiteNav({ user, nav, register, live }: Props) {
               <span className="inline-block skew-x-12">{t.nav.login}</span>
             </button>
           )}
+          {user?.admin && (
+            <Link
+              href="/admin"
+              aria-label={t.nav.admin}
+              title={t.nav.admin}
+              aria-current={isActive(path, "/admin") ? "page" : undefined}
+              className={cn(
+                "group relative -mr-2 flex size-10 items-center justify-center xl:hidden",
+                isActive(path, "/admin") && "adm-on",
+              )}
+            >
+              <AdminCrest on={false} />
+            </Link>
+          )}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger className="relative p-2 text-paper xl:hidden" aria-label={t.nav.openMenu}>
               <Menu className="size-6" />
@@ -192,7 +226,6 @@ export function SiteNav({ user, nav, register, live }: Props) {
                 {[
                   ...nav,
                   ...(register ? [{ key: "register", href: "/register", base: "/register", hidden: false } as const] : []),
-                  ...(user?.admin ? [{ key: "admin", href: "/admin", base: "/admin", hidden: false } as const] : []),
                 ].map((n) => (
                   <Link
                     key={n.href}
