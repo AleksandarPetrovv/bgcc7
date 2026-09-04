@@ -206,7 +206,31 @@ function Bars() {
   );
 }
 
-const MARKS = { blocks: Blocks, streaks: Streaks, dots: Dots, glints: Glints, squiggle: Squiggle, chevrons: Chevrons, bubble: Bubble, people: People, cards: Cards, notes: Notes, tick: Tick, bars: Bars };
+function Gear({ r, teeth, className, style }: { r: number; teeth: number; className: string; style?: React.CSSProperties }) {
+  const c = 2 * Math.PI * r;
+  return (
+    <g className={className} style={style}>
+      <circle r={r} fill="none" strokeWidth={r * 0.55} strokeDasharray={`${c / teeth / 2} ${c / teeth / 2}`} />
+      <circle r={r * 0.78} fill="none" strokeWidth={r * 0.34} />
+    </g>
+  );
+}
+
+function Gears() {
+  return (
+    <svg viewBox="0 0 32 24" className="mb-[0.14em] h-[0.55em] w-[0.73em] self-end overflow-visible" aria-hidden>
+      <g transform="translate(11 13)">
+        <Gear r={8} teeth={8} className="mk-gear stroke-paper" style={{ animationDelay: "0.2s" }} />
+      </g>
+      <g transform="translate(24.5 6.5)">
+        <Gear r={4.6} teeth={6} className="mk-gear mk-gear-r stroke-rose" style={{ animationDelay: "0.35s" }} />
+      </g>
+      <circle cx="25" cy="19" r="1.8" className="mk-pop fill-balkan" style={{ animationDelay: "0.55s" }} />
+    </svg>
+  );
+}
+
+const MARKS = { gears: Gears, blocks: Blocks, streaks: Streaks, dots: Dots, glints: Glints, squiggle: Squiggle, chevrons: Chevrons, bubble: Bubble, people: People, cards: Cards, notes: Notes, tick: Tick, bars: Bars };
 export type Mark = keyof typeof MARKS;
 const FALLBACK: Mark[] = ["blocks", "streaks", "dots", "glints", "squiggle", "chevrons", "bars"];
 

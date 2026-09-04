@@ -55,6 +55,8 @@ export const settings = pgTable("settings", {
   timeline: jsonb("timeline").$type<{ key: string; from?: string | null; to?: string | null }[]>().notNull(),
   timelineAt: text("timeline_at"),
   qualifyCount: integer("qualify_count").notNull().default(24),
+  ezMult: doublePrecision("ez_mult").notNull().default(1.8),
+  phasePrompts: jsonb("phase_prompts").$type<Record<string, string>>().notNull().default({}),
   links: jsonb("links").$type<Record<string, string>>().notNull().default({}),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

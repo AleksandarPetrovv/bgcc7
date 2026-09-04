@@ -47,6 +47,16 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
     }
     case "phase.dates":
       return bg ? "обнови датите за записване и лобита" : "updated the registration and lobby booking dates";
+    case "settings.scoring":
+      return bg ? `смени EZ множителя на ${b("×" + p.ezMult)}` : `set the EZ multiplier to ${b("×" + p.ezMult)}`;
+    case "phase.dismiss":
+      return bg ? `отложи смяната на етапа към ${b(h.phase(String(p.phase)))}` : `put off switching the stage to ${b(h.phase(String(p.phase)))}`;
+    case "settings.pickems":
+      return p.pickemsOpen ? (bg ? "отвори прогнозите" : "opened pick'ems") : bg ? "затвори прогнозите" : "closed pick'ems";
+    case "settings.qualify":
+      return bg ? `смени колко играчи се класират на ${b(p.qualifyCount)}` : `set qualifying players to ${b(p.qualifyCount)}`;
+    case "settings.rounds":
+      return bg ? "обнови до колко точки се играе всеки рунд" : "updated how many points each round is played to";
     case "phase.timeline":
       return bg ? "обнови датите в графика" : "updated the timeline dates";
 

@@ -30,12 +30,10 @@ async function fetchMap(beatmapId: number, mod: string) {
 export async function updateStage(id: number, _: ActionResult, fd: FormData) {
   return guard("mappools", "stage.update", async () => {
     const title = String(fd.get("title") ?? "").trim().slice(0, 40);
-    const ft = String(fd.get("firstTo") ?? "").trim();
-    const firstTo = ft ? Math.round(Number(ft)) : null;
-    if (!title || (firstTo !== null && (!Number.isInteger(firstTo) || firstTo < 1 || firstTo > 20))) return { ok: false, error: "invalid" };
+    if (!title) return { ok: false, error: "invalid" };
     const poolReleased = fd.get("poolReleased") === "on";
-    await db.update(stages).set({ title, firstTo, poolReleased }).where(eq(stages.id, id));
-    return { id, title, firstTo, poolReleased };
+    await db.update(stages).set({ title, poolReleased }).where(eq(stages.id, id));
+    return { id, title, poolReleased };
   });
 }
 

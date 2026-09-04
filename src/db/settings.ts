@@ -17,19 +17,23 @@ export type Settings = {
   pickemsOpen: boolean;
   timeline: TimelineRow[];
   qualifyCount: number;
+  ezMult: number;
+  phasePrompts: Record<string, string>;
   links: Record<string, string>;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
   phase: "registration",
   sections: presetSections("registration"),
-  regOpensAt: new Date("2026-11-02T00:00:00+02:00"),
-  regClosesAt: new Date("2026-11-22T23:59:00+02:00"),
-  bookingOpensAt: new Date("2026-11-23T00:00:00+02:00"),
-  bookingClosesAt: new Date("2026-11-27T23:59:00+02:00"),
+  regOpensAt: new Date("2027-11-02T00:00:00+02:00"),
+  regClosesAt: new Date("2027-11-22T23:59:00+02:00"),
+  bookingOpensAt: new Date("2027-11-23T00:00:00+02:00"),
+  bookingClosesAt: new Date("2027-11-27T23:59:00+02:00"),
   pickemsOpen: false,
   timeline: DEFAULT_TIMELINE,
   qualifyCount: 24,
+  ezMult: 1.8,
+  phasePrompts: {},
   links: {},
 };
 
@@ -60,6 +64,8 @@ export const getSettings = cache(() =>
       pickemsOpen: row.pickemsOpen,
       timeline: withReg(row.timeline, row.regOpensAt, row.regClosesAt),
       qualifyCount: row.qualifyCount,
+      ezMult: row.ezMult,
+      phasePrompts: row.phasePrompts ?? {},
       links: row.links ?? {},
     };
   }, DEFAULT_SETTINGS),
