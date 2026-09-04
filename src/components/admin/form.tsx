@@ -6,9 +6,9 @@ import { useDict } from "@/components/site/lang";
 import type { ActionResult } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
-export const inputCls = "h-10 min-w-0 border border-line bg-ink px-3 text-sm text-paper outline-none transition-colors placeholder:text-ash focus:border-balkan";
-export const dateCls = `${inputCls} w-full appearance-none [color-scheme:dark] [&::-webkit-date-and-time-value]:text-left`;
-export const labelCls = "flex flex-col gap-1 text-xs font-bold uppercase tracking-wide text-ash";
+export const inputCls = "min-w-0";
+export const dateCls = "w-full min-w-0 [&::-webkit-date-and-time-value]:text-left";
+export const labelCls = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 export const checkLabelCls = "flex min-h-10 cursor-pointer items-center gap-2.5 text-sm font-bold uppercase tracking-wide";
 
 const TONES = {

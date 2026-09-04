@@ -450,6 +450,10 @@
 .mk-pop { transform-box: fill-box; transform-origin: 50% 100%; animation: mk-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) both; }
 .mk-fan { transform: rotate(var(--r)); animation: mk-fan 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
 .mk-rise { animation: mk-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes mk-gear-in { from { opacity: 0; scale: 0.3; } }
+@keyframes mk-spin { to { rotate: 360deg; } }
+.mk-gear { transform-box: fill-box; transform-origin: center; animation: mk-gear-in 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.3) both, mk-spin 9s linear 0.8s infinite; }
+.mk-gear-r { animation-name: mk-gear-in, mk-spin; animation-direction: normal, reverse; animation-duration: 0.6s, 5.2s; }
 
 @keyframes k-trace { from { stroke-dashoffset: 900; } }
 .in-trace { stroke-dasharray: 900; animation: k-trace 2.6s cubic-bezier(0.45, 0, 0.25, 1) calc(var(--d, 0s) + 0.3s) backwards; }
@@ -661,6 +665,7 @@ html.lite:not(.settled) .mk-dot {
   .mk-pop,
   .mk-fan,
   .mk-rise,
+  .mk-gear,
   .in-trace,
   .anim-comet,
   .anim-float,
@@ -675,3 +680,124 @@ html.lite:not(.settled) .mk-dot {
   }
 }
 
+
+.adm-crest .adm-sword-a { transform-box: view-box; transform-origin: 4px 20px; transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4); }
+.adm-crest .adm-sword-b { transform-box: view-box; transform-origin: 20px 20px; transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4); }
+.adm-crest .adm-spark { transform-box: fill-box; transform-origin: center; transform: scale(0); transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.6); }
+.group:hover .adm-crest .adm-sword-a, .adm-on .adm-crest .adm-sword-a { transform: rotate(-9deg); }
+.group:hover .adm-crest .adm-sword-b, .adm-on .adm-crest .adm-sword-b { transform: rotate(9deg); }
+.group:hover .adm-crest .adm-spark { transform: scale(1) rotate(45deg); }
+.adm-on .adm-crest .adm-spark { animation: adm-spark 2.4s ease-in-out infinite; }
+@keyframes adm-spark { 0%, 100% { transform: scale(0.6) rotate(0deg); } 50% { transform: scale(1.1) rotate(90deg); } }
+.adm-crest { animation: adm-clash 5s ease-in-out 1.5s infinite; }
+@keyframes adm-clash { 0%, 88%, 100% { transform: none; } 92% { transform: rotate(-8deg) scale(1.08); } 96% { transform: rotate(5deg); } }
+@media (prefers-reduced-motion: reduce) { .adm-crest, .adm-on .adm-crest .adm-spark { animation: none; } }
+
+@keyframes mdlg-in { from { opacity: 0; transform: translateY(32px) skewY(1.5deg) scale(0.96); } 60% { opacity: 1; } }
+@keyframes mdlg-out { to { opacity: 0; transform: translateY(16px) scale(0.98); } }
+@keyframes mdlg-shine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.mdlg[data-open] { animation: mdlg-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both !important; }
+.mdlg[data-closed] { animation: mdlg-out 0.18s ease-in both !important; }
+.mdlg-shine { background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.05) 50%, transparent 70%); animation: mdlg-shine 1.3s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .mdlg[data-open], .mdlg[data-closed], .mdlg-shine { animation: none !important; }
+}
+
+.adm :is(input:not([type="checkbox"], [type="radio"], [type="hidden"], [type="file"]), select, textarea) {
+  min-width: 0;
+  max-width: 100%;
+  min-height: 2.75rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-line);
+  border-bottom: 2px solid rgb(244 243 238 / 0.16);
+  border-radius: 0;
+  background-color: #111412;
+  color: var(--color-paper);
+  font-size: 0.9rem;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.25s;
+}
+.adm textarea { padding: 0.6rem 0.85rem; }
+.adm :is(input, select, textarea)::placeholder { color: var(--color-ash); font-weight: 500; }
+.adm :is(input:not([type="checkbox"], [type="radio"]), select, textarea):hover { border-color: rgb(244 243 238 / 0.22); }
+.adm :is(input:not([type="checkbox"], [type="radio"]), select, textarea):focus {
+  border-color: var(--color-line);
+  border-bottom-color: var(--color-rose);
+  background-color: #151917;
+  box-shadow: 0 10px 18px -14px rgb(224 36 47 / 0.9);
+}
+.adm :is(input, select, textarea):disabled { opacity: 0.45; cursor: not-allowed; }
+.adm select {
+  appearance: none;
+  padding-right: 2.4rem;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23e0242f' stroke-width='2.2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 0.7rem;
+}
+.adm select option { background: var(--color-coal); color: var(--color-paper); }
+.adm input[type="number"] { appearance: textfield; font-variant-numeric: tabular-nums; }
+.adm input[type="number"]::-webkit-inner-spin-button, .adm input[type="number"]::-webkit-outer-spin-button { appearance: none; margin: 0; }
+.adm input:is([type="date"], [type="datetime-local"], [type="time"]) {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  color-scheme: dark;
+  line-height: 2.6rem;
+}
+.adm input::-webkit-date-and-time-value { text-align: left; margin: 0; }
+.adm input::-webkit-calendar-picker-indicator { filter: invert(0.75); opacity: 0.7; cursor: pointer; }
+.adm input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+.adm input[type="file"]::file-selector-button {
+  margin-right: 0.75rem;
+  border: 0;
+  background: var(--color-slate);
+  color: var(--color-paper);
+  padding: 0.5rem 0.9rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.adm input:is([type="checkbox"], [type="radio"]):not(.sr-only) {
+  appearance: none;
+  display: inline-grid;
+  place-content: center;
+  flex-shrink: 0;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  border: 1.5px solid rgb(244 243 238 / 0.35);
+  background: var(--color-ink);
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+.adm input[type="checkbox"]:not(.sr-only)::before {
+  content: "";
+  width: 0.62rem;
+  height: 0.34rem;
+  border-left: 2.5px solid #fff;
+  border-bottom: 2.5px solid #fff;
+  transform: translateY(-1px) rotate(-45deg) scale(0);
+  transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.5);
+}
+.adm input[type="radio"]:not(.sr-only) { transform: rotate(45deg) scale(0.85); }
+.adm input[type="radio"]:not(.sr-only)::before {
+  content: "";
+  width: 0.4rem;
+  height: 0.4rem;
+  background: #fff;
+  transform: scale(0);
+  transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.5);
+}
+.adm input:is([type="checkbox"], [type="radio"]):not(.sr-only):hover { border-color: var(--color-rose); }
+.adm input:is([type="checkbox"], [type="radio"]):not(.sr-only):checked { background: var(--color-rose); border-color: var(--color-rose); }
+.adm input[type="checkbox"]:not(.sr-only):checked::before { transform: translateY(-1px) rotate(-45deg) scale(1); }
+.adm input[type="radio"]:not(.sr-only):checked { transform: rotate(45deg) scale(1); }
+.adm input[type="radio"]:not(.sr-only):checked::before { transform: scale(1); }
+.adm :is(input, select, textarea):focus-visible { outline: 2px solid var(--color-rose); outline-offset: 2px; }
+.adm label:focus-within { color: var(--color-paper); }

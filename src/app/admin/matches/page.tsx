@@ -14,7 +14,7 @@ import { fmtSofia, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { clearCache, fillFromSeeds, resetBracket, saveMatch } from "./actions";
 
-const label = "flex flex-col gap-1 text-xs font-bold uppercase text-ash";
+const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
 export default async function AdminMatches() {
   const [t, lang, viewer, rows, teams, stages] = await Promise.all([
@@ -51,12 +51,12 @@ export default async function AdminMatches() {
                 .map((m, k) => (
                   <details key={m.id} style={{ "--i": k, "--s": "0.05s", "--d": "0.6s" } as React.CSSProperties} className="in-left border border-line bg-ink">
                     <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2.5">
-                      <span className="num w-20 text-sm text-ash">{m.id}</span>
+                      <span className="num text-sm text-ash sm:w-20">{m.id}</span>
                       <span className="text-xs font-black uppercase text-rose-hi">{t.rounds[m.round] ?? m.round}</span>
-                      <span className="min-w-0 flex-1 truncate font-bold">
+                      <span className="order-last min-w-0 basis-full truncate font-bold sm:order-none sm:basis-0 sm:flex-1">
                         {name(m.team1Id)} <span className="in-slam num inline-block text-rose-hi [--d:0.85s]">{m.score1 ?? "-"}</span> : <span className="in-slam num inline-block text-azure-hi [--d:0.9s]">{m.score2 ?? "-"}</span> {name(m.team2Id)}
                       </span>
-                      <span className="num text-sm text-ash">{m.startsAt ? fmtSofia(m.startsAt, locale) : t.common.tbd}</span>
+                      <span className="num ml-auto text-sm text-ash sm:ml-0">{m.startsAt ? fmtSofia(m.startsAt, locale) : t.common.tbd}</span>
                       {m.winner && <span className="in-pop text-xs font-black uppercase text-balkan [--d:0.95s]">{t.admin.done}</span>}
                     </summary>
                     <div className="border-t border-line p-3">
