@@ -1,0 +1,1 @@
+ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "ez_mult" double precision DEFAULT 1.8 NOT NULL;

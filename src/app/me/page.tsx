@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CalendarClock, ChevronDown, Crown, ExternalLink, Flag, Mic, Tv, Video } from "lucide-react";
+import { ArrowRight, CalendarClock, Crown, ExternalLink, Flag, Mic, Tv, Video } from "lucide-react";
 import { Container, PageTitle, SlantButton, Tag } from "@/components/site/page";
 import { TriTick } from "@/components/site/graphics";
 import { Avatar } from "@/components/site/avatar";
@@ -18,11 +18,15 @@ import { getPoolStages } from "@/db/mappools";
 import { getScoreboard } from "@/db/scoreboards";
 import { fmtRange, phaseStates } from "@/lib/dates";
 import { fmtSofia, fmtSofiaTime, isFuture, windowState } from "@/lib/time";
-import { flagUrl, fmtNum, MODS, type Match, type Team } from "@/lib/data";
+import { flagUrl, fmtNum, type Match, type Team } from "@/lib/data";
 import { sourceLabel, isLive } from "@/lib/matches";
 import { osuUser, TWITCH_URL } from "@/lib/links";
 import type { MapResult, PlayerLine } from "@/lib/scoreboard";
 import { cn } from "@/lib/utils";
+import { matchCosts, MEDAL, MEDAL_BG } from "@/lib/match-cost";
+
+type MyCost = { m: Match; cost: number; place: number; of: number };
+
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 const label = "text-[0.65rem] font-black uppercase tracking-[0.14em] text-ash";
@@ -136,48 +140,6 @@ function Info({ icon: Icon, k, n }: { icon: typeof Flag; k: string; n: string })
 }
 
 type Best = { p: PlayerLine; map: MapResult; match: Match };
-
-function BestPlay({ t, best, other }: { t: Dict; best: Best; other?: Team }) {
-  const color = best.map.mod ? MODS[best.map.mod]?.color : undefined;
-  return (
-    <details className="group col-span-2 border-l-2 border-rose pl-3">
-      <summary className="flex cursor-pointer list-none items-end gap-3">
-        <div>
-          <div className={label}>{t.me.bestScore}</div>
-          <div className="num mt-1 text-3xl leading-none text-rose-hi">{fmtNum(best.p.score)}</div>
-        </div>
-        <span className="mb-0.5 ml-auto inline-flex items-center gap-1 text-xs font-black uppercase text-ash transition-colors group-hover:text-paper">
-          {best.map.slot ?? "—"} <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
-        </span>
-      </summary>
-      <div className="relative mt-3 overflow-hidden border border-line bg-ink">
-        {best.map.cover && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={best.map.cover} alt="" className="absolute inset-0 size-full object-cover opacity-20" />
-        )}
-        <div className="relative flex items-center gap-3 p-3">
-          <span className="heading-slam shrink-0 border-l-[3px] bg-ink/80 px-2 py-1 text-lg" style={{ borderColor: color ?? "var(--color-line)" }}>
-            {best.map.slot ?? "—"}
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-black">
-              {best.map.artist && <span className="text-paper/70">{best.map.artist} - </span>}
-              {best.map.title}
-            </div>
-            <div className="truncate text-xs text-ash">
-              [{best.map.version}] · {roundName(t, best.match.round)} · {t.common.vs} {other?.name}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="num text-sm">{(best.p.acc * 100).toFixed(2)}%</div>
-            {best.p.mods.length > 0 && <div className="text-[0.65rem] font-black uppercase text-ash">+{best.p.mods.join("")}</div>}
-          </div>
-          <MatchDialog match={best.match} compact />
-        </div>
-      </div>
-    </details>
-  );
-}
 
 export default async function Me() {
   const [t, lang, me] = await Promise.all([getDict(), getLang(), currentOsuId()]);
@@ -483,6 +445,16 @@ export default async function Me() {
     b ? b.maps.filter((x) => !x.note).flatMap((map) => [...map.players[0], ...map.players[1]].filter((p) => p.id === me && p.score > 0).map((p) => ({ p, map, match: played[k] }))) : [],
   );
   const best = plays.reduce<Best | null>((a, b) => (!a || b.p.score > a.p.score ? b : a), null);
+  const costs: MyCost[] = played.flatMap((m, k) => {
+    const b = boards[k];
+    if (!b) return [];
+    const rows = matchCosts(b, true);
+    const at = rows.findIndex((r) => r.id === me);
+    return at < 0 ? [] : [{ m, cost: rows[at].cost, place: at + 1, of: rows.length }];
+  });
+  const costOf = new Map(costs.map((c) => [c.m.id, c]));
+  const maxCost = Math.max(1, ...costs.map((c) => c.cost));
+  const avgCost = costs.length ? costs.reduce((n, c) => n + c.cost, 0) / costs.length : null;
   const statsCard = (
     <Card title={t.me.stats} i={3}>
       <div className="grid grid-cols-2 gap-x-4 gap-y-5">
@@ -490,7 +462,17 @@ export default async function Me() {
         <Stat k={t.me.totalScore} n={fmtNum(plays.reduce((n, x) => n + x.p.score, 0))} />
         <Stat k={t.me.avgAcc} n={plays.length ? `${((plays.reduce((n, x) => n + x.p.acc, 0) / plays.length) * 100).toFixed(2)}%` : "—"} />
         <Stat k={t.me.history} n={t.me.record(record[0], record[1])} />
-        {best && <BestPlay t={t} best={best} other={teamById(best.match.team1.id === team.id ? best.match.team2.id : best.match.team1.id)} />}
+        <Stat k={t.me.avgCost} n={avgCost === null ? "—" : avgCost.toFixed(2)} />
+        <div className="border-l-2 border-rose pl-3">
+          <div className={label}>{t.me.bestScore}</div>
+          {best ? (
+            <MatchDialog match={best.match} className="num mt-1 block text-2xl leading-none text-rose-hi underline decoration-rose/40 decoration-dotted underline-offset-4 transition-colors hover:text-paper sm:text-3xl">
+              {fmtNum(best.p.score)}
+            </MatchDialog>
+          ) : (
+            <div className="num mt-1 text-2xl leading-none sm:text-3xl">—</div>
+          )}
+        </div>
       </div>
     </Card>
   );
@@ -506,16 +488,29 @@ export default async function Me() {
             const other = teamById(us === 1 ? m.team2.id : m.team1.id);
             const won = usWon(m);
             return (
-              <li key={m.id} className={cn("relative flex items-center gap-3 px-4 py-3 text-sm sm:px-5", won ? "bg-balkan/[0.06]" : "bg-rose/[0.05]")}>
+              <li key={m.id} className={cn("relative flex items-center gap-3 overflow-hidden px-4 py-4 text-sm sm:gap-4 sm:px-5", won ? "bg-balkan/[0.06]" : "bg-rose/[0.05]")}>
                 <span className={cn("absolute inset-y-0 left-0 w-0.5", won ? "bg-balkan" : "bg-rose/70")} />
-                <span className={cn("num w-4 text-center text-lg", won ? "text-balkan" : "text-rose-hi")}>{won ? t.me.won : t.me.lost}</span>
+                {costOf.get(m.id) && (
+                  <span
+                    className={cn("in-grow absolute bottom-0 left-0 h-[3px] origin-left opacity-80", MEDAL_BG[costOf.get(m.id)!.place - 1] ?? "bg-paper/25")}
+                    style={{ width: `${(costOf.get(m.id)!.cost / maxCost) * 100}%` }}
+                    aria-hidden
+                  />
+                )}
+                <span className={cn("num w-4 text-center text-xl", won ? "text-balkan" : "text-rose-hi")}>{won ? t.me.won : t.me.lost}</span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {other && <img src={other.image} alt="" className="size-8 shrink-0 object-cover" />}
+                {other && <img src={other.image} alt="" className="size-11 shrink-0 object-cover" />}
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-black">{other?.name}</div>
+                  <div className="truncate text-base font-black">{other?.name}</div>
                   <div className="truncate text-[0.65rem] font-black uppercase tracking-wide text-ash">{roundName(t, m.round)}</div>
                 </div>
-                <span className="num text-xl">
+                {costOf.get(m.id) && (
+                  <div className="shrink-0 text-right leading-none">
+                    <div className={cn("num text-xl", MEDAL[costOf.get(m.id)!.place - 1] ?? "text-paper/60")}>{costOf.get(m.id)!.cost.toFixed(2)}</div>
+                    <div className="num mt-1 text-[0.65rem] text-ash">{t.me.ofPlayers(costOf.get(m.id)!.place, costOf.get(m.id)!.of)}</div>
+                  </div>
+                )}
+                <span className="num text-2xl">
                   {us === 1 ? m.team1.score : m.team2.score}
                   <span className="text-ash">-</span>
                   {us === 1 ? m.team2.score : m.team1.score}

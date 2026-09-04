@@ -5,16 +5,17 @@ import { matchCache, scoreEdits } from "./schema";
 import { finishMatch } from "./bracket";
 import type { PoolStage } from "./mappools";
 import type { Match, Team } from "@/lib/data";
-import { buildScoreboard, poolOf, SCOREBOARD_V, type ScoreEdit, type Scoreboard } from "@/lib/scoreboard";
+import { buildScoreboard, playoffPools, SCOREBOARD_V, type ScoreEdit, type Scoreboard } from "@/lib/scoreboard";
 import { isLive } from "@/lib/matches";
+import { getSettings } from "./settings";
 
 const LIVE_TTL = 30_000;
 const live = new Map<string, { at: number; data: Scoreboard }>();
 
-async function stored(id: string, links: string) {
+async function stored(id: string, links: string, ez: number) {
   try {
     const [row] = await db.select().from(matchCache).where(eq(matchCache.matchId, id)).limit(1);
-    return row && row.links === links && (row.data as Scoreboard).v === SCOREBOARD_V ? (row.data as Scoreboard) : null;
+    return row && row.links === links && (row.data as Scoreboard).v === SCOREBOARD_V && (row.data as Scoreboard).ez === ez ? (row.data as Scoreboard) : null;
   } catch (e) {
     console.error("[match cache]", e);
     return null;
@@ -39,15 +40,16 @@ export async function forgetScoreboard(matchId: string) {
 export async function getScoreboard(match: Match, teams: Team[], stages: PoolStage[]): Promise<Scoreboard | null> {
   if (!match.links.length) return null;
   const links = match.links.join(",");
-  const saved = await stored(match.id, links);
+  const { ezMult } = await getSettings();
+  const saved = await stored(match.id, links, ezMult);
   if (saved) return saved;
 
   const hit = live.get(match.id);
-  if (hit && Date.now() - hit.at < LIVE_TTL) return hit.data;
+  if (hit && hit.data.ez === ezMult && Date.now() - hit.at < LIVE_TTL) return hit.data;
 
   const firstTo = stages.find((s) => s.slug === match.stage)?.firstTo ?? 7;
   try {
-    const data = await buildScoreboard(match, teams, poolOf(stages, match.stage), await getEdits(match.id));
+    const data = await buildScoreboard(match, teams, playoffPools(stages), await getEdits(match.id), ezMult);
     if (Math.max(...data.score) >= firstTo) {
       await db
         .insert(matchCache)
