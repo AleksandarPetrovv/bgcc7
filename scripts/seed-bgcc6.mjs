@@ -75,7 +75,7 @@ async function seedLobbies() {
       .insert(lobbies)
       .values({
         name: `Lobby ${String.fromCharCode(65 + Math.floor(i / 3))}${(i % 3) + 1}`,
-        startsAt: new Date(`2026-11-${SLOTS[i % SLOTS.length]}:00+02:00`),
+        startsAt: new Date(`2027-11-${SLOTS[i % SLOTS.length]}:00+02:00`),
         capacity: Math.max(8, ids.length),
         referee: REFS[i % 3],
         seeded: true,

@@ -36,12 +36,12 @@ export const presetSections = (p: Phase) => Object.fromEntries(SECTIONS.map((s) 
 export const TIMELINE_KEYS = ["reg", "scr", "qual", "seed", "play", "done"] as const;
 
 export const DEFAULT_TIMELINE = [
-  { key: "reg", from: "2026-11-02", to: "2026-11-22" },
-  { key: "scr", from: "2026-11-23", to: "2026-11-25" },
-  { key: "qual", from: "2026-11-28", to: "2026-11-29" },
-  { key: "seed", from: "2026-11-30", to: "2026-12-04" },
-  { key: "play", from: "2026-12-05", to: "2026-12-27" },
-  { key: "done", from: "2026-12-28", to: null },
+  { key: "reg", from: "2027-11-02", to: "2027-11-22" },
+  { key: "scr", from: "2027-11-23", to: "2027-11-25" },
+  { key: "qual", from: "2027-11-28", to: "2027-11-29" },
+  { key: "seed", from: "2027-11-30", to: "2027-12-04" },
+  { key: "play", from: "2027-12-05", to: "2027-12-27" },
+  { key: "done", from: "2027-12-28", to: null },
 ];
 
 const ROUTES: [string, Section][] = [
