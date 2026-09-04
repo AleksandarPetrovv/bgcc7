@@ -85,6 +85,29 @@ function Line({ m, slot, live }: { m: Match; slot: 1 | 2; live?: [number, number
   );
 }
 
+function Box({ id, m, live, className, style, onEnter, onLeave }: { id: string; m: Match; live?: [number, number] | null; className?: string; style?: React.CSSProperties; onEnter?: () => void; onLeave?: () => void }) {
+  const t = useDict();
+  const lang = useLang();
+  const locale = lang === "bg" ? "bg-BG" : "en-GB";
+  const day = (dt: string) => new Date(dt).toLocaleDateString(locale, { timeZone: "Europe/Sofia", weekday: "short", day: "2-digit", month: "short" });
+  const clock = (dt: string) => new Date(dt).toLocaleTimeString("en-GB", { timeZone: "Europe/Sofia", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  return (
+    <div onMouseEnter={onEnter} onMouseLeave={onLeave} className={cn("flex flex-col overflow-hidden border bg-coal transition-[border-color] duration-200", className)} style={style}>
+      <div className="flex h-7 shrink-0 items-center gap-2 border-b border-line bg-ink/70 px-2.5">
+        <span className="num truncate text-[0.78rem] text-paper/75">{m.datetime ? `${day(m.datetime)} · ${clock(m.datetime)}` : t.common.tbd}</span>
+        {id === "GF-M2" && <span className="text-[0.6rem] font-black uppercase text-[#e8c547]">{t.rounds.reset}</span>}
+        <span className="ml-auto flex items-center gap-1">
+          {live !== undefined && <LiveDot />}
+          {m.links.length > 0 && <MatchDialog match={m} compact />}
+        </span>
+      </div>
+      <Line m={m} slot={1} live={live} />
+      <div className="h-px shrink-0 bg-line" />
+      <Line m={m} slot={2} live={live} />
+    </div>
+  );
+}
+
 function LiveDot() {
   const t = useDict();
   return (
@@ -117,12 +140,10 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
     return () => ro.disconnect();
   }, []);
 
-  const W = Math.round(Math.min(290, Math.max(210, (avail - 5 * G) / 6)));
+  const W = avail < 640 ? Math.round(Math.min(290, avail - 40)) : Math.round(Math.min(290, Math.max(210, (avail - 5 * G) / 6)));
   const col = (c: number) => c * (W + G);
   const byId = new Map(matches.map((m) => [m.id, m]));
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
-  const day = (dt: string) => new Date(dt).toLocaleDateString(locale, { timeZone: "Europe/Sofia", weekday: "short", day: "2-digit", month: "short" });
-  const clock = (dt: string) => new Date(dt).toLocaleTimeString("en-GB", { timeZone: "Europe/Sofia", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 
   const linked = new Set<string>();
   if (hover) for (const [a, b] of DROPS) if (a === hover || b === hover) linked.add(a).add(b);
@@ -149,7 +170,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
       <span className="in-left-far inline-flex" style={v({ "--d": s === "u" ? "0.05s" : "0.35s" })}>
         <TriTick />
       </span>
-      <span className={cn("in-wipe heading-slam text-3xl", s === "l" && "text-rose-hi")} style={v({ "--d": s === "u" ? "0.1s" : "0.4s" })}>
+      <span className={cn("in-wipe heading-slam whitespace-nowrap text-xl sm:text-3xl", s === "l" && "text-rose-hi")} style={v({ "--d": s === "u" ? "0.1s" : "0.4s" })}>
         {s === "u" ? t.schedule.upper : t.schedule.lower}
       </span>
     </div>
@@ -158,7 +179,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   const up = (w: string) => w.toLocaleUpperCase(locale);
 
   return (
-    <div ref={box} className="overflow-x-auto overflow-y-hidden pb-4">
+    <div ref={box} className="snap-x snap-mandatory overflow-x-auto overflow-y-hidden pb-4 md:snap-none">
       <div className="relative mx-auto mt-4" style={{ width, height }}>
         <svg className="pointer-events-none absolute inset-0 overflow-visible" width={width} height={height} aria-hidden>
           <text x={col(3)} y={TOP + 3 * P + H - 6} className="in-trace heading-slam" fontSize={118} fill="none" stroke="rgba(244,243,238,0.08)" strokeWidth={1.5}>
@@ -204,14 +225,14 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
         {HEADERS.map((h) => (
           <div
             key={h.t}
-            className="in-drop absolute border-b border-line pb-1 text-xs font-black uppercase tracking-[0.14em] text-ash"
+            className="in-drop absolute snap-start truncate border-b border-line pb-1 text-xs font-black uppercase tracking-[0.14em] text-ash"
             style={{ left: col(h.c), top: (h.s === "u" ? TOP : LOW) - 30, width: W, ...v({ "--i": h.c, "--s": "0.12s", "--d": h.s === "u" ? "0.15s" : "0.45s" }) }}
           >
             {t.rounds[h.t] ?? h.t}
           </div>
         ))}
         <div
-          className="in-drop absolute flex items-center gap-2 border-b border-[#e8c547]/20 pb-1 text-xs font-black uppercase tracking-[0.14em] text-[#e8c547]/80"
+          className="in-drop absolute flex snap-start items-center gap-2 border-b border-[#e8c547]/20 pb-1 text-xs font-black uppercase tracking-[0.14em] text-[#e8c547]/80"
           style={{ left: col(5), top: top("GF-M1") - 30, width: W, ...v({ "--d": "0.7s" }) }}
         >
           <Crown className="size-3.5" /> {t.rounds["Grand Finals"]}
@@ -222,32 +243,17 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
           if (!m) return null;
           const [c] = POS[id];
           const gf = id.startsWith("GF");
-          const l = id in live ? live[id] : undefined;
-          const isLive = l !== undefined;
           return (
-            <div
+            <Box
               key={id}
-              onMouseEnter={() => setHover(id)}
-              onMouseLeave={() => setHover(null)}
-              className={cn(
-                "in-left-far absolute flex flex-col overflow-hidden border bg-coal transition-[border-color] duration-200",
-                gf ? "border-[#e8c547]/25" : "border-line hover:border-paper/30",
-                linked.has(id) && "border-rose/80",
-              )}
+              id={id}
+              m={m}
+              live={id in live ? live[id] : undefined}
+              onEnter={() => setHover(id)}
+              onLeave={() => setHover(null)}
+              className={cn("in-left-far absolute", gf ? "border-[#e8c547]/25" : "border-line hover:border-paper/30", linked.has(id) && "border-rose/80")}
               style={{ left: col(c), top: top(id), width: W, height: H, ...v({ "--i": c, "--s": "0.14s", "--d": `${(POS[id][2] === "u" ? 0.2 : 0.5) + POS[id][1] / 2500}s` }) }}
-            >
-              <div className="flex h-7 shrink-0 items-center gap-2 border-b border-line bg-ink/70 px-2.5">
-                <span className="num truncate text-[0.78rem] text-paper/75">{m.datetime ? `${day(m.datetime)} · ${clock(m.datetime)}` : t.common.tbd}</span>
-                {id === "GF-M2" && <span className="text-[0.6rem] font-black uppercase text-[#e8c547]">{t.rounds.reset}</span>}
-                <span className="ml-auto flex items-center gap-1">
-                  {isLive && <LiveDot />}
-                  {m.links.length > 0 && <MatchDialog match={m} compact />}
-                </span>
-              </div>
-              <Line m={m} slot={1} live={l} />
-              <div className="h-px shrink-0 bg-line" />
-              <Line m={m} slot={2} live={l} />
-            </div>
+            />
           );
         })}
       </div>
