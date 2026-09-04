@@ -1,0 +1,45 @@
+"use server";
+
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { stages } from "@/db/schema";
+import { saveSettings } from "@/db/settings";
+import { guard } from "@/lib/admin-action";
+import type { ActionResult } from "@/lib/roles";
+
+export async function setScoring(_: ActionResult, fd: FormData) {
+  return guard("settings", "settings.scoring", async () => {
+    const ezMult = Math.round(Number(fd.get("ezMult")) * 100) / 100;
+    if (!Number.isFinite(ezMult) || ezMult < 1 || ezMult > 3) return { ok: false, error: "invalid" };
+    await saveSettings({ ezMult });
+    return { ezMult };
+  });
+}
+
+export async function setRounds(_: ActionResult, fd: FormData) {
+  return guard("settings", "settings.rounds", async () => {
+    const rows = [...fd.entries()]
+      .filter(([k]) => k.startsWith("ft."))
+      .map(([k, v]) => ({ id: Number(k.slice(3)), firstTo: Math.round(Number(v)) }));
+    if (!rows.length || rows.some((r) => !Number.isInteger(r.id) || !Number.isInteger(r.firstTo) || r.firstTo < 1 || r.firstTo > 20)) return { ok: false, error: "invalid" };
+    for (const r of rows) await db.update(stages).set({ firstTo: r.firstTo }).where(eq(stages.id, r.id));
+    return { rounds: rows };
+  });
+}
+
+export async function setPickems(_: ActionResult, fd: FormData) {
+  return guard("settings", "settings.pickems", async () => {
+    const pickemsOpen = fd.get("open") === "1";
+    await saveSettings({ pickemsOpen });
+    return { pickemsOpen };
+  });
+}
+
+export async function setQualify(_: ActionResult, fd: FormData) {
+  return guard("settings", "settings.qualify", async () => {
+    const qualifyCount = Number(fd.get("qualifyCount"));
+    if (!Number.isInteger(qualifyCount) || qualifyCount < 3 || qualifyCount > 96) return { ok: false, error: "invalid" };
+    await saveSettings({ qualifyCount });
+    return { qualifyCount };
+  });
+}

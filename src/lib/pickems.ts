@@ -43,11 +43,6 @@ export type Picks = Record<string, string>;
 
 export const picksSchema = z.record(z.enum(ORDER), z.string().min(1).max(64));
 
-export const lockedMatches = (matches: Match[]) => {
-  const now = Date.now();
-  return matches.filter((m) => m.winner || (m.datetime && new Date(m.datetime).getTime() <= now)).map((m) => m.id);
-};
-
 export function resolve(picks: Picks, seeded: Seeding) {
   const slots: Record<string, [string | null, string | null]> = {};
   const clean: Picks = {};

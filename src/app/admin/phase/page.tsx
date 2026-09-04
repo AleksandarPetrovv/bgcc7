@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PageTitle, Tag } from "@/components/site/page";
-import { ActionForm, dateCls, inputCls, Panel } from "@/components/admin/form";
+import { ActionForm, dateCls, Panel } from "@/components/admin/form";
 import { getSettings } from "@/db/settings";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
@@ -30,7 +30,7 @@ export default async function AdminPhase() {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <Panel title={t.admin.phaseNow} help={t.admin.phaseHelp} className="xl:col-span-2" i={0}>
           <ActionForm action={setPhase} submit={t.admin.applyPhase} className="space-y-4">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex max-w-md flex-col gap-2">
               {PHASES.map((p, i) => (
                 <label
                   key={p}
@@ -38,7 +38,7 @@ export default async function AdminPhase() {
                   className="in-pop flex cursor-pointer items-center gap-2.5 whitespace-nowrap border border-line px-3.5 py-3 text-sm font-black uppercase transition-colors hover:border-paper/40 has-[:checked]:border-rose has-[:checked]:bg-rose/10"
                 >
                   <input type="radio" name="phase" value={p} defaultChecked={p === s.phase} className={check} />
-                  <span className="num text-ash">{i + 1}</span> {t.admin.phases[p]}
+                  {t.admin.phases[p]}
                 </label>
               ))}
             </div>
@@ -62,19 +62,11 @@ export default async function AdminPhase() {
           <ActionForm action={setDates} className="space-y-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {dates.map(([name, label, value], i) => (
-                <label key={name} style={{ "--i": i, "--s": "0.07s", "--d": "0.6s" } as React.CSSProperties} className="in-up flex flex-col gap-1 text-xs font-bold uppercase text-ash">
+                <label key={name} style={{ "--i": i, "--s": "0.07s", "--d": "0.6s" } as React.CSSProperties} className="in-up flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors">
                   {label}
                   <input type="datetime-local" name={name} defaultValue={toSofiaInput(value)} className={dateCls} />
                 </label>
               ))}
-              <label className="flex flex-col gap-1 text-xs font-bold uppercase text-ash">
-                {t.admin.qualifyCount}
-                <input type="number" name="qualifyCount" min={3} max={96} defaultValue={s.qualifyCount} className={inputCls} />
-              </label>
-              <label className="flex min-h-10 cursor-pointer items-center gap-2.5 self-end text-sm font-bold uppercase tracking-wide">
-                <input type="checkbox" name="pickemsOpen" defaultChecked={s.pickemsOpen} className={check} />
-                {t.admin.pickemsOpen}
-              </label>
             </div>
           </ActionForm>
         </Panel>

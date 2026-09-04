@@ -12,7 +12,7 @@ import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { addMap, deleteMap, moveMap, refreshStage, updateStage } from "./actions";
 
-const label = "flex flex-col gap-1 text-xs font-bold uppercase text-ash";
+const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
 export default async function AdminMappools({ searchParams }: PageProps<"/admin/mappools">) {
   const [t, viewer, stages, sp] = await Promise.all([getDict(), getViewer(), getPoolStages(), searchParams]);
@@ -46,16 +46,10 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
       <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Panel title={name(stage)}>
           <ActionForm key={`${stage.id}-${stage.title}-${stage.firstTo}-${stage.released}`} action={updateStage.bind(null, stage.id)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <label className={label}>
-                {t.admin.stageTitle}
-                <input name="title" required maxLength={40} defaultValue={stage.title} className={inputCls} />
-              </label>
-              <label className={label}>
-                {t.admin.firstTo}
-                <input type="number" name="firstTo" min={1} max={20} defaultValue={stage.firstTo ?? ""} className={inputCls} />
-              </label>
-            </div>
+            <label className={label}>
+              {t.admin.stageTitle}
+              <input name="title" required maxLength={40} defaultValue={stage.title} className={inputCls} />
+            </label>
             <label className="flex min-h-10 cursor-pointer items-center gap-2.5 text-sm font-bold uppercase tracking-wide">
               <input type="checkbox" name="poolReleased" defaultChecked={stage.released} className="size-4 accent-rose" />
               {t.admin.poolReleased}
@@ -119,13 +113,13 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                       </span>
                       <span>{Math.round(m.bpm)} bpm</span>
                       <span>{fmtLen(m.length)}</span>
-                      <span className="text-ash">
+                      <span className="hidden text-ash sm:inline">
                         CS {m.cs} · AR {m.ar} · OD {m.od}
                       </span>
                       <span className="text-ash">#{m.id}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex w-full items-center justify-end gap-1.5 sm:w-auto">
                     {i > 0 && (
                       <ActionForm action={moveMap.bind(null, m.rowId, -1)} submit={t.admin.up} ghost />
                     )}

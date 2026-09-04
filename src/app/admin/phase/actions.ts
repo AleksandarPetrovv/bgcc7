@@ -1,6 +1,6 @@
 "use server";
 
-import { saveSettings } from "@/db/settings";
+import { getSettings, saveSettings } from "@/db/settings";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
 import { PHASES, presetSections, SECTIONS, TIMELINE_KEYS, type Phase } from "@/lib/sections";
@@ -11,7 +11,7 @@ export async function setPhase(_: ActionResult, fd: FormData) {
     const phase = String(fd.get("phase"));
     if (!(PHASES as readonly string[]).includes(phase)) return { ok: false, error: "invalid" };
     const p = phase as Phase;
-    await saveSettings({ phase: p, sections: presetSections(p) });
+    await saveSettings({ phase: p, sections: presetSections(p), pickemsOpen: p !== "playoffs" && p !== "finished" });
     return { phase: p };
   });
 }
@@ -27,15 +27,11 @@ export async function setSections(_: ActionResult, fd: FormData) {
 export async function setDates(_: ActionResult, fd: FormData) {
   return guard("phase", "phase.dates", async () => {
     const date = (k: string) => fromSofiaInput(String(fd.get(k) ?? ""));
-    const qualifyCount = Number(fd.get("qualifyCount"));
-    if (!Number.isInteger(qualifyCount) || qualifyCount < 3 || qualifyCount > 96) return { ok: false, error: "invalid" };
     const patch = {
       regOpensAt: date("regOpensAt"),
       regClosesAt: date("regClosesAt"),
       bookingOpensAt: date("bookingOpensAt"),
       bookingClosesAt: date("bookingClosesAt"),
-      pickemsOpen: fd.get("pickemsOpen") === "on",
-      qualifyCount,
     };
     await saveSettings(patch);
     return patch;
@@ -51,5 +47,22 @@ export async function setTimeline(_: ActionResult, fd: FormData) {
     const timeline = TIMELINE_KEYS.filter((k) => k !== "reg").map((key) => ({ key, from: date(`from.${key}`), to: date(`to.${key}`) }));
     await saveSettings({ timeline });
     return { timeline };
+  });
+}
+
+export async function acceptPhase(phase: string) {
+  return guard("phase", "phase.set", async () => {
+    if (!(PHASES as readonly string[]).includes(phase)) return { ok: false, error: "invalid" };
+    const p = phase as Phase;
+    await saveSettings({ phase: p, sections: presetSections(p), pickemsOpen: p !== "playoffs" && p !== "finished" });
+    return { phase: p };
+  });
+}
+
+export async function dismissPhase(phase: string) {
+  return guard("phase", "phase.dismiss", async (osuId) => {
+    const { phasePrompts } = await getSettings();
+    await saveSettings({ phasePrompts: { ...phasePrompts, [osuId]: phase } });
+    return { phase };
   });
 }
