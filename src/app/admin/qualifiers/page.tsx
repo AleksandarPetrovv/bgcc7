@@ -7,11 +7,10 @@ import { getLobbies, mpIds } from "@/db/lobbies";
 import { getQualResults, getQualScoreRows } from "@/db/qualifiers";
 import { getSettings } from "@/db/settings";
 import { getViewer } from "@/lib/authz";
-import { fmtNum } from "@/lib/data";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
-import { clearPlayer, deleteScore, importAll, importOne, setScore } from "./actions";
+import { clearPlayer, deleteScore, importAll, importOne, setScore, updateScore } from "./actions";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
@@ -93,14 +92,16 @@ export default async function AdminQualifiers() {
                 <span className="num hidden w-28 text-right text-sm text-ash sm:block">{t.admin.mapsPlayed(Object.keys(p.perf).length, results.maps.length)}</span>
               </summary>
               <div className="border-t border-line p-3">
-                <ul className="mb-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
+                <ul className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-3">
                   {own.map((r) => (
-                    <li key={r.id} className="flex items-center gap-2 border border-line px-2 py-1 text-sm">
-                      <span className="w-10 font-black">{slotOf.get(r.beatmapId) ?? "?"}</span>
-                      <span className="num">{fmtNum(r.score)}</span>
-                      <span className="num text-ash">{r.acc.toFixed(2)}%</span>
-                      <span className="text-xs text-ash">{r.mods}</span>
-                      <ActionForm action={deleteScore.bind(null, r.id)} submit="×" ghost className="ml-auto" />
+                    <li key={r.id} className="flex items-center gap-2 border border-line bg-ink/50 p-2">
+                      <span className="w-10 shrink-0 text-sm font-black">{slotOf.get(r.beatmapId) ?? "?"}</span>
+                      <ActionForm key={`${r.id}-${r.score}-${r.acc}-${r.mods}`} action={updateScore.bind(null, r.id)} submit="✓" ghost className="flex min-w-0 flex-1 items-center gap-1.5">
+                        <input name="score" inputMode="numeric" required defaultValue={r.score} aria-label={t.admin.scoreLabel} className={cn(inputCls, "adm-tight num w-0 flex-[3]")} />
+                        <input name="acc" inputMode="decimal" required defaultValue={r.acc.toFixed(2)} aria-label={t.admin.accLabel} className={cn(inputCls, "adm-tight num w-0 flex-[2]")} />
+                        <input name="mods" defaultValue={r.mods ?? ""} placeholder="NF" aria-label={t.admin.mod} className={cn(inputCls, "adm-tight w-0 flex-[2] uppercase")} />
+                      </ActionForm>
+                      <ActionForm action={deleteScore.bind(null, r.id)} submit="×" ghost />
                     </li>
                   ))}
                 </ul>

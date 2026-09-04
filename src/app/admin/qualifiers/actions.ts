@@ -69,6 +69,18 @@ export async function importAll() {
   });
 }
 
+export async function updateScore(id: number, _: ActionResult, fd: FormData) {
+  return guard("qualifiers", "qual.setScore", async () => {
+    const score = Math.round(Number(String(fd.get("score") ?? "").replace(/[s,]/g, "")));
+    const acc = Number(String(fd.get("acc") ?? "").replace("%", ""));
+    const mods = String(fd.get("mods") ?? "").toUpperCase().replace(/[^A-Z,]/g, "").slice(0, 30);
+    if (!Number.isInteger(score) || score < 0 || !(acc >= 0 && acc <= 100)) return { ok: false, error: "invalid" };
+    const [row] = await db.update(qualScores).set({ score, acc, mods, lobbyId: null, seeded: false }).where(eq(qualScores.id, id)).returning();
+    if (!row) return { ok: false, error: "notFound" };
+    return { osuId: row.osuId, beatmapId: row.beatmapId, score, acc, mods };
+  });
+}
+
 export async function setScore(_: ActionResult, fd: FormData) {
   return guard("qualifiers", "qual.setScore", async () => {
     const q = String(fd.get("player") ?? "").trim();
