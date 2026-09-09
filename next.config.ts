@@ -1,6 +1,22 @@
 import type { NextConfig } from "next";
 
 const publicHost = process.env.PUBLIC_URL ? new URL(process.env.PUBLIC_URL).host : undefined;
+const dev = process.env.NODE_ENV !== "production";
+
+const csp = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  `connect-src 'self'${dev ? " ws: wss:" : ""}`,
+  "frame-src https://player.twitch.tv",
+  "frame-ancestors 'none'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self' https://osu.ppy.sh",
+  ...(dev ? [] : ["upgrade-insecure-requests"]),
+].join("; ");
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -24,6 +40,7 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Content-Security-Policy", value: csp },
         ],
       },
     ];
