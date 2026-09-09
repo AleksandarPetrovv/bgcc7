@@ -33,26 +33,6 @@ export function TriTick({ className }: { className?: string }) {
   );
 }
 
-export function Tricolor({ className, vertical }: { className?: string; vertical?: boolean }) {
-  return (
-    <div className={cn("flex", vertical ? "flex-row" : "flex-col", className)} aria-hidden>
-      <div className="flex-1 bg-paper" />
-      <div className="flex-1 bg-balkan" />
-      <div className="flex-1 bg-rose" />
-    </div>
-  );
-}
-
-export function SpeedLines({ className, count = 14 }: { className?: string; count?: number }) {
-  return (
-    <svg viewBox="0 0 400 100" preserveAspectRatio="none" className={className} aria-hidden>
-      {Array.from({ length: count }).map((_, i) => (
-        <rect key={i} x={i * 9} y={(i * 100) / count} width={400 - i * 18} height={100 / count / 2.2} fill="currentColor" opacity={0.15 + (i / count) * 0.7} />
-      ))}
-    </svg>
-  );
-}
-
 export function CheckerStitch({ className }: { className?: string }) {
   const cells = [];
   for (let y = 0; y < 6; y++)
