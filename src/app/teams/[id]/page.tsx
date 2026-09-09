@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { Words } from "@/components/site/rich";
 import { Crown } from "lucide-react";
 import { Container, SectionHeading, Tag } from "@/components/site/page";
-import { SpeedLines } from "@/components/site/graphics";
 import { MatchRow } from "@/components/site/match-row";
 import { getDict } from "@/lib/i18n/server";
 import { fmtNum, flagUrl } from "@/lib/data";
@@ -24,7 +23,6 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
       <section className="relative overflow-hidden border-b border-line">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={team.image} alt="" className="absolute inset-0 size-full scale-110 object-cover opacity-25 blur-2xl" />
-        <SpeedLines className="in-wipe-r absolute -right-10 bottom-6 h-24 w-[40rem] text-rose/40" />
         <div className="relative mx-auto flex max-w-6xl flex-wrap items-end gap-8 px-4 py-12 sm:px-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={team.image} alt="" className="in-spin size-40 border-4 border-paper object-cover" style={{ "--d": "0.1s" } as React.CSSProperties} />
