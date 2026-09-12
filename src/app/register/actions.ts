@@ -29,6 +29,8 @@ export async function signUp() {
 export async function withdraw() {
   const osuId = await currentOsuId();
   if (!osuId) return { ok: false as const, error: "auth" };
+  const s = await getSettings();
+  if (windowState(s.regOpensAt, s.regClosesAt) !== "open") return { ok: false as const, error: "closed" };
   const gone = await db.delete(registrations).where(eq(registrations.osuId, osuId)).returning({ osuId: registrations.osuId });
   await db.delete(lobbyBookings).where(eq(lobbyBookings.osuId, osuId));
   if (gone.length) await log(osuId, "register.withdraw");
