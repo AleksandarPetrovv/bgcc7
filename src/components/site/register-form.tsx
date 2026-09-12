@@ -67,21 +67,23 @@ export function RegisterForm({ user, status, state, opensAt }: Props) {
         )}
         {error && <p className="text-sm font-bold text-rose-hi">{error}</p>}
 
-        <div className={cn("flex flex-wrap gap-3 border-t border-line pt-5", pending && "pointer-events-none opacity-60")}>
-          {!user ? (
-            <SlantButton tone="balkan" onClick={() => start(() => login(path))}>
-              {t.nav.login}
-            </SlantButton>
-          ) : status ? (
-            <SlantButton tone="outline" onClick={() => run(withdraw)}>
-              {pending ? "…" : t.register.withdraw}
-            </SlantButton>
-          ) : state === "open" ? (
-            <SlantButton tone="balkan" onClick={() => run(signUp)}>
-              {pending ? "…" : t.register.signUp}
-            </SlantButton>
-          ) : null}
-        </div>
+        {(!user || state === "open") && (
+          <div className={cn("flex flex-wrap gap-3 border-t border-line pt-5", pending && "pointer-events-none opacity-60")}>
+            {!user ? (
+              <SlantButton tone="balkan" onClick={() => start(() => login(path))}>
+                {t.nav.login}
+              </SlantButton>
+            ) : status ? (
+              <SlantButton tone="outline" onClick={() => run(withdraw)}>
+                {pending ? "…" : t.register.withdraw}
+              </SlantButton>
+            ) : (
+              <SlantButton tone="balkan" onClick={() => run(signUp)}>
+                {pending ? "…" : t.register.signUp}
+              </SlantButton>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
