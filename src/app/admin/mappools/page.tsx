@@ -21,7 +21,6 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
   if (!stage) return null;
   const name = (s: { title: string }) => t.rounds[s.title] ?? s.title;
   const checks = await getMapChecks(stage.pools.flatMap((p) => p.maps.map((m) => m.id)));
-  const OK = ["ranked", "approved", "loved"];
 
   return (
     <>
@@ -102,11 +101,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                     <div className="truncate font-bold">
                       {m.title} <span className="text-ash">[{m.version}]</span>
                     </div>
-                    {checks.get(m.id)?.dmca ? (
-                      <div className="text-xs font-black uppercase text-rose-hi">{t.admin.mapDmca}</div>
-                    ) : (
-                      checks.has(m.id) && !OK.includes(checks.get(m.id)!.status) && <div className="text-xs font-bold text-[#e8c547]">{t.admin.mapUnranked}</div>
-                    )}
+                    {checks.get(m.id)?.dmca && <div className="text-xs font-black uppercase text-rose-hi">{t.admin.mapDmca}</div>}
                     <div className="num flex flex-wrap gap-x-3 text-sm text-paper/70">
                       <span className="flex items-center gap-1 text-[#e8c547]">
                         <Star className="size-3.5 fill-current" /> {m.sr.toFixed(2)}
