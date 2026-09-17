@@ -53,6 +53,24 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `отложи смяната на етапа към ${b(h.phase(String(p.phase)))}` : `put off switching the stage to ${b(h.phase(String(p.phase)))}`;
     case "settings.pickems":
       return p.pickemsOpen ? (bg ? "отвори прогнозите" : "opened pick'ems") : bg ? "затвори прогнозите" : "closed pick'ems";
+    case "settings.draft":
+      return bg
+        ? `смени баните на ${b(p.bans)} на отбор, ред ${b(String(p.banOrder).toUpperCase())}, ${b(`${p.banSecs ?? 90}с`)} за бан, ${b(`${p.pickSecs ?? 120}с`)} за пик, таймаут ${b(`${p.timeoutSecs ?? 180}с`)}`
+        : `set bans to ${b(p.bans)} per team, order ${b(String(p.banOrder).toUpperCase())}, ${b(`${p.banSecs ?? 90}s`)} per ban, ${b(`${p.pickSecs ?? 120}s`)} per pick, timeout ${b(`${p.timeoutSecs ?? 180}s`)}`;
+    case "draft.open":
+      return bg ? `отвори пик и бан за ${match()} с пула ${stage()}` : `opened pick and ban for ${match()} with the ${stage()} pool`;
+    case "draft.close":
+      return bg ? `затвори пик и бан за ${match()}` : `closed pick and ban for ${match()}`;
+    case "draft.pause":
+      return bg ? `пусна таймаут в ${match()}` : `called a timeout in ${match()}`;
+    case "draft.resume":
+      return bg ? `прекрати таймаута в ${match()}` : `ended the timeout in ${match()}`;
+    case "draft.end":
+      return bg ? `затвори окончателно пик и бан за ${match()}` : `closed pick and ban for ${match()} for good`;
+    case "draft.reset":
+      return bg ? `рестартира пик и бан за ${match()}` : `reset pick and ban for ${match()}`;
+    case "draft.undo":
+      return bg ? `върна последната стъпка (${b(p.step)}) в ${match()}` : `undid the last step (${b(p.step)}) in ${match()}`;
     case "settings.qualify":
       return bg ? `смени колко играчи се класират на ${b(p.qualifyCount)}` : `set qualifying players to ${b(p.qualifyCount)}`;
     case "settings.rounds":

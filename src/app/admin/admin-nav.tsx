@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { ChevronRight, ClipboardCheck, DoorOpen, Gauge, Layers, Link2, Music2, ScrollText, Settings2, Shield, Swords, Trophy, Users } from "lucide-react";
+import { ChevronRight, ClipboardCheck, Dices, DoorOpen, Gauge, Layers, Link2, Music2, ScrollText, Settings2, Shield, Swords, Trophy, Users } from "lucide-react";
 import { Sparkle } from "@/components/site/graphics";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   mappools: Music2,
   teams: Users,
   matches: Swords,
+  draft: Dices,
   site: Link2,
   staff: Shield,
   log: ScrollText,
@@ -40,7 +41,7 @@ export function AdminNav({ items }: { items: { href: string; label: string }[] }
             aria-label={i.label}
             title={i.label}
             className={cn(
-              "group relative flex min-w-0 flex-1 items-center justify-center gap-3 whitespace-nowrap py-2 lg:flex-none lg:justify-start lg:px-2.5 text-[0.8rem] font-black uppercase tracking-wide transition-colors duration-200",
+              "group relative flex min-w-0 flex-1 items-center justify-center gap-3 whitespace-nowrap py-2 lg:flex-none lg:justify-start lg:whitespace-normal lg:px-2.5 text-[0.8rem] font-black uppercase tracking-wide transition-colors duration-200",
               active ? "text-white" : "text-ash hover:text-paper",
             )}
           >
@@ -58,7 +59,7 @@ export function AdminNav({ items }: { items: { href: string; label: string }[] }
             >
               <Icon className={cn("size-3.5", active && "anim-bob")} />
             </span>
-            <span className="relative hidden flex-1 transition-transform duration-300 group-hover:translate-x-0.5 lg:block">{i.label}</span>
+            <span className="relative hidden min-w-0 flex-1 leading-tight transition-transform duration-300 group-hover:translate-x-0.5 lg:block">{i.label}</span>
             {active ? (
               <span className="relative hidden size-4 lg:block" aria-hidden>
                 <Sparkle className="inset-0 size-3.5 text-white" />

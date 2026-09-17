@@ -4,6 +4,7 @@ import { SiteNav } from "@/components/site/site-nav";
 import { Backdrop } from "@/components/site/backdrop";
 import { LiteSettle } from "@/components/site/lite-settle";
 import { SiteFooter } from "@/components/site/site-footer";
+import { Flash } from "@/components/site/flash";
 import { LangProvider } from "@/components/site/lang";
 import { MotionProvider } from "@/components/site/motion";
 import { getDict, getLang } from "@/lib/i18n/server";
@@ -16,6 +17,7 @@ import { getLive } from "@/lib/twitch";
 import { isLive } from "@/lib/matches";
 import { getSettings } from "@/db/settings";
 import { windowState } from "@/lib/time";
+import { isCaptain, myOpenDraft } from "@/db/drafts";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -49,7 +51,8 @@ const LITE = "try{var c=document.createElement(\"canvas\"),g=c.getContext(\"webg
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const [lang, session, viewer, vis, teams, matches] = await Promise.all([getLang(), auth(), getViewer(), getVisibility(), getTeams(), getMatches()]);
   const user = session?.user?.name ? { name: session.user.name, image: session.user.image ?? null, admin: !!viewer?.role } : null;
-  const settings = await getSettings();
+  const [settings, captain] = await Promise.all([getSettings(), viewer ? isCaptain(viewer.osuId) : false]);
+  const match = captain && viewer ? await myOpenDraft(viewer.osuId).catch(() => null) : null;
   const regOpen = vis.sections.register && settings.phase === "registration" && windowState(settings.regOpensAt, settings.regClosesAt) === "open";
   const twitch = vis.sections.streams || vis.staff ? !!(await getLive()) : false;
   const live = [...(twitch ? ["streams"] : []), ...(matches.some(isLive) && (vis.sections.schedule || vis.staff) ? ["schedule"] : [])];
@@ -63,11 +66,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <MotionProvider>
           <Backdrop />
           <LiteSettle />
-          <SiteNav user={user} nav={buildNav(vis.sections, vis.staff)} register={regOpen} live={live} />
+          <SiteNav user={user} nav={buildNav(vis.sections, vis.staff)} register={regOpen} live={live} captain={captain} match={match} />
           <TournamentProvider teams={teams} matches={matches}>
             <main className="flex-1">{children}</main>
           </TournamentProvider>
           <SiteFooter />
+          <Flash />
           </MotionProvider>
         </LangProvider>
       </body>
