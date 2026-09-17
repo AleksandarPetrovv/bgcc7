@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react";
 import { notFound } from "next/navigation";
 import { InView } from "@/components/site/in-view";
 import { Words } from "@/components/site/rich";
@@ -11,6 +12,7 @@ import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { clearPlayer, deleteScore, importAll, importOne, setScore, updateScore } from "./actions";
+import { Dropdown } from "@/components/admin/dropdown";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
@@ -49,13 +51,7 @@ export default async function AdminQualifiers() {
               </label>
               <label className={label}>
                 {t.admin.map}
-                <select name="beatmapId" required className={inputCls}>
-                  {results.maps.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.slot} · {m.title}
-                    </option>
-                  ))}
-                </select>
+                <Dropdown name="beatmapId" required defaultValue={results.maps[0] ? String(results.maps[0].id) : ""} options={results.maps.map((m) => ({ value: String(m.id), label: `${m.slot} · ${m.title}` }))} />
               </label>
               <label className={label}>
                 {t.admin.scoreLabel}
@@ -82,7 +78,7 @@ export default async function AdminQualifiers() {
         {results.players.map((p, i) => {
           const own = rows.filter((r) => r.osuId === p.id).sort((a, b) => (slotOf.get(a.beatmapId) ?? "").localeCompare(slotOf.get(b.beatmapId) ?? ""));
           return (
-            <details key={p.id} style={{ "--i": Math.min(i, 24), "--s": "0.03s", "--d": "0.45s" } as React.CSSProperties} className={cn("in-left-far border border-line bg-coal", i >= settings.qualifyCount && "opacity-60")}>
+            <details key={p.id} style={{ "--i": Math.min(i, 24), "--s": "0.03s", "--d": "0.45s" } as React.CSSProperties} className={cn("group in-left-far border border-line bg-coal", i >= settings.qualifyCount && "opacity-60")}>
               <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-2">
                 <span className={cn("in-slam num w-10 text-center text-lg [--d:0.6s]", i < settings.qualifyCount ? "text-balkan" : "text-ash")}>#{i + 1}</span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -90,6 +86,7 @@ export default async function AdminQualifiers() {
                 <span className="min-w-0 truncate font-bold">{p.username}</span>
                 <span className="in-wipe-r num ml-auto text-balkan [--d:0.7s]">{p.zSum.toFixed(2)}</span>
                 <span className="num hidden w-28 text-right text-sm text-ash sm:block">{t.admin.mapsPlayed(Object.keys(p.perf).length, results.maps.length)}</span>
+                <ChevronDown className="size-4 shrink-0 text-ash transition-transform duration-300 group-open:rotate-180 group-hover:text-paper" aria-hidden />
               </summary>
               <div className="border-t border-line p-3">
                 <ul className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-3">

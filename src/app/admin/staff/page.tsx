@@ -12,6 +12,7 @@ import { getDict } from "@/lib/i18n/server";
 import { can, ROLES, STAFF_ROLES } from "@/lib/roles";
 import { flagUrl } from "@/lib/data";
 import { addStaff, removeStaff, updateStaff } from "./actions";
+import { Dropdown } from "@/components/admin/dropdown";
 
 export default async function AdminStaff() {
   const [t, viewer, rows, regs] = await Promise.all([getDict(), getViewer(), getStaff(), getRegistrations()]);
@@ -56,14 +57,7 @@ export default async function AdminStaff() {
                   <div className="grid grid-cols-[minmax(0,1fr)_6rem] gap-3 sm:flex sm:flex-wrap sm:gap-4">
                     <label className="flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors">
                       {t.admin.permission}
-                      <select name="permRole" defaultValue={builtIn ? "host" : (s.permRole ?? "")} disabled={builtIn} className={inputCls}>
-                        <option value="">{t.admin.noPerm}</option>
-                        {ROLES.map((r) => (
-                          <option key={r} value={r}>
-                            {t.admin.roles[r]}
-                          </option>
-                        ))}
-                      </select>
+                      <Dropdown name="permRole" defaultValue={builtIn ? "host" : (s.permRole ?? "")} disabled={builtIn} options={[{ value: "", label: t.admin.noPerm }, ...ROLES.map((r) => ({ value: r, label: t.admin.roles[r] }))]} />
                     </label>
                     <label className="flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors">
                       {t.admin.order}
