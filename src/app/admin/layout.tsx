@@ -16,6 +16,7 @@ const MENU: { href: string; perm: Perm }[] = [
   { href: "/admin/mappools", perm: "mappools" },
   { href: "/admin/teams", perm: "teams" },
   { href: "/admin/matches", perm: "matches" },
+  { href: "/admin/draft", perm: "draft" },
   { href: "/admin/site", perm: "phase" },
   { href: "/admin/staff", perm: "staff" },
   { href: "/admin/log", perm: "log" },

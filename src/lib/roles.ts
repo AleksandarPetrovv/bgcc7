@@ -1,14 +1,14 @@
 export const ROLES = ["host", "admin", "referee", "mappooler"] as const;
 export type Role = (typeof ROLES)[number];
 
-export const PERMS = ["overview", "phase", "screening", "lobbies", "qualifiers", "mappools", "teams", "matches", "staff", "log", "settings"] as const;
+export const PERMS = ["overview", "phase", "screening", "lobbies", "qualifiers", "mappools", "teams", "matches", "draft", "staff", "log", "settings"] as const;
 export type Perm = (typeof PERMS)[number];
 
 const GRANTS: Record<Role, readonly Perm[]> = {
   host: PERMS,
   admin: PERMS.filter((p) => p !== "staff"),
-  referee: ["overview", "lobbies", "qualifiers", "matches"],
-  mappooler: ["overview", "mappools"],
+  referee: ["overview", "lobbies", "qualifiers", "matches", "draft"],
+  mappooler: ["overview", "mappools", "draft"],
 };
 
 export const can = (role: Role | null | undefined, perm: Perm) => !!role && GRANTS[role].includes(perm);

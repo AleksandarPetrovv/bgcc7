@@ -1,9 +1,10 @@
 "use client";
 
-import { Fragment, useLayoutEffect, useRef, useState, useTransition } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Menu, UserRound } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { LogOut, Menu, Swords } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Sparkle, SpeedMark, Wordmark } from "./graphics";
 import { useDict } from "./lang";
@@ -35,7 +36,58 @@ function AdminCrest({ on }: { on: boolean }) {
   );
 }
 
-type Props = { user: { name: string; image: string | null; admin: boolean } | null; nav: NavItem[]; register: boolean; live: string[] };
+type Props = { user: { name: string; image: string | null; admin: boolean } | null; nav: NavItem[]; register: boolean; live: string[]; captain: boolean; match: string | null };
+
+function useMatch(captain: boolean, initial: string | null) {
+  const [slug, setSlug] = useState(initial);
+  useEffect(() => {
+    if (!captain) return;
+    const es = new EventSource("/api/draft/mine");
+    es.onmessage = (e) => {
+      try {
+        setSlug(JSON.parse(e.data)?.slug ?? null);
+      } catch {}
+    };
+    return () => es.close();
+  }, [captain]);
+  return slug;
+}
+
+function MatchLink({ slug, path, big, onClick }: { slug: string; path: string; big?: boolean; onClick?: () => void }) {
+  const t = useDict();
+  const href = `/matches/${slug}`;
+  const on = path === href;
+  return (
+    <motion.span
+      initial={{ opacity: 0, scale: 0.6, rotate: -8 }}
+      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+      exit={{ opacity: 0, scale: 0.6 }}
+      transition={{ type: "spring", stiffness: 480, damping: 22 }}
+      className={cn("inline-flex", big && "flex")}
+    >
+      <Link
+        href={href}
+        onClick={onClick}
+        aria-current={on ? "page" : undefined}
+        className={cn(
+          "match-cta group relative inline-flex -skew-x-12 items-center overflow-hidden font-black uppercase tracking-wide text-white",
+          big ? "heading-slam min-h-12 w-full px-6 text-2xl" : "h-9 px-3.5 text-[0.8rem]",
+          on ? "bg-rose-deep" : "bg-rose",
+        )}
+      >
+        <span className="match-cta-sheen pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 bg-white/35" aria-hidden />
+        <span className="relative inline-flex skew-x-12 items-center gap-2">
+          <span className="relative flex size-2" aria-hidden>
+            <span className="absolute inset-0 animate-ping rounded-full bg-white/80" />
+            <span className="relative size-2 rounded-full bg-white" />
+          </span>
+          <Swords className={big ? "size-5" : "size-4"} strokeWidth={2.6} />
+          {t.nav.match}
+        </span>
+      </Link>
+    </motion.span>
+  );
+}
 
 function LivePill({ big }: { big?: boolean }) {
   const t = useDict();
@@ -52,7 +104,8 @@ function LivePill({ big }: { big?: boolean }) {
   );
 }
 
-export function SiteNav({ user, nav, register, live }: Props) {
+export function SiteNav({ user, nav, register, live, captain, match: initialMatch }: Props) {
+  const match = useMatch(captain, initialMatch);
   const path = usePathname();
   const [pending, start] = useTransition();
   const t = useDict();
@@ -129,22 +182,8 @@ export function SiteNav({ user, nav, register, live }: Props) {
                     active ? "text-paper" : "text-paper/60 hover:text-paper",
                   )}
                 >
-                  {!active && n.key !== "me" && <span className="absolute inset-x-0.5 inset-y-4 -skew-x-12 scale-90 bg-white/0 transition duration-200 group-hover:scale-100 group-hover:bg-white/[0.05]" aria-hidden />}
-                  {n.key === "me" ? (
-                    <span
-                      className={cn(
-                        "relative inline-flex -skew-x-12 items-center border px-2.5 py-1 transition-colors duration-200",
-                        active ? "border-rose bg-rose/20 text-paper" : "border-rose/50 bg-rose/10 text-rose-hi group-hover:border-rose group-hover:text-paper",
-                      )}
-                    >
-                      <span className="inline-flex skew-x-12 items-center gap-1.5">
-                        <UserRound className="size-3.5" strokeWidth={3} />
-                        {t.nav.me}
-                      </span>
-                    </span>
-                  ) : (
-                    <span className={cn("relative transition-transform duration-200 group-hover:-translate-y-px", n.hidden && "opacity-40")}>{t.nav[n.key]}</span>
-                  )}
+                  {!active && <span className="absolute inset-x-0.5 inset-y-4 -skew-x-12 scale-90 bg-white/0 transition duration-200 group-hover:scale-100 group-hover:bg-white/[0.05]" aria-hidden />}
+                  <span className={cn("relative transition-transform duration-200 group-hover:-translate-y-px", n.hidden && "opacity-40")}>{t.nav[n.key]}</span>
                   {live.includes(n.key) && <LivePill />}
                 </Link>
               </Fragment>
@@ -153,6 +192,7 @@ export function SiteNav({ user, nav, register, live }: Props) {
         </nav>
 
         <div className="ml-auto flex items-center gap-2 xl:ml-4">
+          <AnimatePresence>{match && <MatchLink key={match} slug={match} path={path} />}</AnimatePresence>
           {register && (
           <Link
             href="/register"
@@ -175,7 +215,13 @@ export function SiteNav({ user, nav, register, live }: Props) {
           )}
           {user ? (
             <div className="hidden h-9 -skew-x-12 items-center border border-line pl-1 md:flex">
-              <Link href="/me" title={t.nav.me} className="flex h-full skew-x-12 items-center gap-2.5 pr-3 transition-colors hover:text-rose-hi">
+              <Link
+                href="/me"
+                title={t.nav.me}
+                onClick={(e) => {
+                  if (!e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) setClicked({ base: "/me", from: path });
+                }}
+                className="flex h-full skew-x-12 items-center gap-2.5 pr-3 transition-colors hover:text-rose-hi">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {user.image && <img src={user.image} alt="" className="size-7 object-cover" />}
                 <span className="max-w-32 truncate text-[0.8rem] font-black leading-none">{user.name}</span>
@@ -223,6 +269,11 @@ export function SiteNav({ user, nav, register, live }: Props) {
             <SheetContent side="right" className="flex h-dvh w-full max-w-sm flex-col border-line bg-ink p-0">
               <SheetTitle className="sr-only">{t.nav.menu}</SheetTitle>
               <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-14" aria-label={t.nav.main}>
+                {match && (
+                  <div className="border-b border-line px-4 py-3">
+                    <MatchLink slug={match} path={path} big onClick={() => setOpen(false)} />
+                  </div>
+                )}
                 {[
                   ...nav,
                   ...(register ? [{ key: "register", href: "/register", base: "/register", hidden: false } as const] : []),

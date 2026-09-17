@@ -20,7 +20,14 @@ export type Settings = {
   ezMult: number;
   phasePrompts: Record<string, string>;
   links: Record<string, string>;
+  bans: number;
+  banOrder: BanOrder;
+  banSecs: number;
+  pickSecs: number;
+  timeoutSecs: number;
 };
+
+export type BanOrder = "abab" | "abba";
 
 export const DEFAULT_SETTINGS: Settings = {
   phase: "registration",
@@ -35,6 +42,11 @@ export const DEFAULT_SETTINGS: Settings = {
   ezMult: 1.8,
   phasePrompts: {},
   links: {},
+  bans: 2,
+  banOrder: "abab",
+  banSecs: 90,
+  pickSecs: 120,
+  timeoutSecs: 180,
 };
 
 function withReg(stored: { key: string; from?: string | null; to?: string | null }[], opens: Date | null, closes: Date | null): TimelineRow[] {
@@ -67,6 +79,11 @@ export const getSettings = cache(() =>
       ezMult: row.ezMult,
       phasePrompts: row.phasePrompts ?? {},
       links: row.links ?? {},
+      bans: row.bans,
+      banOrder: row.banOrder === "abba" ? "abba" : "abab",
+      banSecs: row.banSecs,
+      pickSecs: row.pickSecs,
+      timeoutSecs: row.timeoutSecs,
     };
   }, DEFAULT_SETTINGS),
 );

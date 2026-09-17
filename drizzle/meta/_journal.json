@@ -120,6 +120,27 @@
       "when": 1790801276977,
       "tag": "0016_drop_timeline_at",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790809624688,
+      "tag": "0017_draft",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790811155351,
+      "tag": "0018_draft_timers",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790815739878,
+      "tag": "0019_draft_timer_settings",
+      "breakpoints": true
     }
   ]
 }

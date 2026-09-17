@@ -57,6 +57,11 @@ export const settings = pgTable("settings", {
   ezMult: doublePrecision("ez_mult").notNull().default(1.8),
   phasePrompts: jsonb("phase_prompts").$type<Record<string, string>>().notNull().default({}),
   links: jsonb("links").$type<Record<string, string>>().notNull().default({}),
+  bans: integer("bans").notNull().default(2),
+  banOrder: text("ban_order").notNull().default("abab"),
+  banSecs: integer("ban_secs").notNull().default(90),
+  pickSecs: integer("pick_secs").notNull().default(120),
+  timeoutSecs: integer("timeout_secs").notNull().default(180),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -233,3 +238,24 @@ export const scoreEdits = pgTable(
   },
   (t) => [unique().on(t.matchId, t.gameId, t.osuId)],
 );
+
+export type DraftStep = { team: 1 | 2; kind: "ban" | "pick"; slot: string; skip?: boolean; winner?: 1 | 2 };
+
+export const drafts = pgTable("drafts", {
+  matchId: text("match_id")
+    .primaryKey()
+    .references(() => matches.id, { onDelete: "cascade" }),
+  stageSlug: text("stage_slug").notNull(),
+  open: boolean("open").notNull().default(true),
+  bans: integer("bans").notNull().default(2),
+  banOrder: text("ban_order").notNull().default("abab"),
+  roll1: integer("roll1"),
+  roll2: integer("roll2"),
+  choice: text("choice"),
+  steps: jsonb("steps").$type<DraftStep[]>().notNull().default([]),
+  rev: integer("rev").notNull().default(0),
+  turnAt: timestamp("turn_at", { withTimezone: true }),
+  pausedAt: timestamp("paused_at", { withTimezone: true }),
+  pauseUntil: timestamp("pause_until", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
