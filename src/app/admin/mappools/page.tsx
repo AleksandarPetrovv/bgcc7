@@ -11,6 +11,7 @@ import { fmtLen, MODS } from "@/lib/data";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { addMap, deleteMap, moveMap, refreshStage, updateStage } from "./actions";
+import { Dropdown } from "@/components/admin/dropdown";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
@@ -64,13 +65,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
               </label>
               <label className={label}>
                 {t.admin.mod}
-                <select name="mod" defaultValue="NoMod" className={inputCls}>
-                  {Object.entries(MODS).map(([k, v]) => (
-                    <option key={k} value={k}>
-                      {v.label}
-                    </option>
-                  ))}
-                </select>
+                <Dropdown name="mod" defaultValue="NoMod" options={Object.entries(MODS).map(([k, v]) => ({ value: k, label: v.label, color: v.color }))} />
               </label>
             </div>
           </ActionForm>

@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Words } from "@/components/site/rich";
@@ -13,6 +14,7 @@ import { can } from "@/lib/roles";
 import { fmtSofia, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { clearCache, fillFromSeeds, resetBracket, saveMatch } from "./actions";
+import { Dropdown } from "@/components/admin/dropdown";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
@@ -49,7 +51,7 @@ export default async function AdminMatches() {
               {rows
                 .filter((m) => m.stageSlug === s.slug)
                 .map((m, k) => (
-                  <details key={m.id} style={{ "--i": k, "--s": "0.05s", "--d": "0.6s" } as React.CSSProperties} className="in-left border border-line bg-ink">
+                  <details key={m.id} style={{ "--i": k, "--s": "0.05s", "--d": "0.6s" } as React.CSSProperties} className="group in-left border border-line bg-ink">
                     <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2.5">
                       <span className="num text-sm text-ash sm:w-20">{m.id}</span>
                       <span className="text-xs font-black uppercase text-rose-hi">{t.rounds[m.round] ?? m.round}</span>
@@ -58,6 +60,7 @@ export default async function AdminMatches() {
                       </span>
                       <span className="num ml-auto text-sm text-ash sm:ml-0">{m.startsAt ? fmtSofia(m.startsAt, locale) : t.common.tbd}</span>
                       {m.winner && <span className="in-pop text-xs font-black uppercase text-balkan [--d:0.95s]">{t.admin.done}</span>}
+                      <ChevronDown className="size-4 shrink-0 text-ash transition-transform duration-300 group-open:rotate-180 group-hover:text-paper" aria-hidden />
                     </summary>
                     <div className="border-t border-line p-3">
                       <ActionForm key={JSON.stringify(m)} action={saveMatch.bind(null, m.id)} className="space-y-3">
@@ -77,14 +80,7 @@ export default async function AdminMatches() {
                           {([1, 2] as const).map((n) => (
                             <label key={n} className={cn(label, "col-span-2 md:col-span-1")}>
                               {t.admin.teamN(n)}
-                              <select name={`team${n}Id`} defaultValue={(n === 1 ? m.team1Id : m.team2Id) ?? ""} className={inputCls}>
-                                <option value="">{t.common.tbd}</option>
-                                {teams.map((x) => (
-                                  <option key={x.id} value={x.id}>
-                                    {x.name}
-                                  </option>
-                                ))}
-                              </select>
+                              <Dropdown name={`team${n}Id`} defaultValue={(n === 1 ? m.team1Id : m.team2Id) ?? ""} options={[{ value: "", label: t.common.tbd }, ...teams.map((x) => ({ value: x.id, label: x.name }))]} />
                             </label>
                           ))}
                           <label className={label}>
@@ -97,12 +93,7 @@ export default async function AdminMatches() {
                           </label>
                           <label className={cn(label, "col-span-2")}>
                             {t.admin.winner}
-                            <select name="winner" defaultValue="auto" className={inputCls}>
-                              <option value="auto">{t.admin.winnerAuto}</option>
-                              <option value="1">{name(m.team1Id)}</option>
-                              <option value="2">{name(m.team2Id)}</option>
-                              <option value="none">{t.admin.winnerNone}</option>
-                            </select>
+                            <Dropdown name="winner" defaultValue="auto" options={[{ value: "auto", label: t.admin.winnerAuto }, { value: "1", label: name(m.team1Id), color: "var(--color-rose)" }, { value: "2", label: name(m.team2Id), color: "var(--color-azure)" }, { value: "none", label: t.admin.winnerNone }]} />
                           </label>
                           <label className={cn(label, "col-span-2")}>
                             {t.admin.commentators}

@@ -11,6 +11,7 @@ import { can } from "@/lib/roles";
 import { fmtSofiaDay, fmtSofiaTime, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { createLobby, deleteLobby, placePlayer, unbook, updateLobby } from "./actions";
+import { Dropdown } from "@/components/admin/dropdown";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
@@ -96,18 +97,7 @@ export default async function AdminLobbies() {
                         {lobbies.length > 1 && (
                           <ActionForm action={placePlayer} submit={t.admin.move} ghost className="flex flex-1 items-center gap-2 sm:flex-none">
                             <input type="hidden" name="osuId" value={p.osuId} />
-                            <select name="lobbyId" defaultValue="" required aria-label={t.admin.moveTo} className={cn(inputCls, "w-full sm:w-44")}>
-                              <option value="" disabled>
-                                {t.admin.moveTo}
-                              </option>
-                              {lobbies
-                                .filter((o) => o.id !== l.id)
-                                .map((o) => (
-                                  <option key={o.id} value={o.id}>
-                                    {o.name} ({o.players.length}/{o.capacity})
-                                  </option>
-                                ))}
-                            </select>
+                            <Dropdown name="lobbyId" required placeholder={t.admin.moveTo} aria-label={t.admin.moveTo} className="w-full sm:w-44" options={lobbies.filter((o) => o.id !== l.id).map((o) => ({ value: String(o.id), label: o.name, hint: `${o.players.length}/${o.capacity}` }))} />
                           </ActionForm>
                         )}
                         <ActionForm action={unbook.bind(null, p.osuId)} submit={t.admin.unbook} ghost />
@@ -121,16 +111,7 @@ export default async function AdminLobbies() {
                 {free.length > 0 ? (
                   <ActionForm action={placePlayer} submit={t.admin.addToLobby} ghost className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                     <input type="hidden" name="lobbyId" value={l.id} />
-                    <select name="osuId" defaultValue="" required aria-label={t.admin.addToLobby} className={cn(inputCls, "w-full sm:w-56")}>
-                      <option value="" disabled>
-                        {t.admin.addToLobby}
-                      </option>
-                      {free.map((r) => (
-                        <option key={r.osuId} value={r.osuId}>
-                          {r.username}
-                        </option>
-                      ))}
-                    </select>
+                    <Dropdown name="osuId" required placeholder={t.admin.addToLobby} aria-label={t.admin.addToLobby} className="w-full sm:w-56" options={free.map((r) => ({ value: String(r.osuId), label: r.username }))} />
                   </ActionForm>
                 ) : (
                   <span />
