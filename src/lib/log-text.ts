@@ -122,6 +122,10 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `обнови данните за маповете на ${stage()} (${num(p.updated)})` : `refreshed map data for ${stage()} (${num(p.updated)} maps)`;
     case "pack.upload":
       return bg ? `качи нов пак с мапове за ${stage()} (${mb(num(p.size))})` : `uploaded a new map pack for ${stage()} (${mb(num(p.size))})`;
+    case "pack.generate":
+      return bg
+        ? `генерира пак с мапове за ${stage()} (${num(p.maps)} мапа, ${mb(num(p.size))})`
+        : `generated the map pack for ${stage()} (${num(p.maps)} maps, ${mb(num(p.size))})`;
     case "pack.delete":
       return bg ? `махна пака с мапове за ${stage()}` : `removed the map pack for ${stage()}`;
 
@@ -142,6 +146,15 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       const score = p.score1 != null && p.score2 != null ? ` ${p.score1}-${p.score2}` : "";
       return bg ? `обнови мача ${match("id")}${score}` : `updated match ${match("id")}${score}`;
     }
+    case "match.score.save": {
+      const score = num(p.score).toLocaleString("en-US");
+      const acc = p.acc != null ? ` · ${num(p.acc).toFixed(2)}%` : "";
+      return bg ? `сложи резултат ${b(score + acc)} на ${user()} в ${match()}` : `set ${user()}'s score in ${match()} to ${b(score + acc)}`;
+    }
+    case "match.score.remove":
+      return bg ? `махна резултата на ${user()} от ${match()}` : `removed ${user()}'s score from ${match()}`;
+    case "match.score.undo":
+      return bg ? `върна оригиналния резултат на ${user()} в ${match()}` : `undid the score edit for ${user()} in ${match()}`;
     case "match.fillSeeds":
       return bg ? "попълни първия кръг по номерата" : "filled the first round from the seeds";
     case "match.resetAll":
