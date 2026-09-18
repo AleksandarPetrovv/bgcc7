@@ -25,9 +25,16 @@ export async function updateStaff(osuId: number, _: ActionResult, fd: FormData) 
     const perm = String(fd.get("permRole") ?? "");
     const permRole = isRole(perm) ? perm : null;
     const displayRoles = fd.getAll("displayRoles").map(String).filter((r) => STAFF_ROLES.includes(r));
-    const order = Math.max(0, Math.min(999, Math.round(Number(fd.get("order")) || 0)));
-    await db.update(staff).set({ permRole, displayRoles, order }).where(eq(staff.osuId, osuId));
-    return { osuId, permRole, displayRoles, order };
+    await db.update(staff).set({ permRole, displayRoles }).where(eq(staff.osuId, osuId));
+    return { osuId, permRole, displayRoles };
+  });
+}
+
+export async function reorderStaff(ids: number[]) {
+  return guard("staff", "staff.reorder", async () => {
+    if (!Array.isArray(ids) || !ids.every((i) => Number.isInteger(i))) return { ok: false, error: "invalid" };
+    for (const [order, osuId] of ids.entries()) await db.update(staff).set({ order }).where(eq(staff.osuId, osuId));
+    return { ids };
   });
 }
 
