@@ -7,14 +7,24 @@ import { fmtNum, flagUrl } from "@/lib/data";
 import { osuUser } from "@/lib/links";
 import { requireSection } from "@/lib/authz";
 import { getRegistrations } from "@/db/registrations";
+import { getSettings } from "@/db/settings";
+import { getMatches, getTeams } from "@/db/tournament";
 import { Avatar } from "@/components/site/avatar";
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
 export default async function Players() {
   await requireSection("players");
-  const [t, rows] = await Promise.all([getDict(), getRegistrations()]);
-  const players = rows.filter((p) => p.status !== "denied");
+  const [t, rows, settings, teams, matches] = await Promise.all([getDict(), getRegistrations(), getSettings(), getTeams(), getMatches()]);
+  const playoffs = settings.phase === "playoffs" || settings.phase === "finished";
+  const losses = new Map<string, number>();
+  for (const m of matches) {
+    if (!m.winner) continue;
+    const loser = m.winner === 1 ? m.team2.id : m.team1.id;
+    if (loser) losses.set(loser, (losses.get(loser) ?? 0) + 1);
+  }
+  const alive = new Set(teams.filter((tm) => (losses.get(tm.id) ?? 0) < 2).flatMap((tm) => tm.players.map((p) => p.userId)));
+  const players = rows.filter((p) => p.status !== "denied" && (!playoffs || alive.has(p.osuId)));
   return (
     <Container plain>
       <PageTitle
@@ -28,6 +38,7 @@ export default async function Players() {
       >
         {t.teams.playersTitle}
       </PageTitle>
+      {playoffs && <p className="-mt-3 mb-6 text-sm font-bold text-ash">{t.teams.playersAlive}</p>}
       {players.length === 0 && <p className="py-10 text-center text-ash">{t.teams.playersEmpty}</p>}
       <Cascade className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" step={0.045}>
         {players.map((p, i) => (
