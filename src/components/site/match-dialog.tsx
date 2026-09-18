@@ -179,10 +179,24 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
         className={
           children
             ? className
-            : cn("flex shrink-0 items-center justify-center text-ash transition hover:text-paper", compact ? "size-6 -skew-x-12 border border-line hover:border-rose hover:bg-rose/15" : "w-10 hover:bg-slate sm:w-14")
+            : cn(
+                "flex shrink-0 items-center justify-center transition",
+                compact
+                  ? "group h-6 w-9 text-paper/80 drop-shadow-[0_0_4px_rgba(242,74,84,0.35)] hover:text-white hover:drop-shadow-[0_0_6px_rgba(242,74,84,0.75)]"
+                  : "w-10 text-ash hover:bg-slate hover:text-paper sm:w-14",
+              )
         }
       >
-        {children ?? <ListOrdered className={cn(compact ? "size-3.5 skew-x-12" : "size-5")} />}
+        {children ??
+          (compact ? (
+            <svg viewBox="0 0 28 14" className="h-3.5 w-7 overflow-visible" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden>
+              <path d="M2 2H26" className="transition-transform duration-300 group-hover:translate-x-0.5" />
+              <path d="M2 7H22" className="transition-transform duration-300 group-hover:translate-x-1" />
+              <path d="M2 12H18" className="transition-transform duration-300 group-hover:translate-x-1.5" />
+            </svg>
+          ) : (
+            <ListOrdered className="size-5" />
+          ))}
       </DialogTrigger>
       <DialogContent className="mdlg max-h-[88dvh] grid-cols-[minmax(0,1fr)] content-start gap-0 overflow-y-auto [-webkit-overflow-scrolling:touch] [touch-action:pan-y] rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
         <div className="sticky top-0 z-10 min-w-0 border-b border-line bg-ink px-3 py-3 sm:px-5 sm:py-4">
