@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { setFlash } from "./flash";
 import { Check } from "lucide-react";
 import { SlantButton } from "./page";
 import { useDict } from "./lang";
@@ -22,6 +23,7 @@ const TONE = { pending: "text-paper", approved: "text-balkan", denied: "text-ros
 export function RegisterForm({ user, status, state, opensAt }: Props) {
   const t = useDict();
   const path = usePathname();
+  const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +31,11 @@ export function RegisterForm({ user, status, state, opensAt }: Props) {
     start(async () => {
       setError(null);
       const res = await fn();
-      if (!res.ok) setError(res.error === "notBg" ? t.register.notBg : res.error === "closed" ? t.register.closedError : t.register.error);
+      if (!res.ok) return setError(res.error === "notBg" ? t.register.notBg : res.error === "closed" ? t.register.closedError : t.register.error);
+      if (fn === signUp) {
+        setFlash("signedUp");
+        router.push("/");
+      }
     });
 
   return (
