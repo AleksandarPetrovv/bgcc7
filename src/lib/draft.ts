@@ -1,5 +1,5 @@
 export type Side = 1 | 2;
-export type DraftStep = { team: Side; kind: "ban" | "pick"; slot: string; skip?: boolean; winner?: Side };
+export type DraftStep = { team: Side; kind: "ban" | "pick"; slot: string; skip?: boolean; winner?: Side; auto?: boolean };
 
 export type DraftView = {
   open: boolean;
@@ -17,6 +17,8 @@ export type DraftView = {
   now: number;
   banSecs: number;
   pickSecs: number;
+  firstTo: number;
+  hasTb: boolean;
 };
 
 export type Turn =
@@ -24,6 +26,7 @@ export type Turn =
   | { kind: "tie" }
   | { kind: "choose"; team: Side }
   | { kind: "ban" | "pick"; team: Side; n: number }
+  | { kind: "wait" }
   | { kind: "done" };
 
 export const other = (s: Side): Side => (s === 1 ? 2 : 1);
@@ -51,8 +54,13 @@ export function turnOf(d: DraftView, slots: string[]): Turn {
   for (let i = d.steps.length - 1; i >= 0 && d.steps[i].skip; i--) missed++;
   const swap = (s: Side) => (missed % 2 ? other(s) : s);
   if (bans < totalBans) return { kind: "ban", team: swap(banTeam(d.banOrder, bans, firstBan)), n: bans + 1 };
+  const [s1, s2] = scoreOf(d);
+  const played = d.steps.filter((s) => s.kind === "pick" && !s.skip);
+  if (d.firstTo && (s1 >= d.firstTo || s2 >= d.firstTo)) return { kind: "done" };
+  if (played.length && !played.at(-1)!.winner) return { kind: "wait" };
+  if (tbDue(d)) return { kind: "wait" };
   if (!left) return { kind: "done" };
-  const picks = d.steps.filter((s) => s.kind === "pick" && !s.skip).length;
+  const picks = played.length;
   return { kind: "pick", team: swap(picks % 2 === 0 ? firstPick : other(firstPick)), n: picks + 1 };
 }
 
@@ -72,4 +80,14 @@ export function deadline(d: DraftView, slots: string[]) {
   const limit = limitOf(d, turn.kind);
   if (!limit || !d.turnAt) return null;
   return new Date(d.turnAt).getTime() + limit * 1000;
+}
+
+export function scoreOf(d: Pick<DraftView, "steps">): [number, number] {
+  const won = d.steps.filter((s) => s.kind === "pick" && !s.skip);
+  return [won.filter((s) => s.winner === 1).length, won.filter((s) => s.winner === 2).length];
+}
+
+export function tbDue(d: Pick<DraftView, "steps" | "firstTo" | "hasTb">) {
+  const [s1, s2] = scoreOf(d);
+  return d.hasTb && d.firstTo > 1 && s1 === d.firstTo - 1 && s2 === d.firstTo - 1 && !d.steps.some((s) => s.slot === "TB");
 }

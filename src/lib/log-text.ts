@@ -214,6 +214,8 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
 
     case "staff.add":
       return bg ? `добави ${user()} в екипа` : `added ${user()} to the staff`;
+    case "staff.reorder":
+      return bg ? "пренареди екипа" : "reordered the staff";
     case "staff.update": {
       const role = p.permRole ? b(h.role(String(p.permRole))) : bg ? "без достъп" : "no access";
       return bg ? `смени правата на ${user()} на ${role}` : `set ${user()}'s access to ${role}`;

@@ -239,7 +239,7 @@ export const scoreEdits = pgTable(
   (t) => [unique().on(t.matchId, t.gameId, t.osuId)],
 );
 
-export type DraftStep = { team: 1 | 2; kind: "ban" | "pick"; slot: string; skip?: boolean; winner?: 1 | 2 };
+export type DraftStep = { team: 1 | 2; kind: "ban" | "pick"; slot: string; skip?: boolean; winner?: 1 | 2; auto?: boolean };
 
 export const drafts = pgTable("drafts", {
   matchId: text("match_id")

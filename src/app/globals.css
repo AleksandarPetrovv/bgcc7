@@ -822,3 +822,7 @@ html.lite:not(.settled) .mk-dot {
 @media (prefers-reduced-motion: reduce) {
   .match-cta-sheen, .dr-glow, .dr-beads-on, .dr-dots > span { animation: none; }
 }
+
+@keyframes match-run { to { stroke-dashoffset: -100; } }
+.match-run { animation: match-run 2.4s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .match-run { animation-duration: 6s; } }

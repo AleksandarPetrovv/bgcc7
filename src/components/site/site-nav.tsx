@@ -38,22 +38,44 @@ function AdminCrest({ on }: { on: boolean }) {
 
 type Props = { user: { name: string; image: string | null; admin: boolean } | null; nav: NavItem[]; register: boolean; live: string[]; captain: boolean; match: string | null };
 
+type Clock = { end: number | null; pause: boolean; offset: number };
+
 function useMatch(captain: boolean, initial: string | null) {
   const [slug, setSlug] = useState(initial);
+  const [clock, setClock] = useState<Clock>({ end: null, pause: false, offset: 0 });
   useEffect(() => {
     if (!captain) return;
     const es = new EventSource("/api/draft/mine");
     es.onmessage = (e) => {
       try {
-        setSlug(JSON.parse(e.data)?.slug ?? null);
+        const m = JSON.parse(e.data) as { slug: string | null; end: number | null; pause: boolean; now: number } | null;
+        setSlug(m?.slug ?? null);
+        setClock({ end: m?.end ?? null, pause: !!m?.pause, offset: m ? m.now - Date.now() : 0 });
       } catch {}
     };
     return () => es.close();
   }, [captain]);
-  return slug;
+  return { slug, clock };
 }
 
-function MatchLink({ slug, path, big, onClick }: { slug: string; path: string; big?: boolean; onClick?: () => void }) {
+function Countdown({ clock }: { clock: Clock }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 500);
+    return () => clearInterval(id);
+  }, []);
+  if (clock.end == null) return null;
+  const left = Math.max(0, clock.end - (now + clock.offset));
+  const s = Math.ceil(left / 1000);
+  const low = !clock.pause && s <= 10;
+  return (
+    <span className={cn("num ml-0.5 tabular-nums", clock.pause ? "text-[#ffe08a]" : low ? "text-white" : "text-white/85")}>
+      {Math.floor(s / 60)}:{String(s % 60).padStart(2, "0")}
+    </span>
+  );
+}
+
+function MatchLink({ slug, path, big, onClick, clock }: { slug: string; path: string; big?: boolean; onClick?: () => void; clock: Clock }) {
   const t = useDict();
   const href = `/matches/${slug}`;
   const on = path === href;
@@ -70,19 +92,18 @@ function MatchLink({ slug, path, big, onClick }: { slug: string; path: string; b
         onClick={onClick}
         aria-current={on ? "page" : undefined}
         className={cn(
-          "match-cta group relative inline-flex -skew-x-12 items-center overflow-hidden font-black uppercase tracking-wide text-white",
-          big ? "heading-slam min-h-12 w-full px-6 text-2xl" : "h-9 px-3.5 text-[0.8rem]",
+          "group relative inline-flex -skew-x-12 items-center overflow-hidden font-black uppercase tracking-wide text-white",
+          big ? "match-cta heading-slam min-h-12 w-full px-6 text-2xl" : "lift-sm h-9 border border-rose px-3.5 text-[0.8rem] [--lift:var(--color-rose-deep)]",
           on ? "bg-rose-deep" : "bg-rose",
         )}
       >
-        <span className="match-cta-sheen pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 bg-white/35" aria-hidden />
-        <span className="relative inline-flex skew-x-12 items-center gap-2">
-          <span className="relative flex size-2" aria-hidden>
-            <span className="absolute inset-0 animate-ping rounded-full bg-white/80" />
-            <span className="relative size-2 rounded-full bg-white" />
-          </span>
-          <Swords className={big ? "size-5" : "size-4"} strokeWidth={2.6} />
+        <svg className="pointer-events-none absolute inset-px size-[calc(100%-2px)] overflow-visible" aria-hidden>
+          <rect width="100%" height="100%" fill="none" stroke="white" strokeWidth={2} pathLength={100} strokeDasharray="16 84" className="match-run" />
+        </svg>
+        <span className={cn("relative inline-flex skew-x-12 items-center", big ? "gap-2" : "gap-1.5")}>
+          <Swords className={big ? "size-5" : "size-3.5"} strokeWidth={2.6} />
           {t.nav.match}
+          {!on && clock.end != null && <Countdown clock={clock} />}
         </span>
       </Link>
     </motion.span>
@@ -105,7 +126,7 @@ function LivePill({ big }: { big?: boolean }) {
 }
 
 export function SiteNav({ user, nav, register, live, captain, match: initialMatch }: Props) {
-  const match = useMatch(captain, initialMatch);
+  const { slug: match, clock } = useMatch(captain, initialMatch);
   const path = usePathname();
   const [pending, start] = useTransition();
   const t = useDict();
@@ -192,7 +213,6 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
         </nav>
 
         <div className="ml-auto flex items-center gap-2 xl:ml-4">
-          <AnimatePresence>{match && <MatchLink key={match} slug={match} path={path} />}</AnimatePresence>
           {register && (
           <Link
             href="/register"
@@ -201,6 +221,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
             <span className="inline-block skew-x-12">{t.nav.register}</span>
           </Link>
           )}
+          <AnimatePresence>{match && <MatchLink key={match} slug={match} path={path} clock={clock} />}</AnimatePresence>
           {user?.admin && (
             <Link
               href="/admin"
@@ -271,7 +292,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
               <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-14" aria-label={t.nav.main}>
                 {match && (
                   <div className="border-b border-line px-4 py-3">
-                    <MatchLink slug={match} path={path} big onClick={() => setOpen(false)} />
+                    <MatchLink slug={match} path={path} big clock={clock} onClick={() => setOpen(false)} />
                   </div>
                 )}
                 {[

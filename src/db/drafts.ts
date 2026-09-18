@@ -9,7 +9,7 @@ import { getSettings } from "./settings";
 import { can } from "@/lib/roles";
 import { getViewer } from "@/lib/authz";
 import { matchSlug } from "@/lib/matches";
-import { deadline, pickable, turnOf, type DraftView, type Side } from "@/lib/draft";
+import { deadline, pickable, scoreOf, tbDue, turnOf, type DraftView, type Side } from "@/lib/draft";
 
 const g = globalThis as unknown as { draftBus?: EventEmitter };
 const bus = (g.draftBus ??= new EventEmitter().setMaxListeners(0));
@@ -22,14 +22,20 @@ export function onDraft(fn: (matchId: string) => void) {
 
 type Row = typeof drafts.$inferSelect;
 
-type Timers = { banSecs: number; pickSecs: number };
+type Timers = { banSecs: number; pickSecs: number; stages: { slug: string; firstTo: number; hasTb: boolean }[] };
 
 export async function timers(): Promise<Timers> {
-  const s = await getSettings();
-  return { banSecs: s.banSecs, pickSecs: s.pickSecs };
+  const [s, stages] = await Promise.all([getSettings(), getPoolStages()]);
+  return {
+    banSecs: s.banSecs,
+    pickSecs: s.pickSecs,
+    stages: stages.map((st) => ({ slug: st.slug, firstTo: st.firstTo ?? 7, hasTb: st.pools.some((p) => p.maps.some((m) => m.slot === "TB")) })),
+  };
 }
 
-export const toView = (r: Row, c: Timers = { banSecs: 90, pickSecs: 120 }): DraftView => ({
+const stageCfg = (c: Timers, slug: string) => c.stages.find((s) => s.slug === slug) ?? { firstTo: 7, hasTb: false };
+
+export const toView = (r: Row, c: Timers = { banSecs: 90, pickSecs: 120, stages: [] }): DraftView => ({
   open: r.open,
   stageSlug: r.stageSlug,
   bans: r.bans,
@@ -43,7 +49,10 @@ export const toView = (r: Row, c: Timers = { banSecs: 90, pickSecs: 120 }): Draf
   pausedAt: r.pausedAt?.toISOString() ?? null,
   pauseUntil: r.pauseUntil?.toISOString() ?? null,
   now: Date.now(),
-  ...c,
+  banSecs: c.banSecs,
+  pickSecs: c.pickSecs,
+  firstTo: stageCfg(c, r.stageSlug).firstTo,
+  hasTb: stageCfg(c, r.stageSlug).hasTb,
 });
 
 export async function getDraft(matchId: string) {
@@ -126,6 +135,19 @@ export async function isCaptain(osuId: number) {
 }
 
 export async function myOpenDraft(osuId: number) {
+  const id = await myOpenId(osuId);
+  return id ? matchSlug(id) : null;
+}
+
+export async function myDraftClock(osuId: number) {
+  const id = await myOpenId(osuId);
+  if (!id) return { slug: null, end: null, pause: false, now: Date.now() };
+  const d = await settle(id);
+  const end = !d ? null : d.pausedAt ? (d.pauseUntil ? new Date(d.pauseUntil).getTime() : null) : deadline(d, await poolSlots(d.stageSlug));
+  return { slug: matchSlug(id), end, pause: !!d?.pausedAt, now: Date.now() };
+}
+
+async function myOpenId(osuId: number) {
   const [cap] = await db
     .select({ teamId: teamMembers.teamId })
     .from(teamMembers)
@@ -138,7 +160,7 @@ export async function myOpenDraft(osuId: number) {
     .innerJoin(matches, eq(matches.id, drafts.matchId))
     .where(and(eq(drafts.open, true), or(eq(matches.team1Id, cap.teamId), eq(matches.team2Id, cap.teamId))))
     .limit(1);
-  return row ? matchSlug(row.id) : null;
+  return row?.id ?? null;
 }
 
 export async function poolSlots(stageSlug: string) {
@@ -189,8 +211,21 @@ export async function setResult(matchId: string, slot: string, winner: Side | nu
     if (!row) return "closed" as const;
     const i = row.steps.findIndex((s) => s.kind === "pick" && !s.skip && s.slot === slot);
     if (i < 0) return "invalid" as const;
-    const steps = row.steps.map((s, k) => (k === i ? { ...s, winner: winner ?? undefined } : s));
-    const [next] = await tx.update(drafts).set({ steps, rev: sql`${drafts.rev} + 1`, updatedAt: new Date() }).where(eq(drafts.matchId, matchId)).returning();
+    let steps = row.steps.map((s, k) => (k === i ? { ...s, winner: winner ?? undefined } : s));
+    const lastPick = row.steps.findLastIndex((s) => s.kind === "pick" && !s.skip) === i;
+    const base = toView({ ...row, steps }, c);
+    const tbOpen = steps.findIndex((s) => s.slot === "TB" && s.auto && !s.winner);
+    const [s1, s2] = scoreOf(base);
+    if (tbOpen >= 0 && !(s1 === base.firstTo - 1 && s2 === base.firstTo - 1)) steps = steps.filter((_, k) => k !== tbOpen);
+    else if (tbDue(base)) {
+      const t = turnOf({ ...base, hasTb: false, firstTo: 0 }, await poolSlots(row.stageSlug));
+      steps = [...steps, { team: "team" in t ? t.team : 1, kind: "pick", slot: "TB", auto: true }];
+    }
+    const [next] = await tx
+      .update(drafts)
+      .set({ steps, ...(lastPick || steps.length !== row.steps.length ? { turnAt: new Date() } : {}), rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+      .where(eq(drafts.matchId, matchId))
+      .returning();
     return toView(next, c);
   });
   if (typeof res !== "string") emitDraft(matchId);

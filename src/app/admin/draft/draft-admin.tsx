@@ -46,8 +46,12 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
   const open = !!r.draft?.open;
   const run = (fn: () => Promise<ActionResult>) =>
     start(async () => {
-      const res = await fn();
-      setFail(!res?.ok);
+      try {
+        const res = await fn();
+        setFail(!res?.ok);
+      } catch {
+        window.location.reload();
+      }
     });
 
   return (

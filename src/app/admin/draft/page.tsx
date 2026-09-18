@@ -3,7 +3,7 @@ import { PageTitle } from "@/components/site/page";
 import { Words } from "@/components/site/rich";
 import { db } from "@/db";
 import { drafts } from "@/db/schema";
-import { toView } from "@/db/drafts";
+import { timers, toView } from "@/db/drafts";
 import { getPoolStages } from "@/db/mappools";
 import { getMatchRows, getTeams } from "@/db/tournament";
 import { getViewer } from "@/lib/authz";
@@ -26,6 +26,7 @@ export default async function AdminDraft() {
     getPoolStages(),
     db.select().from(drafts).catch(() => []),
   ]);
+  const cfg = await timers();
   if (!can(viewer?.role, "draft")) notFound();
   const control = can(viewer?.role, "matches");
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
@@ -39,7 +40,7 @@ export default async function AdminDraft() {
     .sort((a, b) => time(a.startsAt) - time(b.startsAt) || a.order - b.order);
   const list: DraftRow[] = live.map((m) => {
     const raw = all.find((d) => d.matchId === m.id);
-    const d = raw ? toView(raw) : null;
+    const d = raw ? toView(raw, cfg) : null;
     const turn = d ? turnOf(d, slotsOf(d.stageSlug)) : null;
     const a = team(m.team1Id);
     const b = team(m.team2Id);

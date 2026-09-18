@@ -9,7 +9,8 @@ import { Sparkle } from "@/components/site/graphics";
 import { useDict } from "@/components/site/lang";
 import { EASE } from "@/components/site/motion";
 import { MODS, fmtLen, type Beatmap } from "@/lib/data";
-import { deadline, limitOf, pickable, plan, rollWinner, turnOf, type DraftStep, type DraftView, type Side } from "@/lib/draft";
+import { Confetti } from "@/components/site/confetti";
+import { deadline, limitOf, pickable, plan, rollWinner, scoreOf, turnOf, type DraftStep, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { pauseDraft, resetDraft, resumeDraft, undoDraft } from "@/app/admin/draft/actions";
 
@@ -156,7 +157,7 @@ function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onPick: (c
   return (
     <motion.div
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1, transition: { delay: 1.5, duration: 0.3 } }}
+      animate={{ opacity: 1, transition: { delay: 0.15, duration: 0.3 } }}
       exit={{ opacity: 0, transition: { duration: 0.25 } }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm"
     >
@@ -171,7 +172,7 @@ function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onPick: (c
             type: "spring",
             stiffness: 300,
             damping: 22,
-            delay: 1.55,
+            delay: 0.2,
           },
         }}
         exit={{ y: 30, opacity: 0, transition: { duration: 0.2 } }}
@@ -250,21 +251,64 @@ const clockText = (ms: number) => {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 };
 
-function TurnTimer({ left, total, color }: { left: number; total: number; color: (typeof TEAM)[Side] }) {
-  const low = left <= 10_000;
+function TimerDock({
+  left,
+  total,
+  color,
+  label,
+  pause,
+  raised,
+}: {
+  left: number;
+  total: number;
+  color: { c: string; hi: string; deep: string };
+  label: string;
+  pause?: boolean;
+  raised?: boolean;
+}) {
+  const low = !pause && left <= 10_000;
   const pct = total ? Math.max(0, Math.min(1, left / total)) : 0;
+  const c = pause ? "#e8c547" : low ? "var(--color-rose)" : color.c;
+  const hi = pause ? "#e8c547" : low ? "var(--color-rose-hi)" : color.hi;
+  const deep = pause ? "#9c7f1f" : low ? "var(--color-rose-deep)" : color.deep;
   return (
-    <div className={cn("flex items-center gap-3", low && left > 0 && "animate-pulse")}>
-      <span className="num w-16 shrink-0 text-right text-3xl font-black tabular-nums" style={{ color: low ? "var(--color-rose-hi)" : color.hi }}>
-        {clockText(left)}
-      </span>
-      <span className="relative h-3 flex-1 -skew-x-12 overflow-hidden bg-slate">
-        <span
-          className="absolute inset-y-0 left-0 transition-[width,background-color] duration-300 ease-linear"
-          style={{ width: `${pct * 100}%`, background: low ? "var(--color-rose)" : color.c, boxShadow: `0 0 12px ${low ? "var(--color-rose)" : color.c}` }}
-        />
-      </span>
-    </div>
+    <motion.div
+      initial={{ y: 120, opacity: 0, x: "-50%" }}
+      animate={{ y: raised ? -84 : 0, opacity: 1, x: "-50%" }}
+      exit={{ y: 120, opacity: 0, x: "-50%" }}
+      transition={{ type: "spring", stiffness: 340, damping: 30 }}
+      className="pointer-events-none fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-30 w-[min(26rem,calc(100vw-2rem))]"
+      role="timer"
+      aria-live="off"
+    >
+      <motion.div
+        animate={low && left > 0 ? { scale: [1, 1.04, 1] } : { scale: 1 }}
+        transition={low ? { duration: 1, repeat: Infinity } : { duration: 0.2 }}
+        className="relative -skew-x-12 overflow-hidden border-2 bg-ink/95 px-5 pb-3 pt-2 backdrop-blur"
+        style={{ borderColor: c, boxShadow: `6px 6px 0 0 ${deep}, 0 0 40px -10px ${c}` }}
+      >
+        <div className="flex skew-x-12 items-center gap-4">
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="flex items-center gap-1.5 text-[0.65rem] font-black uppercase tracking-[0.2em]" style={{ color: hi }}>
+              {pause && <Pause className="size-3.5" />}
+              <span className="truncate">{label}</span>
+            </span>
+            <span className="mt-2 block h-2 -skew-x-12 overflow-hidden bg-slate">
+              <span
+                className="block h-full transition-[width,background-color] duration-300 ease-linear"
+                style={{ width: `${pct * 100}%`, background: c, boxShadow: `0 0 12px ${c}` }}
+              />
+            </span>
+          </span>
+          <span
+            className="num shrink-0 text-5xl font-black tabular-nums leading-none sm:text-6xl"
+            style={{ color: low || pause ? hi : "var(--color-paper)", textShadow: `0 0 24px ${c}66` }}
+          >
+            {clockText(left)}
+          </span>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -474,12 +518,28 @@ export function DraftRoom({
   const [offline, setOffline] = useState(false);
   const [offset, setOffset] = useState(0);
   const [clock, setClock] = useState(() => Date.now());
+  const [holdUntil, setHoldUntil] = useState(0);
+  const rolled = useRef(initial.roll1 != null && initial.roll2 != null);
+  const wonBy = (v: DraftView): Side | null => {
+    const [a, b] = scoreOf(v);
+    return v.firstTo && a >= v.firstTo ? 1 : v.firstTo && b >= v.firstTo ? 2 : null;
+  };
+  const won = useRef(!admin && !!side && wonBy(initial) === side);
+  const [party, setParty] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setClock(Date.now()), 250);
     return () => clearInterval(id);
   }, []);
   const [pending, start] = useTransition();
+  const adminAct = (fn: () => Promise<unknown>) =>
+    start(async () => {
+      try {
+        await fn();
+      } catch {
+        window.location.reload();
+      }
+    });
   const [cmd, setCmd] = useState<string | null>(null);
   const [ask, setAsk] = useState<string | null>(null);
   const known = useRef(new Set(initial.steps.filter((s) => s.kind === "pick" && !s.skip).map((s) => s.slot)));
@@ -494,15 +554,23 @@ export function DraftRoom({
         setAsk(null);
         setCmd(fresh.slot);
       }
+      const both = next.roll1 != null && next.roll2 != null;
+      if (both && !rolled.current) setHoldUntil(Date.now() + 1600);
+      rolled.current = both;
+      const w = !admin && !!side && wonBy(next) === side;
+      if (w && !won.current) setParty(true);
+      won.current = w;
       setD((cur) => (next.rev >= cur.rev ? next : cur));
     },
-    [admin],
+    [admin, side],
   );
   const me: Side | null = admin ? acting : side;
 
   const slots = useMemo(() => pools.flatMap((p) => p.maps.map((m) => m.slot)).filter(pickable), [pools]);
-  const turn = turnOf(d, slots);
-  const winner = rollWinner(d);
+  const hold = clock < holdUntil;
+  const real = turnOf(d, slots);
+  const turn: Turn = hold && (real.kind === "choose" || real.kind === "tie") ? { kind: "roll" } : real;
+  const winner = hold ? null : rollWinner(d);
   const name = (s: Side) => teams[s - 1].name;
   const mine = "team" in turn && turn.team === me;
   const stageRef = useRef(initial.stageSlug);
@@ -600,10 +668,16 @@ export function DraftRoom({
         : turn.kind === "choose"
           ? t.draft.choosing(name(turn.team))
           : turn.kind === "done"
-            ? t.draft.done
-            : turn.team === me
-              ? t.draft.yours(turn.kind)
-              : t.draft.turn(name(turn.team), turn.kind);
+            ? score[0] >= d.firstTo || score[1] >= d.firstTo
+              ? t.draft.matchWon(name(score[0] > score[1] ? 1 : 2))
+              : t.draft.done
+            : turn.kind === "wait"
+              ? admin
+                ? t.draft.setResult
+                : t.draft.waitResult
+              : turn.team === me
+                ? t.draft.yours(turn.kind)
+                : t.draft.turn(name(turn.team), turn.kind);
   const headColor = "team" in turn ? TEAM[turn.team].hi : "var(--color-paper)";
 
   const realBans = d.steps.filter((s) => s.kind === "ban" && !s.skip);
@@ -641,7 +715,7 @@ export function DraftRoom({
             <button
               type="button"
               disabled={pending || !d.open}
-              onClick={() => start(async () => void (await (paused ? resumeDraft(matchId) : pauseDraft(matchId))))}
+              onClick={() => adminAct(() => (paused ? resumeDraft(matchId) : pauseDraft(matchId)))}
               className={cn(
                 "lift-sm inline-flex min-h-8 -skew-x-12 items-center border px-3 transition-colors [--lift:var(--color-rose)] disabled:opacity-50",
                 paused ? "border-balkan bg-balkan text-ink hover:bg-paper" : "border-[#e8c547] text-[#e8c547] hover:bg-[#e8c547]/10",
@@ -654,7 +728,7 @@ export function DraftRoom({
             <button
               type="button"
               disabled={pending}
-              onClick={() => start(async () => void (await undoDraft(matchId)))}
+              onClick={() => adminAct(() => undoDraft(matchId))}
               className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-line px-3 text-paper transition-colors [--lift:var(--color-rose)] hover:border-rose disabled:opacity-50"
             >
               <span className="inline-flex skew-x-12 items-center gap-1.5">
@@ -664,7 +738,7 @@ export function DraftRoom({
             <button
               type="button"
               disabled={pending}
-              onClick={() => window.confirm(t.draft.confirmReset) && start(async () => void (await resetDraft(matchId)))}
+              onClick={() => window.confirm(t.draft.confirmReset) && adminAct(() => resetDraft(matchId))}
               className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-rose px-3 text-rose-hi transition-colors [--lift:var(--color-rose)] hover:bg-rose/10 disabled:opacity-50"
             >
               <span className="inline-flex skew-x-12 items-center gap-1.5">
@@ -837,43 +911,6 @@ export function DraftRoom({
         )}
       </AnimatePresence>
 
-      <AnimatePresence mode="wait">
-        {paused ? (
-          <motion.div
-            key="pause"
-            initial={{ opacity: 0, scaleX: 0.6 }}
-            animate={{ opacity: 1, scaleX: 1 }}
-            exit={{ opacity: 0, scaleX: 0.8 }}
-            transition={{ duration: 0.4, ease: EASE }}
-            className="relative mx-auto mt-5 flex max-w-xl -skew-x-12 items-center gap-4 overflow-hidden border-2 border-[#e8c547] bg-[#e8c547]/10 px-5 py-3"
-            role="status"
-          >
-            <span className="dr-beads dr-beads-on pointer-events-none absolute inset-x-3 bottom-1 h-2 text-[#e8c547]/40" aria-hidden />
-            <span className="flex skew-x-12 items-center gap-3">
-              <Pause className="size-7 shrink-0 text-[#e8c547]" />
-              <span className="flex flex-col">
-                <span className="heading-slam text-2xl leading-none text-[#e8c547] sm:text-3xl">{t.draft.paused}</span>
-                <span className="text-xs font-bold uppercase tracking-wide text-paper/70">{t.draft.pausedHint}</span>
-              </span>
-            </span>
-            <span className="num ml-auto skew-x-12 text-4xl font-black tabular-nums text-paper sm:text-5xl">{clockText(pauseLeft)}</span>
-          </motion.div>
-        ) : (
-          left != null && (
-            <motion.div
-              key={`t${d.steps.length}`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.35, ease: EASE }}
-              className="mx-auto mt-5 max-w-md"
-            >
-              <TurnTimer left={left} total={limit} color={"team" in turn ? TEAM[turn.team] : TEAM[1]} />
-            </motion.div>
-          )
-        )}
-      </AnimatePresence>
-
       <AnimatePresence initial={false}>
         {(rolling || turn.kind === "choose" || !d.choice) && (
           <motion.section
@@ -930,17 +967,12 @@ export function DraftRoom({
                             <Dices className={cn("size-5", busy && "animate-spin")} /> {t.draft.roll}
                           </span>
                         </motion.button>
-                      ) : val == null || turn.kind === "tie" ? (
+                      ) : (val == null && !hold) || turn.kind === "tie" ? (
                         <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-ash">
                           {t.draft.waiting} <Waiting />
                         </span>
                       ) : winner === s ? (
-                        <motion.span
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 1.4 }}
-                          className="text-xs font-black uppercase tracking-wide text-[#e8c547]"
-                        >
+                        <motion.span initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-xs font-black uppercase tracking-wide text-[#e8c547]">
                           {t.draft.wins(name(s))}
                         </motion.span>
                       ) : null}
@@ -1157,7 +1189,9 @@ export function DraftRoom({
                               background: "rgba(13,15,14,0.8)",
                             }}
                           >
-                            <span className="block text-base tracking-wider sm:text-lg">{u.kind === "ban" ? t.draft.banned : t.draft.pick(u.n)}</span>
+                            <span className="block text-base tracking-wider sm:text-lg">
+                              {u.kind === "ban" ? t.draft.banned : u.slot === "TB" ? t.draft.tiebreaker : t.draft.pick(u.n)}
+                            </span>
                             {u.kind === "pick" && <span className="block max-w-28 truncate text-[0.55rem] tracking-wide text-paper/80">{name(u.team)}</span>}
                           </motion.span>
                         )}
@@ -1183,6 +1217,21 @@ export function DraftRoom({
       </section>
 
       <Portal>
+        {party && <Confetti onDone={() => setParty(false)} />}
+        <AnimatePresence>
+          {paused ? (
+            <TimerDock
+              key="pause"
+              pause
+              left={pauseLeft}
+              total={d.pauseUntil && d.pausedAt ? new Date(d.pauseUntil).getTime() - new Date(d.pausedAt).getTime() : 1}
+              color={TEAM[1]}
+              label={t.draft.paused}
+            />
+          ) : (
+            left != null && "team" in turn && <TimerDock key="turn" left={left} total={limit} color={TEAM[turn.team]} label={headline} raised={!!sel && mine} />
+          )}
+        </AnimatePresence>
         <AnimatePresence>
           {cmd && mapOf.get(cmd) && <CommandPopup key={`c${cmd}`} slot={cmd} map={mapOf.get(cmd)!} team={used.get(cmd)?.team ?? 1} onDone={copied} />}
         </AnimatePresence>
