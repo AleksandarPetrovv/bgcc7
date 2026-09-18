@@ -20,6 +20,15 @@ const csp = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "a.ppy.sh" },
+      { protocol: "https", hostname: "assets.ppy.sh" },
+      { protocol: "https", hostname: "**.s-ul.eu" },
+    ],
+    imageSizes: [64, 128, 256, 384],
+    minimumCacheTTL: 86400,
+  },
   devIndicators: false,
   poweredByHeader: false,
   async redirects() {

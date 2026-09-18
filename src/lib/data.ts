@@ -14,6 +14,7 @@ export type Team = {
   id: string;
   name: string;
   image: string;
+  rawImage?: string;
   players: Player[];
   avgRank: number;
   avgPp: number;

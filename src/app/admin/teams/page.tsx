@@ -13,6 +13,7 @@ import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { createTeam, deleteTeam, generateTeams, placeMember, removeMember, updateTeam } from "./actions";
+import { Dropdown } from "@/components/admin/dropdown";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
@@ -66,7 +67,7 @@ export default async function AdminTeams() {
                 </div>
                 <label className={label}>
                   {t.admin.teamImage}
-                  <input name="image" maxLength={500} placeholder="https://…" defaultValue={team.players[0] && team.image === team.players[0].avatar ? "" : team.image} className={inputCls} />
+                  <input name="image" maxLength={500} placeholder="https://…" defaultValue={team.players[0] && team.rawImage === team.players[0].avatar ? "" : team.rawImage} className={inputCls} />
                 </label>
                 {team.players.length > 0 && (
                   <fieldset>
@@ -98,18 +99,7 @@ export default async function AdminTeams() {
                       {teams.length > 1 && (
                         <ActionForm action={placeMember} submit={t.admin.move} ghost className="flex flex-1 items-center gap-2 sm:flex-none">
                           <input type="hidden" name="osuId" value={p.userId} />
-                          <select name="teamId" defaultValue="" required aria-label={t.admin.moveTo} className={cn(inputCls, "w-full sm:w-44")}>
-                            <option value="" disabled>
-                              {t.admin.moveTo}
-                            </option>
-                            {teams
-                              .filter((o) => o.id !== team.id)
-                              .map((o) => (
-                                <option key={o.id} value={o.id}>
-                                  {o.name} ({o.players.length})
-                                </option>
-                              ))}
-                          </select>
+                          <Dropdown name="teamId" required placeholder={t.admin.moveTo} aria-label={t.admin.moveTo} className="w-full sm:w-44" options={teams.filter((o) => o.id !== team.id).map((o) => ({ value: o.id, label: o.name, hint: String(o.players.length) }))} />
                         </ActionForm>
                       )}
                       <ActionForm action={removeMember.bind(null, p.userId)} submit={t.admin.remove} ghost />
@@ -122,17 +112,7 @@ export default async function AdminTeams() {
                 {pool.length > 0 ? (
                   <ActionForm action={placeMember} submit={t.admin.add} ghost className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                     <input type="hidden" name="teamId" value={team.id} />
-                    <select name="osuId" defaultValue="" required aria-label={t.admin.addToTeam} className={cn(inputCls, "w-full sm:w-56")}>
-                      <option value="" disabled>
-                        {t.admin.addToTeam}
-                      </option>
-                      {pool.map((p) => (
-                        <option key={p.osuId} value={p.osuId}>
-                          {seedOf.has(p.osuId) ? `Q#${seedOf.get(p.osuId)} · ` : ""}
-                          {p.username}
-                        </option>
-                      ))}
-                    </select>
+                    <Dropdown name="osuId" required placeholder={t.admin.addToTeam} aria-label={t.admin.addToTeam} className="w-full sm:w-56" options={pool.map((p) => ({ value: String(p.osuId), label: p.username, hint: seedOf.has(p.osuId) ? `Q#${seedOf.get(p.osuId)}` : undefined }))} />
                   </ActionForm>
                 ) : (
                   <span />
