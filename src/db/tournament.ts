@@ -6,6 +6,7 @@ import { matches, sponsors, teamMembers, teams, users } from "./schema";
 import { safe } from "./safe";
 import { mpIds } from "./lobbies";
 import type { Match, Player, Sponsor, Team } from "@/lib/data";
+import { optImg } from "@/lib/img";
 
 export const getTeams = cache(() =>
   safe(async () => {
@@ -46,7 +47,8 @@ export const getTeams = cache(() =>
       return {
         id: t.id,
         name: t.name,
-        image: t.image || players[0]?.avatar || "",
+        image: optImg(t.image || players[0]?.avatar || ""),
+        rawImage: t.image || players[0]?.avatar || "",
         players,
         avgRank: ranked.length ? Math.round(ranked.reduce((n, p) => n + p.rank, 0) / ranked.length) : 0,
         avgPp: players.length ? Math.round(players.reduce((n, p) => n + p.pp, 0) / players.length) : 0,
