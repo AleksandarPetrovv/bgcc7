@@ -17,6 +17,7 @@ import { fmtSofiaTime, isFuture, windowState } from "@/lib/time";
 import { ResultCard } from "@/components/site/result-card";
 import { getPoolStages } from "@/db/mappools";
 import { getRegistrations } from "@/db/registrations";
+import { splitAlive } from "@/lib/alive";
 import { getLobbies, type Lobby } from "@/db/lobbies";
 import { getPublicStaff } from "@/db/admin";
 import { cn } from "@/lib/utils";
@@ -309,7 +310,8 @@ export default async function Home() {
   const ctaOk: Record<string, boolean> = { screening: see("players"), qualifiers: see("lobbies"), seeding: see("teams"), playoffs: see("schedule"), finished: see("schedule") };
   const regState = windowState(settings.regOpensAt, settings.regClosesAt);
   const regCloses = phase === "registration" && see("register") && isFuture(settings.regClosesAt) ? settings.regClosesAt!.toISOString() : null;
-  const players = regs.filter((r) => r.status !== "denied");
+  const alive = splitAlive(regs, teams, matches, settings.phase);
+  const players = alive.players;
   const mine = me ? regs.find((r) => r.osuId === me) : undefined;
   const booking = windowState(settings.bookingOpensAt, settings.bookingClosesAt);
   const featured = matches
@@ -355,7 +357,7 @@ export default async function Home() {
       </EntryCard>
     ),
     see("players") && players.length > 0 && (
-      <EntryCard key="players" title={t.home.players} sub={t.home.playersSub} href="/teams/players" className="bg-coal">
+      <EntryCard key="players" title={t.home.players} sub={alive.playoffs ? t.home.playersAliveSub : t.home.playersSub} href="/teams/players" className="bg-coal">
         <AvatarCloud people={players.map((p) => ({ id: p.osuId, avatar: p.avatarUrl }))} />
       </EntryCard>
     ),
