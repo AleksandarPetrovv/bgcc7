@@ -140,7 +140,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
                 {e.correct} <Check className="size-4" aria-label={t.pickems.correct} />
               </span>
               <span className="hidden justify-end sm:flex">
-                <Link href={`/pickems/${e.osuId}`} className="whitespace-nowrap text-xs font-black uppercase leading-none text-rose-hi hover:text-paper">
+                <Link href={`/pickems/${e.osuId}`} onClick={() => window.scrollTo({ top: 0 })} className="whitespace-nowrap text-xs font-black uppercase leading-none text-rose-hi hover:text-paper">
                   {t.pickems.viewBracket}
                 </Link>
               </span>
