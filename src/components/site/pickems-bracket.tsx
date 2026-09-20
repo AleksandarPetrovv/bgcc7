@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Crown } from "lucide-react";
+import { Check, Crown, X } from "lucide-react";
 import { G, H, HEADERS, LB, POS, W, WIN, x } from "./bracket-layout";
 import { useDict } from "./lang";
 import { flagUrl, fmtNum } from "@/lib/data";
@@ -16,6 +16,15 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
   const { teamById, matches } = useTournament();
   const { slots, picks: clean, resetLive, champion } = resolve(picks, seedingOf(matches));
   const champ = champion ? teamById(champion) : undefined;
+  const real = (id: string) => {
+    const m = matches.find((x) => x.id === id);
+    return m?.winner ? (m.winner === 1 ? m.team1.id : m.team2.id) || null : null;
+  };
+  const wireColor = (id: string) => {
+    if (!clean[id]) return { stroke: "#2b302d", opacity: 1 };
+    const w = real(id);
+    return w == null ? { stroke: "#f4f3ee", opacity: 0.3 } : w === clean[id] ? { stroke: "#0fa06a", opacity: 0.6 } : { stroke: "#e0242f", opacity: 0.55 };
+  };
   const width = x(5) + W;
   const height = LB + 100 + H + 8;
   const wire = (a: string, b: string) => {
@@ -30,7 +39,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
       <div className="relative mx-auto mt-10" style={{ width, height }}>
         <svg className="pointer-events-none absolute inset-0" width={width} height={height} aria-hidden>
           {Object.entries(WIN).map(([a, b]) => (
-            <path key={a} d={wire(a, b)} pathLength={1} className="in-draw" style={{ "--d": `${0.55 + POS[a][0] * 0.14}s` } as React.CSSProperties} fill="none" stroke={clean[a] ? "#0fa06a" : "#2b302d"} strokeOpacity={clean[a] ? 0.6 : 1} strokeWidth={2} />
+            <path key={a} d={wire(a, b)} pathLength={1} className="in-draw" style={{ "--d": `${0.55 + POS[a][0] * 0.14}s` } as React.CSSProperties} fill="none" stroke={wireColor(a).stroke} strokeOpacity={wireColor(a).opacity} strokeWidth={2} />
           ))}
           {resetLive && <path d={`M${x(5) + W / 2} ${POS["GF-M1"][1] + H} V${POS["GF-M2"][1]}`} stroke="#e8c547" strokeWidth={2} strokeDasharray="3 3" />}
         </svg>
@@ -87,7 +96,10 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
               {pair.map((tid, i) => {
                 const team = tid ? teamById(tid) : undefined;
                 const picked = !!tid && clean[id] === tid;
-                const lost = !!clean[id] && !picked;
+                const winner = real(id);
+                const right = !!tid && winner === tid;
+                const miss = picked && winner != null && !right;
+                const lost = !!clean[id] && !picked && !right;
                 return (
                   <button
                     key={i}
@@ -96,7 +108,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
                     onClick={() => team && onPick?.(id, team.id)}
                     className={cn(
                       "flex min-h-0 flex-1 items-center gap-2 px-2 text-left text-[0.82rem] transition-colors",
-                      picked ? "bg-balkan/20 font-black text-balkan" : "font-bold enabled:hover:bg-slate",
+                      right ? "bg-balkan/20 font-black text-balkan" : miss ? "bg-rose/15 font-black text-rose-hi" : picked ? "bg-white/[0.06] font-black text-paper" : "font-bold enabled:hover:bg-slate",
                       lost && "text-ash",
                       !team && "cursor-default italic text-ash",
                     )}
@@ -104,11 +116,17 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
                     {team && (
                       <>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={team.image} alt="" className={cn("size-5 object-cover", lost && "opacity-50")} />
+                        <img src={team.image} alt="" className={cn("size-5 object-cover", (lost || miss) && "opacity-50")} />
                         <span className="min-w-0 flex-1 truncate">{team.name}</span>
                       </>
                     )}
-                    {picked && <Check className="size-4 shrink-0" aria-label={t.pickems.yourPick} />}
+                    {miss ? (
+                      <span className="flex shrink-0 items-center gap-0.5 text-[0.65rem] font-black uppercase tracking-wide" aria-label={t.pickems.missed}>
+                        <X className="size-3.5" strokeWidth={3} />
+                      </span>
+                    ) : (
+                      (picked || right) && <Check className={cn("size-4 shrink-0", !right && "text-paper/70")} aria-label={right && !picked ? t.pickems.winner : t.pickems.yourPick} />
+                    )}
                   </button>
                 );
               })}
