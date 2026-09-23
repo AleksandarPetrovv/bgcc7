@@ -5,6 +5,8 @@ import { TriTick } from "@/components/site/graphics";
 import { Avatar } from "@/components/site/avatar";
 import { Countdown } from "@/components/site/countdown";
 import { MatchDialog } from "@/components/site/match-dialog";
+import { RecordText } from "@/components/site/record";
+import { BestScore } from "@/components/site/best-score";
 import { currentOsuId } from "@/auth";
 import { login } from "@/app/pickems/actions";
 import { getDict, getLang } from "@/lib/i18n/server";
@@ -44,7 +46,7 @@ function Card({ title, children, className, i = 0, right, flush }: { title: stri
   );
 }
 
-function Stat({ k, n, className }: { k: string; n: string; className?: string }) {
+function Stat({ k, n, className }: { k: string; n: React.ReactNode; className?: string }) {
   return (
     <div className={cn("border-l-2 border-line pl-3", className)}>
       <div className={label}>{k}</div>
@@ -74,7 +76,7 @@ function TeamCard({ t, team, me, record, i }: { t: Dict; team: Team; me: number;
           <div className="heading-slam break-words text-lg leading-tight sm:text-2xl">{team.name}</div>
           <div className="num mt-1 flex flex-wrap gap-x-3 text-sm text-paper/70 sm:gap-x-4">
             <span>{t.me.seed(team.seed)}</span>
-            {record && <span className="text-balkan">{t.me.record(record[0], record[1])}</span>}
+            {record && <RecordText t={t} w={record[0]} l={record[1]} />}
             <span>
               {t.me.avgRank} #{fmtNum(avg)}
             </span>
@@ -461,14 +463,20 @@ export default async function Me() {
         <Stat k={t.me.mapsPlayed} n={String(plays.length)} />
         <Stat k={t.me.totalScore} n={fmtNum(plays.reduce((n, x) => n + x.p.score, 0))} />
         <Stat k={t.me.avgAcc} n={plays.length ? `${((plays.reduce((n, x) => n + x.p.acc, 0) / plays.length) * 100).toFixed(2)}%` : "—"} />
-        <Stat k={t.me.history} n={t.me.record(record[0], record[1])} />
+        <Stat k={t.me.history} n={<RecordText t={t} w={record[0]} l={record[1]} />} />
         <Stat k={t.me.avgCost} n={avgCost === null ? "—" : avgCost.toFixed(2)} />
         <div className="border-l-2 border-rose pl-3">
           <div className={label}>{t.me.bestScore}</div>
           {best ? (
-            <MatchDialog match={best.match} className="num mt-1 block text-2xl leading-none text-rose-hi underline decoration-rose/40 decoration-dotted underline-offset-4 transition-colors hover:text-paper sm:text-3xl">
-              {fmtNum(best.p.score)}
-            </MatchDialog>
+            <BestScore
+              score={best.p.score}
+              acc={best.p.acc}
+              combo={best.p.combo}
+              miss={best.p.miss}
+              mods={best.p.mods}
+              rank={best.p.rank}
+              map={{ slot: best.map.slot, mod: best.map.mod, title: best.map.title, version: best.map.version, cover: best.map.cover }}
+            />
           ) : (
             <div className="num mt-1 text-2xl leading-none sm:text-3xl">—</div>
           )}

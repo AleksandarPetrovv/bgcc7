@@ -3,6 +3,7 @@ import { Words } from "@/components/site/rich";
 import { Crown } from "lucide-react";
 import { Container, SectionHeading, Tag } from "@/components/site/page";
 import { MatchRow } from "@/components/site/match-row";
+import { RecordText } from "@/components/site/record";
 import { getDict } from "@/lib/i18n/server";
 import { fmtNum, flagUrl } from "@/lib/data";
 import { getMatches, getTeams } from "@/db/tournament";
@@ -36,11 +37,13 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
               <Words text={team.name} d={0.4} s={0.08} />
             </h1>
             <div className="mt-3 flex gap-8">
-              {[
-                [t.common.avgRank, `#${fmtNum(team.avgRank)}`],
-                [t.common.avgPp, fmtNum(team.avgPp)],
-                [t.common.record, `${wins}–${matches.filter((m) => m.winner).length - wins}`],
-              ].map(([k, v], i) => (
+              {(
+                [
+                  [t.common.avgRank, `#${fmtNum(team.avgRank)}`],
+                  [t.common.avgPp, fmtNum(team.avgPp)],
+                  [t.common.record, <RecordText key="record" t={t} w={wins} l={matches.filter((m) => m.winner).length - wins} />],
+                ] as [string, React.ReactNode][]
+              ).map(([k, v], i) => (
                 <div key={k} className="in-up" style={{ "--i": i, "--s": "0.1s", "--d": "0.7s" } as React.CSSProperties}>
                   <div className="text-[0.65rem] font-black uppercase tracking-[0.14em] text-rose-hi">{k}</div>
                   <div className="num text-3xl">{v}</div>
@@ -60,7 +63,9 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
               <img src={p.avatar} alt="" className="size-24 object-cover" />
               <div className="flex-1 p-3">
                 <div className="flex items-center gap-2 font-black">
-                  <a href={osuUser(p.userId)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">{p.username}</a>
+                  <a href={osuUser(p.userId)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">
+                    {p.username}
+                  </a>
                   {p.isCaptain && <Crown className="size-4 text-[#d4a72c]" aria-label={t.common.captain} />}
                 </div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -76,9 +81,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
         </div>
 
         <SectionHeading>{t.teams.matches}</SectionHeading>
-        <div className="space-y-4">
-          {matches.length ? matches.map((m) => <MatchRow key={m.id} match={m} />) : <p className="text-sm text-ash">{t.teams.noMatches}</p>}
-        </div>
+        <div className="space-y-4">{matches.length ? matches.map((m) => <MatchRow key={m.id} match={m} />) : <p className="text-sm text-ash">{t.teams.noMatches}</p>}</div>
       </Container>
     </>
   );
