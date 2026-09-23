@@ -12,8 +12,9 @@ import { fmtNum } from "@/lib/data";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
-import { createTeam, deleteTeam, generateTeams, placeMember, removeMember, updateTeam } from "./actions";
+import { createTeam, deleteTeam, generateTeams, placeMember, updateTeam } from "./actions";
 import { Dropdown } from "@/components/admin/dropdown";
+import { RemoveMember } from "./remove-member";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
@@ -102,7 +103,7 @@ export default async function AdminTeams() {
                           <Dropdown name="teamId" required placeholder={t.admin.moveTo} aria-label={t.admin.moveTo} className="w-full sm:w-44" options={teams.filter((o) => o.id !== team.id).map((o) => ({ value: o.id, label: o.name, hint: String(o.players.length) }))} />
                         </ActionForm>
                       )}
-                      <ActionForm action={removeMember.bind(null, p.userId)} submit={t.admin.remove} ghost />
+                      <RemoveMember osuId={p.userId} captain={p.isCaptain} mates={team.players.filter((o) => o.userId !== p.userId).map((o) => ({ id: o.userId, name: o.username, avatar: o.avatar }))} />
                     </div>
                   </li>
                 ))}
