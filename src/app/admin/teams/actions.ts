@@ -2,7 +2,7 @@
 
 import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { matches, teamMembers, teams } from "@/db/schema";
+import { matches, teamMembers, teams, users } from "@/db/schema";
 import { getQualResults } from "@/db/qualifiers";
 import { getSettings } from "@/db/settings";
 import { guard } from "@/lib/admin-action";
@@ -69,17 +69,33 @@ export async function placeMember(_: ActionResult, fd: FormData) {
     const osuId = Number(fd.get("osuId"));
     const teamId = String(fd.get("teamId") ?? "");
     if (!Number.isInteger(osuId) || !teamId) return { ok: false, error: "invalid" };
+    const [old] = await db.select().from(teamMembers).where(eq(teamMembers.osuId, osuId)).limit(1);
+    const mates = await db.select().from(teamMembers).where(eq(teamMembers.teamId, teamId));
+    const lead = !mates.some((m) => m.isCaptain && m.osuId !== osuId);
     await db
       .insert(teamMembers)
-      .values({ osuId, teamId, isCaptain: false })
-      .onConflictDoUpdate({ target: teamMembers.osuId, set: { teamId, isCaptain: false } });
+      .values({ osuId, teamId, isCaptain: lead })
+      .onConflictDoUpdate({ target: teamMembers.osuId, set: { teamId, isCaptain: lead } });
+    if (old?.isCaptain && old.teamId !== teamId) await promote(old.teamId);
     return { osuId, teamId };
   });
 }
 
-export async function removeMember(osuId: number) {
+async function promote(teamId: string, heir?: number) {
+  const rest = await db
+    .select({ osuId: teamMembers.osuId, isCaptain: teamMembers.isCaptain, pp: users.pp })
+    .from(teamMembers)
+    .innerJoin(users, eq(users.osuId, teamMembers.osuId))
+    .where(eq(teamMembers.teamId, teamId));
+  if (!rest.length || rest.some((m) => m.isCaptain)) return;
+  const pick = rest.find((m) => m.osuId === heir) ?? [...rest].sort((a, b) => (b.pp ?? 0) - (a.pp ?? 0))[0];
+  await db.update(teamMembers).set({ isCaptain: true }).where(eq(teamMembers.osuId, pick.osuId));
+}
+
+export async function removeMember(osuId: number, heir?: number) {
   return guard("teams", "team.removeMember", async () => {
-    await db.delete(teamMembers).where(eq(teamMembers.osuId, osuId));
-    return { osuId };
+    const [row] = await db.delete(teamMembers).where(eq(teamMembers.osuId, osuId)).returning();
+    if (row?.isCaptain) await promote(row.teamId, heir);
+    return { osuId, heir: row?.isCaptain ? (heir ?? null) : undefined };
   });
 }
