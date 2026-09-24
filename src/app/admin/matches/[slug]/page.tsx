@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, TriangleAlert } from "lucide-react";
 import { PageTitle } from "@/components/site/page";
 import { Words } from "@/components/site/rich";
-import { ActionForm, inputCls, labelCls, Panel } from "@/components/admin/form";
+import { ActionForm, inputCls, labelCls, Panel, Field } from "@/components/admin/form";
 import { getPoolStages } from "@/db/mappools";
 import { getEdits, getScoreboard } from "@/db/scoreboards";
 import { getMatches, getTeams } from "@/db/tournament";
@@ -98,15 +98,15 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
                                   <ActionForm action={saveScore.bind(null, id, m.gameId, p.id)} className="flex flex-wrap items-end gap-2">
                                     <label className={labelCls}>
                                       {t.admin.ms.score}
-                                      <input name="score" inputMode="numeric" required defaultValue={p.score} className={cn(inputCls, "w-28")} />
+                                      <Field name="score" inputMode="numeric" required defaultValue={p.score} className={cn(inputCls, "w-28")} />
                                     </label>
                                     <label className={labelCls}>
                                       {t.admin.ms.acc}
-                                      <input name="acc" inputMode="decimal" required defaultValue={(p.acc * 100).toFixed(2)} className={cn(inputCls, "w-20")} />
+                                      <Field name="acc" inputMode="decimal" required defaultValue={(p.acc * 100).toFixed(2)} className={cn(inputCls, "w-20")} />
                                     </label>
                                     <label className={labelCls}>
                                       {t.admin.ms.mods}
-                                      <input name="mods" defaultValue={p.mods.join("")} placeholder="HDHR" className={cn(inputCls, "w-20")} />
+                                      <Field name="mods" defaultValue={p.mods.join("")} placeholder="HDHR" className={cn(inputCls, "w-20")} />
                                     </label>
                                   </ActionForm>
                                   <ActionForm action={removeScore.bind(null, id, m.gameId, p.id, (k + 1) as 1 | 2)} submit={t.admin.ms.remove} ghost />
@@ -130,15 +130,15 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
                                   <ActionForm action={saveScore.bind(null, id, m.gameId, p.userId)} className="flex flex-wrap items-end gap-2">
                                     <label className={labelCls}>
                                       {t.admin.ms.score}
-                                      <input name="score" inputMode="numeric" required defaultValue={0} className={cn(inputCls, "w-28")} />
+                                      <Field name="score" inputMode="numeric" required defaultValue={0} className={cn(inputCls, "w-28")} />
                                     </label>
                                     <label className={labelCls}>
                                       {t.admin.ms.acc}
-                                      <input name="acc" inputMode="decimal" required defaultValue="0.00" className={cn(inputCls, "w-20")} />
+                                      <Field name="acc" inputMode="decimal" required defaultValue="0.00" className={cn(inputCls, "w-20")} />
                                     </label>
                                     <label className={labelCls}>
                                       {t.admin.ms.mods}
-                                      <input name="mods" placeholder="HD" className={cn(inputCls, "w-20")} />
+                                      <Field name="mods" placeholder="HD" className={cn(inputCls, "w-20")} />
                                     </label>
                                   </ActionForm>
                                 </div>

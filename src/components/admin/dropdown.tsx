@@ -150,7 +150,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
         onClick={() => toggle(!open)}
         onKeyDown={key}
         className={cn(
-          "group relative flex min-h-10 w-full min-w-0 -skew-x-12 items-center border bg-ink px-3 text-left text-sm normal-case tracking-normal outline-none transition-[border-color,background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-rose disabled:cursor-not-allowed disabled:opacity-50",
+          "group relative flex h-10 w-full min-w-0 -skew-x-12 items-center border border-b-2 bg-[#111412] px-3 text-left text-sm normal-case tracking-normal outline-none transition-[border-color,background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-rose disabled:cursor-not-allowed disabled:opacity-50",
           open ? "border-rose bg-rose/10 shadow-[4px_4px_0_0_var(--color-rose-deep)]" : "border-line hover:border-paper/40",
         )}
       >

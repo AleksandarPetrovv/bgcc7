@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion, Reorder, useDragControls } from "motion/react";
 import { GripVertical, Pencil, X } from "lucide-react";
-import { ActionForm, inputCls } from "@/components/admin/form";
+import { ActionForm, inputCls, Field } from "@/components/admin/form";
 import { Avatar } from "@/components/site/avatar";
 import { useDict } from "@/components/site/lang";
 import type { Sponsor } from "@/lib/data";
@@ -55,8 +55,8 @@ function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
       <AnimatePresence initial={false}>
         {editing && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }} className="overflow-hidden">
-            <ActionForm action={updateSponsor.bind(null, s.id)} className="flex flex-wrap items-center gap-3 border-t border-dashed border-line px-3 py-3">
-              <input name="q" required defaultValue={s.url ?? s.name} aria-label={t.admin.sponsorQ} className={cn(inputCls, "w-full sm:w-auto sm:min-w-48 sm:flex-1")} />
+            <ActionForm action={updateSponsor.bind(null, s.id)} className="flex items-center gap-3 border-t border-dashed border-line px-3 py-3">
+              <Field name="q" required defaultValue={s.url ?? s.name} aria-label={t.admin.sponsorQ} className={cn(inputCls, "flex-1")} />
             </ActionForm>
           </motion.div>
         )}

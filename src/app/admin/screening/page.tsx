@@ -3,7 +3,7 @@ import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
 import { notFound } from "next/navigation";
 import { Download } from "lucide-react";
-import { ActionForm, inputCls, Panel } from "@/components/admin/form";
+import { ActionForm, inputCls, Panel, Field } from "@/components/admin/form";
 import { getRegistrations, STATUSES, isStatus } from "@/db/registrations";
 import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
@@ -30,13 +30,13 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
 
       <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-[1fr_auto]">
         <Panel title={t.admin.addPlayer} help={t.admin.addPlayerHelp}>
-          <ActionForm action={addPlayer} submit={t.admin.add} className="flex flex-wrap items-center gap-3">
-            <input name="q" required maxLength={32} placeholder={t.admin.addPlaceholder} aria-label={t.admin.addPlaceholder} className={cn(inputCls, "w-64")} />
+          <ActionForm action={addPlayer} submit={t.admin.add} className="flex items-center gap-3">
+            <Field name="q" required maxLength={32} placeholder={t.admin.addPlaceholder} aria-label={t.admin.addPlaceholder} className={cn(inputCls, "flex-1 sm:max-w-sm")} />
           </ActionForm>
         </Panel>
-        <div className="in-right flex flex-wrap content-start gap-3 border border-line bg-coal p-4 [--d:0.3s]">
-          <ActionForm action={approveAllPending} submit={t.admin.approveAll} ghost confirm={t.admin.confirmApproveAll} />
-          <ActionForm action={refreshStats} submit={t.admin.refreshStats} ghost />
+        <div className="in-right flex flex-col justify-center gap-3 border border-line bg-coal p-5 xl:w-80 [--d:0.3s]">
+          <ActionForm action={approveAllPending} submit={t.admin.approveAll} confirm={t.admin.confirmApproveAll} className="[&>div]:w-full [&_button]:min-h-14 [&_button]:w-full [&_button]:text-base" />
+          <ActionForm action={refreshStats} submit={t.admin.refreshStats} ghost className="[&>div]:w-full [&_button]:min-h-14 [&_button]:w-full [&_button]:text-base" />
         </div>
         <Panel title={t.admin.exportPlayers} help={t.admin.exportHelp} className="xl:col-span-2">
           <div className="flex flex-wrap gap-3">
