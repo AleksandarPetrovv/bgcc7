@@ -697,7 +697,7 @@ html.lite:not(.settled) .mk-dot {
 @keyframes mdlg-out { to { opacity: 0; transform: translateY(16px) scale(0.98); } }
 @keyframes mdlg-shine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
 .mdlg[data-open] { animation: mdlg-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both !important; }
-.mdlg[data-closed] { animation: mdlg-out 0.18s ease-in both !important; }
+.mdlg[data-closed] { animation: mdlg-out 0.2s ease-out both !important; }
 .mdlg-shine { background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.05) 50%, transparent 70%); animation: mdlg-shine 1.3s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
   .mdlg[data-open], .mdlg[data-closed], .mdlg-shine { animation: none !important; }
