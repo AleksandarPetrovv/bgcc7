@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { InView } from "@/components/site/in-view";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, dateCls, inputCls, Panel } from "@/components/admin/form";
+import { ActionForm, dateCls, inputCls, Panel, Field } from "@/components/admin/form";
 import { getLobbies, type Lobby } from "@/db/lobbies";
 import { getRegistrations } from "@/db/registrations";
 import { getViewer } from "@/lib/authz";
@@ -20,24 +20,24 @@ function LobbyFields({ t, l }: { t: Dict; l?: Lobby }) {
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.2fr_1.3fr_0.6fr_1fr]">
       <label className={label}>
         {t.admin.lobbyName}
-        <input name="name" required maxLength={40} defaultValue={l?.name} className={inputCls} />
+        <Field name="name" required maxLength={40} defaultValue={l?.name} className={inputCls} />
       </label>
       <label className={label}>
         {t.admin.startsAt}
-        <input type="datetime-local" name="startsAt" required defaultValue={toSofiaInput(l?.startsAt)} className={dateCls} />
+        <Field type="datetime-local" name="startsAt" required defaultValue={toSofiaInput(l?.startsAt)} className={dateCls} />
       </label>
       <label className={label}>
         {t.admin.capacity}
-        <input type="number" name="capacity" min={1} max={32} required defaultValue={l?.capacity ?? 8} className={inputCls} />
+        <Field type="number" name="capacity" min={1} max={32} required defaultValue={l?.capacity ?? 8} className={inputCls} />
       </label>
       <label className={label}>
         {t.admin.referee}
-        <input name="referee" maxLength={60} defaultValue={l?.referee ?? ""} className={inputCls} />
+        <Field name="referee" maxLength={60} defaultValue={l?.referee ?? ""} className={inputCls} />
       </label>
       {l && (
         <label className={cn(label, "sm:col-span-2 lg:col-span-4")}>
           {t.admin.mpLinks}
-          <input name="mpLinks" defaultValue={l.mpLinks.split(",").filter(Boolean).map((id) => `https://osu.ppy.sh/mp/${id}`).join(", ")} className={inputCls} />
+          <Field name="mpLinks" defaultValue={l.mpLinks.split(",").filter(Boolean).map((id) => `https://osu.ppy.sh/mp/${id}`).join(", ")} className={inputCls} />
         </label>
       )}
     </div>

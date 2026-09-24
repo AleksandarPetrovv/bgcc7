@@ -1,8 +1,9 @@
+import { Crown } from "lucide-react";
 import { notFound } from "next/navigation";
 import { InView } from "@/components/site/in-view";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, inputCls, Panel } from "@/components/admin/form";
+import { ActionForm, inputCls, Panel, Field } from "@/components/admin/form";
 import { getQualResults } from "@/db/qualifiers";
 import { getRegistrations } from "@/db/registrations";
 import { getSettings } from "@/db/settings";
@@ -40,8 +41,8 @@ export default async function AdminTeams() {
           <ActionForm action={generateTeams} submit={t.admin.generate} confirm={t.admin.confirmGenerate} />
         </Panel>
         <Panel title={t.admin.newTeam} i={1}>
-          <ActionForm action={createTeam} submit={t.admin.create} className="flex flex-wrap items-center gap-3">
-            <input name="name" required maxLength={40} placeholder={t.admin.teamName} aria-label={t.admin.teamName} className={cn(inputCls, "w-full sm:w-64")} />
+          <ActionForm action={createTeam} submit={t.admin.create} className="flex items-center gap-3">
+            <Field name="name" required maxLength={40} placeholder={t.admin.teamName} aria-label={t.admin.teamName} className={cn(inputCls, "flex-1 sm:max-w-sm")} />
           </ActionForm>
         </Panel>
       </div>
@@ -62,25 +63,30 @@ export default async function AdminTeams() {
                 <div className="grid gap-2">
                   <label className={label}>
                     {t.admin.teamName}
-                    <input name="name" required maxLength={40} defaultValue={team.name} className={inputCls} />
+                    <Field name="name" required maxLength={40} defaultValue={team.name} className={inputCls} />
                   </label>
                   <p className="self-end text-xs text-ash">{t.admin.seedLocked}</p>
                 </div>
                 <label className={label}>
                   {t.admin.teamImage}
-                  <input name="image" maxLength={500} placeholder="https://…" defaultValue={team.players[0] && team.rawImage === team.players[0].avatar ? "" : team.rawImage} className={inputCls} />
+                  <Field name="image" maxLength={500} placeholder="https://…" defaultValue={team.players[0] && team.rawImage === team.players[0].avatar ? "" : team.rawImage} className={inputCls} />
                 </label>
                 {team.players.length > 0 && (
                   <fieldset>
-                    <legend className="mb-1 text-xs font-bold uppercase text-ash">{t.common.captain}</legend>
-                    <div className="flex flex-wrap gap-1.5">
+                    <legend className="mb-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash">{t.common.captain}</legend>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                       {team.players.map((p) => (
                         <label
                           key={p.userId}
-                          className="cursor-pointer border border-line px-2 py-1.5 text-xs font-black uppercase text-ash has-[:checked]:border-rose has-[:checked]:bg-rose has-[:checked]:text-white"
+                          className="group relative flex h-12 min-w-0 -skew-x-12 cursor-pointer items-center border border-line bg-[#111412] px-2.5 text-ash transition-[border-color,background-color,box-shadow,color] duration-200 hover:border-paper/40 hover:text-paper has-[:checked]:border-[#e8c547] has-[:checked]:bg-[#e8c547]/10 has-[:checked]:text-paper has-[:checked]:shadow-[4px_4px_0_0_#9c7f1f] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose"
                         >
-                          <input type="radio" name="captain" value={p.userId} defaultChecked={p.isCaptain} className="sr-only" />
-                          {p.username}
+                          <input type="radio" name="captain" value={p.userId} defaultChecked={p.isCaptain} className="peer sr-only" />
+                          <span className="flex min-w-0 flex-1 skew-x-12 items-center gap-2">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={p.avatar} alt="" className="size-7 shrink-0 grayscale transition group-has-[:checked]:grayscale-0" />
+                            <span className="min-w-0 flex-1 truncate text-sm font-black">{p.username}</span>
+                            <Crown className="size-4 shrink-0 scale-50 fill-current text-[#e8c547] opacity-0 transition-[opacity,transform] duration-300 group-has-[:checked]:scale-100 group-has-[:checked]:opacity-100" />
+                          </span>
                         </label>
                       ))}
                     </div>

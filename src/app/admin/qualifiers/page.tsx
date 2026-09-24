@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { InView } from "@/components/site/in-view";
 import { Words } from "@/components/site/rich";
 import { PageTitle, SubHeading } from "@/components/site/page";
-import { ActionForm, inputCls, Panel } from "@/components/admin/form";
+import { ActionForm, inputCls, Panel, Field } from "@/components/admin/form";
 import { getLobbies, mpIds } from "@/db/lobbies";
 import { getQualResults, getQualScoreRows } from "@/db/qualifiers";
 import { getSettings } from "@/db/settings";
@@ -44,26 +44,26 @@ export default async function AdminQualifiers() {
 
         <Panel title={t.admin.setScore} help={t.admin.setScoreHelp} i={1}>
           <ActionForm action={setScore} className="space-y-4">
-            <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:grid-cols-3">
-              <label className={cn(label, "min-[420px]:col-span-2 sm:col-span-1")}>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-6">
+              <label className={cn(label, "col-span-2 sm:col-span-3")}>
                 {t.admin.player}
-                <input name="player" required maxLength={32} placeholder={t.admin.addPlaceholder} className={inputCls} />
+                <Field name="player" required maxLength={32} placeholder={t.admin.addPlaceholder} className={inputCls} />
               </label>
-              <label className={label}>
+              <label className={cn(label, "col-span-2 sm:col-span-3")}>
                 {t.admin.map}
                 <Dropdown name="beatmapId" required defaultValue={results.maps[0] ? String(results.maps[0].id) : ""} options={results.maps.map((m) => ({ value: String(m.id), label: `${m.slot} · ${m.title}` }))} />
               </label>
-              <label className={label}>
+              <label className={cn(label, "sm:col-span-2")}>
                 {t.admin.scoreLabel}
-                <input type="number" name="score" required min={0} className={inputCls} />
+                <Field type="number" name="score" required min={0} className={inputCls} />
               </label>
-              <label className={label}>
+              <label className={cn(label, "sm:col-span-2")}>
                 {t.admin.accLabel}
-                <input type="number" name="acc" required min={0} max={100} step="0.01" className={inputCls} />
+                <Field type="number" name="acc" required min={0} max={100} step="0.01" className={inputCls} />
               </label>
-              <label className={label}>
+              <label className={cn(label, "col-span-2 sm:col-span-2")}>
                 {t.admin.mod}
-                <input name="mods" placeholder="NF,HD" maxLength={30} className={inputCls} />
+                <Field name="mods" placeholder="NF,HD" maxLength={30} className={inputCls} />
               </label>
             </div>
           </ActionForm>
@@ -94,9 +94,9 @@ export default async function AdminQualifiers() {
                     <li key={r.id} className="flex items-center gap-2 border border-line bg-ink/50 p-2">
                       <span className="w-10 shrink-0 text-sm font-black">{slotOf.get(r.beatmapId) ?? "?"}</span>
                       <ActionForm key={`${r.id}-${r.score}-${r.acc}-${r.mods}`} action={updateScore.bind(null, r.id)} submit="✓" ghost className="flex min-w-0 flex-1 items-center gap-1.5">
-                        <input name="score" inputMode="numeric" required defaultValue={r.score} aria-label={t.admin.scoreLabel} className={cn(inputCls, "adm-tight num w-0 flex-[3]")} />
-                        <input name="acc" inputMode="decimal" required defaultValue={r.acc.toFixed(2)} aria-label={t.admin.accLabel} className={cn(inputCls, "adm-tight num w-0 flex-[2]")} />
-                        <input name="mods" defaultValue={r.mods ?? ""} placeholder="NF" aria-label={t.admin.mod} className={cn(inputCls, "adm-tight w-0 flex-[2] uppercase")} />
+                        <Field name="score" inputMode="numeric" required defaultValue={r.score} aria-label={t.admin.scoreLabel} className={cn(inputCls, "adm-tight num w-0 flex-[3]")} />
+                        <Field name="acc" inputMode="decimal" required defaultValue={r.acc.toFixed(2)} aria-label={t.admin.accLabel} className={cn(inputCls, "adm-tight num w-0 flex-[2]")} />
+                        <Field name="mods" defaultValue={r.mods ?? ""} placeholder="NF" aria-label={t.admin.mod} className={cn(inputCls, "adm-tight w-0 flex-[2] uppercase")} />
                       </ActionForm>
                       <ActionForm action={deleteScore.bind(null, r.id)} submit="×" ghost />
                     </li>

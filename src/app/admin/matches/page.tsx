@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, dateCls, inputCls, Panel } from "@/components/admin/form";
+import { ActionForm, dateCls, inputCls, Panel, Field } from "@/components/admin/form";
 import { getPoolStages } from "@/db/mappools";
 import { getMatchRows, getTeams } from "@/db/tournament";
 import { getViewer } from "@/lib/authz";
@@ -67,15 +67,15 @@ export default async function AdminMatches() {
                         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                           <label className={cn(label, "col-span-2")}>
                             {t.admin.startsAt}
-                            <input type="datetime-local" name="startsAt" defaultValue={toSofiaInput(m.startsAt)} className={dateCls} />
+                            <Field type="datetime-local" name="startsAt" defaultValue={toSofiaInput(m.startsAt)} className={dateCls} />
                           </label>
                           <label className={label}>
                             {t.admin.referee}
-                            <input name="referee" maxLength={120} defaultValue={m.referee ?? ""} className={inputCls} />
+                            <Field name="referee" maxLength={120} defaultValue={m.referee ?? ""} className={inputCls} />
                           </label>
                           <label className={label}>
                             {t.admin.streamer}
-                            <input name="streamer" maxLength={120} defaultValue={m.streamer ?? ""} className={inputCls} />
+                            <Field name="streamer" maxLength={120} defaultValue={m.streamer ?? ""} className={inputCls} />
                           </label>
                           {([1, 2] as const).map((n) => (
                             <label key={n} className={cn(label, "col-span-2 md:col-span-1")}>
@@ -85,11 +85,11 @@ export default async function AdminMatches() {
                           ))}
                           <label className={label}>
                             {t.admin.scoreN(1)}
-                            <input type="number" name="score1" min={0} max={99} defaultValue={m.score1 ?? ""} className={inputCls} />
+                            <Field type="number" name="score1" min={0} max={99} defaultValue={m.score1 ?? ""} className={inputCls} />
                           </label>
                           <label className={label}>
                             {t.admin.scoreN(2)}
-                            <input type="number" name="score2" min={0} max={99} defaultValue={m.score2 ?? ""} className={inputCls} />
+                            <Field type="number" name="score2" min={0} max={99} defaultValue={m.score2 ?? ""} className={inputCls} />
                           </label>
                           <label className={cn(label, "col-span-2")}>
                             {t.admin.winner}
@@ -97,15 +97,15 @@ export default async function AdminMatches() {
                           </label>
                           <label className={cn(label, "col-span-2")}>
                             {t.admin.commentators}
-                            <input name="commentators" maxLength={120} defaultValue={m.commentators ?? ""} className={inputCls} />
+                            <Field name="commentators" maxLength={120} defaultValue={m.commentators ?? ""} className={inputCls} />
                           </label>
                           <label className={cn(label, "col-span-2")}>
                             {t.admin.mpLinks}
-                            <input name="mpLinks" defaultValue={m.mpLinks.split(",").filter(Boolean).map((x) => `https://osu.ppy.sh/mp/${x}`).join(", ")} className={inputCls} />
+                            <Field name="mpLinks" defaultValue={m.mpLinks.split(",").filter(Boolean).map((x) => `https://osu.ppy.sh/mp/${x}`).join(", ")} className={inputCls} />
                           </label>
                           <label className={cn(label, "col-span-2")}>
                             {t.admin.vodUrl}
-                            <input name="vodUrl" maxLength={300} placeholder="https://…" defaultValue={m.vodUrl ?? ""} className={inputCls} />
+                            <Field name="vodUrl" maxLength={300} placeholder="https://…" defaultValue={m.vodUrl ?? ""} className={inputCls} />
                           </label>
                         </div>
                         {FEED[m.id] && (

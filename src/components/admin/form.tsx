@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useTransition, useEffect, useState } from "react";
 import { TriTick } from "@/components/site/graphics";
 import { useDict } from "@/components/site/lang";
 import type { ActionResult } from "@/lib/roles";
@@ -26,7 +26,7 @@ export function Btn({ tone = "rose", small, className, children, ...props }: Btn
       {...props}
       className={cn(
         "lift-sm sheen inline-flex -skew-x-12 items-center justify-center font-black uppercase tracking-wide disabled:pointer-events-none disabled:opacity-50",
-        small ? "min-h-9 px-3 text-xs" : "min-h-10 px-4 text-sm",
+        small ? "min-h-10 px-3.5 text-xs" : "min-h-10 px-4 text-sm",
         TONES[tone],
         className,
       )}
@@ -49,6 +49,12 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
   const t = useDict();
   const [state, formAction, pending] = useActionState(action, null);
   const msg = state && (state.ok ? t.admin.saved : state.error === "notFound" ? t.admin.notFound : t.admin.error);
+  const [gone, setGone] = useState<ActionResult>(null);
+  useEffect(() => {
+    if (!state?.ok) return;
+    const id = setTimeout(() => setGone(state), 3000);
+    return () => clearTimeout(id);
+  }, [state]);
   return (
     <form
       action={formAction}
@@ -61,7 +67,10 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
           {pending ? t.admin.saving : (submit ?? t.admin.save)}
         </Btn>
         {msg && !pending && (
-          <span role="status" className={cn("text-xs font-bold uppercase tracking-wide", state?.ok ? "text-balkan" : "text-rose-hi")}>
+          <span
+            role="status"
+            className={cn("text-xs font-bold uppercase tracking-wide transition-opacity duration-500", state?.ok ? "text-balkan" : "text-rose-hi", gone === state && "opacity-0")}
+          >
             {msg}
           </span>
         )}
@@ -84,5 +93,41 @@ export function Panel({ title, help, children, className, i = 0 }: { title: stri
       </div>
       <div className="in-up p-4 sm:p-5 [--d:0.45s]">{children}</div>
     </section>
+  );
+}
+
+export function Field({ className, inputClassName, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { inputClassName?: string }) {
+  return (
+    <span className={cn("adm-field", props.disabled && "opacity-45", className)}>
+      <input {...props} className={cn("adm-bare", inputClassName)} />
+    </span>
+  );
+}
+
+export function IconAction({ action, label, confirm, danger, children }: { action: () => Promise<unknown>; label: string; confirm?: string; danger?: boolean; children: React.ReactNode }) {
+  const [pending, start] = useTransition();
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      disabled={pending}
+      onClick={() => {
+        if (confirm && !window.confirm(confirm)) return;
+        start(async () => {
+          try {
+            await action();
+          } catch {
+            window.location.reload();
+          }
+        });
+      }}
+      className={cn(
+        "group inline-flex size-10 -skew-x-12 items-center justify-center border transition-[color,border-color,background-color,transform] duration-200 hover:-translate-y-0.5 disabled:opacity-50",
+        danger ? "border-rose/50 text-rose-hi hover:border-rose hover:bg-rose hover:text-white" : "border-line text-ash hover:border-paper/40 hover:bg-slate hover:text-paper",
+      )}
+    >
+      <span className={cn("skew-x-12 transition-transform duration-200", pending && "animate-pulse")}>{children}</span>
+    </button>
   );
 }

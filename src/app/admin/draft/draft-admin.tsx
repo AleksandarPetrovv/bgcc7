@@ -27,7 +27,7 @@ export type DraftRow = {
 function Team({ team, side }: { team: TeamLite; side: 1 | 2 }) {
   const t = useDict();
   return (
-    <span className={cn("flex min-w-0 flex-1 items-center gap-2", side === 2 && "flex-row-reverse text-right")}>
+    <span className={cn("flex min-w-0 items-center gap-2", side === 1 && "flex-row-reverse justify-start text-right")}>
       {team?.image && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={team.image} alt="" className={cn("size-8 shrink-0 -skew-x-6 border-2 object-cover", side === 1 ? "border-rose" : "border-azure")} />
@@ -74,41 +74,43 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
           />
         )}
       </AnimatePresence>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-3 pl-5">
-        <div className="flex w-full min-w-0 items-center gap-2 text-xs font-black uppercase tracking-wide sm:w-44">
+      <div className="grid grid-cols-1 items-center gap-x-4 gap-y-2 px-3 py-3 pl-5 md:grid-cols-[12rem_minmax(0,1fr)_8rem]">
+        <div className="flex min-w-0 items-center gap-2 text-xs font-black uppercase tracking-wide">
           <span className="text-rose-hi">{r.round}</span>
           <span className="num text-ash">{r.when ?? t.common.tbd}</span>
         </div>
-        <div className="flex min-w-0 flex-1 basis-72 items-center gap-3">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
           <Team team={r.teams[0]} side={1} />
-          <span className="heading-slam shrink-0 text-sm text-ash">vs</span>
+          <span className="heading-slam w-8 text-center text-sm text-ash">vs</span>
           <Team team={r.teams[1]} side={2} />
         </div>
-        <AnimatePresence mode="popLayout">
-          {r.draft && (
-            <motion.span
-              key={`${r.draft.open}${r.draft.state}`}
-              initial={{ opacity: 0, scale: 0.7 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.7 }}
-              className={cn(
-                "inline-flex items-center gap-1.5 px-2 py-1 text-[0.65rem] font-black uppercase tracking-wider",
-                r.draft.open ? "bg-balkan/15 text-balkan" : "bg-slate text-ash",
-              )}
-            >
-              {r.draft.open ? (
-                <span className="relative flex size-1.5" aria-hidden>
-                  <span className="absolute inset-0 animate-ping rounded-full bg-balkan" />
-                  <span className="relative size-1.5 rounded-full bg-balkan" />
-                </span>
-              ) : (
-                <Lock className="size-3" />
-              )}
-              {t.admin.dr.state[r.draft.state] ?? r.draft.state}
-              {r.draft.steps > 0 && <span className="num opacity-70">· {r.draft.steps}</span>}
-            </motion.span>
-          )}
-        </AnimatePresence>
+        <div className="flex justify-start md:justify-end">
+          <AnimatePresence mode="popLayout">
+            {r.draft && (
+              <motion.span
+                key={`${r.draft.open}${r.draft.state}`}
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-2 py-1 text-[0.65rem] font-black uppercase tracking-wider",
+                  r.draft.open ? "bg-balkan/15 text-balkan" : "bg-slate text-ash",
+                )}
+              >
+                {r.draft.open ? (
+                  <span className="relative flex size-1.5" aria-hidden>
+                    <span className="absolute inset-0 animate-ping rounded-full bg-balkan" />
+                    <span className="relative size-1.5 rounded-full bg-balkan" />
+                  </span>
+                ) : (
+                  <Lock className="size-3" />
+                )}
+                {t.admin.dr.state[r.draft.state] ?? r.draft.state}
+                {r.draft.steps > 0 && <span className="num opacity-70">· {r.draft.steps}</span>}
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
       <div className="flex flex-wrap items-center gap-2 border-t border-dashed border-line px-3 py-2.5 pl-5">
         {!control ? (

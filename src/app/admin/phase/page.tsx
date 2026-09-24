@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PageTitle, Tag } from "@/components/site/page";
-import { ActionForm, dateCls, Panel } from "@/components/admin/form";
+import { ActionForm, dateCls, Panel, Field } from "@/components/admin/form";
 import { getSettings } from "@/db/settings";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
@@ -30,15 +30,17 @@ export default async function AdminPhase() {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <Panel title={t.admin.phaseNow} help={t.admin.phaseHelp} className="xl:col-span-2" i={0}>
           <ActionForm action={setPhase} submit={t.admin.applyPhase} className="space-y-4">
-            <div className="flex max-w-md flex-col gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {PHASES.map((p, i) => (
                 <label
                   key={p}
                   style={{ "--i": i, "--s": "0.07s", "--d": "0.5s" } as React.CSSProperties}
-                  className="in-pop flex cursor-pointer items-center gap-2.5 whitespace-nowrap border border-line px-3.5 py-3 text-sm font-black uppercase transition-colors hover:border-paper/40 has-[:checked]:border-rose has-[:checked]:bg-rose/10"
+                  className="in-pop flex min-h-14 -skew-x-6 cursor-pointer items-center gap-2.5 whitespace-nowrap border border-line px-4 text-sm font-black uppercase transition-colors hover:border-paper/40 has-[:checked]:border-rose has-[:checked]:bg-rose/10 has-[:checked]:shadow-[4px_4px_0_0_var(--color-rose-deep)]"
                 >
-                  <input type="radio" name="phase" value={p} defaultChecked={p === s.phase} className={check} />
-                  {t.admin.phases[p]}
+                  <span className="flex skew-x-6 items-center gap-2.5">
+                    <input type="radio" name="phase" value={p} defaultChecked={p === s.phase} className={check} />
+                    {t.admin.phases[p]}
+                  </span>
                 </label>
               ))}
             </div>
@@ -64,7 +66,7 @@ export default async function AdminPhase() {
               {dates.map(([name, label, value], i) => (
                 <label key={name} style={{ "--i": i, "--s": "0.07s", "--d": "0.6s" } as React.CSSProperties} className="in-up flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors">
                   {label}
-                  <input type="datetime-local" name={name} defaultValue={toSofiaInput(value)} className={dateCls} />
+                  <Field type="datetime-local" name={name} defaultValue={toSofiaInput(value)} className={dateCls} />
                 </label>
               ))}
             </div>
@@ -88,8 +90,8 @@ export default async function AdminPhase() {
                     <span className="text-xs text-ash sm:col-span-2">{t.admin.regFromDates}</span>
                   ) : (
                     <>
-                      <input type="date" name={`from.${k}`} defaultValue={row(k)?.from ?? ""} aria-label={`${t.timeline[k]} · ${t.admin.from}`} className={dateCls} />
-                      <input type="date" name={`to.${k}`} defaultValue={row(k)?.to ?? ""} aria-label={`${t.timeline[k]} · ${t.admin.to}`} className={dateCls} />
+                      <Field type="date" name={`from.${k}`} defaultValue={row(k)?.from ?? ""} aria-label={`${t.timeline[k]} · ${t.admin.from}`} className={dateCls} />
+                      <Field type="date" name={`to.${k}`} defaultValue={row(k)?.to ?? ""} aria-label={`${t.timeline[k]} · ${t.admin.to}`} className={dateCls} />
                     </>
                   )}
                 </div>

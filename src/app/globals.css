@@ -696,14 +696,14 @@ html.lite:not(.settled) .mk-dot {
 @keyframes mdlg-in { from { opacity: 0; transform: translateY(32px) skewY(1.5deg) scale(0.96); } 60% { opacity: 1; } }
 @keyframes mdlg-out { to { opacity: 0; transform: translateY(16px) scale(0.98); } }
 @keyframes mdlg-shine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
-.mdlg[data-open] { animation: mdlg-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both !important; }
+.mdlg[data-open] { animation: mdlg-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both !important; }
 .mdlg[data-closed] { animation: mdlg-out 0.2s ease-out both !important; }
 .mdlg-shine { background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.05) 50%, transparent 70%); animation: mdlg-shine 1.3s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
   .mdlg[data-open], .mdlg[data-closed], .mdlg-shine { animation: none !important; }
 }
 
-.adm :is(input:not([type="checkbox"], [type="radio"], [type="hidden"], [type="file"]), select, textarea) {
+.adm :is(input:not([type="checkbox"], [type="radio"], [type="hidden"], [type="file"], .adm-bare), select, textarea) {
   min-width: 0;
   max-width: 100%;
   min-height: 2.75rem;
@@ -720,8 +720,8 @@ html.lite:not(.settled) .mk-dot {
 }
 .adm textarea { padding: 0.6rem 0.85rem; }
 .adm :is(input, select, textarea)::placeholder { color: var(--color-ash); font-weight: 500; }
-.adm :is(input:not([type="checkbox"], [type="radio"]), select, textarea):hover { border-color: rgb(244 243 238 / 0.22); }
-.adm :is(input:not([type="checkbox"], [type="radio"]), select, textarea):focus {
+.adm :is(input:not([type="checkbox"], [type="radio"], .adm-bare), select, textarea):hover { border-color: rgb(244 243 238 / 0.22); }
+.adm :is(input:not([type="checkbox"], [type="radio"], .adm-bare), select, textarea):focus {
   border-color: var(--color-line);
   border-bottom-color: var(--color-rose);
   background-color: #151917;
@@ -801,7 +801,7 @@ html.lite:not(.settled) .mk-dot {
 .adm input[type="checkbox"]:not(.sr-only):checked::before { transform: translateY(-1px) rotate(-45deg) scale(1); }
 .adm input[type="radio"]:not(.sr-only):checked { transform: rotate(45deg) scale(1); }
 .adm input[type="radio"]:not(.sr-only):checked::before { transform: scale(1); }
-.adm :is(input, select, textarea):focus-visible { outline: 2px solid var(--color-rose); outline-offset: 2px; }
+.adm :is(input:not(.adm-bare), select, textarea):focus-visible { outline: 2px solid var(--color-rose); outline-offset: 2px; }
 .adm label:focus-within { color: var(--color-paper); }
 .adm input.adm-tight { min-height: 2.25rem; padding: 0 0.5rem; font-size: 0.8rem; }
 
@@ -826,3 +826,69 @@ html.lite:not(.settled) .mk-dot {
 @keyframes match-run { to { stroke-dashoffset: -100; } }
 .match-run { animation: match-run 2.4s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .match-run { animation-duration: 6s; } }
+
+.adm-field {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  min-width: 0;
+  height: 2.5rem;
+  transform: skewX(-12deg);
+  border: 1px solid var(--color-line);
+  border-bottom: 2px solid rgb(244 243 238 / 0.16);
+  background-color: #111412;
+  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.25s;
+}
+.adm-field:hover { border-color: rgb(244 243 238 / 0.22); }
+.adm-field:focus-within {
+  border-bottom-color: var(--color-rose);
+  background-color: #151917;
+  box-shadow: 4px 4px 0 0 var(--color-rose-deep);
+}
+.adm-field > input.adm-bare {
+  width: 100%;
+  min-width: 0;
+  transform: skewX(12deg);
+  border: 0;
+  background: transparent;
+  padding: 0 0.9rem;
+  color: var(--color-paper);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: inherit;
+  outline: none;
+}
+.adm-field.text-lg > input.adm-bare { font-size: 1.125rem; }
+.adm-field > input.adm-bare::placeholder { color: var(--color-ash); font-weight: 500; }
+.adm-field > input.adm-bare[type="number"] { appearance: textfield; font-variant-numeric: tabular-nums; }
+.adm-field > input.adm-bare::-webkit-inner-spin-button, .adm-field > input.adm-bare::-webkit-outer-spin-button { appearance: none; margin: 0; }
+.adm-field > input.adm-bare::-webkit-calendar-picker-indicator { filter: invert(0.75); opacity: 0.7; cursor: pointer; }
+.adm-field > input.adm-bare::-webkit-date-and-time-value { text-align: left; margin: 0; }
+.adm-field.adm-tight { height: 2.25rem; }
+.adm-field.adm-tight > input.adm-bare { padding: 0 0.5rem; font-size: 0.8rem; }
+
+@keyframes mdlg-bar { 0%, 100% { height: 30%; opacity: 0.5; } 50% { height: 100%; opacity: 1; } }
+.mdlg-bar { height: 30%; animation: mdlg-bar 0.8s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .mdlg-bar { animation-duration: 2s; } }
+
+@keyframes eye-sheen { 0%, 60% { left: -12px; } 100% { left: 110%; } }
+.eye-sheen { animation: eye-sheen 2.8s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .eye-sheen { animation: none; opacity: 0; } }
+
+@keyframes btn-shine { 0%, 86% { background-position: 130% 0; } 100% { background-position: -30% 0; } }
+.btn-shine { background-image: linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.5) 50%, transparent 60%); background-size: 300% 100%; background-repeat: no-repeat; animation: btn-shine 5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+@media (prefers-reduced-motion: reduce) { .btn-shine { animation: none; background-image: none; } }
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .sr-live.sr, .sr-live .sr {
+      animation-duration: auto !important;
+      animation-delay: 0s !important;
+      animation-fill-mode: both !important;
+      animation-play-state: running !important;
+      animation-timeline: view() !important;
+      animation-range: entry 0% cover 35% !important;
+    }
+  }
+}
