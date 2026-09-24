@@ -182,7 +182,7 @@ function TeamMosaic({ teams }: { teams: Team[] }) {
 function AvatarCloud({ people }: { people: { id: number; avatar: string | null }[] }) {
   return (
     <div className="flex h-full flex-wrap content-center items-center gap-2.5 px-5" aria-hidden>
-      {people.slice(0, 14).map((p, i) => (
+      {people.slice(0, 18).map((p, i) => (
         <span key={p.id} className="anim-rise transition-transform duration-300 group-hover:-translate-y-0.5" style={{ animationDelay: `${0.25 + i * 0.04}s`, transitionDelay: `${i * 25}ms` }}>
           <Avatar src={p.avatar} className="size-9" />
         </span>
