@@ -3,7 +3,7 @@
 import type { Match } from "@/lib/data";
 import { roundName } from "@/lib/i18n/dict";
 import { fmtSofia } from "@/lib/time";
-import { DetailsIcon, MatchDialog } from "./match-dialog";
+import { DetailsChip, MatchDialog } from "./match-dialog";
 import { useDict, useLang } from "./lang";
 import { useTournament } from "./tournament";
 import { cn } from "@/lib/utils";
@@ -34,8 +34,8 @@ export function ResultCard({ m }: { m: Match }) {
         <span className="truncate text-rose-hi">{roundName(t, m.round)}</span>
         <span className="num ml-auto shrink-0 text-[0.8rem] font-normal normal-case text-paper/70">{m.datetime && fmtSofia(new Date(m.datetime), lang === "bg" ? "bg-BG" : "en-GB")}</span>
         {m.links.length > 0 && (
-          <span className="-mr-2.5 flex h-6 w-7 shrink-0 items-center justify-end text-paper/80 transition group-hover:text-white group-hover:drop-shadow-[0_0_6px_rgba(242,74,84,0.75)]">
-            <DetailsIcon />
+          <span className="-mr-1 flex shrink-0 items-center">
+            <DetailsChip />
           </span>
         )}
       </span>
