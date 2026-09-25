@@ -50,7 +50,7 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
   const firstTo = stages.find((s) => s.slug === match.stage)?.firstTo ?? 7;
   try {
     const data = await buildScoreboard(match, teams, playoffPools(stages), await getEdits(match.id), ezMult);
-    if (Math.max(...data.score) >= firstTo) {
+    if (Math.max(...data.score) >= firstTo || match.winner) {
       await db
         .insert(matchCache)
         .values({ matchId: match.id, links, data })
