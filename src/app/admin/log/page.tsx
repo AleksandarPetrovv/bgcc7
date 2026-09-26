@@ -9,7 +9,7 @@ import { groupOf, LOG_GROUPS, LogTable } from "./log-table";
 
 export default async function AdminLog({ searchParams }: PageProps<"/admin/log">) {
   const [t, lang, viewer, rows, ctx, sp] = await Promise.all([getDict(), getLang(), getViewer(), getLog(500), getLogCtx(), searchParams]);
-  if (!can(viewer?.role, "log")) notFound();
+  if (!can(viewer?.roles, "log")) notFound();
   const filter = typeof sp.type === "string" && sp.type in LOG_GROUPS ? sp.type : null;
   const shown = filter ? rows.filter((r) => groupOf(r.action) === filter) : rows;
   return (

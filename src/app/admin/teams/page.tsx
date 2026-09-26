@@ -21,7 +21,7 @@ const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase
 
 export default async function AdminTeams() {
   const [t, viewer, teams, results, regs, settings] = await Promise.all([getDict(), getViewer(), getTeams(), getQualResults(), getRegistrations(), getSettings()]);
-  if (!can(viewer?.role, "teams")) notFound();
+  if (!can(viewer?.roles, "teams")) notFound();
   const taken = new Set(teams.flatMap((x) => x.players.map((p) => p.userId)));
   const seedOf = new Map(results.players.map((p, i) => [p.id, i + 1]));
   const pool = [

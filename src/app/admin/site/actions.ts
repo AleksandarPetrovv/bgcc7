@@ -61,7 +61,7 @@ export async function deleteSponsor(id: number) {
 export async function wipeTestData() {
   return guard("phase", "site.wipeTestData", async () => {
     const v = await requireRole("staff");
-    if (v.role !== "host") return { ok: false, error: "forbidden" };
+    if (!v.roles.includes("host")) return { ok: false, error: "forbidden" };
     const seededUsers = (await db.select({ id: users.osuId }).from(users).where(eq(users.seeded, true))).map((u) => u.id);
     await db.transaction(async (tx) => {
       await tx.delete(qualScores).where(eq(qualScores.seeded, true));

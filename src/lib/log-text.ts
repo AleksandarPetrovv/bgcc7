@@ -130,8 +130,12 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       const ft = p.firstTo ? (bg ? `, до ${p.firstTo}` : `, first to ${p.firstTo}`) : "";
       return bg ? `обнови ${stage("id")} (мапове: ${pool}${ft})` : `updated ${stage("id")} (pool ${pool}${ft})`;
     }
-    case "map.add":
-      return bg ? `добави ${b(p.title)} към мапуула за ${stage()} като ${p.mod}` : `added ${b(p.title)} to the ${stage()} pool as ${p.mod}`;
+    case "stage.rename":
+      return bg ? `преименува етап на ${b(p.title)}` : `renamed a stage to ${b(p.title)}`;
+    case "map.add": {
+      const as = `${p.mod}${p.slot ? ` #${p.slot}` : ""}`;
+      return bg ? `добави ${b(p.title)} към мапуула за ${stage()} като ${as}` : `added ${b(p.title)} to the ${stage()} pool as ${as}`;
+    }
     case "map.move":
       return bg ? `премести ${map()} ${num(p.dir) < 0 ? "нагоре" : "надолу"}` : `moved ${map()} ${num(p.dir) < 0 ? "up" : "down"}`;
     case "map.delete":
@@ -217,7 +221,8 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
     case "staff.reorder":
       return bg ? "пренареди екипа" : "reordered the staff";
     case "staff.update": {
-      const role = p.permRole ? b(h.role(String(p.permRole))) : bg ? "без достъп" : "no access";
+      const list: string[] = Array.isArray(p.permRoles) ? p.permRoles.map(String) : p.permRole ? [String(p.permRole)] : [];
+      const role = list.length ? list.map((r) => b(h.role(r))).join(" + ") : bg ? "без достъп" : "no access";
       return bg ? `смени правата на ${user()} на ${role}` : `set ${user()}'s access to ${role}`;
     }
     case "staff.remove":

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { CountUp } from "@/components/site/motion";
 import { PageTitle, SubHeading } from "@/components/site/page";
 import { ArrowUpRight } from "lucide-react";
@@ -8,11 +9,13 @@ import { getLog, getLogCtx, getStaff } from "@/db/admin";
 import { ADMINS } from "@/lib/admins";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { getViewer } from "@/lib/authz";
-import { can } from "@/lib/roles";
+import { can, PERMS } from "@/lib/roles";
 import { SECTIONS } from "@/lib/sections";
 import { LogTable } from "./log/log-table";
 
 export default async function AdminOverview() {
+  const roles = (await getViewer())?.roles;
+  if (!can(roles, "overview")) redirect(`/admin/${PERMS.find((p) => p !== "overview" && can(roles, p))}`);
   const [t, lang, settings, regs, staff, log, viewer, ctx] = await Promise.all([
     getDict(),
     getLang(),
@@ -23,18 +26,18 @@ export default async function AdminOverview() {
     getViewer(),
     getLogCtx(),
   ]);
-  const staffCount = new Set([...ADMINS, ...staff.filter((s) => s.permRole).map((s) => s.osuId)]).size;
+  const staffCount = new Set([...ADMINS, ...staff.filter((s) => s.permRoles.length).map((s) => s.osuId)]).size;
   const visible = SECTIONS.filter((s) => settings.sections[s]).length;
   const tiles = [
-    { k: t.admin.phaseNow, v: t.admin.phases[settings.phase], sub: t.admin.visiblePages(visible), href: can(viewer?.role, "phase") ? "/admin/phase" : null },
-    { k: t.admin.registered, v: String(regs.length), sub: null, href: can(viewer?.role, "screening") ? "/admin/screening" : null },
+    { k: t.admin.phaseNow, v: t.admin.phases[settings.phase], sub: t.admin.visiblePages(visible), href: can(viewer?.roles, "phase") ? "/admin/phase" : null },
+    { k: t.admin.registered, v: String(regs.length), sub: null, href: can(viewer?.roles, "screening") ? "/admin/screening" : null },
     {
       k: t.admin.pendingReview,
       v: String(regs.filter((r) => r.status === "pending").length),
       sub: null,
-      href: can(viewer?.role, "screening") ? "/admin/screening?status=pending" : null,
+      href: can(viewer?.roles, "screening") ? "/admin/screening?status=pending" : null,
     },
-    { k: t.admin.staffCount, v: String(staffCount), sub: null, href: can(viewer?.role, "staff") ? "/admin/staff" : null },
+    { k: t.admin.staffCount, v: String(staffCount), sub: null, href: can(viewer?.roles, "staff") ? "/admin/staff" : null },
   ];
   return (
     <>
@@ -66,7 +69,7 @@ export default async function AdminOverview() {
           );
         })}
       </div>
-      {can(viewer?.role, "log") && (
+      {can(viewer?.roles, "log") && (
         <section className="mt-8">
           <div className="in-left [--d:0.45s]">
             <SubHeading>{t.admin.recent}</SubHeading>

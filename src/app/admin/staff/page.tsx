@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getRegistrations } from "@/db/registrations";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, inputCls, Panel } from "@/components/admin/form";
+import { ActionForm, inputCls, Panel, Field } from "@/components/admin/form";
 import { getStaff } from "@/db/admin";
 import { getViewer } from "@/lib/authz";
 import { ADMINS } from "@/lib/admins";
@@ -15,8 +15,8 @@ export default async function AdminStaff() {
   const [t, viewer, rows, regs] = await Promise.all([getDict(), getViewer(), getStaff(), getRegistrations()]);
   const playing = new Set(regs.filter((r) => r.status !== "denied").map((r) => r.osuId));
   const CAN_PLAY = ["Streamer", "Commentator", "GFX / Designer"];
-  const clash = (s: (typeof rows)[number]) => playing.has(s.osuId) && (!!s.permRole || s.displayRoles.some((r) => !CAN_PLAY.includes(r)));
-  if (!can(viewer?.role, "staff")) notFound();
+  const clash = (s: (typeof rows)[number]) => playing.has(s.osuId) && (s.permRoles.length > 0 || s.displayRoles.some((r) => !CAN_PLAY.includes(r)));
+  if (!can(viewer?.roles, "staff")) notFound();
   return (
     <>
       <PageTitle>{t.admin.menu.staff}</PageTitle>
@@ -25,19 +25,19 @@ export default async function AdminStaff() {
       </p>
 
       <Panel title={t.admin.addStaff} className="mb-6">
-        <ActionForm action={addStaff} submit={t.admin.add} className="flex flex-wrap items-center gap-3">
-          <input name="q" required maxLength={32} placeholder={t.admin.addPlaceholder} className={`${inputCls} w-full sm:w-64`} aria-label={t.admin.addPlaceholder} />
+        <ActionForm action={addStaff} submit={t.admin.add} className="flex items-center gap-3">
+          <Field name="q" required maxLength={32} placeholder={t.admin.addPlaceholder} className={`${inputCls} flex-1 sm:max-w-sm`} aria-label={t.admin.addPlaceholder} />
         </ActionForm>
       </Panel>
 
       <StaffList
-        key={rows.map((s) => `${s.osuId}:${s.permRole}:${s.displayRoles.join("+")}`).join()}
+        key={rows.map((s) => `${s.osuId}:${s.permRoles.join("+")}:${s.displayRoles.join("+")}`).join()}
         rows={rows.map((s) => ({
           osuId: s.osuId,
           username: s.username,
           avatarUrl: s.avatarUrl,
           country: s.country,
-          permRole: s.permRole,
+          permRoles: s.permRoles,
           displayRoles: s.displayRoles,
           builtIn: ADMINS.includes(s.osuId),
           clash: clash(s),

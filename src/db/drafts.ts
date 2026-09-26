@@ -112,8 +112,8 @@ export async function draftAccess(matchId: string) {
   if (!v) return null;
   const [m] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
   if (!m) return null;
-  const admin = can(v.role, "matches");
-  const watch = can(v.role, "draft");
+  const admin = can(v.roles, "matches");
+  const watch = can(v.roles, "draft");
   const [cap] = await db
     .select({ teamId: teamMembers.teamId })
     .from(teamMembers)

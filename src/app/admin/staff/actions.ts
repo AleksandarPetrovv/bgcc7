@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { staff, users } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
 import { getUser } from "@/lib/osu-api";
-import { isRole, STAFF_ROLES, type ActionResult } from "@/lib/roles";
+import { cleanRoles, STAFF_ROLES, type ActionResult } from "@/lib/roles";
 
 export async function addStaff(_: ActionResult, fd: FormData) {
   return guard("staff", "staff.add", async () => {
@@ -22,11 +22,10 @@ export async function addStaff(_: ActionResult, fd: FormData) {
 
 export async function updateStaff(osuId: number, _: ActionResult, fd: FormData) {
   return guard("staff", "staff.update", async () => {
-    const perm = String(fd.get("permRole") ?? "");
-    const permRole = isRole(perm) ? perm : null;
+    const permRoles = cleanRoles(fd.getAll("permRoles").map(String));
     const displayRoles = fd.getAll("displayRoles").map(String).filter((r) => STAFF_ROLES.includes(r));
-    await db.update(staff).set({ permRole, displayRoles }).where(eq(staff.osuId, osuId));
-    return { osuId, permRole, displayRoles };
+    await db.update(staff).set({ permRoles, displayRoles }).where(eq(staff.osuId, osuId));
+    return { osuId, permRoles, displayRoles };
   });
 }
 

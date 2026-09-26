@@ -69,7 +69,7 @@ export const staff = pgTable("staff", {
   osuId: integer("osu_id")
     .primaryKey()
     .references(() => users.osuId, { onDelete: "cascade" }),
-  permRole: text("perm_role"),
+  permRoles: text("perm_roles").array().notNull().default(sql`'{}'::text[]`),
   displayRoles: text("display_roles").array().notNull().default(sql`'{}'::text[]`),
   order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

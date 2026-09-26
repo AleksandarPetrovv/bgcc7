@@ -18,7 +18,7 @@ const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase
 
 export default async function AdminQualifiers() {
   const [t, viewer, lobbies, results, rows, settings] = await Promise.all([getDict(), getViewer(), getLobbies(), getQualResults(), getQualScoreRows(), getSettings()]);
-  if (!can(viewer?.role, "qualifiers")) notFound();
+  if (!can(viewer?.roles, "qualifiers")) notFound();
   const slotOf = new Map(results.maps.map((m) => [m.id, m.slot]));
 
   return (

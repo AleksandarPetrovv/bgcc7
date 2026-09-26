@@ -27,7 +27,7 @@ export default async function AdminMatches() {
     getTeams(),
     getPoolStages(),
   ]);
-  if (!can(viewer?.role, "matches")) notFound();
+  if (!can(viewer?.roles, "matches")) notFound();
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? t.common.tbd;
   const bracketStages = stages.filter((s) => s.slug !== "qualifiers");

@@ -27,8 +27,8 @@ export default async function AdminDraft() {
     db.select().from(drafts).catch(() => []),
   ]);
   const cfg = await timers();
-  if (!can(viewer?.role, "draft")) notFound();
-  const control = can(viewer?.role, "matches");
+  if (!can(viewer?.roles, "draft")) notFound();
+  const control = can(viewer?.roles, "matches");
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const team = (id: string | null) => teams.find((x) => x.id === id);
   const pools = stages.filter((s) => s.slug !== "qualifiers" && s.pools.length);
