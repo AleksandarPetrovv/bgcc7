@@ -8,18 +8,24 @@ export function InView({
   className,
   style,
   self,
+  scrub,
   children,
 }: {
   as?: "div" | "ul" | "ol" | "section" | "li" | "article";
   className?: string;
   style?: React.CSSProperties;
   self?: boolean;
+  scrub?: boolean;
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    if (scrub && CSS.supports("animation-timeline: view()") && el.getBoundingClientRect().top > window.innerHeight) {
+      el.classList.add("sr-live", "in");
+      return;
+    }
     const io = new IntersectionObserver(([e]) => {
       if (!e.isIntersecting) return;
       el.classList.add("in");

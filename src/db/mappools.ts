@@ -39,9 +39,9 @@ export const getPoolStages = cache(() =>
           category: mod,
           maps: ms
             .filter((m) => m.stageId === s.id && m.mod === mod)
-            .map((m, i) => ({
+            .map((m) => ({
               rowId: m.id,
-              slot: slotOf(mod, i),
+              slot: slotOf(mod, m.order),
               mod,
               title: m.title,
               version: m.version,

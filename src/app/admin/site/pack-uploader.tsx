@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { FileArchive, PackagePlus, UploadCloud } from "lucide-react";
+import { Download, FileArchive, PackagePlus, UploadCloud } from "lucide-react";
 import { Btn } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
 import { Tabs } from "@/components/site/tabs";
@@ -17,7 +17,7 @@ const mb = (n: number) => `${(n / 1024 / 1024).toFixed(n > 100 * 1024 * 1024 ? 0
 
 const latest = (a: Pack | null, b: Pack | null | undefined) => (b === undefined ? a : !a || !b ? (b ?? a) : (b.at ?? "") > (a.at ?? "") ? b : a);
 
-export function PackUploader({ stages, locale }: { stages: StageInfo[]; locale: string }) {
+export function PackUploader({ stages, locale, simple }: { stages: StageInfo[]; locale: string; simple?: boolean }) {
   const t = useDict();
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
@@ -131,17 +131,19 @@ export function PackUploader({ stages, locale }: { stages: StageInfo[]; locale: 
 
   return (
     <div className="space-y-4">
-      <Tabs
-        label={t.admin.packs}
-        index={stages.findIndex((s) => s.slug === slug)}
-        onChange={(i) => setSlug(stages[i].slug)}
-        options={stages.map((s) => (
-          <>
-            {name(s)}
-            <span className={cn("size-1.5 rotate-45", jobs[s.slug]?.state === "running" ? "animate-pulse bg-rose" : packOf(s) ? "bg-balkan" : "bg-line")} aria-hidden />
-          </>
-        ))}
-      />
+      {!simple && (
+        <Tabs
+          label={t.admin.packs}
+          index={stages.findIndex((s) => s.slug === slug)}
+          onChange={(i) => setSlug(stages[i].slug)}
+          options={stages.map((s) => (
+            <>
+              {name(s)}
+              <span className={cn("size-1.5 rotate-45", jobs[s.slug]?.state === "running" ? "animate-pulse bg-rose" : packOf(s) ? "bg-balkan" : "bg-line")} aria-hidden />
+            </>
+          ))}
+        />
+      )}
 
       <div className="flex flex-wrap items-center gap-3 border border-line bg-ink/50 px-4 py-3 text-sm">
         <FileArchive className={cn("size-5 shrink-0", pack ? "text-balkan" : "text-ash")} />
@@ -151,61 +153,87 @@ export function PackUploader({ stages, locale }: { stages: StageInfo[]; locale: 
               <span className="font-bold">{t.admin.packCurrent}</span>{" "}
               <span className="num text-ash">
                 {mb(pack.size)}
-                {pack.at && ` · ${new Date(pack.at).toLocaleString(locale, { timeZone: "Europe/Sofia", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}`}
+                {pack.at &&
+                  ` · ${new Date(pack.at).toLocaleString(locale, { timeZone: "Europe/Sofia", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}`}
               </span>
             </span>
-            <Btn type="button" tone="outline" small onClick={remove}>
-              {t.admin.packDelete}
-            </Btn>
+            {simple ? (
+              <a
+                href={`/download/${stage.slug}?v=${pack.at ?? pack.size}`}
+                download
+                aria-label={t.admin.packDownload}
+                title={t.admin.packDownload}
+                className="lift-sm grid size-10 shrink-0 -skew-x-12 place-items-center border border-balkan/60 text-balkan transition-colors hover:bg-balkan hover:text-white"
+              >
+                <Download className="size-4 skew-x-12" />
+              </a>
+            ) : (
+              <Btn type="button" tone="outline" small onClick={remove}>
+                {t.admin.packDelete}
+              </Btn>
+            )}
           </>
         ) : (
           <span className="text-ash">{t.admin.packNone}</span>
         )}
       </div>
 
-      <button
-        type="button"
-        disabled={progress !== null}
-        onClick={() => input.current?.click()}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setOver(true);
-        }}
-        onDragLeave={() => setOver(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setOver(false);
-          const f = e.dataTransfer.files[0];
-          if (f) upload(f);
-        }}
-        className={cn(
-          "group relative flex w-full flex-col items-center justify-center gap-2 overflow-hidden border-2 border-dashed px-4 py-8 text-center transition-colors",
-          over ? "border-rose bg-rose/10" : "border-line hover:border-paper/40",
-        )}
-      >
-        <motion.span animate={over ? { y: -4, scale: 1.1 } : { y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 400, damping: 20 }}>
-          <UploadCloud className={cn("size-8 transition-colors", over ? "text-rose-hi" : "text-ash group-hover:text-paper")} />
-        </motion.span>
-        <span className="text-sm font-bold uppercase tracking-wide">{pack ? t.admin.packReplace(name(stage)) : t.admin.packDrop(name(stage))}</span>
-        <span className="text-xs text-ash">{t.admin.packHint}</span>
-        <AnimatePresence>
-          {progress !== null && (
-            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-x-0 bottom-0 h-1.5 bg-slate">
-              <motion.span className="block h-full origin-left bg-rose" animate={{ scaleX: progress }} transition={{ ease: "easeOut", duration: 0.2 }} />
-            </motion.span>
+      {!simple && (
+        <button
+          type="button"
+          disabled={progress !== null}
+          onClick={() => input.current?.click()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setOver(true);
+          }}
+          onDragLeave={() => setOver(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setOver(false);
+            const f = e.dataTransfer.files[0];
+            if (f) upload(f);
+          }}
+          className={cn(
+            "group relative flex w-full flex-col items-center justify-center gap-2 overflow-hidden border-2 border-dashed px-4 py-8 text-center transition-colors",
+            over ? "border-rose bg-rose/10" : "border-line hover:border-paper/40",
           )}
-        </AnimatePresence>
-        {progress !== null && <span className="num text-lg text-paper">{Math.round(progress * 100)}%</span>}
-      </button>
-      <div className="flex flex-wrap items-center gap-3 border border-line bg-ink/50 px-4 py-3">
-        <Btn type="button" tone="outline" small onClick={generate} disabled={generating || progress !== null}>
-          <PackagePlus className="size-3.5" /> {t.admin.packGenerate}
+        >
+          <motion.span animate={over ? { y: -4, scale: 1.1 } : { y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 400, damping: 20 }}>
+            <UploadCloud className={cn("size-8 transition-colors", over ? "text-rose-hi" : "text-ash group-hover:text-paper")} />
+          </motion.span>
+          <span className="text-sm font-bold uppercase tracking-wide">{pack ? t.admin.packReplace(name(stage)) : t.admin.packDrop(name(stage))}</span>
+          <span className="text-xs text-ash">{t.admin.packHint}</span>
+          <AnimatePresence>
+            {progress !== null && (
+              <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-x-0 bottom-0 h-1.5 bg-slate">
+                <motion.span className="block h-full origin-left bg-rose" animate={{ scaleX: progress }} transition={{ ease: "easeOut", duration: 0.2 }} />
+              </motion.span>
+            )}
+          </AnimatePresence>
+          {progress !== null && <span className="num text-lg text-paper">{Math.round(progress * 100)}%</span>}
+        </button>
+      )}
+      <div className={cn("flex flex-wrap items-center gap-3", simple ? "flex-col items-stretch" : "border border-line bg-ink/50 px-4 py-3")}>
+        <Btn
+          type="button"
+          tone={simple ? "rose" : "outline"}
+          small={!simple}
+          onClick={generate}
+          disabled={generating || progress !== null}
+          className={cn(simple && "min-h-14 text-base shadow-[4px_4px_0_0_var(--color-rose-deep)]", simple && !generating && "btn-shine")}
+        >
+          <PackagePlus className={simple ? "size-5" : "size-3.5"} /> {t.admin.packGenerate}
         </Btn>
         {generating ? (
           <span className="num min-w-0 flex-1 text-xs text-paper">
             {job.zipping ? t.admin.packZipping : job.total ? t.admin.packGenerating(job.done, job.total) : t.admin.packPreparing}
             <span className="mt-1.5 block h-1 bg-slate">
-              <motion.span className="block h-full origin-left bg-rose" animate={{ scaleX: job.total ? job.done / job.total : 0.05 }} transition={{ ease: "easeOut", duration: 0.3 }} />
+              <motion.span
+                className="block h-full origin-left bg-rose"
+                animate={{ scaleX: job.total ? job.done / job.total : 0.05 }}
+                transition={{ ease: "easeOut", duration: 0.3 }}
+              />
             </span>
           </span>
         ) : (
