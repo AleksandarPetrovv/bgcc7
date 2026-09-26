@@ -15,7 +15,7 @@ import { ScreeningRow } from "./screening-row";
 
 export default async function AdminScreening({ searchParams }: PageProps<"/admin/screening">) {
   const [t, lang, viewer, rows, sp] = await Promise.all([getDict(), getLang(), getViewer(), getRegistrations(), searchParams]);
-  if (!can(viewer?.role, "screening")) notFound();
+  if (!can(viewer?.roles, "screening")) notFound();
   const filter = isStatus(sp.status) ? sp.status : null;
   const shown = filter ? rows.filter((r) => r.status === filter) : rows;
   const count = (s: string | null) => (s ? rows.filter((r) => r.status === s).length : rows.length);

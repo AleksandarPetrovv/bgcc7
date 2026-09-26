@@ -15,7 +15,7 @@ const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
 export default async function AdminSettings() {
   const [t, s, viewer, stages, matches] = await Promise.all([getDict(), getSettings(), getViewer(), getPoolStages(), getMatches()]);
-  if (!can(viewer?.role, "settings")) notFound();
+  if (!can(viewer?.roles, "settings")) notFound();
   const rounds = stages.filter((st) => st.slug !== "qualifiers");
   const usedBy = (slug: string) => [...new Set(matches.filter((m) => m.stage === slug).map((m) => roundName(t, m.round)))];
 

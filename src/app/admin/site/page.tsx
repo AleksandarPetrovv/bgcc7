@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, inputCls, labelCls, Panel } from "@/components/admin/form";
+import { ActionForm, inputCls, Panel, Field } from "@/components/admin/form";
 import { getSponsors } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
 import { getViewer } from "@/lib/authz";
@@ -13,7 +13,7 @@ import { SponsorList } from "./sponsor-list";
 
 export default async function AdminSite() {
   const [t, lang, viewer, sponsors, stages] = await Promise.all([getDict(), getLang(), getViewer(), getSponsors(), getPoolStages()]);
-  if (!can(viewer?.role, "phase")) notFound();
+  if (!can(viewer?.roles, "phase")) notFound();
 
   return (
     <>
@@ -27,16 +27,13 @@ export default async function AdminSite() {
         </div>
 
         <Panel title={t.admin.sponsors} help={t.admin.sponsorHelp} i={1}>
-          <ActionForm action={addSponsor} submit={t.admin.add} className="mb-5 flex flex-wrap items-end gap-3">
-            <label className={cn(labelCls, "w-full sm:min-w-56 sm:flex-1")}>
-              {t.admin.sponsorQ}
-              <input name="q" required maxLength={200} placeholder="https://osu.ppy.sh/users/…" className={inputCls} />
-            </label>
+          <ActionForm action={addSponsor} submit={t.admin.add} className="mb-5 flex items-center gap-3">
+            <Field name="q" required maxLength={200} placeholder="https://osu.ppy.sh/users/…" aria-label={t.admin.sponsorQ} className={cn(inputCls, "min-w-0 flex-1")} />
           </ActionForm>
           <SponsorList key={sponsors.map((s) => `${s.id}:${s.name}`).join()} sponsors={sponsors} />
         </Panel>
 
-        {viewer?.role === "host" && (
+        {viewer?.roles.includes("host") && (
           <Panel title={t.admin.danger} help={t.admin.wipeHelp} className="border-rose/50 xl:col-span-2" i={3}>
             <ActionForm action={wipeTestData} submit={t.admin.wipe} confirm={t.admin.confirmWipe} />
           </Panel>

@@ -25,8 +25,8 @@ const MENU: { href: string; perm: Perm }[] = [
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const [viewer, session, t] = await Promise.all([getViewer(), auth(), getDict()]);
-  if (!viewer?.role) notFound();
-  const items = MENU.filter((m) => can(viewer.role, m.perm)).map((m) => ({ href: m.href, label: t.admin.menu[m.href.split("/")[2] ?? "overview"] }));
+  if (!viewer?.roles.length) notFound();
+  const items = MENU.filter((m) => can(viewer.roles, m.perm)).map((m) => ({ href: m.href, label: t.admin.menu[m.href.split("/")[2] ?? "overview"] }));
   const name = session?.user?.name;
   const avatar = session?.user?.image;
   return (
@@ -54,7 +54,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
                   {t.admin.hello}, {name}!
                 </div>
                 <Tag tone="balkan" className="mt-1.5">
-                  {t.admin.roles[viewer.role]}
+                  {viewer.roles.map((r) => t.admin.roles[r]).join(" + ")}
                 </Tag>
               </div>
             </div>

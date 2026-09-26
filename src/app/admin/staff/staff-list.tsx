@@ -2,12 +2,11 @@
 
 import { useRef, useState, useTransition } from "react";
 import { Reorder, useDragControls } from "motion/react";
-import { GripVertical, TriangleAlert } from "lucide-react";
+import { Check, Crown, Gavel, GripVertical, Lock, Map as MapIcon, TriangleAlert } from "lucide-react";
 import { ActionForm } from "@/components/admin/form";
-import { Dropdown } from "@/components/admin/dropdown";
 import { useDict } from "@/components/site/lang";
 import { flagUrl } from "@/lib/data";
-import { ROLES, STAFF_ROLES } from "@/lib/roles";
+import { ROLES, STAFF_ROLES, type Role } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { removeStaff, reorderStaff, updateStaff } from "./actions";
 
@@ -16,7 +15,7 @@ export type StaffRow = {
   username: string;
   avatarUrl: string | null;
   country: string | null;
-  permRole: string | null;
+  permRoles: string[];
   displayRoles: string[];
   builtIn: boolean;
   clash: boolean;
@@ -63,15 +62,7 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
       )}
       <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-end">
         <ActionForm action={updateStaff.bind(null, s.osuId)} className="flex flex-1 flex-col gap-4">
-          <label className="flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors sm:w-56">
-            {t.admin.permission}
-            <Dropdown
-              name="permRole"
-              defaultValue={s.builtIn ? "host" : (s.permRole ?? "")}
-              disabled={s.builtIn}
-              options={[{ value: "", label: t.admin.noPerm }, ...ROLES.map((r) => ({ value: r, label: t.admin.roles[r] }))]}
-            />
-          </label>
+          <PermPicker initial={s.builtIn ? ["host"] : s.permRoles} locked={s.builtIn} />
           <fieldset>
             <legend className="mb-1.5 text-xs font-bold uppercase text-ash">{t.admin.publicRoles}</legend>
             <div className="flex flex-wrap gap-1.5">
@@ -79,10 +70,10 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
                 <label
                   key={r}
                   style={{ "--i": k, "--s": "0.04s", "--d": "0.7s" } as React.CSSProperties}
-                  className="in-pop cursor-pointer border border-line px-2 py-1.5 text-xs font-black uppercase text-ash transition-colors has-[:checked]:border-rose has-[:checked]:bg-rose has-[:checked]:text-white"
+                  className="in-pop flex min-h-9 -skew-x-12 cursor-pointer items-center border border-line px-3 text-xs font-black uppercase text-ash transition-[color,background-color,border-color,box-shadow] duration-200 hover:border-paper/40 hover:text-paper has-[:checked]:border-rose has-[:checked]:bg-rose has-[:checked]:text-white has-[:checked]:shadow-[3px_3px_0_0_var(--color-rose-deep)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose"
                 >
                   <input type="checkbox" name="displayRoles" value={r} defaultChecked={s.displayRoles.includes(r)} className="sr-only" />
-                  {t.staff.roles[r] ?? r}
+                  <span className="skew-x-12">{t.staff.roles[r] ?? r}</span>
                 </label>
               ))}
             </div>
@@ -91,6 +82,60 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
         {!s.builtIn && <ActionForm action={removeStaff.bind(null, s.osuId)} submit={t.admin.remove} ghost confirm={t.admin.confirmRemove} />}
       </div>
     </Reorder.Item>
+  );
+}
+
+const PERM_ICON: Record<Role, typeof Crown> = { host: Crown, referee: Gavel, mappooler: MapIcon };
+
+function PermPicker({ initial, locked }: { initial: string[]; locked: boolean }) {
+  const t = useDict();
+  const [on, setOn] = useState(() => new Set(initial));
+  const host = on.has("host");
+  const toggle = (r: Role) =>
+    setOn((prev) => {
+      const next = new Set(prev);
+      if (next.has(r)) next.delete(r);
+      else if (r === "host") return new Set([r]);
+      else next.add(r);
+      return next;
+    });
+  return (
+    <fieldset>
+      <legend className="mb-1.5 flex items-center gap-2 text-xs font-bold uppercase text-ash">
+        {t.admin.permission}
+        {on.size === 0 && <span className="font-black text-rose-hi">· {t.admin.noPerm}</span>}
+      </legend>
+      <div className="flex flex-wrap gap-2">
+        {ROLES.map((r, k) => {
+          const Icon = PERM_ICON[r];
+          const checked = on.has(r);
+          const blocked = locked || (host && r !== "host");
+          return (
+            <label
+              key={r}
+              style={{ "--i": k, "--s": "0.05s", "--d": "0.65s" } as React.CSSProperties}
+              className={cn(
+                "in-pop group/perm flex h-10 -skew-x-12 items-center border px-3 transition-[color,background-color,border-color,box-shadow,opacity] duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose",
+                checked ? "border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--color-rose-deep)]" : "border-line bg-ink/40 text-ash",
+                blocked ? "cursor-not-allowed" : "cursor-pointer",
+                blocked && !checked && "opacity-35",
+                !blocked && !checked && "hover:border-paper/40 hover:text-paper",
+              )}
+            >
+              <input type="checkbox" name="permRoles" value={r} checked={checked} disabled={blocked} onChange={() => toggle(r)} className="sr-only" />
+              <span className="flex skew-x-12 items-center gap-2 text-xs font-black uppercase">
+                <span className={cn("grid size-4 place-items-center border transition-colors", checked ? "border-white bg-white text-rose" : "border-current")}>
+                  {checked ? <Check className="size-3" strokeWidth={3.5} /> : blocked && <Lock className="size-2.5" />}
+                </span>
+                <Icon className="size-3.5" />
+                {t.admin.roles[r]}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+      {locked && <input type="hidden" name="permRoles" value="host" />}
+    </fieldset>
   );
 }
 

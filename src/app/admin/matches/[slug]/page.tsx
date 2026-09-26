@@ -22,7 +22,7 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
   const id = matchIdFromSlug(slug);
   if (matchSlug(id) !== slug) notFound();
   const [t, viewer, all, teams, stages] = await Promise.all([getDict(), getViewer(), getMatches(), getTeams(), getPoolStages()]);
-  if (!can(viewer?.role, "matches")) notFound();
+  if (!can(viewer?.roles, "matches")) notFound();
   const match = all.find((m) => m.id === id);
   if (!match) notFound();
   const [sb, edits] = match.links.length ? await Promise.all([getScoreboard(match, teams, stages), getEdits(id)]) : [null, []];

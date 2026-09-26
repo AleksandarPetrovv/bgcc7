@@ -8,24 +8,24 @@ import { adminLog, staff } from "@/db/schema";
 import { safe } from "@/db/queries";
 import { getSettings } from "@/db/settings";
 import { ADMINS } from "./admins";
-import { can, isRole, type Perm, type Role } from "./roles";
+import { can, cleanRoles, type Perm, type Role } from "./roles";
 import type { Section } from "./sections";
 
-export const getViewer = cache(async (): Promise<{ osuId: number; role: Role | null } | null> => {
+export const getViewer = cache(async (): Promise<{ osuId: number; roles: Role[] } | null> => {
   const osuId = await currentOsuId();
   if (!osuId) return null;
-  if (ADMINS.includes(osuId)) return { osuId, role: "host" };
-  const role = await safe(async () => {
-    const [row] = await db.select({ role: staff.permRole }).from(staff).where(eq(staff.osuId, osuId)).limit(1);
-    return isRole(row?.role) ? row.role : null;
-  }, null);
-  return { osuId, role };
+  if (ADMINS.includes(osuId)) return { osuId, roles: ["host"] };
+  const roles = await safe(async () => {
+    const [row] = await db.select({ roles: staff.permRoles }).from(staff).where(eq(staff.osuId, osuId)).limit(1);
+    return cleanRoles(row?.roles ?? []);
+  }, [] as Role[]);
+  return { osuId, roles };
 });
 
 export async function requireRole(perm: Perm) {
   const v = await getViewer();
-  if (!v || !can(v.role, perm)) throw new Error("forbidden");
-  return v as { osuId: number; role: Role };
+  if (!v || !can(v.roles, perm)) throw new Error("forbidden");
+  return v;
 }
 
 export async function log(osuId: number, action: string, payload?: unknown) {
@@ -37,7 +37,7 @@ export async function log(osuId: number, action: string, payload?: unknown) {
 
 export const getVisibility = cache(async () => {
   const [s, v] = await Promise.all([getSettings(), getViewer()]);
-  return { sections: s.sections, staff: !!v?.role };
+  return { sections: s.sections, staff: !!v?.roles.length };
 });
 
 export async function requireSection(section: Section) {

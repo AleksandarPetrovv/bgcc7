@@ -14,7 +14,7 @@ const check = "size-4 shrink-0 accent-rose";
 
 export default async function AdminPhase() {
   const [t, s, viewer] = await Promise.all([getDict(), getSettings(), getViewer()]);
-  if (!can(viewer?.role, "phase")) notFound();
+  if (!can(viewer?.roles, "phase")) notFound();
   const dates = [
     ["regOpensAt", t.admin.regOpens, s.regOpensAt],
     ["regClosesAt", t.admin.regCloses, s.regClosesAt],

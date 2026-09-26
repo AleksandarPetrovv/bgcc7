@@ -141,6 +141,20 @@
       "when": 1790815739878,
       "tag": "0019_draft_timer_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1790839496732,
+      "tag": "0020_perm_roles",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790839499114,
+      "tag": "0021_drop_perm_role",
+      "breakpoints": true
     }
   ]
 }

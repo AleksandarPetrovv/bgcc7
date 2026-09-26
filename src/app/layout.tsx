@@ -50,7 +50,7 @@ const LITE = "try{var c=document.createElement(\"canvas\"),g=c.getContext(\"webg
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const [lang, session, viewer, vis, teams, matches] = await Promise.all([getLang(), auth(), getViewer(), getVisibility(), getTeams(), getMatches()]);
-  const user = session?.user?.name ? { name: session.user.name, image: session.user.image ?? null, admin: !!viewer?.role } : null;
+  const user = session?.user?.name ? { name: session.user.name, image: session.user.image ?? null, admin: !!viewer?.roles.length } : null;
   const [settings, captain] = await Promise.all([getSettings(), viewer ? isCaptain(viewer.osuId) : false]);
   const match = captain && viewer ? await myOpenDraft(viewer.osuId).catch(() => null) : null;
   const regOpen = vis.sections.register && settings.phase === "registration" && windowState(settings.regOpensAt, settings.regClosesAt) === "open";

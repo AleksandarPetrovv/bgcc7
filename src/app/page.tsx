@@ -294,7 +294,7 @@ export default async function Home() {
   const see = (s: keyof typeof vis.sections) => vis.sections[s];
   const visiblePools = pools.filter((s) => s.pools.length && s.released);
   const phase = settings.phase;
-  const due = viewer?.role === "host" ? duePhase(settings.timeline, phase) : null;
+  const due = viewer?.roles.includes("host") ? duePhase(settings.timeline, phase) : null;
   const prompt = due && settings.phasePrompts[String(viewer!.osuId)] !== due ? due : null;
   const signup = phase === "registration" || phase === "screening";
   const playing = phase === "seeding" || phase === "playoffs";

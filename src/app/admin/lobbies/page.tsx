@@ -46,7 +46,7 @@ function LobbyFields({ t, l }: { t: Dict; l?: Lobby }) {
 
 export default async function AdminLobbies() {
   const [t, lang, viewer, lobbies, regs] = await Promise.all([getDict(), getLang(), getViewer(), getLobbies(), getRegistrations()]);
-  if (!can(viewer?.role, "lobbies")) notFound();
+  if (!can(viewer?.roles, "lobbies")) notFound();
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const booked = new Set(lobbies.flatMap((l) => l.players.map((p) => p.osuId)));
   const approved = regs.filter((r) => r.status === "approved");
