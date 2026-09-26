@@ -58,31 +58,6 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
   });
 }
 
-export async function fillFromSeeds() {
-  return guard("matches", "match.fillSeeds", async () => {
-    const ts = await db.select().from(teams).orderBy(teams.seed);
-    const bySeed = (n: number) => ts.find((t) => t.seed === n)?.id ?? null;
-    const pairs: [string, number, number][] = [
-      ["WB-R1-M1", 1, 8],
-      ["WB-R1-M2", 4, 5],
-      ["WB-R1-M3", 2, 7],
-      ["WB-R1-M4", 3, 6],
-    ];
-    for (const [id, a, b] of pairs) await db.update(matches).set({ team1Id: bySeed(a), team2Id: bySeed(b) }).where(eq(matches.id, id));
-    await advance();
-    return { pairs };
-  });
-}
-
-export async function resetBracket() {
-  return guard("matches", "match.resetAll", async () => {
-    await db.update(matches).set({ score1: null, score2: null, winner: null, manual: false, mpLinks: "" });
-    await db.delete(matchCache);
-    await advance();
-    return {};
-  });
-}
-
 export async function clearCache(id: string) {
   return guard("matches", "match.clearCache", async () => {
     await db.delete(matchCache).where(eq(matchCache.matchId, id));
