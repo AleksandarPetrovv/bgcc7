@@ -163,7 +163,7 @@ async function build(slug: string, osuId: number, job: PackJob) {
     const [stage] = await db.select().from(stages).where(eq(stages.slug, slug)).limit(1);
     if (!stage) throw new Error("notFound");
     const rows = await db.select().from(mapsTable).where(eq(mapsTable.stageId, stage.id)).orderBy(asc(mapsTable.order), asc(mapsTable.id));
-    const maps = MOD_ORDER.flatMap((mod) => rows.filter((r) => r.mod === mod).map((r, i) => ({ ...r, slot: slotOf(mod, i) })));
+    const maps = MOD_ORDER.flatMap((mod) => rows.filter((r) => r.mod === mod).map((r) => ({ ...r, slot: slotOf(mod, r.order) })));
     if (!maps.length) throw new Error("empty");
 
     const sets: { setId: number; slot: string; name: string }[] = [];

@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, max } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { maps, stages } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
@@ -27,13 +27,21 @@ async function fetchMap(beatmapId: number, mod: string) {
   };
 }
 
-export async function updateStage(id: number, _: ActionResult, fd: FormData) {
-  return guard("mappools", "stage.update", async () => {
-    const title = String(fd.get("title") ?? "").trim().slice(0, 40);
+export async function renameStage(id: number, _: ActionResult, fd: FormData) {
+  return guard("phase", "stage.rename", async () => {
+    const title = String(fd.get("title") ?? "")
+      .trim()
+      .slice(0, 40);
     if (!title) return { ok: false, error: "invalid" };
-    const poolReleased = fd.get("poolReleased") === "on";
-    await db.update(stages).set({ title, poolReleased }).where(eq(stages.id, id));
-    return { id, title, poolReleased };
+    await db.update(stages).set({ title }).where(eq(stages.id, id));
+    return { id, title };
+  });
+}
+
+export async function setReleased(id: number, poolReleased: boolean) {
+  return guard("mappools", "stage.update", async () => {
+    await db.update(stages).set({ poolReleased: !!poolReleased }).where(eq(stages.id, id));
+    return { id, poolReleased: !!poolReleased };
   });
 }
 
@@ -44,12 +52,22 @@ export async function addMap(stageId: number, _: ActionResult, fd: FormData) {
     if (!Number.isInteger(beatmapId) || beatmapId <= 0 || !MODS[mod]) return { ok: false, error: "invalid" };
     const data = await fetchMap(beatmapId, mod);
     if (!data) return { ok: false, error: "notFound" };
-    const [row] = await db
-      .select({ n: max(maps.order) })
+    const siblings = await db
+      .select({ id: maps.id, order: maps.order })
       .from(maps)
-      .where(and(eq(maps.stageId, stageId), eq(maps.mod, mod)));
-    await db.insert(maps).values({ stageId, mod, order: (row?.n ?? -1) + 1, ...data });
-    return { stageId, mod, beatmapId, title: data.title };
+      .where(and(eq(maps.stageId, stageId), eq(maps.mod, mod)))
+      .orderBy(desc(maps.order));
+    const want = Number(fd.get("slot"));
+    const at = Number.isInteger(want) && want >= 1 && want <= 99 ? want - 1 : siblings.length ? siblings[0].order + 1 : 0;
+    if (siblings.some((s) => s.order === at)) {
+      for (const s of siblings.filter((s) => s.order >= at))
+        await db
+          .update(maps)
+          .set({ order: s.order + 1 })
+          .where(eq(maps.id, s.id));
+    }
+    await db.insert(maps).values({ stageId, mod, order: at, ...data });
+    return { stageId, mod, slot: at + 1, beatmapId, title: data.title };
   });
 }
 
@@ -58,16 +76,15 @@ export async function moveMap(id: number, dir: -1 | 1) {
     const [m] = await db.select().from(maps).where(eq(maps.id, id)).limit(1);
     if (!m) return { ok: false, error: "notFound" };
     const siblings = await db
-      .select({ id: maps.id })
+      .select({ id: maps.id, order: maps.order })
       .from(maps)
       .where(and(eq(maps.stageId, m.stageId), eq(maps.mod, m.mod)))
-      .orderBy(maps.order, maps.id);
+      .orderBy(asc(maps.order), asc(maps.id));
     const i = siblings.findIndex((s) => s.id === id);
-    const j = i + dir;
-    if (j < 0 || j >= siblings.length) return { id };
-    const ids = siblings.map((s) => s.id);
-    [ids[i], ids[j]] = [ids[j], ids[i]];
-    for (const [order, sid] of ids.entries()) await db.update(maps).set({ order }).where(eq(maps.id, sid));
+    const other = siblings[i + dir];
+    if (!other) return { id };
+    await db.update(maps).set({ order: other.order }).where(eq(maps.id, id));
+    await db.update(maps).set({ order: m.order }).where(eq(maps.id, other.id));
     return { id, dir, title: m.title, version: m.version };
   });
 }
@@ -76,19 +93,5 @@ export async function deleteMap(id: number) {
   return guard("mappools", "map.delete", async () => {
     const [row] = await db.delete(maps).where(eq(maps.id, id)).returning({ title: maps.title, version: maps.version, stageId: maps.stageId });
     return { id, ...row };
-  });
-}
-
-export async function refreshStage(stageId: number) {
-  return guard("mappools", "stage.refreshMaps", async () => {
-    const rows = await db.select().from(maps).where(eq(maps.stageId, stageId));
-    let updated = 0;
-    for (const m of rows) {
-      const data = await fetchMap(m.beatmapId, m.mod).catch(() => null);
-      if (!data) continue;
-      await db.update(maps).set(data).where(eq(maps.id, m.id));
-      updated++;
-    }
-    return { stageId, updated };
   });
 }
