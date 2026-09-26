@@ -13,7 +13,7 @@ import { matchSlug } from "@/lib/matches";
 import { can } from "@/lib/roles";
 import { fmtSofia, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
-import { clearCache, fillFromSeeds, resetBracket, saveMatch } from "./actions";
+import { clearCache, saveMatch } from "./actions";
 import { Dropdown } from "@/components/admin/dropdown";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
@@ -38,11 +38,6 @@ export default async function AdminMatches() {
       <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
         <Words text={t.admin.matchesHelp} d={0.15} s={0.012} />
       </p>
-
-      <div className="in-right mb-6 flex flex-wrap gap-3 border border-line bg-coal p-4 [--d:0.25s]">
-        <ActionForm action={fillFromSeeds} submit={t.admin.fillSeeds} ghost confirm={t.admin.confirmFillSeeds} />
-        <ActionForm action={resetBracket} submit={t.admin.resetBracket} ghost confirm={t.admin.confirmResetBracket} />
-      </div>
 
       <div className="space-y-8">
         {bracketStages.map((s, n) => (
