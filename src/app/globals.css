@@ -865,6 +865,16 @@ html.lite:not(.settled) .mk-dot {
 .adm-field > input.adm-bare::-webkit-inner-spin-button, .adm-field > input.adm-bare::-webkit-outer-spin-button { appearance: none; margin: 0; }
 .adm-field > input.adm-bare::-webkit-calendar-picker-indicator { filter: invert(0.75); opacity: 0.7; cursor: pointer; }
 .adm-field > input.adm-bare::-webkit-date-and-time-value { text-align: left; margin: 0; }
+.adm-field > input.adm-bare:is([type="date"], [type="datetime-local"], [type="time"]) { align-self: center; height: auto; line-height: 1.5; }
+.adm-field > input.adm-bare::-webkit-datetime-edit { color: var(--color-paper); }
+.adm-field > input.adm-bare::-webkit-datetime-edit-fields-wrapper { color: var(--color-paper); }
+.adm-field > input.adm-bare::-webkit-datetime-edit-text { color: var(--color-paper); }
+.adm-field > input.adm-bare::-webkit-datetime-edit-day-field { color: var(--color-paper); }
+.adm-field > input.adm-bare::-webkit-datetime-edit-month-field { color: var(--color-paper); }
+.adm-field > input.adm-bare::-webkit-datetime-edit-year-field { color: var(--color-paper); }
+.adm-field > input.adm-bare::-webkit-datetime-edit-hour-field { color: var(--color-paper); }
+.adm-field > input.adm-bare::-webkit-datetime-edit-minute-field { color: var(--color-paper); }
+.adm-field > input.adm-bare::-webkit-datetime-edit-ampm-field { color: var(--color-paper); }
 .adm-field.adm-tight { height: 2.25rem; }
 .adm-field.adm-tight > input.adm-bare { padding: 0 0.5rem; font-size: 0.8rem; }
 
