@@ -18,7 +18,7 @@ async function stageOf(slug: string) {
 
 async function staff() {
   try {
-    return await requireRole("mappools");
+    return await requireRole("poolEdit");
   } catch {
     return null;
   }

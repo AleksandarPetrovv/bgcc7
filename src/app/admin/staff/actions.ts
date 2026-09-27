@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { staff, users } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
 import { getUser } from "@/lib/osu-api";
-import { cleanRoles, STAFF_ROLES, type ActionResult } from "@/lib/roles";
+import { cleanRoles, type ActionResult } from "@/lib/roles";
 
 export async function addStaff(_: ActionResult, fd: FormData) {
   return guard("staff", "staff.add", async () => {
@@ -27,12 +27,8 @@ export async function updateStaff(osuId: number, _: ActionResult, fd: FormData) 
   return guard("staff", "staff.update", async () => {
     const permRoles = cleanRoles(fd.getAll("permRoles").map(String));
     if (!permRoles.includes("host") && !(await otherHost(osuId))) return { ok: false, error: "lastHost" };
-    const displayRoles = fd
-      .getAll("displayRoles")
-      .map(String)
-      .filter((r) => STAFF_ROLES.includes(r));
-    await db.update(staff).set({ permRoles, displayRoles }).where(eq(staff.osuId, osuId));
-    return { osuId, permRoles, displayRoles };
+    await db.update(staff).set({ permRoles }).where(eq(staff.osuId, osuId));
+    return { osuId, permRoles };
   });
 }
 

@@ -13,8 +13,7 @@ import { StaffList } from "./staff-list";
 export default async function AdminStaff() {
   const [t, viewer, rows, regs] = await Promise.all([getDict(), getViewer(), getStaff(), getRegistrations()]);
   const playing = new Set(regs.filter((r) => r.status !== "denied").map((r) => r.osuId));
-  const CAN_PLAY = ["Streamer", "Commentator", "GFX / Designer"];
-  const clash = (s: (typeof rows)[number]) => playing.has(s.osuId) && (s.permRoles.length > 0 || s.displayRoles.some((r) => !CAN_PLAY.includes(r)));
+  const clash = (s: (typeof rows)[number]) => playing.has(s.osuId) && s.permRoles.length > 0;
   if (!can(viewer?.roles, "staff")) notFound();
   return (
     <>
@@ -30,14 +29,13 @@ export default async function AdminStaff() {
       </Panel>
 
       <StaffList
-        key={rows.map((s) => `${s.osuId}:${s.permRoles.join("+")}:${s.displayRoles.join("+")}`).join()}
+        key={rows.map((s) => `${s.osuId}:${s.permRoles.join("+")}`).join()}
         rows={rows.map((s) => ({
           osuId: s.osuId,
           username: s.username,
           avatarUrl: s.avatarUrl,
           country: s.country,
           permRoles: s.permRoles,
-          displayRoles: s.displayRoles,
           clash: clash(s),
         }))}
       />
