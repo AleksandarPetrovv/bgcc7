@@ -3,7 +3,7 @@ import { packJobs } from "@/lib/pack-builder";
 
 export async function GET() {
   try {
-    await requireRole("mappools");
+    await requireRole("poolEdit");
   } catch {
     return Response.json({ error: "forbidden" }, { status: 403 });
   }

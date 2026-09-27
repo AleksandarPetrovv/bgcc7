@@ -5,27 +5,8 @@ import { db } from "@/db";
 import { maps, stages } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
 import { MODS } from "@/lib/data";
-import { applyMod, MOD_ACRONYM } from "@/lib/mods";
-import { getBeatmap, getStarRating } from "@/lib/osu-api";
+import { fetchMap } from "@/lib/fetch-map";
 import type { ActionResult } from "@/lib/roles";
-
-async function fetchMap(beatmapId: number, mod: string) {
-  const b = await getBeatmap(beatmapId);
-  if (!b) return null;
-  const acr = MOD_ACRONYM[mod];
-  const sr = acr ? await getStarRating(beatmapId, acr).catch(() => b.difficulty_rating) : b.difficulty_rating;
-  const stats = applyMod(mod, { bpm: b.bpm, length: b.total_length, ar: b.ar, od: b.accuracy, cs: b.cs });
-  return {
-    beatmapId,
-    title: b.beatmapset.title,
-    artist: b.beatmapset.artist,
-    version: b.version,
-    creator: b.beatmapset.creator,
-    sr: Math.round(sr * 100) / 100,
-    cover: b.beatmapset.covers.cover,
-    ...stats,
-  };
-}
 
 export async function renameStage(id: number, _: ActionResult, fd: FormData) {
   return guard("phase", "stage.rename", async () => {
@@ -39,14 +20,14 @@ export async function renameStage(id: number, _: ActionResult, fd: FormData) {
 }
 
 export async function setReleased(id: number, poolReleased: boolean) {
-  return guard("mappools", "stage.update", async () => {
+  return guard("poolEdit", "stage.update", async () => {
     await db.update(stages).set({ poolReleased: !!poolReleased }).where(eq(stages.id, id));
     return { id, poolReleased: !!poolReleased };
   });
 }
 
 export async function addMap(stageId: number, _: ActionResult, fd: FormData) {
-  return guard("mappools", "map.add", async () => {
+  return guard("poolEdit", "map.add", async () => {
     const beatmapId = Number(/(\d+)\s*$/.exec(String(fd.get("beatmap") ?? "").trim())?.[1]);
     const mod = String(fd.get("mod"));
     if (!Number.isInteger(beatmapId) || beatmapId <= 0 || !MODS[mod]) return { ok: false, error: "invalid" };
@@ -72,7 +53,7 @@ export async function addMap(stageId: number, _: ActionResult, fd: FormData) {
 }
 
 export async function moveMap(id: number, dir: -1 | 1) {
-  return guard("mappools", "map.move", async () => {
+  return guard("poolEdit", "map.move", async () => {
     const [m] = await db.select().from(maps).where(eq(maps.id, id)).limit(1);
     if (!m) return { ok: false, error: "notFound" };
     const siblings = await db
@@ -90,7 +71,7 @@ export async function moveMap(id: number, dir: -1 | 1) {
 }
 
 export async function deleteMap(id: number) {
-  return guard("mappools", "map.delete", async () => {
+  return guard("poolEdit", "map.delete", async () => {
     const [row] = await db.delete(maps).where(eq(maps.id, id)).returning({ title: maps.title, version: maps.version, stageId: maps.stageId });
     return { id, ...row };
   });

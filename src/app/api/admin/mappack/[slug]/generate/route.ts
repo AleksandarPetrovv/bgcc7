@@ -3,7 +3,7 @@ import { packJob, startPackJob } from "@/lib/pack-builder";
 
 async function staff() {
   try {
-    return await requireRole("mappools");
+    return await requireRole("poolEdit");
   } catch {
     return null;
   }

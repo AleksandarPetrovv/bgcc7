@@ -11,7 +11,15 @@ export const getLog = (limit = 200) =>
   safe(
     () =>
       db
-        .select({ id: adminLog.id, action: adminLog.action, payload: adminLog.payload, at: adminLog.at, username: users.username, avatarUrl: users.avatarUrl, osuId: adminLog.osuId })
+        .select({
+          id: adminLog.id,
+          action: adminLog.action,
+          payload: adminLog.payload,
+          at: adminLog.at,
+          username: users.username,
+          avatarUrl: users.avatarUrl,
+          osuId: adminLog.osuId,
+        })
         .from(adminLog)
         .leftJoin(users, eq(users.osuId, adminLog.osuId))
         .orderBy(desc(adminLog.id))
@@ -25,7 +33,6 @@ export type StaffRow = {
   avatarUrl: string | null;
   country: string | null;
   permRoles: string[];
-  displayRoles: string[];
   order: number;
 };
 
@@ -39,7 +46,6 @@ export const getStaff = () =>
           avatarUrl: users.avatarUrl,
           country: users.country,
           permRoles: staff.permRoles,
-          displayRoles: staff.displayRoles,
           order: staff.order,
         })
         .from(staff)
@@ -48,9 +54,7 @@ export const getStaff = () =>
     [] as StaffRow[],
   );
 
-export const getPublicStaff = async () => (await getStaff()).filter((s) => s.displayRoles.length > 0);
-
-
+export const getPublicStaff = async () => (await getStaff()).filter((s) => s.osuId > 0 && s.permRoles.length > 0);
 
 export const getLogCtx = () =>
   safe(

@@ -1,12 +1,13 @@
 "use client";
 
+import { Flash } from "@/components/admin/flash";
 import { useRef, useState, useTransition } from "react";
 import { Reorder, useDragControls } from "motion/react";
-import { Check, Crown, Gavel, GripVertical, Lock, Map as MapIcon, TriangleAlert } from "lucide-react";
+import { Check, Crown, Gamepad2, Gavel, GripVertical, Lock, Map as MapIcon, TriangleAlert } from "lucide-react";
 import { ActionForm } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
 import { flagUrl } from "@/lib/data";
-import { ROLES, STAFF_ROLES, type Role } from "@/lib/roles";
+import { ROLES, type Role } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { removeStaff, reorderStaff, updateStaff } from "./actions";
 
@@ -16,7 +17,6 @@ export type StaffRow = {
   avatarUrl: string | null;
   country: string | null;
   permRoles: string[];
-  displayRoles: string[];
   clash: boolean;
 };
 
@@ -61,21 +61,6 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
       <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-end">
         <ActionForm action={updateStaff.bind(null, s.osuId)} className="flex flex-1 flex-col gap-4">
           <PermPicker initial={s.permRoles} />
-          <fieldset>
-            <legend className="mb-1.5 text-xs font-bold uppercase text-ash">{t.admin.publicRoles}</legend>
-            <div className="flex flex-wrap gap-1.5">
-              {STAFF_ROLES.map((r, k) => (
-                <label
-                  key={r}
-                  style={{ "--i": k, "--s": "0.04s", "--d": "0.7s" } as React.CSSProperties}
-                  className="in-pop flex min-h-9 -skew-x-12 cursor-pointer items-center border border-line px-3 text-xs font-black uppercase text-ash transition-[color,background-color,border-color,box-shadow] duration-200 hover:border-paper/40 hover:text-paper has-[:checked]:border-rose has-[:checked]:bg-rose has-[:checked]:text-white has-[:checked]:shadow-[3px_3px_0_0_var(--color-rose-deep)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose"
-                >
-                  <input type="checkbox" name="displayRoles" value={r} defaultChecked={s.displayRoles.includes(r)} className="sr-only" />
-                  <span className="skew-x-12">{t.staff.roles[r] ?? r}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
         </ActionForm>
         <ActionForm action={removeStaff.bind(null, s.osuId)} submit={t.admin.remove} ghost confirm={t.admin.confirmRemove} />
       </div>
@@ -83,7 +68,7 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
   );
 }
 
-const PERM_ICON: Record<Role, typeof Crown> = { host: Crown, referee: Gavel, mappooler: MapIcon };
+const PERM_ICON: Record<Role, typeof Crown> = { host: Crown, referee: Gavel, mappooler: MapIcon, playtester: Gamepad2 };
 
 function PermPicker({ initial }: { initial: string[] }) {
   const t = useDict();
@@ -156,7 +141,7 @@ export function StaffList({ rows }: { rows: StaffRow[] }) {
     <div>
       <p className="mb-2 text-xs text-ash">
         {t.admin.dragHint}
-        {saved && !pending && <span className="ml-2 font-bold uppercase tracking-wide text-balkan">{t.admin.saved}</span>}
+        {saved && !pending && <Flash className="ml-2 font-bold uppercase tracking-wide text-balkan">{t.admin.saved}</Flash>}
       </p>
       <Reorder.Group
         axis="y"
