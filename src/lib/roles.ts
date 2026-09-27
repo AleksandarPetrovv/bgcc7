@@ -19,4 +19,4 @@ export const cleanRoles = (list: unknown[]): Role[] => {
 
 export const STAFF_ROLES = ["Host", "Mappooler", "Playtester", "Referee", "Streamer", "Commentator", "GFX / Designer", "Developer"];
 
-export type ActionResult = { ok: boolean; error?: "forbidden" | "notFound" | "invalid" | "note" } | null;
+export type ActionResult = { ok: boolean; error?: "forbidden" | "notFound" | "invalid" | "note" | "lastHost" } | null;

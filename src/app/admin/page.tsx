@@ -6,7 +6,6 @@ import { ArrowUpRight } from "lucide-react";
 import { getSettings } from "@/db/settings";
 import { getRegistrations } from "@/db/registrations";
 import { getLog, getLogCtx, getStaff } from "@/db/admin";
-import { ADMINS } from "@/lib/admins";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { getViewer } from "@/lib/authz";
 import { can, PERMS } from "@/lib/roles";
@@ -26,7 +25,7 @@ export default async function AdminOverview() {
     getViewer(),
     getLogCtx(),
   ]);
-  const staffCount = new Set([...ADMINS, ...staff.filter((s) => s.permRoles.length).map((s) => s.osuId)]).size;
+  const staffCount = staff.filter((s) => s.permRoles.length).length;
   const visible = SECTIONS.filter((s) => settings.sections[s]).length;
   const tiles = [
     { k: t.admin.phaseNow, v: t.admin.phases[settings.phase], sub: t.admin.visiblePages(visible), href: can(viewer?.roles, "phase") ? "/admin/phase" : null },
@@ -59,7 +58,12 @@ export default async function AdminOverview() {
             </>
           );
           return tile.href ? (
-            <Link key={tile.k} href={tile.href} className="in-flip border border-line bg-coal p-4 transition-colors hover:border-rose" style={{ "--i": i, "--s": "0.09s", "--d": "0.1s" } as React.CSSProperties}>
+            <Link
+              key={tile.k}
+              href={tile.href}
+              className="in-flip border border-line bg-coal p-4 transition-colors hover:border-rose"
+              style={{ "--i": i, "--s": "0.09s", "--d": "0.1s" } as React.CSSProperties}
+            >
               {body}
             </Link>
           ) : (
