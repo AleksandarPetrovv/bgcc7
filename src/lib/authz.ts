@@ -7,14 +7,12 @@ import { db } from "@/db";
 import { adminLog, staff } from "@/db/schema";
 import { safe } from "@/db/queries";
 import { getSettings } from "@/db/settings";
-import { ADMINS } from "./admins";
 import { can, cleanRoles, type Perm, type Role } from "./roles";
 import type { Section } from "./sections";
 
 export const getViewer = cache(async (): Promise<{ osuId: number; roles: Role[] } | null> => {
   const osuId = await currentOsuId();
   if (!osuId) return null;
-  if (ADMINS.includes(osuId)) return { osuId, roles: ["host"] };
   const roles = await safe(async () => {
     const [row] = await db.select({ roles: staff.permRoles }).from(staff).where(eq(staff.osuId, osuId)).limit(1);
     return cleanRoles(row?.roles ?? []);

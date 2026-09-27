@@ -48,7 +48,7 @@ type Props = {
 export function ActionForm({ action, children, className, submit, ghost, confirm }: Props) {
   const t = useDict();
   const [state, formAction, pending] = useActionState(action, null);
-  const msg = state && (state.ok ? t.admin.saved : state.error === "notFound" ? t.admin.notFound : t.admin.error);
+  const msg = state && (state.ok ? t.admin.saved : state.error === "notFound" ? t.admin.notFound : state.error === "lastHost" ? t.admin.lastHost : t.admin.error);
   const [gone, setGone] = useState<ActionResult>(null);
   useEffect(() => {
     if (!state?.ok) return;
@@ -56,11 +56,7 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
     return () => clearTimeout(id);
   }, [state]);
   return (
-    <form
-      action={formAction}
-      className={className}
-      onSubmit={confirm ? (e) => !window.confirm(confirm) && e.preventDefault() : undefined}
-    >
+    <form action={formAction} className={className} onSubmit={confirm ? (e) => !window.confirm(confirm) && e.preventDefault() : undefined}>
       {children}
       <div className="flex flex-wrap items-center gap-3">
         <Btn type="submit" disabled={pending} tone={ghost ? "outline" : "rose"} small={ghost}>
@@ -104,7 +100,19 @@ export function Field({ className, inputClassName, ...props }: React.InputHTMLAt
   );
 }
 
-export function IconAction({ action, label, confirm, danger, children }: { action: () => Promise<unknown>; label: string; confirm?: string; danger?: boolean; children: React.ReactNode }) {
+export function IconAction({
+  action,
+  label,
+  confirm,
+  danger,
+  children,
+}: {
+  action: () => Promise<unknown>;
+  label: string;
+  confirm?: string;
+  danger?: boolean;
+  children: React.ReactNode;
+}) {
   const [pending, start] = useTransition();
   return (
     <button

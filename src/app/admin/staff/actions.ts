@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, arrayContains, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { staff, users } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
@@ -14,7 +14,10 @@ export async function addStaff(_: ActionResult, fd: FormData) {
     const u = await getUser(q);
     if (!u) return { ok: false, error: "notFound" };
     const row = { username: u.username, avatarUrl: u.avatar_url, country: u.country_code, updatedAt: new Date() };
-    await db.insert(users).values({ osuId: u.id, ...row }).onConflictDoUpdate({ target: users.osuId, set: row });
+    await db
+      .insert(users)
+      .values({ osuId: u.id, ...row })
+      .onConflictDoUpdate({ target: users.osuId, set: row });
     await db.insert(staff).values({ osuId: u.id }).onConflictDoNothing();
     return { osuId: u.id, username: u.username };
   });
@@ -23,7 +26,11 @@ export async function addStaff(_: ActionResult, fd: FormData) {
 export async function updateStaff(osuId: number, _: ActionResult, fd: FormData) {
   return guard("staff", "staff.update", async () => {
     const permRoles = cleanRoles(fd.getAll("permRoles").map(String));
-    const displayRoles = fd.getAll("displayRoles").map(String).filter((r) => STAFF_ROLES.includes(r));
+    if (!permRoles.includes("host") && !(await otherHost(osuId))) return { ok: false, error: "lastHost" };
+    const displayRoles = fd
+      .getAll("displayRoles")
+      .map(String)
+      .filter((r) => STAFF_ROLES.includes(r));
     await db.update(staff).set({ permRoles, displayRoles }).where(eq(staff.osuId, osuId));
     return { osuId, permRoles, displayRoles };
   });
@@ -39,7 +46,17 @@ export async function reorderStaff(ids: number[]) {
 
 export async function removeStaff(osuId: number) {
   return guard("staff", "staff.remove", async () => {
+    if (!(await otherHost(osuId))) return { ok: false, error: "lastHost" };
     await db.delete(staff).where(eq(staff.osuId, osuId));
     return { osuId };
   });
+}
+
+async function otherHost(osuId: number) {
+  const [row] = await db
+    .select({ id: staff.osuId })
+    .from(staff)
+    .where(and(ne(staff.osuId, osuId), arrayContains(staff.permRoles, ["host"])))
+    .limit(1);
+  return !!row;
 }

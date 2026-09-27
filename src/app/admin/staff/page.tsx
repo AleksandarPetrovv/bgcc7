@@ -5,7 +5,6 @@ import { PageTitle } from "@/components/site/page";
 import { ActionForm, inputCls, Panel, Field } from "@/components/admin/form";
 import { getStaff } from "@/db/admin";
 import { getViewer } from "@/lib/authz";
-import { ADMINS } from "@/lib/admins";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { addStaff } from "./actions";
@@ -39,7 +38,6 @@ export default async function AdminStaff() {
           country: s.country,
           permRoles: s.permRoles,
           displayRoles: s.displayRoles,
-          builtIn: ADMINS.includes(s.osuId),
           clash: clash(s),
         }))}
       />

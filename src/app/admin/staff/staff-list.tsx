@@ -17,7 +17,6 @@ export type StaffRow = {
   country: string | null;
   permRoles: string[];
   displayRoles: string[];
-  builtIn: boolean;
   clash: boolean;
 };
 
@@ -53,7 +52,6 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
         {s.country && <img src={flagUrl(s.country)} alt="" className="h-2.5" />}
         <span className="in-wipe min-w-0 truncate font-black [--d:0.6s]">{s.username}</span>
         <span className="num hidden text-xs text-ash sm:inline">#{s.osuId}</span>
-        {s.builtIn && <span className="in-slam ml-auto text-xs font-black uppercase text-balkan [--d:0.75s]">{t.admin.builtIn}</span>}
       </div>
       {s.clash && (
         <p className="flex items-start gap-2 border-b border-line bg-rose/10 px-4 py-2.5 text-sm text-rose-hi">
@@ -62,7 +60,7 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
       )}
       <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-end">
         <ActionForm action={updateStaff.bind(null, s.osuId)} className="flex flex-1 flex-col gap-4">
-          <PermPicker initial={s.builtIn ? ["host"] : s.permRoles} locked={s.builtIn} />
+          <PermPicker initial={s.permRoles} />
           <fieldset>
             <legend className="mb-1.5 text-xs font-bold uppercase text-ash">{t.admin.publicRoles}</legend>
             <div className="flex flex-wrap gap-1.5">
@@ -79,7 +77,7 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
             </div>
           </fieldset>
         </ActionForm>
-        {!s.builtIn && <ActionForm action={removeStaff.bind(null, s.osuId)} submit={t.admin.remove} ghost confirm={t.admin.confirmRemove} />}
+        <ActionForm action={removeStaff.bind(null, s.osuId)} submit={t.admin.remove} ghost confirm={t.admin.confirmRemove} />
       </div>
     </Reorder.Item>
   );
@@ -87,7 +85,7 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
 
 const PERM_ICON: Record<Role, typeof Crown> = { host: Crown, referee: Gavel, mappooler: MapIcon };
 
-function PermPicker({ initial, locked }: { initial: string[]; locked: boolean }) {
+function PermPicker({ initial }: { initial: string[] }) {
   const t = useDict();
   const [on, setOn] = useState(() => new Set(initial));
   const host = on.has("host");
@@ -109,7 +107,7 @@ function PermPicker({ initial, locked }: { initial: string[]; locked: boolean })
         {ROLES.map((r, k) => {
           const Icon = PERM_ICON[r];
           const checked = on.has(r);
-          const blocked = locked || (host && r !== "host");
+          const blocked = host && r !== "host";
           return (
             <label
               key={r}
@@ -134,7 +132,6 @@ function PermPicker({ initial, locked }: { initial: string[]; locked: boolean })
           );
         })}
       </div>
-      {locked && <input type="hidden" name="permRoles" value="host" />}
     </fieldset>
   );
 }
