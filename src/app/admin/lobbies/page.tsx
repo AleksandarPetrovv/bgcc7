@@ -8,7 +8,7 @@ import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
 import type { Dict } from "@/lib/i18n/dict";
 import { can } from "@/lib/roles";
-import { fmtSofiaDay, fmtSofiaTime, toSofiaInput } from "@/lib/time";
+import { fmtSofiaDay, fmtSofiaTime, nextHour, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { createLobby, deleteLobby, placePlayer, unbook, updateLobby } from "./actions";
 import { Dropdown } from "@/components/admin/dropdown";
@@ -24,7 +24,7 @@ function LobbyFields({ t, l }: { t: Dict; l?: Lobby }) {
       </label>
       <label className={label}>
         {t.admin.startsAt}
-        <Field type="datetime-local" name="startsAt" required defaultValue={toSofiaInput(l?.startsAt)} className={dateCls} />
+        <Field type="datetime-local" name="startsAt" required defaultValue={toSofiaInput(l?.startsAt ?? nextHour())} className={dateCls} />
       </label>
       <label className={label}>
         {t.admin.capacity}
