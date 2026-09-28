@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useTransition, useEffect, useState } from "react";
+import { useActionState, useTransition } from "react";
+import { Flash } from "./flash";
 import { TriTick } from "@/components/site/graphics";
 import { useDict } from "@/components/site/lang";
 import type { ActionResult } from "@/lib/roles";
@@ -48,13 +49,19 @@ type Props = {
 export function ActionForm({ action, children, className, submit, ghost, confirm }: Props) {
   const t = useDict();
   const [state, formAction, pending] = useActionState(action, null);
-  const msg = state && (state.ok ? t.admin.saved : state.error === "notFound" ? t.admin.notFound : state.error === "lastHost" ? t.admin.lastHost : t.admin.error);
-  const [gone, setGone] = useState<ActionResult>(null);
-  useEffect(() => {
-    if (!state?.ok) return;
-    const id = setTimeout(() => setGone(state), 3000);
-    return () => clearTimeout(id);
-  }, [state]);
+  const msg =
+    state &&
+    (state.ok
+      ? t.admin.saved
+      : state.error === "notFound"
+        ? t.admin.notFound
+        : state.error === "lastHost"
+          ? t.admin.lastHost
+          : state.error === "taken"
+            ? t.admin.taken
+            : state.error === "oneEach"
+              ? t.admin.oneEach
+              : t.admin.error);
   return (
     <form action={formAction} className={className} onSubmit={confirm ? (e) => !window.confirm(confirm) && e.preventDefault() : undefined}>
       {children}
@@ -62,14 +69,15 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
         <Btn type="submit" disabled={pending} tone={ghost ? "outline" : "rose"} small={ghost}>
           {pending ? t.admin.saving : (submit ?? t.admin.save)}
         </Btn>
-        {msg && !pending && (
-          <span
-            role="status"
-            className={cn("text-xs font-bold uppercase tracking-wide transition-opacity duration-500", state?.ok ? "text-balkan" : "text-rose-hi", gone === state && "opacity-0")}
-          >
-            {msg}
-          </span>
-        )}
+        {msg &&
+          !pending &&
+          (state?.ok ? (
+            <Flash className="text-xs font-bold uppercase tracking-wide text-balkan">{msg}</Flash>
+          ) : (
+            <span role="status" className="text-xs font-bold uppercase tracking-wide text-rose-hi">
+              {msg}
+            </span>
+          ))}
       </div>
     </form>
   );
