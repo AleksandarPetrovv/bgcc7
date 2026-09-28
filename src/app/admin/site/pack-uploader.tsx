@@ -66,13 +66,20 @@ export function PackUploader({ stages, locale, simple }: { stages: StageInfo[]; 
     return () => clearInterval(id);
   }, [anyRunning, sync]);
 
+  const msg = msgs[slug] ?? null;
+  useEffect(() => {
+    if (!msg?.ok) return;
+    const key = slug;
+    const id = setTimeout(() => setMsgs((all) => (all[key] === msg ? { ...all, [key]: null } : all)), 3000);
+    return () => clearTimeout(id);
+  }, [msg, slug]);
+
   const stage = stages.find((s) => s.slug === slug);
   if (!stage) return null;
   const packOf = (s: StageInfo) => latest(s.pack, made[s.slug]);
   const pack = packOf(stage);
   const job = jobs[slug];
   const generating = job?.state === "running";
-  const msg = msgs[slug] ?? null;
   const forget = (key: string) =>
     setMade((p) => {
       const next = { ...p };

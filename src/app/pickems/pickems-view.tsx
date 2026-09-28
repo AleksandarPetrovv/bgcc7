@@ -1,5 +1,6 @@
 "use client";
 
+import { Flash } from "@/components/admin/flash";
 import { useEffect, useState, useTransition } from "react";
 import { InView } from "@/components/site/in-view";
 import Link from "next/link";
@@ -68,7 +69,21 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
 
   return (
     <Container plain>
-      <PageTitle mark="tick" accent={t.pickems.accent} right={open ? <Tag tone="balkan" className="text-xs">{t.pickems.openTag}</Tag> : <Tag tone="rose" className="text-xs">{t.pickems.closedTag}</Tag>}>
+      <PageTitle
+        mark="tick"
+        accent={t.pickems.accent}
+        right={
+          open ? (
+            <Tag tone="balkan" className="text-xs">
+              {t.pickems.openTag}
+            </Tag>
+          ) : (
+            <Tag tone="rose" className="text-xs">
+              {t.pickems.closedTag}
+            </Tag>
+          )
+        }
+      >
         {t.pickems.title}
       </PageTitle>
 
@@ -93,9 +108,9 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
           </div>
           <div className="ml-auto flex flex-col items-end gap-1">
             {!open ? null : !dirty && made > 0 && osuId ? (
-              <span className="flex items-center gap-1.5 text-sm font-black uppercase text-balkan">
+              <Flash className="flex items-center gap-1.5 text-sm font-black uppercase text-balkan">
                 <Check className="size-4" /> {t.common.saved}
-              </span>
+              </Flash>
             ) : (
               <SlantButton tone="balkan" onClick={save} className={cn(pending && "pointer-events-none opacity-60")}>
                 {osuId ? t.pickems.save : t.pickems.loginToSave}
@@ -140,7 +155,11 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
                 {e.correct} <Check className="size-4" aria-label={t.pickems.correct} />
               </span>
               <span className="hidden justify-end sm:flex">
-                <Link href={`/pickems/${e.osuId}`} onClick={() => window.scrollTo({ top: 0 })} className="whitespace-nowrap text-xs font-black uppercase leading-none text-rose-hi hover:text-paper">
+                <Link
+                  href={`/pickems/${e.osuId}`}
+                  onClick={() => window.scrollTo({ top: 0 })}
+                  className="whitespace-nowrap text-xs font-black uppercase leading-none text-rose-hi hover:text-paper"
+                >
                   {t.pickems.viewBracket}
                 </Link>
               </span>

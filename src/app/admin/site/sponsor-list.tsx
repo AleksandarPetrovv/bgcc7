@@ -1,5 +1,6 @@
 "use client";
 
+import { Flash } from "@/components/admin/flash";
 import { useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion, Reorder, useDragControls } from "motion/react";
 import { GripVertical, Pencil, X } from "lucide-react";
@@ -34,11 +35,19 @@ function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
         >
           <GripVertical className="size-4" />
         </button>
-        <span className="in-drop num w-6 text-center text-lg text-ash" style={{ "--i": i, "--s": "0.08s", "--d": "0.6s" } as React.CSSProperties}>{i + 1}</span>
+        <span className="in-drop num w-6 text-center text-lg text-ash" style={{ "--i": i, "--s": "0.08s", "--d": "0.6s" } as React.CSSProperties}>
+          {i + 1}
+        </span>
         <span className="in-spin inline-flex" style={{ "--i": i, "--s": "0.08s", "--d": "0.65s" } as React.CSSProperties}>
           <Avatar src={s.image} className="size-9" />
         </span>
-        <a href={s.url ?? undefined} target="_blank" rel="noreferrer" className="in-wipe min-w-0 flex-1 truncate font-black transition-colors hover:text-rose-hi" style={{ "--i": i, "--s": "0.08s", "--d": "0.75s" } as React.CSSProperties}>
+        <a
+          href={s.url ?? undefined}
+          target="_blank"
+          rel="noreferrer"
+          className="in-wipe min-w-0 flex-1 truncate font-black transition-colors hover:text-rose-hi"
+          style={{ "--i": i, "--s": "0.08s", "--d": "0.75s" } as React.CSSProperties}
+        >
           {s.name}
         </a>
         <button
@@ -54,7 +63,13 @@ function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
       </div>
       <AnimatePresence initial={false}>
         {editing && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }} className="overflow-hidden">
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
             <ActionForm action={updateSponsor.bind(null, s.id)} className="flex items-center gap-3 border-t border-dashed border-line px-3 py-3">
               <Field name="q" required defaultValue={s.url ?? s.name} aria-label={t.admin.sponsorQ} className={cn(inputCls, "flex-1")} />
             </ActionForm>
@@ -84,17 +99,22 @@ export function SponsorList({ sponsors }: { sponsors: Sponsor[] }) {
   if (!items.length) return <p className="text-sm text-ash">{t.admin.noSponsors}</p>;
   return (
     <div>
-      <Reorder.Group axis="y" values={items} onReorder={(v) => {
+      <Reorder.Group
+        axis="y"
+        values={items}
+        onReorder={(v) => {
           latest.current = v;
           setItems(v);
-        }} className={cn("space-y-2", pending && "opacity-70")}>
+        }}
+        className={cn("space-y-2", pending && "opacity-70")}
+      >
         {items.map((s, i) => (
           <Row key={s.id} s={s} i={i} onDrop={commit} />
         ))}
       </Reorder.Group>
       <p className="mt-2 text-xs text-ash">
         {t.admin.dragHint}
-        {saved && !pending && <span className="ml-2 font-bold uppercase tracking-wide text-balkan">{t.admin.saved}</span>}
+        {saved && !pending && <Flash className="ml-2 font-bold uppercase tracking-wide text-balkan">{t.admin.saved}</Flash>}
       </p>
     </div>
   );
