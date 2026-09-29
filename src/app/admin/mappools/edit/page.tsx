@@ -2,19 +2,20 @@ import { LinkTabs } from "@/components/site/tabs";
 import { InView } from "@/components/site/in-view";
 import { PageTitle } from "@/components/site/page";
 import { notFound } from "next/navigation";
-import { ArrowDown, ArrowUp, Star, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Download, Star, Trash2 } from "lucide-react";
 import { ActionForm, inputCls, Panel, Field, IconAction } from "@/components/admin/form";
 import { getPoolStages } from "@/db/mappools";
 import { getMapChecks } from "@/lib/osu-api";
 import { getViewer } from "@/lib/authz";
 import { fmtLen, MODS } from "@/lib/data";
 import { getDict, getLang } from "@/lib/i18n/server";
-import { PackUploader } from "../site/pack-uploader";
+import { PackUploader } from "../../site/pack-uploader";
 import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
-import { addMap, deleteMap, moveMap, renameStage } from "./actions";
-import { ReleaseToggle } from "./release-toggle";
-import { SwapRow } from "./swap-row";
+import { addMap, deleteMap, moveMap, renameStage } from "../actions";
+import { ReleaseToggle } from "../release-toggle";
+import { SwapRow } from "../swap-row";
+import { PoolMode } from "../pool-mode";
 import { Dropdown } from "@/components/admin/dropdown";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
@@ -25,18 +26,20 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
   const stage = stages.find((s) => s.slug === sp.stage) ?? stages[0];
   if (!stage) return null;
   const host = can(viewer?.roles, "phase");
+  const edit = can(viewer?.roles, "poolEdit");
   const name = (s: { title: string }) => t.rounds[s.title] ?? s.title;
   const checks = await getMapChecks(stage.pools.flatMap((p) => p.maps.map((m) => m.id)));
 
   return (
     <>
       <PageTitle>{t.admin.menu.mappools}</PageTitle>
+      <PoolMode t={t} on="edit" stage={stage.slug} edit={edit} />
 
       <LinkTabs
         className="mb-6"
         label={t.admin.menu.mappools}
         items={stages.map((s) => ({
-          href: `/admin/mappools?stage=${s.slug}`,
+          href: `/admin/mappools/edit?stage=${s.slug}`,
           active: s.id === stage.id,
           label: (
             <>
@@ -57,29 +60,45 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
         </ActionForm>
       )}
 
-      <Panel title={t.admin.addMap} className="mb-6">
-        <ActionForm action={addMap.bind(null, stage.id)} submit={t.admin.add} className="flex flex-wrap items-end gap-3">
-          <label className={cn(label, "min-w-56 flex-1")}>
-            {t.admin.beatmap}
-            <Field name="beatmap" required placeholder="https://osu.ppy.sh/b/…" className={inputCls} />
-          </label>
-          <label className={cn(label, "w-40")}>
-            {t.admin.mod}
-            <Dropdown name="mod" defaultValue="NoMod" options={Object.entries(MODS).map(([k, v]) => ({ value: k, label: v.label, color: v.color }))} />
-          </label>
-          <label className={cn(label, "w-24")}>
-            {t.admin.slot}
-            <Field name="slot" type="number" min={1} max={20} placeholder="#" className={inputCls} />
-          </label>
-        </ActionForm>
-      </Panel>
+      {edit && (
+        <Panel title={t.admin.addMap} className="mb-6">
+          <ActionForm action={addMap.bind(null, stage.id)} submit={t.admin.add} className="flex flex-wrap items-end gap-3">
+            <label className={cn(label, "min-w-56 flex-1")}>
+              {t.admin.beatmap}
+              <Field name="beatmap" required placeholder="https://osu.ppy.sh/b/…" className={inputCls} />
+            </label>
+            <label className={cn(label, "w-40")}>
+              {t.admin.mod}
+              <Dropdown name="mod" defaultValue="NoMod" options={Object.entries(MODS).map(([k, v]) => ({ value: k, label: v.label, color: v.color }))} />
+            </label>
+            <label className={cn(label, "w-24")}>
+              {t.admin.slot}
+              <Field name="slot" type="number" min={1} max={20} placeholder="#" className={inputCls} />
+            </label>
+          </ActionForm>
+        </Panel>
+      )}
 
-      <Panel title={t.admin.poolDone} help={t.admin.poolDoneHelp} className="mb-6 border-rose/60" i={1}>
-        <div className="space-y-4">
-          <ReleaseToggle key={`${stage.id}-${stage.released}`} stageId={stage.id} released={stage.released} />
-          <PackUploader key={stage.slug} simple stages={[{ slug: stage.slug, title: stage.title, pack: stage.pack }]} locale={lang === "bg" ? "bg-BG" : "en-GB"} />
-        </div>
-      </Panel>
+      {edit ? (
+        <Panel title={t.admin.poolDone} help={t.admin.poolDoneHelp} className="mb-6 border-rose/60" i={1}>
+          <div className="space-y-4">
+            <ReleaseToggle key={`${stage.id}-${stage.released}`} stageId={stage.id} released={stage.released} />
+            <PackUploader key={stage.slug} simple stages={[{ slug: stage.slug, title: stage.title, pack: stage.pack }]} locale={lang === "bg" ? "bg-BG" : "en-GB"} />
+          </div>
+        </Panel>
+      ) : (
+        stage.pack && (
+          <a
+            href={`/download/${stage.slug}?v=${stage.pack.at ?? stage.pack.size}`}
+            download
+            className="in-left lift-sm mb-6 flex w-fit -skew-x-12 items-center border border-balkan/60 px-4 py-2.5 text-balkan transition-colors hover:bg-balkan hover:text-white [--d:0.2s]"
+          >
+            <span className="flex skew-x-12 items-center gap-2 text-xs font-black uppercase">
+              <Download className="size-4" /> {t.admin.packDownload}
+            </span>
+          </a>
+        )
+      )}
 
       {stage.pools.length === 0 && <p className="border border-line bg-coal p-4 text-sm text-ash">{t.admin.noMaps}</p>}
       <div className="space-y-4">
@@ -127,28 +146,30 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                       <span className="hidden text-ash sm:inline">
                         CS {m.cs} · AR {m.ar} · OD {m.od}
                       </span>
-                      <span className="text-ash">#{m.id}</span>
+                      <span className="text-ash">ID: {m.id}</span>
                     </div>
                   </div>
-                  <div className="flex w-full items-center justify-end gap-1.5 sm:w-auto">
-                    {i > 0 ? (
-                      <IconAction action={moveMap.bind(null, m.rowId, -1)} label={t.admin.up}>
-                        <ArrowUp className="size-4 transition-transform group-hover:-translate-y-0.5" strokeWidth={2.5} />
+                  {edit && (
+                    <div className="flex w-full items-center justify-end gap-1.5 sm:w-auto">
+                      {i > 0 ? (
+                        <IconAction action={moveMap.bind(null, m.rowId, -1)} label={t.admin.up}>
+                          <ArrowUp className="size-4 transition-transform group-hover:-translate-y-0.5" strokeWidth={2.5} />
+                        </IconAction>
+                      ) : (
+                        <span className="size-10" aria-hidden />
+                      )}
+                      {i < p.maps.length - 1 ? (
+                        <IconAction action={moveMap.bind(null, m.rowId, 1)} label={t.admin.down}>
+                          <ArrowDown className="size-4 transition-transform group-hover:translate-y-0.5" strokeWidth={2.5} />
+                        </IconAction>
+                      ) : (
+                        <span className="size-10" aria-hidden />
+                      )}
+                      <IconAction action={deleteMap.bind(null, m.rowId)} label={t.admin.remove} confirm={t.admin.confirmDeleteMap} danger>
+                        <Trash2 className="size-4 transition-transform group-hover:rotate-12" />
                       </IconAction>
-                    ) : (
-                      <span className="size-10" aria-hidden />
-                    )}
-                    {i < p.maps.length - 1 ? (
-                      <IconAction action={moveMap.bind(null, m.rowId, 1)} label={t.admin.down}>
-                        <ArrowDown className="size-4 transition-transform group-hover:translate-y-0.5" strokeWidth={2.5} />
-                      </IconAction>
-                    ) : (
-                      <span className="size-10" aria-hidden />
-                    )}
-                    <IconAction action={deleteMap.bind(null, m.rowId)} label={t.admin.remove} confirm={t.admin.confirmDeleteMap} danger>
-                      <Trash2 className="size-4 transition-transform group-hover:rotate-12" />
-                    </IconAction>
-                  </div>
+                    </div>
+                  )}
                 </SwapRow>
               ))}
             </ul>
