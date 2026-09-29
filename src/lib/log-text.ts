@@ -136,6 +136,16 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       const as = `${p.mod}${p.slot ? ` #${p.slot}` : ""}`;
       return bg ? `добави ${b(p.title)} към мапуула за ${stage()} като ${as}` : `added ${b(p.title)} to the ${stage()} pool as ${as}`;
     }
+    case "pool.suggest":
+      return bg ? `предложи ${map()} за ${p.mod} #${p.slot}` : `suggested ${map()} for ${p.mod} #${p.slot}`;
+    case "pool.vote":
+      return bg ? `даде ${b(p.score)}/10 на ${map()}` : `scored ${map()} ${b(p.score)}/10`;
+    case "pool.unsuggest":
+      return bg ? `махна предложението ${map()}` : `removed the suggestion ${map()}`;
+    case "pool.pick":
+      return bg ? `${map()} спечели ${p.mod} #${p.slot} в ${stage()}` : `${map()} won ${p.mod} #${p.slot} in ${stage()}`;
+    case "pool.force":
+      return bg ? `избра водещия за ${p.mod} #${p.slot} в ${stage()}` : `picked the leader for ${p.mod} #${p.slot} in ${stage()}`;
     case "map.move":
       return bg ? `премести ${map()} ${num(p.dir) < 0 ? "нагоре" : "надолу"}` : `moved ${map()} ${num(p.dir) < 0 ? "up" : "down"}`;
     case "map.delete":

@@ -136,6 +136,42 @@ export const maps = pgTable("maps", {
   seeded: boolean("seeded").notNull().default(false),
 });
 
+export const poolSuggestions = pgTable("pool_suggestions", {
+  id: serial("id").primaryKey(),
+  stageId: integer("stage_id")
+    .notNull()
+    .references(() => stages.id, { onDelete: "cascade" }),
+  mod: text("mod").notNull(),
+  slot: integer("slot").notNull(),
+  osuId: integer("osu_id").notNull(),
+  beatmapId: integer("beatmap_id").notNull(),
+  title: text("title").notNull(),
+  artist: text("artist").notNull().default(""),
+  version: text("version").notNull(),
+  creator: text("creator").notNull(),
+  sr: doublePrecision("sr").notNull(),
+  bpm: doublePrecision("bpm").notNull(),
+  length: integer("length").notNull(),
+  ar: doublePrecision("ar").notNull(),
+  od: doublePrecision("od").notNull(),
+  cs: doublePrecision("cs").notNull(),
+  cover: text("cover").notNull(),
+  picked: boolean("picked").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const poolVotes = pgTable(
+  "pool_votes",
+  {
+    suggestionId: integer("suggestion_id")
+      .notNull()
+      .references(() => poolSuggestions.id, { onDelete: "cascade" }),
+    osuId: integer("osu_id").notNull(),
+    score: integer("score").notNull(),
+  },
+  (t) => [unique().on(t.suggestionId, t.osuId)],
+);
+
 export const qualScores = pgTable(
   "qual_scores",
   {

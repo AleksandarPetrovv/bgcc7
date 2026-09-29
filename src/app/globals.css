@@ -703,7 +703,7 @@ html.lite:not(.settled) .mk-dot {
   .mdlg[data-open], .mdlg[data-closed], .mdlg-shine { animation: none !important; }
 }
 
-.adm :is(input:not([type="checkbox"], [type="radio"], [type="hidden"], [type="file"], .adm-bare), select, textarea) {
+.adm :is(input:not([type="checkbox"], [type="radio"], [type="hidden"], [type="file"], [type="range"], .adm-bare), select, textarea) {
   min-width: 0;
   max-width: 100%;
   min-height: 2.75rem;
@@ -720,8 +720,8 @@ html.lite:not(.settled) .mk-dot {
 }
 .adm textarea { padding: 0.6rem 0.85rem; }
 .adm :is(input, select, textarea)::placeholder { color: var(--color-ash); font-weight: 500; }
-.adm :is(input:not([type="checkbox"], [type="radio"], .adm-bare), select, textarea):hover { border-color: rgb(244 243 238 / 0.22); }
-.adm :is(input:not([type="checkbox"], [type="radio"], .adm-bare), select, textarea):focus {
+.adm :is(input:not([type="checkbox"], [type="radio"], .adm-bare, [type="range"]), select, textarea):hover { border-color: rgb(244 243 238 / 0.22); }
+.adm :is(input:not([type="checkbox"], [type="radio"], .adm-bare, [type="range"]), select, textarea):focus {
   border-color: var(--color-line);
   border-bottom-color: var(--color-rose);
   background-color: #151917;
@@ -902,3 +902,10 @@ html.lite:not(.settled) .mk-dot {
     }
   }
 }
+
+
+@keyframes vote-pop-in { from { opacity: 0; transform: translateY(4px); } }
+.vote-pop { animation: vote-pop-in 0.16s ease-out; }
+@keyframes vote-row-in { from { opacity: 0; transform: translateX(-6px); } }
+.vote-pop-row { animation: vote-row-in 0.22s ease-out backwards; animation-delay: calc(var(--i, 0) * 0.03s); }
+@media (prefers-reduced-motion: reduce) { .vote-pop, .vote-pop-row { animation: none; } }
