@@ -9,11 +9,28 @@ import { cn } from "@/lib/utils";
 import { VotePicker } from "./vote-picker";
 import { VotesPop } from "./votes-pop";
 
-type Props = { id: number; viewer: number; mine: number | null; canVote: boolean; own: boolean; picked: boolean; won: boolean; lead: boolean; votes: Voter[]; waiting: Pooler[] };
+type Props = {
+  id: number;
+  viewer: number;
+  mine: number | null;
+  mineNote: string;
+  canVote: boolean;
+  own: boolean;
+  picked: boolean;
+  won: boolean;
+  lead: boolean;
+  votes: Voter[];
+  waiting: Pooler[];
+};
 
-export function VoteCell({ id, viewer, mine, canVote, own, picked, won, lead, votes, waiting }: Props) {
+export function VoteCell({ id, viewer, mine, mineNote, canVote, own, picked, won, lead, votes, waiting }: Props) {
   const t = useDict();
   const [draft, setDraft] = useState<{ n: number | null; saved: number | null }>({ n: mine, saved: mine });
+  const [seen, setSeen] = useState(mine);
+  if (seen !== mine) {
+    setSeen(mine);
+    if (draft.n === draft.saved) setDraft({ n: mine, saved: mine });
+  }
   const others = votes.filter((v) => v.osuId !== viewer).map((v) => v.score);
   const mineNow = draft.n;
   const all = mineNow === null ? others : [...others, mineNow];
@@ -27,7 +44,7 @@ export function VoteCell({ id, viewer, mine, canVote, own, picked, won, lead, vo
         (own ? (
           <span className="text-xs font-black uppercase text-ash">{t.admin.yourSuggestion}</span>
         ) : (
-          <VotePicker id={id} mine={mine} onDraft={(n, saved) => setDraft({ n, saved })} />
+          <VotePicker id={id} mine={mine} mineNote={mineNote} onDraft={(n, saved) => setDraft({ n, saved })} />
         ))}
       <div className="flex w-28 flex-col items-end leading-none">
         <span

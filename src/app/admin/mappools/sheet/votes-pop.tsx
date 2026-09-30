@@ -18,7 +18,7 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
     clearTimeout(timer.current);
     const r = btn.current?.getBoundingClientRect();
     if (!r) return;
-    const w = 288;
+    const w = Math.min(416, window.innerWidth - 24);
     const up = r.top > window.innerHeight / 2;
     setAt({ top: up ? r.top - 10 : r.bottom + 10, left: Math.max(12, Math.min(window.innerWidth - w - 12, r.right - w)), up });
   };
@@ -78,7 +78,7 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
             aria-label={t.admin.whoVoted}
             onPointerEnter={stay}
             onPointerLeave={(e) => e.pointerType === "mouse" && later()}
-            className="fixed z-[80] w-72 overscroll-contain"
+            className="fixed z-[80] w-[min(26rem,calc(100vw-1.5rem))] overscroll-contain"
             style={{ top: at.top, left: at.left, transform: at.up ? "translateY(-100%)" : undefined }}
           >
             <span className={at.up ? "absolute inset-x-0 -bottom-3 h-3" : "absolute inset-x-0 -top-3 h-3"} aria-hidden />
@@ -92,26 +92,38 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
                   </span>
                 )}
               </div>
-              <ul className="max-h-80 divide-y divide-line/60 overflow-y-auto overscroll-contain">
+              <ul className="max-h-[28rem] divide-y divide-line/60 overflow-y-auto overscroll-contain">
                 {votes.map((v, i) => (
-                  <li key={v.osuId} className="vote-pop-row flex items-center gap-2.5 px-3 py-2" style={{ "--i": i } as React.CSSProperties}>
+                  <li key={v.osuId} className="vote-pop-row flex items-start gap-3 px-3.5 py-2.5" style={{ "--i": i } as React.CSSProperties}>
                     {v.avatar ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={v.avatar}
                         alt=""
-                        className="size-8 shrink-0 rounded-full object-cover ring-2 ring-offset-2 ring-offset-coal"
+                        className="mt-0.5 size-9 shrink-0 rounded-full object-cover ring-2 ring-offset-2 ring-offset-coal"
                         style={{ "--tw-ring-color": scoreColor(v.score) } as React.CSSProperties}
                       />
                     ) : (
                       <span className="size-8 shrink-0 rounded-full bg-slate" />
                     )}
-                    <span className="min-w-0 flex-1 truncate text-sm font-bold">{v.username}</span>
-                    <span className="num grid min-w-12 -skew-x-12 place-items-center px-1.5 py-0.5 text-xs font-black text-ink" style={{ background: scoreColor(v.score) }}>
-                      <span className="skew-x-12">
-                        {v.score}
-                        <span className="opacity-70">/10</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-2">
+                        <span className="min-w-0 flex-1 truncate text-sm font-bold">{v.username}</span>
+                        <span
+                          className="num grid min-w-12 shrink-0 -skew-x-12 place-items-center px-1.5 py-0.5 text-xs font-black text-ink"
+                          style={{ background: scoreColor(v.score) }}
+                        >
+                          <span className="skew-x-12">
+                            {v.score}
+                            <span className="opacity-70">/10</span>
+                          </span>
+                        </span>
                       </span>
+                      {v.note ? (
+                        <span className="mt-1 block whitespace-pre-wrap break-words border-l-2 border-line pl-2 text-[0.8rem] leading-snug text-paper/80">{v.note}</span>
+                      ) : (
+                        <span className="mt-1 block text-xs italic text-ash">{t.admin.noNote}</span>
+                      )}
                     </span>
                   </li>
                 ))}

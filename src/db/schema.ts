@@ -168,6 +168,7 @@ export const poolVotes = pgTable(
       .references(() => poolSuggestions.id, { onDelete: "cascade" }),
     osuId: integer("osu_id").notNull(),
     score: integer("score").notNull(),
+    note: text("note").notNull().default(""),
   },
   (t) => [unique().on(t.suggestionId, t.osuId)],
 );

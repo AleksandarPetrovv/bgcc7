@@ -1,5 +1,5 @@
 import "server-only";
-import { and, arrayOverlaps, asc, eq, inArray } from "drizzle-orm";
+import { and, arrayOverlaps, asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "./index";
 import { poolSuggestions, poolVotes, staff, users } from "./schema";
 import { MOD_ORDER, slotOf } from "./mappools";
@@ -9,9 +9,10 @@ export type Suggestion = typeof poolSuggestions.$inferSelect & {
   votes: Voter[];
   avg: number | null;
   mine: number | null;
+  mineNote: string;
 };
 
-export type Voter = { osuId: number; score: number; username: string; avatar: string | null };
+export type Voter = { osuId: number; score: number; note: string; username: string; avatar: string | null };
 export type Pooler = { osuId: number; username: string; avatar: string | null };
 
 export type SheetSlot = { mod: string; slot: number; label: string; picked: boolean; tie: boolean; items: Suggestion[]; waitingOn: string[] };
@@ -47,7 +48,7 @@ export async function getSheet(stageId: number, viewer: number) {
   const ids = rows.map((r) => r.s.id);
   const votes = ids.length
     ? await db
-        .select({ suggestionId: poolVotes.suggestionId, osuId: poolVotes.osuId, score: poolVotes.score, username: users.username, avatar: users.avatarUrl })
+        .select({ suggestionId: poolVotes.suggestionId, osuId: poolVotes.osuId, score: poolVotes.score, note: poolVotes.note, username: users.username, avatar: users.avatarUrl })
         .from(poolVotes)
         .leftJoin(users, eq(users.osuId, poolVotes.osuId))
         .where(inArray(poolVotes.suggestionId, ids))
@@ -55,9 +56,10 @@ export async function getSheet(stageId: number, viewer: number) {
   const items: Suggestion[] = rows.map(({ s, by }) => {
     const v = votes
       .filter((x) => x.suggestionId === s.id)
-      .map(({ osuId, score, username, avatar }) => ({ osuId, score, username: username ?? `#${osuId}`, avatar }))
+      .map(({ osuId, score, note, username, avatar }) => ({ osuId, score, note, username: username ?? `#${osuId}`, avatar }))
       .sort((a, b) => b.score - a.score);
-    return { ...s, by: by ?? `#${s.osuId}`, votes: v, avg: avgOf(v), mine: v.find((x) => x.osuId === viewer)?.score ?? null };
+    const me = v.find((x) => x.osuId === viewer);
+    return { ...s, by: by ?? `#${s.osuId}`, votes: v, avg: avgOf(v), mine: me?.score ?? null, mineNote: me?.note ?? "" };
   });
   const slots: SheetSlot[] = [];
   for (const mod of MOD_ORDER) {
@@ -102,7 +104,7 @@ export async function resolveSlot(stageId: number, mod: string, slot: number, fo
   const ranked = list
     .map((s) => {
       const v = votes.filter((x) => x.suggestionId === s.id);
-      return { ...s, by: "", votes: v.map((x) => ({ ...x, username: "", avatar: null })), avg: avgOf(v), mine: null };
+      return { ...s, by: "", votes: v.map((x) => ({ ...x, username: "", avatar: null })), avg: avgOf(v), mine: null, mineNote: "" };
     })
     .sort(rank);
   const done = allIn(ranked, voters);
@@ -111,4 +113,15 @@ export async function resolveSlot(stageId: number, mod: string, slot: number, fo
   if (!win || (!win.votes.length && !force)) return null;
   await db.update(poolSuggestions).set({ picked: true }).where(eq(poolSuggestions.id, win.id));
   return { stageId, mod, slot: slot + 1, title: win.title, version: win.version, avg: win.avg };
+}
+
+export async function sheetVersion(stageId: number) {
+  const [row] = await db.execute<{ v: string }>(sql`
+    select md5(
+      coalesce((select string_agg(s.id || ':' || s.picked || ':' || s.osu_id, ',' order by s.id) from pool_suggestions s where s.stage_id = ${stageId}), '') || '|' ||
+      coalesce((select string_agg(v.suggestion_id || ':' || v.osu_id || ':' || v.score || ':' || md5(v.note), ',' order by v.suggestion_id, v.osu_id)
+        from pool_votes v join pool_suggestions s on s.id = v.suggestion_id where s.stage_id = ${stageId}), '') || '|' ||
+      coalesce((select string_agg(st.osu_id || ':' || array_to_string(st.perm_roles, '+'), ',' order by st.osu_id) from staff st), '')
+    ) as v`);
+  return row?.v ?? "";
 }

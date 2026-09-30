@@ -1,12 +1,11 @@
 import { notFound } from "next/navigation";
 import { Check, Hourglass, Scale, Star, Trash2 } from "lucide-react";
 import { LinkTabs } from "@/components/site/tabs";
-import { InView } from "@/components/site/in-view";
 import { PageTitle } from "@/components/site/page";
 import { ActionForm, Field, IconAction, inputCls, Panel } from "@/components/admin/form";
 import { Dropdown } from "@/components/admin/dropdown";
-import { getPoolStages } from "@/db/mappools";
-import { getSheet } from "@/db/pool-sheet";
+import { getPoolStages, MOD_ORDER } from "@/db/mappools";
+import { getSheet, sheetVersion } from "@/db/pool-sheet";
 import { getViewer } from "@/lib/authz";
 import { fmtLen, MODS } from "@/lib/data";
 import { getDict } from "@/lib/i18n/server";
@@ -15,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { PoolMode } from "../pool-mode";
 import { pickNow, pickSuggestion, removeSuggestion, suggestMap } from "./actions";
 import { VoteCell } from "./vote-cell";
+import { SheetView, SlotBox } from "./sheet-view";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
@@ -37,6 +37,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
   const vote = can(viewer.roles, "poolVote");
   const sheets = await Promise.all(stages.map((s) => getSheet(s.id, viewer.osuId)));
   const sheet = sheets[stages.indexOf(stage)];
+  const version = await sheetVersion(stage.id);
   const name = (s: { title: string }) => t.rounds[s.title] ?? s.title;
 
   return (
@@ -80,44 +81,54 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
 
       {sheet.slots.length === 0 && <p className="in-up border border-line bg-coal p-4 text-sm text-ash [--d:0.3s]">{t.admin.noSuggestions}</p>}
 
-      <div className="space-y-4">
+      <SheetView
+        stageId={stage.id}
+        version={version}
+        mods={MOD_ORDER.filter((k) => sheet.slots.some((s) => s.mod === k)).map((k) => ({
+          key: k,
+          short: MODS[k].short,
+          color: MODS[k].color,
+          count: sheet.slots.filter((s) => s.mod === k).length,
+        }))}
+      >
         {sheet.slots.map((s, si) => {
           const color = MODS[s.mod]?.color;
           return (
-            <InView
-              as="section"
-              self
-              scrub
+            <SlotBox
               key={`${s.mod}-${s.slot}`}
-              className={cn("sr in-up relative overflow-clip border bg-coal", s.picked ? "border-balkan/50" : "border-line")}
-              style={{ "--i": si < 5 ? si : 0, "--s": "0.1s", "--d": "0.4s" } as React.CSSProperties}
-            >
-              <span className="sr in-grow absolute inset-x-0 top-0 h-0.5 [--d:0.55s]" style={{ background: color }} aria-hidden />
-              <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line px-4 py-2.5">
-                <span className="sr in-slam heading-slam text-2xl [--d:0.6s]" style={{ color }}>
-                  {s.label}
-                </span>
-                {s.picked ? (
-                  <span className="sr in-pop flex items-center gap-1.5 text-xs font-black uppercase text-balkan [--d:0.7s]">
-                    <Check className="size-3.5" strokeWidth={3} /> {t.admin.slotPicked}
+              id={`${stage.id}-${s.mod}-${s.slot}`}
+              mod={s.mod}
+              i={si}
+              picked={s.picked}
+              color={color}
+              header={
+                <>
+                  <span className="sr in-slam heading-slam text-2xl [--d:0.6s]" style={{ color }}>
+                    {s.label}
                   </span>
-                ) : s.tie ? (
-                  <span className="sr in-pop flex -skew-x-12 items-center border border-rose/70 bg-rose/15 px-2.5 py-1 text-xs font-black uppercase text-rose-hi [--d:0.7s]">
-                    <span className="flex skew-x-12 items-center gap-1.5">
-                      <Scale className="size-3.5" /> {host ? t.admin.tieHost : t.admin.tie}
+                  {s.picked ? (
+                    <span className="sr in-pop flex items-center gap-1.5 text-xs font-black uppercase text-balkan [--d:0.7s]">
+                      <Check className="size-3.5" strokeWidth={3} /> {t.admin.slotPicked}
                     </span>
-                  </span>
-                ) : s.waitingOn.length ? (
-                  <span className="sr in-drop flex min-w-0 items-center gap-1.5 text-xs text-ash [--d:0.7s]">
-                    <Hourglass className="size-3.5 shrink-0" />
-                    <span className="font-black uppercase">{t.admin.waitingOn}</span>
-                    <span className="truncate">{s.waitingOn.join(", ")}</span>
-                  </span>
-                ) : null}
-                {host && !s.picked && !s.tie && s.items.some((i) => i.votes.length) && (
-                  <ActionForm action={pickNow.bind(null, stage.id, s.mod, s.slot)} submit={t.admin.pickNow} ghost confirm={t.admin.confirmPickNow} className="ml-auto" />
-                )}
-              </header>
+                  ) : s.tie ? (
+                    <span className="sr in-pop flex -skew-x-12 items-center border border-rose/70 bg-rose/15 px-2.5 py-1 text-xs font-black uppercase text-rose-hi [--d:0.7s]">
+                      <span className="flex skew-x-12 items-center gap-1.5">
+                        <Scale className="size-3.5" /> {host ? t.admin.tieHost : t.admin.tie}
+                      </span>
+                    </span>
+                  ) : s.waitingOn.length ? (
+                    <span className="sr in-drop flex min-w-0 items-center gap-1.5 text-xs text-ash [--d:0.7s]">
+                      <Hourglass className="size-3.5 shrink-0" />
+                      <span className="font-black uppercase">{t.admin.waitingOn}</span>
+                      <span className="truncate">{s.waitingOn.join(", ")}</span>
+                    </span>
+                  ) : null}
+                  {host && !s.picked && !s.tie && s.items.some((i) => i.votes.length) && (
+                    <ActionForm action={pickNow.bind(null, stage.id, s.mod, s.slot)} submit={t.admin.pickNow} ghost confirm={t.admin.confirmPickNow} className="ml-auto" />
+                  )}
+                </>
+              }
+            >
               <ul className="divide-y divide-line">
                 {s.items.map((m, i) => {
                   const place = places(s.items)[i];
@@ -173,10 +184,11 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                       </div>
                       <div className="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
                         <VoteCell
-                          key={`${m.id}-${m.mine}-${m.votes.length}`}
+                          key={m.id}
                           id={m.id}
                           viewer={viewer.osuId}
                           mine={m.mine}
+                          mineNote={m.mineNote}
                           canVote={vote}
                           own={own}
                           picked={s.picked}
@@ -202,10 +214,10 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                   );
                 })}
               </ul>
-            </InView>
+            </SlotBox>
           );
         })}
-      </div>
+      </SheetView>
     </>
   );
 }
