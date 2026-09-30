@@ -1,0 +1,1 @@
+ALTER TABLE "pool_votes" ADD COLUMN "note" text DEFAULT '' NOT NULL;

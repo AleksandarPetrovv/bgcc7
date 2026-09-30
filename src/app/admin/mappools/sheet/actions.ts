@@ -42,16 +42,19 @@ export async function suggestMap(stageId: number, _: ActionResult, fd: FormData)
   });
 }
 
-export async function voteSuggestion(id: number, score: number) {
+export async function voteSuggestion(id: number, score: number, note: string) {
   return guard("poolVote", "pool.vote", async (osuId) => {
-    if (!Number.isInteger(score) || score < 1 || score > 10) return { ok: false, error: "invalid" };
+    const text = String(note ?? "")
+      .trim()
+      .slice(0, 300);
+    if (!Number.isInteger(score) || score < 1 || score > 10 || text.length < 2) return { ok: false, error: "invalid" };
     const [s] = await db.select().from(poolSuggestions).where(eq(poolSuggestions.id, id)).limit(1);
     if (!s) return { ok: false, error: "notFound" };
     if (s.osuId === osuId || (await slotPicked(s.stageId, s.mod, s.slot))) return { ok: false, error: "taken" };
     await db
       .insert(poolVotes)
-      .values({ suggestionId: id, osuId, score })
-      .onConflictDoUpdate({ target: [poolVotes.suggestionId, poolVotes.osuId], set: { score } });
+      .values({ suggestionId: id, osuId, score, note: text })
+      .onConflictDoUpdate({ target: [poolVotes.suggestionId, poolVotes.osuId], set: { score, note: text } });
     await settle(osuId, s.stageId, s.mod, s.slot);
     return { id, score, title: s.title, version: s.version };
   });
