@@ -1,35 +1,18 @@
-import { ChevronDown } from "lucide-react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, dateCls, inputCls, Panel, Field } from "@/components/admin/form";
+import { Panel } from "@/components/admin/form";
 import { getPoolStages } from "@/db/mappools";
 import { getMatchRows, getTeams } from "@/db/tournament";
 import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
-import { FEED } from "@/lib/pickems";
-import { matchSlug } from "@/lib/matches";
 import { can } from "@/lib/roles";
-import { fmtSofia, toSofiaInput } from "@/lib/time";
-import { cn } from "@/lib/utils";
-import { clearCache, saveMatch } from "./actions";
-import { Dropdown } from "@/components/admin/dropdown";
-
-const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
+import { MatchCard } from "./match-card";
 
 export default async function AdminMatches() {
-  const [t, lang, viewer, rows, teams, stages] = await Promise.all([
-    getDict(),
-    getLang(),
-    getViewer(),
-    getMatchRows(),
-    getTeams(),
-    getPoolStages(),
-  ]);
+  const [t, lang, viewer, rows, teams, stages] = await Promise.all([getDict(), getLang(), getViewer(), getMatchRows(), getTeams(), getPoolStages()]);
   if (!can(viewer?.roles, "matches")) notFound();
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
-  const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? t.common.tbd;
   const bracketStages = stages.filter((s) => s.slug !== "qualifiers");
 
   return (
@@ -42,85 +25,26 @@ export default async function AdminMatches() {
       <div className="space-y-8">
         {bracketStages.map((s, n) => (
           <Panel key={s.slug} i={n < 3 ? n + 1 : 0} title={`${t.rounds[s.title] ?? s.title} · ${t.admin.firstToShort(s.firstTo ?? 7)}`}>
-            <div className="space-y-2">
-              {rows
-                .filter((m) => m.stageSlug === s.slug)
-                .map((m, k) => (
-                  <details key={m.id} style={{ "--i": k, "--s": "0.05s", "--d": "0.6s" } as React.CSSProperties} className="group in-left border border-line bg-ink">
-                    <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2.5">
-                      <span className="num text-sm text-ash sm:w-20">{m.id}</span>
-                      <span className="text-xs font-black uppercase text-rose-hi">{t.rounds[m.round] ?? m.round}</span>
-                      <span className="order-last min-w-0 basis-full truncate font-bold sm:order-none sm:basis-0 sm:flex-1">
-                        {name(m.team1Id)} <span className="in-slam num inline-block text-rose-hi [--d:0.85s]">{m.score1 ?? "-"}</span> : <span className="in-slam num inline-block text-azure-hi [--d:0.9s]">{m.score2 ?? "-"}</span> {name(m.team2Id)}
+            <div className="space-y-6">
+              {[...new Set(rows.filter((m) => m.stageSlug === s.slug).map((m) => m.round))].map((round) => {
+                const list = rows.filter((m) => m.stageSlug === s.slug && m.round === round);
+                return (
+                  <div key={round}>
+                    <h3 className="mb-2.5 flex items-center gap-3 text-[0.7rem] font-black uppercase tracking-[0.16em] text-rose-hi">
+                      {t.rounds[round] ?? round}
+                      <span className="num text-ash">
+                        {list.filter((m) => m.winner).length}/{list.length}
                       </span>
-                      <span className="num ml-auto text-sm text-ash sm:ml-0">{m.startsAt ? fmtSofia(m.startsAt, locale) : t.common.tbd}</span>
-                      {m.winner && <span className="in-pop text-xs font-black uppercase text-balkan [--d:0.95s]">{t.admin.done}</span>}
-                      <ChevronDown className="size-4 shrink-0 text-ash transition-transform duration-300 group-open:rotate-180 group-hover:text-paper" aria-hidden />
-                    </summary>
-                    <div className="border-t border-line p-3">
-                      <ActionForm key={JSON.stringify(m)} action={saveMatch.bind(null, m.id)} className="space-y-3">
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                          <label className={cn(label, "col-span-2")}>
-                            {t.admin.startsAt}
-                            <Field type="datetime-local" name="startsAt" defaultValue={toSofiaInput(m.startsAt)} className={dateCls} />
-                          </label>
-                          <label className={label}>
-                            {t.admin.referee}
-                            <Field name="referee" maxLength={120} defaultValue={m.referee ?? ""} className={inputCls} />
-                          </label>
-                          <label className={label}>
-                            {t.admin.streamer}
-                            <Field name="streamer" maxLength={120} defaultValue={m.streamer ?? ""} className={inputCls} />
-                          </label>
-                          {([1, 2] as const).map((n) => (
-                            <label key={n} className={cn(label, "col-span-2 md:col-span-1")}>
-                              {t.admin.teamN(n)}
-                              <Dropdown name={`team${n}Id`} defaultValue={(n === 1 ? m.team1Id : m.team2Id) ?? ""} options={[{ value: "", label: t.common.tbd }, ...teams.map((x) => ({ value: x.id, label: x.name }))]} />
-                            </label>
-                          ))}
-                          <label className={label}>
-                            {t.admin.scoreN(1)}
-                            <Field type="number" name="score1" min={0} max={99} defaultValue={m.score1 ?? ""} className={inputCls} />
-                          </label>
-                          <label className={label}>
-                            {t.admin.scoreN(2)}
-                            <Field type="number" name="score2" min={0} max={99} defaultValue={m.score2 ?? ""} className={inputCls} />
-                          </label>
-                          <label className={cn(label, "col-span-2")}>
-                            {t.admin.winner}
-                            <Dropdown name="winner" defaultValue="auto" options={[{ value: "auto", label: t.admin.winnerAuto }, { value: "1", label: name(m.team1Id), color: "var(--color-rose)" }, { value: "2", label: name(m.team2Id), color: "var(--color-azure)" }, { value: "none", label: t.admin.winnerNone }]} />
-                          </label>
-                          <label className={cn(label, "col-span-2")}>
-                            {t.admin.commentators}
-                            <Field name="commentators" maxLength={120} defaultValue={m.commentators ?? ""} className={inputCls} />
-                          </label>
-                          <label className={cn(label, "col-span-2")}>
-                            {t.admin.mpLinks}
-                            <Field name="mpLinks" defaultValue={m.mpLinks.split(",").filter(Boolean).map((x) => `https://osu.ppy.sh/mp/${x}`).join(", ")} className={inputCls} />
-                          </label>
-                          <label className={cn(label, "col-span-2")}>
-                            {t.admin.vodUrl}
-                            <Field name="vodUrl" maxLength={300} placeholder="https://…" defaultValue={m.vodUrl ?? ""} className={inputCls} />
-                          </label>
-                        </div>
-                        {FEED[m.id] && (
-                          <label className="flex min-h-10 cursor-pointer items-center gap-2.5 text-sm font-bold uppercase tracking-wide">
-                            <input type="checkbox" name="manual" defaultChecked={m.manual} className="size-4 accent-rose" />
-                            {t.admin.lockTeams}
-                          </label>
-                        )}
-                      </ActionForm>
-                      {m.mpLinks && (
-                        <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-line pt-3">
-                          <Link href={`/admin/matches/${matchSlug(m.id)}`} className="lift-sm inline-flex min-h-9 -skew-x-12 items-center bg-balkan px-3 text-xs font-black uppercase tracking-wide text-ink hover:bg-paper">
-                            <span className="skew-x-12">{t.admin.ms.open}</span>
-                          </Link>
-                          <ActionForm action={clearCache.bind(null, m.id)} submit={t.admin.clearCache} ghost />
-                        </div>
-                      )}
+                      <span className="h-px flex-1 bg-line" aria-hidden />
+                    </h3>
+                    <div className="space-y-2">
+                      {list.map((m, k) => (
+                        <MatchCard key={m.id} m={m} k={k} t={t} locale={locale} teams={teams} />
+                      ))}
                     </div>
-                  </details>
-                ))}
+                  </div>
+                );
+              })}
             </div>
           </Panel>
         ))}

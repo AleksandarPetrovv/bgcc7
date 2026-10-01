@@ -909,3 +909,8 @@ html.lite:not(.settled) .mk-dot {
 @keyframes vote-row-in { from { opacity: 0; transform: translateX(-6px); } }
 .vote-pop-row { animation: vote-row-in 0.22s ease-out backwards; animation-delay: calc(var(--i, 0) * 0.03s); }
 @media (prefers-reduced-motion: reduce) { .vote-pop, .vote-pop-row { animation: none; } }
+
+.adm-match { interpolate-size: allow-keywords; }
+.adm-match::details-content { block-size: 0; overflow-y: clip; transition: block-size 0.35s cubic-bezier(0.22, 1, 0.36, 1), content-visibility 0.35s allow-discrete; }
+.adm-match[open]::details-content { block-size: auto; }
+@media (prefers-reduced-motion: reduce) { .adm-match::details-content { transition: none; } }
