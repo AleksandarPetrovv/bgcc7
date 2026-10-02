@@ -57,7 +57,7 @@ export function VotePicker({ id, mine, mineNote, onDraft }: { id: number; mine: 
                   <span
                     key={n}
                     className={cn(
-                      "flex-1 -skew-x-12 border transition-[background-color,border-color,transform,box-shadow] duration-150",
+                      "flex-1 -skew-x-12 border transition-[background-color,border-color,transform,box-shadow,translate,scale,rotate] duration-150",
                       on ? "border-transparent" : "border-line bg-ink/60",
                       head && "-translate-y-0.5 shadow-[2px_2px_0_0_var(--color-ink)]",
                     )}

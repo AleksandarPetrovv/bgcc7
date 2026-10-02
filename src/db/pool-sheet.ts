@@ -15,7 +15,7 @@ export type Suggestion = typeof poolSuggestions.$inferSelect & {
 export type Voter = { osuId: number; score: number; note: string; username: string; avatar: string | null };
 export type Pooler = { osuId: number; username: string; avatar: string | null };
 
-export type SheetSlot = { mod: string; slot: number; label: string; picked: boolean; tie: boolean; items: Suggestion[]; waitingOn: string[] };
+export type SheetSlot = { mod: string; slot: number; label: string; picked: boolean; tie: boolean; items: Suggestion[]; waitingOn: string[]; out: boolean };
 
 const poolers = async () => {
   const rows = await db
@@ -35,7 +35,7 @@ const avgOf = (v: { score: number }[]) => (v.length ? v.reduce((n, x) => n + x.s
 
 const rank = (a: Suggestion, b: Suggestion) => (b.avg ?? 0) - (a.avg ?? 0) || b.votes.length - a.votes.length || a.createdAt.getTime() - b.createdAt.getTime();
 
-export async function getSheet(stageId: number, viewer: number) {
+export async function getSheet(stageId: number, viewer: number, blueprint: Record<string, number> = {}) {
   const [rows, voters] = await Promise.all([
     db
       .select({ s: poolSuggestions, by: users.username })
@@ -64,11 +64,12 @@ export async function getSheet(stageId: number, viewer: number) {
   const slots: SheetSlot[] = [];
   for (const mod of MOD_ORDER) {
     const forMod = items.filter((i) => i.mod === mod);
-    for (const slot of [...new Set(forMod.map((i) => i.slot))].sort((a, b) => a - b)) {
+    const count = Math.max(0, Math.floor(blueprint[mod] ?? 0));
+    for (const slot of [...new Set([...Array.from({ length: count }, (_, i) => i), ...forMod.map((i) => i.slot)])].sort((a, b) => a - b)) {
       const list = forMod.filter((i) => i.slot === slot).sort((a, b) => Number(b.picked) - Number(a.picked) || rank(a, b));
       const waitingOn = voters.filter((p) => list.some((i) => i.osuId !== p.osuId && !i.votes.some((v) => v.osuId === p.osuId))).map((p) => p.username);
       const picked = list.some((i) => i.picked);
-      slots.push({ mod, slot, label: slotOf(mod, slot), picked, tie: !picked && allIn(list, voters) && tied(list), items: list, waitingOn });
+      slots.push({ mod, slot, label: slotOf(mod, slot), picked, tie: !picked && list.length > 0 && allIn(list, voters) && tied(list), items: list, waitingOn, out: slot >= count });
     }
   }
   const owed = items.filter((i) => !i.picked && i.osuId !== viewer && i.mine === null && !slots.find((s) => s.mod === i.mod && s.slot === i.slot)?.picked).length;

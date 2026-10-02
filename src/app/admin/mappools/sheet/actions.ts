@@ -2,7 +2,7 @@
 
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { poolSuggestions, poolVotes } from "@/db/schema";
+import { poolSuggestions, poolVotes, stages } from "@/db/schema";
 import { resolveSlot, slotPicked } from "@/db/pool-sheet";
 import { guard } from "@/lib/admin-action";
 import { getViewer, log } from "@/lib/authz";
@@ -15,13 +15,12 @@ async function settle(osuId: number, stageId: number, mod: string, slot: number,
   if (res) await log(osuId, "pool.pick", res);
 }
 
-export async function suggestMap(stageId: number, _: ActionResult, fd: FormData) {
+export async function suggestMap(stageId: number, mod: string, slot: number, _: ActionResult, fd: FormData) {
   return guard("poolEdit", "pool.suggest", async (osuId) => {
     const beatmapId = parseBeatmapId(fd.get("beatmap"));
-    const mod = String(fd.get("mod"));
-    const want = Number(fd.get("slot"));
-    const slot = mod === "Tiebreaker" ? 0 : want - 1;
-    if (!Number.isInteger(beatmapId) || beatmapId <= 0 || !MODS[mod] || !Number.isInteger(slot) || slot < 0 || slot > 19) return { ok: false, error: "invalid" };
+    if (!Number.isInteger(beatmapId) || beatmapId <= 0 || !MODS[mod] || !Number.isInteger(slot) || slot < 0) return { ok: false, error: "invalid" };
+    const [st] = await db.select({ blueprint: stages.blueprint }).from(stages).where(eq(stages.id, stageId)).limit(1);
+    if (!st || slot >= (st.blueprint[mod] ?? 0)) return { ok: false, error: "invalid" };
     if (await slotPicked(stageId, mod, slot)) return { ok: false, error: "taken" };
     const [dupe] = await db
       .select({ id: poolSuggestions.id })

@@ -46,10 +46,10 @@ export function VoteCell({ id, viewer, mine, mineNote, canVote, own, picked, won
         ) : (
           <VotePicker id={id} mine={mine} mineNote={mineNote} onDraft={(n, saved) => setDraft({ n, saved })} />
         ))}
-      <div className="flex w-28 flex-col items-end leading-none">
+      <div className="relative flex w-28 flex-col items-center leading-none">
         <span
           className={cn(
-            "relative flex h-11 min-w-24 -skew-x-12 items-center justify-center border bg-ink/60 px-3 transition-[border-color,box-shadow] duration-200",
+            "relative flex h-10 min-w-24 -skew-x-12 items-center justify-center border bg-ink/60 px-3 transition-[border-color,box-shadow] duration-200",
             preview
               ? "border-dashed border-paper/40"
               : won
@@ -76,11 +76,13 @@ export function VoteCell({ id, viewer, mine, mineNote, canVote, own, picked, won
           </span>
           {avg !== null && <span className="absolute inset-x-0 bottom-0 h-[3px] opacity-80 transition-colors duration-200" style={{ background: scoreColor(avg) }} aria-hidden />}
         </span>
-        {preview ? (
-          <span className="mt-1 text-[0.68rem] font-bold uppercase text-ash">{t.admin.withYours}</span>
-        ) : (
-          <VotesPop label={t.admin.votesIn(votes.length)} votes={votes} waiting={waiting} avg={avg} />
-        )}
+        <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap">
+          {preview ? (
+            <span className="text-[0.68rem] font-bold uppercase text-ash">{t.admin.withYours}</span>
+          ) : (
+            <VotesPop label={t.admin.votesIn(votes.length)} votes={votes} waiting={waiting} avg={avg} />
+          )}
+        </span>
       </div>
     </>
   );

@@ -62,7 +62,7 @@ export function SheetView({ stageId, version, mods, children }: { stageId: numbe
                 role="tab"
                 aria-selected={on}
                 onClick={() => setMod(c.key)}
-                className="group relative flex h-10 -skew-x-12 items-center border px-4 transition-[border-color,color,transform] duration-200 hover:-translate-y-0.5"
+                className="group relative flex h-10 -skew-x-12 items-center border px-4 transition-[border-color,color,transform,translate,scale,rotate] duration-200 hover:-translate-y-0.5"
                 style={{ borderColor: on ? c.color : "var(--color-line)", color: on ? "var(--color-ink)" : c.color }}
               >
                 {on && (
@@ -92,6 +92,7 @@ export function SlotBox({
   id,
   i,
   picked,
+  empty,
   color,
   header,
   children,
@@ -100,6 +101,7 @@ export function SlotBox({
   id: string;
   i: number;
   picked: boolean;
+  empty?: boolean;
   color: string;
   header: React.ReactNode;
   children: React.ReactNode;
@@ -133,24 +135,28 @@ export function SlotBox({
               <header
                 className={cn(
                   "flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 transition-[border-color] duration-200",
-                  open ? "border-b border-line" : "border-b border-transparent",
+                  open && !empty ? "border-b border-line" : "border-b border-transparent",
                 )}
               >
-                <button
-                  type="button"
-                  onClick={toggle}
-                  aria-expanded={open}
-                  aria-label={open ? t.admin.collapse : t.admin.expand}
-                  title={open ? t.admin.collapse : t.admin.expand}
-                  className="-ml-1 grid size-8 shrink-0 -skew-x-12 place-items-center border border-line text-ash transition-colors hover:border-paper/40 hover:text-paper"
-                >
-                  <ChevronDown className={cn("size-4 skew-x-12 transition-transform duration-300", !open && "-rotate-90")} />
-                </button>
+                {!empty && (
+                  <button
+                    type="button"
+                    onClick={toggle}
+                    aria-expanded={open}
+                    aria-label={open ? t.admin.collapse : t.admin.expand}
+                    title={open ? t.admin.collapse : t.admin.expand}
+                    className="-ml-1 grid size-10 shrink-0 -skew-x-12 place-items-center border border-line text-ash transition-colors hover:border-paper/40 hover:text-paper"
+                  >
+                    <ChevronDown className={cn("size-4 skew-x-12 transition-transform duration-300", !open && "-rotate-90")} />
+                  </button>
+                )}
                 {header}
               </header>
-              <div className={cn("grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]", open ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
-                <div className="min-h-0 overflow-clip">{children}</div>
-              </div>
+              {!empty && (
+                <div className={cn("grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]", open ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
+                  <div className="min-h-0 overflow-clip">{children}</div>
+                </div>
+              )}
             </InView>
           </div>
         </motion.div>

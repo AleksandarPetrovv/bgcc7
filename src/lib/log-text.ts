@@ -130,6 +130,11 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       const ft = p.firstTo ? (bg ? `, до ${p.firstTo}` : `, first to ${p.firstTo}`) : "";
       return bg ? `обнови ${stage("id")} (мапове: ${pool}${ft})` : `updated ${stage("id")} (pool ${pool}${ft})`;
     }
+    case "stage.blueprint": {
+      const bp = (p.blueprint ?? {}) as Record<string, number>;
+      const list = Object.entries(bp).map(([k, n]) => `${n} ${k}`).join(", ");
+      return bg ? `смени структурата на пула за ${stage()} (${list})` : `set the pool layout for ${stage()} (${list})`;
+    }
     case "stage.rename":
       return bg ? `преименува етап на ${b(p.title)}` : `renamed a stage to ${b(p.title)}`;
     case "map.add": {

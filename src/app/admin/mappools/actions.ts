@@ -1,11 +1,11 @@
 "use server";
 
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { maps, stages } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
 import { MODS } from "@/lib/data";
-import { fetchMap } from "@/lib/fetch-map";
+import { fetchMap, parseBeatmapId } from "@/lib/fetch-map";
 import type { ActionResult } from "@/lib/roles";
 
 export async function renameStage(id: number, _: ActionResult, fd: FormData) {
@@ -26,29 +26,42 @@ export async function setReleased(id: number, poolReleased: boolean) {
   });
 }
 
-export async function addMap(stageId: number, _: ActionResult, fd: FormData) {
+async function blueprintFor(stageId: number) {
+  const [s] = await db.select({ slug: stages.slug, blueprint: stages.blueprint }).from(stages).where(eq(stages.id, stageId)).limit(1);
+  return s ?? null;
+}
+
+export async function saveBlueprint(stageId: number, _: ActionResult, fd: FormData) {
+  return guard("phase", "stage.blueprint", async () => {
+    const s = await blueprintFor(stageId);
+    if (!s) return { ok: false, error: "notFound" };
+    const quals = s.slug === "qualifiers";
+    const blueprint: Record<string, number> = {};
+    for (const mod of Object.keys(MODS)) {
+      if (mod === "Tiebreaker") {
+        if (!quals) blueprint[mod] = 1;
+        continue;
+      }
+      if (quals && mod === "FreeMod") continue;
+      const n = Math.floor(Number(fd.get(mod) ?? 0));
+      if (Number.isFinite(n) && n > 0) blueprint[mod] = Math.min(n, 99);
+    }
+    await db.update(stages).set({ blueprint }).where(eq(stages.id, stageId));
+    return { stageId, blueprint };
+  });
+}
+
+export async function setSlotMap(stageId: number, mod: string, slot: number, _: ActionResult, fd: FormData) {
   return guard("poolEdit", "map.add", async () => {
-    const beatmapId = Number(/(\d+)\s*$/.exec(String(fd.get("beatmap") ?? "").trim())?.[1]);
-    const mod = String(fd.get("mod"));
-    if (!Number.isInteger(beatmapId) || beatmapId <= 0 || !MODS[mod]) return { ok: false, error: "invalid" };
+    const beatmapId = parseBeatmapId(fd.get("beatmap"));
+    if (!Number.isInteger(beatmapId) || beatmapId <= 0 || !MODS[mod] || !Number.isInteger(slot) || slot < 0) return { ok: false, error: "invalid" };
+    const s = await blueprintFor(stageId);
+    if (!s || slot >= (s.blueprint[mod] ?? 0)) return { ok: false, error: "invalid" };
     const data = await fetchMap(beatmapId, mod);
     if (!data) return { ok: false, error: "notFound" };
-    const siblings = await db
-      .select({ id: maps.id, order: maps.order })
-      .from(maps)
-      .where(and(eq(maps.stageId, stageId), eq(maps.mod, mod)))
-      .orderBy(desc(maps.order));
-    const want = Number(fd.get("slot"));
-    const at = Number.isInteger(want) && want >= 1 && want <= 99 ? want - 1 : siblings.length ? siblings[0].order + 1 : 0;
-    if (siblings.some((s) => s.order === at)) {
-      for (const s of siblings.filter((s) => s.order >= at))
-        await db
-          .update(maps)
-          .set({ order: s.order + 1 })
-          .where(eq(maps.id, s.id));
-    }
-    await db.insert(maps).values({ stageId, mod, order: at, ...data });
-    return { stageId, mod, slot: at + 1, beatmapId, title: data.title };
+    await db.delete(maps).where(and(eq(maps.stageId, stageId), eq(maps.mod, mod), eq(maps.order, slot)));
+    await db.insert(maps).values({ stageId, mod, order: slot, ...data });
+    return { stageId, mod, slot: slot + 1, beatmapId, title: data.title };
   });
 }
 
@@ -56,16 +69,16 @@ export async function moveMap(id: number, dir: -1 | 1) {
   return guard("poolEdit", "map.move", async () => {
     const [m] = await db.select().from(maps).where(eq(maps.id, id)).limit(1);
     if (!m) return { ok: false, error: "notFound" };
-    const siblings = await db
-      .select({ id: maps.id, order: maps.order })
+    const s = await blueprintFor(m.stageId);
+    const to = m.order + dir;
+    if (!s || to < 0 || to >= (s.blueprint[m.mod] ?? 0)) return { id };
+    const [other] = await db
+      .select({ id: maps.id })
       .from(maps)
-      .where(and(eq(maps.stageId, m.stageId), eq(maps.mod, m.mod)))
-      .orderBy(asc(maps.order), asc(maps.id));
-    const i = siblings.findIndex((s) => s.id === id);
-    const other = siblings[i + dir];
-    if (!other) return { id };
-    await db.update(maps).set({ order: other.order }).where(eq(maps.id, id));
-    await db.update(maps).set({ order: m.order }).where(eq(maps.id, other.id));
+      .where(and(eq(maps.stageId, m.stageId), eq(maps.mod, m.mod), eq(maps.order, to)))
+      .limit(1);
+    if (other) await db.update(maps).set({ order: m.order }).where(eq(maps.id, other.id));
+    await db.update(maps).set({ order: to }).where(eq(maps.id, id));
     return { id, dir, title: m.title, version: m.version };
   });
 }
