@@ -66,7 +66,7 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
         onFocus={open}
         onClick={() => (at ? close() : open())}
         aria-expanded={!!at}
-        className="num mt-1 cursor-help border-b border-dashed border-ash/60 text-[0.68rem] font-bold uppercase text-ash transition-colors hover:border-paper hover:text-paper"
+        className="num block cursor-help border-b border-dashed border-ash/60 text-[0.68rem] font-bold uppercase text-ash transition-colors hover:border-paper hover:text-paper"
       >
         {label}
       </button>

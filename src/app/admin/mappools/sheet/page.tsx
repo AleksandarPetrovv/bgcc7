@@ -2,8 +2,7 @@ import { notFound } from "next/navigation";
 import { Check, Hourglass, Scale, Star, Trash2 } from "lucide-react";
 import { LinkTabs } from "@/components/site/tabs";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, Field, IconAction, inputCls, Panel } from "@/components/admin/form";
-import { Dropdown } from "@/components/admin/dropdown";
+import { ActionForm, IconAction } from "@/components/admin/form";
 import { getPoolStages, MOD_ORDER } from "@/db/mappools";
 import { getSheet, sheetVersion } from "@/db/pool-sheet";
 import { getViewer } from "@/lib/authz";
@@ -14,9 +13,8 @@ import { cn } from "@/lib/utils";
 import { PoolMode } from "../pool-mode";
 import { pickNow, pickSuggestion, removeSuggestion, suggestMap } from "./actions";
 import { VoteCell } from "./vote-cell";
+import { SlotPop } from "../slot-pop";
 import { SheetView, SlotBox } from "./sheet-view";
-
-const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
 const places = (items: { picked: boolean; avg: number | null }[]) => {
   const out: number[] = [];
@@ -35,7 +33,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
   const host = can(viewer.roles, "phase");
   const edit = can(viewer.roles, "poolEdit");
   const vote = can(viewer.roles, "poolVote");
-  const sheets = await Promise.all(stages.map((s) => getSheet(s.id, viewer.osuId)));
+  const sheets = await Promise.all(stages.map((s) => getSheet(s.id, viewer.osuId, s.blueprint)));
   const sheet = sheets[stages.indexOf(stage)];
   const version = await sheetVersion(stage.id);
   const name = (s: { title: string }) => t.rounds[s.title] ?? s.title;
@@ -60,26 +58,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
         }))}
       />
 
-      {edit && (
-        <Panel title={t.admin.suggestMap} className="mb-6">
-          <ActionForm key={stage.id} action={suggestMap.bind(null, stage.id)} submit={t.admin.suggest} className="flex flex-wrap items-end gap-3">
-            <label className={cn(label, "min-w-56 flex-1")}>
-              {t.admin.beatmap}
-              <Field name="beatmap" required placeholder="https://osu.ppy.sh/b/…" className={inputCls} />
-            </label>
-            <label className={cn(label, "w-40")}>
-              {t.admin.mod}
-              <Dropdown name="mod" defaultValue="NoMod" options={Object.entries(MODS).map(([k, v]) => ({ value: k, label: v.label, color: v.color }))} />
-            </label>
-            <label className={cn(label, "w-24")}>
-              {t.admin.slot}
-              <Field name="slot" type="number" min={1} max={20} required defaultValue={1} className={inputCls} />
-            </label>
-          </ActionForm>
-        </Panel>
-      )}
-
-      {sheet.slots.length === 0 && <p className="in-up border border-line bg-coal p-4 text-sm text-ash [--d:0.3s]">{t.admin.noSuggestions}</p>}
+      {sheet.slots.length === 0 && <p className="in-up border border-dashed border-line bg-coal p-4 text-sm text-ash [--d:0.3s]">{t.admin.noLayout}</p>}
 
       <SheetView
         stageId={stage.id}
@@ -100,6 +79,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
               mod={s.mod}
               i={si}
               picked={s.picked}
+              empty={s.items.length === 0}
               color={color}
               header={
                 <>
@@ -123,9 +103,14 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                       <span className="truncate">{s.waitingOn.join(", ")}</span>
                     </span>
                   ) : null}
-                  {host && !s.picked && !s.tie && s.items.some((i) => i.votes.length) && (
-                    <ActionForm action={pickNow.bind(null, stage.id, s.mod, s.slot)} submit={t.admin.pickNow} ghost confirm={t.admin.confirmPickNow} className="ml-auto" />
-                  )}
+                  <span className="ml-auto flex items-center gap-3">
+                    {host && !s.picked && !s.tie && s.items.some((i) => i.votes.length) && (
+                      <ActionForm action={pickNow.bind(null, stage.id, s.mod, s.slot)} submit={t.admin.pickNow} ghost confirm={t.admin.confirmPickNow} />
+                    )}
+                    {edit && !s.picked && !s.out && (
+                      <SlotPop action={suggestMap.bind(null, stage.id, s.mod, s.slot)} title={t.admin.suggestForSlot} slot={s.label} color={color} submit={t.admin.suggest} />
+                    )}
+                  </span>
                 </>
               }
             >
@@ -141,7 +126,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                     <li
                       key={m.id}
                       style={{ "--i": i, "--s": "0.05s", "--d": "0.65s" } as React.CSSProperties}
-                      className={cn("sr in-left relative flex flex-wrap items-center gap-3 py-2.5 pl-4 pr-3", green && "bg-balkan/[0.07]")}
+                      className={cn("sr in-left relative flex flex-wrap items-center gap-3 py-3.5 pl-4 pr-3", green && "bg-balkan/[0.07]")}
                     >
                       {(green || lead) && <span className={cn("absolute inset-y-0 left-0 w-1", green ? "bg-balkan" : "bg-rose")} aria-hidden />}
                       <span
@@ -203,7 +188,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                           </IconAction>
                         )}
                         {edit && !m.picked && (own || host) ? (
-                          <IconAction action={removeSuggestion.bind(null, m.id)} label={t.admin.remove} confirm={t.admin.confirmRemoveSuggestion} danger>
+                          <IconAction action={removeSuggestion.bind(null, m.id)} label={t.admin.remove} confirm={t.admin.confirmRemoveSuggestion} danger bare>
                             <Trash2 className="size-4 transition-transform group-hover:rotate-12" />
                           </IconAction>
                         ) : (

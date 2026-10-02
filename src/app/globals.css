@@ -906,11 +906,44 @@ html.lite:not(.settled) .mk-dot {
 
 @keyframes vote-pop-in { from { opacity: 0; transform: translateY(4px); } }
 .vote-pop { animation: vote-pop-in 0.16s ease-out; }
+@keyframes slot-pop-out { to { opacity: 0; transform: translateY(6px) scale(0.98); } }
+.slot-pop-out { animation: slot-pop-out 0.14s ease-in forwards; pointer-events: none; }
 @keyframes vote-row-in { from { opacity: 0; transform: translateX(-6px); } }
 .vote-pop-row { animation: vote-row-in 0.22s ease-out backwards; animation-delay: calc(var(--i, 0) * 0.03s); }
-@media (prefers-reduced-motion: reduce) { .vote-pop, .vote-pop-row { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .vote-pop, .vote-pop-row, .slot-pop-out { animation: none; } }
 
 .adm-match { interpolate-size: allow-keywords; }
 .adm-match::details-content { block-size: 0; overflow-y: clip; transition: block-size 0.35s cubic-bezier(0.22, 1, 0.36, 1), content-visibility 0.35s allow-discrete; }
 .adm-match[open]::details-content { block-size: auto; }
 @media (prefers-reduced-motion: reduce) { .adm-match::details-content { transition: none; } }
+
+.me-tag, .me-corner { display: none; }
+.me-tag:is([data-p], [data-t]) { display: contents; }
+.me-tag::after {
+  display: inline-block;
+  flex-shrink: 0;
+  margin-inline: 0.45em;
+  padding: 0.18em 0.5em;
+  transform: skewX(-12deg);
+  background: var(--color-balkan);
+  color: var(--color-ink);
+  font: 900 0.58rem/1.15 var(--font-sans);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  vertical-align: middle;
+  box-shadow: 2px 2px 0 0 var(--color-balkan-deep);
+}
+.me-corner:is([data-p], [data-t]) { display: block; position: absolute; top: 0; right: 0; z-index: 3; pointer-events: none; }
+.me-corner::after {
+  display: block;
+  padding: 0.25em 0.6em;
+  background: var(--color-balkan);
+  color: var(--color-ink);
+  font: 900 0.6rem/1.15 var(--font-sans);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%);
+  padding-left: 0.9em;
+}

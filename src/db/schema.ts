@@ -112,6 +112,7 @@ export const stages = pgTable("stages", {
   poolReleased: boolean("pool_released").notNull().default(false),
   packSize: integer("pack_size"),
   packAt: timestamp("pack_at", { withTimezone: true }),
+  blueprint: jsonb("blueprint").$type<Record<string, number>>().notNull().default({}),
 });
 
 export const maps = pgTable("maps", {

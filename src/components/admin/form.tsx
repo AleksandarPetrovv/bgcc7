@@ -113,12 +113,14 @@ export function IconAction({
   label,
   confirm,
   danger,
+  bare,
   children,
 }: {
   action: () => Promise<unknown>;
   label: string;
   confirm?: string;
   danger?: boolean;
+  bare?: boolean;
   children: React.ReactNode;
 }) {
   const [pending, start] = useTransition();
@@ -139,8 +141,9 @@ export function IconAction({
         });
       }}
       className={cn(
-        "group inline-flex size-10 -skew-x-12 items-center justify-center border transition-[color,border-color,background-color,transform] duration-200 hover:-translate-y-0.5 disabled:opacity-50",
+        "group inline-flex size-10 -skew-x-12 items-center justify-center border transition-[color,border-color,background-color,transform,translate,scale,rotate] duration-200 hover:-translate-y-0.5 disabled:opacity-50",
         danger ? "border-rose/50 text-rose-hi hover:border-rose hover:bg-rose hover:text-white" : "border-line text-ash hover:border-paper/40 hover:bg-slate hover:text-paper",
+        bare && "border-transparent",
       )}
     >
       <span className={cn("skew-x-12 transition-transform duration-200", pending && "animate-pulse")}>{children}</span>
