@@ -6,6 +6,7 @@ import { useTournament } from "./tournament";
 import { useDict, useLang } from "./lang";
 import { MatchDialog } from "./match-dialog";
 import { cn } from "@/lib/utils";
+import { MeTag, meT } from "./me";
 
 function when(dt: string | null, locale: string) {
   if (!dt) return null;
@@ -27,10 +28,13 @@ function Side({ id, flip }: { id: string; flip?: boolean }) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={team.image} alt="" className={cn("absolute inset-0 size-full object-cover", flip ? "in-wipe-r" : "in-wipe")} style={{ "--d": "0.3s" } as React.CSSProperties} />
       </div>
-      <div className={cn("flex min-w-0 flex-1 flex-col justify-center bg-slate/60 px-2.5 py-3 sm:px-4", flip && "items-end text-right")}>
-        <Link href={`/teams/${team.id}`} className={cn("block max-w-full truncate text-base font-black leading-tight hover:text-rose-hi sm:text-xl", flip ? "in-wipe-r" : "in-wipe")} style={{ "--d": "0.35s" } as React.CSSProperties}>
-          {team.name}
-        </Link>
+      <div {...meT(team.id)} className={cn("relative flex min-w-0 flex-1 flex-col justify-center bg-slate/60 px-2.5 py-3 sm:px-4", flip && "items-end text-right")}>
+        <span className={cn("flex max-w-full min-w-0 items-center", flip && "flex-row-reverse")}>
+          <Link href={`/teams/${team.id}`} className={cn("block min-w-0 truncate text-base font-black leading-tight hover:text-rose-hi sm:text-xl", flip ? "in-wipe-r" : "in-wipe")} style={{ "--d": "0.35s" } as React.CSSProperties}>
+            {team.name}
+          </Link>
+          <MeTag t={team.id} />
+        </span>
         <div className="in-up mt-1 hidden gap-4 text-[0.65rem] font-bold uppercase text-ash sm:flex" style={{ "--d": "0.5s" } as React.CSSProperties}>
           <span>
             {t.common.seed} <span className="num text-base text-paper">{team.seed}</span>

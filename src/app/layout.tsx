@@ -18,6 +18,7 @@ import { isLive } from "@/lib/matches";
 import { getSettings } from "@/db/settings";
 import { windowState } from "@/lib/time";
 import { isCaptain, myOpenDraft } from "@/db/drafts";
+import { meStyle } from "@/components/site/me";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -55,11 +56,16 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const match = captain && viewer ? await myOpenDraft(viewer.osuId).catch(() => null) : null;
   const regOpen = vis.sections.register && settings.phase === "registration" && windowState(settings.regOpensAt, settings.regClosesAt) === "open";
   const twitch = vis.sections.streams || vis.staff ? !!(await getLive()) : false;
+  const me = viewer?.osuId ?? null;
+  const myTeam = me ? (teams.find((x) => x.players.some((p) => p.userId === me))?.id ?? null) : null;
+  const dict = await getDict();
+  const meCss = meStyle(me, myTeam, dict.common.meYou, dict.common.meTeam);
   const live = [...(twitch ? ["streams"] : []), ...(matches.some(isLive) && (vis.sections.schedule || vis.staff) ? ["schedule"] : [])];
   return (
     <html lang={lang} className={`${archivo.variable} ${unbounded.variable} ${montserrat.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: LITE }} />
+        {meCss && <style dangerouslySetInnerHTML={{ __html: meCss }} />}
       </head>
       <body className="flex min-h-full flex-col">
         <LangProvider lang={lang}>

@@ -12,6 +12,7 @@ import { getMatches, getTeams } from "@/db/tournament";
 import { splitAlive } from "@/lib/alive";
 import { Avatar } from "@/components/site/avatar";
 import { cn } from "@/lib/utils";
+import { MeTag, meP } from "@/components/site/me";
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
@@ -23,11 +24,12 @@ export default async function Players() {
     <a
       data-cascade
       key={p.osuId}
+      {...meP(p.osuId)}
       href={osuUser(p.osuId)}
       target="_blank"
       rel="noreferrer"
       className={cn(
-        "iv iv-self in-up lift group relative flex items-center gap-3.5 overflow-hidden border border-line bg-gradient-to-br from-coal to-ink/60 py-3 pl-3.5 pr-4 [--lift:var(--color-balkan)] hover:border-balkan/60",
+        "me-ring iv iv-self in-up lift group relative flex items-center gap-3.5 overflow-hidden border border-line bg-gradient-to-br from-coal to-ink/60 py-3 pl-3.5 pr-4 [--lift:var(--color-balkan)] hover:border-balkan/60",
         out && "opacity-45 grayscale transition-[opacity,filter] duration-300 hover:opacity-80 hover:grayscale-0",
       )}
     >
@@ -50,6 +52,7 @@ export default async function Players() {
           <span className="in-wipe truncate text-[1.05rem] font-black transition-colors group-hover:text-balkan" style={v({ "--d": "0.25s" })}>
             {p.username}
           </span>
+          <MeTag p={p.osuId} />
           {p.status === "pending" && (
             <Tag tone="paper" className="in-pop ml-auto shrink-0 [--d:0.4s]">
               {t.status.pending}

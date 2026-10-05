@@ -6,6 +6,7 @@ import { fmtNum, flagUrl, type QualPerf, type QualMap, type QualPlayer } from "@
 import { useDict } from "./lang";
 import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
+import { MeTag, meP } from "./me";
 
 const MOD_COLOR: Record<string, string> = {
   NM: "text-mod-nm",
@@ -72,13 +73,14 @@ export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]
                   <td className="sticky left-0 z-10 bg-ink px-3 py-2">
                     <span className={cn("num inline-block min-w-9 px-1.5 text-center text-base", seed <= 3 ? MEDAL[seed - 1] : "bg-slate text-paper")}>#{seed}</span>
                   </td>
-                  <td className="sticky left-14 z-10 bg-ink px-3 py-2">
+                  <td {...meP(p.id)} className="me-hl sticky left-14 z-10 bg-ink px-3 py-2">
                     <span className="flex items-center gap-2 whitespace-nowrap font-bold">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={p.avatar} alt="" className="size-7" />
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       {p.cc && <img src={flagUrl(p.cc)} alt="" className="h-2.5" />}
                       <a href={osuUser(p.id)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">{p.username}</a>
+                      <MeTag p={p.id} />
                     </span>
                   </td>
                   <td className="num px-3 py-2 text-right text-xl text-balkan">{p.zSum.toFixed(2)}</td>

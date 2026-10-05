@@ -29,6 +29,7 @@ import { InView } from "@/components/site/in-view";
 import { currentOsuId } from "@/auth";
 import { login } from "@/app/pickems/actions";
 import { HeroGate } from "@/components/site/hero-gate";
+import { MeTag } from "@/components/site/me";
 
 function HeroLockup({ label }: { label: string }) {
   return (
@@ -147,7 +148,10 @@ function Champion({ t, team, other }: { t: Dict; team: Team; other?: Team }) {
           <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-[#e8c547]">
             <Crown className="size-4" /> {t.home.champion}
           </div>
-          <div className="heading-slam mt-1 break-words text-4xl">{team.name}</div>
+          <div className="heading-slam mt-1 break-words text-4xl">
+            {team.name}
+            <MeTag t={team.id} />
+          </div>
           {other && <div className="mt-1 text-sm text-ash">{t.home.runnerUp(other.name)}</div>}
         </div>
         <div className="flex -space-x-2">

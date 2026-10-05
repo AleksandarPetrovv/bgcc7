@@ -5,6 +5,7 @@ import { Crown } from "lucide-react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { type Team, fmtNum, flagUrl } from "@/lib/data";
 import { useDict } from "./lang";
+import { MeTag, meP, meT } from "./me";
 
 export function Roster({ team }: { team: Team }) {
   return (
@@ -12,12 +13,13 @@ export function Roster({ team }: { team: Team }) {
       <div className="heading-slam mb-2 text-lg">{team.name}</div>
       <ul className="space-y-1.5">
         {team.players.map((p) => (
-          <li key={p.userId} className="flex items-center gap-2 text-sm">
+          <li key={p.userId} {...meP(p.userId)} className="me-hl flex items-center gap-2 px-1 py-0.5 text-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={p.avatar} alt="" className="size-6 rounded-full object-cover ring-1 ring-rose/40 ring-offset-1 ring-offset-coal" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={flagUrl(p.country)} alt="" className="h-2.5" />
             <span className="font-bold">{p.username}</span>
+            <MeTag p={p.userId} />
             {p.isCaptain && <Crown className="size-3.5 text-[#e8c547]" />}
             <span className="num ml-auto text-ash">#{fmtNum(p.rank)}</span>
           </li>
@@ -35,7 +37,8 @@ export function TeamCard({ team }: { team: Team }) {
         delay={0}
         closeDelay={0}
         render={
-          <Link href={`/teams/${team.id}`} className="lift group flex overflow-hidden border sm:block border-line bg-coal outline-offset-4 [--lift:var(--color-balkan)] hover:border-balkan">
+          <Link href={`/teams/${team.id}`} {...meT(team.id)} className="me-ring lift group relative flex overflow-hidden border sm:block border-line bg-coal outline-offset-4 [--lift:var(--color-balkan)] hover:border-balkan">
+            <MeTag t={team.id} corner />
             <div className="relative w-24 shrink-0 overflow-hidden bg-ink sm:h-32 sm:w-auto">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={team.image} alt="" className="in-wipe absolute inset-0 size-full object-cover sm:static transition duration-500 group-hover:scale-105 [--d:0.1s]" />

@@ -10,6 +10,7 @@ import { useDict, useLang } from "./lang";
 import { MatchDialog } from "./match-dialog";
 import { TriTick } from "./graphics";
 import { cn } from "@/lib/utils";
+import { MeTag, meT } from "./me";
 
 const G = 28;
 const H = 92;
@@ -69,13 +70,14 @@ function Line({ m, slot, live }: { m: Match; slot: 1 | 2; live?: [number, number
   const leads = !!live && !tie && live[slot - 1] > live[2 - slot];
   const score = live ? live[slot - 1] : m.winner !== null ? (side.score ?? 0) : null;
   return (
-    <div className={cn("relative flex min-h-0 flex-1 items-center gap-2 px-2", won && "bg-balkan/12", leads && "bg-rose/10", lost && "opacity-45")}>
+    <div {...meT(team.id)} className={cn("relative flex min-h-0 flex-1 items-center gap-2 px-2", won && "bg-balkan/12", leads && "bg-rose/10", lost && "opacity-45")}>
       {(won || leads) && <span className={cn("absolute inset-y-1 left-0 w-0.5", won ? "bg-balkan" : "bg-rose/60")} aria-hidden />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={team.image} alt="" className="in-pop size-6 shrink-0 object-cover" style={v({ "--d": "0.45s" })} />
       <span className={cn("in-wipe min-w-0 flex-1 truncate text-[0.82rem] font-bold", won && "font-black text-balkan", leads && "font-black text-[#e8868b]")} style={v({ "--d": "0.5s" })}>
         {team.name}
       </span>
+      <MeTag t={team.id} className="-mx-1" />
       {score !== null && (
         <span className={cn("in-slam num w-5 shrink-0 text-right text-xl leading-none", won ? "text-balkan" : leads || tie ? "text-[#e8868b]" : "text-paper/80")} style={v({ "--d": "0.65s" })}>
           {score}

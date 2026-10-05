@@ -14,6 +14,7 @@ import { osuUser } from "@/lib/links";
 import type { LeaderRow } from "@/db/queries";
 import { cn } from "@/lib/utils";
 import { login, savePickems } from "./actions";
+import { MeTag } from "@/components/site/me";
 
 const DRAFT = "bgcc7-pickems";
 const MEDAL = ["text-[#e8c547]", "text-[#c9ccd1]", "text-[#c98a4b]"];
@@ -136,7 +137,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
               style={{ "--i": Math.min(i, 15), "--s": "0.05s" } as React.CSSProperties}
               className={cn(
                 "in-left grid min-h-14 grid-cols-[48px_1fr_auto] items-center gap-x-4 px-4 sm:grid-cols-[64px_1fr_110px_70px_160px]",
-                e.osuId === osuId && "bg-balkan/10",
+                e.osuId === osuId && "bg-balkan/10 shadow-[inset_3px_0_0_0_var(--color-balkan)]",
               )}
             >
               <span className={cn("in-pop num text-2xl leading-none [--d:0.2s]", MEDAL[i] ?? "text-ash")}>#{i + 1}</span>
@@ -146,7 +147,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
                 <a href={osuUser(e.osuId)} target="_blank" rel="noreferrer" className="truncate hover:text-rose-hi">
                   {e.username}
                 </a>
-                {e.osuId === osuId && <span className="text-xs font-bold uppercase text-balkan">({t.pickems.you})</span>}
+                <MeTag p={e.osuId} />
               </span>
               <span className="num text-right text-2xl leading-none text-balkan">
                 {e.points} <span className="text-base text-ash">{t.common.pts}</span>
