@@ -29,9 +29,11 @@ export function buildTokens(opts: {
   timeline: TimelineRow[];
   regClosesAt: Date | null;
   qualifyCount: number;
+  teams?: number;
   firstTo: Record<string, number | null>;
 }) {
   const { locale, timeline, regClosesAt, qualifyCount, firstTo } = opts;
+  const n = opts.teams ?? Math.floor(qualifyCount / 3);
   const tokens: Record<string, string> = {};
   for (const r of timeline) tokens[r.key] = fmtRange(locale, r.from, r.to);
   tokens.regOpen = fmtRange(locale, timeline.find((r) => r.key === "reg")?.from ?? null, null);
@@ -40,8 +42,7 @@ export function buildTokens(opts: {
     tokens.regCloseTime = `${regClosesAt.toLocaleString(locale, { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} EET`;
   }
   tokens.qualify = String(qualifyCount);
-  tokens.teams = String(Math.floor(qualifyCount / 3));
-  const n = Math.floor(qualifyCount / 3);
+  tokens.teams = String(n);
   tokens.teams2 = String(2 * n);
   tokens.teams2m = String(2 * n - 1);
   tokens.teams2p = String(2 * n + 1);

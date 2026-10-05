@@ -176,6 +176,34 @@
       "when": 1790956048723,
       "tag": "0024_stage_blueprint",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1790972009742,
+      "tag": "0025_bgcc7_edition",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1791056907779,
+      "tag": "0026_format_plan",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1791180419366,
+      "tag": "0027_suggestion_seeded",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1791181409011,
+      "tag": "0028_bws_lock",
+      "breakpoints": true
     }
   ]
 }

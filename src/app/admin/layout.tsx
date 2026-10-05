@@ -6,6 +6,8 @@ import { auth } from "@/auth";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can, type Perm } from "@/lib/roles";
+import { getEdition } from "@/db/edition";
+import { EditionSwitch } from "./edition/edition-switch";
 
 const MENU: { href: string; perm: Perm }[] = [
   { href: "/admin", perm: "overview" },
@@ -21,12 +23,16 @@ const MENU: { href: string; perm: Perm }[] = [
   { href: "/admin/staff", perm: "staff" },
   { href: "/admin/log", perm: "log" },
   { href: "/admin/settings", perm: "settings" },
+  { href: "/admin/format", perm: "format" },
 ];
+
+const QUALS = ["/admin/lobbies", "/admin/qualifiers"];
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const [viewer, session, t] = await Promise.all([getViewer(), auth(), getDict()]);
   if (!viewer?.roles.length) notFound();
-  const items = MENU.filter((m) => can(viewer.roles, m.perm)).map((m) => ({ href: m.href, label: t.admin.menu[m.href.split("/")[2] ?? "overview"] }));
+  const edition = getEdition();
+  const items = MENU.filter((m) => can(viewer.roles, m.perm) && (edition === "bgcc6" || !QUALS.includes(m.href))).map((m) => ({ href: m.href, label: t.admin.menu[m.href.split("/")[2] ?? "overview"] }));
   const name = session?.user?.name;
   const avatar = session?.user?.image;
   return (
@@ -60,6 +66,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
             </div>
           </div>
           <AdminNav items={items} />
+          {viewer.roles.includes("host") && <EditionSwitch edition={edition} />}
         </div>
       </aside>
       <div className="min-w-0 flex-1">{children}</div>

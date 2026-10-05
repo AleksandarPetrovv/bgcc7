@@ -68,12 +68,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         {meCss && <style dangerouslySetInnerHTML={{ __html: meCss }} />}
       </head>
       <body className="flex min-h-full flex-col">
-        <LangProvider lang={lang}>
+        <LangProvider lang={lang} edition={settings.edition}>
           <MotionProvider>
           <Backdrop />
           <LiteSettle />
-          <SiteNav user={user} nav={buildNav(vis.sections, vis.staff)} register={regOpen} live={live} captain={captain} match={match} />
-          <TournamentProvider teams={teams} matches={matches}>
+          <SiteNav user={user} nav={buildNav(vis.sections, vis.staff, vis.off)} register={regOpen} live={live} captain={captain} match={match} />
+          <TournamentProvider teams={teams} matches={matches} edition={settings.edition}>
             <main className="flex-1">{children}</main>
           </TournamentProvider>
           <SiteFooter />

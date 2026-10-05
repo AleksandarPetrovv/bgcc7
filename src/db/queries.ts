@@ -1,6 +1,7 @@
 import "server-only";
 import { count, eq } from "drizzle-orm";
 import { db } from "./index";
+import { getFormat } from "./edition";
 import { pickems, registrations, users } from "./schema";
 import { actualOf, resolve, score, seedingOf } from "@/lib/pickems";
 import { safe } from "./safe";
@@ -10,15 +11,16 @@ export { safe };
 
 export type LeaderRow = { osuId: number; username: string; avatarUrl: string | null; points: number; correct: number };
 
-
 export const getPicks = (osuId: number) =>
   safe(async () => {
+    const f = getFormat();
     const [[row], ms] = await Promise.all([db.select({ picks: pickems.picks }).from(pickems).where(eq(pickems.osuId, osuId)).limit(1), getMatches()]);
-    return row ? resolve(row.picks, seedingOf(ms)).picks : null;
+    return row ? resolve(f, row.picks, seedingOf(ms)).picks : null;
   }, null);
 
 export const getBracketOf = (osuId: number) =>
   safe(async () => {
+    const f = getFormat();
     const [row] = await db
       .select({ osuId: users.osuId, username: users.username, avatarUrl: users.avatarUrl, picks: pickems.picks })
       .from(users)
@@ -27,12 +29,13 @@ export const getBracketOf = (osuId: number) =>
       .limit(1);
     if (!row) return null;
     const ms = await getMatches();
-    const picks = row.picks ? resolve(row.picks, seedingOf(ms)).picks : null;
-    return { ...row, picks, ...(picks ? score(picks, actualOf(ms)) : { points: 0, correct: 0 }) };
+    const picks = row.picks ? resolve(f, row.picks, seedingOf(ms)).picks : null;
+    return { ...row, picks, ...(picks ? score(f, picks, actualOf(ms)) : { points: 0, correct: 0 }) };
   }, null);
 
 export const getLeaderboard = () =>
   safe(async () => {
+    const f = getFormat();
     const [rows, ms] = await Promise.all([
       db
         .select({ osuId: users.osuId, username: users.username, avatarUrl: users.avatarUrl, picks: pickems.picks })
@@ -43,7 +46,7 @@ export const getLeaderboard = () =>
     const seeding = seedingOf(ms);
     const actual = actualOf(ms);
     return rows
-      .map(({ picks, ...u }): LeaderRow => ({ ...u, ...score(resolve(picks, seeding).picks, actual) }))
+      .map(({ picks, ...u }): LeaderRow => ({ ...u, ...score(f, resolve(f, picks, seeding).picks, actual) }))
       .sort((a, b) => b.points - a.points || b.correct - a.correct || a.username.localeCompare(b.username));
   }, [] as LeaderRow[]);
 

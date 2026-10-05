@@ -107,18 +107,23 @@ const NAV: { key: NavKey; base: string; items: { href: string; section: Section 
 
 export type NavItem = { key: NavKey; href: string; base: string; hidden: boolean };
 
-export function buildNav(sections: Record<string, boolean>, staff: boolean): NavItem[] {
+export function buildNav(sections: Record<string, boolean>, staff: boolean, off: string[] = []): NavItem[] {
   const open = (s: Section | null) => s === null || !!sections[s];
   return NAV.flatMap((g) => {
-    const pub = g.items.find((i) => open(i.section));
-    const first = pub ?? (staff ? g.items[0] : undefined);
+    const items = g.items.filter((i) => !i.section || !off.includes(i.section));
+    const pub = items.find((i) => open(i.section));
+    const first = pub ?? (staff ? items[0] : undefined);
     if (!first) return [];
     return [{ key: first.key ?? g.key, href: first.href, base: g.base, hidden: !pub }];
   });
 }
 
-export function subNav<T extends { href: string }>(items: T[], sections: Record<string, boolean>, staff: boolean) {
+export function subNav<T extends { href: string }>(items: T[], sections: Record<string, boolean>, staff: boolean, off: string[] = []) {
   return items
+    .filter((i) => {
+      const s = sectionOf(i.href);
+      return !s || !off.includes(s);
+    })
     .map((i) => {
       const s = sectionOf(i.href);
       return { ...i, hidden: s !== null && !sections[s] };

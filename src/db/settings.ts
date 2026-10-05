@@ -1,11 +1,12 @@
 import "server-only";
 import { cache } from "react";
 import { eq } from "drizzle-orm";
-import { db } from "./index";
+import { currentEdition, db, ensureEdition } from "./index";
 import { settings } from "./schema";
 import { safe } from "./safe";
 import { DEFAULT_TIMELINE, PHASES, presetSections, TIMELINE_KEYS, type Phase, type Section } from "@/lib/sections";
 import { sofiaDate, type TimelineRow } from "@/lib/dates";
+import type { Edition } from "@/lib/format";
 
 export type Settings = {
   phase: Phase;
@@ -25,6 +26,7 @@ export type Settings = {
   banSecs: number;
   pickSecs: number;
   timeoutSecs: number;
+  edition: Edition;
 };
 
 export type BanOrder = "abab" | "abba";
@@ -47,6 +49,7 @@ export const DEFAULT_SETTINGS: Settings = {
   banSecs: 90,
   pickSecs: 120,
   timeoutSecs: 180,
+  edition: "bgcc6",
 };
 
 function withReg(stored: { key: string; from?: string | null; to?: string | null }[], opens: Date | null, closes: Date | null): TimelineRow[] {
@@ -63,8 +66,9 @@ function withReg(stored: { key: string; from?: string | null; to?: string | null
 
 export const getSettings = cache(() =>
   safe(async (): Promise<Settings> => {
+    await ensureEdition();
     const [row] = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);
-    if (!row) return DEFAULT_SETTINGS;
+    if (!row) return { ...DEFAULT_SETTINGS, edition: currentEdition() };
     const phase = (PHASES as readonly string[]).includes(row.phase) ? (row.phase as Phase) : DEFAULT_SETTINGS.phase;
     return {
       phase,
@@ -84,6 +88,7 @@ export const getSettings = cache(() =>
       banSecs: row.banSecs,
       pickSecs: row.pickSecs,
       timeoutSecs: row.timeoutSecs,
+      edition: currentEdition(),
     };
   }, DEFAULT_SETTINGS),
 );

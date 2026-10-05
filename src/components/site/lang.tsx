@@ -1,18 +1,23 @@
 "use client";
 
 import { createContext, useContext, useTransition } from "react";
-import { dicts, LANGS, type Lang } from "@/lib/i18n/dict";
+import { LANGS, type Lang } from "@/lib/i18n/dict";
+import { dictFor } from "@/lib/i18n/dict7";
+import type { Edition } from "@/lib/format";
 import { setLang } from "@/lib/i18n/actions";
 import { cn } from "@/lib/utils";
 
-const LangContext = createContext<Lang>("en");
+const LangContext = createContext<{ lang: Lang; edition: Edition }>({ lang: "en", edition: "bgcc6" });
 
-export function LangProvider({ lang, children }: { lang: Lang; children: React.ReactNode }) {
-  return <LangContext.Provider value={lang}>{children}</LangContext.Provider>;
+export function LangProvider({ lang, edition, children }: { lang: Lang; edition: Edition; children: React.ReactNode }) {
+  return <LangContext.Provider value={{ lang, edition }}>{children}</LangContext.Provider>;
 }
 
-export const useLang = () => useContext(LangContext);
-export const useDict = () => dicts[useContext(LangContext)];
+export const useLang = () => useContext(LangContext).lang;
+export const useDict = () => {
+  const { lang, edition } = useContext(LangContext);
+  return dictFor(lang, edition);
+};
 
 export function LangSwitch() {
   const lang = useLang();

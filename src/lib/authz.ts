@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { adminLog, staff } from "@/db/schema";
 import { safe } from "@/db/queries";
 import { getSettings } from "@/db/settings";
+import { getFormat } from "@/db/edition";
 import { can, cleanRoles, type Perm, type Role } from "./roles";
 import type { Section } from "./sections";
 
@@ -35,15 +36,17 @@ export async function log(osuId: number, action: string, payload?: unknown) {
 
 export const getVisibility = cache(async () => {
   const [s, v] = await Promise.all([getSettings(), getViewer()]);
-  return { sections: s.sections, staff: !!v?.roles.length };
+  const off = getFormat().sectionsOff;
+  const sections = Object.fromEntries(Object.entries(s.sections).map(([k, on]) => [k, on && !off.includes(k)])) as typeof s.sections;
+  return { sections, staff: !!v?.roles.length, off };
 });
 
 export async function requireSection(section: Section) {
-  const { sections, staff } = await getVisibility();
-  if (!sections[section] && !staff) notFound();
+  const { sections, staff, off } = await getVisibility();
+  if (off.includes(section) || (!sections[section] && !staff)) notFound();
 }
 
 export async function canSee(section: Section) {
-  const { sections, staff } = await getVisibility();
-  return staff || !!sections[section];
+  const { sections, staff, off } = await getVisibility();
+  return !off.includes(section) && (staff || !!sections[section]);
 }
