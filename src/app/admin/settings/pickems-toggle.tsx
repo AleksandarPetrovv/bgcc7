@@ -29,7 +29,7 @@ export function PickemsToggle({ open }: { open: boolean }) {
             aria-pressed={sel}
             style={{ "--i": i, "--s": "0.1s", "--d": "0.45s" } as React.CSSProperties}
             className={cn(
-              "in-pop group relative flex -skew-x-6 items-center justify-center overflow-hidden border px-3 py-4 sm:px-6 sm:py-5 transition-[background-color,color,border-color,box-shadow,transform] duration-300",
+              "in-pop group relative flex -skew-x-6 items-center justify-center overflow-hidden border px-3 py-4 sm:px-6 sm:py-5 transition-[background-color,color,border-color,box-shadow,transform,translate,scale,rotate] duration-300",
               sel ? cn("border-transparent", active) : cn("border-line text-ash hover:-translate-y-0.5", hover),
             )}
           >

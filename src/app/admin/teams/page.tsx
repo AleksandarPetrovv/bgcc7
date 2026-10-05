@@ -85,7 +85,7 @@ export default async function AdminTeams() {
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={p.avatar} alt="" className="size-7 shrink-0 grayscale transition group-has-[:checked]:grayscale-0" />
                             <span className="min-w-0 flex-1 truncate text-sm font-black">{p.username}</span>
-                            <Crown className="size-4 shrink-0 scale-50 fill-current text-[#e8c547] opacity-0 transition-[opacity,transform] duration-300 group-has-[:checked]:scale-100 group-has-[:checked]:opacity-100" />
+                            <Crown className="size-4 shrink-0 scale-50 fill-current text-[#e8c547] opacity-0 transition-[opacity,transform,translate,scale,rotate] duration-300 group-has-[:checked]:scale-100 group-has-[:checked]:opacity-100" />
                           </span>
                         </label>
                       ))}
