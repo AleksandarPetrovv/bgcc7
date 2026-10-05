@@ -201,7 +201,7 @@ function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onPick: (c
                 aria-checked={on}
                 onClick={() => setChoice(c)}
                 className={cn(
-                  "group relative flex -skew-x-6 cursor-pointer select-none flex-col items-center gap-2 border-2 px-3 py-6 font-black uppercase transition-[transform,color,border-color] duration-200 active:scale-95",
+                  "group relative flex -skew-x-6 cursor-pointer select-none flex-col items-center gap-2 border-2 px-3 py-6 font-black uppercase transition-[transform,color,border-color,translate,scale,rotate] duration-200 active:scale-95",
                   on ? "text-white" : "border-line text-ash hover:-translate-y-1 hover:text-paper",
                 )}
                 style={on ? { borderColor: col.c } : undefined}
@@ -230,7 +230,7 @@ function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onPick: (c
           type="button"
           disabled={!choice || busy}
           onClick={() => choice && onPick(choice)}
-          className="sheen heading-slam mt-5 flex min-h-14 w-full -skew-x-12 items-center justify-center text-2xl text-white transition-[transform,opacity,filter] duration-200 hover:brightness-110 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-35"
+          className="sheen heading-slam mt-5 flex min-h-14 w-full -skew-x-12 items-center justify-center text-2xl text-white transition-[transform,opacity,filter,translate,scale,rotate] duration-200 hover:brightness-110 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-35"
           style={{
             background: choice ? col.c : "var(--color-slate)",
             boxShadow: choice ? `5px 5px 0 0 ${col.deep}` : undefined,

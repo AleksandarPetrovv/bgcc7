@@ -262,7 +262,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
                         {lit && (
                           <motion.span
                             layoutId={`${id}-hi`}
-                            className={cn("absolute inset-0 -skew-x-12", on ? "bg-rose" : "bg-white/[0.07]")}
+                            className={cn("absolute inset-0", on ? "bg-rose" : "bg-white/[0.07]")}
                             transition={{
                               type: "spring",
                               stiffness: 600,
@@ -271,7 +271,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
                             aria-hidden
                           />
                         )}
-                        {!lit && on && <span className="absolute inset-0 -skew-x-12 bg-rose/80" aria-hidden />}
+                        {!lit && on && <span className="absolute inset-0 bg-rose/80" aria-hidden />}
                         {o.color && <span className="relative size-2 shrink-0 rotate-45" style={{ background: o.color }} aria-hidden />}
                         <span className="relative min-w-0 flex-1 truncate font-bold">{o.label}</span>
                         {o.hint && <span className="num relative shrink-0 text-xs opacity-60">{o.hint}</span>}

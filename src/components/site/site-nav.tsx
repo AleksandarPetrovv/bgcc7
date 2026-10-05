@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { login, logout } from "@/app/pickems/actions";
 import type { NavItem } from "@/lib/sections";
 
-const bar = "pointer-events-none absolute left-0 h-1 w-[100px] origin-left opacity-0 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform";
+const bar = "pointer-events-none absolute left-0 h-1 w-[100px] origin-left opacity-0 transition-[transform,opacity,translate,scale,rotate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform";
 
 const isActive = (path: string, base: string) => (base === "/" ? path === "/" : path === base || path.startsWith(`${base}/`));
 
