@@ -9,6 +9,7 @@ import { fmtNum, flagUrl } from "@/lib/data";
 import { getMatches, getTeams } from "@/db/tournament";
 import { osuUser } from "@/lib/links";
 import { requireSection } from "@/lib/authz";
+import { MeTag, meP } from "@/components/site/me";
 
 export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
   await requireSection("teams");
@@ -58,7 +59,8 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
         <SectionHeading>{t.teams.roster}</SectionHeading>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {team.players.map((p) => (
-            <div key={p.userId} className="flex border border-line bg-coal">
+            <div key={p.userId} {...meP(p.userId)} className="me-hl relative flex border border-line bg-coal">
+              <MeTag p={p.userId} corner />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={p.avatar} alt="" className="size-24 object-cover" />
               <div className="flex-1 p-3">

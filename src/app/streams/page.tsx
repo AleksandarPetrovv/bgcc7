@@ -9,6 +9,7 @@ import { getLang } from "@/lib/i18n/server";
 import { fmtSofia } from "@/lib/time";
 import { getLive } from "@/lib/twitch";
 import { requireSection } from "@/lib/authz";
+import { MeTag, meT } from "@/components/site/me";
 
 export default async function Streams() {
   await requireSection("streams");
@@ -53,13 +54,15 @@ export default async function Streams() {
               const a = teamById(m.team1.id);
               const b = teamById(m.team2.id);
               return (
-                <div key={m.id} className="in-right border border-line bg-coal p-3" style={{ "--i": Math.min(i, 8), "--s": "0.08s", "--d": "0.35s" } as React.CSSProperties}>
+                <div key={m.id} {...meT(a?.id)} className="in-right border border-line bg-coal p-3" style={{ "--i": Math.min(i, 8), "--s": "0.08s", "--d": "0.35s" } as React.CSSProperties}>
                   <div className="flex items-center justify-between text-xs font-black uppercase">
                     <span className="text-rose-hi">{roundName(t, m.round)}</span>
                     <span className="num text-sm text-paper">{fmtSofia(new Date(m.datetime!), lang === "bg" ? "bg-BG" : "en-GB")}</span>
                   </div>
                   <div className="mt-1 truncate font-black">
-                    {a?.name} <span className="text-rose-hi">{t.common.vs}</span> {b?.name}
+                    {a?.name}
+                    <MeTag t={a?.id} /> <span className="text-rose-hi">{t.common.vs}</span> {b?.name}
+                    <MeTag t={b?.id} />
                   </div>
                   {(m.streamer || m.commentators) && (
                     <div className="mt-2 flex flex-wrap gap-3 text-xs text-ash">

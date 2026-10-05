@@ -5,6 +5,7 @@ import { roundName } from "@/lib/i18n/dict";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
 import { requireSection } from "@/lib/authz";
+import { MeTag } from "@/components/site/me";
 
 export default async function Vods() {
   await requireSection("streams");
@@ -38,7 +39,9 @@ export default async function Vods() {
               </div>
               <div className="mt-2 text-xs font-black uppercase text-rose-hi">{roundName(t, m.round)}</div>
               <div className="truncate font-black">
-                {a?.name} {m.team1.score ?? 0}–{m.team2.score ?? 0} {b?.name}
+                {a?.name}
+                <MeTag t={a?.id} /> {m.team1.score ?? 0}–{m.team2.score ?? 0} {b?.name}
+                <MeTag t={b?.id} />
               </div>
             </a>
           );

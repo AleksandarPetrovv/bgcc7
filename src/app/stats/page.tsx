@@ -12,6 +12,7 @@ import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
 import { requireSection } from "@/lib/authz";
 import { InView } from "@/components/site/in-view";
+import { MeTag, meP } from "@/components/site/me";
 
 const TONES = ["bg-rose text-white", "bg-balkan text-ink", "border border-line bg-coal", "border border-line bg-coal"];
 const MEDAL = ["text-[#e8c547]", "text-[#c9ccd1]", "text-[#c98a4b]"];
@@ -104,9 +105,10 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
               <ol className="flex-1 divide-y divide-line">
                 {top.length === 0 && <li className="px-3 py-1.5 text-sm text-ash">—</li>}
                 {top.map((p, i) => (
-                  <li key={p.id} className="flex items-center gap-2 px-3 py-1.5 text-sm">
+                  <li key={p.id} {...meP(p.id)} className="me-hl flex items-center gap-2 px-3 py-1.5 text-sm">
                     <span className={cn("num w-5", MEDAL[i])}>{i + 1}</span>
                     <a href={osuUser(p.id)} target="_blank" rel="noreferrer" className="font-bold hover:text-rose-hi">{p.username}</a>
+                    <MeTag p={p.id} />
                     <span className="num ml-auto text-base">{fmtNum(p.perf[m.id].score)}</span>
                   </li>
                 ))}

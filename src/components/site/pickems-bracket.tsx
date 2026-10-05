@@ -9,6 +9,7 @@ import { useTournament } from "./tournament";
 
 export type { Picks };
 import { cn } from "@/lib/utils";
+import { MeTag, meP, meT } from "./me";
 
 export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; onPick?: (match: string, team: string) => void; locked?: string[] }) {
   const readOnly = !onPick;
@@ -65,16 +66,20 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
             <div className="flex items-center gap-3 p-2.5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={champ.image} alt="" className="size-16 shrink-0 object-cover" />
-              <div className="min-w-0 flex-1 break-words text-center text-lg font-black leading-tight">{champ.name}</div>
+              <div className="min-w-0 flex-1 break-words text-center text-lg font-black leading-tight">
+                {champ.name}
+                <MeTag t={champ.id} />
+              </div>
             </div>
             <ul className="space-y-1.5 border-t border-line px-2.5 py-2.5">
               {champ.players.map((p) => (
-                <li key={p.userId} className="flex items-center gap-2 text-sm">
+                <li key={p.userId} {...meP(p.userId)} className="flex items-center gap-2 px-1 py-0.5 text-sm">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={p.avatar} alt="" className="size-6 shrink-0" />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={flagUrl(p.country)} alt="" className="h-2.5 shrink-0" />
                   <span className="truncate font-bold">{p.username}</span>
+                  <MeTag p={p.userId} />
                   {p.isCaptain && <Crown className="size-3.5 shrink-0 -translate-y-px text-[#e8c547]" aria-label={t.common.captain} />}
                   <span className="num ml-auto text-ash">#{fmtNum(p.rank)}</span>
                 </li>
@@ -106,6 +111,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
                     type="button"
                     disabled={readOnly || locked.includes(id) || !team || !pair[0] || !pair[1]}
                     onClick={() => team && onPick?.(id, team.id)}
+                    {...meT(team?.id)}
                     className={cn(
                       "flex min-h-0 flex-1 items-center gap-2 px-2 text-left text-[0.82rem] transition-colors",
                       right ? "bg-balkan/20 font-black text-balkan" : miss ? "bg-rose/15 font-black text-rose-hi" : picked ? "bg-white/[0.06] font-black text-paper" : "font-bold enabled:hover:bg-slate",
@@ -118,6 +124,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={team.image} alt="" className={cn("size-5 object-cover", (lost || miss) && "opacity-50")} />
                         <span className="min-w-0 flex-1 truncate">{team.name}</span>
+                        <MeTag t={team.id} className="-mx-1" />
                       </>
                     )}
                     {miss ? (

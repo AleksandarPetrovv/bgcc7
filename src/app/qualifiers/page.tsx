@@ -10,6 +10,7 @@ import { getSettings } from "@/db/settings";
 import { fmtSofia, fmtSofiaDay, fmtSofiaTime, windowState } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { LobbyButton } from "./lobby-button";
+import { meP } from "@/components/site/me";
 
 export default async function Lobbies() {
   await requireSection("lobbies");
@@ -74,7 +75,7 @@ export default async function Lobbies() {
                     <div className="flex min-h-8 -space-x-2">
                       {l.players.slice(0, 8).map((p, k) => (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img key={p.osuId} src={p.avatarUrl ?? ""} alt={p.username} title={p.username} style={{ "--i": k, "--s": "0.09s", "--d": `${faces}s` } as React.CSSProperties} className="in-pop size-8 rounded-full border-2 border-coal object-cover transition-transform duration-300 hover:z-10 hover:-translate-y-1 hover:scale-110" />
+                        <img key={p.osuId} {...meP(p.osuId)} src={p.avatarUrl ?? ""} alt={p.username} title={p.username} style={{ "--i": k, "--s": "0.09s", "--d": `${faces}s` } as React.CSSProperties} className="me-av in-pop size-8 rounded-full border-2 border-coal object-cover transition-transform duration-300 hover:z-10 hover:-translate-y-1 hover:scale-110" />
                       ))}
                     </div>
                     <div className="flex items-end justify-between gap-3">

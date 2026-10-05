@@ -12,6 +12,7 @@ import { matchSlug } from "@/lib/matches";
 import type { MapResult, PlayerLine, Scoreboard } from "@/lib/scoreboard";
 import { cn } from "@/lib/utils";
 import { matchCosts, MEDAL } from "@/lib/match-cost";
+import { MeTag, meP } from "./me";
 
 const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
@@ -24,11 +25,14 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
   return (
     <ul className={cn("min-w-0 space-y-2", !won && "opacity-60")}>
       {players.map((p, r) => (
-        <li key={p.id} className={cn("flex min-w-0 items-center gap-2", flip ? "in-right flex-row-reverse text-right" : "in-left")} style={v({ "--d": `${0.45 + r * 0.06}s` })}>
+        <li key={p.id} {...meP(p.id)} className={cn("flex min-w-0 items-center gap-2 py-0.5", flip ? "in-right flex-row-reverse pr-1.5 text-right" : "in-left pl-1.5")} style={v({ "--d": `${0.45 + r * 0.06}s` })}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={p.avatar} alt="" loading="lazy" decoding="async" className="size-8 shrink-0" />
           <div className="min-w-0 flex-1 leading-tight">
-            <div className="truncate text-[0.8rem] font-bold">{p.name}</div>
+            <div className={cn("flex min-w-0 items-center text-[0.8rem] font-bold", flip && "flex-row-reverse")}>
+              <span className="truncate">{p.name}</span>
+              <MeTag p={p.id} />
+            </div>
             <div className={cn("num flex items-baseline gap-1.5 whitespace-nowrap", flip && "flex-row-reverse")}>
               <span className="text-sm">{fmtNum(p.score)}</span>
               <span className="text-[0.7rem] text-ash">{pct(p.acc)}</span>
@@ -130,13 +134,17 @@ function Costs({ data, names, finished }: { data: Scoreboard; names: (string | u
                 .map((r, n) => (
                   <li
                     key={r.id}
+                    {...meP(r.id)}
                     className={cn("flex items-center gap-3 border-b border-line px-3 py-2 last:border-b-0", k === 1 ? "in-left" : "in-right")}
                     style={v({ "--i": n, "--s": "0.07s", "--d": "0.55s" })}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={r.avatar} alt="" loading="lazy" decoding="async" className="size-8 shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate font-bold">{r.name}</div>
+                      <div className="flex min-w-0 items-center font-bold">
+                        <span className="truncate">{r.name}</span>
+                        <MeTag p={r.id} />
+                      </div>
                       <div className="num truncate text-xs text-ash">
                         {t.match.mapsShort(r.maps)} · {pct(r.acc)} · {fmtNum(r.score)}
                       </div>
@@ -299,7 +307,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
 
 export function DetailsChip() {
   return (
-    <span className="relative inline-flex h-5 w-[30px] -skew-x-12 items-center justify-center overflow-hidden border border-rose bg-rose text-white shadow-[2px_2px_0_0_var(--color-rose-deep)] transition-[background-color,transform,box-shadow] duration-200 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 group-hover:bg-rose-hi group-hover:shadow-[4px_4px_0_0_var(--color-rose-deep)]">
+    <span className="relative inline-flex h-5 w-[30px] -skew-x-12 items-center justify-center overflow-hidden border border-rose bg-rose text-white shadow-[2px_2px_0_0_var(--color-rose-deep)] transition-[background-color,transform,box-shadow,translate,scale,rotate] duration-200 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 group-hover:bg-rose-hi group-hover:shadow-[4px_4px_0_0_var(--color-rose-deep)]">
       <Eye className="size-[15px] skew-x-12" strokeWidth={2} aria-hidden />
       <span className="eye-sheen pointer-events-none absolute -inset-y-0.5 -left-3 w-1.5 bg-white/60" aria-hidden />
     </span>
