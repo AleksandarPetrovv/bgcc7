@@ -1,21 +1,25 @@
 "use client";
 
 import { Check, Crown, X } from "lucide-react";
-import { G, H, HEADERS, LB, POS, W, WIN, x } from "./bracket-layout";
+import { pickLayout } from "./bracket-layout";
 import { useDict } from "./lang";
 import { flagUrl, fmtNum } from "@/lib/data";
-import { ORDER, resolve, seedingOf, type Picks } from "@/lib/pickems";
+import { resolve, seedingOf, type Picks } from "@/lib/pickems";
 import { useTournament } from "./tournament";
 
 export type { Picks };
 import { cn } from "@/lib/utils";
 import { MeTag, meP, meT } from "./me";
+import { fitBox, useFit } from "./use-fit";
 
 export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; onPick?: (match: string, team: string) => void; locked?: string[] }) {
   const readOnly = !onPick;
   const t = useDict();
-  const { teamById, matches } = useTournament();
-  const { slots, picks: clean, resetLive, champion } = resolve(picks, seedingOf(matches));
+  const { teamById, matches, format: f } = useTournament();
+  const { W, G, H, x, LB, POS, WIN, HEADERS, gfCol, width, height } = pickLayout(f);
+  const { ref, scale } = useFit(width);
+  const fit = fitBox(width, height, scale);
+  const { slots, picks: clean, resetLive, champion } = resolve(f, picks, seedingOf(matches));
   const champ = champion ? teamById(champion) : undefined;
   const real = (id: string) => {
     const m = matches.find((x) => x.id === id);
@@ -26,8 +30,6 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
     const w = real(id);
     return w == null ? { stroke: "#f4f3ee", opacity: 0.3 } : w === clean[id] ? { stroke: "#0fa06a", opacity: 0.6 } : { stroke: "#e0242f", opacity: 0.55 };
   };
-  const width = x(5) + W;
-  const height = LB + 100 + H + 8;
   const wire = (a: string, b: string) => {
     const [ca, ya] = POS[a];
     const [cb, yb] = POS[b];
@@ -36,13 +38,14 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
   };
 
   return (
-    <div className="overflow-x-auto overflow-y-hidden pb-4">
-      <div className="relative mx-auto mt-10" style={{ width, height }}>
+    <div ref={ref} className="overflow-x-auto overflow-y-hidden pb-4">
+      <div className="mt-10" style={fit.outer}>
+      <div className={cn("relative", scale === 1 && "mx-auto")} style={fit.inner}>
         <svg className="pointer-events-none absolute inset-0" width={width} height={height} aria-hidden>
           {Object.entries(WIN).map(([a, b]) => (
             <path key={a} d={wire(a, b)} pathLength={1} className="in-draw" style={{ "--d": `${0.55 + POS[a][0] * 0.14}s` } as React.CSSProperties} fill="none" stroke={wireColor(a).stroke} strokeOpacity={wireColor(a).opacity} strokeWidth={2} />
           ))}
-          {resetLive && <path d={`M${x(5) + W / 2} ${POS["GF-M1"][1] + H} V${POS["GF-M2"][1]}`} stroke="#e8c547" strokeWidth={2} strokeDasharray="3 3" />}
+          {resetLive && <path d={`M${x(gfCol) + W / 2} ${POS["GF-M1"][1] + H} V${POS["GF-M2"][1]}`} stroke="#e8c547" strokeWidth={2} strokeDasharray="3 3" />}
         </svg>
 
         {HEADERS.map((h) => (
@@ -59,7 +62,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
         </div>
 
         {champ && (
-          <div key={champ.id} className="anim-rise absolute border border-[#e8c547]/40 bg-coal" style={{ left: x(5), top: POS["GF-M2"][1] + H + 30, width: W }}>
+          <div key={champ.id} className="anim-rise absolute border border-[#e8c547]/40 bg-coal" style={{ left: x(gfCol), top: POS["GF-M2"][1] + H + 30, width: W }}>
             <div className="flex items-center gap-1.5 bg-[#e8c547] px-2.5 py-1 text-[0.7rem] font-black uppercase tracking-[0.14em] text-ink">
               <Crown className="size-3.5" /> {t.pickems.champion}
             </div>
@@ -88,7 +91,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
           </div>
         )}
 
-        {ORDER.filter((id) => id !== "GF-M2" || resetLive).map((id) => {
+        {f.order.filter((id) => id !== "GF-M2" || resetLive).map((id) => {
           const [c, y] = POS[id];
           const pair = slots[id];
           const isGf = id.startsWith("GF");
@@ -140,6 +143,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
             </div>
           );
         })}
+      </div>
       </div>
     </div>
   );

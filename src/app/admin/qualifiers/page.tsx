@@ -1,5 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import { notFound } from "next/navigation";
+import { getFormat } from "@/db/edition";
 import { InView } from "@/components/site/in-view";
 import { Words } from "@/components/site/rich";
 import { PageTitle, SubHeading } from "@/components/site/page";
@@ -18,7 +19,7 @@ const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase
 
 export default async function AdminQualifiers() {
   const [t, viewer, lobbies, results, rows, settings] = await Promise.all([getDict(), getViewer(), getLobbies(), getQualResults(), getQualScoreRows(), getSettings()]);
-  if (!can(viewer?.roles, "qualifiers")) notFound();
+  if (!can(viewer?.roles, "qualifiers") || getFormat().edition !== "bgcc6") notFound();
   const slotOf = new Map(results.maps.map((m) => [m.id, m.slot]));
 
   return (

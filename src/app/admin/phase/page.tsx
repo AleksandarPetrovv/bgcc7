@@ -9,18 +9,24 @@ import { PHASES, SECTIONS, TIMELINE_KEYS } from "@/lib/sections";
 import { toSofiaInput } from "@/lib/time";
 import { phaseStates } from "@/lib/dates";
 import { setDates, setPhase, setSections, setTimeline } from "./actions";
+import { getFormat } from "@/db/edition";
 
 const check = "size-4 shrink-0 accent-rose";
 
 export default async function AdminPhase() {
   const [t, s, viewer] = await Promise.all([getDict(), getSettings(), getViewer()]);
   if (!can(viewer?.roles, "phase")) notFound();
-  const dates = [
+  const suiji = getFormat().edition === "bgcc7";
+  const off = getFormat().sectionsOff;
+  const phases = PHASES.filter((p) => !suiji || p !== "qualifiers");
+  const sections = SECTIONS.filter((k) => !off.includes(k));
+  const allDates = [
     ["regOpensAt", t.admin.regOpens, s.regOpensAt],
     ["regClosesAt", t.admin.regCloses, s.regClosesAt],
     ["bookingOpensAt", t.admin.bookingOpens, s.bookingOpensAt],
     ["bookingClosesAt", t.admin.bookingCloses, s.bookingClosesAt],
   ] as const;
+  const dates = suiji ? allDates.filter(([k]) => !k.startsWith("booking")) : allDates;
   const row = (k: string) => s.timeline.find((e) => e.key === k);
   const states = phaseStates(s.timeline, s.phase);
 
@@ -31,7 +37,7 @@ export default async function AdminPhase() {
         <Panel title={t.admin.phaseNow} help={t.admin.phaseHelp} className="xl:col-span-2" i={0}>
           <ActionForm action={setPhase} submit={t.admin.applyPhase} className="space-y-4">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {PHASES.map((p, i) => (
+              {phases.map((p, i) => (
                 <label
                   key={p}
                   style={{ "--i": i, "--s": "0.07s", "--d": "0.5s" } as React.CSSProperties}
@@ -50,7 +56,7 @@ export default async function AdminPhase() {
         <Panel title={t.admin.sectionsTitle} help={t.admin.sectionsHelp} i={1}>
           <ActionForm key={s.phase} action={setSections} className="space-y-4">
             <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-              {SECTIONS.map((k, i) => (
+              {sections.map((k, i) => (
                 <label key={k} style={{ "--i": i, "--s": "0.035s", "--d": "0.55s" } as React.CSSProperties} className="in-left flex min-h-10 cursor-pointer items-center gap-2.5 border-b border-line text-sm font-bold uppercase tracking-wide">
                   <input type="checkbox" name={k} defaultChecked={s.sections[k]} className={check} />
                   {t.admin.sections[k]}

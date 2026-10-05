@@ -9,18 +9,19 @@ import { getEdits, getScoreboard } from "@/db/scoreboards";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getViewer } from "@/lib/authz";
 import { fmtNum, MODS } from "@/lib/data";
+import { slotColor } from "@/lib/format-plan";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
-import { matchIdFromSlug, matchSlug } from "@/lib/matches";
+import { matchIdFromSlug, matchSlug } from "@/lib/format";
+import { getFormat } from "@/db/edition";
 import { cn } from "@/lib/utils";
 import { removeScore, saveScore, undoScore } from "./actions";
 
-const TEAM_SIZE = 3;
-
 export default async function MatchScores({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const id = matchIdFromSlug(slug);
-  if (matchSlug(id) !== slug) notFound();
+  const f = await getFormat();
+  const id = matchIdFromSlug(f, slug);
+  if (matchSlug(f, id) !== slug) notFound();
   const [t, viewer, all, teams, stages] = await Promise.all([getDict(), getViewer(), getMatches(), getTeams(), getPoolStages()]);
   if (!can(viewer?.roles, "matches")) notFound();
   const match = all.find((m) => m.id === id);
@@ -51,7 +52,7 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
       ) : (
         <div className="space-y-6">
           {maps.map((m, n) => {
-            const color = m.mod ? MODS[m.mod]?.color : undefined;
+            const color = m.slot ? slotColor(m.slot) : m.mod ? MODS[m.mod]?.color : undefined;
             const gone = edits.filter((e) => e.gameId === m.gameId && e.removed);
             return (
               <Panel key={m.gameId} i={Math.min(n, 4)} title={`${m.slot ?? "—"} · ${m.title} [${m.version}]`}>
@@ -68,7 +69,7 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
                   {([0, 1] as const).map((k) => {
                     const team = sides[k];
                     const lines = m.players[k];
-                    const missing = Math.max(0, TEAM_SIZE - lines.length);
+                    const missing = Math.max(0, f.teamSize - lines.length);
                     const out = new Set(gone.map((e) => e.osuId));
                     const blank = (team?.players ?? []).filter((p) => !lines.some((l) => l.id === p.userId) && !out.has(p.userId));
                     return (

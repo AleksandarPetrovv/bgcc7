@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Crown } from "lucide-react";
 import type { Match } from "@/lib/data";
@@ -11,51 +11,26 @@ import { MatchDialog } from "./match-dialog";
 import { TriTick } from "./graphics";
 import { cn } from "@/lib/utils";
 import { MeTag, meT } from "./me";
+import { fitBox, useFit } from "./use-fit";
+import { winTargets, type Format, type Half } from "@/lib/format";
 
-const G = 28;
-const H = 92;
-const P = H + 18;
 const TOP = 72;
-const LOW = TOP + 3 * P + H + 110;
-const CENTER = 1.5 * P + H / 2;
+type Pos = Record<string, [number, number, Half]>;
 
-const POS: Record<string, [number, number, "u" | "l"]> = {
-  "WB-R1-M1": [0, 0, "u"], "WB-R1-M2": [0, P, "u"], "WB-R1-M3": [0, 2 * P, "u"], "WB-R1-M4": [0, 3 * P, "u"],
-  "WB-R2-M1": [1, 0.5 * P, "u"], "WB-R2-M2": [1, 2.5 * P, "u"],
-  "WB-R3-M1": [2, 1.5 * P, "u"],
-  "GF-M1": [5, CENTER - H - 12, "u"], "GF-M2": [5, CENTER + 12, "u"],
-  "LB-R1-M1": [1, 0, "l"], "LB-R1-M2": [1, P, "l"],
-  "LB-R2-M1": [2, 0, "l"], "LB-R2-M2": [2, P, "l"],
-  "LB-R3-M1": [3, 0.5 * P, "l"],
-  "LB-R4-M1": [4, 0.5 * P, "l"],
-};
-
-const top = (id: string) => {
-  const [, y, s] = POS[id];
-  return (s === "u" ? TOP : LOW) + y;
-};
-
-const WIN: Record<string, string> = {
-  "WB-R1-M1": "WB-R2-M1", "WB-R1-M2": "WB-R2-M1", "WB-R1-M3": "WB-R2-M2", "WB-R1-M4": "WB-R2-M2",
-  "WB-R2-M1": "WB-R3-M1", "WB-R2-M2": "WB-R3-M1", "WB-R3-M1": "GF-M1",
-  "LB-R1-M1": "LB-R2-M1", "LB-R1-M2": "LB-R2-M2", "LB-R2-M1": "LB-R3-M1", "LB-R2-M2": "LB-R3-M1",
-  "LB-R3-M1": "LB-R4-M1", "LB-R4-M1": "GF-M1",
-};
-
-const DROPS = [
-  ["WB-R1-M1", "LB-R1-M1"], ["WB-R1-M4", "LB-R1-M1"], ["WB-R1-M2", "LB-R1-M2"], ["WB-R1-M3", "LB-R1-M2"],
-  ["WB-R2-M2", "LB-R2-M1"], ["WB-R2-M1", "LB-R2-M2"], ["WB-R3-M1", "LB-R4-M1"],
-];
-
-const HEADERS: { c: number; s: "u" | "l"; t: string }[] = [
-  { c: 0, s: "u", t: "Round 1 (Quarter-Finals)" },
-  { c: 1, s: "u", t: "Round 2 (Semi-Finals)" },
-  { c: 2, s: "u", t: "Winners Finals" },
-  { c: 1, s: "l", t: "Losers Round 1" },
-  { c: 2, s: "l", t: "Losers Round 2" },
-  { c: 3, s: "l", t: "Losers Round 3" },
-  { c: 4, s: "l", t: "Losers Finals" },
-];
+function bracketLayout(f: Format) {
+  const { upRows, lowRows, gfRow, gfCol } = f.layout;
+  const { g: G, h: H, gap, minW } = f.layout.box;
+  const P = H + gap;
+  const LOW = TOP + (upRows - 1) * P + H + 110;
+  const CENTER = gfRow * P + H / 2;
+  const POS: Pos = { "GF-M1": [gfCol, CENTER - H - 12, "u"], "GF-M2": [gfCol, CENTER + 12, "u"] };
+  for (const [id, [c, r, h]] of Object.entries(f.layout.pos)) POS[id] = [c, r * P, h];
+  const top = (id: string) => {
+    const [, y, h] = POS[id];
+    return (h === "u" ? TOP : LOW) + y;
+  };
+  return { G, H, P, minW, LOW, POS, top, WIN: winTargets(f), DROPS: f.layout.drops, HEADERS: f.layout.headers, gfCol, upRows, lowRows, mark: f.layout.mark };
+}
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
@@ -97,7 +72,7 @@ function Box({ id, m, live, className, style, onEnter, onLeave }: { id: string; 
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className={cn("flex flex-col overflow-hidden border bg-coal transition-[border-color] duration-200", className)} style={style}>
       <div className="flex h-7 shrink-0 items-center gap-2 border-b border-line bg-ink/70 px-2.5">
         <span className="num truncate text-[0.78rem] text-paper/75">{m.datetime ? `${day(m.datetime)} · ${clock(m.datetime)}` : t.common.tbd}</span>
-        {id === "GF-M2" && <span className="text-[0.6rem] font-black uppercase text-[#e8c547]">{t.rounds.reset}</span>}
+        {id === "GF-M2" && <span className="shrink-0 whitespace-nowrap text-[0.6rem] font-black uppercase text-[#e8c547]">{t.rounds.reset}</span>}
         <span className="ml-auto flex items-center gap-1">
           {live !== undefined && <LiveDot />}
           {m.links.length > 0 && <MatchDialog match={m} compact />}
@@ -124,25 +99,19 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   const t = useDict();
   const lang = useLang();
   const router = useRouter();
-  const { matches } = useTournament();
+  const { matches, format } = useTournament();
+  const { G, H, P, minW, LOW, POS, top, WIN, DROPS, HEADERS, gfCol, upRows, lowRows, mark } = bracketLayout(format);
   const [hover, setHover] = useState<string | null>(null);
-  const box = useRef<HTMLDivElement>(null);
-  const [avail, setAvail] = useState(1500);
   const anyLive = Object.keys(live).length > 0;
   useEffect(() => {
     if (!anyLive) return;
     const id = setInterval(() => router.refresh(), 30_000);
     return () => clearInterval(id);
   }, [anyLive, router]);
-  useLayoutEffect(() => {
-    const el = box.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([e]) => setAvail(e.contentRect.width));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+  const { ref: box, avail: seen, scale } = useFit((gfCol + 1) * minW + gfCol * G);
+  const avail = seen || 1500;
 
-  const W = avail < 640 ? Math.round(Math.min(290, avail - 40)) : Math.round(Math.min(290, Math.max(210, (avail - 5 * G) / 6)));
+  const W = avail < 640 ? Math.round(Math.min(290, avail - 40)) : Math.floor(Math.min(290, Math.max(minW, (avail - gfCol * G - 8) / (gfCol + 1))));
   const col = (c: number) => c * (W + G);
   const byId = new Map(matches.map((m) => [m.id, m]));
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
@@ -150,8 +119,9 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   const linked = new Set<string>();
   if (hover) for (const [a, b] of DROPS) if (a === hover || b === hover) linked.add(a).add(b);
 
-  const width = col(5) + W;
-  const height = LOW + P + H + 12;
+  const width = col(gfCol) + W;
+  const height = LOW + (lowRows - 1) * P + H + 12;
+  const fit = fitBox(width, height, scale);
   const midY = (id: string) => top(id) + H / 2;
   const wire = (a: string, b: string) => {
     const x1 = col(POS[a][0]) + W;
@@ -182,12 +152,13 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
 
   return (
     <div ref={box} className="snap-x snap-mandatory overflow-x-auto overflow-y-hidden pb-4 md:snap-none">
-      <div className="relative mx-auto mt-4" style={{ width, height }}>
+      <div className="mt-4" style={fit.outer}>
+      <div className={cn("relative", scale === 1 && "mx-auto")} style={fit.inner}>
         <svg className="pointer-events-none absolute inset-0 overflow-visible" width={width} height={height} aria-hidden>
-          <text x={col(3)} y={TOP + 3 * P + H - 6} className="in-trace heading-slam" fontSize={118} fill="none" stroke="rgba(244,243,238,0.08)" strokeWidth={1.5}>
+          <text x={col(mark)} y={TOP + (upRows - 1) * P + H - 6} className="in-trace heading-slam" fontSize={118} fill="none" stroke="rgba(244,243,238,0.08)" strokeWidth={1.5}>
             {up(t.schedule.upperWord)}
           </text>
-          <text x={width} y={LOW + P + H - 4} textAnchor="end" className="in-trace heading-slam" fontSize={118} fill="none" stroke="rgba(224,36,47,0.13)" strokeWidth={1.5} style={v({ "--d": "0.4s" })}>
+          <text x={width} y={LOW + (lowRows - 1) * P + H - 4} textAnchor="end" className="in-trace heading-slam" fontSize={118} fill="none" stroke="rgba(224,36,47,0.13)" strokeWidth={1.5} style={v({ "--d": "0.4s" })}>
             {up(t.schedule.lowerWord)}
           </text>
           {Object.entries(WIN).map(([a, b]) => {
@@ -218,7 +189,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
               opacity={linked.has(a) && linked.has(b) ? 0.9 : 0}
             />
           ))}
-          <path d={`M${col(5) + W / 2} ${top("GF-M1") + H} V${top("GF-M2")}`} stroke="#e8c547" strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="3 4" className="in-up" style={v({ "--d": "1.3s" })} />
+          <path d={`M${col(gfCol) + W / 2} ${top("GF-M1") + H} V${top("GF-M2")}`} stroke="#e8c547" strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="3 4" className="in-up" style={v({ "--d": "1.3s" })} />
         </svg>
 
         {section("u")}
@@ -235,7 +206,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
         ))}
         <div
           className="in-drop absolute flex snap-start items-center gap-2 border-b border-[#e8c547]/20 pb-1 text-xs font-black uppercase tracking-[0.14em] text-[#e8c547]/80"
-          style={{ left: col(5), top: top("GF-M1") - 30, width: W, ...v({ "--d": "0.7s" }) }}
+          style={{ left: col(gfCol), top: top("GF-M1") - 30, width: W, ...v({ "--d": "0.7s" }) }}
         >
           <Crown className="size-3.5" /> {t.rounds["Grand Finals"]}
         </div>
@@ -258,6 +229,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
             />
           );
         })}
+      </div>
       </div>
     </div>
   );
