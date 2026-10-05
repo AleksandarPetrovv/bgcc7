@@ -168,6 +168,22 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
 
     case "teams.generate":
       return bg ? `направи ${num(p.teams)} отбора по номерата от квалификациите` : `generated ${num(p.teams)} teams from the qualifier seeds`;
+    case "teams.seed":
+      return bg ? `подреди схемата: ${String(p.teams ?? "")}` : `seeded the bracket: ${String(p.teams ?? "")}`;
+    case "teams.draw":
+      return bg ? `изтегли отборите: ${String(p.teams ?? "")}` : `drew the teams: ${String(p.teams ?? "")}`;
+    case "teams.badges":
+      return p.badges === null ? (bg ? `върна значките на ${user()} от профила` : `reset ${user()}'s badges to their profile count`) : bg ? `смени значките на ${user()} на ${b(p.badges)}` : `set ${user()}'s badges to ${b(p.badges)}`;
+    case "format.save":
+      return bg ? "обнови плана на формата" : "updated the format plan";
+    case "format.reset":
+      return bg ? "върна плана на формата по подразбиране" : "reset the format plan to the default";
+    case "edition.switch":
+      return bg ? `превключи сайта на ${b(String(p.edition).toUpperCase())}` : `switched the site to ${b(String(p.edition).toUpperCase())}`;
+    case "edition.seed":
+      return bg ? "напълни BGCC7 с тестови данни" : "filled BGCC7 with test data";
+    case "edition.clear":
+      return bg ? "изчисти тестовите данни от BGCC7" : "cleared the BGCC7 test data";
     case "team.create":
       return bg ? `създаде отбор ${b(p.name)}` : `created team ${b(p.name)}`;
     case "team.update":

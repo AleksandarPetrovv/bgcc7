@@ -11,6 +11,8 @@ export const users = pgTable("users", {
   countryRank: integer("country_rank"),
   pp: doublePrecision("pp"),
   accuracy: doublePrecision("accuracy"),
+  badges: integer("badges"),
+  badgeOverride: integer("badge_override"),
   statsAt: timestamp("stats_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -33,6 +35,8 @@ export const registrations = pgTable("registrations", {
   note: text("note"),
   decidedBy: integer("decided_by"),
   decidedAt: timestamp("decided_at", { withTimezone: true }),
+  rankLock: integer("rank_lock"),
+  badgesLock: integer("badges_lock"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -62,6 +66,9 @@ export const settings = pgTable("settings", {
   banSecs: integer("ban_secs").notNull().default(90),
   pickSecs: integer("pick_secs").notNull().default(120),
   timeoutSecs: integer("timeout_secs").notNull().default(180),
+  edition: text("edition").notNull().default("bgcc6"),
+  formatPlan: jsonb("format_plan"),
+  bwsLockedAt: timestamp("bws_locked_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -158,6 +165,7 @@ export const poolSuggestions = pgTable("pool_suggestions", {
   cs: doublePrecision("cs").notNull(),
   cover: text("cover").notNull(),
   picked: boolean("picked").notNull().default(false),
+  seeded: boolean("seeded").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

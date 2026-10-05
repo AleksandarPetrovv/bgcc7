@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { ChevronRight, ClipboardCheck, Dices, DoorOpen, Gauge, Layers, Link2, Music2, ScrollText, Settings2, Shield, Swords, Trophy, Users } from "lucide-react";
+import { ChevronRight, ClipboardCheck, Dices, DoorOpen, Gauge, LayoutGrid, Layers, Link2, Music2, ScrollText, Settings2, Shield, Swords, Trophy, Users } from "lucide-react";
 import { Sparkle } from "@/components/site/graphics";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +21,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   staff: Shield,
   log: ScrollText,
   settings: Settings2,
+  format: LayoutGrid,
 };
 
 const spring = { type: "spring", stiffness: 520, damping: 42 } as const;

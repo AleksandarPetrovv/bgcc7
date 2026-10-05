@@ -2,6 +2,7 @@ import "server-only";
 import { db } from "./index";
 import { users } from "./schema";
 import type { OsuUserFull } from "@/lib/osu-api";
+import { tourneyBadges } from "@/lib/bws";
 
 export async function saveOsuUser(u: OsuUserFull) {
   const row = {
@@ -12,6 +13,7 @@ export async function saveOsuUser(u: OsuUserFull) {
     countryRank: u.statistics?.country_rank ?? null,
     pp: u.statistics?.pp ?? null,
     accuracy: u.statistics?.hit_accuracy ?? null,
+    ...(u.badges ? { badges: tourneyBadges(u.badges) } : {}),
     statsAt: new Date(),
     updatedAt: new Date(),
   };
