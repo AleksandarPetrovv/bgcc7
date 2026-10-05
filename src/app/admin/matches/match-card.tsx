@@ -4,8 +4,8 @@ import { ActionForm, dateCls, Field, inputCls } from "@/components/admin/form";
 import { Dropdown } from "@/components/admin/dropdown";
 import type { MatchRow } from "@/db/tournament";
 import type { Dict } from "@/lib/i18n/dict";
-import { FEED } from "@/lib/pickems";
-import { matchSlug } from "@/lib/matches";
+import { getFormat } from "@/db/edition";
+import { matchSlug } from "@/lib/format";
 import { fmtSofia, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { clearCache, saveMatch } from "./actions";
@@ -22,6 +22,7 @@ function Legend({ children }: { children: React.ReactNode }) {
 }
 
 export function MatchCard({ m, k, t, locale, teams }: { m: MatchRow; k: number; t: Dict; locale: string; teams: { id: string; name: string }[] }) {
+  const f = getFormat();
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? t.common.tbd;
   const mp = m.mpLinks.split(",").filter(Boolean);
   const status = m.winner ? "done" : mp.length ? "live" : m.startsAt ? "soon" : "tbd";
@@ -179,7 +180,7 @@ export function MatchCard({ m, k, t, locale, teams }: { m: MatchRow; k: number; 
                   />
                 </label>
               </div>
-              {FEED[m.id] && (
+              {f.feed[m.id] && (
                 <label className="mt-3 flex cursor-pointer items-center gap-2.5 text-xs font-bold uppercase tracking-wide text-paper/85">
                   <input type="checkbox" name="manual" defaultChecked={m.manual} className="size-4 accent-rose" />
                   {t.admin.lockTeams}
@@ -228,7 +229,7 @@ export function MatchCard({ m, k, t, locale, teams }: { m: MatchRow; k: number; 
         {mp.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-dashed border-line pt-4">
             <Link
-              href={`/admin/matches/${matchSlug(m.id)}`}
+              href={`/admin/matches/${matchSlug(f, m.id)}`}
               className="lift-sm inline-flex min-h-10 -skew-x-12 items-center bg-balkan px-4 text-xs font-black uppercase tracking-wide text-ink hover:bg-paper"
             >
               <span className="skew-x-12">{t.admin.ms.open}</span>

@@ -1,10 +1,11 @@
+import { db } from "./index";
 import "server-only";
 import { and, eq, isNull } from "drizzle-orm";
-import { db } from "./index";
 import { matches } from "./schema";
-import { FEED } from "@/lib/pickems";
+import { getFormat } from "./edition";
 
 export async function advance() {
+  const f = getFormat();
   const rows = await db.select().from(matches).orderBy(matches.order);
   const byId = new Map(rows.map((r) => [r.id, r]));
   const result = (id: string, take: "W" | "L") => {
@@ -14,7 +15,7 @@ export async function advance() {
     return take === "W" ? w : w === m.team1Id ? m.team2Id : m.team1Id;
   };
   for (const r of rows) {
-    const feed = FEED[r.id];
+    const feed = f.feed[r.id];
     if (!feed || r.manual) continue;
     const team1Id = result(feed[0].from, feed[0].take);
     const team2Id = result(feed[1].from, feed[1].take);

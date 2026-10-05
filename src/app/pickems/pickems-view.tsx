@@ -16,20 +16,20 @@ import { cn } from "@/lib/utils";
 import { login, savePickems } from "./actions";
 import { MeTag } from "@/components/site/me";
 
-const DRAFT = "bgcc7-pickems";
 const MEDAL = ["text-[#e8c547]", "text-[#c9ccd1]", "text-[#c98a4b]"];
 
 type Props = { osuId: number | null; saved: Picks | null; leaderboard: LeaderRow[]; open: boolean; locked: string[] };
 
 export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) {
   const t = useDict();
-  const { matches } = useTournament();
+  const { matches, format: f } = useTournament();
   const seeding = seedingOf(matches);
+  const DRAFT = f.edition === "bgcc6" ? "bgcc7-pickems" : "bgcc7-suiji-pickems";
   const [picks, setPicks] = useState<Picks>(saved ?? {});
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState(false);
   const [pending, start] = useTransition();
-  const { picks: clean, total } = resolve(picks, seeding);
+  const { picks: clean, total } = resolve(f, picks, seeding);
   const made = Object.keys(clean).length;
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
       const raw = localStorage.getItem(DRAFT);
       if (raw) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setPicks(resolve(JSON.parse(raw), seeding).picks);
+        setPicks(resolve(f, JSON.parse(raw), seeding).picks);
         setDirty(true);
       }
     } catch {}
@@ -46,7 +46,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
   }, [saved]);
 
   const pick = (match: string, team: string) => {
-    const next = resolve({ ...clean, [match]: team }, seeding).picks;
+    const next = resolve(f, { ...clean, [match]: team }, seeding).picks;
     setPicks(next);
     setDirty(true);
     setError(false);

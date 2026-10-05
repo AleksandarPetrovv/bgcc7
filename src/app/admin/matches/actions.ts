@@ -2,9 +2,9 @@
 
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
+import { getFormat } from "@/db/edition";
 import { matchCache, matches, stages, teams } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
-import { FEED } from "@/lib/pickems";
 import type { ActionResult } from "@/lib/roles";
 import { fromSofiaInput } from "@/lib/time";
 import { advance } from "@/db/bracket";
@@ -19,6 +19,7 @@ const num = (fd: FormData, k: string) => {
 
 export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
   return guard("matches", "match.save", async () => {
+    const f = getFormat();
     const [m] = await db.select().from(matches).where(eq(matches.id, id)).limit(1);
     if (!m) return { ok: false, error: "notFound" };
     const score1 = num(fd, "score1");
@@ -39,8 +40,8 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     const manual = fd.get("manual") === "on";
     const patch = {
       startsAt: fromSofiaInput(String(fd.get("startsAt") ?? "")),
-      team1Id: manual || !FEED[id] ? team("team1Id") : m.team1Id,
-      team2Id: manual || !FEED[id] ? team("team2Id") : m.team2Id,
+      team1Id: manual || !f.feed[id] ? team("team1Id") : m.team1Id,
+      team2Id: manual || !f.feed[id] ? team("team2Id") : m.team2Id,
       score1,
       score2,
       winner,

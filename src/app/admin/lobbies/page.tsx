@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getFormat } from "@/db/edition";
 import { InView } from "@/components/site/in-view";
 import { PageTitle } from "@/components/site/page";
 import { ActionForm, dateCls, inputCls, Panel, Field } from "@/components/admin/form";
@@ -46,7 +47,7 @@ function LobbyFields({ t, l }: { t: Dict; l?: Lobby }) {
 
 export default async function AdminLobbies() {
   const [t, lang, viewer, lobbies, regs] = await Promise.all([getDict(), getLang(), getViewer(), getLobbies(), getRegistrations()]);
-  if (!can(viewer?.roles, "lobbies")) notFound();
+  if (!can(viewer?.roles, "lobbies") || getFormat().edition !== "bgcc6") notFound();
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const booked = new Set(lobbies.flatMap((l) => l.players.map((p) => p.osuId)));
   const approved = regs.filter((r) => r.status === "approved");
