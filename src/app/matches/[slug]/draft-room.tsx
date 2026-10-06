@@ -12,6 +12,7 @@ import { MODS, fmtLen, type Beatmap } from "@/lib/data";
 import { Confetti } from "@/components/site/confetti";
 import { deadline, limitOf, pickable, plan, rollWinner, scoreOf, turnOf, type DraftStep, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
+import { slotColor } from "@/lib/format-plan";
 import { pauseDraft, resetDraft, resumeDraft, undoDraft } from "@/app/admin/draft/actions";
 
 type TeamInfo = {
@@ -20,7 +21,7 @@ type TeamInfo = {
   captain: string;
   players: string[];
 };
-type Pool = { category: string; maps: Beatmap[] }[];
+type Pool = { category: string; color?: string; maps: Beatmap[] }[];
 
 const TEAM = {
   1: {
@@ -316,7 +317,7 @@ function CommandPopup({ slot, map, team, onDone }: { slot: string; map: Beatmap;
   const t = useDict();
   const text = `!mp map ${map.id}`;
   const [fail, setFail] = useState(false);
-  const mod = MODS[map.mod];
+  const color = slotColor(slot);
   async function copy() {
     try {
       await navigator.clipboard.writeText(text);
@@ -350,7 +351,7 @@ function CommandPopup({ slot, map, team, onDone }: { slot: string; map: Beatmap;
             {t.draft.picked}
           </span>
           <div className="mt-1 flex items-baseline gap-3">
-            <span className="heading-slam text-4xl" style={{ color: mod?.color }}>
+            <span className="heading-slam text-4xl" style={{ color }}>
               {slot}
             </span>
             <span className="min-w-0 truncate text-sm font-bold text-paper/80">{map.title}</span>
@@ -403,7 +404,7 @@ function WinnerPopup({
 }) {
   const t = useDict();
   const [busy, setBusy] = useState<Side | null>(null);
-  const mod = MODS[map.mod];
+  const color = slotColor(slot);
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -433,7 +434,7 @@ function WinnerPopup({
           <Crown className="mx-auto size-9 fill-current text-[#e8c547]" />
           <h3 className="heading-slam mt-2 text-4xl sm:text-5xl">{t.draft.whoWon}</h3>
           <p className="mt-1 truncate text-sm font-bold text-ash">
-            <span style={{ color: mod?.color }}>{slot}</span> · {map.title}
+            <span style={{ color }}>{slot}</span> · {map.title}
           </p>
           <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
             {([1, 2] as const).map((s, i) => (
@@ -1039,7 +1040,8 @@ export function DraftRoom({
 
       <section className="mt-8 space-y-6">
         {pools.map((p, pi) => {
-          const mod = MODS[p.category];
+          const skill = !!p.color;
+          const mod = { label: MODS[p.category]?.label ?? p.category, color: p.color ?? MODS[p.category]?.color };
           const light = p.category === "Tiebreaker";
           return (
             <div key={p.category}>
@@ -1131,12 +1133,19 @@ export function DraftRoom({
                           "heading-slam relative flex w-[4.5rem] shrink-0 items-center justify-center pr-1 text-xl sm:w-20 sm:text-2xl",
                           (u?.kind === "ban" || u?.winner) && "opacity-40",
                         )}
-                        style={{ color: mod.color }}
+                        style={{ color: skill ? mod.color : slotColor(m.slot) }}
                       >
                         {m.slot}
                       </span>
                       <span className={cn("relative flex min-w-0 flex-1 flex-col justify-center pl-1 pr-3", (u?.kind === "ban" || u?.winner) && "opacity-40")}>
-                        <span className="truncate text-sm font-black sm:text-base">{m.title}</span>
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span className="truncate text-sm font-black sm:text-base">{m.title}</span>
+                          {skill && !tb && MODS[m.mod] && (
+                            <span className="shrink-0 -skew-x-12 border px-1.5 text-xs font-black leading-5" style={{ borderColor: MODS[m.mod].color, color: MODS[m.mod].color }}>
+                              <span className="inline-block skew-x-12">{MODS[m.mod].short}</span>
+                            </span>
+                          )}
+                        </span>
                         <span className="truncate text-xs text-paper/70">[{m.version}]</span>
                         <span className="num mt-1 flex items-center gap-2.5 text-xs text-ash">
                           <span className="flex items-center gap-0.5 text-[#e8c547]">

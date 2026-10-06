@@ -1,17 +1,18 @@
 import { applyDraft, draftAccess, setResult, settle, type DraftAct } from "@/db/drafts";
-import { matchIdFromSlug } from "@/lib/matches";
+import { getFormat } from "@/db/edition";
+import { matchIdFromSlug } from "@/lib/format";
 import { sse } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request, { params }: RouteContext<"/api/draft/[slug]">) {
-  const id = matchIdFromSlug((await params).slug);
+  const id = matchIdFromSlug(await getFormat(), (await params).slug);
   if (!(await draftAccess(id))) return Response.json({ error: "forbidden" }, { status: 403 });
   return sse(req, () => settle(id), 1000);
 }
 
 export async function POST(req: Request, { params }: RouteContext<"/api/draft/[slug]">) {
-  const id = matchIdFromSlug((await params).slug);
+  const id = matchIdFromSlug(await getFormat(), (await params).slug);
   const who = await draftAccess(id);
   if (!who) return Response.json({ error: "forbidden" }, { status: 403 });
   const body = (await req.json().catch(() => null)) as (DraftAct & { side?: number }) | { act: "result"; slot: string; winner: number | null } | null;

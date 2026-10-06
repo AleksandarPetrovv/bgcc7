@@ -1,14 +1,18 @@
 "use server";
 
-import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
+import { eq, sql } from "drizzle-orm";
+
 import { drafts, matches } from "@/db/schema";
 import { emitDraft } from "@/db/drafts";
 import { getPoolStages } from "@/db/mappools";
 import { getSettings } from "@/db/settings";
+import { getSkillLayouts } from "@/db/format-plan";
 import { guard } from "@/lib/admin-action";
 
 const bump = { rev: sql`${drafts.rev} + 1`, updatedAt: new Date() };
+
+const bansFor = async (stageSlug: string, fallback: number) => (await getSkillLayouts())?.[stageSlug]?.bans ?? fallback;
 
 async function done<T>(matchId: string, res: T) {
   emitDraft(matchId);
@@ -22,13 +26,14 @@ export async function openDraft(matchId: string, stageSlug: string) {
     if (!m || !stage) return { ok: false, error: "invalid" };
     const [cur] = await db.select().from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
     const s = await getSettings();
+    const bans = await bansFor(stageSlug, s.bans);
     if (cur) {
       const fresh = cur.stageSlug !== stageSlug;
       await db
         .update(drafts)
-        .set({ open: true, stageSlug, ...(fresh ? { steps: [], bans: s.bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null } : {}), ...bump })
+        .set({ open: true, stageSlug, ...(fresh ? { steps: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null } : {}), ...bump })
         .where(eq(drafts.matchId, matchId));
-    } else await db.insert(drafts).values({ matchId, stageSlug, bans: s.bans, banOrder: s.banOrder, turnAt: new Date() });
+    } else await db.insert(drafts).values({ matchId, stageSlug, bans, banOrder: s.banOrder, turnAt: new Date() });
     return done(matchId, { matchId, stage: stage.title });
   });
 }
@@ -43,9 +48,11 @@ export async function closeDraft(matchId: string) {
 export async function resetDraft(matchId: string) {
   return guard("matches", "draft.reset", async () => {
     const s = await getSettings();
+    const [cur] = await db.select({ stageSlug: drafts.stageSlug }).from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
+    const bans = await bansFor(cur?.stageSlug ?? "", s.bans);
     await db
       .update(drafts)
-      .set({ roll1: null, roll2: null, choice: null, steps: [], bans: s.bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null, ...bump })
+      .set({ roll1: null, roll2: null, choice: null, steps: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null, ...bump })
       .where(eq(drafts.matchId, matchId));
     return done(matchId, { matchId });
   });

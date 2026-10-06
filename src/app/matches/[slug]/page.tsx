@@ -1,9 +1,12 @@
 import { notFound } from "next/navigation";
 import { draftAccess, getDraft } from "@/db/drafts";
 import { getPoolStages } from "@/db/mappools";
+import { getSkillLayouts } from "@/db/format-plan";
+import { bySkill } from "@/lib/format-plan";
 import { getTeams } from "@/db/tournament";
 import { getDict } from "@/lib/i18n/server";
-import { matchIdFromSlug } from "@/lib/matches";
+import { getFormat } from "@/db/edition";
+import { matchIdFromSlug } from "@/lib/format";
 import { DraftRoom } from "./draft-room";
 
 export const dynamic = "force-dynamic";
@@ -15,10 +18,10 @@ export async function generateMetadata() {
 
 export default async function DraftPage({ params }: PageProps<"/matches/[slug]">) {
   const { slug } = await params;
-  const id = matchIdFromSlug(slug);
+  const id = matchIdFromSlug(getFormat(), slug);
   const [access, draft] = await Promise.all([draftAccess(id), getDraft(id)]);
   if (!access || !draft || (!draft.open && !access.admin)) notFound();
-  const [t, teams, stages] = await Promise.all([getDict(), getTeams(), getPoolStages()]);
+  const [t, teams, stages, skills] = await Promise.all([getDict(), getTeams(), getPoolStages(), getSkillLayouts()]);
   const stage = stages.find((s) => s.slug === draft.stageSlug);
   if (!stage) notFound();
   const side = (tid: string | null) => {
@@ -35,7 +38,7 @@ export default async function DraftPage({ params }: PageProps<"/matches/[slug]">
       matchId={id}
       initial={draft}
       teams={[side(access.match.team1Id), side(access.match.team2Id)]}
-      pools={stage.pools}
+      pools={bySkill(stage, skills?.[stage.slug]).pools}
       title={stage.slug === access.match.stageSlug ? round : `${round} · ${t.rounds[stage.title] ?? stage.title}`}
       firstTo={firstTo}
       admin={access.admin}

@@ -1,7 +1,8 @@
+import { db } from "@/db";
 import { notFound } from "next/navigation";
 import { PageTitle } from "@/components/site/page";
 import { Words } from "@/components/site/rich";
-import { db } from "@/db";
+import { getFormat } from "@/db/edition";
 import { drafts } from "@/db/schema";
 import { timers, toView } from "@/db/drafts";
 import { getPoolStages } from "@/db/mappools";
@@ -9,7 +10,7 @@ import { getMatchRows, getTeams } from "@/db/tournament";
 import { getViewer } from "@/lib/authz";
 import { turnOf, pickable } from "@/lib/draft";
 import { getDict, getLang } from "@/lib/i18n/server";
-import { matchSlug } from "@/lib/matches";
+import { matchSlug } from "@/lib/format";
 import { can } from "@/lib/roles";
 import { fmtSofia } from "@/lib/time";
 import { DraftAdmin, type DraftRow } from "./draft-admin";
@@ -17,7 +18,7 @@ import { DraftAdmin, type DraftRow } from "./draft-admin";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDraft() {
-  const [t, lang, viewer, rows, teams, stages, all] = await Promise.all([
+  const [t, lang, viewer, rows, teams, stages, all, f] = await Promise.all([
     getDict(),
     getLang(),
     getViewer(),
@@ -25,6 +26,7 @@ export default async function AdminDraft() {
     getTeams(),
     getPoolStages(),
     db.select().from(drafts).catch(() => []),
+    getFormat(),
   ]);
   const cfg = await timers();
   if (!can(viewer?.roles, "draft")) notFound();
@@ -36,7 +38,7 @@ export default async function AdminDraft() {
 
   const time = (d: Date | null) => d?.getTime() ?? Infinity;
   const live = rows
-    .filter((m) => (control ? !m.winner || all.some((d) => d.matchId === m.id && d.open) : all.some((d) => d.matchId === m.id && d.open)))
+    .filter((m) => m.team1Id && m.team2Id && (control ? !m.winner || all.some((d) => d.matchId === m.id && d.open) : all.some((d) => d.matchId === m.id && d.open)))
     .sort((a, b) => time(a.startsAt) - time(b.startsAt) || a.order - b.order);
   const list: DraftRow[] = live.map((m) => {
     const raw = all.find((d) => d.matchId === m.id);
@@ -46,7 +48,7 @@ export default async function AdminDraft() {
     const b = team(m.team2Id);
     return {
       id: m.id,
-      slug: matchSlug(m.id),
+      slug: matchSlug(f, m.id),
       round: t.rounds[m.round] ?? m.round,
       stage: m.stageSlug,
       when: m.startsAt ? fmtSofia(m.startsAt, locale) : null,
