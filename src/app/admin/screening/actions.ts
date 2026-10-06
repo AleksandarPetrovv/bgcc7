@@ -3,7 +3,8 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { lobbyBookings, registrations } from "@/db/schema";
-import { isStatus } from "@/db/registrations";
+import { getBwsLock, isStatus } from "@/db/registrations";
+import { tourneyBadges } from "@/lib/bws";
 import { saveOsuUser } from "@/db/users";
 import { guard } from "@/lib/admin-action";
 import { getUser } from "@/lib/osu-api";
@@ -58,7 +59,8 @@ export async function addPlayer(_: ActionResult, fd: FormData) {
     const u = await getUser(q);
     if (!u) return { ok: false, error: "notFound" };
     await saveOsuUser(u);
-    const set = { status: "approved", decidedBy: by, decidedAt: new Date() };
+    const lock = (await getBwsLock()) ? { rankLock: u.statistics?.global_rank ?? null, badgesLock: u.badges ? tourneyBadges(u.badges) : 0 } : {};
+    const set = { status: "approved", decidedBy: by, decidedAt: new Date(), ...lock };
     await db
       .insert(registrations)
       .values({ osuId: u.id, ...set })

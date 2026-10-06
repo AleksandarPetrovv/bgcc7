@@ -21,7 +21,9 @@ import { getScoreboard } from "@/db/scoreboards";
 import { fmtRange, phaseStates } from "@/lib/dates";
 import { fmtSofia, fmtSofiaTime, isFuture, windowState } from "@/lib/time";
 import { flagUrl, fmtNum, type Match, type Team } from "@/lib/data";
+import { rankBws } from "@/lib/bws";
 import { sourceLabel, isLive } from "@/lib/matches";
+import { getFormat } from "@/db/edition";
 import { osuUser, TWITCH_URL } from "@/lib/links";
 import type { MapResult, PlayerLine } from "@/lib/scoreboard";
 import { cn } from "@/lib/utils";
@@ -265,8 +267,31 @@ export default async function Me() {
 
   if (signupPhase) {
     const closes = phase === "registration" && isFuture(settings.regClosesAt) ? settings.regClosesAt!.toISOString() : null;
+    const f = getFormat();
+    const ranked = f.edition === "bgcc7" ? rankBws(regs.filter((r) => r.status !== "denied")).filter((r) => r.bws !== null) : [];
+    const at = ranked.findIndex((r) => r.osuId === me);
+    const mine = at >= 0 ? ranked[at] : null;
+    const tier = at < 0 ? 0 : at < f.teams ? 1 : at < f.teams * f.teamSize ? 2 : 0;
     return shell(
       <>
+        {mine && (
+          <Card title="BWS" i={1}>
+            <div className="flex items-end gap-3">
+              <span className="num text-6xl leading-[0.8] sm:text-7xl">#{at + 1}</span>
+              <span className="pb-1 text-sm text-ash">{t.me.ofN(ranked.length)}</span>
+              <Tag tone={tier ? "balkan" : "rose"} className="mb-1 ml-auto text-xs">
+                {tier ? t.admin.tier(tier) : t.me.outsideCut(f.teams * f.teamSize)}
+              </Tag>
+            </div>
+            <div className="num mt-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-line pt-3 text-sm text-paper/80">
+              <span>BWS {fmtNum(mine.bws ?? 0)}</span>
+              {mine.rank && <span>#{fmtNum(mine.rank)}</span>}
+              <span>
+                {mine.badgeCount} {t.admin.badges.toLowerCase()}
+              </span>
+            </div>
+          </Card>
+        )}
         <Card title={t.me.signup} i={1}>
           <p className="text-lg leading-snug text-paper/90">{t.register.doneTexts[reg!.status]}</p>
           {reg!.status === "denied" && reg!.note && <p className="mt-3 border-l-2 border-rose pl-3 text-sm text-paper/70">{reg!.note}</p>}
@@ -533,7 +558,7 @@ export default async function Me() {
   );
 
   if (phase === "finished") {
-    const lf = played.find((m) => m.id === "LB-R4-M1" && !usWon(m));
+    const lf = played.find((m) => m.id === getFormat().losersFinal && !usWon(m));
     const place = champion ? 0 : lostIn?.bracket === "grand" ? 1 : lf ? 2 : -1;
     return shell(
       <>
@@ -583,7 +608,7 @@ export default async function Me() {
             <span className="mx-auto -skew-x-12 bg-rose px-2.5 py-1 shadow-[3px_3px_0_0_var(--color-rose-deep)] sm:px-4 sm:py-2">
               <span className="heading-slam block skew-x-12 text-base text-white sm:text-2xl">{t.common.vs}</span>
             </span>
-            <Side team={other} flip fallback={sourceLabel(t, matches, m.id, us === 1 ? 2 : 1)} />
+            <Side team={other} flip fallback={sourceLabel(getFormat(), t, matches, m.id, us === 1 ? 2 : 1)} />
           </div>
         </div>
         <div className="grid grid-cols-2 border-y border-line bg-ink sm:grid-cols-4 sm:divide-x sm:divide-line">

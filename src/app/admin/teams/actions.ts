@@ -3,15 +3,18 @@
 import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { matches, teamMembers, teams, users } from "@/db/schema";
+import { getFormat } from "@/db/edition";
+import { newTeamId, seedBracket } from "@/db/draw";
 import { getQualResults } from "@/db/qualifiers";
 import { getSettings } from "@/db/settings";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
 
-const newId = () => `team_${crypto.randomUUID().slice(0, 8)}`;
+const newId = newTeamId;
 
 export async function generateTeams() {
   return guard("teams", "teams.generate", async () => {
+    if ((await getFormat()).edition !== "bgcc6") return { ok: false, error: "invalid" };
     const [{ players }, settings] = await Promise.all([getQualResults(), getSettings()]);
     const size = Math.floor(settings.qualifyCount / 3);
     const top = players.slice(0, size * 3);
@@ -97,5 +100,22 @@ export async function removeMember(osuId: number, heir?: number) {
     const [row] = await db.delete(teamMembers).where(eq(teamMembers.osuId, osuId)).returning();
     if (row?.isCaptain) await promote(row.teamId, heir);
     return { osuId, heir: row?.isCaptain ? (heir ?? null) : undefined };
+  });
+}
+
+export async function seedTeams() {
+  return guard("teams", "teams.seed", async () => {
+    const teams = await seedBracket();
+    return teams ? { teams } : { ok: false, error: "invalid" };
+  });
+}
+
+export async function setBadges(osuId: number, _: ActionResult, fd: FormData) {
+  return guard("teams", "teams.badges", async () => {
+    const raw = String(fd.get("badges") ?? "").trim();
+    const n = raw === "" ? null : Number(raw);
+    if (n !== null && (!Number.isInteger(n) || n < 0 || n > 99)) return { ok: false, error: "invalid" };
+    await db.update(users).set({ badgeOverride: n }).where(eq(users.osuId, osuId));
+    return { osuId, badges: n };
   });
 }
