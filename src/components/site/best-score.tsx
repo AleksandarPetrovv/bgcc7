@@ -3,6 +3,7 @@
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { useDict } from "./lang";
 import { fmtNum, MODS } from "@/lib/data";
+import { slotColor } from "@/lib/format-plan";
 
 type Props = {
   score: number;
@@ -16,7 +17,7 @@ type Props = {
 
 export function BestScore({ score, acc, combo, miss, mods, rank, map }: Props) {
   const t = useDict();
-  const color = (map.mod && MODS[map.mod]?.color) || "var(--color-rose-hi)";
+  const color = (map.slot && slotColor(map.slot)) || (map.mod && MODS[map.mod]?.color) || "var(--color-rose-hi)";
   return (
     <HoverCard>
       <HoverCardTrigger

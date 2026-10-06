@@ -47,7 +47,7 @@ export const MODS: Record<string, { label: string; short: string; color: string 
 };
 
 export type Pack = { size: number; at: string | null };
-export type Stage = { title: string; slug: string; pools: { category: string; maps: Beatmap[] }[]; pack?: Pack | null };
+export type Stage = { title: string; slug: string; pools: { category: string; color?: string; maps: Beatmap[] }[]; pack?: Pack | null; info?: { firstTo: number; bans: number } | null };
 
 export type MatchSide = { id: string; name: string; score: number | null };
 export type Match = {

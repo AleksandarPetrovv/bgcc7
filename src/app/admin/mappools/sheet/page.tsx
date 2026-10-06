@@ -4,6 +4,7 @@ import { LinkTabs } from "@/components/site/tabs";
 import { PageTitle } from "@/components/site/page";
 import { ActionForm, IconAction } from "@/components/admin/form";
 import { getPoolStages, MOD_ORDER } from "@/db/mappools";
+import { getSkillLayouts } from "@/db/format-plan";
 import { getSheet, sheetVersion } from "@/db/pool-sheet";
 import { getViewer } from "@/lib/authz";
 import { fmtLen, MODS } from "@/lib/data";
@@ -37,6 +38,9 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
   const sheet = sheets[stages.indexOf(stage)];
   const version = await sheetVersion(stage.id);
   const name = (s: { title: string }) => t.rounds[s.title] ?? s.title;
+  const skill = (await getSkillLayouts())?.[stage.slug];
+  const info = new Map(skill?.groups.flatMap((g, gi) => g.slots.map((x, k) => [`${x.mod}-${x.slot}`, { group: g, label: x.label, note: x.note, at: gi * 100 + k }] as const)) ?? []);
+  const slots = skill ? [...sheet.slots].sort((a, b) => (info.get(`${a.mod}-${a.slot}`)?.at ?? 1e6) - (info.get(`${b.mod}-${b.slot}`)?.at ?? 1e6)) : sheet.slots;
 
   return (
     <>
@@ -63,20 +67,26 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
       <SheetView
         stageId={stage.id}
         version={version}
-        mods={MOD_ORDER.filter((k) => sheet.slots.some((s) => s.mod === k)).map((k) => ({
-          key: k,
-          short: MODS[k].short,
-          color: MODS[k].color,
-          count: sheet.slots.filter((s) => s.mod === k).length,
-        }))}
+        mods={
+          skill
+            ? skill.groups.map((g) => ({ key: g.id, short: g.abbr, color: g.color, count: g.slots.length }))
+            : MOD_ORDER.filter((k) => sheet.slots.some((s) => s.mod === k)).map((k) => ({
+                key: k,
+                short: MODS[k].short,
+                color: MODS[k].color,
+                count: sheet.slots.filter((s) => s.mod === k).length,
+              }))
+        }
       >
-        {sheet.slots.map((s, si) => {
-          const color = MODS[s.mod]?.color;
+        {slots.map((s, si) => {
+          const sk = info.get(`${s.mod}-${s.slot}`);
+          const color = sk?.group.color ?? MODS[s.mod]?.color;
+          const label = sk?.label ?? s.label;
           return (
             <SlotBox
               key={`${s.mod}-${s.slot}`}
               id={`${stage.id}-${s.mod}-${s.slot}`}
-              mod={s.mod}
+              mod={sk?.group.id ?? s.mod}
               i={si}
               picked={s.picked}
               empty={s.items.length === 0}
@@ -84,8 +94,19 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
               header={
                 <>
                   <span className="sr in-slam heading-slam text-2xl [--d:0.6s]" style={{ color }}>
-                    {s.label}
+                    {label}
                   </span>
+                  {sk && s.mod !== "Tiebreaker" && (
+                    <span className="-skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-black" style={{ borderColor: MODS[s.mod].color, color: MODS[s.mod].color }}>
+                      <span className="inline-block skew-x-12">{MODS[s.mod].short}</span>
+                    </span>
+                  )}
+                  {sk && (
+                    <span className="flex min-w-0 flex-col leading-tight">
+                      <span className="text-xs font-black uppercase tracking-[0.12em] text-paper">{sk.group.name}</span>
+                      {sk.note && <span className="truncate text-xs font-semibold text-ash">{sk.note.split(/\s*\n\s*/).join(" · ")}</span>}
+                    </span>
+                  )}
                   {s.picked ? (
                     <span className="sr in-pop flex items-center gap-1.5 text-xs font-black uppercase text-balkan [--d:0.7s]">
                       <Check className="size-3.5" strokeWidth={3} /> {t.admin.slotPicked}
@@ -108,7 +129,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                       <ActionForm action={pickNow.bind(null, stage.id, s.mod, s.slot)} submit={t.admin.pickNow} ghost confirm={t.admin.confirmPickNow} />
                     )}
                     {edit && !s.picked && !s.out && (
-                      <SlotPop action={suggestMap.bind(null, stage.id, s.mod, s.slot)} title={t.admin.suggestForSlot} slot={s.label} color={color} submit={t.admin.suggest} />
+                      <SlotPop action={suggestMap.bind(null, stage.id, s.mod, s.slot)} title={t.admin.suggestForSlot} slot={label} color={color} submit={t.admin.suggest} />
                     )}
                   </span>
                 </>

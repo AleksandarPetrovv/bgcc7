@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ArrowDown, ArrowUp, Download, Star, Trash2 } from "lucide-react";
 import { ActionForm, inputCls, Panel, Field, IconAction } from "@/components/admin/form";
 import { getPoolStages, MOD_ORDER, slotOf } from "@/db/mappools";
+import { getSkillLayouts } from "@/db/format-plan";
 import { getMapChecks } from "@/lib/osu-api";
 import { getViewer } from "@/lib/authz";
 import { fmtLen, MODS } from "@/lib/data";
@@ -31,9 +32,22 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
   const edit = can(viewer?.roles, "poolEdit");
   const name = (s: { title: string }) => t.rounds[s.title] ?? s.title;
   const checks = await getMapChecks(stage.pools.flatMap((p) => p.maps.map((m) => m.id)));
-  const mods = MOD_ORDER.map((mod) => ({ mod, count: stage.blueprint[mod] ?? 0, maps: stage.pools.find((p) => p.category === mod)?.maps ?? [] })).filter(
-    (x) => x.count > 0 || x.maps.length,
-  );
+  const skill = (await getSkillLayouts())?.[stage.slug];
+  const mapsOf = (mod: string) => stage.pools.find((p) => p.category === mod)?.maps ?? [];
+  const countOf = (mod: string) => stage.blueprint[mod] ?? 0;
+  type Item = { mod: string; slot: number; out: boolean; note?: string; label?: string };
+  const extras = (mod: string): Item[] => mapsOf(mod).filter((m) => m.order >= countOf(mod)).map((m) => ({ mod, slot: m.order, out: true }));
+  const sections: { key: string; title: string; color: string; items: Item[] }[] = skill
+    ? [
+        ...skill.groups.map((g) => ({ key: g.id, title: g.name, color: g.color, items: g.slots.map((x) => ({ ...x, out: false })) })),
+        { key: "out", title: t.admin.outsideLayout, color: "var(--color-rose)", items: MOD_ORDER.flatMap(extras) },
+      ].filter((x) => x.items.length)
+    : MOD_ORDER.filter((mod) => countOf(mod) > 0 || mapsOf(mod).length).map((mod) => ({
+        key: mod,
+        title: MODS[mod].label,
+        color: MODS[mod].color,
+        items: [...Array.from({ length: countOf(mod) }, (_, slot) => ({ mod, slot, out: false })), ...extras(mod)],
+      }));
 
   return (
     <>
@@ -86,7 +100,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
         )
       )}
 
-      {mods.length === 0 && (
+      {sections.length === 0 && (
         <p className="flex flex-wrap items-center gap-3 border border-dashed border-line bg-coal p-4 text-sm text-ash">
           {t.admin.noLayout}
           {host && (
@@ -97,45 +111,57 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
         </p>
       )}
       <div className="space-y-4">
-        {mods.map(({ mod, count, maps }, pi) => {
-          const color = MODS[mod].color;
-          const at = (slot: number) => maps.find((m) => m.order === slot);
-          const extra = maps.filter((m) => m.order >= count);
+        {sections.map(({ key, title, color: accent, items }, pi) => {
+          const filled = items.filter((x) => !x.out && mapsOf(x.mod).some((m) => m.order === x.slot)).length;
+          const total = items.filter((x) => !x.out).length;
           return (
             <InView
               as="section"
               self
               scrub
-              key={mod}
+              key={key}
               className="sr in-up relative overflow-clip border border-line bg-coal"
               style={{ "--i": pi < 5 ? pi : 0, "--s": "0.1s", "--d": "0.45s" } as React.CSSProperties}
             >
-              <span className="sr in-grow absolute inset-x-0 top-0 h-0.5 [--d:0.6s]" style={{ background: color }} aria-hidden />
-              <h2 className="flex items-center gap-3 border-b border-line px-4 py-2 text-sm font-black uppercase" style={{ color }}>
-                <span className="sr in-wipe inline-block [--d:0.6s]">{MODS[mod].label}</span>
-                <span className="num text-xs text-ash">
-                  {maps.filter((m) => m.order < count).length}/{count}
-                </span>
+              <span className="sr in-grow absolute inset-x-0 top-0 h-0.5 [--d:0.6s]" style={{ background: accent }} aria-hidden />
+              <h2 className="flex items-center gap-3 border-b border-line px-4 py-2 text-sm font-black uppercase" style={{ color: accent }}>
+                <span className="sr in-wipe inline-block [--d:0.6s]">{title}</span>
+                {total > 0 && (
+                  <span className="num text-xs text-ash">
+                    {filled}/{total}
+                  </span>
+                )}
               </h2>
               <ul className="divide-y divide-line">
-                {[...Array.from({ length: count }, (_, i) => i), ...extra.map((m) => m.order)].map((slot, i) => {
-                  const m = at(slot);
-                  const out = slot >= count;
+                {items.map(({ mod, slot, out, note, label: tagLabel }, i) => {
+                  const color = skill && !out ? accent : MODS[mod].color;
+                  const chip = skill && mod !== "Tiebreaker" ? (
+                    <span className="-skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-black" style={{ borderColor: MODS[mod].color, color: MODS[mod].color }}>
+                      <span className="inline-block skew-x-12">{MODS[mod].short}</span>
+                    </span>
+                  ) : null;
+                  const count = countOf(mod);
+                  const m = mapsOf(mod).find((x) => x.order === slot);
+                  const tag = note ? <div className="mt-0.5 whitespace-pre-line text-xs font-semibold text-paper/55">{note}</div> : null;
                   if (!m)
                     return (
                       <SwapRow
-                        key={`empty-${slot}`}
+                        key={`empty-${mod}-${slot}`}
                         style={{ "--i": i, "--s": "0.05s", "--d": "0.7s" } as React.CSSProperties}
                         className="sr in-left flex items-center gap-3 bg-[repeating-linear-gradient(135deg,transparent_0_10px,rgb(255_255_255/0.018)_10px_20px)] px-3 py-2.5"
                       >
-                        <span className="heading-slam w-12 shrink-0 text-xl opacity-60" style={{ color }}>
-                          {slotOf(mod, slot)}
+                        <span className={cn("heading-slam shrink-0 text-xl opacity-60", skill ? "w-16" : "w-12")} style={{ color }}>
+                          {tagLabel ?? slotOf(mod, slot)}
                         </span>
-                        {edit ? (
-                          <SlotInput action={setSlotMap.bind(null, stage.id, mod, slot)} />
-                        ) : (
-                          <span className="text-xs font-black uppercase tracking-wider text-ash">{t.admin.emptySlot}</span>
-                        )}
+                        {chip}
+                        <div className="min-w-0 flex-1">
+                          {edit ? (
+                            <SlotInput action={setSlotMap.bind(null, stage.id, mod, slot)} />
+                          ) : (
+                            <span className="text-xs font-black uppercase tracking-wider text-ash">{t.admin.emptySlot}</span>
+                          )}
+                          {tag}
+                        </div>
                       </SwapRow>
                     );
                   return (
@@ -144,9 +170,10 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                       style={{ "--i": i, "--s": "0.05s", "--d": "0.7s" } as React.CSSProperties}
                       className={cn("sr in-left flex flex-wrap items-center gap-3 px-3 py-2", out && "bg-rose/[0.06]")}
                     >
-                      <span className="sr in-slam heading-slam w-12 text-xl [--d:0.8s]" style={{ color }}>
+                      <span className={cn("sr in-slam heading-slam text-xl [--d:0.8s]", skill ? "w-16" : "w-12")} style={{ color }}>
                         {m.slot}
                       </span>
+                      {chip}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={m.cover} alt="" className="sr in-wipe hidden h-10 w-24 object-cover sm:block [--d:0.85s]" />
                       <div className="min-w-0 flex-1">
@@ -159,6 +186,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                           {m.title} <span className="text-ash">[{m.version}]</span>
                         </a>
                         {out && <div className="text-xs font-black uppercase text-rose-hi">{t.admin.outsideLayout}</div>}
+                        {tag}
                         {checks.get(m.id)?.dmca && <div className="text-xs font-black uppercase text-rose-hi">{t.admin.mapDmca}</div>}
                         <div className="num flex flex-wrap gap-x-3 text-sm text-paper/70">
                           <span className="flex items-center gap-1 text-[#e8c547]">
@@ -174,14 +202,14 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                       </div>
                       {edit && (
                         <div className="flex w-full items-center justify-end gap-1.5 sm:w-auto">
-                          {!out && slot > 0 ? (
+                          {skill ? null : !out && slot > 0 ? (
                             <IconAction action={moveMap.bind(null, m.rowId, -1)} label={t.admin.up}>
                               <ArrowUp className="size-4 transition-transform group-hover:-translate-y-0.5" strokeWidth={2.5} />
                             </IconAction>
                           ) : (
                             <span className="size-10" aria-hidden />
                           )}
-                          {!out && slot < count - 1 ? (
+                          {skill ? null : !out && slot < count - 1 ? (
                             <IconAction action={moveMap.bind(null, m.rowId, 1)} label={t.admin.down}>
                               <ArrowDown className="size-4 transition-transform group-hover:translate-y-0.5" strokeWidth={2.5} />
                             </IconAction>

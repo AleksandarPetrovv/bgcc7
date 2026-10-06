@@ -4,6 +4,8 @@ import { asc } from "drizzle-orm";
 import { db } from "./index";
 import { maps, stages } from "./schema";
 import { safe } from "./safe";
+import { getSkillLayouts } from "./format-plan";
+import { skillSlot } from "@/lib/format-plan";
 import { MODS, type Beatmap, type Pack } from "@/lib/data";
 
 export type MapRow = typeof maps.$inferSelect;
@@ -26,15 +28,15 @@ export const slotsOf = (bp: Record<string, number>) => MOD_ORDER.flatMap((mod) =
 
 export const getPoolStages = cache(() =>
   safe(async () => {
-    const [ss, ms] = await Promise.all([db.select().from(stages).orderBy(asc(stages.order)), db.select().from(maps).orderBy(asc(maps.order), asc(maps.id))]);
+    const [ss, ms, skills] = await Promise.all([db.select().from(stages).orderBy(asc(stages.order)), db.select().from(maps).orderBy(asc(maps.order), asc(maps.id)), getSkillLayouts()]);
     return ss.map((s): PoolStage => ({
       id: s.id,
       slug: s.slug,
       title: s.title,
-      firstTo: s.firstTo,
+      firstTo: skills?.[s.slug]?.firstTo ?? s.firstTo,
       released: s.poolReleased,
       pack: s.packSize ? { size: s.packSize, at: s.packAt?.toISOString() ?? null } : null,
-      blueprint: s.blueprint ?? {},
+      blueprint: skills?.[s.slug]?.blueprint ?? s.blueprint ?? {},
       pools: MOD_ORDER.map((mod) => ({
         category: mod,
         maps: ms
@@ -42,7 +44,7 @@ export const getPoolStages = cache(() =>
           .map((m) => ({
             rowId: m.id,
             order: m.order,
-            slot: slotOf(mod, m.order),
+            slot: skillSlot(skills?.[s.slug], mod, m.order)?.label ?? slotOf(mod, m.order),
             mod,
             title: m.title,
             version: m.version,

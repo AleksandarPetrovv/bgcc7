@@ -1,4 +1,5 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { getEdition } from "@/db/edition";
 import { LinkTabs } from "@/components/site/tabs";
 import { PageTitle } from "@/components/site/page";
 import { getPoolStages, MOD_ORDER } from "@/db/mappools";
@@ -11,6 +12,7 @@ import { BlueprintForm } from "./blueprint-form";
 export default async function PoolCreate({ searchParams }: { searchParams: Promise<{ stage?: string }> }) {
   const [t, viewer, stages, sp] = await Promise.all([getDict(), getViewer(), getPoolStages(), searchParams]);
   if (!can(viewer?.roles, "phase")) notFound();
+  if (getEdition() === "bgcc7") redirect("/admin/format");
   const stage = stages.find((s) => s.slug === sp.stage) ?? stages[0];
   if (!stage) return null;
   const quals = stage.slug === "qualifiers";

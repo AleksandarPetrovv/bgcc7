@@ -57,7 +57,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
 
       <Container>
         <SectionHeading>{t.teams.roster}</SectionHeading>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className={team.players.length === 2 ? "grid grid-cols-1 gap-4 sm:grid-cols-2" : "grid grid-cols-1 gap-4 sm:grid-cols-3"}>
           {team.players.map((p) => (
             <div key={p.userId} {...meP(p.userId)} className="me-hl relative flex border border-line bg-coal">
               <MeTag p={p.userId} corner />

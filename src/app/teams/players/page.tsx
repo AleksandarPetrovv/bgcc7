@@ -13,12 +13,16 @@ import { splitAlive } from "@/lib/alive";
 import { Avatar } from "@/components/site/avatar";
 import { cn } from "@/lib/utils";
 import { MeTag, meP } from "@/components/site/me";
+import { getFormat } from "@/db/edition";
+import { rankBws } from "@/lib/bws";
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
 export default async function Players() {
   await requireSection("players");
-  const [t, rows, settings, teams, matches] = await Promise.all([getDict(), getRegistrations(), getSettings(), getTeams(), getMatches()]);
+  const [t, raw, settings, teams, matches] = await Promise.all([getDict(), getRegistrations(), getSettings(), getTeams(), getMatches()]);
+  const suiji = getFormat().edition === "bgcc7";
+  const rows = suiji ? rankBws(raw) : raw.map((r) => ({ ...r, bws: null as number | null }));
   const { playoffs, players, out } = splitAlive(rows, teams, matches, settings.phase);
   const card = (p: (typeof rows)[number], i: number, out = false) => (
     <a
@@ -60,6 +64,12 @@ export default async function Players() {
           )}
         </div>
         <div className="in-up num mt-1.5 flex items-center gap-2.5 text-sm" style={v({ "--d": "0.35s" })}>
+          {suiji && p.bws !== null && (
+            <>
+              <span className="text-[#e8c547]">BWS {fmtNum(p.bws)}</span>
+              <Rhombus className="size-1 text-line" />
+            </>
+          )}
           {p.rank !== null && <span className="text-paper">#{fmtNum(p.rank)}</span>}
           {p.countryRank !== null && (
             <>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowDownToLine, ArrowUpRight, Download, Play, Star } from "lucide-react";
 import { Container, PageTitle, SlantButton, StageTabs } from "@/components/site/page";
@@ -51,9 +51,12 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
         {t.mappool.title}
       </PageTitle>
 
+      {stage.info && <StageStrip key={`s-${stage.slug}`} stage={stage} info={stage.info} />}
+
       <motion.div key={stage.slug} className="space-y-2.5" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
         {stage.pools.map((p, pi) => {
-          const mod = MODS[p.category];
+          const skill = !!p.color;
+          const mod = { label: MODS[p.category]?.label ?? p.category, color: p.color ?? MODS[p.category]?.color ?? "var(--color-rose)" };
           const isOpen = !closed[p.category];
           const light = p.category === "Tiebreaker";
           return (
@@ -84,23 +87,33 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                   transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 >
                 <div className="mt-2 space-y-2 sm:pl-10">
-                  {p.maps.map((m, k) => (
+                  {p.maps.map((m, k) => {
+                    const mc = skill ? mod.color : (MODS[m.mod]?.color ?? mod.color);
+                    const ml = skill ? light : m.mod === "Tiebreaker";
+                    return (
                     <motion.div
                       initial={{ opacity: 0, x: -14 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.45, delay: 0.05 + k * 0.04, ease: [0.16, 1, 0.3, 1] }}
                       key={m.slot} className="lift group relative flex h-20 items-stretch overflow-hidden border border-transparent bg-coal hover:border-line"
-                      style={{ "--lift": mod.color, "--i": pi + k, "--s": "0.05s" } as React.CSSProperties}>
+                      style={{ "--lift": mc, "--i": pi + k, "--s": "0.05s" } as React.CSSProperties}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-30 transition duration-500 group-hover:scale-105 group-hover:opacity-45 [--d:0.15s]" />
                       <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-transparent" />
-                      <span className="in-pop heading-slam relative flex w-14 shrink-0 items-center justify-center text-lg sm:w-24 sm:text-2xl [--d:0.3s]" style={{ color: mod.color }}>
+                      <span className="in-pop heading-slam relative flex w-14 shrink-0 items-center justify-center text-lg sm:w-24 sm:text-2xl [--d:0.3s]" style={{ color: mc }}>
                         {m.slot}
                       </span>
                       <div className="relative flex min-w-0 flex-1 flex-col justify-center">
-                        <a href={osuMap(m.id)} target="_blank" rel="noreferrer" className="truncate text-base font-black transition-colors hover:text-[var(--lift)] sm:text-lg">
-                          {m.title}
-                        </a>
+                        <span className="flex min-w-0 items-center gap-2">
+                          <a href={osuMap(m.id)} target="_blank" rel="noreferrer" className="truncate text-base font-black transition-colors hover:text-[var(--lift)] sm:text-lg">
+                            {m.title}
+                          </a>
+                          {skill && m.mod !== "Tiebreaker" && MODS[m.mod] && (
+                            <span className="shrink-0 -skew-x-12 border px-2 py-0.5 text-xs font-black leading-4 sm:text-sm" style={{ borderColor: MODS[m.mod].color, color: MODS[m.mod].color }}>
+                              <span className="inline-block skew-x-12">{MODS[m.mod].short}</span>
+                            </span>
+                          )}
+                        </span>
                         <span className="truncate text-xs text-paper/70 sm:text-sm">
                           [{m.version}] <span className="text-ash">by {m.creator}</span>
                         </span>
@@ -137,10 +150,10 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                           href={`osu://b/${m.id}`}
                           title={t.mappool.direct}
                           aria-label={`${m.slot} ${t.mappool.direct}`}
-                          className={cn("group/b flex flex-1 items-center justify-center pl-3 transition-[filter] hover:brightness-110", light ? "text-ink" : "text-white")}
-                          style={{ background: mod.color }}
+                          className={cn("group/b flex flex-1 items-center justify-center pl-3 transition-[filter] hover:brightness-110", ml ? "text-ink" : "text-white")}
+                          style={{ background: mc }}
                         >
-                          <span className={cn("heading-slam flex items-center gap-2 text-[0.95rem]", light ? "[text-shadow:0_1px_2px_rgb(255_255_255/0.35)]" : "[text-shadow:0_1px_3px_rgb(0_0_0/0.45)]")}>
+                          <span className={cn("heading-slam flex items-center gap-2 text-[0.95rem]", ml ? "[text-shadow:0_1px_2px_rgb(255_255_255/0.35)]" : "[text-shadow:0_1px_3px_rgb(0_0_0/0.45)]")}>
                             <ArrowDownToLine className="size-4 drop-shadow-[0_1px_2px_rgb(0_0_0/0.35)] transition-transform group-hover/b:translate-y-0.5" strokeWidth={3} />
                             <span className="hidden sm:inline">direct</span>
                           </span>
@@ -152,7 +165,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                           title={t.mappool.page}
                           aria-label={`${m.slot} ${t.mappool.page}`}
                           className="group/b flex flex-1 items-center justify-center bg-ink/90 pl-1.5 transition-colors hover:bg-ink"
-                          style={{ color: mod.color }}
+                          style={{ color: mc }}
                         >
                           <span className="heading-slam flex items-center gap-2 text-[0.95rem] [text-shadow:0_1px_3px_rgb(0_0_0/0.6)]">
                             <ArrowUpRight className="size-4 transition-transform group-hover/b:-translate-y-0.5 group-hover/b:translate-x-0.5" strokeWidth={3} />
@@ -161,7 +174,8 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                         </a>
                       </div>
                     </motion.div>
-                  ))}
+                    );
+                  })}
                 </div>
                 </motion.div>
               )}
@@ -171,5 +185,82 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
         })}
       </motion.div>
     </Container>
+  );
+}
+
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+function useCount(to: number, ms = 900) {
+  const [v, setV] = useState(to);
+  useEffect(() => {
+    let raf = 0;
+    const t0 = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - t0) / ms);
+      setV(to * (1 - Math.pow(1 - p, 4)));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [to, ms]);
+  return v;
+}
+
+function StageStrip({ stage, info }: { stage: Stage; info: { firstTo: number; bans: number } }) {
+  const t = useDict();
+  const maps = stage.pools.flatMap((p) => p.maps);
+  const n = maps.length || 1;
+  const sr = useCount(maps.reduce((s, m) => s + m.sr, 0) / n);
+  const ft = useCount(info.firstTo, 700);
+  const total = useCount(maps.length, 700);
+  const cells: { label: string; val: React.ReactNode; sub?: React.ReactNode; accent: string }[] = [
+    {
+      label: t.mappool.firstTo,
+      val: Math.round(ft),
+      sub: (
+        <>
+          <span className="num">{info.bans}</span> {t.mappool.bans(info.bans)}
+        </>
+      ),
+      accent: "var(--color-balkan)",
+    },
+    { label: t.mappool.maps, val: Math.round(total), accent: "var(--color-rose)" },
+    {
+      label: t.mappool.avgSr,
+      val: (
+        <span className="flex items-center gap-1.5">
+          <Star className="size-5 fill-current text-[#e8c547] sm:size-6" />
+          {sr.toFixed(2)}
+        </span>
+      ),
+      accent: "#e8c547",
+    },
+  ];
+
+  return (
+    <motion.div className="mb-5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+      <div className="grid grid-cols-3 gap-px bg-line">
+        {cells.map((c, k) => (
+          <motion.div
+            key={c.label}
+            className="group relative flex flex-col justify-center overflow-hidden bg-coal px-3 py-3 sm:px-5 sm:py-4"
+            initial={{ y: 16, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: k * 0.08, ease: EASE }}
+          >
+            <motion.span
+                className="absolute inset-x-0 top-0 h-0.5 origin-left"
+                style={{ background: c.accent }}
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.7, delay: 0.2 + k * 0.08, ease: EASE }}
+              />
+            <span className="text-[0.65rem] font-black uppercase tracking-widest text-ash sm:text-xs">{c.label}</span>
+            <span className="heading-slam num text-3xl leading-tight sm:text-4xl">{c.val}</span>
+            {c.sub && <span className="text-[0.7rem] font-black uppercase tracking-wide text-paper/60 sm:text-xs">{c.sub}</span>}
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
   );
 }

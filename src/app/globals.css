@@ -703,7 +703,7 @@ html.lite:not(.settled) .mk-dot {
   .mdlg[data-open], .mdlg[data-closed], .mdlg-shine { animation: none !important; }
 }
 
-.adm :is(input:not([type="checkbox"], [type="radio"], [type="hidden"], [type="file"], [type="range"], .adm-bare), select, textarea) {
+.adm :is(input:not([type="checkbox"], [type="radio"], [type="hidden"], [type="file"], [type="range"], .adm-bare), select, textarea:not(.adm-bare)) {
   min-width: 0;
   max-width: 100%;
   min-height: 2.75rem;
@@ -718,10 +718,10 @@ html.lite:not(.settled) .mk-dot {
   outline: none;
   transition: border-color 0.2s, background-color 0.2s, box-shadow 0.25s;
 }
-.adm textarea { padding: 0.6rem 0.85rem; }
+.adm textarea:not(.adm-bare) { padding: 0.6rem 0.85rem; }
 .adm :is(input, select, textarea)::placeholder { color: var(--color-ash); font-weight: 500; }
-.adm :is(input:not([type="checkbox"], [type="radio"], .adm-bare, [type="range"]), select, textarea):hover { border-color: rgb(244 243 238 / 0.22); }
-.adm :is(input:not([type="checkbox"], [type="radio"], .adm-bare, [type="range"]), select, textarea):focus {
+.adm :is(input:not([type="checkbox"], [type="radio"], .adm-bare, [type="range"]), select, textarea:not(.adm-bare)):hover { border-color: rgb(244 243 238 / 0.22); }
+.adm :is(input:not([type="checkbox"], [type="radio"], .adm-bare, [type="range"]), select, textarea:not(.adm-bare)):focus {
   border-color: var(--color-line);
   border-bottom-color: var(--color-rose);
   background-color: #151917;
@@ -801,7 +801,7 @@ html.lite:not(.settled) .mk-dot {
 .adm input[type="checkbox"]:not(.sr-only):checked::before { transform: translateY(-1px) rotate(-45deg) scale(1); }
 .adm input[type="radio"]:not(.sr-only):checked { transform: rotate(45deg) scale(1); }
 .adm input[type="radio"]:not(.sr-only):checked::before { transform: scale(1); }
-.adm :is(input:not(.adm-bare), select, textarea):focus-visible { outline: 2px solid var(--color-rose); outline-offset: 2px; }
+.adm :is(input:not(.adm-bare), select, textarea:not(.adm-bare)):focus-visible { outline: 2px solid var(--color-rose); outline-offset: 2px; }
 .adm label:focus-within { color: var(--color-paper); }
 .adm input.adm-tight { min-height: 2.25rem; padding: 0 0.5rem; font-size: 0.8rem; }
 
@@ -925,20 +925,20 @@ html.lite:not(.settled) .mk-dot {
   margin-inline: 0.45em;
   padding: 0.18em 0.5em;
   transform: skewX(-12deg);
-  background: var(--color-balkan);
+  background: linear-gradient(135deg, #f6dc7a, #e0b43c 55%, #c99a24);
   color: var(--color-ink);
   font: 900 0.58rem/1.15 var(--font-sans);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
   vertical-align: middle;
-  box-shadow: 2px 2px 0 0 var(--color-balkan-deep);
+  box-shadow: 0 0 8px rgb(232 197 71 / 0.35);
 }
-.me-corner:is([data-p], [data-t]) { display: block; position: absolute; top: 0; right: 0; z-index: 3; pointer-events: none; }
+.me-corner:is([data-p], [data-t]) { display: block; position: absolute; top: 0; right: 0; z-index: 3; pointer-events: none; filter: drop-shadow(0 0 5px rgb(232 197 71 / 0.35)); }
 .me-corner::after {
   display: block;
   padding: 0.25em 0.6em;
-  background: var(--color-balkan);
+  background: linear-gradient(135deg, #f6dc7a, #e0b43c 55%, #c99a24);
   color: var(--color-ink);
   font: 900 0.6rem/1.15 var(--font-sans);
   letter-spacing: 0.12em;

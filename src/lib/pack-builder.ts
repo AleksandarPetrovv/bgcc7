@@ -11,6 +11,8 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { maps as mapsTable, stages } from "@/db/schema";
 import { MOD_ORDER, slotOf } from "@/db/mappools";
+import { getSkillLayouts } from "@/db/format-plan";
+import { skillSlot } from "./format-plan";
 import { log } from "./authz";
 import { getBeatmap } from "./osu-api";
 import { PACK_MAX, UPLOAD_DIR, packPath } from "./uploads";
@@ -163,7 +165,11 @@ async function build(slug: string, osuId: number, job: PackJob) {
     const [stage] = await db.select().from(stages).where(eq(stages.slug, slug)).limit(1);
     if (!stage) throw new Error("notFound");
     const rows = await db.select().from(mapsTable).where(eq(mapsTable.stageId, stage.id)).orderBy(asc(mapsTable.order), asc(mapsTable.id));
-    const maps = MOD_ORDER.flatMap((mod) => rows.filter((r) => r.mod === mod).map((r) => ({ ...r, slot: slotOf(mod, r.order) })));
+    const layout = (await getSkillLayouts())?.[slug];
+    const label = (mod: string, order: number) => skillSlot(layout, mod, order)?.label ?? slotOf(mod, order);
+    const maps = layout
+      ? layout.groups.flatMap((g) => g.slots.flatMap((s) => rows.filter((r) => r.mod === s.mod && r.order === s.slot).map((r) => ({ ...r, slot: s.label }))))
+      : MOD_ORDER.flatMap((mod) => rows.filter((r) => r.mod === mod).map((r) => ({ ...r, slot: label(mod, r.order) })));
     if (!maps.length) throw new Error("empty");
 
     const sets: { setId: number; slot: string; name: string }[] = [];
