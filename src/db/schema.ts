@@ -238,6 +238,19 @@ export const matches = pgTable("matches", {
   manual: boolean("manual").notNull().default(false),
 });
 
+export const mpLobbies = pgTable("mp_lobbies", {
+  matchId: text("match_id")
+    .primaryKey()
+    .references(() => matches.id, { onDelete: "cascade" }),
+  mpId: integer("mp_id").notNull(),
+  password: text("password").notNull().default(""),
+  owner: text("owner").notNull().default("personal"),
+  open: boolean("open").notNull().default(true),
+  createdBy: integer("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+});
+
 export const sponsors = pgTable("sponsors", {
   id: serial("id").primaryKey(),
   osuId: integer("osu_id"),

@@ -20,6 +20,7 @@ const csp = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  serverExternalPackages: ["bancho.js"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "a.ppy.sh" },
