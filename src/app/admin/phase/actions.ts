@@ -1,17 +1,26 @@
 "use server";
 
 import { getSettings, saveSettings } from "@/db/settings";
+import { getEdition } from "@/db/edition";
+import { getBwsLock, lockBws, unlockBws } from "@/db/registrations";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
 import { PHASES, presetSections, SECTIONS, TIMELINE_KEYS, type Phase } from "@/lib/sections";
 import { fromSofiaInput } from "@/lib/time";
+
+async function applyPhase(p: Phase) {
+  await saveSettings({ phase: p, sections: presetSections(p), pickemsOpen: p !== "playoffs" && p !== "finished" });
+  if (getEdition() !== "bgcc7") return;
+  if (p === "registration") await unlockBws();
+  else if (!(await getBwsLock())) await lockBws();
+}
 
 export async function setPhase(_: ActionResult, fd: FormData) {
   return guard("phase", "phase.set", async () => {
     const phase = String(fd.get("phase"));
     if (!(PHASES as readonly string[]).includes(phase)) return { ok: false, error: "invalid" };
     const p = phase as Phase;
-    await saveSettings({ phase: p, sections: presetSections(p), pickemsOpen: p !== "playoffs" && p !== "finished" });
+    await applyPhase(p);
     return { phase: p };
   });
 }
@@ -54,7 +63,7 @@ export async function acceptPhase(phase: string) {
   return guard("phase", "phase.set", async () => {
     if (!(PHASES as readonly string[]).includes(phase)) return { ok: false, error: "invalid" };
     const p = phase as Phase;
-    await saveSettings({ phase: p, sections: presetSections(p), pickemsOpen: p !== "playoffs" && p !== "finished" });
+    await applyPhase(p);
     return { phase: p };
   });
 }

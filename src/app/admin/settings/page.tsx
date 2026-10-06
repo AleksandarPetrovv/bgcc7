@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getFormat } from "@/db/edition";
 import { PageTitle } from "@/components/site/page";
 import { ActionForm, inputCls, labelCls, Panel, Field } from "@/components/admin/form";
 import { getSettings } from "@/db/settings";
@@ -42,6 +43,7 @@ export default async function AdminSettings() {
             </ActionForm>
           </Panel>
 
+          {getFormat().edition === "bgcc6" && (
           <Panel title={t.admin.set.qualify} help={t.admin.set.qualifyHelp} i={1}>
             <ActionForm key={s.qualifyCount} action={setQualify} className="space-y-4">
               <label className={labelCls}>
@@ -50,6 +52,7 @@ export default async function AdminSettings() {
               </label>
             </ActionForm>
           </Panel>
+          )}
 
           <Panel title={t.admin.set.pickems} help={t.admin.set.pickemsHelp} i={1}>
             <PickemsToggle key={String(s.pickemsOpen)} open={s.pickemsOpen} />
@@ -101,6 +104,7 @@ export default async function AdminSettings() {
             </ActionForm>
           </Panel>
 
+          {getFormat().edition === "bgcc6" && (
           <Panel title={t.admin.set.rounds} help={t.admin.set.roundsHelp} i={2}>
             <ActionForm key={rounds.map((r) => r.firstTo).join()} action={setRounds} className="space-y-4">
               <div className="divide-y divide-line border border-line">
@@ -127,6 +131,7 @@ export default async function AdminSettings() {
               </div>
             </ActionForm>
           </Panel>
+          )}
         </div>
       </div>
     </>
