@@ -204,6 +204,20 @@
       "when": 1791181409011,
       "tag": "0028_bws_lock",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1791186565396,
+      "tag": "0029_mp_lobbies",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1791187043717,
+      "tag": "0030_lobby_owner",
+      "breakpoints": true
     }
   ]
 }
