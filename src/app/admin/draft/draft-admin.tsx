@@ -39,7 +39,8 @@ function Team({ team, side }: { team: TeamLite; side: 1 | 2 }) {
 
 function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; title: string }[]; i: number; control: boolean }) {
   const t = useDict();
-  const [pool, setPool] = useState(r.draft?.stage ?? (pools.some((p) => p.slug === r.stage) ? r.stage : (pools[0]?.slug ?? "")));
+  const [picked, setPool] = useState<string | null>(null);
+  const pool = r.draft?.stage ?? (picked && pools.some((p) => p.slug === picked) ? picked : pools.some((p) => p.slug === r.stage) ? r.stage : (pools[0]?.slug ?? ""));
   const [pending, start] = useTransition();
   const [fail, setFail] = useState(false);
   const ready = !!r.teams[0] && !!r.teams[1];
