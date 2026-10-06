@@ -1,14 +1,15 @@
+import { db } from "./index";
 import "server-only";
 import { randomInt } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { and, eq, or, sql } from "drizzle-orm";
-import { db } from "./index";
 import { drafts, matches, teamMembers } from "./schema";
 import { getPoolStages } from "./mappools";
 import { getSettings } from "./settings";
 import { can } from "@/lib/roles";
 import { getViewer } from "@/lib/authz";
-import { matchSlug } from "@/lib/matches";
+import { matchSlug } from "@/lib/format";
+import { getFormat } from "./edition";
 import { deadline, pickable, scoreOf, tbDue, turnOf, type DraftView, type Side } from "@/lib/draft";
 
 const g = globalThis as unknown as { draftBus?: EventEmitter };
@@ -136,7 +137,7 @@ export async function isCaptain(osuId: number) {
 
 export async function myOpenDraft(osuId: number) {
   const id = await myOpenId(osuId);
-  return id ? matchSlug(id) : null;
+  return id ? matchSlug(await getFormat(), id) : null;
 }
 
 export async function myDraftClock(osuId: number) {
@@ -144,7 +145,7 @@ export async function myDraftClock(osuId: number) {
   if (!id) return { slug: null, end: null, pause: false, now: Date.now() };
   const d = await settle(id);
   const end = !d ? null : d.pausedAt ? (d.pauseUntil ? new Date(d.pauseUntil).getTime() : null) : deadline(d, await poolSlots(d.stageSlug));
-  return { slug: matchSlug(id), end, pause: !!d?.pausedAt, now: Date.now() };
+  return { slug: matchSlug(await getFormat(), id), end, pause: !!d?.pausedAt, now: Date.now() };
 }
 
 async function myOpenId(osuId: number) {
