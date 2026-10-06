@@ -1,7 +1,7 @@
 import "server-only";
 import { onDraft } from "@/db/drafts";
 
-export function sse(req: Request, read: () => Promise<unknown>, every = 3000) {
+export function sse(req: Request, read: () => Promise<unknown>, every = 3000, subscribe: (fn: () => void) => () => void = onDraft) {
   const enc = new TextEncoder();
   let closed = false;
   let last = "";
@@ -38,7 +38,7 @@ export function sse(req: Request, read: () => Promise<unknown>, every = 3000) {
           busy = false;
         }
       };
-      off = onDraft(() => void push());
+      off = subscribe(() => void push());
       timer = setInterval(() => {
         send(": ping\n\n");
         void push();

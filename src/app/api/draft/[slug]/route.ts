@@ -2,6 +2,7 @@ import { applyDraft, draftAccess, setResult, settle, type DraftAct } from "@/db/
 import { getFormat } from "@/db/edition";
 import { matchIdFromSlug } from "@/lib/format";
 import { sse } from "@/lib/sse";
+import { lobbyPick } from "@/lib/bancho";
 
 export const dynamic = "force-dynamic";
 
@@ -20,12 +21,16 @@ export async function POST(req: Request, { params }: RouteContext<"/api/draft/[s
     if (!who.admin || typeof body.slot !== "string") return Response.json({ error: "forbidden" }, { status: 403 });
     const w = body.winner === 1 || body.winner === 2 ? body.winner : null;
     const out = await setResult(id, body.slot, w);
-    return typeof out === "string" ? Response.json({ error: out }, { status: 409 }) : Response.json(out);
+    if (typeof out === "string") return Response.json({ error: out }, { status: 409 });
+    const tb = out.steps.at(-1);
+    if (tb?.auto && !tb.winner) void lobbyPick(id, out.stageSlug, tb.slot).catch(() => {});
+    return Response.json(out);
   }
   if (!body || !["roll", "choose", "ban", "pick"].includes(body.act)) return Response.json({ error: "invalid" }, { status: 400 });
   const side = who.admin && (body.side === 1 || body.side === 2) ? body.side : who.side;
   if (!side) return Response.json({ error: "forbidden" }, { status: 403 });
   const res = await applyDraft(id, side, body);
   if (typeof res === "string") return Response.json({ error: res }, { status: 409 });
+  if (body.act === "pick") void lobbyPick(id, res.stageSlug, body.slot).catch(() => {});
   return Response.json(res);
 }
