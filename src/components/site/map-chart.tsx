@@ -4,7 +4,7 @@ import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 
 import type { QualMap, QualPlayer } from "@/lib/data";
 import { useDict } from "./lang";
 
-const COLOR: Record<string, string> = { NM: "#3b82f6", HD: "#f5b820", HR: "#e0242f", DT: "#a78bfa", FM: "#0fa06a", TB: "#f4f3ee" };
+const COLOR: Record<string, string> = { NM: "#3b82f6", HD: "#f5b820", HR: "#e0242f", DT: "#a78bfa", FM: "#0fa06a", TB: "#f4f3ee", AIM: "#3b82f6", SPD: "#a78bfa", RDG: "#0fa06a", FGC: "#f5b820", STM: "#e0242f" };
 
 export function MapDifficultyChart({ qualifiers }: { qualifiers: { maps: QualMap[]; players: QualPlayer[] } }) {
   const t = useDict();
@@ -42,7 +42,7 @@ export function MapDifficultyChart({ qualifiers }: { qualifiers: { maps: QualMap
             )}
           >
             {data.map((d) => (
-              <Cell key={d.slot} fill={COLOR[d.slot.slice(0, 2)]} />
+              <Cell key={d.slot} fill={COLOR[d.slot.replace(/\d+$/, "")] ?? COLOR[d.slot.slice(0, 2)] ?? "#f4f3ee"} />
             ))}
           </Bar>
         </BarChart>

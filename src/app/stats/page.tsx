@@ -10,6 +10,8 @@ import { getMatches, getTeams } from "@/db/tournament";
 import { getStageStats } from "@/db/stage-stats";
 import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
+import { bySkill, skillColor } from "@/lib/format-plan";
+import { getSkillLayouts } from "@/db/format-plan";
 import { requireSection } from "@/lib/authz";
 import { InView } from "@/components/site/in-view";
 import { MeTag, meP } from "@/components/site/me";
@@ -19,7 +21,7 @@ const MEDAL = ["text-[#e8c547]", "text-[#c9ccd1]", "text-[#c98a4b]"];
 
 export default async function Stats({ searchParams }: { searchParams: Promise<{ stage?: string }> }) {
   await requireSection("stats");
-  const [{ stage: wanted }, t, qual, stages, matches, teams] = await Promise.all([searchParams, getDict(), getQualResults(), getPoolStages(), getMatches(), getTeams()]);
+  const [{ stage: wanted }, t, qual, stages, matches, teams, skills] = await Promise.all([searchParams, getDict(), getQualResults(), getPoolStages(), getMatches(), getTeams(), getSkillLayouts()]);
   const reached = (slug: string) =>
     slug === "qualifiers" ? qual.players.some((p) => Object.keys(p.perf).length > 0) : matches.some((m) => m.stage === slug && m.links.length > 0);
   const open = stages.filter((s) => reached(s.slug));
@@ -35,7 +37,7 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
     ) : null;
 
   const isQual = current?.slug === "qualifiers";
-  const data = !current ? null : isQual ? { ...qual, plays: 0, matches: 0 } : await getStageStats(current, matches, teams, stages);
+  const data = !current ? null : isQual ? { ...qual, plays: 0, matches: 0 } : await getStageStats(bySkill(current, skills?.[current.slug]), matches, teams, stages);
   const perfs = data ? data.players.flatMap((p) => Object.entries(p.perf).map(([mid, v]) => ({ ...v, mid, player: p }))) : [];
 
   if (!data || !perfs.length)
@@ -100,7 +102,7 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
               <div className="relative w-28 shrink-0 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={m.cover} alt="" className="absolute inset-0 size-full object-cover opacity-50" />
-                <span className="in-pop heading-slam relative flex h-full min-h-16 items-center justify-center text-3xl [text-shadow:0_2px_6px_rgb(0_0_0/0.85),0_0_2px_rgb(0_0_0/0.9)]" style={{ "--d": "0.25s" } as React.CSSProperties}>{m.slot}</span>
+                <span className="in-pop heading-slam relative flex h-full min-h-16 items-center justify-center text-3xl [text-shadow:0_2px_6px_rgb(0_0_0/0.85),0_0_2px_rgb(0_0_0/0.9)]" style={{ "--d": "0.25s", color: skillColor(m.slot) } as React.CSSProperties}>{m.slot}</span>
               </div>
               <ol className="flex-1 divide-y divide-line">
                 {top.length === 0 && <li className="px-3 py-1.5 text-sm text-ash">—</li>}

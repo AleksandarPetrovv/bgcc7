@@ -6,9 +6,10 @@ import { ExternalLink, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useDict } from "./lang";
 import { MODS, fmtNum, type Match } from "@/lib/data";
-import { useTournament } from "./tournament";
+import { slotColor } from "@/lib/format-plan";
+import { useFormat, useTournament } from "./tournament";
 import { roundName } from "@/lib/i18n/dict";
-import { matchSlug } from "@/lib/matches";
+import { matchSlug } from "@/lib/format";
 import type { MapResult, PlayerLine, Scoreboard } from "@/lib/scoreboard";
 import { cn } from "@/lib/utils";
 import { matchCosts, MEDAL } from "@/lib/match-cost";
@@ -47,7 +48,7 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
 
 function MapCard({ m, i }: { m: MapResult; i: number }) {
   const t = useDict();
-  const color = m.mod ? MODS[m.mod]?.color : undefined;
+  const color = m.slot ? slotColor(m.slot) : m.mod ? MODS[m.mod]?.color : undefined;
   const sum = m.team1 + m.team2;
   const share = sum ? (m.team1 / sum) * 100 : 50;
   return (
@@ -184,7 +185,7 @@ function Board({ match, data, names }: { match: Match; data: Scoreboard; names: 
 
 export function MatchDialog({ match, compact, children, className }: { match: Match; compact?: boolean; children?: React.ReactNode; className?: string }) {
   const t = useDict();
-  const slug = matchSlug(match.id);
+  const slug = matchSlug(useFormat(), match.id);
   const [data, setData] = useState<Scoreboard | "error" | null>(() => cache.get(slug) ?? null);
   const { teamById } = useTournament();
   const teams = [teamById(match.team1.id), teamById(match.team2.id)];

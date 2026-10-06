@@ -1,6 +1,7 @@
+import { db } from "./index";
 import "server-only";
 import { eq } from "drizzle-orm";
-import { db } from "./index";
+import { getEdition } from "./edition";
 import { matchCache, scoreEdits } from "./schema";
 import { finishMatch } from "./bracket";
 import type { PoolStage } from "./mappools";
@@ -33,7 +34,7 @@ export async function getEdits(matchId: string): Promise<ScoreEdit[]> {
 }
 
 export async function forgetScoreboard(matchId: string) {
-  live.delete(matchId);
+  live.delete(`${await getEdition()}:${matchId}`);
   await db.delete(matchCache).where(eq(matchCache.matchId, matchId));
 }
 
@@ -44,7 +45,8 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
   const saved = await stored(match.id, links, ezMult);
   if (saved) return saved;
 
-  const hit = live.get(match.id);
+  const key = `${await getEdition()}:${match.id}`;
+  const hit = live.get(key);
   if (hit && hit.data.ez === ezMult && Date.now() - hit.at < LIVE_TTL) return hit.data;
 
   const firstTo = stages.find((s) => s.slug === match.stage)?.firstTo ?? 7;
@@ -56,9 +58,9 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
         .values({ matchId: match.id, links, data })
         .onConflictDoUpdate({ target: matchCache.matchId, set: { links, data, createdAt: new Date() } })
         .catch((e) => console.error("[match cache]", e));
-      live.delete(match.id);
+      live.delete(key);
       if (!match.winner) await finishMatch(match.id, data.score).catch((e) => console.error("[match finish]", e));
-    } else live.set(match.id, { at: Date.now(), data });
+    } else live.set(key, { at: Date.now(), data });
     return data;
   } catch (e) {
     console.error("[match]", match.id, e);

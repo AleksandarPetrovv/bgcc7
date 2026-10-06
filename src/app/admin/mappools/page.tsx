@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowUpRight, Eye, LayoutGrid, ListChecks, PencilRuler } from "lucide-react";
 import { PageTitle } from "@/components/site/page";
 import { getPoolStages } from "@/db/mappools";
+import { getEdition } from "@/db/edition";
 import { getSheet } from "@/db/pool-sheet";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
@@ -27,7 +28,7 @@ export default async function MappoolsHub() {
       hot: owed > 0,
     },
     { href: "/admin/mappools/edit", Icon: edit ? PencilRuler : Eye, title: edit ? t.admin.poolEdit : t.admin.poolView, sub: t.admin.mapsInPools(mapCount), hot: false },
-    ...(host ? [{ href: "/admin/mappools/create", Icon: LayoutGrid, title: t.admin.poolCreate, sub: t.admin.poolCreateSub, hot: false }] : []),
+    ...(host && getEdition() !== "bgcc7" ? [{ href: "/admin/mappools/create", Icon: LayoutGrid, title: t.admin.poolCreate, sub: t.admin.poolCreateSub, hot: false }] : []),
   ];
   return (
     <>

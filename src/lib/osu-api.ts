@@ -1,4 +1,5 @@
 import "server-only";
+import type { OsuBadge } from "./bws";
 
 export type OsuScore = {
   user_id: number;
@@ -83,6 +84,7 @@ export type OsuUserFull = {
   avatar_url: string;
   country_code: string;
   statistics: { global_rank: number | null; country_rank: number | null; pp: number; hit_accuracy: number } | null;
+  badges?: OsuBadge[];
 };
 
 export async function getUser(q: string | number) {

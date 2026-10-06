@@ -30,6 +30,8 @@ import { currentOsuId } from "@/auth";
 import { login } from "@/app/pickems/actions";
 import { HeroGate } from "@/components/site/hero-gate";
 import { MeTag } from "@/components/site/me";
+import { SKILLS, slotColor } from "@/lib/format-plan";
+import { getEdition } from "@/db/edition";
 
 function HeroLockup({ label }: { label: string }) {
   return (
@@ -102,7 +104,7 @@ function SignupCount({ n, label }: { n: number; label: string }) {
 }
 
 function ModChips({ stage }: { stage: Stage }) {
-  const maps = stage.pools.flatMap((p) => p.maps.map((m) => ({ slot: m.slot, color: MODS[p.category].color })));
+  const maps = stage.pools.flatMap((p) => p.maps.map((m) => ({ slot: m.slot, color: /^(NM|HD|HR|DT|FM|EZ|TB)\d*$/.test(m.slot) ? MODS[p.category].color : slotColor(m.slot) })));
   return (
     <div className="flex h-full flex-wrap content-center gap-1.5 px-4" aria-hidden>
       {maps.map((m, i) => (
@@ -120,13 +122,13 @@ function ModChips({ stage }: { stage: Stage }) {
 
 const POOL_MODS = ["NoMod", "Hidden", "HardRock", "DoubleTime", "FreeMod", "Tiebreaker"];
 
-function PoolStack({ stages }: { stages: Stage[] }) {
-  const mods = POOL_MODS.filter((m) => MODS[m]);
+function PoolStack({ stages, skill }: { stages: Stage[]; skill: boolean }) {
+  const colors = skill ? [...Object.values(SKILLS).map((s) => s.color), MODS.Tiebreaker.color] : POOL_MODS.filter((m) => MODS[m]).map((m) => MODS[m].color);
   return (
     <div className="flex h-full flex-col justify-center gap-2 px-5" aria-hidden>
       <div className="flex gap-1.5">
-        {mods.map((m, i) => (
-          <span key={m} className="anim-rise h-7 flex-1 sm:h-9 -skew-x-12 opacity-80 transition-opacity group-hover:opacity-100" style={{ background: MODS[m].color, animationDelay: `${0.3 + i * 0.05}s` }} />
+        {colors.map((c, i) => (
+          <span key={i} className="anim-rise h-7 flex-1 sm:h-9 -skew-x-12 opacity-80 transition-opacity group-hover:opacity-100" style={{ background: c, animationDelay: `${0.3 + i * 0.05}s` }} />
         ))}
       </div>
       <div className="flex gap-x-3 overflow-hidden whitespace-nowrap text-[0.65rem] font-black uppercase text-ash [mask-image:linear-gradient(to_left,transparent,black_2rem)]">
@@ -347,7 +349,7 @@ export default async function Home() {
     ),
     see("mappool") && !qualPool && visiblePools.length > 0 && (
       <EntryCard key="pools" title={t.home.mappools} sub={t.home.poolsSub(visiblePools.length)} href="/mappool" className="bg-slate">
-        <PoolStack stages={visiblePools.map((st) => ({ ...st, title: t.rounds[st.title] ?? st.title }))} />
+        <PoolStack skill={getEdition() === "bgcc7"} stages={visiblePools.map((st) => ({ ...st, title: t.rounds[st.title] ?? st.title }))} />
       </EntryCard>
     ),
     see("teams") && teams.length > 0 && (
