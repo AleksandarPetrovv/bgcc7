@@ -14,6 +14,7 @@ import { deadline, limitOf, pickable, plan, rollWinner, scoreOf, turnOf, type Dr
 import { cn } from "@/lib/utils";
 import { slotColor } from "@/lib/format-plan";
 import { pauseDraft, resetDraft, resumeDraft, undoDraft } from "@/app/admin/draft/actions";
+import { LobbyPanel } from "./lobby-panel";
 
 type TeamInfo = {
   name: string;
@@ -543,6 +544,8 @@ export function DraftRoom({
     });
   const [cmd, setCmd] = useState<string | null>(null);
   const [ask, setAsk] = useState<string | null>(null);
+  const lobbyOpen = useRef(false);
+  const onLobby = useCallback((o: boolean) => void (lobbyOpen.current = o), []);
   const known = useRef(new Set(initial.steps.filter((s) => s.kind === "pick" && !s.skip).map((s) => s.slot)));
   const mapOf = useMemo(() => new Map(pools.flatMap((p) => p.maps.map((m) => [m.slot, m] as const))), [pools]);
 
@@ -551,7 +554,7 @@ export function DraftRoom({
       const picks = next.steps.filter((s) => s.kind === "pick" && !s.skip);
       const fresh = picks.filter((s) => !known.current.has(s.slot)).at(-1);
       known.current = new Set(picks.map((s) => s.slot));
-      if (fresh && admin) {
+      if (fresh && admin && !lobbyOpen.current) {
         setAsk(null);
         setCmd(fresh.slot);
       }
@@ -754,6 +757,7 @@ export function DraftRoom({
           )}
         </motion.div>
       )}
+      {admin && <LobbyPanel slug={slug} matchId={matchId} maps={pools.flatMap((p) => p.maps)} onOpen={onLobby} />}
 
       <div className="relative flex items-stretch">
         {([1, 2] as const).map((s) => {
