@@ -7,8 +7,11 @@ export function sse(req: Request, read: () => Promise<unknown>, every = 3000, su
   let last = "";
   let off = () => {};
   let timer: ReturnType<typeof setInterval> | undefined;
-  const stop = () => {
+  const t0 = Date.now();
+  const path = new URL(req.url).pathname;
+  const stop = (why = "?") => {
     if (closed) return;
+    console.log(`[sse] close ${path} after ${Math.round((Date.now() - t0) / 1000)}s (${why})`);
     closed = true;
     off();
     clearInterval(timer);
@@ -20,7 +23,7 @@ export function sse(req: Request, read: () => Promise<unknown>, every = 3000, su
         try {
           ctrl.enqueue(enc.encode(s));
         } catch {
-          stop();
+          stop("write failed");
         }
       };
       let busy = false;
@@ -44,14 +47,14 @@ export function sse(req: Request, read: () => Promise<unknown>, every = 3000, su
         void push();
       }, every);
       req.signal.addEventListener("abort", () => {
-        stop();
+        stop("client gone");
         try {
           ctrl.close();
         } catch {}
       });
       await push();
     },
-    cancel: stop,
+    cancel: () => stop("cancelled"),
   });
   return new Response(stream, {
     headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no" },

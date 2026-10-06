@@ -1,15 +1,16 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
 import { EventEmitter } from "node:events";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { BanchoClient, BanchoLobbyPlayerStates, BanchoLobbyTeamModes, BanchoLobbyWinConditions, type BanchoLobby, type BanchoLobbyPlayerScore, type BanchoMultiplayerChannel } from "bancho.js";
+import { RateLimiterMemory, RateLimiterQueue } from "rate-limiter-flexible";
 import { db } from "@/db";
-import { matches, mpLobbies, users } from "@/db/schema";
+import { matches, mpChat, mpLobbies, users } from "@/db/schema";
 import { getTeams } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
 import { getFormat } from "@/db/edition";
-import { getDraft, setResult } from "@/db/drafts";
-import { scoreOf } from "@/lib/draft";
+import { getDraft, lobbyTimer, onDraft, poolSlots, setResult } from "@/db/drafts";
+import { other, rollWinner, scoreOf, turnOf, type DraftView } from "@/lib/draft";
 
 export type LobbySlot = { slot: number; name: string; id: number | null; side: 1 | 2 | null; team: "red" | "blue" | null; ready: "ready" | "notready" | "nomap"; host: boolean };
 export type LobbyView = {
@@ -20,6 +21,7 @@ export type LobbyView = {
   size: number;
   slots: (LobbySlot | null)[];
   mapId: number | null;
+  mapName: string | null;
   mods: string[];
   freemod: boolean;
   playing: boolean;
@@ -29,7 +31,18 @@ export type LobbyView = {
 type Kind = "personal" | "bot";
 type Conn = { kind: Kind; client: BanchoClient; ready: Promise<unknown> | null };
 export type ChatLine = { at: number; from: string; text: string };
-type Live = { matchId: string; mpId: number; owner: Kind; lobby: BanchoLobby; members: Map<number, 1 | 2>; chat: ChatLine[] };
+type Live = {
+  matchId: string;
+  mpId: number;
+  owner: Kind;
+  lobby: BanchoLobby;
+  members: Map<number, 1 | 2>;
+  chat: ChatLine[];
+  names: [string, string];
+  seen: DraftView | null;
+  queue: Promise<unknown>;
+  active: number;
+};
 type State = { conns: Partial<Record<Kind, Conn>>; live: Map<string, Live>; bus: EventEmitter; restored: boolean };
 
 const g = globalThis as unknown as { bgccIrc?: State };
@@ -44,7 +57,13 @@ export const botConfigured = () => !!creds("personal");
 
 function state(): State | null {
   if (!botConfigured()) return null;
-  return (g.bgccIrc ??= { conns: {}, live: new Map(), bus: new EventEmitter().setMaxListeners(0), restored: false });
+  if (!g.bgccIrc) {
+    g.bgccIrc = { conns: {}, live: new Map(), bus: new EventEmitter().setMaxListeners(0), restored: false };
+    console.log(`[bancho] state created pid=${process.pid}`);
+    setInterval(sweepIdle, 30_000).unref();
+    onDraft((id) => react(id));
+  }
+  return g.bgccIrc;
 }
 
 function conn(kind: Kind): Conn | null {
@@ -53,14 +72,19 @@ function conn(kind: Kind): Conn | null {
   if (!s || !c) return null;
   const cur = s.conns[kind];
   if (cur) return cur;
-  const client = new BanchoClient(kind === "bot" ? { ...c, botAccount: true } : c);
+  const client = new BanchoClient(kind === "bot" ? { ...c, botAccount: true } : { ...c, rateLimiter: new RateLimiterQueue(new RateLimiterMemory({ points: 9, duration: 5.5 })) as never });
   const x: Conn = { kind, client, ready: null };
   client.on("error", (e) => console.error(`[bancho ${kind}]`, e.message));
+  console.log(`[bancho ${kind}] new client pid=${process.pid}`);
   client.on("connected", () => {
+    console.log(`[bancho ${kind}] connected`);
     for (const l of s.live.values()) if (l.owner === kind) void rejoin(l);
     ping();
   });
-  client.on("disconnected", () => ping());
+  client.on("disconnected", (e) => {
+    console.log(`[bancho ${kind}] disconnected: ${e?.message ?? "?"}`);
+    ping();
+  });
   client.on("PART", (m) => {
     if (!m.user.isClient()) return;
     const l = [...s.live.values()].find((v) => v.owner === kind && `#mp_${v.mpId}` === m.channel.name);
@@ -115,15 +139,22 @@ async function membersOf(matchId: string) {
   const teams = await getTeams();
   const map = new Map<number, 1 | 2>();
   for (const [tid, side] of [[m?.team1Id, 1], [m?.team2Id, 2]] as const) for (const p of teams.find((t) => t.id === tid)?.players ?? []) map.set(p.userId, side);
-  return { match: m, teams, map };
+  const nm = (id: string | null | undefined) => teams.find((t) => t.id === id)?.name ?? "TBD";
+  return { match: m, teams, map, names: [nm(m?.team1Id), nm(m?.team2Id)] as [string, string], seen: await getDraft(matchId) };
+}
+
+async function history(mpId: number): Promise<ChatLine[]> {
+  const rows = await db.select().from(mpChat).where(eq(mpChat.mpId, mpId)).orderBy(desc(mpChat.id)).limit(150).catch(() => []);
+  return rows.reverse().map((r) => ({ at: r.at.getTime(), from: r.from, text: r.text }));
 }
 
 async function restore(s: State, matchId: string, mpId: number, owner: Kind) {
+  console.log(`[bancho] restore ${matchId} mp ${mpId}`);
   const c = await online(owner);
   const ch = c.client.getChannel(`#mp_${mpId}`) as BanchoMultiplayerChannel;
   await ch.join();
-  const { map } = await membersOf(matchId);
-  const l: Live = { matchId, mpId, owner, lobby: ch.lobby, members: map, chat: [] };
+  const { map, names, seen } = await membersOf(matchId);
+  const l: Live = { matchId, mpId, owner, lobby: ch.lobby, members: map, chat: await history(mpId), names, seen, queue: Promise.resolve(), active: Date.now() };
   attach(l);
   s.live.set(matchId, l);
   await ch.lobby.updateSettings();
@@ -159,22 +190,91 @@ export async function onFinished(matchId: string, scores: ScoreLine[]) {
   const winner = sum[0] > sum[1] ? 1 : 2;
   const r = await setResult(matchId, pick.slot, winner);
   if (typeof r === "string") return null;
-  const last = r.steps.at(-1);
-  if (last?.auto && !last.winner) await lobbyPick(matchId, r.stageSlug, last.slot).catch(() => {});
-  const [a, b] = scoreOf(r);
-  if (r.firstTo && (a >= r.firstTo || b >= r.firstTo)) setTimeout(() => void closeLobby(matchId, null).catch(() => {}), CLOSE_AFTER);
   return { slot: pick.slot, winner, sum };
 }
 
-export const CLOSE_AFTER = 20_000;
+function react(matchId: string) {
+  const l = g.bgccIrc?.live.get(matchId);
+  if (!l) return;
+  l.active = Date.now();
+  const snap = getDraft(matchId);
+  l.queue = l.queue.then(async () => narrate(l, await snap)).catch((e) => console.error("[bancho] narrate", e));
+}
+
+async function narrate(l: Live, n: DraftView | null) {
+  const p = l.seen;
+  l.seen = n;
+  if (!n || !p || g.bgccIrc?.live.get(l.matchId) !== l) return;
+  const name = (s: 1 | 2) => l.names[s - 1];
+  const say = (text: string) => l.lobby.channel.sendMessage(text).catch(() => {});
+  const slots = await poolSlots(n.stageSlug);
+
+  if ((n.roll1 != null && n.roll1 !== p.roll1) || (n.roll2 != null && n.roll2 !== p.roll2)) await new Promise((r) => setTimeout(r, 2000));
+  for (const s of [1, 2] as const) {
+    const v = s === 1 ? n.roll1 : n.roll2;
+    if (v != null && v !== (s === 1 ? p.roll1 : p.roll2)) await say(`${name(s)} rolled ${v}`);
+  }
+  if (n.roll1 != null && n.roll2 != null && (n.roll1 !== p.roll1 || n.roll2 !== p.roll2)) {
+    const w = rollWinner(n);
+    await say(`Rolls: ${name(1)} ${n.roll1} · ${name(2)} ${n.roll2}, ${w ? `${name(w)} wins the roll` : "tie, roll again"}`);
+  }
+  if (!p.choice && n.choice) {
+    const w = rollWinner(n);
+    if (w) await say(n.choice === "pick" ? `${name(w)} picks first, ${name(other(w))} bans first` : `${name(w)} bans first, ${name(other(w))} picks first`);
+  }
+
+  const same = n.steps.length >= p.steps.length && p.steps.every((s, i) => s.slot === n.steps[i].slot && s.kind === n.steps[i].kind);
+  if (same) {
+    if (p.steps.some((s, i) => !s.winner && n.steps[i].winner)) {
+      const [a, b] = scoreOf(n);
+      if (n.firstTo && (a >= n.firstTo || b >= n.firstTo)) {
+        const w = a > b ? 1 : 2;
+        await say(`${name(w)} wins ${Math.max(a, b)} - ${Math.min(a, b)}, GG!`);
+      } else {
+        const t = turnOf(n, slots);
+        await say(`${name(1)} ${a} - ${b} ${name(2)}${t.kind === "pick" ? ` | next pick: ${name(t.team)}` : ""}`);
+      }
+    }
+    if (p.pausedAt && !n.pausedAt) {
+      const t = turnOf(n, slots);
+      await say(t.kind === "pick" || t.kind === "ban" ? `Back on, ${name(t.team)} to ${t.kind}` : "Back on");
+    }
+    for (const s of n.steps.slice(p.steps.length)) {
+      if (s.skip) await say(`${name(s.team)} ran out of time, ${s.kind} passes to ${name(other(s.team))}`);
+      else if (s.kind === "ban") await say(`${name(s.team)} banned ${s.slot}`);
+      else {
+        if (!s.auto) await say(`${name(s.team)} picked ${s.slot}`);
+        await lobbyPick(l.matchId, n.stageSlug, s.slot).catch(() => {});
+      }
+    }
+  }
+}
+
+const IDLE = 5 * 60_000;
+
+function sweepIdle() {
+  const s = g.bgccIrc;
+  if (!s) return;
+  for (const l of s.live.values()) if (!l.lobby.playing && Date.now() - l.active > IDLE) void closeLobby(l.matchId, null).catch(() => {});
+}
 
 function attach(l: Live) {
   const lb = l.lobby;
-  const up = () => ping(l.matchId);
-  for (const ev of ["playerJoined", "playerLeft", "playerMoved", "playerChangedTeam", "host", "hostCleared", "matchStarted", "matchFinished", "matchAborted", "beatmapId", "mods", "freemod", "size", "allPlayersReady", "matchSettings"] as const) lb.on(ev as "matchStarted", up);
+  const up = () => {
+    l.active = Date.now();
+    ping(l.matchId);
+  };
+  for (const ev of ["playerJoined", "playerLeft", "playerMoved", "playerChangedTeam", "host", "hostCleared", "matchStarted", "matchFinished", "matchAborted", "beatmapId", "beatmap", "mods", "freemod", "size", "allPlayersReady", "matchSettings"] as const) lb.on(ev as "matchStarted", up);
   lb.channel.on("message", (msg) => {
-    l.chat.push({ at: Date.now(), from: msg.user.ircUsername, text: msg.message });
+    const line = { at: Date.now(), from: msg.user.ircUsername, text: msg.message.slice(0, 1000) };
+    l.chat.push(line);
+    void db
+      .insert(mpChat)
+      .values({ matchId: l.matchId, mpId: l.mpId, at: new Date(line.at), from: line.from, text: line.text })
+      .catch((e) => console.error("[bancho] chat save", e));
     if (l.chat.length > 150) l.chat.splice(0, l.chat.length - 150);
+    const cmd = msg.message.trim().match(/^!mp\s+(timer|aborttimer)\b\s*(\d+)?/i);
+    if (cmd) void lobbyTimer(l.matchId, cmd[1].toLowerCase() === "timer" ? Math.min(Number(cmd[2] ?? 30), 3600) || 30 : null).catch((e) => console.error("[bancho] timer", e));
     up();
   });
   (lb as unknown as EventEmitter).on("matchFinished", (scores: BanchoLobbyPlayerScore[]) =>
@@ -194,6 +294,7 @@ function attach(l: Live) {
 }
 
 async function markClosed(matchId: string) {
+  console.log(`[bancho] closed ${matchId}`);
   const s = g.bgccIrc;
   const l = s?.live.get(matchId);
   if (l) {
@@ -215,11 +316,11 @@ export async function lobbyView(matchId: string, osuId: number | null): Promise<
   const c = state() ? conn(await kindFor(osuId)) : null;
   const status: LobbyView["bot"] = !c ? "off" : c.client.isConnected() ? "online" : "connecting";
   const [row] = await db.select().from(mpLobbies).where(eq(mpLobbies.matchId, matchId)).limit(1);
-  const base: LobbyView = { bot: status, state: row ? (row.open ? "open" : "closed") : "none", mpId: row?.mpId ?? null, password: row?.password ?? "", size: 0, slots: [], mapId: null, mods: [], freemod: false, playing: false, chat: [] };
+  const base: LobbyView = { bot: status, state: row ? (row.open ? "open" : "closed") : "none", mpId: row?.mpId ?? null, password: row?.password ?? "", size: 0, slots: [], mapId: null, mapName: null, mods: [], freemod: false, playing: false, chat: [] };
   const l = g.bgccIrc?.live.get(matchId);
   if (!l || !row?.open) return base;
   const lb = l.lobby;
-  const size = lb.size || getFormat().teamSize * 2;
+  const size = Math.max(getFormat().teamSize * 2, ...lb.slots.map((p, i) => (p ? i + 1 : 0)));
   return {
     ...base,
     size,
@@ -238,6 +339,7 @@ export async function lobbyView(matchId: string, osuId: number | null): Promise<
       };
     }),
     mapId: lb.beatmapId || null,
+    mapName: lb.beatmap && lb.beatmap.id == lb.beatmapId ? `${lb.beatmap.artist} - ${lb.beatmap.title} [${lb.beatmap.version}]` : null,
     mods: (lb.mods ?? []).map((m) => m.shortMod.toUpperCase()),
     freemod: !!lb.freemod,
     playing: !!lb.playing,
@@ -272,14 +374,14 @@ export async function makeLobby(matchId: string, by: number) {
   if (!s) throw new Error("irc off");
   const [cur] = await db.select().from(mpLobbies).where(eq(mpLobbies.matchId, matchId)).limit(1);
   if (cur?.open && s.live.has(matchId)) return { mpId: cur.mpId };
-  const { match, teams, map } = await membersOf(matchId);
+  const { match, teams, map, names, seen } = await membersOf(matchId);
   if (!match?.team1Id || !match.team2Id) throw new Error("teams missing");
   const owner = await kindFor(by);
   const c = await online(owner);
   const name = (id: string) => clip(teams.find((t) => t.id === id)?.name ?? "TBD", 20);
   const ch = await c.client.createLobby(`BGCC7: (${name(match.team1Id)}) vs (${name(match.team2Id)})`);
   const lb = ch.lobby;
-  const l: Live = { matchId, mpId: lb.id, owner, lobby: lb, members: map, chat: [] };
+  const l: Live = { matchId, mpId: lb.id, owner, lobby: lb, members: map, chat: [], names, seen, queue: Promise.resolve(), active: Date.now() };
   attach(l);
   s.live.set(matchId, l);
   const password = randomBytes(4).toString("hex");
@@ -292,10 +394,11 @@ export async function makeLobby(matchId: string, by: number) {
   ping(matchId);
   await lb.setPassword(password);
   await lb.setSettings(BanchoLobbyTeamModes.TeamVs, BanchoLobbyWinConditions.ScoreV2, getFormat().teamSize * 2);
-  const names = (match.referee ?? "").split(/[,&/]| and /).map((x) => x.trim().toLowerCase()).filter(Boolean);
-  const known = names.length ? await db.select({ osuId: users.osuId }).from(users).where(inArray(sql`lower(${users.username})`, names)) : [];
-  const other = creds(owner === "bot" ? "personal" : "bot")?.username;
-  await lb.addRef([...[...new Set([by, ...known.map((u) => u.osuId)])].map((id) => `#${id}`), ...(other ? [other] : [])]).catch(() => {});
+  await lb.channel.sendMessage("!mp lock");
+  const refNames = (match.referee ?? "").split(/[,&/]| and /).map((x) => x.trim().toLowerCase()).filter(Boolean);
+  const known = refNames.length ? await db.select({ osuId: users.osuId }).from(users).where(inArray(sql`lower(${users.username})`, refNames)) : [];
+  const otherAcc = creds(owner === "bot" ? "personal" : "bot")?.username;
+  await lb.addRef([...[...new Set([by, ...known.map((u) => u.osuId)])].map((id) => `#${id}`), ...(otherAcc ? [otherAcc] : [])]).catch(() => {});
   for (const id of map.keys()) await lb.invitePlayer(`#${id}`).catch(() => {});
   await lb.updateSettings().catch(() => {});
   ping(matchId);
@@ -325,7 +428,7 @@ export async function abortLobby(matchId: string, by: number) {
 }
 
 const lastSent = new Map<number, number>();
-export const CHAT_GAP = 5000;
+export const CHAT_GAP = 1500;
 
 export async function sendChat(matchId: string, by: number, raw: string) {
   const text = raw.replace(/[\r\n]+/g, " ").trim().slice(0, 300);
@@ -340,13 +443,69 @@ export async function sendChat(matchId: string, by: number, raw: string) {
   return "ok" as const;
 }
 
+const within = <T,>(p: Promise<T>, ms: number) => Promise.race([p, new Promise<null>((r) => setTimeout(() => r(null), ms))]);
+
 export async function closeLobby(matchId: string, by: number | null) {
-  const s = await ensureBot();
-  if (s?.live.has(matchId)) {
-    const { lb } = await lobbyAs(matchId, by);
-    await lb.closeLobby().catch(() => {});
-  }
+  const s = await ensureBot().catch(() => null);
+  try {
+    if (s?.live.has(matchId)) {
+      const { lb } = await lobbyAs(matchId, by);
+      await within(lb.channel.sendMessage("!mp close"), 8000);
+    } else {
+      const [row] = await db.select().from(mpLobbies).where(eq(mpLobbies.matchId, matchId)).limit(1);
+      if (row?.open) {
+        const c = await online(row.owner === "bot" ? "bot" : "personal");
+        const ch = c.client.getChannel(`#mp_${row.mpId}`);
+        await within(ch.join().then(() => ch.sendMessage("!mp close")), 8000);
+      }
+    }
+  } catch {}
   await markClosed(matchId);
+}
+
+const target = (p: { user: { id: number; ircUsername: string } }) => (p.user.id ? `#${p.user.id}` : p.user.ircUsername.replace(/ /g, "_"));
+
+async function slotPlayer(matchId: string, by: number, slot: number) {
+  const { l, lb } = await lobbyAs(matchId, by);
+  const p = l.lobby.slots[slot];
+  if (!p) throw new Error("empty slot");
+  return { l, say: (m: string) => lb.channel.sendMessage(m), who: target(p) };
+}
+
+export async function hostSlot(matchId: string, by: number, slot: number) {
+  const { say, who } = await slotPlayer(matchId, by, slot);
+  await say(`!mp host ${who}`);
+}
+
+const SIMPLE = { aborttimer: "!mp aborttimer" } as const;
+export type SimpleCmd = keyof typeof SIMPLE;
+
+export async function simpleCmd(matchId: string, by: number, cmd: SimpleCmd) {
+  const { lb } = await lobbyAs(matchId, by);
+  await lb.channel.sendMessage(SIMPLE[cmd]);
+}
+
+export async function kickSlot(matchId: string, by: number, slot: number) {
+  const { say, who } = await slotPlayer(matchId, by, slot);
+  await say(`!mp kick ${who}`);
+}
+
+export async function teamSlot(matchId: string, by: number, slot: number, team: "red" | "blue") {
+  const { say, who } = await slotPlayer(matchId, by, slot);
+  await say(`!mp team ${who} ${team}`);
+}
+
+export async function moveSlot(matchId: string, by: number, from: number, to: number) {
+  const { l, say, who } = await slotPlayer(matchId, by, from);
+  const size = getFormat().teamSize * 2;
+  if (to < 0 || to >= size || to === from) return;
+  const there = l.lobby.slots[to];
+  if (!there) return void (await say(`!mp move ${who} ${to + 1}`));
+  await say(`!mp size ${size + 1}`);
+  await say(`!mp move ${who} ${size + 1}`);
+  await say(`!mp move ${target(there)} ${from + 1}`);
+  await say(`!mp move ${who} ${to + 1}`);
+  await say(`!mp size ${size}`);
 }
 
 const MOD_ARGS: Record<string, string> = { NoMod: "NF", Hidden: "HD NF", HardRock: "HR NF", DoubleTime: "DT NF" };

@@ -2,16 +2,30 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Check, Copy, DoorClosed, ExternalLink, Play, Plus, RefreshCw, Send, Square, WifiOff } from "lucide-react";
+import { ArrowLeftRight, Check, Copy, Crown, DoorClosed, ExternalLink, Map as MapIcon, MoveVertical, Play, Plus, RefreshCw, Send, Square, Timer, TimerOff, UserPlus, UserX, Users, WifiOff } from "lucide-react";
 import { useDict } from "@/components/site/lang";
+import { useSSE } from "@/components/site/use-sse";
 import { EASE } from "@/components/site/motion";
 import type { Beatmap } from "@/lib/data";
 import type { LobbyView } from "@/lib/bancho";
 import { slotColor } from "@/lib/format-plan";
 import { cn } from "@/lib/utils";
-import { abortMp, chatMp, closeMp, inviteMp, makeMpLobby, refreshMp, startMp } from "@/app/admin/draft/lobby-actions";
 
 const TEAM_C = { red: "var(--color-rose)", blue: "var(--color-azure)" } as const;
+const MOD_C: Record<string, string> = { NM: "var(--color-mod-nm)", HD: "var(--color-mod-hd)", HR: "var(--color-mod-hr)", DT: "var(--color-mod-dt)", NC: "var(--color-mod-dt)", FM: "var(--color-mod-fm)", NF: "var(--color-paper)" };
+
+export async function lobbyPost(slug: string, body: Record<string, unknown>) {
+  const r = await fetch(`/api/lobby/${slug}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
+  return ((await r?.json().catch(() => null)) ?? null) as { ok: boolean; error?: string } | null;
+}
+
+function IconBtn({ children, className, ...p }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button type="button" {...p} className={cn("inline-flex size-7 items-center justify-center border border-line text-ash transition-colors hover:border-paper hover:text-paper disabled:opacity-40", className)}>
+      {children}
+    </button>
+  );
+}
 
 function Btn({ onClick, disabled, tone = "line", children }: { onClick: () => void; disabled?: boolean; tone?: "line" | "go" | "warn" | "bad"; children: React.ReactNode }) {
   const cls = {
@@ -27,31 +41,39 @@ function Btn({ onClick, disabled, tone = "line", children }: { onClick: () => vo
   );
 }
 
-export function LobbyPanel({ slug, matchId, maps, onOpen }: { slug: string; matchId: string; maps: Beatmap[]; onOpen: (open: boolean) => void }) {
+export function LobbyPanel({ slug, maps, onOpen }: { slug: string; maps: Beatmap[]; onOpen: (open: boolean) => void }) {
   const t = useDict();
   const [v, setV] = useState<LobbyView | null>(null);
   const [pending, start] = useTransition();
   const [err, setErr] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [joinCopied, setJoinCopied] = useState(false);
+  const [moving, setMoving] = useState<number | null>(null);
+  const [say, setSay] = useState("");
+  const sayRef = useRef<HTMLInputElement>(null);
+  const fill = (cmd: string) => {
+    setSay(cmd);
+    requestAnimationFrame(() => {
+      const el = sayRef.current;
+      el?.focus();
+      el?.setSelectionRange(el.value.length, el.value.length);
+    });
+  };
 
-  useEffect(() => {
-    const es = new EventSource(`/api/lobby/${slug}`);
-    es.onmessage = (e) => {
-      try {
-        const next = JSON.parse(e.data) as LobbyView | null;
-        if (next) setV(next);
-      } catch {}
-    };
-    return () => es.close();
-  }, [slug]);
+  useSSE(`/api/lobby/${slug}`, (raw) => {
+    try {
+      const next = JSON.parse(raw) as LobbyView | null;
+      if (next) setV(next);
+    } catch {}
+  });
 
   const open = v?.state === "open";
   useEffect(() => onOpen(open), [open, onOpen]);
 
-  const run = (fn: () => Promise<{ ok: boolean } | null>) =>
+  const run = (body: Record<string, unknown>) =>
     start(async () => {
       setErr(false);
-      const res = await fn().catch(() => null);
+      const res = await lobbyPost(slug, body);
       if (!res?.ok) setErr(true);
     });
 
@@ -65,13 +87,12 @@ export function LobbyPanel({ slug, matchId, maps, onOpen }: { slug: string; matc
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: EASE }}
-      className="mb-5 border border-line bg-coal/80"
+      className="@container mb-5 border border-line bg-coal/80 xl:mb-0"
     >
       <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2">
         <span className="heading-slam text-lg">{t.lobby.title}</span>
-        <span className={cn("inline-flex items-center gap-1.5 text-[0.7rem] font-black uppercase tracking-wide", v.bot === "online" ? "text-balkan" : v.bot === "off" ? "text-rose-hi" : "text-[#e8c547]")}>
+        <span title={t.lobby.bot[v.bot]} className={cn("inline-flex items-center", v.bot === "off" ? "text-rose-hi" : "text-[#e8c547]")}>
           {v.bot === "online" ? <span className="size-2 rounded-full bg-balkan shadow-[0_0_8px_var(--color-balkan)]" /> : <WifiOff className="size-3.5" />}
-          {t.lobby.bot[v.bot]}
         </span>
         {link && (
           <a href={link} target="_blank" rel="noreferrer" className="num inline-flex items-center gap-1 text-xs font-black text-ash hover:text-paper">
@@ -89,31 +110,57 @@ export function LobbyPanel({ slug, matchId, maps, onOpen }: { slug: string; matc
             {t.lobby.password} <span className="text-paper">{v.password}</span> {copied ? <Check className="size-3 text-balkan" /> : <Copy className="size-3" />}
           </button>
         )}
+        {open && v.mpId && (
+          <button
+            type="button"
+            onClick={() => navigator.clipboard.writeText(`/join #mp_${v.mpId}`).then(() => setJoinCopied(true)).catch(() => {})}
+            onMouseLeave={() => setJoinCopied(false)}
+            className="num inline-flex items-center gap-1 text-xs font-black text-ash hover:text-paper"
+            title={t.lobby.joinHint}
+          >
+            {t.lobby.inGame} <span className="text-paper">/join #mp_{v.mpId}</span> {joinCopied ? <Check className="size-3 text-balkan" /> : <Copy className="size-3" />}
+          </button>
+        )}
         {err && <span className="text-xs font-black text-rose-hi">{t.lobby.failed}</span>}
         <span className="ml-auto flex flex-wrap gap-2">
           {open ? (
             <>
-              <Btn onClick={() => run(() => inviteMp(matchId))} disabled={pending || offline}>
+              <Btn onClick={() => fill("!mp map ")} disabled={offline}>
+                <MapIcon className="size-3.5" /> {t.lobby.map}
+              </Btn>
+              <Btn onClick={() => fill("!mp addref ")} disabled={offline}>
+                <UserPlus className="size-3.5" /> {t.lobby.addRef}
+              </Btn>
+              <Btn onClick={() => fill("!mp size ")} disabled={offline}>
+                <Users className="size-3.5" /> {t.lobby.size}
+              </Btn>
+              <Btn onClick={() => run({ act: "invite" })} disabled={pending || offline}>
                 <Send className="size-3.5" /> {t.lobby.invite}
               </Btn>
-              <Btn onClick={() => run(() => refreshMp(matchId))} disabled={pending || offline}>
+              <Btn onClick={() => run({ act: "refresh" })} disabled={pending || offline}>
                 <RefreshCw className={cn("size-3.5", pending && "animate-spin")} /> {t.lobby.refresh}
               </Btn>
+              <Btn onClick={() => fill("!mp timer ")} disabled={offline}>
+                <Timer className="size-3.5" /> {t.lobby.timer}
+              </Btn>
+              <Btn onClick={() => run({ act: "aborttimer" })} disabled={pending || offline}>
+                <TimerOff className="size-3.5" /> {t.lobby.stopTimer}
+              </Btn>
               {v.playing ? (
-                <Btn tone="warn" onClick={() => run(() => abortMp(matchId))} disabled={pending || offline}>
+                <Btn tone="warn" onClick={() => run({ act: "abort" })} disabled={pending || offline}>
                   <Square className="size-3.5" /> {t.lobby.abort}
                 </Btn>
               ) : (
-                <Btn tone="go" onClick={() => run(() => startMp(matchId, 10))} disabled={pending || offline || !v.mapId}>
+                <Btn tone="go" onClick={() => run({ act: "start" })} disabled={pending || offline || !v.mapId}>
                   <Play className="size-3.5 fill-current" /> {t.lobby.start}
                 </Btn>
               )}
-              <Btn tone="bad" onClick={() => window.confirm(t.lobby.confirmClose) && run(() => closeMp(matchId))} disabled={pending}>
+              <Btn tone="bad" onClick={() => window.confirm(t.lobby.confirmClose) && run({ act: "close" })} disabled={pending}>
                 <DoorClosed className="size-3.5" /> {t.lobby.close}
               </Btn>
             </>
           ) : (
-            <Btn tone="go" onClick={() => run(() => makeMpLobby(matchId))} disabled={pending || v.bot === "off"}>
+            <Btn tone="go" onClick={() => run({ act: "make" })} disabled={pending || v.bot === "off"}>
               <Plus className="size-3.5" strokeWidth={3} /> {v.state === "closed" ? t.lobby.again : t.lobby.make}
             </Btn>
           )}
@@ -123,7 +170,7 @@ export function LobbyPanel({ slug, matchId, maps, onOpen }: { slug: string; matc
       <AnimatePresence initial={false}>
         {open && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.35, ease: EASE }} className="overflow-hidden">
-            <div className="grid gap-px bg-line sm:grid-cols-[minmax(0,1fr)_16rem]">
+            <div className="grid gap-px bg-line @4xl:grid-cols-[minmax(0,1fr)_16rem]">
               <div className="grid grid-cols-2 gap-px bg-line">
                 {(v.slots.length ? v.slots : Array.from({ length: v.size || 4 }, () => null)).map((s, i) => (
                   <motion.div
@@ -137,15 +184,64 @@ export function LobbyPanel({ slug, matchId, maps, onOpen }: { slug: string; matc
                       <>
                         <span className="absolute inset-y-0 left-0 w-1" style={{ background: s.team ? TEAM_C[s.team] : "var(--color-line)" }} />
                         <span className="num w-4 text-[0.7rem] font-black text-ash">{i + 1}</span>
-                        <span className={cn("min-w-0 flex-1 truncate text-sm font-black", !s.side && "text-ash")}>{s.name}</span>
-                        <span
-                          className={cn(
-                            "inline-flex shrink-0 items-center gap-1 text-[0.65rem] font-black uppercase tracking-wide",
-                            s.ready === "ready" ? "text-balkan" : s.ready === "nomap" ? "text-rose-hi" : "text-ash",
-                          )}
-                        >
-                          {s.ready === "ready" && <Check className="size-3.5" strokeWidth={3} />}
-                          {t.lobby.ready[s.ready]}
+                        <span className="flex min-w-0 flex-1 flex-col">
+                          <span className={cn("truncate text-sm font-black", s.team === "red" ? "text-rose-hi" : s.team === "blue" ? "text-azure-hi" : "text-ash")}>{s.name}</span>
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1 text-[0.65rem] font-black uppercase tracking-wide",
+                              s.ready === "ready" ? "text-balkan" : s.ready === "nomap" ? "text-rose-hi" : "text-ash",
+                            )}
+                          >
+                            {s.ready === "ready" && <Check className="size-3" strokeWidth={3} />}
+                            {t.lobby.ready[s.ready]}
+                          </span>
+                        </span>
+                        <span className="relative flex shrink-0 items-center gap-1">
+                          <IconBtn
+                            title={t.lobby.swapTeam}
+                            disabled={pending || offline}
+                            onClick={() => run({ act: "team", slot: i, team: s.team === "red" ? "blue" : "red" })}
+                            style={{ background: s.team === "red" ? TEAM_C.blue : TEAM_C.red }}
+                            className="text-white"
+                          >
+                            <ArrowLeftRight className="size-3.5" />
+                          </IconBtn>
+                          <IconBtn title={t.lobby.host} disabled={pending || offline} onClick={() => run({ act: "host", slot: i })} className={s.host ? "border-[#e8c547] text-[#e8c547]" : ""}>
+                            <Crown className="size-3.5" />
+                          </IconBtn>
+                          <IconBtn title={t.lobby.move} disabled={pending || offline} onClick={() => setMoving(moving === i ? null : i)} className={moving === i ? "border-paper text-paper" : ""}>
+                            <MoveVertical className="size-3.5" />
+                          </IconBtn>
+                          <IconBtn title={t.lobby.kick} disabled={pending || offline} onClick={() => window.confirm(t.lobby.confirmKick(s.name)) && run({ act: "kick", slot: i })} className="hover:border-rose hover:text-rose-hi">
+                            <UserX className="size-3.5" />
+                          </IconBtn>
+                          <AnimatePresence>
+                            {moving === i && (
+                              <motion.span
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                transition={{ duration: 0.15 }}
+                                className="absolute right-0 top-full z-20 mt-1 flex gap-1 border border-line bg-ink p-1 shadow-[4px_4px_0_0_rgba(0,0,0,0.4)]"
+                              >
+                                {Array.from({ length: v.size || 4 }, (_, k) => k)
+                                  .filter((k) => k !== i)
+                                  .map((k) => (
+                                    <button
+                                      key={k}
+                                      type="button"
+                                      onClick={() => {
+                                        setMoving(null);
+                                        run({ act: "move", slot: i, to: k });
+                                      }}
+                                      className="num size-7 border border-line text-xs font-black text-paper transition-colors hover:border-paper hover:bg-paper hover:text-ink"
+                                    >
+                                      {k + 1}
+                                    </button>
+                                  ))}
+                              </motion.span>
+                            )}
+                          </AnimatePresence>
                         </span>
                       </>
                     ) : (
@@ -163,20 +259,24 @@ export function LobbyPanel({ slug, matchId, maps, onOpen }: { slug: string; matc
                   <img src={map.cover} alt="" className="absolute inset-0 size-full object-cover opacity-20" />
                 )}
                 <span className="relative text-[0.65rem] font-black uppercase tracking-widest text-ash">{v.playing ? t.lobby.playing : t.lobby.map}</span>
-                {map ? (
-                  <>
-                    <span className="heading-slam relative text-2xl" style={{ color: slotColor(map.slot) }}>
-                      {map.slot}
-                    </span>
-                    <span className="relative truncate text-xs font-bold text-paper/80">{map.title}</span>
-                  </>
-                ) : (
-                  <span className="relative text-sm font-bold text-paper/70">{v.mapId ? `#${v.mapId}` : t.lobby.noMap}</span>
+                {map && (
+                  <span className="heading-slam relative text-2xl" style={{ color: slotColor(map.slot) }}>
+                    {map.slot}
+                  </span>
                 )}
-                <span className="relative mt-1 text-[0.7rem] font-black uppercase tracking-wide text-ash">{v.freemod ? `Freemod ${v.mods.join(" ")}` : v.mods.join(" ") || "NM"}</span>
+                <span className="relative line-clamp-2 break-words text-xs font-bold leading-snug text-paper/80" title={v.mapName ?? undefined}>
+                  {v.mapName ?? (map ? `${map.title} [${map.version}]` : v.mapId ? `#${v.mapId}` : t.lobby.noMap)}
+                </span>
+                <span className="relative mt-1.5 flex flex-wrap gap-1">
+                  {(v.freemod ? ["FM", ...v.mods] : v.mods.length ? v.mods : ["NM"]).map((m) => (
+                    <span key={m} className="-skew-x-12 border px-1.5 text-[0.7rem] font-black leading-5" style={{ borderColor: MOD_C[m] ?? "var(--color-line)", color: MOD_C[m] ?? "var(--color-ash)" }}>
+                      <span className="inline-block skew-x-12">{m}</span>
+                    </span>
+                  ))}
+                </span>
               </div>
             </div>
-            <Chat matchId={matchId} lines={v.chat} sides={new Map(v.slots.flatMap((s) => (s?.team ? [[s.name.toLowerCase().replace(/ /g, "_"), s.team] as const] : [])))} disabled={offline} />
+            <Chat slug={slug} lines={v.chat} sides={new Map(v.slots.flatMap((s) => (s?.team ? [[s.name.toLowerCase().replace(/ /g, "_"), s.team] as const] : [])))} disabled={offline} text={say} setText={setSay} inputRef={sayRef} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -184,11 +284,25 @@ export function LobbyPanel({ slug, matchId, maps, onOpen }: { slug: string; matc
   );
 }
 
-const CMDS = ["!mp settings", "!mp start 10", "!mp abort", "!mp timer 120", "!mp aborttimer", "!mp invite ", "!mp move ", "!mp team ", "!mp map ", "!mp mods ", "!mp host ", "!mp clearhost", "!mp lock", "!mp unlock", "!mp size 4", "!mp addref ", "!mp kick ", "!mp close", "!roll"];
 
-function Chat({ matchId, lines, sides, disabled }: { matchId: string; lines: LobbyView["chat"]; sides: Map<string, "red" | "blue">; disabled: boolean }) {
+function Chat({
+  slug,
+  lines,
+  sides,
+  disabled,
+  text,
+  setText,
+  inputRef,
+}: {
+  slug: string;
+  lines: LobbyView["chat"];
+  sides: Map<string, "red" | "blue">;
+  disabled: boolean;
+  text: string;
+  setText: (s: string) => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+}) {
   const t = useDict();
-  const [text, setText] = useState("");
   const [until, setUntil] = useState(0);
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
@@ -212,25 +326,28 @@ function Chat({ matchId, lines, sides, disabled }: { matchId: string; lines: Lob
     if (!text.trim() || left || busy) return;
     setBusy(true);
     setFail(false);
-    const res = await chatMp(matchId, text).catch(() => null);
+    const sent = text;
+    const res = await lobbyPost(slug, { act: "chat", text: sent });
     setBusy(false);
-    const t0 = Date.now();
-    setNow(t0);
-    setUntil(t0 + 5000);
-    if (res?.ok) setText("");
-    else setFail(true);
+    if (res?.ok) {
+      const t0 = Date.now();
+      setNow(t0);
+      setUntil(t0 + 1500);
+      if (inputRef.current?.value === sent) setText("");
+    } else setFail(true);
+    inputRef.current?.focus();
   }
 
   return (
     <div className="border-t border-line">
-      <div ref={box} className="h-52 overflow-y-auto px-3 py-2 text-sm">
+      <div ref={box} className="h-72 overflow-y-auto px-3 py-2 text-[0.95rem]">
         {lines.length ? (
           lines.map((m, i) => {
             const bancho = m.from === "BanchoBot";
             const side = sides.get(m.from.toLowerCase());
             return (
-              <p key={`${m.at}-${i}`} className="break-words leading-snug">
-                <span className="num mr-2 text-[0.7rem] text-ash/70">{new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+              <p key={`${m.at}-${i}`} className="break-words py-0.5 leading-snug">
+                <span className="num mr-2 text-xs text-ash/70">{new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                 <span className={cn("font-black", bancho ? "text-[#e8c547]" : side === "red" ? "text-rose-hi" : side === "blue" ? "text-azure-hi" : "text-paper")}>{m.from.replace(/_/g, " ")}</span>
                 <span className={cn("ml-2", bancho ? "text-paper/70" : "text-paper")}>{m.text}</span>
               </p>
@@ -242,19 +359,15 @@ function Chat({ matchId, lines, sides, disabled }: { matchId: string; lines: Lob
       </div>
       <form onSubmit={send} className="flex gap-2 border-t border-line p-2">
         <input
+          ref={inputRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          list="mp-cmds"
           maxLength={300}
+          autoComplete="off"
           disabled={disabled}
           placeholder={t.lobby.say}
-          className={cn("adm-bare min-w-0 flex-1 border border-line bg-ink px-3 py-1.5 text-sm outline-none focus:border-paper", fail && "border-rose")}
+          className={cn("adm-bare min-w-0 flex-1 border border-line bg-ink px-3 py-2 text-[0.95rem] outline-none focus:border-paper", fail && "border-rose")}
         />
-        <datalist id="mp-cmds">
-          {CMDS.map((c) => (
-            <option key={c} value={c} />
-          ))}
-        </datalist>
         <button
           type="submit"
           disabled={disabled || busy || !!left || !text.trim()}

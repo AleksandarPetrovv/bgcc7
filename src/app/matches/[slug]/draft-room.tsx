@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { Ban, Check, Copy, Crown, Dices, Lock, Pause, Play, RotateCcw, Star, Swords, TimerOff, Undo2, WifiOff } from "lucide-react";
+import { Ban, Check, Copy, Crown, Dices, DoorClosed, Lock, Pause, RotateCcw, Star, Swords, TimerOff, Undo2, WifiOff } from "lucide-react";
 import { Sparkle } from "@/components/site/graphics";
 import { useDict } from "@/components/site/lang";
 import { EASE } from "@/components/site/motion";
@@ -13,8 +13,9 @@ import { Confetti } from "@/components/site/confetti";
 import { deadline, limitOf, pickable, plan, rollWinner, scoreOf, turnOf, type DraftStep, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { slotColor } from "@/lib/format-plan";
-import { pauseDraft, resetDraft, resumeDraft, undoDraft } from "@/app/admin/draft/actions";
-import { LobbyPanel } from "./lobby-panel";
+import { resetDraft, undoDraft } from "@/app/admin/draft/actions";
+import { LobbyPanel, lobbyPost } from "./lobby-panel";
+import { useSSE } from "@/components/site/use-sse";
 
 type TeamInfo = {
   name: string;
@@ -479,6 +480,98 @@ function WinnerPopup({
   );
 }
 
+function ResetPopup({ lobby, busy, onCancel, onReset }: { lobby: boolean; busy: boolean; onCancel: () => void; onReset: (close: boolean) => void }) {
+  const t = useDict();
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.2 } }}
+      onClick={onCancel}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/85 p-4 backdrop-blur-sm"
+    >
+      <motion.div
+        initial={{ y: 50, scale: 0.9, rotate: -2 }}
+        animate={{ y: 0, scale: 1, rotate: 0 }}
+        exit={{ y: 30, opacity: 0, transition: { duration: 0.2 } }}
+        transition={{ type: "spring", stiffness: 320, damping: 24 }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md overflow-hidden border-2 border-rose bg-coal p-6 shadow-[8px_8px_0_0_var(--color-rose-deep)]"
+        role="dialog"
+        aria-modal="true"
+      >
+        <RotateCcw className="size-8 text-rose-hi" />
+        <h3 className="heading-slam mt-2 text-3xl">{t.draft.resetTitle}</h3>
+        <p className="mt-1 text-sm font-bold text-paper/70">{t.draft.resetBody}</p>
+        <div className="mt-6 flex flex-col gap-2.5">
+          {lobby && (
+            <motion.button
+              type="button"
+              disabled={busy}
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => onReset(true)}
+              className="flex min-h-12 -skew-x-6 items-center bg-rose px-5 text-left font-black uppercase tracking-wide text-white shadow-[5px_5px_0_0_var(--color-rose-deep)] disabled:opacity-60"
+            >
+              <span className="inline-flex skew-x-6 items-center gap-2">
+                <DoorClosed className="size-4" /> {t.draft.resetClose}
+              </span>
+            </motion.button>
+          )}
+          <motion.button
+            type="button"
+            disabled={busy}
+            whileHover={{ x: 4 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => onReset(false)}
+            className={cn(
+              "flex min-h-12 -skew-x-6 items-center px-5 text-left font-black uppercase tracking-wide disabled:opacity-60",
+              lobby ? "border border-rose text-rose-hi hover:bg-rose/10" : "bg-rose text-white shadow-[5px_5px_0_0_var(--color-rose-deep)]",
+            )}
+          >
+            <span className="inline-flex skew-x-6 items-center gap-2">
+              <RotateCcw className="size-4" /> {lobby ? t.draft.resetKeep : t.draft.reset}
+            </span>
+          </motion.button>
+          <button type="button" onClick={onCancel} className="mt-1 text-xs font-black uppercase tracking-wide text-ash hover:text-paper">
+            {t.draft.cancel}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function CopyId({ id }: { id: number }) {
+  const [done, setDone] = useState(false);
+  const copy = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    navigator.clipboard
+      .writeText(String(id))
+      .then(() => {
+        setDone(true);
+        setTimeout(() => setDone(false), 1200);
+      })
+      .catch(() => {});
+  };
+  return (
+    <span className="num mt-1 flex items-center gap-1.5 text-sm font-bold text-paper/75">
+      ID <span className="select-all text-paper">{id}</span>
+      <span
+        role="button"
+        tabIndex={0}
+        title="Copy"
+        onClick={copy}
+        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && copy(e)}
+        className="inline-flex size-6 cursor-pointer items-center justify-center border border-line text-ash transition-colors hover:border-paper hover:text-paper"
+      >
+        {done ? <Check className="size-3.5 text-balkan" strokeWidth={3} /> : <Copy className="size-3.5" />}
+      </span>
+    </span>
+  );
+}
+
 function Waiting() {
   return (
     <span className="dr-dots inline-flex gap-1" aria-hidden>
@@ -545,6 +638,7 @@ export function DraftRoom({
   const [cmd, setCmd] = useState<string | null>(null);
   const [ask, setAsk] = useState<string | null>(null);
   const lobbyOpen = useRef(false);
+  const [askReset, setAskReset] = useState(false);
   const onLobby = useCallback((o: boolean) => void (lobbyOpen.current = o), []);
   const known = useRef(new Set(initial.steps.filter((s) => s.kind === "pick" && !s.skip).map((s) => s.slot)));
   const mapOf = useMemo(() => new Map(pools.flatMap((p) => p.maps.map((m) => [m.slot, m] as const))), [pools]);
@@ -585,12 +679,11 @@ export function DraftRoom({
     return () => clearTimeout(id);
   }, [err]);
 
-  useEffect(() => {
-    const es = new EventSource(`/api/draft/${slug}`);
-    es.onmessage = (e) => {
-      setOffline(false);
+  useSSE(
+    `/api/draft/${slug}`,
+    (raw) => {
       try {
-        const next = JSON.parse(e.data) as DraftView | null;
+        const next = JSON.parse(raw) as DraftView | null;
         if (!next || (!next.open && !admin) || next.stageSlug !== stageRef.current) {
           router.refresh();
           if (next) stageRef.current = next.stageSlug;
@@ -600,10 +693,9 @@ export function DraftRoom({
           take(next);
         }
       } catch {}
-    };
-    es.onerror = () => setOffline(true);
-    return () => es.close();
-  }, [slug, admin, router, take]);
+    },
+    (on) => setOffline(!on),
+  );
 
   async function act(body: Record<string, unknown>) {
     if (busy || !me) return;
@@ -694,7 +786,7 @@ export function DraftRoom({
   const unscored = admin ? picked.find((s) => !s.winner) : undefined;
 
   return (
-    <div className="relative mx-auto w-full max-w-6xl px-4 pb-32 pt-6 sm:px-6 sm:pt-10">
+    <div className="relative mx-auto w-full max-w-page px-4 pb-32 pt-6 sm:px-6 sm:pt-10 lg:px-10 2xl:px-14">
       {admin && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -708,7 +800,7 @@ export function DraftRoom({
                 type="button"
                 onClick={() => setActing(s)}
                 aria-pressed={acting === s}
-                className={cn("relative min-h-8 -skew-x-12 px-3 transition-colors", acting === s ? "text-white" : "text-ash hover:text-paper")}
+                className={cn("relative min-h-8 -skew-x-12 px-3 text-xs font-black uppercase tracking-wide transition-colors", acting === s ? "text-white" : "text-ash hover:text-paper")}
               >
                 {acting === s && <motion.span layoutId="dr-acting" className={cn("absolute inset-0", TEAM[s].bg)} transition={{ type: "spring", stiffness: 500, damping: 36 }} />}
                 <span className="relative inline-block max-w-32 skew-x-12 truncate">{name(s)}</span>
@@ -718,22 +810,9 @@ export function DraftRoom({
           <span className="ml-auto flex gap-2">
             <button
               type="button"
-              disabled={pending || !d.open}
-              onClick={() => adminAct(() => (paused ? resumeDraft(matchId) : pauseDraft(matchId)))}
-              className={cn(
-                "lift-sm inline-flex min-h-8 -skew-x-12 items-center border px-3 transition-colors [--lift:var(--color-rose)] disabled:opacity-50",
-                paused ? "border-balkan bg-balkan text-ink hover:bg-paper" : "border-[#e8c547] text-[#e8c547] hover:bg-[#e8c547]/10",
-              )}
-            >
-              <span className="inline-flex skew-x-12 items-center gap-1.5">
-                {paused ? <Play className="size-3.5 fill-current" /> : <Pause className="size-3.5" />} {paused ? t.draft.resume : t.draft.timeout}
-              </span>
-            </button>
-            <button
-              type="button"
               disabled={pending}
               onClick={() => adminAct(() => undoDraft(matchId))}
-              className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-line px-3 text-paper transition-colors [--lift:var(--color-rose)] hover:border-rose disabled:opacity-50"
+              className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-line px-3 text-xs font-black uppercase tracking-wide text-paper transition-colors [--lift:var(--color-rose)] hover:border-rose disabled:opacity-50"
             >
               <span className="inline-flex skew-x-12 items-center gap-1.5">
                 <Undo2 className="size-3.5" /> {t.draft.undo}
@@ -742,8 +821,8 @@ export function DraftRoom({
             <button
               type="button"
               disabled={pending}
-              onClick={() => window.confirm(t.draft.confirmReset) && adminAct(() => resetDraft(matchId))}
-              className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-rose px-3 text-rose-hi transition-colors [--lift:var(--color-rose)] hover:bg-rose/10 disabled:opacity-50"
+              onClick={() => setAskReset(true)}
+              className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-rose px-3 text-xs font-black uppercase tracking-wide text-rose-hi transition-colors [--lift:var(--color-rose)] hover:bg-rose/10 disabled:opacity-50"
             >
               <span className="inline-flex skew-x-12 items-center gap-1.5">
                 <RotateCcw className="size-3.5" /> {t.draft.reset}
@@ -757,8 +836,32 @@ export function DraftRoom({
           )}
         </motion.div>
       )}
-      {admin && <LobbyPanel slug={slug} matchId={matchId} maps={pools.flatMap((p) => p.maps)} onOpen={onLobby} />}
+      <Portal>
+      <AnimatePresence>
+        {askReset && (
+          <ResetPopup
+            lobby
+            busy={pending}
+            onCancel={() => setAskReset(false)}
+            onReset={(close) => {
+              setAskReset(false);
+              adminAct(async () => {
+                await resetDraft(matchId);
+                if (close) await lobbyPost(slug, { act: "close" });
+              });
+            }}
+          />
+        )}
+      </AnimatePresence>
+      </Portal>
 
+      <div className={cn(admin && "xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(26rem,30%)] xl:items-start xl:gap-8 2xl:gap-10")}>
+      {admin && (
+        <aside className="xl:col-start-2 xl:row-start-1">
+          <LobbyPanel slug={slug} maps={pools.flatMap((p) => p.maps)} onOpen={onLobby} />
+        </aside>
+      )}
+      <div className="@container min-w-0 xl:col-start-1 xl:row-start-1">
       <div className="relative flex items-stretch">
         {([1, 2] as const).map((s) => {
           const on = "team" in turn && turn.team === s;
@@ -1062,7 +1165,7 @@ export function DraftRoom({
               >
                 <span className="skew-x-12">{mod.label}</span>
               </motion.div>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-2 @2xl:grid-cols-2 @5xl:grid-cols-3 @[100rem]:grid-cols-4">
                 {p.maps.map((m, k) => {
                   const u = used.get(m.slot);
                   const tb = !pickable(m.slot);
@@ -1105,6 +1208,7 @@ export function DraftRoom({
                         admin ? "h-28" : "h-24",
                         tb && "border-dashed",
                         tap && "cursor-pointer",
+                        (u?.kind === "ban" || u?.winner) && "brightness-[0.5] grayscale-[0.85] transition-[filter] duration-700",
                       )}
                       style={{
                         borderColor: chosen || u ? col.c : tb ? "var(--color-line)" : "transparent",
@@ -1121,7 +1225,7 @@ export function DraftRoom({
                             ? "opacity-15 grayscale"
                             : u?.kind === "pick"
                               ? "opacity-50"
-                              : "opacity-35 group-hover:scale-105 group-enabled:group-hover:opacity-55",
+                              : "opacity-50 group-hover:scale-105 group-enabled:group-hover:opacity-70",
                         )}
                       />
                       <span className="absolute inset-0 bg-gradient-to-r from-ink via-ink/75 to-transparent" aria-hidden />
@@ -1134,7 +1238,7 @@ export function DraftRoom({
                       )}
                       <span
                         className={cn(
-                          "heading-slam relative flex w-[4.5rem] shrink-0 items-center justify-center pr-1 text-xl sm:w-20 sm:text-2xl",
+                          "heading-slam relative flex w-[5.5rem] shrink-0 items-center justify-center pl-2 pr-1 text-lg sm:w-28 sm:text-2xl",
                           (u?.kind === "ban" || u?.winner) && "opacity-40",
                         )}
                         style={{ color: skill ? mod.color : slotColor(m.slot) }}
@@ -1158,7 +1262,7 @@ export function DraftRoom({
                           <span>{Math.round(m.bpm)}bpm</span>
                           <span>{fmtLen(m.length)}</span>
                         </span>
-                        {admin && <span className="num mt-0.5 select-all text-[0.7rem] text-paper/60">ID {m.id}</span>}
+                        {admin && <CopyId id={m.id} />}
                       </span>
                       {u?.kind === "pick" && u.winner && (
                         <motion.span
@@ -1169,11 +1273,6 @@ export function DraftRoom({
                         >
                           <Crown className="size-3 fill-current" /> {t.draft.won(name(u.winner))}
                         </motion.span>
-                      )}
-                      {tb && (
-                        <span className="absolute right-2 top-2 inline-flex items-center gap-1 bg-paper px-1.5 py-0.5 text-[0.6rem] font-black uppercase tracking-wide text-ink">
-                          <Lock className="size-2.5" /> {t.draft.tiebreaker}
-                        </span>
                       )}
                       <AnimatePresence>
                         {u && (
@@ -1228,6 +1327,8 @@ export function DraftRoom({
           );
         })}
       </section>
+      </div>
+      </div>
 
       <Portal>
         {party && <Confetti onDone={() => setParty(false)} />}
@@ -1271,7 +1372,7 @@ export function DraftRoom({
               className="fixed inset-x-0 bottom-0 z-40 border-t-2 bg-ink/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur"
               style={{ borderColor: TEAM[me].c }}
             >
-              <div className="mx-auto flex max-w-6xl items-center gap-3">
+              <div className="mx-auto flex max-w-page items-center gap-3 lg:px-6">
                 <button type="button" onClick={() => setSel(null)} className="min-h-12 px-3 text-sm font-black uppercase tracking-wide text-ash hover:text-paper">
                   {t.draft.cancel}
                 </button>

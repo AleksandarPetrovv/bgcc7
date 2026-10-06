@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, doublePrecision, integer, jsonb, pgTable, serial, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { boolean, doublePrecision, index, integer, jsonb, pgTable, serial, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   osuId: integer("osu_id").primaryKey(),
@@ -250,6 +250,21 @@ export const mpLobbies = pgTable("mp_lobbies", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   closedAt: timestamp("closed_at", { withTimezone: true }),
 });
+
+export const mpChat = pgTable(
+  "mp_chat",
+  {
+    id: serial("id").primaryKey(),
+    matchId: text("match_id")
+      .notNull()
+      .references(() => matches.id, { onDelete: "cascade" }),
+    mpId: integer("mp_id").notNull(),
+    at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+    from: text("from").notNull(),
+    text: text("text").notNull(),
+  },
+  (t) => [index("mp_chat_mp_idx").on(t.mpId, t.id)],
+);
 
 export const sponsors = pgTable("sponsors", {
   id: serial("id").primaryKey(),

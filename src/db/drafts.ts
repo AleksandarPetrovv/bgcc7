@@ -108,6 +108,19 @@ export async function settle(matchId: string) {
   return next;
 }
 
+export async function lobbyTimer(matchId: string, secs: number | null) {
+  const [d] = await db.select().from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
+  if (!d?.open || (!secs && !d.pausedAt)) return;
+  const now = Date.now();
+  const turnAt = d.pausedAt ? new Date((d.turnAt?.getTime() ?? now) + (now - d.pausedAt.getTime())) : d.turnAt;
+  const pause = secs ? { pausedAt: new Date(now), pauseUntil: new Date(now + secs * 1000) } : { pausedAt: null, pauseUntil: null };
+  await db
+    .update(drafts)
+    .set({ turnAt, ...pause, rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+    .where(eq(drafts.matchId, matchId));
+  emitDraft(matchId);
+}
+
 export async function draftAccess(matchId: string) {
   const v = await getViewer();
   if (!v) return null;
@@ -115,21 +128,18 @@ export async function draftAccess(matchId: string) {
   if (!m) return null;
   const admin = can(v.roles, "matches");
   const watch = can(v.roles, "draft");
-  const [cap] = await db
-    .select({ teamId: teamMembers.teamId })
-    .from(teamMembers)
-    .where(and(eq(teamMembers.osuId, v.osuId), eq(teamMembers.isCaptain, true)))
-    .limit(1);
-  const side: Side | null = cap && cap.teamId === m.team1Id ? 1 : cap && cap.teamId === m.team2Id ? 2 : null;
-  if (!admin && !watch && !side) return null;
+  const [mem] = await db.select({ teamId: teamMembers.teamId, isCaptain: teamMembers.isCaptain }).from(teamMembers).where(eq(teamMembers.osuId, v.osuId)).limit(1);
+  const team: Side | null = mem && mem.teamId === m.team1Id ? 1 : mem && mem.teamId === m.team2Id ? 2 : null;
+  const side = team && mem?.isCaptain ? team : null;
+  if (!admin && !watch && !team) return null;
   return { osuId: v.osuId, admin, side, match: m };
 }
 
-export async function isCaptain(osuId: number) {
+export async function isPlayer(osuId: number) {
   const [row] = await db
     .select({ id: teamMembers.osuId })
     .from(teamMembers)
-    .where(and(eq(teamMembers.osuId, osuId), eq(teamMembers.isCaptain, true)))
+    .where(eq(teamMembers.osuId, osuId))
     .limit(1)
     .catch(() => []);
   return !!row;
@@ -149,11 +159,7 @@ export async function myDraftClock(osuId: number) {
 }
 
 async function myOpenId(osuId: number) {
-  const [cap] = await db
-    .select({ teamId: teamMembers.teamId })
-    .from(teamMembers)
-    .where(and(eq(teamMembers.osuId, osuId), eq(teamMembers.isCaptain, true)))
-    .limit(1);
+  const [cap] = await db.select({ teamId: teamMembers.teamId }).from(teamMembers).where(eq(teamMembers.osuId, osuId)).limit(1);
   if (!cap) return null;
   const [row] = await db
     .select({ id: matches.id })
