@@ -36,7 +36,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const name = session?.user?.name;
   const avatar = session?.user?.image;
   return (
-    <div className="adm mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 pb-16 pt-6 sm:px-6 lg:flex-row lg:gap-10 lg:pt-10">
+    <div className="adm mx-auto flex w-full max-w-page flex-col gap-6 px-4 pb-16 pt-6 sm:px-6 lg:flex-row lg:gap-10 lg:px-10 lg:pt-10 2xl:gap-14 2xl:px-14">
       <aside className="shrink-0 lg:sticky lg:top-[104px] lg:w-72 lg:self-start">
         <div className="relative overflow-hidden border border-line bg-coal">
           <div className="relative hidden border-b border-dashed border-line p-5 lg:block">

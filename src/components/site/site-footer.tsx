@@ -10,7 +10,7 @@ export function SiteFooter() {
   ];
   return (
     <footer className="mt-24 border-t border-dashed border-line">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-5 gap-y-3 px-4 py-5 sm:px-6">
+      <div className="mx-auto flex max-w-page flex-wrap items-center justify-center gap-x-5 gap-y-3 px-4 py-5 sm:px-6 lg:px-10 2xl:px-14">
         <div className="flex items-center gap-3">
           <TriTick className="h-3 w-[22px] opacity-70" />
           <span className="font-display text-sm font-black lowercase text-ash">bgcc7</span>

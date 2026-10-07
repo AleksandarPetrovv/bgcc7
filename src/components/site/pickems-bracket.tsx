@@ -39,7 +39,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
 
   return (
     <div ref={ref} className="overflow-x-auto overflow-y-hidden pb-4">
-      <div className="mt-10" style={fit.outer}>
+      <div className="mx-auto mt-10" style={fit.outer}>
       <div className={cn("relative", scale === 1 && "mx-auto")} style={fit.inner}>
         <svg className="pointer-events-none absolute inset-0" width={width} height={height} aria-hidden>
           {Object.entries(WIN).map(([a, b]) => (

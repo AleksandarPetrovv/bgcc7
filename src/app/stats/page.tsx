@@ -91,7 +91,7 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
       </InView>
 
       <SectionHeading>{t.stats.mapLeaders}</SectionHeading>
-      <InView key={`l-${current!.slug}`} className="grid grid-cols-1 gap-3 md:grid-cols-2">
+      <InView key={`l-${current!.slug}`} className="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
         {data.maps.map((m, k) => {
           const top = data.players
             .filter((p) => p.perf[m.id])

@@ -12,6 +12,7 @@
   --font-heading: var(--font-archivo), var(--font-mont), sans-serif;
   --font-display: var(--font-unbounded), sans-serif;
   --font-num: var(--font-archivo), var(--font-mont), sans-serif;
+  --container-page: 120rem;
 
   --color-ink: #0d0f0e;
   --color-coal: #161917;
@@ -118,6 +119,15 @@
     scrollbar-gutter: stable;
     scrollbar-color: var(--color-line) var(--color-ink);
     -webkit-tap-highlight-color: transparent;
+  }
+  @media (min-width: 1500px) {
+    html { font-size: 106.25%; }
+  }
+  @media (min-width: 1800px) {
+    html { font-size: 112.5%; }
+  }
+  @media (min-width: 2300px) {
+    html { font-size: 125%; }
   }
   body {
     @apply text-paper;

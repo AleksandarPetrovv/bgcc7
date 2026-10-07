@@ -13,7 +13,7 @@ export function SubNav({ items }: { items: { href: string; label: string; hidden
   const t = useDict();
   return (
     <div className="sticky top-16 z-30 border-b border-line bg-coal/95 backdrop-blur lg:top-20">
-      <nav className="mx-auto flex max-w-6xl items-stretch gap-1 overflow-x-auto px-2 sm:gap-6 sm:px-4" aria-label={t.nav.section}>
+      <nav className="mx-auto flex max-w-page items-stretch gap-1 overflow-x-auto px-2 sm:gap-6 sm:px-4 lg:px-8 2xl:px-12" aria-label={t.nav.section}>
         {items.map((i) => {
           const active = path === i.href || (path.startsWith(`${i.href}/`) && !items.some((o) => o.href.length > i.href.length && (path === o.href || path.startsWith(`${o.href}/`))));
           return (
@@ -277,15 +277,11 @@ export function PageTitle({
 }
 
 export function Container({ children, className, plain }: { children: React.ReactNode; className?: string; plain?: boolean }) {
-  return <div className={cn(!plain && "enter-kids", "mx-auto w-full max-w-6xl px-4 pt-6 sm:px-6 sm:pt-10", className)}>{children}</div>;
+  return <div className={cn(!plain && "enter-kids", "mx-auto w-full max-w-page px-4 pt-6 sm:px-6 sm:pt-10 lg:px-10 2xl:px-14", className)}>{children}</div>;
 }
 
-export function Wide({ children, className, full }: { children: React.ReactNode; className?: string; full?: boolean }) {
-  return (
-    <div className={cn(full ? "ml-[calc(50%-min(960px,50vw-2rem))] w-[min(1920px,calc(100vw-4rem))]" : "ml-[calc(50%-min(750px,50vw-1.5rem))] w-[min(1500px,calc(100vw-3rem))]", className)}>
-      {children}
-    </div>
-  );
+export function Wide({ children, className }: { children: React.ReactNode; className?: string; full?: boolean }) {
+  return <div className={className}>{children}</div>;
 }
 
 export function SectionHeading({ children }: { children: React.ReactNode }) {

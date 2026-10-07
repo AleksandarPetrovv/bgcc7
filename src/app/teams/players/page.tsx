@@ -113,7 +113,7 @@ export default async function Players() {
       </PageTitle>
       {playoffs && <p className="-mt-3 mb-6 text-sm font-bold text-ash">{t.teams.playersAlive}</p>}
       {players.length === 0 && <p className="py-10 text-center text-ash">{t.teams.playersEmpty}</p>}
-      <Cascade className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" step={0.045}>
+      <Cascade className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4" step={0.045}>
         {players.map((p, i) => card(p, i))}
       </Cascade>
       {out.length > 0 && (
@@ -121,7 +121,7 @@ export default async function Players() {
           <h2 className="heading-slam mb-4 mt-12 flex items-center gap-3 text-2xl text-ash sm:text-3xl">
             {t.teams.knockedOut}
           </h2>
-          <Cascade className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" step={0.03}>
+          <Cascade className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4" step={0.03}>
             {out.map((p, i) => card(p, i, true))}
           </Cascade>
         </>

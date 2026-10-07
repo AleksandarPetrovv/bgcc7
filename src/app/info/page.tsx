@@ -38,9 +38,22 @@ export default async function InfoPage() {
           </span>
         </div>
 
+        <div className="mt-14 xl:grid xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] xl:gap-16">
+        <div>
         <SectionHeading>{t.info.general}</SectionHeading>
         <List items={t.info.generalItems} />
 
+        <SectionHeading>{t.info.regTitle}</SectionHeading>
+        <List items={t.info.regItems.map(f)} />
+
+        <SectionHeading>{t.info.qualTitle}</SectionHeading>
+        <List items={t.info.qualItems.map(f)} />
+
+        <SectionHeading>{t.info.procedure}</SectionHeading>
+        <List items={t.info.procItems} />
+        </div>
+
+        <div className="mt-14 xl:mt-0">
         <SectionHeading>{t.info.prizes}</SectionHeading>
         <InView className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {t.info.prizeRows.map((p, i) => (
@@ -55,12 +68,6 @@ export default async function InfoPage() {
           ))}
         </InView>
 
-        <SectionHeading>{t.info.regTitle}</SectionHeading>
-        <List items={t.info.regItems.map(f)} />
-
-        <SectionHeading>{t.info.qualTitle}</SectionHeading>
-        <List items={t.info.qualItems.map(f)} />
-
         <SectionHeading>{t.info.structure}</SectionHeading>
         <InView className="overflow-hidden border border-line">
           {t.info.formatRows.map((r, i) => (
@@ -71,9 +78,8 @@ export default async function InfoPage() {
             </div>
           ))}
         </InView>
-
-        <SectionHeading>{t.info.procedure}</SectionHeading>
-        <List items={t.info.procItems} />
+        </div>
+        </div>
       </div>
     </Container>
   );
