@@ -47,7 +47,7 @@ export async function POST(req: Request, ctx: Ctx) {
         await refreshLobby(id);
         break;
       case "start":
-        await startLobby(id, osuId, 10);
+        await startLobby(id, osuId, Math.min(300, Math.max(0, int(b?.secs))));
         break;
       case "abort":
         await abortLobby(id, osuId);

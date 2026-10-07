@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeftRight, Check, Copy, Crown, DoorClosed, ExternalLink, Map as MapIcon, MoveVertical, Play, Plus, RefreshCw, Send, Square, Timer, TimerOff, UserPlus, UserX, Users, WifiOff } from "lucide-react";
 import { useDict } from "@/components/site/lang";
@@ -27,7 +28,7 @@ function IconBtn({ children, className, ...p }: React.ButtonHTMLAttributes<HTMLB
   );
 }
 
-function Btn({ onClick, disabled, tone = "line", children }: { onClick: () => void; disabled?: boolean; tone?: "line" | "go" | "warn" | "bad"; children: React.ReactNode }) {
+function Btn({ onClick, disabled, tone = "line", wide, children }: { onClick: () => void; disabled?: boolean; tone?: "line" | "go" | "warn" | "bad"; wide?: boolean; children: React.ReactNode }) {
   const cls = {
     line: "border-line text-paper hover:border-paper",
     go: "border-balkan bg-balkan text-ink hover:bg-paper hover:border-paper",
@@ -35,9 +36,96 @@ function Btn({ onClick, disabled, tone = "line", children }: { onClick: () => vo
     bad: "border-rose text-rose-hi hover:bg-rose/10",
   }[tone];
   return (
-    <button type="button" onClick={onClick} disabled={disabled} className={cn("inline-flex min-h-8 -skew-x-12 items-center border px-3 text-xs font-black uppercase tracking-wide transition-colors disabled:opacity-50", cls)}>
-      <span className="inline-flex skew-x-12 items-center gap-1.5">{children}</span>
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn("inline-flex min-h-8 min-w-0 -skew-x-12 items-center border px-3 text-xs font-black uppercase tracking-wide transition-colors disabled:opacity-50", wide && "justify-center px-1.5", cls)}
+    >
+      <span className="inline-flex min-w-0 skew-x-12 items-center gap-1.5 whitespace-nowrap [&>svg]:shrink-0">{children}</span>
     </button>
+  );
+}
+
+function LobbyAsk({ kind, onCancel, onGo }: { kind: "start" | "abort" | "close"; onCancel: () => void; onGo: (secs: number) => void }) {
+  const t = useDict();
+  const [secs, setSecs] = useState(10);
+  const [custom, setCustom] = useState("");
+  const tone = { start: { c: "var(--color-balkan)", deep: "#0a6b47", Icon: Play }, abort: { c: "#e8c547", deep: "#9c7f1f", Icon: Square }, close: { c: "var(--color-rose)", deep: "var(--color-rose-deep)", Icon: DoorClosed } }[kind];
+  const copy = { start: [t.lobby.startTitle, null, t.lobby.start], abort: [t.lobby.abortTitle, t.lobby.abortBody, t.lobby.abort], close: [t.lobby.closeTitle, t.lobby.closeBody, t.lobby.closeYes] }[kind];
+  const pickSecs = custom ? Math.min(300, Math.max(0, Math.round(Number(custom)) || 0)) : secs;
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.2 } }}
+      onClick={onCancel}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/85 p-4 backdrop-blur-sm"
+    >
+      <motion.div
+        initial={{ y: 50, scale: 0.9, rotate: -2 }}
+        animate={{ y: 0, scale: 1, rotate: 0 }}
+        exit={{ y: 30, opacity: 0, transition: { duration: 0.2 } }}
+        transition={{ type: "spring", stiffness: 320, damping: 24 }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md overflow-hidden border-2 bg-coal p-6"
+        style={{ borderColor: tone.c, boxShadow: `8px 8px 0 0 ${tone.deep}` }}
+        role="dialog"
+        aria-modal="true"
+      >
+        <tone.Icon className={cn("size-8", kind === "start" && "fill-current")} style={{ color: tone.c }} />
+        <h3 className="heading-slam mt-2 text-3xl">{copy[0]}</h3>
+        {copy[1] && <p className="mt-1 text-sm font-bold text-paper/70">{copy[1]}</p>}
+        {kind === "start" && (
+          <div className="mt-5">
+            <div className="text-[0.65rem] font-black uppercase tracking-widest text-ash">{t.lobby.startIn}</div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {[0, 5, 10, 15, 30].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => {
+                    setSecs(s);
+                    setCustom("");
+                  }}
+                  className={cn(
+                    "num min-h-9 min-w-12 -skew-x-12 border px-2.5 text-sm font-black transition-colors",
+                    !custom && secs === s ? "border-balkan bg-balkan text-ink" : "border-line text-paper hover:border-paper",
+                  )}
+                >
+                  <span className="inline-block skew-x-12">{s ? `${s}s` : t.lobby.now}</span>
+                </button>
+              ))}
+              <input
+                value={custom}
+                onChange={(e) => setCustom(e.target.value.replace(/\D/g, "").slice(0, 3))}
+                inputMode="numeric"
+                placeholder={t.lobby.secs}
+                className={cn("adm-bare num min-h-9 w-20 border bg-ink px-2 text-sm outline-none", custom ? "border-balkan" : "border-line focus:border-paper")}
+              />
+            </div>
+          </div>
+        )}
+        <div className="mt-6 flex flex-col gap-2.5">
+          <motion.button
+            type="button"
+            whileHover={{ x: 4 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => onGo(pickSecs)}
+            className={cn("flex min-h-12 -skew-x-6 items-center px-5 text-left font-black uppercase tracking-wide", kind === "close" ? "text-white" : "text-ink")}
+            style={{ background: tone.c, boxShadow: `5px 5px 0 0 ${tone.deep}` }}
+          >
+            <span className="inline-flex skew-x-6 items-center gap-2">
+              <tone.Icon className={cn("size-4", kind === "start" && "fill-current")} /> {copy[2]}
+              {kind === "start" && <span className="num normal-case">{pickSecs ? `· ${pickSecs}s` : `· ${t.lobby.now}`}</span>}
+            </span>
+          </motion.button>
+          <button type="button" onClick={onCancel} className="mt-1 text-xs font-black uppercase tracking-wide text-ash hover:text-paper">
+            {t.draft.cancel}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -49,6 +137,7 @@ export function LobbyPanel({ slug, maps, onOpen }: { slug: string; maps: Beatmap
   const [copied, setCopied] = useState(false);
   const [joinCopied, setJoinCopied] = useState(false);
   const [moving, setMoving] = useState<number | null>(null);
+  const [ask, setAsk] = useState<"start" | "abort" | "close" | null>(null);
   const [say, setSay] = useState("");
   const sayRef = useRef<HTMLInputElement>(null);
   const fill = (cmd: string) => {
@@ -122,50 +211,74 @@ export function LobbyPanel({ slug, maps, onOpen }: { slug: string; maps: Beatmap
           </button>
         )}
         {err && <span className="text-xs font-black text-rose-hi">{t.lobby.failed}</span>}
-        <span className="ml-auto flex flex-wrap gap-2">
-          {open ? (
-            <>
-              <Btn onClick={() => fill("!mp map ")} disabled={offline}>
-                <MapIcon className="size-3.5" /> {t.lobby.map}
-              </Btn>
-              <Btn onClick={() => fill("!mp addref ")} disabled={offline}>
-                <UserPlus className="size-3.5" /> {t.lobby.addRef}
-              </Btn>
-              <Btn onClick={() => fill("!mp size ")} disabled={offline}>
-                <Users className="size-3.5" /> {t.lobby.size}
-              </Btn>
-              <Btn onClick={() => run({ act: "invite" })} disabled={pending || offline}>
-                <Send className="size-3.5" /> {t.lobby.invite}
-              </Btn>
-              <Btn onClick={() => run({ act: "refresh" })} disabled={pending || offline}>
-                <RefreshCw className={cn("size-3.5", pending && "animate-spin")} /> {t.lobby.refresh}
-              </Btn>
-              <Btn onClick={() => fill("!mp timer ")} disabled={offline}>
-                <Timer className="size-3.5" /> {t.lobby.timer}
-              </Btn>
-              <Btn onClick={() => run({ act: "aborttimer" })} disabled={pending || offline}>
-                <TimerOff className="size-3.5" /> {t.lobby.stopTimer}
-              </Btn>
-              {v.playing ? (
-                <Btn tone="warn" onClick={() => run({ act: "abort" })} disabled={pending || offline}>
-                  <Square className="size-3.5" /> {t.lobby.abort}
-                </Btn>
-              ) : (
-                <Btn tone="go" onClick={() => run({ act: "start" })} disabled={pending || offline || !v.mapId}>
-                  <Play className="size-3.5 fill-current" /> {t.lobby.start}
-                </Btn>
-              )}
-              <Btn tone="bad" onClick={() => window.confirm(t.lobby.confirmClose) && run({ act: "close" })} disabled={pending}>
-                <DoorClosed className="size-3.5" /> {t.lobby.close}
-              </Btn>
-            </>
-          ) : (
+        {!open && (
+          <span className="ml-auto">
             <Btn tone="go" onClick={() => run({ act: "make" })} disabled={pending || v.bot === "off"}>
               <Plus className="size-3.5" strokeWidth={3} /> {v.state === "closed" ? t.lobby.again : t.lobby.make}
             </Btn>
-          )}
-        </span>
+          </span>
+        )}
       </div>
+      {open && (
+        <div className="space-y-2 border-b border-line px-3 py-2.5">
+          <div className="grid grid-cols-4 gap-2">
+            <Btn wide onClick={() => fill("!mp map ")} disabled={offline}>
+              <MapIcon className="size-3.5" /> {t.lobby.map}
+            </Btn>
+            <Btn wide onClick={() => fill("!mp addref ")} disabled={offline}>
+              <UserPlus className="size-3.5" /> {t.lobby.addRef}
+            </Btn>
+            <Btn wide onClick={() => fill("!mp size ")} disabled={offline}>
+              <Users className="size-3.5" /> {t.lobby.size}
+            </Btn>
+            <Btn wide onClick={() => run({ act: "invite" })} disabled={pending || offline}>
+              <Send className="size-3.5" /> {t.lobby.invite}
+            </Btn>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <Btn wide onClick={() => run({ act: "refresh" })} disabled={pending || offline}>
+              <RefreshCw className={cn("size-3.5", pending && "animate-spin")} /> {t.lobby.refresh}
+            </Btn>
+            <Btn wide onClick={() => fill("!mp timer ")} disabled={offline}>
+              <Timer className="size-3.5" /> {t.lobby.timer}
+            </Btn>
+            <Btn wide onClick={() => run({ act: "aborttimer" })} disabled={pending || offline}>
+              <TimerOff className="size-3.5" /> {t.lobby.stopTimer}
+            </Btn>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {v.playing ? (
+              <Btn wide tone="warn" onClick={() => setAsk("abort")} disabled={pending || offline}>
+                <Square className="size-3.5" /> {t.lobby.abort}
+              </Btn>
+            ) : (
+              <Btn wide tone="go" onClick={() => setAsk("start")} disabled={pending || offline || !v.mapId}>
+                <Play className="size-3.5 fill-current" /> {t.lobby.start}
+              </Btn>
+            )}
+            <Btn wide tone="bad" onClick={() => setAsk("close")} disabled={pending}>
+              <DoorClosed className="size-3.5" /> {t.lobby.close}
+            </Btn>
+          </div>
+        </div>
+      )}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {ask && (
+              <LobbyAsk
+                key={ask}
+                kind={ask}
+                onCancel={() => setAsk(null)}
+                onGo={(secs) => {
+                  setAsk(null);
+                  run(ask === "start" ? { act: "start", secs } : { act: ask });
+                }}
+              />
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
 
       <AnimatePresence initial={false}>
         {open && (
@@ -340,7 +453,7 @@ function Chat({
 
   return (
     <div className="border-t border-line">
-      <div ref={box} className="h-72 overflow-y-auto px-3 py-2 text-[0.95rem]">
+      <div ref={box} className="h-[25rem] overflow-y-auto px-3 py-2 text-[0.95rem]">
         {lines.length ? (
           lines.map((m, i) => {
             const bancho = m.from === "BanchoBot";
