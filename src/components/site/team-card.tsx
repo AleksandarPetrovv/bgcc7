@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Crown } from "lucide-react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { type Team, fmtNum, flagUrl } from "@/lib/data";
+import { type Team, fmtNum, flagUrl, teamHref } from "@/lib/data";
 import { useDict } from "./lang";
 import { MeTag, meP, meT } from "./me";
 
@@ -37,7 +37,7 @@ export function TeamCard({ team }: { team: Team }) {
         delay={0}
         closeDelay={0}
         render={
-          <Link href={`/teams/${team.id}`} {...meT(team.id)} className="me-ring lift group relative flex overflow-hidden border sm:block border-line bg-coal outline-offset-4 [--lift:var(--color-balkan)] hover:border-balkan">
+          <Link href={teamHref(team)} {...meT(team.id)} className="me-ring lift group relative flex overflow-hidden border sm:block border-line bg-coal outline-offset-4 [--lift:var(--color-balkan)] hover:border-balkan">
             <MeTag t={team.id} corner />
             <div className="relative w-24 shrink-0 overflow-hidden bg-ink sm:h-32 sm:w-auto">
               {/* eslint-disable-next-line @next/next/no-img-element */}

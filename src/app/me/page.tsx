@@ -20,7 +20,7 @@ import { getPoolStages } from "@/db/mappools";
 import { getScoreboard } from "@/db/scoreboards";
 import { fmtRange, phaseStates } from "@/lib/dates";
 import { fmtSofia, fmtSofiaTime, isFuture, windowState } from "@/lib/time";
-import { flagUrl, fmtNum, type Match, type Team } from "@/lib/data";
+import { flagUrl, fmtNum, teamHref, type Match, type Team } from "@/lib/data";
 import { rankBws } from "@/lib/bws";
 import { sourceLabel, isLive } from "@/lib/matches";
 import { getFormat } from "@/db/edition";
@@ -100,7 +100,7 @@ function TeamCard({ t, team, me, record, i }: { t: Dict; team: Team; me: number;
         ))}
       </ul>
       <div className="border-t border-line px-4 py-3 sm:px-5">
-        <Link href={`/teams/${team.id}`} className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wide text-ash transition-colors hover:text-paper">
+        <Link href={teamHref(team)} className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wide text-ash transition-colors hover:text-paper">
           {t.me.teamPage} <ArrowRight className="size-3.5" />
         </Link>
       </div>
@@ -224,7 +224,7 @@ export default async function Me() {
     <Container plain>
       <PageTitle mark="people">{t.me.title}</PageTitle>
       {header}
-      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">{children}</div>
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2 2xl:gap-8">{children}</div>
     </Container>
   );
 

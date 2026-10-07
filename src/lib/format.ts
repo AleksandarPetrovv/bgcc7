@@ -62,14 +62,14 @@ const BGCC6: Format = {
   points: { "WB-R1": 10, "LB-R1": 10, "WB-R2": 15, "LB-R2": 15, "WB-R3": 25, "LB-R3": 25, "LB-R4": 35, GF: 50 },
   r1: [[1, 8], [4, 5], [2, 7], [3, 6]],
   rounds: {
-    "WB-R1": { name: "Round 1 (Quarter-Finals)", stage: "quarterfinals", slug: "w-qf" },
-    "WB-R2": { name: "Round 2 (Semi-Finals)", stage: "semifinals", slug: "w-sf" },
-    "WB-R3": { name: "Winners Finals", stage: "finals", slug: "w-f", single: true },
-    "LB-R1": { name: "Losers Round 1", stage: "quarterfinals", slug: "l-r1" },
-    "LB-R2": { name: "Losers Round 2", stage: "semifinals", slug: "l-r2" },
-    "LB-R3": { name: "Losers Round 3", stage: "finals", slug: "l-po", single: true },
-    "LB-R4": { name: "Losers Finals", stage: "finals", slug: "l-f", single: true },
-    GF: { name: "Grand Finals", stage: "grand-finals", slug: "gf" },
+    "WB-R1": { name: "Round 1 (Quarter-Finals)", stage: "quarterfinals", slug: "winners-quarterfinals" },
+    "WB-R2": { name: "Round 2 (Semi-Finals)", stage: "semifinals", slug: "winners-semifinals" },
+    "WB-R3": { name: "Winners Finals", stage: "finals", slug: "winners-finals", single: true },
+    "LB-R1": { name: "Losers Round 1", stage: "quarterfinals", slug: "losers-round-1" },
+    "LB-R2": { name: "Losers Round 2", stage: "semifinals", slug: "losers-round-2" },
+    "LB-R3": { name: "Losers Round 3", stage: "finals", slug: "losers-round-3", single: true },
+    "LB-R4": { name: "Losers Finals", stage: "finals", slug: "losers-finals", single: true },
+    GF: { name: "Grand Finals", stage: "grand-finals", slug: "grandfinals" },
   },
   losersFinal: "LB-R4-M1",
   winnersFinal: "WB-R3-M1",
@@ -161,17 +161,17 @@ function bgcc7(): Format {
     points: { "WB-R1": 5, "LB-R1": 5, "WB-R2": 10, "LB-R2": 10, "WB-R3": 15, "LB-R3": 15, "LB-R4": 15, "WB-R4": 25, "LB-R5": 25, "LB-R6": 25, GF: 50 },
     r1: [[1, 16], [8, 9], [5, 12], [4, 13], [6, 11], [3, 14], [7, 10], [2, 15]],
     rounds: {
-      "WB-R1": { name: "Round of 16", stage: "round-of-16", slug: "w-r16" },
-      "WB-R2": { name: "Quarterfinals", stage: "quarterfinals", slug: "w-qf" },
-      "WB-R3": { name: "Semifinals", stage: "semifinals", slug: "w-sf" },
-      "WB-R4": { name: "Winners Finals", stage: "finals", slug: "w-f", single: true },
-      "LB-R1": { name: "Losers Round 1", stage: "round-of-16", slug: "l-r1" },
-      "LB-R2": { name: "Losers Round 2", stage: "quarterfinals", slug: "l-r2" },
-      "LB-R3": { name: "Losers Round 3", stage: "semifinals", slug: "l-r3" },
-      "LB-R4": { name: "Losers Round 4", stage: "semifinals", slug: "l-r4" },
-      "LB-R5": { name: "Losers Round 5", stage: "finals", slug: "l-r5", single: true },
-      "LB-R6": { name: "Losers Finals", stage: "finals", slug: "l-f", single: true },
-      GF: { name: "Grand Finals", stage: "grand-finals", slug: "gf" },
+      "WB-R1": { name: "Round of 16", stage: "round-of-16", slug: "winners-round-of-16" },
+      "WB-R2": { name: "Quarterfinals", stage: "quarterfinals", slug: "winners-quarterfinals" },
+      "WB-R3": { name: "Semifinals", stage: "semifinals", slug: "winners-semifinals" },
+      "WB-R4": { name: "Winners Finals", stage: "finals", slug: "winners-finals", single: true },
+      "LB-R1": { name: "Losers Round 1", stage: "round-of-16", slug: "losers-round-1" },
+      "LB-R2": { name: "Losers Round 2", stage: "quarterfinals", slug: "losers-round-2" },
+      "LB-R3": { name: "Losers Round 3", stage: "semifinals", slug: "losers-round-3" },
+      "LB-R4": { name: "Losers Round 4", stage: "semifinals", slug: "losers-round-4" },
+      "LB-R5": { name: "Losers Round 5", stage: "finals", slug: "losers-round-5", single: true },
+      "LB-R6": { name: "Losers Finals", stage: "finals", slug: "losers-finals", single: true },
+      GF: { name: "Grand Finals", stage: "grand-finals", slug: "grandfinals" },
     },
     losersFinal: "LB-R6-M1",
     winnersFinal: "WB-R4-M1",
@@ -216,23 +216,17 @@ export const winTargets = (f: Format) => {
 };
 
 export function matchSlug(f: Format, id: string) {
-  if (id === "GF-M1") return "gf";
-  if (id === "GF-M2") return "gf-reset";
-  const m = id.match(/^([WL]B-R\d)-M(\d+)$/);
+  const m = id.match(/^(GF|[WL]B-R\d)-M(\d+)$/);
   const r = m && f.rounds[m[1]];
-  if (!m || !r) return id.toLowerCase();
-  return r.single ? r.slug : `${r.slug}-${m[2]}`;
+  return m && r ? `${r.slug}-${m[2]}` : id.toLowerCase();
 }
 
 export function matchIdFromSlug(f: Format, slug: string) {
-  const s = slug.toLowerCase();
-  if (s === "gf") return "GF-M1";
-  if (s === "gf-reset") return "GF-M2";
-  for (const [round, r] of Object.entries(f.rounds)) {
-    if (round === "GF") continue;
-    if (r.single ? s === r.slug : s.startsWith(`${r.slug}-`) && /^\d+$/.test(s.slice(r.slug.length + 1))) return r.single ? `${round}-M1` : `${round}-M${s.slice(r.slug.length + 1)}`;
-  }
-  return slug.toUpperCase();
+  const m = slug.match(/^([a-z0-9-]+)-([1-9]\d*)$/);
+  if (!m) return "";
+  const round = Object.entries(f.rounds).find(([, r]) => r.slug === m[1])?.[0];
+  const id = round ? `${round}-M${Number(m[2])}` : "";
+  return f.order.includes(id) ? id : "";
 }
 
 export const bracketRows = (f: Format) =>

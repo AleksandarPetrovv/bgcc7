@@ -87,8 +87,7 @@ export type OsuUserFull = {
   badges?: OsuBadge[];
 };
 
-export async function getUser(q: string | number) {
-  const key = /^\d+$/.test(String(q)) ? "id" : "username";
+export async function getUser(q: string | number, key: "id" | "username" = /^\d+$/.test(String(q)) ? "id" : "username") {
   try {
     return await get<OsuUserFull>(`/users/${encodeURIComponent(String(q).trim())}/osu?key=${key}`);
   } catch (e) {

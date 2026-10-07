@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type Match, fmtNum } from "@/lib/data";
+import { type Match, fmtNum, teamHref } from "@/lib/data";
 import { useTournament } from "./tournament";
 import { useDict, useLang } from "./lang";
 import { MatchDialog } from "./match-dialog";
@@ -30,7 +30,7 @@ function Side({ id, flip }: { id: string; flip?: boolean }) {
       </div>
       <div {...meT(team.id)} className={cn("relative flex min-w-0 flex-1 flex-col justify-center bg-slate/60 px-2.5 py-3 sm:px-4", flip && "items-end text-right")}>
         <span className={cn("flex max-w-full min-w-0 items-center", flip && "flex-row-reverse")}>
-          <Link href={`/teams/${team.id}`} className={cn("block min-w-0 truncate text-base font-black leading-tight hover:text-rose-hi sm:text-xl", flip ? "in-wipe-r" : "in-wipe")} style={{ "--d": "0.35s" } as React.CSSProperties}>
+          <Link href={teamHref(team)} className={cn("block min-w-0 truncate text-base font-black leading-tight hover:text-rose-hi sm:text-xl", flip ? "in-wipe-r" : "in-wipe")} style={{ "--d": "0.35s" } as React.CSSProperties}>
             {team.name}
           </Link>
           <MeTag t={team.id} />
