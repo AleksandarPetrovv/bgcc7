@@ -50,7 +50,7 @@ export default async function Lobbies() {
       {[...byDay.entries()].map(([day, list]) => (
         <InView as="section" key={day} className="mt-12 first-of-type:mt-0">
           <SectionHeading>{day}</SectionHeading>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
             {list.map((l, n) => {
               const mine = l.id === mineId;
               const full = l.players.length >= l.capacity;

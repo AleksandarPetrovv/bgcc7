@@ -13,10 +13,12 @@ import { MeTag, meP } from "@/components/site/me";
 
 export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
   await requireSection("teams");
-  const { id } = await params;
+  const { id: raw } = await params;
+  if (!/^[1-9]\d*$/.test(raw)) notFound();
   const [t, teams, allMatches] = await Promise.all([getDict(), getTeams(), getMatches()]);
-  const team = teams.find((x) => x.id === id);
+  const team = teams.find((x) => x.seed === Number(raw));
   if (!team) notFound();
+  const id = team.id;
   const matches = allMatches.filter((m) => m.team1.id === id || m.team2.id === id);
   const wins = matches.filter((m) => (m.team1.id === id && m.winner === 1) || (m.team2.id === id && m.winner === 2)).length;
 
@@ -25,7 +27,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
       <section className="relative overflow-hidden border-b border-line">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={team.image} alt="" className="absolute inset-0 size-full scale-110 object-cover opacity-25 blur-2xl" />
-        <div className="relative mx-auto flex max-w-6xl flex-wrap items-end gap-8 px-4 py-12 sm:px-6">
+        <div className="relative mx-auto flex max-w-page flex-wrap items-end gap-8 px-4 py-12 sm:px-6 lg:px-10 lg:py-16 2xl:px-14">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={team.image} alt="" className="in-spin size-40 border-4 border-paper object-cover" style={{ "--d": "0.1s" } as React.CSSProperties} />
           <div>
@@ -55,9 +57,10 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
         </div>
       </section>
 
-      <Container>
+      <Container className="xl:grid xl:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] xl:items-start xl:gap-12">
+        <div>
         <SectionHeading>{t.teams.roster}</SectionHeading>
-        <div className={team.players.length === 2 ? "grid grid-cols-1 gap-4 sm:grid-cols-2" : "grid grid-cols-1 gap-4 sm:grid-cols-3"}>
+        <div className={team.players.length === 2 ? "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-1" : "grid grid-cols-1 gap-4 sm:grid-cols-3 xl:grid-cols-1"}>
           {team.players.map((p) => (
             <div key={p.userId} {...meP(p.userId)} className="me-hl relative flex border border-line bg-coal">
               <MeTag p={p.userId} corner />
@@ -81,9 +84,12 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
             </div>
           ))}
         </div>
+        </div>
 
+        <div className="mt-14 xl:mt-0">
         <SectionHeading>{t.teams.matches}</SectionHeading>
         <div className="space-y-4">{matches.length ? matches.map((m) => <MatchRow key={m.id} match={m} />) : <p className="text-sm text-ash">{t.teams.noMatches}</p>}</div>
+        </div>
       </Container>
     </>
   );

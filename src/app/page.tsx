@@ -395,7 +395,7 @@ export default async function Home() {
         >
           7
         </div>
-        <div className="relative mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-8 px-4 pb-10 pt-8 sm:gap-10 sm:px-6 sm:pb-12 sm:pt-10 lg:grid-cols-[1.1fr_1fr] lg:items-end lg:pb-16 lg:pt-16">
+        <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] gap-8 px-4 pb-10 pt-8 sm:gap-10 sm:px-6 sm:pb-12 sm:pt-10 lg:grid-cols-[1.1fr_1fr] lg:items-end lg:px-10 lg:pb-16 lg:pt-16 2xl:gap-20 2xl:px-14 2xl:pb-24 2xl:pt-24">
           <div className="min-w-0">
             <HeroLockup label={`${t.home.badge} · 2027`} />
           </div>
@@ -455,7 +455,7 @@ export default async function Home() {
         </div>
       </HeroGate>
 
-      <section className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-12 px-4 pt-14 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)]">
+      <section className="mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] gap-12 px-4 pt-14 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:px-10 2xl:gap-16 2xl:px-14">
         <div>
           <h2 className="heading-slam text-3xl">{t.home.timeline}</h2>
           <Timeline t={t} timeline={settings.timeline} locale={locale} states={phaseStates(settings.timeline, phase)} />
@@ -479,7 +479,7 @@ export default async function Home() {
       </section>
 
       {see("schedule") && featured.length > 0 && (
-        <section className="mx-auto max-w-[1400px] px-4 pt-14 sm:px-6 sm:pt-20">
+        <section className="mx-auto max-w-page px-4 pt-14 sm:px-6 sm:pt-20 lg:px-10 2xl:px-14">
           <Reveal className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3">
             <h2 className="heading-slam text-3xl sm:text-4xl">{t.home.previously}</h2>
             <Link href="/matches" className="group inline-flex items-center gap-1.5 text-sm font-black uppercase text-ash transition-colors hover:text-paper">

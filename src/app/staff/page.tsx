@@ -24,7 +24,7 @@ export default async function Staff() {
         {t.staff.title}
       </PageTitle>
 
-      <Stagger className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+      <Stagger className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3 2xl:gap-6">
         {list.map((p, i) => (
           <StaggerItem as="article" key={p.username} className="lift group flex border border-line bg-coal hover:border-paper/30">
             <div className="flex shrink-0 items-center justify-center p-3 pr-1 sm:p-5" style={{ "--i": i, "--s": "0.08s", "--d": "0.2s" } as React.CSSProperties}>

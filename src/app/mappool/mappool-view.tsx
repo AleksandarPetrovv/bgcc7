@@ -95,7 +95,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                       initial={{ opacity: 0, x: -14 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.45, delay: 0.05 + k * 0.04, ease: [0.16, 1, 0.3, 1] }}
-                      key={m.slot} className="lift group relative flex h-20 items-stretch overflow-hidden border border-transparent bg-coal hover:border-line"
+                      key={m.slot} className="lift group relative flex h-20 items-stretch overflow-hidden border border-transparent bg-coal hover:border-line 2xl:h-24"
                       style={{ "--lift": mc, "--i": pi + k, "--s": "0.05s" } as React.CSSProperties}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-30 transition duration-500 group-hover:scale-105 group-hover:opacity-45 [--d:0.15s]" />
@@ -105,7 +105,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                       </span>
                       <div className="relative flex min-w-0 flex-1 flex-col justify-center">
                         <span className="flex min-w-0 items-center gap-2">
-                          <a href={osuMap(m.id)} target="_blank" rel="noreferrer" className="truncate text-base font-black transition-colors hover:text-[var(--lift)] sm:text-lg">
+                          <a href={osuMap(m.id)} target="_blank" rel="noreferrer" className="truncate text-base font-black transition-colors hover:text-[var(--lift)] sm:text-lg 2xl:text-xl">
                             {m.title}
                           </a>
                           {skill && m.mod !== "Tiebreaker" && MODS[m.mod] && (
@@ -125,7 +125,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                           <span>{fmtLen(m.length)}</span>
                         </span>
                       </div>
-                      <div className="in-right num relative hidden shrink-0 items-center pr-6 text-base lg:grid lg:grid-cols-[4.25rem_5.25rem_3rem_3.5rem_3.5rem_3.5rem] [--d:0.35s]">
+                      <div className="in-right num relative hidden shrink-0 items-center pr-6 text-base lg:grid lg:grid-cols-[4.25rem_5.25rem_3rem_3.5rem_3.5rem_3.5rem] xl:gap-x-4 xl:pr-10 xl:text-lg 2xl:gap-x-8 [--d:0.35s]">
                         <span className="flex items-center justify-end gap-1 text-[#e8c547]">
                           <Star className="size-4 fill-current" /> {m.sr.toFixed(2)}
                         </span>

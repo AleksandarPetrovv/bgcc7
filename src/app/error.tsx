@@ -15,7 +15,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
       >
         500
       </div>
-      <div className="relative mx-auto w-full max-w-6xl px-4 sm:px-6">
+      <div className="relative mx-auto w-full max-w-page px-4 sm:px-6 lg:px-10 2xl:px-14">
         <div className="num text-[clamp(5rem,16vw,10rem)] leading-[0.85] text-rose">500</div>
         <h1 className="heading-slam mt-4 text-[clamp(2rem,6vw,3.5rem)]">{t.error.title}</h1>
         <p className="mt-3 max-w-[46ch] text-pretty text-lg text-paper/70">{t.error.text}</p>

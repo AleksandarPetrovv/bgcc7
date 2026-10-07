@@ -27,7 +27,7 @@ export default async function Scores() {
       {played.length > 0 && (
         <section className="mt-12">
           <SubHeading>{t.qual.mpTitle}</SubHeading>
-          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             {played.map((l) => (
               <li key={l.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 border border-line bg-coal px-3 py-2 text-sm">
                 <span className="font-black">{l.name}</span>

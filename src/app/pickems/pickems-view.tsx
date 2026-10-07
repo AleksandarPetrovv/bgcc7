@@ -11,6 +11,7 @@ import { PickemsBracket } from "@/components/site/pickems-bracket";
 import { resolve, seedingOf, type Picks } from "@/lib/pickems";
 import { useTournament } from "@/components/site/tournament";
 import { osuUser } from "@/lib/links";
+import { pickemsHref } from "@/lib/data";
 import type { LeaderRow } from "@/db/queries";
 import { cn } from "@/lib/utils";
 import { login, savePickems } from "./actions";
@@ -130,13 +131,16 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
         <SectionHeading>{t.pickems.leaderboard}</SectionHeading>
       </div>
       {leaderboard.length ? (
-        <InView className="divide-y divide-line border border-line bg-coal">
+        <InView
+          className="divide-y divide-line border border-line bg-coal 2xl:grid 2xl:grid-flow-col 2xl:grid-cols-2 2xl:grid-rows-[repeat(var(--rows),auto)] 2xl:gap-px 2xl:divide-y-0 2xl:bg-line"
+          style={{ "--rows": Math.ceil(leaderboard.length / 2) } as React.CSSProperties}
+        >
           {leaderboard.map((e, i) => (
             <div
               key={e.osuId}
               style={{ "--i": Math.min(i, 15), "--s": "0.05s" } as React.CSSProperties}
               className={cn(
-                "in-left grid min-h-14 grid-cols-[48px_1fr_auto] items-center gap-x-4 px-4 sm:grid-cols-[64px_1fr_110px_70px_160px]",
+                "in-left grid min-h-14 bg-coal grid-cols-[48px_1fr_auto] items-center gap-x-4 px-4 sm:grid-cols-[64px_1fr_110px_70px_160px]",
                 e.osuId === osuId && "bg-balkan/10 shadow-[inset_3px_0_0_0_var(--color-balkan)]",
               )}
             >
@@ -157,7 +161,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
               </span>
               <span className="hidden justify-end sm:flex">
                 <Link
-                  href={`/pickems/${e.osuId}`}
+                  href={pickemsHref(e.username)}
                   onClick={() => window.scrollTo({ top: 0 })}
                   className="whitespace-nowrap text-xs font-black uppercase leading-none text-rose-hi hover:text-paper"
                 >

@@ -108,7 +108,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
     const id = setInterval(() => router.refresh(), 30_000);
     return () => clearInterval(id);
   }, [anyLive, router]);
-  const { ref: box, avail: seen, scale } = useFit((gfCol + 1) * minW + gfCol * G);
+  const { ref: box, avail: seen, scale: shrink } = useFit((gfCol + 1) * minW + gfCol * G, 768, 1);
   const avail = seen || 1500;
 
   const W = avail < 640 ? Math.round(Math.min(290, avail - 40)) : Math.floor(Math.min(290, Math.max(minW, (avail - gfCol * G - 8) / (gfCol + 1))));
@@ -121,6 +121,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
 
   const width = col(gfCol) + W;
   const height = LOW + (lowRows - 1) * P + H + 12;
+  const scale = shrink < 1 ? shrink : seen >= 1280 && width < seen ? Math.min(1.35, seen / width) : 1;
   const fit = fitBox(width, height, scale);
   const midY = (id: string) => top(id) + H / 2;
   const wire = (a: string, b: string) => {
@@ -152,7 +153,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
 
   return (
     <div ref={box} className="snap-x snap-mandatory overflow-x-auto overflow-y-hidden pb-4 md:snap-none">
-      <div className="mt-4" style={fit.outer}>
+      <div className="mx-auto mt-4" style={fit.outer}>
       <div className={cn("relative", scale === 1 && "mx-auto")} style={fit.inner}>
         <svg className="pointer-events-none absolute inset-0 overflow-visible" width={width} height={height} aria-hidden>
           <text x={col(mark)} y={TOP + (upRows - 1) * P + H - 6} className="in-trace heading-slam" fontSize={118} fill="none" stroke="rgba(244,243,238,0.08)" strokeWidth={1.5}>

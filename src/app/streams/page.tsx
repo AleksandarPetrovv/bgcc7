@@ -27,7 +27,7 @@ export default async function Streams() {
       >
         {t.streams.title}
       </PageTitle>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr] 2xl:grid-cols-[minmax(0,1fr)_28rem] 2xl:gap-10">
         <div className="relative">
           {live?.viewers != null && (
             <span className="in-pop num absolute -top-6 right-0 flex items-center gap-1 text-sm text-rose-hi" style={{ "--d": "0.9s" } as React.CSSProperties} title={t.home.live}>

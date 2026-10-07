@@ -13,7 +13,7 @@ export function TeamGrid({ title }: { title: string }) {
     <>
       <PageTitle mark="blocks">{title}</PageTitle>
       {teams.length ? (
-        <div className="relative grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="relative grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:gap-7">
           {teams.map((team, k) => (
             <motion.div
               key={team.id}
