@@ -2,12 +2,16 @@ import { applyDraft, draftAccess, setResult, settle, type DraftAct } from "@/db/
 import { getFormat } from "@/db/edition";
 import { matchIdFromSlug } from "@/lib/format";
 import { sse } from "@/lib/sse";
+import { nowPlaying } from "@/lib/bancho";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request, { params }: RouteContext<"/api/draft/[slug]">) {
   const id = matchIdFromSlug(await getFormat(), (await params).slug);
   if (!(await draftAccess(id))) return Response.json({ error: "forbidden" }, { status: 403 });
-  return sse(req, () => settle(id), 1000);
+  return sse(req, async () => {
+    const d = await settle(id);
+    return d && { ...d, playing: nowPlaying(id) };
+  }, 1000);
 }
 
 export async function POST(req: Request, { params }: RouteContext<"/api/draft/[slug]">) {

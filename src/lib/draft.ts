@@ -19,6 +19,7 @@ export type DraftView = {
   pickSecs: number;
   firstTo: number;
   hasTb: boolean;
+  playing?: { at: number; mapId: number } | null;
 };
 
 export type Turn =

@@ -221,7 +221,7 @@ export function LobbyPanel({ slug, maps, onOpen }: { slug: string; maps: Beatmap
       </div>
       {open && (
         <div className="space-y-2 border-b border-line px-3 py-2.5">
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-[minmax(0,0.85fr)_minmax(0,1.1fr)_minmax(0,0.85fr)_minmax(0,1.6fr)] gap-2">
             <Btn wide onClick={() => fill("!mp map ")} disabled={offline}>
               <MapIcon className="size-3.5" /> {t.lobby.map}
             </Btn>
@@ -381,7 +381,7 @@ export function LobbyPanel({ slug, maps, onOpen }: { slug: string; maps: Beatmap
                   {v.mapName ?? (map ? `${map.title} [${map.version}]` : v.mapId ? `#${v.mapId}` : t.lobby.noMap)}
                 </span>
                 <span className="relative mt-1.5 flex flex-wrap gap-1">
-                  {(v.freemod ? ["FM", ...v.mods] : v.mods.length ? v.mods : ["NM"]).map((m) => (
+                  {(v.freemod ? [...v.mods, "FM"] : v.mods.length ? v.mods : ["NM"]).map((m) => (
                     <span key={m} className="-skew-x-12 border px-1.5 text-[0.7rem] font-black leading-5" style={{ borderColor: MOD_C[m] ?? "var(--color-line)", color: MOD_C[m] ?? "var(--color-ash)" }}>
                       <span className="inline-block skew-x-12">{m}</span>
                     </span>
@@ -419,7 +419,7 @@ function Chat({
   const [until, setUntil] = useState(0);
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
-  const [fail, setFail] = useState(false);
+  const [fail, setFail] = useState<boolean | "noslot">(false);
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -447,7 +447,7 @@ function Chat({
       setNow(t0);
       setUntil(t0 + 1500);
       if (inputRef.current?.value === sent) setText("");
-    } else setFail(true);
+    } else setFail(res?.error === "noslot" ? "noslot" : true);
     inputRef.current?.focus();
   }
 
@@ -470,11 +470,15 @@ function Chat({
           <p className="py-6 text-center text-xs font-bold uppercase tracking-wide text-ash/60">{t.lobby.quiet}</p>
         )}
       </div>
+      {fail === "noslot" && <p className="border-t border-line bg-rose/10 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-rose-hi">{t.lobby.noSlot}</p>}
       <form onSubmit={send} className="flex gap-2 border-t border-line p-2">
         <input
           ref={inputRef}
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            if (fail) setFail(false);
+          }}
           maxLength={300}
           autoComplete="off"
           disabled={disabled}
