@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, ne } from "drizzle-orm";
+import { and, asc, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { matches, teamMembers, teams, users } from "@/db/schema";
 import { getFormat } from "@/db/edition";
@@ -40,7 +40,7 @@ export async function createTeam(_: ActionResult, fd: FormData) {
     if (!name) return { ok: false, error: "invalid" };
     const all = await db.select({ seed: teams.seed }).from(teams);
     const id = newId();
-    await db.insert(teams).values({ id, name, seed: all.length + 1 });
+    await db.insert(teams).values({ id, name, seed: Math.max(all.length, ...all.map((t) => t.seed)) + 1 });
     return { id, name };
   });
 }
@@ -62,7 +62,12 @@ export async function updateTeam(id: string, _: ActionResult, fd: FormData) {
 
 export async function deleteTeam(id: string) {
   return guard("teams", "team.delete", async () => {
-    const [row] = await db.delete(teams).where(eq(teams.id, id)).returning({ name: teams.name });
+    const row = await db.transaction(async (tx) => {
+      const [gone] = await tx.delete(teams).where(eq(teams.id, id)).returning({ name: teams.name });
+      const left = await tx.select({ id: teams.id }).from(teams).orderBy(asc(teams.seed), asc(teams.name));
+      for (const [k, t] of left.entries()) await tx.update(teams).set({ seed: k + 1 }).where(eq(teams.id, t.id));
+      return gone;
+    });
     return { id, name: row?.name ?? null };
   });
 }
