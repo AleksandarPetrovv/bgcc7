@@ -11,6 +11,7 @@ import { getPoolStages } from "@/db/mappools";
 import { getFormat } from "@/db/edition";
 import { getDraft, lobbyTimer, onDraft, poolSlots, setResult } from "@/db/drafts";
 import { other, rollWinner, scoreOf, turnOf, type DraftView } from "@/lib/draft";
+import { getUser } from "@/lib/osu-api";
 
 export type LobbySlot = { slot: number; name: string; id: number | null; side: 1 | 2 | null; team: "red" | "blue" | null; ready: "ready" | "notready" | "nomap"; host: boolean };
 export type LobbyView = {
@@ -217,7 +218,7 @@ async function narrate(l: Live, n: DraftView | null) {
   }
   if (n.roll1 != null && n.roll2 != null && (n.roll1 !== p.roll1 || n.roll2 !== p.roll2)) {
     const w = rollWinner(n);
-    await say(`Rolls: ${name(1)} ${n.roll1} · ${name(2)} ${n.roll2}, ${w ? `${name(w)} wins the roll` : "tie, roll again"}`);
+    await say(`Rolls: ${name(1)} ${n.roll1} · ${name(2)} ${n.roll2}, ${w ? `${name(w)} wins the roll` : "Tie, roll again"}`);
   }
   if (!p.choice && n.choice) {
     const w = rollWinner(n);
@@ -233,13 +234,10 @@ async function narrate(l: Live, n: DraftView | null) {
         await say(`${name(w)} wins ${Math.max(a, b)} - ${Math.min(a, b)}, GG!`);
       } else {
         const t = turnOf(n, slots);
-        await say(`${name(1)} ${a} - ${b} ${name(2)}${t.kind === "pick" ? ` | next pick: ${name(t.team)}` : ""}`);
+        await say(`${name(1)} ${a} - ${b} ${name(2)}${t.kind === "pick" ? ` | Next pick: ${name(t.team)}` : ""}`);
       }
     }
-    if (p.pausedAt && !n.pausedAt) {
-      const t = turnOf(n, slots);
-      await say(t.kind === "pick" || t.kind === "ban" ? `Back on, ${name(t.team)} to ${t.kind}` : "Back on");
-    }
+    if (p.pausedAt && !n.pausedAt && p.pauseUntil && Date.now() < new Date(p.pauseUntil).getTime() - 1500) await say("Timer aborted!");
     for (const s of n.steps.slice(p.steps.length)) {
       if (s.skip) await say(`${name(s.team)} ran out of time, ${s.kind} passes to ${name(other(s.team))}`);
       else if (s.kind === "ban") await say(`${name(s.team)} banned ${s.slot}`);
@@ -304,7 +302,7 @@ function attach(l: Live) {
   for (const ev of ["matchFinished", "matchAborted"] as const) lb.on(ev as "matchStarted", () => void playStart.delete(l.matchId));
   lb.channel.on("message", (msg) => {
     const own = msg.self && typed.delete(`${l.matchId}|${msg.message}`);
-    const shown = msg.self && !own && NONCED.test(msg.message) ? msg.message.replace(/ [a-z0-9]*[a-z][a-z0-9]*$/, "") : msg.message;
+    const shown = msg.self && !own && NONCED.test(msg.message) ? msg.message.replace(/^(!mp \S+.*?) (?=[a-z0-9]*[a-z])[a-z0-9]{8,}$/, "$1") : msg.message;
     const quiet = Date.now() < (synced.get(l.matchId)?.quietUntil ?? 0);
     if (quiet && (msg.self ? shown === "!mp settings" : msg.user.ircUsername === "BanchoBot" && SETTINGS_LINE.test(msg.message))) return;
     const line = { at: Date.now(), from: msg.user.ircUsername, text: shown.slice(0, 1000) };
@@ -481,6 +479,13 @@ export function nowPlaying(matchId: string) {
 }
 
 async function poolMap(matchId: string, text: string) {
+  const ref = text.match(/^!mp addref\s+(.+)$/i);
+  if (ref) {
+    const who = ref[1].trim().replace(/^#/, "");
+    if (/^\d+$/.test(who)) return { text: `!mp addref #${who}`, mod: undefined };
+    const u = await getUser(who, "username").catch(() => null);
+    return u ? { text: `!mp addref #${u.id}`, mod: undefined } : ("nouser" as const);
+  }
   const m = text.match(/^!mp map\s+(\S+)(.*)$/i);
   if (!m) return { text, mod: undefined };
   const d = await getDraft(matchId);
@@ -489,7 +494,7 @@ async function poolMap(matchId: string, text: string) {
   const maps = (await getPoolStages()).find((s) => s.slug === stage)?.pools.flatMap((p) => p.maps) ?? [];
   const byId = /^\d+$/.test(m[1]);
   const map = maps.find((x) => (byId ? x.id === Number(m[1]) : x.slot.toLowerCase() === m[1].toLowerCase()));
-  if (!map) return byId ? { text, mod: undefined } : null;
+  if (!map) return byId ? { text, mod: undefined } : ("noslot" as const);
   return { text: `!mp map ${map.id}${m[2]}`, mod: map.mod };
 }
 
@@ -499,7 +504,7 @@ export const CHAT_GAP = 1500;
 
 export async function sendChat(matchId: string, by: number, raw: string) {
   const hit = await poolMap(matchId, raw.replace(/[\r\n]+/g, " ").trim().slice(0, 300));
-  if (hit === null) return "noslot" as const;
+  if (typeof hit === "string") return hit;
   const text = hit.text;
   if (!text) return "empty" as const;
   const wait = (lastSent.get(by) ?? 0) + CHAT_GAP - Date.now();
