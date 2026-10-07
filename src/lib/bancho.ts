@@ -300,6 +300,8 @@ function attach(l: Live) {
   };
   for (const ev of ["playerJoined", "playerLeft", "playerMoved", "playerChangedTeam", "host", "hostCleared", "matchStarted", "matchFinished", "matchAborted", "beatmapId", "beatmap", "mods", "freemod", "size", "allPlayersReady", "matchSettings"] as const) lb.on(ev as "matchStarted", up);
   for (const ev of ["playerJoined", "playerLeft", "playerMoved", "playerChangedTeam", "beatmapId", "mods", "allPlayersReady", "matchFinished", "matchAborted"] as const) lb.on(ev as "matchStarted", () => autoSync(l));
+  lb.on("matchStarted", () => void playStart.set(l.matchId, Date.now()));
+  for (const ev of ["matchFinished", "matchAborted"] as const) lb.on(ev as "matchStarted", () => void playStart.delete(l.matchId));
   lb.channel.on("message", (msg) => {
     const own = msg.self && typed.delete(`${l.matchId}|${msg.message}`);
     const shown = msg.self && !own && NONCED.test(msg.message) ? msg.message.replace(/ [a-z0-9]*[a-z][a-z0-9]*$/, "") : msg.message;
@@ -469,10 +471,36 @@ export async function abortLobby(matchId: string, by: number) {
 
 const lastSent = new Map<number, number>();
 const typed = new Map<string, number>();
+const playStart = new Map<string, number>();
+
+export function nowPlaying(matchId: string) {
+  const l = g.bgccIrc?.live.get(matchId);
+  if (!l?.lobby.playing) return null;
+  if (!playStart.has(matchId)) playStart.set(matchId, Date.now());
+  return { at: playStart.get(matchId)!, mapId: l.lobby.beatmapId ?? 0 };
+}
+
+async function poolMap(matchId: string, text: string) {
+  const m = text.match(/^!mp map\s+(\S+)(.*)$/i);
+  if (!m) return { text, mod: undefined };
+  const d = await getDraft(matchId);
+  const [match] = d ? [] : await db.select({ stageSlug: matches.stageSlug }).from(matches).where(eq(matches.id, matchId)).limit(1);
+  const stage = d?.stageSlug ?? match?.stageSlug;
+  const maps = (await getPoolStages()).find((s) => s.slug === stage)?.pools.flatMap((p) => p.maps) ?? [];
+  const byId = /^\d+$/.test(m[1]);
+  const map = maps.find((x) => (byId ? x.id === Number(m[1]) : x.slot.toLowerCase() === m[1].toLowerCase()));
+  if (!map) return byId ? { text, mod: undefined } : null;
+  return { text: `!mp map ${map.id}${m[2]}`, mod: map.mod };
+}
+
+const modArgs = (mod: string) => (MOD_ARGS[mod] ? [MOD_ARGS[mod], false] : ["NF", true]) as [string, boolean];
+
 export const CHAT_GAP = 1500;
 
 export async function sendChat(matchId: string, by: number, raw: string) {
-  const text = raw.replace(/[\r\n]+/g, " ").trim().slice(0, 300);
+  const hit = await poolMap(matchId, raw.replace(/[\r\n]+/g, " ").trim().slice(0, 300));
+  if (hit === null) return "noslot" as const;
+  const text = hit.text;
   if (!text) return "empty" as const;
   const wait = (lastSent.get(by) ?? 0) + CHAT_GAP - Date.now();
   if (wait > 0) return "cooldown" as const;
@@ -484,6 +512,7 @@ export async function sendChat(matchId: string, by: number, raw: string) {
   for (const [k, at] of typed) if (Date.now() - at > 60_000) typed.delete(k);
   typed.set(`${matchId}|${out}`, Date.now());
   await lb.channel.sendMessage(out);
+  if (hit.mod) await lb.setMods(...modArgs(hit.mod)).catch(() => {});
   return "ok" as const;
 }
 
@@ -560,7 +589,6 @@ export async function lobbyPick(matchId: string, stageSlug: string, slot: string
   if (!map) return;
   const l = await liveOf(matchId);
   if (l.lobby.beatmapId !== map.id) await l.lobby.setMap(map.id, 0);
-  const mods = MOD_ARGS[map.mod];
-  await l.lobby.setMods(mods ?? "", !mods);
+  await l.lobby.setMods(...modArgs(map.mod));
   ping(matchId);
 }

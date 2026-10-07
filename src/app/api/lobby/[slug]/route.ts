@@ -34,7 +34,7 @@ export async function POST(req: Request, ctx: Ctx) {
     switch (act) {
       case "chat": {
         const r = await sendChat(id, osuId, String(b?.text ?? ""));
-        if (r !== "ok") return Response.json({ ok: false, error: r }, { status: 429 });
+        if (r !== "ok") return Response.json({ ok: false, error: r }, { status: r === "noslot" ? 404 : 429 });
         break;
       }
       case "make":
