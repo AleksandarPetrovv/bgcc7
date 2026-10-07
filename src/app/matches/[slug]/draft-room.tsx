@@ -261,6 +261,7 @@ function TimerDock({
   label,
   pause,
   raised,
+  calm,
 }: {
   left: number;
   total: number;
@@ -268,8 +269,9 @@ function TimerDock({
   label: string;
   pause?: boolean;
   raised?: boolean;
+  calm?: boolean;
 }) {
-  const low = !pause && left <= 10_000;
+  const low = !pause && !calm && left <= 10_000;
   const pct = total ? Math.max(0, Math.min(1, left / total)) : 0;
   const c = pause ? "#e8c547" : low ? "var(--color-rose)" : color.c;
   const hi = pause ? "#e8c547" : low ? "var(--color-rose-hi)" : color.hi;
@@ -753,6 +755,10 @@ export function DraftRoom({
   const limit = limitOf(d, turn.kind) * 1000;
   const left = dl == null ? null : Math.max(0, dl - (paused ? new Date(d.pausedAt!).getTime() : now));
   const pauseLeft = paused && d.pauseUntil ? Math.max(0, new Date(d.pauseUntil).getTime() - now) : 0;
+  const playMap = d.playing ? pools.flatMap((p) => p.maps).find((m) => m.id === d.playing!.mapId) : undefined;
+  const playTotal = playMap ? (playMap.length * 1000) / (playMap.mod === "DT" ? 1.5 : 1) : 0;
+  const playLeft = d.playing ? (playTotal ? Math.max(0, d.playing.at + playTotal - now) : Math.max(0, now - d.playing.at)) : 0;
+  const playTeam = (playMap && used.get(playMap.slot)?.team) || 1;
   const canTap = (slot: string) => !paused && (turn.kind === "ban" || turn.kind === "pick") && mine && pickable(slot) && !used.has(slot);
   const rolling = turn.kind === "roll" || turn.kind === "tie";
 
@@ -1342,6 +1348,8 @@ export function DraftRoom({
               color={TEAM[1]}
               label={t.draft.paused}
             />
+          ) : d.playing ? (
+            <TimerDock key="play" calm left={playLeft} total={playTotal} color={TEAM[playTeam]} label={playMap ? `${t.lobby.mapPlaying} · ${playMap.slot}` : t.lobby.mapPlaying} />
           ) : (
             left != null && "team" in turn && <TimerDock key="turn" left={left} total={limit} color={TEAM[turn.team]} label={headline} raised={!!sel && mine} />
           )}
