@@ -61,6 +61,7 @@ function state(): State | null {
     g.bgccIrc = { conns: {}, live: new Map(), bus: new EventEmitter().setMaxListeners(0), restored: false };
     console.log(`[bancho] state created pid=${process.pid}`);
     setInterval(sweepIdle, 30_000).unref();
+    setInterval(syncIdle, 5_000).unref();
     onDraft((id) => react(id));
   }
   return g.bgccIrc;
@@ -258,6 +259,39 @@ function sweepIdle() {
   for (const l of s.live.values()) if (!l.lobby.playing && Date.now() - l.active > IDLE) void closeLobby(l.matchId, null).catch(() => {});
 }
 
+const SYNC_GAP = 10_000;
+const SYNC_IDLE = 15_000;
+const NONCED = /^!mp (map|mods|lock|unlock|size|set|clearhost|close|start|timer|aborttimer|abort|settings)\b/;
+const SETTINGS_LINE =/^(Room name:|Beatmap:|Team mode:|Active mods:|Players:|Slot \d+\s)/;
+const synced = new Map<string, { last: number; quietUntil: number; timer?: ReturnType<typeof setTimeout> }>();
+const syncOf = (matchId: string) => synced.get(matchId) ?? synced.set(matchId, { last: 0, quietUntil: 0 }).get(matchId)!;
+
+function runSync(l: Live) {
+  const s = syncOf(l.matchId);
+  if (g.bgccIrc?.live.get(l.matchId) !== l) return void synced.delete(l.matchId);
+  s.last = Date.now();
+  s.quietUntil = s.last + 5_000;
+  void l.lobby.updateSettings().then(() => ping(l.matchId)).catch(() => {});
+}
+
+function autoSync(l: Live) {
+  const s = syncOf(l.matchId);
+  if (s.timer || Date.now() - s.last < 4_000) return;
+  const wait = s.last + SYNC_GAP - Date.now();
+  if (wait <= 0) return runSync(l);
+  s.timer = setTimeout(() => {
+    s.timer = undefined;
+    runSync(l);
+  }, wait);
+}
+
+function syncIdle() {
+  for (const l of g.bgccIrc?.live.values() ?? []) {
+    const s = syncOf(l.matchId);
+    if (!l.lobby.playing && l.lobby.slots.some(Boolean) && !s.timer && Date.now() - s.last >= SYNC_IDLE) runSync(l);
+  }
+}
+
 function attach(l: Live) {
   const lb = l.lobby;
   const up = () => {
@@ -265,8 +299,13 @@ function attach(l: Live) {
     ping(l.matchId);
   };
   for (const ev of ["playerJoined", "playerLeft", "playerMoved", "playerChangedTeam", "host", "hostCleared", "matchStarted", "matchFinished", "matchAborted", "beatmapId", "beatmap", "mods", "freemod", "size", "allPlayersReady", "matchSettings"] as const) lb.on(ev as "matchStarted", up);
+  for (const ev of ["playerJoined", "playerLeft", "playerMoved", "playerChangedTeam", "beatmapId", "mods", "allPlayersReady", "matchFinished", "matchAborted"] as const) lb.on(ev as "matchStarted", () => autoSync(l));
   lb.channel.on("message", (msg) => {
-    const line = { at: Date.now(), from: msg.user.ircUsername, text: msg.message.slice(0, 1000) };
+    const own = msg.self && typed.delete(`${l.matchId}|${msg.message}`);
+    const shown = msg.self && !own && NONCED.test(msg.message) ? msg.message.replace(/ [a-z0-9]*[a-z][a-z0-9]*$/, "") : msg.message;
+    const quiet = Date.now() < (synced.get(l.matchId)?.quietUntil ?? 0);
+    if (quiet && (msg.self ? shown === "!mp settings" : msg.user.ircUsername === "BanchoBot" && SETTINGS_LINE.test(msg.message))) return;
+    const line = { at: Date.now(), from: msg.user.ircUsername, text: shown.slice(0, 1000) };
     l.chat.push(line);
     void db
       .insert(mpChat)
@@ -413,6 +452,7 @@ export async function inviteMissing(matchId: string, by: number) {
 
 export async function refreshLobby(matchId: string) {
   const l = await liveOf(matchId);
+  Object.assign(syncOf(matchId), { last: Date.now(), quietUntil: 0 });
   await l.lobby.updateSettings();
   ping(matchId);
 }
@@ -428,6 +468,7 @@ export async function abortLobby(matchId: string, by: number) {
 }
 
 const lastSent = new Map<number, number>();
+const typed = new Map<string, number>();
 export const CHAT_GAP = 1500;
 
 export async function sendChat(matchId: string, by: number, raw: string) {
@@ -439,7 +480,10 @@ export async function sendChat(matchId: string, by: number, raw: string) {
   const { lb } = await lobbyAs(matchId, by);
   const own = (await kindFor(by)) === "personal";
   const [u] = own || text.startsWith("!") ? [] : await db.select({ username: users.username }).from(users).where(eq(users.osuId, by)).limit(1);
-  await lb.channel.sendMessage(u ? `[${u.username}] ${text}` : text);
+  const out = u ? `[${u.username}] ${text}` : text;
+  for (const [k, at] of typed) if (Date.now() - at > 60_000) typed.delete(k);
+  typed.set(`${matchId}|${out}`, Date.now());
+  await lb.channel.sendMessage(out);
   return "ok" as const;
 }
 
