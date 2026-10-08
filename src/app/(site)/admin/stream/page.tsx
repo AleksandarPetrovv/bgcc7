@@ -9,7 +9,9 @@ import { can } from "@/lib/roles";
 import { siteUrl } from "@/lib/links";
 import { fmtSofia } from "@/lib/time";
 import { streamMatches } from "@/db/stream";
+import { getLive } from "@/lib/live-scores";
 import { SceneButtons } from "./scene-buttons";
+import { OverlayPreview } from "./overlay-preview";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +48,7 @@ export default async function Stream() {
                   {m.mine ? s.you : (m.streamer ?? t.common.tbd)}
                 </span>
               </div>
+              <OverlayPreview slug={m.slug} title={s.preview} label={s.liveScores} offline={s.noLiveScores} clientsLabel={s.clients} delayLabel={s.delay} initialAt={getLive(m.id)?.at ?? null} initialClients={getLive(m.id)?.clients.length ?? 0} />
               <SceneButtons id={m.id} initial={m.scene} />
               <CopyLink url={`${base}/overlay/${m.slug}`} />
             </div>
