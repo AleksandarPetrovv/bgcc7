@@ -142,19 +142,22 @@ pub async fn run(sh: Arc<Shared>, token: String, mut stop: watch::Receiver<bool>
             result = async {
                 let response = http.post(format!("{SITE}/api/relay/score")).bearer_auth(&token).json(&p).send().await?;
                 let code = response.status().as_u16();
-                let matched = if code == 200 {
-                    response.json::<serde_json::Value>().await?.get("match").and_then(|m| m.as_str()).map(str::to_owned)
-                } else { None };
-                Ok::<_, reqwest::Error>((code, matched))
+                let body = response.json::<serde_json::Value>().await.unwrap_or_default();
+                let matched = body.get("match").and_then(|m| m.as_str()).map(str::to_owned);
+                let why = body.get("error").and_then(|e| e.as_str()).unwrap_or("").to_owned();
+                Ok::<_, reqwest::Error>((code, matched, why))
             } => result,
             _ = stop.changed() => break,
         };
         if *stop.borrow() { break; }
         match result {
-            Ok((200, Some(matched))) => state(&sh, "sending", count, Some(matched)),
-            Ok((409, _)) => state(&sh, "nomatch", count, None),
-            Ok((401, _)) => { crate::invalidate(&sh, &token); break; }
-            Ok((403, _)) => {
+            Ok((200, Some(matched), _)) => state(&sh, "sending", count, Some(matched)),
+            Ok((409, matched, why)) => {
+                let s = match why.as_str() { "noplayers" | "players" | "swapped" | "map" => why.as_str(), _ => "nomatch" };
+                state(&sh, s, count, matched);
+            }
+            Ok((401, _, _)) => { crate::invalidate(&sh, &token); break; }
+            Ok((403, _, _)) => {
                 sh.set(|s| {
                     s.can_stream = false;
                     s.streaming = false;
