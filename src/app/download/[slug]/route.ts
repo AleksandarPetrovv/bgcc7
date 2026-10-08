@@ -13,7 +13,7 @@ export async function GET(_: Request, { params }: RouteContext<"/download/[slug]
   const [[stage], vis] = await Promise.all([db.select().from(stages).where(eq(stages.slug, slug)).limit(1), getVisibility()]);
   const open = stage && stage.packSize && (vis.staff || (stage.poolReleased && vis.sections.mappool));
   if (!open) return new Response("not found", { status: 404 });
-  const file = packPath(stage.slug);
+  const file = packPath(stage.slug, getFormat().edition);
   const info = await stat(file).catch(() => null);
   if (!info) return new Response("not found", { status: 404 });
   const name = `${getFormat().name} ${stage.title}.zip`;
