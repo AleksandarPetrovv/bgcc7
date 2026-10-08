@@ -17,7 +17,7 @@ import { GOLD, TEAM, tint } from "@/lib/theme";
 import { redoDraft, resetDraft, undoDraft } from "@/app/admin/draft/actions";
 import { LobbyPanel, lobbyPost } from "./lobby-panel";
 import { useSSE } from "@/components/site/use-sse";
-import { MapCard, MatchDialog } from "@/components/site/match-dialog";
+import { Costs, MapCard, MatchDialog } from "@/components/site/match-dialog";
 import type { MapResult, Scoreboard } from "@/lib/scoreboard";
 
 type TeamInfo = {
@@ -375,14 +375,17 @@ function WinnerPopup({
   );
 }
 
-function ScoresPopup({ slug, slot, onClose }: { slug: string; slot: string; onClose: () => void }) {
+function ScoresPopup({ slug, slot, names, onClose }: { slug: string; slot: string; names: [string, string]; onClose: () => void }) {
   const t = useDict();
-  const [data, setData] = useState<MapResult | "none" | null>(null);
+  const [data, setData] = useState<{ board: Scoreboard; map: MapResult } | "none" | null>(null);
   useEffect(() => {
     let live = true;
     fetch(`/api/matches/${slug}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d: Scoreboard) => live && setData(d.maps.findLast((m) => m.slot === slot && !m.note) ?? "none"))
+      .then((d: Scoreboard) => {
+        const map = d.maps.findLast((m) => m.slot === slot && !m.note);
+        if (live) setData(map ? { board: d, map } : "none");
+      })
       .catch(() => live && setData("none"));
     return () => {
       live = false;
@@ -406,7 +409,10 @@ function ScoresPopup({ slug, slot, onClose }: { slug: string; slot: string; onCl
         aria-modal="true"
       >
         {data && data !== "none" ? (
-          <MapCard m={data} i={0} />
+          <div className="space-y-3 bg-ink">
+            <MapCard m={data.map} i={0} />
+            <Costs data={{ ...data.board, maps: [data.map] }} names={names} finished={false} />
+          </div>
         ) : (
           <div className="border border-line bg-coal px-6 py-10 text-center text-sm font-bold text-ash">{data === "none" ? t.draft.noScores : <Waiting />}</div>
         )}
@@ -1336,7 +1342,7 @@ export function DraftRoom({
             />
           )}
         </AnimatePresence>
-        <AnimatePresence>{scores && <ScoresPopup key={`s${scores}`} slug={slug} slot={scores} onClose={() => setScores(null)} />}</AnimatePresence>
+        <AnimatePresence>{scores && <ScoresPopup key={`s${scores}`} slug={slug} slot={scores} names={[name(1), name(2)]} onClose={() => setScores(null)} />}</AnimatePresence>
         <AnimatePresence>
           {sel && (turn.kind === "ban" || turn.kind === "pick") && mine && me && (
             <motion.div
