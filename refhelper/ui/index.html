@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BGCC7 Ref Helper</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="bar" data-tauri-drag-region>
+        <svg class="tri" viewBox="0 0 30 16" aria-hidden="true">
+          <polygon points="4,0 10,0 6,16 0,16" fill="#f4f3ee" />
+          <polygon points="14,0 20,0 16,16 10,16" fill="#0fa06a" />
+          <polygon points="24,0 30,0 26,16 20,16" fill="#e0242f" />
+        </svg>
+        <span class="title" data-tauri-drag-region>BGCC7 Ref Helper</span>
+        <div class="win">
+          <button id="min" title="Minimize">
+            <svg viewBox="0 0 12 12"><path d="M1 6h10" stroke="currentColor" stroke-width="1.6" /></svg>
+          </button>
+          <button id="close" class="x" title="Hide to tray">
+            <svg viewBox="0 0 12 12"><path d="M1.5 1.5l9 9M10.5 1.5l-9 9" stroke="currentColor" stroke-width="1.6" /></svg>
+          </button>
+        </div>
+      </header>
+
+      <section class="hero grain" data-tauri-drag-region>
+        <div class="drift-wrap" aria-hidden="true"><div class="drift"></div></div>
+        <div class="ghost" aria-hidden="true">7</div>
+        <div class="lockup" data-tauri-drag-region>
+          <div class="word"><span class="letter" style="animation-delay: 0.05s">b</span><span class="letter" style="animation-delay: 0.12s">g</span><span class="letter" style="animation-delay: 0.19s">c</span><span class="letter" style="animation-delay: 0.26s">c</span></div>
+          <span class="num7"><span class="echo" aria-hidden="true">7</span><span class="main">7</span><span class="shine" aria-hidden="true">7</span></span>
+        </div>
+        <span class="tag"><span>ref helper</span></span>
+      </section>
+
+      <main class="screens">
+        <section id="s-login" class="screen">
+          <div class="h in" style="--i: 0">Log in</div>
+          <label class="f in" style="--i: 1">
+            osu! irc username
+            <span class="field"><input id="name" autocomplete="off" spellcheck="false" /></span>
+          </label>
+          <label class="f in" style="--i: 2">
+            irc password
+            <span class="field"><input id="pass" type="password" autocomplete="off" /></span>
+          </label>
+          <button class="hint in" style="--i: 3" id="getirc">get your irc password</button>
+          <div class="err" id="login-err"></div>
+          <div class="row in" style="--i: 4">
+            <button class="btn rose big" id="go">
+              <span>Log in with osu! <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+            </button>
+          </div>
+          <div class="foot in" style="--i: 5">
+            <span class="grow"></span>
+            <button class="btn danger sm" data-uninstall><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg> Uninstall</span></button>
+          </div>
+        </section>
+
+        <section id="s-wait" class="screen">
+          <div class="h in" style="--i: 0">Confirm on the site</div>
+          <div class="code"><span id="word">····</span></div>
+          <div class="beads in" style="--i: 1" aria-hidden="true"></div>
+          <div class="err" id="wait-err"></div>
+          <div class="row in" style="--i: 2">
+            <button class="btn outline" id="reopen"><span>Open the page again</span></button>
+            <button class="btn outline" id="cancel"><span>Cancel</span></button>
+          </div>
+        </section>
+
+        <section id="s-run" class="screen">
+          <div class="me in" style="--i: 0">
+            <span class="av"><img id="avatar" alt="" /><b id="initial"></b></span>
+            <span class="who">
+              <span class="k">Logged in as</span>
+              <span class="h" id="me-name">—</span>
+            </span>
+          </div>
+          <div class="stats">
+            <div class="stat in" style="--i: 1">
+              <span class="k">Site</span>
+              <span class="v"><i class="dia" id="d-site"></i><span id="t-site">—</span></span>
+            </div>
+            <div class="stat in" style="--i: 2">
+              <span class="k">osu! irc</span>
+              <span class="v"><i class="dia" id="d-irc"></i><span id="t-irc">—</span></span>
+            </div>
+            <div class="stat in" style="--i: 3">
+              <span class="k">Lobbies</span>
+              <div class="lobbies" id="lobbies"></div>
+            </div>
+            <div class="stat in" style="--i: 4">
+              <span class="k">Commands sent</span>
+              <span class="n" id="sent">0</span>
+            </div>
+          </div>
+          <div class="sec in" style="--i: 5">Activity</div>
+          <ul class="log" id="log"></ul>
+          <div class="foot in" style="--i: 6">
+            <button class="toggle" id="auto"><span class="sw"></span>Start with Windows</button>
+            <span class="grow"></span>
+            <button class="btn outline sm" id="site"><span>Open bgcc</span></button>
+            <button class="btn outline sm" id="unlink"><span>Log out</span></button>
+          </div>
+          <div class="foot2 in" style="--i: 7">
+            <button class="btn danger sm" data-uninstall><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg> Uninstall</span></button>
+          </div>
+        </section>
+      </main>
+    </div>
+    <div class="modal" id="modal" hidden>
+      <div class="card">
+        <div class="h">Uninstall BGCC7 Ref Helper?</div>
+        <p>Removes the app, your saved login, autostart and the link to the site.</p>
+        <div class="row">
+          <button class="btn rose" id="un-yes"><span>Uninstall</span></button>
+          <button class="btn outline" id="un-no"><span>Cancel</span></button>
+        </div>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
