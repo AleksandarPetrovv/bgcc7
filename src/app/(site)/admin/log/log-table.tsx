@@ -4,7 +4,8 @@ import type { LogRow } from "@/db/admin";
 import { Avatar } from "@/components/site/avatar";
 import { InView } from "@/components/site/in-view";
 import type { Dict } from "@/lib/i18n/dict";
-import { describe, type LogCtx } from "@/lib/log-text";
+import { describe, summarize, type LogCtx } from "@/lib/log-text";
+import { getFormat } from "@/db/edition";
 import { compactLog, type CompactLogEntry } from "@/lib/log-compact";
 import { fmtSofia, fmtSofiaDay, fmtSofiaTime, TZ, TZ_LABEL } from "@/lib/time";
 import { cn } from "@/lib/utils";
@@ -67,10 +68,15 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
     round: (s: string) => t.rounds[s] ?? s,
     role: (r: string) => t.admin.roles[r] ?? r,
     date: (d: string) => `${fmtSofia(new Date(d), locale)} ${TZ_LABEL}`,
+    match: (id: string) => {
+      const m = id.match(/^(GF|[WL]B-R\d+)-M(\d+)$/);
+      const r = m && getFormat().rounds[m[1]];
+      return r && m ? `${t.rounds[r.name] ?? r.name} - ${m[2]}` : id;
+    },
   };
   const matchName = (id: string) => {
     const [a, b] = ctx.match.get(id) ?? [];
-    return a && b ? `${a} vs ${b} (${id})` : id;
+    return a && b ? `${a} vs ${b} (${helpers.match(id)})` : helpers.match(id);
   };
   const groupText = (entry: Extract<CompactLogEntry, { kind: "group" }>) => {
     switch (entry.category) {
@@ -80,6 +86,7 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
       case "screening": return t.admin.audit.screening;
       case "qualifierScores": return t.admin.audit.qualifierScores(ctx.user.get(Number(entry.context)) ?? `#${entry.context}`);
       case "matchScores": return t.admin.audit.matchScores(matchName(entry.context));
+      case "action": return summarize(entry.latest.action, entry.latest.payload, ctx, helpers);
     }
   };
   const renderRow = (r: LogRow, i: number) => {
@@ -133,7 +140,7 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
                       <span className="min-w-0 flex-1 break-words text-sm leading-snug text-paper/70">
                         <span className="font-black text-paper">{r.username ?? `#${r.osuId}`}</span>{" "}
                         <Rich text={groupText(entry)} />
-                        <span className="mt-0.5 block text-xs text-ash">{t.admin.audit.actions(entry.rows.length)}</span>
+                        <span className="num ml-1.5 font-black text-rose-hi">×{entry.rows.length}</span>
                       </span>
                       <time className="num w-12 shrink-0 text-right text-sm text-ash" dateTime={r.at.toISOString()}>{fmtSofiaTime(r.at)}</time>
                       <ChevronDown className="size-4 shrink-0 text-rose group-open/audit:rotate-180" aria-hidden />
