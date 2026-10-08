@@ -3,7 +3,7 @@ import "server-only";
 import { randomInt } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { and, eq, or, sql } from "drizzle-orm";
-import { drafts, matches, teamMembers } from "./schema";
+import { drafts, matches, teamMembers, type DraftUndo } from "./schema";
 import { getPoolStages } from "./mappools";
 import { getSettings } from "./settings";
 import { can } from "@/lib/roles";
@@ -30,7 +30,7 @@ export async function timers(): Promise<Timers> {
   return {
     banSecs: s.banSecs,
     pickSecs: s.pickSecs,
-    stages: stages.map((st) => ({ slug: st.slug, firstTo: st.firstTo ?? 7, hasTb: st.pools.some((p) => p.maps.some((m) => m.slot === "TB")) })),
+    stages: stages.map((st) => ({ slug: st.slug, firstTo: st.firstTo ?? getFormat().firstTo, hasTb: st.pools.some((p) => p.maps.some((m) => m.slot === "TB")) })),
   };
 }
 
@@ -54,7 +54,55 @@ export const toView = (r: Row, c: Timers = { banSecs: 90, pickSecs: 120, stages:
   pickSecs: c.pickSecs,
   firstTo: stageCfg(c, r.stageSlug).firstTo,
   hasTb: stageCfg(c, r.stageSlug).hasTb,
+  undo: undoPlan(r),
+  redo: r.redo?.at(-1) ?? null,
 });
+
+export function undoPlan(r: Pick<Row, "steps" | "choice" | "roll1" | "roll2">): DraftUndo | null {
+  const tail = r.steps.at(-1);
+  const core = tail?.auto && tail.slot === "TB" && !tail.winner ? r.steps.slice(0, -1) : r.steps;
+  const last = core.at(-1);
+  if (last?.kind === "pick" && !last.skip && last.winner) return { kind: "winner", slot: last.slot, winner: last.winner };
+  if (tail) return { kind: "step", step: tail };
+  if (r.choice) return { kind: "choice", choice: r.choice };
+  if (r.roll1 != null || r.roll2 != null) return { kind: "rolls", roll1: r.roll1, roll2: r.roll2 };
+  return null;
+}
+
+export async function undoStep(matchId: string) {
+  const [d] = await db.select().from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
+  if (!d) return null;
+  const u = undoPlan(d);
+  if (!u) return null;
+  const redo = [...(d.redo ?? []), u];
+  if (u.kind === "winner") await setResult(matchId, u.slot, null, redo);
+  else {
+    const patch = u.kind === "step" ? { steps: d.steps.slice(0, -1) } : u.kind === "choice" ? { choice: null } : { roll1: null, roll2: null };
+    await db
+      .update(drafts)
+      .set({ ...patch, redo, turnAt: d.pausedAt ?? new Date(), rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+      .where(eq(drafts.matchId, matchId));
+    emitDraft(matchId);
+  }
+  return u;
+}
+
+export async function redoStep(matchId: string) {
+  const [d] = await db.select().from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
+  const r = d?.redo?.at(-1);
+  if (!d || !r) return null;
+  const redo = d.redo.slice(0, -1);
+  if (r.kind === "winner") await setResult(matchId, r.slot, r.winner, redo);
+  else {
+    const patch = r.kind === "step" ? { steps: [...d.steps, r.step] } : r.kind === "choice" ? { choice: r.choice } : { roll1: r.roll1, roll2: r.roll2 };
+    await db
+      .update(drafts)
+      .set({ ...patch, redo, turnAt: d.pausedAt ?? new Date(), rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+      .where(eq(drafts.matchId, matchId));
+    emitDraft(matchId);
+  }
+  return r;
+}
 
 export async function getDraft(matchId: string) {
   const c = await timers();
@@ -99,7 +147,7 @@ export async function settle(matchId: string) {
     }
     const [out] = await tx
       .update(drafts)
-      .set({ steps, turnAt: new Date(turnAt), pausedAt, pauseUntil, rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+      .set({ steps, ...(steps.length !== row.steps.length ? { redo: [] } : {}), turnAt: new Date(turnAt), pausedAt, pauseUntil, rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
       .where(eq(drafts.matchId, matchId))
       .returning();
     return toView(out, c);
@@ -132,7 +180,7 @@ export async function draftAccess(matchId: string) {
   const team: Side | null = mem && mem.teamId === m.team1Id ? 1 : mem && mem.teamId === m.team2Id ? 2 : null;
   const side = team && mem?.isCaptain ? team : null;
   if (!admin && !watch && !team) return null;
-  return { osuId: v.osuId, admin, side, match: m };
+  return { osuId: v.osuId, admin, side, team, match: m };
 }
 
 export async function isPlayer(osuId: number) {
@@ -202,7 +250,7 @@ export async function applyDraft(matchId: string, side: Side, a: DraftAct) {
     }
     const [next] = await tx
       .update(drafts)
-      .set({ ...patch, turnAt: new Date(), rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+      .set({ ...patch, redo: [], turnAt: new Date(), rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
       .where(eq(drafts.matchId, matchId))
       .returning();
     return toView(next, c);
@@ -211,7 +259,7 @@ export async function applyDraft(matchId: string, side: Side, a: DraftAct) {
   return res;
 }
 
-export async function setResult(matchId: string, slot: string, winner: Side | null) {
+export async function setResult(matchId: string, slot: string, winner: Side | null, redo: DraftUndo[] = []) {
   const c = await timers();
   const res = await db.transaction(async (tx) => {
     const [row] = await tx.select().from(drafts).where(eq(drafts.matchId, matchId)).for("update");
@@ -230,7 +278,7 @@ export async function setResult(matchId: string, slot: string, winner: Side | nu
     }
     const [next] = await tx
       .update(drafts)
-      .set({ steps, ...(lastPick || steps.length !== row.steps.length ? { turnAt: new Date() } : {}), rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+      .set({ steps, redo, ...(lastPick || steps.length !== row.steps.length ? { turnAt: new Date() } : {}), rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
       .where(eq(drafts.matchId, matchId))
       .returning();
     return toView(next, c);

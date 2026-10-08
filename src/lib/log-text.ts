@@ -71,6 +71,8 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `рестартира пик и бан за ${match()}` : `reset pick and ban for ${match()}`;
     case "draft.undo":
       return bg ? `върна последната стъпка (${b(p.step)}) в ${match()}` : `undid the last step (${b(p.step)}) in ${match()}`;
+    case "draft.redo":
+      return bg ? `повтори стъпка (${b(p.step)}) в ${match()}` : `redid a step (${b(p.step)}) in ${match()}`;
     case "settings.qualify":
       return bg ? `смени колко играчи се класират на ${b(p.qualifyCount)}` : `set qualifying players to ${b(p.qualifyCount)}`;
     case "settings.rounds":

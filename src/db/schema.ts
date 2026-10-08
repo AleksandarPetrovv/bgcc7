@@ -262,6 +262,8 @@ export const mpChat = pgTable(
     at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
     from: text("from").notNull(),
     text: text("text").notNull(),
+    local: boolean("local").notNull().default(false),
+    side: integer("side"),
   },
   (t) => [index("mp_chat_mp_idx").on(t.mpId, t.id)],
 );
@@ -314,6 +316,11 @@ export const scoreEdits = pgTable(
 );
 
 export type DraftStep = { team: 1 | 2; kind: "ban" | "pick"; slot: string; skip?: boolean; winner?: 1 | 2; auto?: boolean };
+export type DraftUndo =
+  | { kind: "winner"; slot: string; winner: 1 | 2 }
+  | { kind: "step"; step: DraftStep }
+  | { kind: "choice"; choice: string }
+  | { kind: "rolls"; roll1: number | null; roll2: number | null };
 
 export const drafts = pgTable("drafts", {
   matchId: text("match_id")
@@ -327,6 +334,7 @@ export const drafts = pgTable("drafts", {
   roll2: integer("roll2"),
   choice: text("choice"),
   steps: jsonb("steps").$type<DraftStep[]>().notNull().default([]),
+  redo: jsonb("redo").$type<DraftUndo[]>().notNull().default([]),
   rev: integer("rev").notNull().default(0),
   turnAt: timestamp("turn_at", { withTimezone: true }),
   pausedAt: timestamp("paused_at", { withTimezone: true }),
