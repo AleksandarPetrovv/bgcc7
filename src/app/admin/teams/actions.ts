@@ -9,6 +9,7 @@ import { getQualResults } from "@/db/qualifiers";
 import { getSettings } from "@/db/settings";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
+import { isTestTeam } from "@/lib/format";
 
 const newId = newTeamId;
 
@@ -38,7 +39,7 @@ export async function createTeam(_: ActionResult, fd: FormData) {
   return guard("teams", "team.create", async () => {
     const name = String(fd.get("name") ?? "").trim().slice(0, 40);
     if (!name) return { ok: false, error: "invalid" };
-    const all = await db.select({ seed: teams.seed }).from(teams);
+    const all = (await db.select({ id: teams.id, seed: teams.seed }).from(teams)).filter((t) => !isTestTeam(t.id));
     const id = newId();
     await db.insert(teams).values({ id, name, seed: Math.max(all.length, ...all.map((t) => t.seed)) + 1 });
     return { id, name };
@@ -64,7 +65,7 @@ export async function deleteTeam(id: string) {
   return guard("teams", "team.delete", async () => {
     const row = await db.transaction(async (tx) => {
       const [gone] = await tx.delete(teams).where(eq(teams.id, id)).returning({ name: teams.name });
-      const left = await tx.select({ id: teams.id }).from(teams).orderBy(asc(teams.seed), asc(teams.name));
+      const left = (await tx.select({ id: teams.id }).from(teams).orderBy(asc(teams.seed), asc(teams.name))).filter((t) => !isTestTeam(t.id));
       for (const [k, t] of left.entries()) await tx.update(teams).set({ seed: k + 1 }).where(eq(teams.id, t.id));
       return gone;
     });

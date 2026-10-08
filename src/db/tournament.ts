@@ -7,8 +7,11 @@ import { safe } from "./safe";
 import { mpIds } from "./lobbies";
 import type { Match, Player, Sponsor, Team } from "@/lib/data";
 import { optImg } from "@/lib/img";
+import { isTestTeam, TEST_MATCH } from "@/lib/format";
 
-export const getTeams = cache(() =>
+export const getTeams = cache(async () => (await getAllTeams()).filter((t) => !isTestTeam(t.id)));
+
+export const getAllTeams = cache(() =>
   safe(async () => {
     const [ts, ms] = await Promise.all([
       db.select().from(teams).orderBy(asc(teams.seed), asc(teams.name)),
@@ -60,10 +63,13 @@ export const getTeams = cache(() =>
 
 export type MatchRow = typeof matches.$inferSelect;
 
-export const getMatchRows = cache(() => safe(() => db.select().from(matches).orderBy(asc(matches.order)), [] as MatchRow[]));
+export const getAllMatchRows = cache(() => safe(() => db.select().from(matches).orderBy(asc(matches.order)), [] as MatchRow[]));
+export const getMatchRows = cache(async () => (await getAllMatchRows()).filter((m) => m.id !== TEST_MATCH.id));
 
-export const getMatches = cache(async (): Promise<Match[]> => {
-  const [rows, ts] = await Promise.all([getMatchRows(), getTeams()]);
+export const getMatches = cache(async (): Promise<Match[]> => (await getAllMatches()).filter((m) => m.id !== TEST_MATCH.id));
+
+export const getAllMatches = cache(async (): Promise<Match[]> => {
+  const [rows, ts] = await Promise.all([getAllMatchRows(), getAllTeams()]);
   const name = (id: string | null) => ts.find((t) => t.id === id)?.name ?? "TBD";
   return rows.map((m) => ({
     id: m.id,
