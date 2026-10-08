@@ -10,7 +10,7 @@ const csp = [
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
   `connect-src 'self'${dev ? " ws: wss:" : ""}`,
-  "frame-src https://player.twitch.tv",
+  "frame-src 'self' https://player.twitch.tv",
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'",
@@ -44,6 +44,13 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
           { key: "Content-Security-Policy", value: csp },
+        ],
+      },
+      {
+        source: "/overlay/:key",
+        headers: [
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Content-Security-Policy", value: csp.replace("frame-ancestors 'none'", "frame-ancestors 'self'") },
         ],
       },
     ];
