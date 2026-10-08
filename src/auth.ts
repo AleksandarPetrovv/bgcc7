@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import type { OAuthConfig } from "next-auth/providers";
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { userNames, users } from "@/db/schema";
 
 type OsuProfile = { id: number; username: string; avatar_url: string; country_code: string };
 
@@ -26,6 +26,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (!p?.id) return false;
       const row = { username: p.username, avatarUrl: p.avatar_url, country: p.country_code, updatedAt: new Date() };
       await db.insert(users).values({ osuId: p.id, ...row }).onConflictDoUpdate({ target: users.osuId, set: row });
+      await db.insert(userNames).values({ osuId: p.id, username: p.username }).onConflictDoNothing();
       return true;
     },
     jwt({ token, account }) {

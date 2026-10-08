@@ -72,6 +72,18 @@ export const settings = pgTable("settings", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const userNames = pgTable(
+  "user_names",
+  {
+    osuId: integer("osu_id")
+      .notNull()
+      .references(() => users.osuId, { onDelete: "cascade" }),
+    username: text("username").notNull(),
+    at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique().on(t.osuId, t.username)],
+);
+
 export const staff = pgTable("staff", {
   osuId: integer("osu_id")
     .primaryKey()
@@ -246,6 +258,7 @@ export const matches = pgTable("matches", {
   streamer: text("streamer"),
   commentators: text("commentators"),
   vodUrl: text("vod_url"),
+  scene: text("scene"),
   manual: boolean("manual").notNull().default(false),
 });
 
