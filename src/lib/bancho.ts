@@ -237,7 +237,6 @@ async function narrate(l: Live, n: DraftView | null) {
         await say(`${name(1)} ${a} - ${b} ${name(2)}${t.kind === "pick" ? ` | Next pick: ${name(t.team)}` : ""}`);
       }
     }
-    if (p.pausedAt && !n.pausedAt && p.pauseUntil && Date.now() < new Date(p.pauseUntil).getTime() - 1500) await say("Timer aborted!");
     for (const s of n.steps.slice(p.steps.length)) {
       if (s.skip) await say(`${name(s.team)} ran out of time, ${s.kind} passes to ${name(other(s.team))}`);
       else if (s.kind === "ban") await say(`${name(s.team)} banned ${s.slot}`);
