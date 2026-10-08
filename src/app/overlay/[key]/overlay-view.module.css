@@ -1,0 +1,16 @@
+.stage {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  isolation: isolate;
+  background: transparent;
+  color: var(--color-paper);
+  font: 400 24px/1.25 var(--font-archivo), sans-serif;
+  pointer-events: none;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+}
