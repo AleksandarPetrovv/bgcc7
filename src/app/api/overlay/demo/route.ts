@@ -2,6 +2,8 @@ import "server-only";
 import { isScene, type Scene } from "@/lib/scenes";
 import { type OverlayFeed, type FeedStep, type LiveScore } from "@/lib/overlay-types";
 import { sse } from "@/lib/sse";
+import { getPoolStages } from "@/db/mappools";
+import { poolFeed } from "@/lib/overlay-feed";
 
 export const dynamic = "force-dynamic";
 
@@ -244,5 +246,18 @@ export async function GET(req: Request) {
   const pin = isScene(sceneParam) ? sceneParam : null;
 
   const startedAt = Date.now();
-  return sse(req, async () => demo(pin, startedAt), 100, () => () => {});
+  const stageSlug = url.searchParams.get("stage");
+  const stage = stageSlug ? (await getPoolStages()).find((s) => s.slug === stageSlug) : undefined;
+  const real = stage ? await poolFeed(stage) : null;
+  return sse(
+    req,
+    async () => {
+      const feed = demo(pin, startedAt);
+      if (!real?.pool.length) return feed;
+      const current = feed.current ? (real.pool.find((m) => m.slot === feed.current!.slot) ?? real.pool[0]) : null;
+      return { ...feed, match: { ...feed.match, round: stage!.title, firstTo: stage!.firstTo ?? feed.match.firstTo }, pool: real.pool, groups: real.groups, current, live: feed.live && current ? { ...feed.live, mapId: current.id } : feed.live };
+    },
+    100,
+    () => () => {},
+  );
 }

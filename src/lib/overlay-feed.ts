@@ -6,12 +6,37 @@ import { getAllMatches, getAllTeams } from "@/db/tournament";
 import { matchIdFromSlug, matchSlug } from "@/lib/format";
 import { settle } from "@/db/drafts";
 import { getFormat } from "@/db/edition";
-import { getPoolStages } from "@/db/mappools";
+import { getPoolStages, type PoolStage } from "@/db/mappools";
+import { getSkillLayouts } from "@/db/format-plan";
+import { bySkill } from "@/lib/format-plan";
 import { nowPlaying } from "@/lib/bancho";
 import { getLive, IPC_PLAYING } from "@/lib/live-scores";
 import { overlayUser, currentStreamMatch } from "@/db/stream";
 import { isScene, type Scene } from "@/lib/scenes";
-import type { OverlayFeed, FeedTeam, FeedMap, FeedStep } from "./overlay-types";
+import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup } from "./overlay-types";
+
+export async function poolFeed(stage: PoolStage | undefined): Promise<{ pool: FeedMap[]; groups?: FeedGroup[] }> {
+  if (!stage?.released) return { pool: [] };
+  const pool: FeedMap[] = stage.pools.flatMap((p) => p.maps).map((map) => ({
+    slot: map.slot,
+    mod: map.mod,
+    id: map.id,
+    title: map.title,
+    version: map.version,
+    creator: map.creator,
+    sr: map.sr,
+    bpm: map.bpm,
+    length: map.length,
+    cs: map.cs,
+    ar: map.ar,
+    od: map.od,
+    cover: map.cover,
+  }));
+  const layout = (await getSkillLayouts())?.[stage.slug];
+  if (!layout) return { pool };
+  const groups = bySkill(stage, layout).pools.map((p) => ({ name: p.category, color: (p as { color?: string }).color ?? "var(--color-paper)", slots: p.maps.map((m) => m.slot) }));
+  return { pool, groups };
+}
 
 export async function resolveOverlay(key: string): Promise<{ found: boolean; matchId: string | null }> {
   const k = key.toLowerCase();
@@ -73,21 +98,7 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
 
   const stageSlug = draft?.stageSlug ?? m.stage;
   const stage = stages.find((s) => s.slug === stageSlug);
-  const pool: FeedMap[] = (stage?.released ? stage.pools.flatMap((p) => p.maps) : []).map((map) => ({
-    slot: map.slot,
-    mod: map.mod,
-    id: map.id,
-    title: map.title,
-    version: map.version,
-    creator: map.creator,
-    sr: map.sr,
-    bpm: map.bpm,
-    length: map.length,
-    cs: map.cs,
-    ar: map.ar,
-    od: map.od,
-    cover: map.cover,
-  }));
+  const { pool, groups } = await poolFeed(stage);
 
   const firstTo = draft?.firstTo ?? stage?.firstTo ?? f.firstTo;
 
@@ -148,6 +159,7 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
     },
     teams: [team(m.team1), team(m.team2)],
     pool,
+    groups,
     steps: stage?.released ? steps : [],
     current,
     live: stage?.released ? live : null,
