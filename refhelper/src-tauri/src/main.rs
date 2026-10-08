@@ -3,6 +3,7 @@
 mod filter;
 mod relay;
 mod store;
+mod streaming;
 
 use base64::Engine;
 use rand::RngCore;
@@ -26,6 +27,8 @@ struct Ctl {
     shared: Arc<Shared>,
     relay: Mutex<Option<watch::Sender<bool>>>,
     linking: Mutex<Option<watch::Sender<bool>>>,
+    streaming: Mutex<Option<watch::Sender<bool>>>,
+    auth: Mutex<Option<watch::Sender<bool>>>,
 }
 
 fn link_word(state: &str) -> String {
@@ -33,8 +36,14 @@ fn link_word(state: &str) -> String {
 }
 
 fn start_relay(ctl: &Ctl) {
+    if !ctl.shared.status().can_ref { return; }
     let c = ctl.shared.store.load();
-    let (Some(token), Some(pass)) = (c.token.clone(), ctl.shared.store.password(&c.name)) else { return };
+    let Some(token) = c.token.clone() else { return };
+    let Some(pass) = ctl.shared.store.password(&c.name) else {
+        ctl.shared.set(|s| s.irc = "badpass");
+        ctl.shared.note("warn", "save your irc password to enable ref mode");
+        return;
+    };
     let (tx, rx) = watch::channel(false);
     if let Some(old) = ctl.relay.lock().unwrap().replace(tx) {
         let _ = old.send(true);
@@ -51,6 +60,159 @@ fn stop_relay(ctl: &Ctl) {
     if let Some(old) = ctl.relay.lock().unwrap().take() {
         let _ = old.send(true);
     }
+    ctl.shared.set(|s| {
+        s.site = if s.linked && s.roles_ready { "online" } else { "off" };
+        s.irc = "idle";
+        s.lobbies.clear();
+    });
+}
+
+fn stop_streaming(ctl: &Ctl) {
+    if let Some(old) = ctl.streaming.lock().unwrap().take() { let _ = old.send(true); }
+}
+
+fn stop_auth(ctl: &Ctl) {
+    if let Some(old) = ctl.auth.lock().unwrap().take() { let _ = old.send(true); }
+}
+
+fn start_streaming(ctl: &Ctl) {
+    let s = ctl.shared.status();
+    if !s.linked || !s.roles_ready || !s.can_stream || !s.streaming { return; }
+    let Some(token) = ctl.shared.store.load().token else { return };
+    let (tx, rx) = watch::channel(false);
+    if let Some(old) = ctl.streaming.lock().unwrap().replace(tx) { let _ = old.send(true); }
+    ctl.shared.set(|s| { s.stream_state = "waiting".into(); s.stream_match = None; s.stream_clients = 0; });
+    tauri::async_runtime::spawn(streaming::run(ctl.shared.clone(), token, rx));
+}
+
+pub(crate) fn invalidate(sh: &Shared, token: &str) {
+    let ctl = sh.app.state::<Ctl>();
+    let mut c = sh.store.load();
+    if c.token.as_deref() != Some(token) { return; }
+    stop_auth(&ctl);
+    stop_relay(&ctl);
+    stop_streaming(&ctl);
+    c.token = None;
+    sh.store.save(&c);
+    sh.set(|s| {
+        s.linked = false;
+        s.roles_ready = false;
+        s.can_ref = false;
+        s.can_stream = false;
+        s.site = "off";
+        s.irc = "idle";
+        s.lobbies.clear();
+        s.stream_state = "unpaired".into();
+        s.stream_match = None;
+        s.stream_clients = 0;
+    });
+    sh.note("warn", "the site unlinked this app, link it again");
+}
+
+#[derive(serde::Deserialize)]
+struct Roles {
+    id: u64,
+    name: String,
+    #[serde(rename = "ref")]
+    can_ref: bool,
+    #[serde(rename = "stream")]
+    can_stream: bool,
+}
+
+fn refresh_roles(ctl: &Ctl) {
+    stop_auth(ctl);
+    stop_relay(ctl);
+    stop_streaming(ctl);
+    let c = ctl.shared.store.load();
+    let Some(token) = c.token else { return };
+    ctl.shared.set(|s| {
+        s.linked = true;
+        s.name = c.name;
+        s.id = c.id;
+        s.roles_ready = false;
+        s.can_ref = false;
+        s.can_stream = false;
+        s.site = "connecting";
+        s.stream_state = if s.streaming { "waiting" } else { "off" }.into();
+        s.stream_match = None;
+        s.stream_clients = 0;
+    });
+    let (tx, mut stop) = watch::channel(false);
+    *ctl.auth.lock().unwrap() = Some(tx);
+    let sh = ctl.shared.clone();
+    tauri::async_runtime::spawn(async move {
+        let http = reqwest::Client::builder().timeout(Duration::from_secs(15)).build().expect("http client");
+        loop {
+            let result = tokio::select! {
+                result = async {
+                    let r = http.get(format!("{SITE}/api/relay/me")).bearer_auth(&token).send().await.map_err(|_| 0u16)?;
+                    if !r.status().is_success() { return Err(r.status().as_u16()); }
+                    r.json::<Roles>().await.map_err(|_| 0u16)
+                } => result,
+                _ = stop.changed() => return,
+            };
+            if *stop.borrow() || sh.store.load().token.as_deref() != Some(token.as_str()) { return; }
+            match result {
+                Ok(roles) => {
+                    let mut c = sh.store.load();
+                    c.id = roles.id;
+                    c.name = roles.name;
+                    sh.store.save(&c);
+                    sh.set(|s| {
+                        s.name = c.name;
+                        s.id = c.id;
+                        s.can_ref = roles.can_ref;
+                        s.can_stream = roles.can_stream;
+                        s.roles_ready = true;
+                        s.site = "online";
+                        s.stream_state = if !s.streaming { "off" } else if roles.can_stream { "waiting" } else { "forbidden" }.into();
+                    });
+                    let ctl = sh.app.state::<Ctl>();
+                    start_relay(&ctl);
+                    start_streaming(&ctl);
+                    return;
+                }
+                Err(401) => { invalidate(&sh, &token); return; }
+                Err(403) => {
+                    sh.set(|s| { s.roles_ready = true; s.site = "off"; s.stream_state = "forbidden".into(); });
+                    sh.note("warn", "this account has no helper roles");
+                    return;
+                }
+                _ => sh.set(|s| { s.site = "off"; s.stream_state = if s.streaming { "error" } else { "off" }.into(); }),
+            }
+            tokio::select! {
+                _ = tokio::time::sleep(Duration::from_secs(5)) => {},
+                _ = stop.changed() => return,
+            }
+        }
+    });
+}
+
+#[tauri::command]
+fn set_streaming(ctl: State<'_, Ctl>, on: bool) -> Result<(), String> {
+    stop_streaming(&ctl);
+    ctl.shared.set(|s| {
+        s.streaming = on;
+        s.stream_match = None;
+        s.stream_clients = 0;
+        s.stream_state = if !on { "off" } else if !s.linked { "unpaired" } else if !s.roles_ready { "waiting" } else if !s.can_stream { "forbidden" } else { "waiting" }.into();
+    });
+    if on { start_streaming(&ctl); }
+    Ok(())
+}
+
+#[tauri::command]
+async fn save_irc_password(ctl: State<'_, Ctl>, pass: String) -> Result<(), String> {
+    let c = ctl.shared.store.load();
+    if c.token.is_none() { return Err("unpaired".into()); }
+    let pass = pass.trim();
+    if pass.is_empty() { return Err("empty".into()); }
+    relay::check_irc(&c.name, pass).await?;
+    if ctl.shared.store.load().token != c.token { return Err("unpaired".into()); }
+    ctl.shared.store.set_password(&c.name, pass).map_err(|_| "keyring".to_string())?;
+    stop_relay(&ctl);
+    start_relay(&ctl);
+    Ok(())
 }
 
 #[tauri::command]
@@ -72,11 +234,22 @@ fn saved_name(ctl: State<'_, Ctl>) -> String {
 async fn link(app: AppHandle, ctl: State<'_, Ctl>, name: String, pass: String) -> Result<String, String> {
     let name = name.trim().replace(' ', "_");
     let pass = pass.trim().to_string();
-    if name.is_empty() || pass.is_empty() {
+    if name.is_empty() || name.chars().any(|c| c.is_whitespace() || c.is_control()) {
         return Err("empty".into());
     }
-    relay::check_irc(&name, &pass).await?;
-    ctl.shared.store.set_password(&name, &pass).map_err(|_| "keyring".to_string())?;
+    if !pass.is_empty() {
+        relay::check_irc(&name, &pass).await?;
+        ctl.shared.store.set_password(&name, &pass).map_err(|_| "keyring".to_string())?;
+    }
+    cancel_link(app.state::<Ctl>());
+    stop_auth(&ctl);
+    stop_relay(&ctl);
+    stop_streaming(&ctl);
+    ctl.shared.set(|s| {
+        s.linked = false; s.roles_ready = false; s.can_ref = false; s.can_stream = false;
+        s.site = "off"; s.irc = "idle"; s.lobbies.clear();
+        s.stream_state = "unpaired".into(); s.stream_match = None; s.stream_clients = 0;
+    });
     ctl.shared.store.save(&Config { name: name.clone(), id: 0, token: None });
 
     let mut raw = [0u8; 32];
@@ -91,20 +264,29 @@ async fn link(app: AppHandle, ctl: State<'_, Ctl>, name: String, pass: String) -
     }
     let app2 = app.clone();
     tauri::async_runtime::spawn(async move {
-        let http = reqwest::Client::new();
+        let http = reqwest::Client::builder().timeout(Duration::from_secs(15)).build().expect("http client");
         for _ in 0..200 {
             tokio::select! {
                 _ = tokio::time::sleep(Duration::from_secs(3)) => {}
                 _ = rx.changed() => return,
             }
-            let Ok(r) = http.post(format!("{SITE}/api/relay/claim")).json(&serde_json::json!({ "state": state, "irc": name })).send().await else { continue };
+            let response = tokio::select! {
+                result = http.post(format!("{SITE}/api/relay/claim")).json(&serde_json::json!({ "state": state, "irc": name })).send() => result,
+                _ = rx.changed() => return,
+            };
+            let Ok(r) = response else { continue };
             match r.status().as_u16() {
                 200 => {
-                    let Ok(v) = r.json::<serde_json::Value>().await else { continue };
+                    let body = tokio::select! {
+                        body = r.json::<serde_json::Value>() => body,
+                        _ = rx.changed() => return,
+                    };
+                    let Ok(v) = body else { continue };
                     let Some(token) = v["token"].as_str() else { continue };
+                    if *rx.borrow() { return; }
                     let ctl = app2.state::<Ctl>();
                     ctl.shared.store.save(&Config { name: name.clone(), id: 0, token: Some(token.to_string()) });
-                    start_relay(&ctl);
+                    refresh_roles(&ctl);
                     ctl.shared.note("ok", "linked to the site");
                     let _ = app2.emit("linked", ());
                     return;
@@ -130,16 +312,20 @@ fn cancel_link(ctl: State<'_, Ctl>) {
 
 #[tauri::command]
 async fn unlink(ctl: State<'_, Ctl>) -> Result<(), String> {
+    if let Some(old) = ctl.linking.lock().unwrap().take() { let _ = old.send(true); }
+    stop_auth(&ctl);
     stop_relay(&ctl);
+    stop_streaming(&ctl);
     let c = ctl.shared.store.load();
+    ctl.shared.store.forget(&c.name);
+    ctl.shared.set(|s| {
+        s.linked = false; s.sent = 0; s.roles_ready = false; s.can_ref = false; s.can_stream = false;
+        s.site = "off"; s.irc = "idle"; s.lobbies.clear();
+        s.stream_state = "unpaired".into(); s.stream_match = None; s.stream_clients = 0;
+    });
     if let Some(token) = &c.token {
         let _ = reqwest::Client::new().delete(format!("{SITE}/api/relay/stream")).bearer_auth(token).send().await;
     }
-    ctl.shared.store.forget(&c.name);
-    ctl.shared.set(|s| {
-        s.linked = false;
-        s.sent = 0;
-    });
     Ok(())
 }
 
@@ -169,9 +355,10 @@ async fn uninstall(app: AppHandle, ctl: State<'_, Ctl>) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn open(app: AppHandle, what: String) {
+fn open(app: AppHandle, ctl: State<'_, Ctl>, what: String) {
     let url = match what.as_str() {
         "irc" => IRC_PAGE.to_string(),
+        "page" if ctl.shared.status().can_stream && !ctl.shared.status().can_ref => format!("{SITE}/admin/overlay"),
         "page" => format!("{SITE}/admin/refapp"),
         _ => SITE.to_string(),
     };
@@ -209,11 +396,11 @@ fn main() {
         .setup(|app| {
             let dir = app.path().app_config_dir()?;
             let shared = Arc::new(Shared::new(app.handle().clone(), Store::new(dir)));
-            app.manage(Ctl { shared, relay: Mutex::new(None), linking: Mutex::new(None) });
-            start_relay(&app.state::<Ctl>());
+            app.manage(Ctl { shared, relay: Mutex::new(None), linking: Mutex::new(None), streaming: Mutex::new(None), auth: Mutex::new(None) });
+            refresh_roles(&app.state::<Ctl>());
 
-            let open_i = MenuItem::with_id(app, "open", "Open", true, None::<&str>)?;
-            let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+            let open_i = MenuItem::with_id(app, "open", "open", true, None::<&str>)?;
+            let quit_i = MenuItem::with_id(app, "quit", "quit", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&open_i, &quit_i])?;
             let mut tray = TrayIconBuilder::with_id("main").tooltip("BGCC7 Ref Helper").menu(&menu).show_menu_on_left_click(false);
             if let Some(icon) = app.default_window_icon() {
@@ -245,7 +432,7 @@ fn main() {
             }
             _ => {}
         })
-        .invoke_handler(tauri::generate_handler![status, logs, saved_name, link, cancel_link, unlink, uninstall, open, autostart])
+        .invoke_handler(tauri::generate_handler![status, logs, saved_name, link, cancel_link, unlink, uninstall, open, autostart, set_streaming, save_irc_password])
         .run(tauri::generate_context!())
         .expect("error while running BGCC7 Ref Helper");
 }
