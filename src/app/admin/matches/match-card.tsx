@@ -24,7 +24,7 @@ function Legend({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function MatchCard({ m, k, t, locale, teams, refs, live }: { m: MatchRow; k: number; t: Dict; locale: string; teams: { id: string; name: string }[]; refs: { referee: string[]; streamer: string[]; commentator: string[] }; live?: { lobby: boolean } }) {
+export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: MatchRow; k: number; t: Dict; locale: string; teams: { id: string; name: string }[]; refs: { referee: string[]; streamer: string[]; commentator: string[] }; pools: { slug: string; title: string }[]; live?: { lobby: boolean } }) {
   const f = getFormat();
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? t.common.tbd;
   const mp = m.mpLinks.split(",").filter(Boolean);
@@ -194,9 +194,17 @@ export function MatchCard({ m, k, t, locale, teams, refs, live }: { m: MatchRow;
             <fieldset className={group}>
               <Legend>{t.admin.secStaff}</Legend>
               <div className="grid grid-cols-2 gap-3">
-                <label className={cn(label, "col-span-2")}>
+                <label className={label}>
                   {t.admin.startsAt}
                   <Field type="datetime-local" name="startsAt" defaultValue={toSofiaInput(m.startsAt)} className={dateCls} />
+                </label>
+                <label className={label}>
+                  {t.admin.matchPool}
+                  <Dropdown
+                    name="poolSlug"
+                    defaultValue={m.poolSlug ?? m.stageSlug}
+                    options={pools.map((p) => ({ value: p.slug, label: p.slug === m.stageSlug ? `${p.title} · ${t.admin.matchPoolRound}` : p.title }))}
+                  />
                 </label>
                 <label className={label}>
                   {t.admin.referee}

@@ -50,7 +50,7 @@ export default async function AdminDraft() {
       id: m.id,
       slug: matchSlug(f, m.id),
       round: t.rounds[m.round] ?? m.round,
-      stage: m.stageSlug,
+      stage: m.poolSlug ?? m.stageSlug,
       when: m.startsAt ? fmtSofia(m.startsAt, locale) : null,
       teams: [a ? { name: a.name, image: a.image } : null, b ? { name: b.name, image: b.image } : null],
       draft: d ? { open: d.open, stage: d.stageSlug, state: d.pausedAt ? "paused" : turn!.kind, steps: d.steps.length, rolled: d.roll1 != null || d.roll2 != null, paused: !!d.pausedAt } : null,
