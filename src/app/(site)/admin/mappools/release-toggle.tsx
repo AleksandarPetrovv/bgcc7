@@ -6,7 +6,7 @@ import { useDict } from "@/components/site/lang";
 import { cn } from "@/lib/utils";
 import { setReleased } from "./actions";
 
-export function ReleaseToggle({ stageId, released }: { stageId: number; released: boolean }) {
+export function ReleaseToggle({ stageId, released, className }: { stageId: number; released: boolean; className?: string }) {
   const t = useDict();
   const [on, setOn] = useState(released);
   const [pending, start] = useTransition();
@@ -17,6 +17,7 @@ export function ReleaseToggle({ stageId, released }: { stageId: number; released
         "flex h-10 w-fit -skew-x-12 cursor-pointer items-center border px-3.5 transition-[color,background-color,border-color,box-shadow,opacity] duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose",
         on ? "border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--color-rose-deep)]" : "border-line bg-ink/40 text-ash hover:border-paper/40 hover:text-paper",
         pending && "opacity-60",
+        className,
       )}
     >
       <input
