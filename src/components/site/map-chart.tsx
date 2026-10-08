@@ -3,8 +3,9 @@
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { QualMap, QualPlayer } from "@/lib/data";
 import { useDict } from "./lang";
+import { HEX } from "@/lib/theme";
 
-const COLOR: Record<string, string> = { NM: "#3b82f6", HD: "#f5b820", HR: "#e0242f", DT: "#a78bfa", FM: "#0fa06a", TB: "#f4f3ee", AIM: "#3b82f6", SPD: "#a78bfa", RDG: "#0fa06a", FGC: "#f5b820", STM: "#e0242f" };
+const COLOR: Record<string, string> = { NM: HEX.azure, HD: HEX.hd, HR: HEX.rose, DT: HEX.dt, FM: HEX.balkan, TB: HEX.paper, AIM: HEX.azure, SPD: HEX.dt, RDG: HEX.balkan, FGC: HEX.hd, STM: HEX.rose };
 
 export function MapDifficultyChart({ qualifiers }: { qualifiers: { maps: QualMap[]; players: QualPlayer[] } }) {
   const t = useDict();
@@ -16,13 +17,13 @@ export function MapDifficultyChart({ qualifiers }: { qualifiers: { maps: QualMap
     <div className="h-72">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
-          <XAxis dataKey="slot" tick={{ fill: "#f4f3ee", fontSize: 13, fontWeight: 800 }} axisLine={{ stroke: "#2b302d" }} tickLine={false} />
-          <YAxis tickFormatter={(v) => `${Math.round(v / 1000)}k`} tick={{ fill: "#8a908b", fontSize: 11 }} axisLine={false} tickLine={false} />
+          <XAxis dataKey="slot" tick={{ fill: HEX.paper, fontSize: 13, fontWeight: 800 }} axisLine={{ stroke: HEX.line }} tickLine={false} />
+          <YAxis tickFormatter={(v) => `${Math.round(v / 1000)}k`} tick={{ fill: HEX.ash, fontSize: 11 }} axisLine={false} tickLine={false} />
           <Tooltip
             cursor={{ fill: "rgba(255,255,255,0.04)" }}
-            contentStyle={{ background: "#161917", border: "1px solid #2b302d", borderRadius: 0, fontWeight: 700, color: "#f4f3ee" }}
-            labelStyle={{ color: "#f4f3ee", marginBottom: 2 }}
-            itemStyle={{ color: "#f4f3ee" }}
+            contentStyle={{ background: HEX.coal, border: `1px solid ${HEX.line}`, borderRadius: 0, fontWeight: 700, color: HEX.paper }}
+            labelStyle={{ color: HEX.paper, marginBottom: 2 }}
+            itemStyle={{ color: HEX.paper }}
             formatter={(v) => [Number(v).toLocaleString("en-US"), t.stats.avgScore]}
           />
           <Bar
@@ -42,7 +43,7 @@ export function MapDifficultyChart({ qualifiers }: { qualifiers: { maps: QualMap
             )}
           >
             {data.map((d) => (
-              <Cell key={d.slot} fill={COLOR[d.slot.replace(/\d+$/, "")] ?? COLOR[d.slot.slice(0, 2)] ?? "#f4f3ee"} />
+              <Cell key={d.slot} fill={COLOR[d.slot.replace(/\d+$/, "")] ?? COLOR[d.slot.slice(0, 2)] ?? HEX.paper} />
             ))}
           </Bar>
         </BarChart>

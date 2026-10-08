@@ -20,6 +20,7 @@ import { ReleaseToggle } from "../release-toggle";
 import { SwapRow } from "../swap-row";
 import { PoolMode } from "../pool-mode";
 import Link from "next/link";
+import { osuMap } from "@/lib/links";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
@@ -178,7 +179,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                       <img src={m.cover} alt="" className="sr in-wipe hidden h-10 w-24 object-cover sm:block [--d:0.85s]" />
                       <div className="min-w-0 flex-1">
                         <a
-                          href={`https://osu.ppy.sh/b/${m.id}`}
+                          href={osuMap(m.id)}
                           target="_blank"
                           rel="noreferrer"
                           className="block truncate font-bold decoration-rose underline-offset-4 transition-colors hover:text-rose-hi hover:underline"
@@ -189,7 +190,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                         {tag}
                         {checks.get(m.id)?.dmca && <div className="text-xs font-black uppercase text-rose-hi">{t.admin.mapDmca}</div>}
                         <div className="num flex flex-wrap gap-x-3 text-sm text-paper/70">
-                          <span className="flex items-center gap-1 text-[#e8c547]">
+                          <span className="flex items-center gap-1 text-gold">
                             <Star className="size-3.5 fill-current" /> {m.sr.toFixed(2)}
                           </span>
                           <span>{Math.round(m.bpm)} bpm</span>

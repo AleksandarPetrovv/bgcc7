@@ -15,9 +15,9 @@ import { getSkillLayouts } from "@/db/format-plan";
 import { requireSection } from "@/lib/authz";
 import { InView } from "@/components/site/in-view";
 import { MeTag, meP } from "@/components/site/me";
+import { MEDAL } from "@/lib/theme";
 
 const TONES = ["bg-rose text-white", "bg-balkan text-ink", "border border-line bg-coal", "border border-line bg-coal"];
-const MEDAL = ["text-[#e8c547]", "text-[#c9ccd1]", "text-[#c98a4b]"];
 
 export default async function Stats({ searchParams }: { searchParams: Promise<{ stage?: string }> }) {
   await requireSection("stats");

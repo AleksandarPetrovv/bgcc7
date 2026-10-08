@@ -13,6 +13,7 @@ import { fmtSofiaDay, fmtSofiaTime, nextHour, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { createLobby, deleteLobby, placePlayer, unbook, updateLobby } from "./actions";
 import { Dropdown } from "@/components/admin/dropdown";
+import { osuMp } from "@/lib/links";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
@@ -38,7 +39,7 @@ function LobbyFields({ t, l }: { t: Dict; l?: Lobby }) {
       {l && (
         <label className={cn(label, "sm:col-span-2 lg:col-span-4")}>
           {t.admin.mpLinks}
-          <Field name="mpLinks" defaultValue={l.mpLinks.split(",").filter(Boolean).map((id) => `https://osu.ppy.sh/mp/${id}`).join(", ")} className={inputCls} />
+          <Field name="mpLinks" defaultValue={l.mpLinks.split(",").filter(Boolean).map((id) => osuMp(id)).join(", ")} className={inputCls} />
         </label>
       )}
     </div>

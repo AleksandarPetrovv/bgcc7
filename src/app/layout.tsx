@@ -16,6 +16,7 @@ import { buildNav } from "@/lib/sections";
 import { getLive } from "@/lib/twitch";
 import { isLive } from "@/lib/matches";
 import { getSettings } from "@/db/settings";
+import { getFill } from "@/db/copy";
 import { windowState } from "@/lib/time";
 import { isPlayer, myOpenDraft } from "@/db/drafts";
 import { meStyle } from "@/components/site/me";
@@ -43,8 +44,8 @@ const unbounded = Unbounded({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getDict();
-  return { title: t.meta.title, description: t.meta.description };
+  const [t, f] = await Promise.all([getDict(), getFill()]);
+  return { title: f(t.meta.title), description: f(t.meta.description) };
 }
 
 const LITE = "try{var c=document.createElement(\"canvas\"),g=c.getContext(\"webgl\"),r=\"\";if(g){var e=g.getExtension(\"WEBGL_debug_renderer_info\");r=e?String(g.getParameter(e.UNMASKED_RENDERER_WEBGL)):\"\";var x=g.getExtension(\"WEBGL_lose_context\");x&&x.loseContext()}if(!g||/swiftshader|llvmpipe|software|basic render/i.test(r)){var h=document.documentElement;h.classList.add(\"lite\")}}catch(_){}";

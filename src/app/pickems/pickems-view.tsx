@@ -10,6 +10,8 @@ import { useDict } from "@/components/site/lang";
 import { PickemsBracket } from "@/components/site/pickems-bracket";
 import { resolve, seedingOf, type Picks } from "@/lib/pickems";
 import { useTournament } from "@/components/site/tournament";
+import { PLAN_STAGES } from "@/lib/format-plan";
+import { MEDAL } from "@/lib/theme";
 import { osuUser } from "@/lib/links";
 import { pickemsHref } from "@/lib/data";
 import type { LeaderRow } from "@/db/queries";
@@ -17,7 +19,6 @@ import { cn } from "@/lib/utils";
 import { login, savePickems } from "./actions";
 import { MeTag } from "@/components/site/me";
 
-const MEDAL = ["text-[#e8c547]", "text-[#c9ccd1]", "text-[#c98a4b]"];
 
 type Props = { osuId: number | null; saved: Picks | null; leaderboard: LeaderRow[]; open: boolean; locked: string[] };
 
@@ -32,6 +33,12 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
   const [pending, start] = useTransition();
   const { picks: clean, total } = resolve(f, picks, seeding);
   const made = Object.keys(clean).length;
+  const byStage = new Map<string, Set<number>>();
+  for (const [code, r] of Object.entries(f.rounds)) byStage.set(r.stage, (byStage.get(r.stage) ?? new Set()).add(f.points[code] ?? 0));
+  const stageName = (slug: string) => PLAN_STAGES.find((s) => s.slug === slug)?.name ?? slug;
+  const points: [string, number][] = [...byStage.values()].every((s) => s.size === 1)
+    ? [...byStage].map(([slug, s]) => [t.rounds[stageName(slug)] ?? stageName(slug), [...s][0]])
+    : t.pickems.points;
 
   useEffect(() => {
     if (saved) return;
@@ -91,7 +98,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
 
       <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="grid grid-cols-3 gap-px border border-line bg-line sm:grid-cols-5">
-          {t.pickems.points.map(([k, v], i) => (
+          {points.map(([k, v], i) => (
             <div key={k} className="in-flip bg-coal p-2.5 last:col-span-2 sm:p-3 sm:last:col-span-1" style={{ "--i": i, "--s": "0.08s", "--d": "0.15s" } as React.CSSProperties}>
               <div className="min-h-[2lh] text-[0.6rem] font-black uppercase leading-tight text-ash sm:text-[0.65rem]">{k}</div>
               <div className="in-pop num origin-left text-2xl sm:text-3xl text-balkan [--d:0.45s]">

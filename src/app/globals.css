@@ -27,6 +27,15 @@
   --color-azure: #3b82f6;
   --color-azure-hi: #6ea3ff;
   --color-ash: #8a908b;
+  --color-azure-deep: #1d4fb8;
+  --color-gold: #e8c547;
+  --color-gold-deep: #9c7f1f;
+  --color-gold-hi: #ffe08a;
+  --color-silver: #ffffff;
+  --color-silver-deep: #6b7078;
+  --color-rose-soft: #e8868b;
+  --color-field: #111412;
+  --color-bronze: #c98a4b;
   --color-mod-nm: #3b82f6;
   --color-mod-hd: #f5b820;
   --color-mod-hr: #e0242f;
@@ -606,6 +615,21 @@ html.lite header {
 
 html.lite .grain::after {
   display: none;
+}
+
+html.lite [role="dialog"],
+html.lite [role="dialog"] *,
+html.lite .fixed {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.lite .fixed.inset-0:not(canvas):not(.pointer-events-none) {
+  background-color: rgb(13 15 14 / 0.92);
+}
+
+html.lite [role="dialog"] .anim-twinkle {
+  animation: none !important;
 }
 
 html.lite .anim-page {

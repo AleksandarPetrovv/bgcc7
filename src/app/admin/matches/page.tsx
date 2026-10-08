@@ -3,6 +3,7 @@ import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
 import { Panel } from "@/components/admin/form";
 import { getPoolStages } from "@/db/mappools";
+import { getFormat } from "@/db/edition";
 import { getMatchRows, getTeams } from "@/db/tournament";
 import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
@@ -24,7 +25,7 @@ export default async function AdminMatches() {
 
       <div className="space-y-8">
         {bracketStages.map((s, n) => (
-          <Panel key={s.slug} i={n < 3 ? n + 1 : 0} title={`${t.rounds[s.title] ?? s.title} · ${t.admin.firstToShort(s.firstTo ?? 7)}`}>
+          <Panel key={s.slug} i={n < 3 ? n + 1 : 0} title={`${t.rounds[s.title] ?? s.title} · ${t.admin.firstToShort(s.firstTo ?? getFormat().firstTo)}`}>
             <div className="space-y-6">
               {[...new Set(rows.filter((m) => m.stageSlug === s.slug).map((m) => m.round))].map((round) => {
                 const list = rows.filter((m) => m.stageSlug === s.slug && m.round === round);

@@ -19,12 +19,12 @@ import { getMatches, getTeams } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
 import { getScoreboard } from "@/db/scoreboards";
 import { fmtRange, phaseStates } from "@/lib/dates";
-import { fmtSofia, fmtSofiaTime, isFuture, windowState } from "@/lib/time";
+import { fmtSofia, fmtSofiaTime, isFuture, windowState, TZ_LABEL } from "@/lib/time";
 import { flagUrl, fmtNum, teamHref, type Match, type Team } from "@/lib/data";
 import { rankBws } from "@/lib/bws";
 import { sourceLabel, isLive } from "@/lib/matches";
 import { getFormat } from "@/db/edition";
-import { osuUser, TWITCH_URL } from "@/lib/links";
+import { TWITCH_URL, osuMatch, osuUser } from "@/lib/links";
 import type { MapResult, PlayerLine } from "@/lib/scoreboard";
 import { cn } from "@/lib/utils";
 import { matchCosts, MEDAL, MEDAL_BG } from "@/lib/match-cost";
@@ -93,7 +93,7 @@ function TeamCard({ t, team, me, record, i }: { t: Dict; team: Team; me: number;
             <img src={flagUrl(p.country)} alt="" className="h-3" />
             <PlayerLink id={p.userId} name={p.username} className={cn("min-w-0 truncate font-black", p.userId === me && "text-balkan")} />
             {p.userId === me && <span className="text-[0.6rem] font-black uppercase text-ash">{t.me.you}</span>}
-            {p.isCaptain && <Crown className="size-3.5 shrink-0 text-[#e8c547]" aria-label={t.common.captain} />}
+            {p.isCaptain && <Crown className="size-3.5 shrink-0 text-gold" aria-label={t.common.captain} />}
             <span className="num ml-auto text-sm text-paper/80">#{fmtNum(p.rank)}</span>
             <span className="num hidden w-16 text-right text-sm text-ash sm:block">{fmtNum(Math.round(p.pp))}pp</span>
           </li>
@@ -177,7 +177,7 @@ export default async function Me() {
   const reg = regs.find((r) => r.osuId === me);
   const team = teams.find((x) => x.players.some((p) => p.userId === me));
   const teamById = (id: string) => teams.find((x) => x.id === id);
-  const fmt = (d: Date | string) => `${fmtSofia(new Date(d), locale)} EET`;
+  const fmt = (d: Date | string) => `${fmtSofia(new Date(d), locale)} ${TZ_LABEL}`;
   const phaseKey: Record<string, string> = { registration: "reg", screening: "scr", qualifiers: "qual", seeding: "seed", playoffs: "play", finished: "done" };
 
   const header = (
@@ -333,7 +333,7 @@ export default async function Me() {
                   </td>
                   <td className="num py-2.5 pr-4 text-right text-base">{p ? fmtNum(p.score) : "—"}</td>
                   <td className="num py-2.5 pr-4 text-right text-ash">{p ? `${p.acc.toFixed(2)}%` : "—"}</td>
-                  <td className={cn("num py-2.5 pr-5 text-right", p?.placement === 1 && "text-[#e8c547]")}>{p ? `#${p.placement}` : "—"}</td>
+                  <td className={cn("num py-2.5 pr-5 text-right", p?.placement === 1 && "text-gold")}>{p ? `#${p.placement}` : "—"}</td>
                 </tr>
               );
             })}
@@ -385,7 +385,7 @@ export default async function Me() {
                   </SlantButton>
                 )}
                 {mpIds(lobby.mpLinks).map((id) => (
-                  <a key={id} href={`https://osu.ppy.sh/community/matches/${id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-black uppercase text-ash hover:text-paper">
+                  <a key={id} href={osuMatch(id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-black uppercase text-ash hover:text-paper">
                     {t.me.mpLink} <ExternalLink className="size-3.5" />
                   </a>
                 ))}
@@ -462,7 +462,7 @@ export default async function Me() {
   const champion = gfWon && !upcomingMatch;
   const path = champion ? "champion" : lostIn && !upcomingMatch ? "out" : (upcomingMatch?.bracket ?? played.at(-1)?.bracket ?? "winners");
   const pathTag = (
-    <span className={cn("text-xs font-black uppercase tracking-wide", path === "out" ? "text-rose-hi" : path === "champion" ? "text-[#e8c547]" : "text-balkan")}>{t.me.path[path]}</span>
+    <span className={cn("text-xs font-black uppercase tracking-wide", path === "out" ? "text-rose-hi" : path === "champion" ? "text-gold" : "text-balkan")}>{t.me.path[path]}</span>
   );
 
   const boards = await Promise.all(
@@ -562,10 +562,10 @@ export default async function Me() {
     const place = champion ? 0 : lostIn?.bracket === "grand" ? 1 : lf ? 2 : -1;
     return shell(
       <>
-        <Card title={t.me.finish} i={1} className={cn(place === 0 && "border-[#e8c547]/40")}>
+        <Card title={t.me.finish} i={1} className={cn(place === 0 && "border-gold/40")}>
           <div className="flex items-center gap-4">
-            {place === 0 && <Crown className="size-12 text-[#e8c547]" />}
-            <span className={cn("heading-slam text-6xl", place === 0 && "text-[#e8c547]")}>
+            {place === 0 && <Crown className="size-12 text-gold" />}
+            <span className={cn("heading-slam text-6xl", place === 0 && "text-gold")}>
               {place >= 0 ? t.me.places[place] : lostIn ? t.me.outIn(roundName(t, lostIn.round)) : "—"}
             </span>
           </div>

@@ -7,7 +7,7 @@ import { currentOsuId } from "@/auth";
 import { getLobbies } from "@/db/lobbies";
 import { getRegistration } from "@/db/registrations";
 import { getSettings } from "@/db/settings";
-import { fmtSofia, fmtSofiaDay, fmtSofiaTime, windowState } from "@/lib/time";
+import { fmtSofia, fmtSofiaDay, fmtSofiaTime, windowState, TZ_LABEL } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { LobbyButton } from "./lobby-button";
 import { meP } from "@/components/site/me";
@@ -20,7 +20,7 @@ export default async function Lobbies() {
   const state = windowState(settings.bookingOpensAt, settings.bookingClosesAt);
   const mineId = osuId ? (lobbies.find((l) => l.players.some((p) => p.osuId === osuId))?.id ?? null) : null;
   const canBook = state === "open" && status === "approved";
-  const fmt = (d: Date | null) => (d ? `${fmtSofia(d, locale)} EET` : "");
+  const fmt = (d: Date | null) => (d ? `${fmtSofia(d, locale)} ${TZ_LABEL}` : "");
 
   const byDay = new Map<string, typeof lobbies>();
   for (const l of lobbies) {

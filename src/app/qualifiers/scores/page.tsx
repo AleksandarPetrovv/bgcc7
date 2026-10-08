@@ -7,6 +7,7 @@ import { getQualResults } from "@/db/qualifiers";
 import { getLobbies, mpIds } from "@/db/lobbies";
 import { getSettings } from "@/db/settings";
 import { fmtSofia } from "@/lib/time";
+import { osuMatch } from "@/lib/links";
 
 export default async function Scores() {
   await requireSection("qualScores");
@@ -34,7 +35,7 @@ export default async function Scores() {
                 <span className="num text-ash">{fmtSofia(l.startsAt, lang === "bg" ? "bg-BG" : "en-GB")}</span>
                 <span className="ml-auto flex gap-3">
                   {mpIds(l.mpLinks).map((id, i, all) => (
-                    <a key={id} href={`https://osu.ppy.sh/community/matches/${id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-bold text-ash hover:text-paper">
+                    <a key={id} href={osuMatch(id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-bold text-ash hover:text-paper">
                       {all.length > 1 ? `#${i + 1}` : "mp"} <ExternalLink className="size-3.5" />
                     </a>
                   ))}

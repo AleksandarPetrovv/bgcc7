@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { registrations, teamMembers, teams, users } from "@/db/schema";
 import { requireRole } from "@/lib/authz";
+import { getFormat } from "@/db/edition";
 
 const clean = (s: string) => s.replace(/[,\r\n]/g, " ").trim();
 
@@ -27,7 +28,8 @@ export async function GET(req: Request) {
       .innerJoin(users, eq(users.osuId, registrations.osuId));
     lines = rows.filter((r) => r.status !== "denied").map((r) => `${clean(r.name)},${r.id}`);
   }
-  const file = withTeams ? "bgcc7-screening-teams.txt" : "bgcc7-screening.txt";
+  const tag = getFormat().name.toLowerCase();
+  const file = withTeams ? `${tag}-screening-teams.txt` : `${tag}-screening.txt`;
   return new Response(lines.join("\n") + "\n", {
     headers: { "Content-Type": "text/plain; charset=utf-8", "Content-Disposition": `attachment; filename="${file}"`, "Cache-Control": "no-store" },
   });

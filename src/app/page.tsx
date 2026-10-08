@@ -31,7 +31,7 @@ import { login } from "@/app/pickems/actions";
 import { HeroGate } from "@/components/site/hero-gate";
 import { MeTag } from "@/components/site/me";
 import { SKILLS, slotColor } from "@/lib/format-plan";
-import { getEdition } from "@/db/edition";
+import { getEdition, getFormat } from "@/db/edition";
 
 function HeroLockup({ label }: { label: string }) {
   return (
@@ -142,12 +142,12 @@ function PoolStack({ stages, skill }: { stages: Stage[]; skill: boolean }) {
 
 function Champion({ t, team, other }: { t: Dict; team: Team; other?: Team }) {
   return (
-    <Reveal className="relative mb-6 overflow-hidden border border-[#e8c547]/35 bg-coal">
+    <Reveal className="relative mb-6 overflow-hidden border border-gold/35 bg-coal">
       <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={team.image} alt="" className="size-24 shrink-0 object-cover ring-2 ring-[#e8c547]/60 ring-offset-4 ring-offset-coal" />
+        <img src={team.image} alt="" className="size-24 shrink-0 object-cover ring-2 ring-gold/60 ring-offset-4 ring-offset-coal" />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-[#e8c547]">
+          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-gold">
             <Crown className="size-4" /> {t.home.champion}
           </div>
           <div className="heading-slam mt-1 break-words text-4xl">
@@ -162,7 +162,7 @@ function Champion({ t, team, other }: { t: Dict; team: Team; other?: Team }) {
           ))}
         </div>
       </div>
-      <Sparkle className="right-5 top-4 size-4 text-[#e8c547]" />
+      <Sparkle className="right-5 top-4 size-4 text-gold" />
       <Sparkle className="right-12 top-10 size-2 text-paper/60" delay={0.9} />
     </Reveal>
   );
@@ -397,12 +397,12 @@ export default async function Home() {
         </div>
         <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] gap-8 px-4 pb-10 pt-8 sm:gap-10 sm:px-6 sm:pb-12 sm:pt-10 lg:grid-cols-[1.1fr_1fr] lg:items-end lg:px-10 lg:pb-16 lg:pt-16 2xl:gap-20 2xl:px-14 2xl:pb-24 2xl:pt-24">
           <div className="min-w-0">
-            <HeroLockup label={`${t.home.badge} · 2027`} />
+            <HeroLockup label={`${t.home.badge} · ${getFormat().year}`} />
           </div>
 
           <div className="flex min-w-0 flex-col justify-end">
             <h1 className="text-balance text-[clamp(1.8rem,3.2vw,2.9rem)] font-black leading-[1.05] tracking-tight">
-              <Words text={phase === "finished" ? t.home.headlineDone : t.home.headline} d={0.35} s={0.055} />
+              <Words text={f(phase === "finished" ? t.home.headlineDone : t.home.headline)} d={0.35} s={0.055} />
             </h1>
             <p className="mt-4 max-w-[48ch] text-pretty text-base text-paper/70 sm:mt-5 sm:text-lg">
               <Words text={f(phase === "registration" ? t.home.intro : (t.home.introBy[phase] ?? t.home.intro))} d={0.85} s={0.018} />

@@ -85,7 +85,7 @@ export default async function AdminTeams() {
                           <span
                             className={cn(
                               "heading-slam grid h-7 w-9 -skew-x-12 place-items-center text-base leading-none",
-                              tier === 1 ? "bg-[#e8c547] text-ink shadow-[2px_2px_0_0_#9c7f1f]" : "bg-[#c9ccd1] text-ink shadow-[2px_2px_0_0_#6b7078]",
+                              tier === 1 ? "bg-gold text-ink shadow-[2px_2px_0_0_var(--color-gold-deep)]" : "bg-silver text-ink shadow-[2px_2px_0_0_var(--color-silver-deep)]",
                             )}
                           >
                             <span className="skew-x-12">{tier === 1 ? "A" : "B"}</span>
@@ -104,7 +104,7 @@ export default async function AdminTeams() {
                           defaultValue={p.badgeOverride ?? p.badges ?? 0}
                           aria-label={`${t.admin.badges} · ${p.username}`}
                           title={p.badgeOverride !== null ? t.admin.badgesEdited(p.badges ?? 0) : undefined}
-                          className={cn(inputCls, "num w-14 text-center", p.badgeOverride !== null && "[&_input]:text-[#e8c547]")}
+                          className={cn(inputCls, "num w-14 text-center", p.badgeOverride !== null && "[&_input]:text-gold")}
                         />
                       </ActionForm>
                       <span className="num text-center font-bold text-paper">{p.bws === null ? "–" : fmtNum(p.bws)}</span>
@@ -173,14 +173,14 @@ export default async function AdminTeams() {
                       {team.players.map((p) => (
                         <label
                           key={p.userId}
-                          className="group relative flex h-12 min-w-0 -skew-x-12 cursor-pointer items-center border border-line bg-[#111412] px-2.5 text-ash transition-[border-color,background-color,box-shadow,color] duration-200 hover:border-paper/40 hover:text-paper has-[:checked]:border-[#e8c547] has-[:checked]:bg-[#e8c547]/10 has-[:checked]:text-paper has-[:checked]:shadow-[4px_4px_0_0_#9c7f1f] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose"
+                          className="group relative flex h-12 min-w-0 -skew-x-12 cursor-pointer items-center border border-line bg-field px-2.5 text-ash transition-[border-color,background-color,box-shadow,color] duration-200 hover:border-paper/40 hover:text-paper has-[:checked]:border-gold has-[:checked]:bg-gold/10 has-[:checked]:text-paper has-[:checked]:shadow-[4px_4px_0_0_var(--color-gold-deep)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose"
                         >
                           <input type="radio" name="captain" value={p.userId} defaultChecked={p.isCaptain} className="peer sr-only" />
                           <span className="flex min-w-0 flex-1 skew-x-12 items-center gap-2">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={p.avatar} alt="" className="size-7 shrink-0 grayscale transition group-has-[:checked]:grayscale-0" />
                             <span className="min-w-0 flex-1 truncate text-sm font-black">{p.username}</span>
-                            <Crown className="size-4 shrink-0 scale-50 fill-current text-[#e8c547] opacity-0 transition-[opacity,transform,translate,scale,rotate] duration-300 group-has-[:checked]:scale-100 group-has-[:checked]:opacity-100" />
+                            <Crown className="size-4 shrink-0 scale-50 fill-current text-gold opacity-0 transition-[opacity,transform,translate,scale,rotate] duration-300 group-has-[:checked]:scale-100 group-has-[:checked]:opacity-100" />
                           </span>
                         </label>
                       ))}

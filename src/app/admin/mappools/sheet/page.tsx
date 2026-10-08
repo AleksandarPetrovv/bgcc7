@@ -16,6 +16,7 @@ import { pickNow, pickSuggestion, removeSuggestion, suggestMap } from "./actions
 import { VoteCell } from "./vote-cell";
 import { SlotPop } from "../slot-pop";
 import { SheetView, SlotBox } from "./sheet-view";
+import { osuMap } from "@/lib/links";
 
 const places = (items: { picked: boolean; avg: number | null }[]) => {
   const out: number[] = [];
@@ -169,7 +170,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                       <img src={m.cover} alt="" className="hidden h-12 w-28 shrink-0 object-cover sm:block" />
                       <div className="min-w-0 flex-1 basis-56">
                         <a
-                          href={`https://osu.ppy.sh/b/${m.beatmapId}`}
+                          href={osuMap(m.beatmapId)}
                           target="_blank"
                           rel="noreferrer"
                           className="block truncate font-bold decoration-rose underline-offset-4 transition-colors hover:text-rose-hi hover:underline"
@@ -177,7 +178,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                           {m.title} <span className="text-ash">[{m.version}]</span>
                         </a>
                         <div className="num flex flex-wrap gap-x-3 text-sm text-paper/70">
-                          <span className="flex items-center gap-1 text-[#e8c547]">
+                          <span className="flex items-center gap-1 text-gold">
                             <Star className="size-3.5 fill-current" /> {m.sr.toFixed(2)}
                           </span>
                           <span>{Math.round(m.bpm)} bpm</span>

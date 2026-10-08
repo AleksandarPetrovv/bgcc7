@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { MeTag, meT } from "./me";
 import { fitBox, useFit } from "./use-fit";
 import { winTargets, type Format, type Half } from "@/lib/format";
+import { TZ } from "@/lib/time";
+import { HEX } from "@/lib/theme";
 
 const TOP = 72;
 type Pos = Record<string, [number, number, Half]>;
@@ -49,12 +51,12 @@ function Line({ m, slot, live }: { m: Match; slot: 1 | 2; live?: [number, number
       {(won || leads) && <span className={cn("absolute inset-y-1 left-0 w-0.5", won ? "bg-balkan" : "bg-rose/60")} aria-hidden />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={team.image} alt="" className="in-pop size-6 shrink-0 object-cover" style={v({ "--d": "0.45s" })} />
-      <span className={cn("in-wipe min-w-0 flex-1 truncate text-[0.82rem] font-bold", won && "font-black text-balkan", leads && "font-black text-[#e8868b]")} style={v({ "--d": "0.5s" })}>
+      <span className={cn("in-wipe min-w-0 flex-1 truncate text-[0.82rem] font-bold", won && "font-black text-balkan", leads && "font-black text-rose-soft")} style={v({ "--d": "0.5s" })}>
         {team.name}
       </span>
       <MeTag t={team.id} className="-mx-1" />
       {score !== null && (
-        <span className={cn("in-slam num w-5 shrink-0 text-right text-xl leading-none", won ? "text-balkan" : leads || tie ? "text-[#e8868b]" : "text-paper/80")} style={v({ "--d": "0.65s" })}>
+        <span className={cn("in-slam num w-5 shrink-0 text-right text-xl leading-none", won ? "text-balkan" : leads || tie ? "text-rose-soft" : "text-paper/80")} style={v({ "--d": "0.65s" })}>
           {score}
         </span>
       )}
@@ -66,13 +68,13 @@ function Box({ id, m, live, className, style, onEnter, onLeave }: { id: string; 
   const t = useDict();
   const lang = useLang();
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
-  const day = (dt: string) => new Date(dt).toLocaleDateString(locale, { timeZone: "Europe/Sofia", weekday: "short", day: "2-digit", month: "short" });
-  const clock = (dt: string) => new Date(dt).toLocaleTimeString("en-GB", { timeZone: "Europe/Sofia", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  const day = (dt: string) => new Date(dt).toLocaleDateString(locale, { timeZone: TZ, weekday: "short", day: "2-digit", month: "short" });
+  const clock = (dt: string) => new Date(dt).toLocaleTimeString("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
   return (
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className={cn("flex flex-col overflow-hidden border bg-coal transition-[border-color] duration-200", className)} style={style}>
       <div className="flex h-7 shrink-0 items-center gap-2 border-b border-line bg-ink/70 px-2.5">
         <span className="num truncate text-[0.78rem] text-paper/75">{m.datetime ? `${day(m.datetime)} · ${clock(m.datetime)}` : t.common.tbd}</span>
-        {id === "GF-M2" && <span className="shrink-0 whitespace-nowrap text-[0.6rem] font-black uppercase text-[#e8c547]">{t.rounds.reset}</span>}
+        {id === "GF-M2" && <span className="shrink-0 whitespace-nowrap text-[0.6rem] font-black uppercase text-gold">{t.rounds.reset}</span>}
         <span className="ml-auto flex items-center gap-1">
           {live !== undefined && <LiveDot />}
           {m.links.length > 0 && <MatchDialog match={m} compact />}
@@ -172,7 +174,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
                 className="in-draw"
                 style={v({ "--d": `${0.6 + POS[a][0] * 0.14}s` })}
                 fill="none"
-                stroke={done ? "#0fa06a" : "#2b302d"}
+                stroke={done ? HEX.balkan : HEX.line}
                 strokeOpacity={done ? 0.7 : 1}
                 strokeWidth={2}
               />
@@ -183,14 +185,14 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
               key={a + b}
               d={drop(a, b)}
               fill="none"
-              stroke="#e0242f"
+              stroke={HEX.rose}
               strokeWidth={2.25}
               strokeDasharray="6 5"
               className="transition-opacity duration-200"
               opacity={linked.has(a) && linked.has(b) ? 0.9 : 0}
             />
           ))}
-          <path d={`M${col(gfCol) + W / 2} ${top("GF-M1") + H} V${top("GF-M2")}`} stroke="#e8c547" strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="3 4" className="in-up" style={v({ "--d": "1.3s" })} />
+          <path d={`M${col(gfCol) + W / 2} ${top("GF-M1") + H} V${top("GF-M2")}`} strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="3 4" className="in-up" style={v({ "--d": "1.3s", stroke: "var(--color-gold)" })} />
         </svg>
 
         {section("u")}
@@ -206,7 +208,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
           </div>
         ))}
         <div
-          className="in-drop absolute flex snap-start items-center gap-2 border-b border-[#e8c547]/20 pb-1 text-xs font-black uppercase tracking-[0.14em] text-[#e8c547]/80"
+          className="in-drop absolute flex snap-start items-center gap-2 border-b border-gold/20 pb-1 text-xs font-black uppercase tracking-[0.14em] text-gold/80"
           style={{ left: col(gfCol), top: top("GF-M1") - 30, width: W, ...v({ "--d": "0.7s" }) }}
         >
           <Crown className="size-3.5" /> {t.rounds["Grand Finals"]}
@@ -225,7 +227,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
               live={id in live ? live[id] : undefined}
               onEnter={() => setHover(id)}
               onLeave={() => setHover(null)}
-              className={cn("in-left-far absolute", gf ? "border-[#e8c547]/25" : "border-line hover:border-paper/30", linked.has(id) && "border-rose/80")}
+              className={cn("in-left-far absolute", gf ? "border-gold/25" : "border-line hover:border-paper/30", linked.has(id) && "border-rose/80")}
               style={{ left: col(c), top: top(id), width: W, height: H, ...v({ "--i": c, "--s": "0.14s", "--d": `${(POS[id][2] === "u" ? 0.2 : 0.5) + POS[id][1] / 2500}s` }) }}
             />
           );

@@ -7,8 +7,9 @@ import { auth } from "@/auth";
 import { getRegistration } from "@/db/registrations";
 import { getSettings } from "@/db/settings";
 import { getFill } from "@/db/copy";
+import { getFormat } from "@/db/edition";
 import { requireSection } from "@/lib/authz";
-import { fmtSofia, windowState } from "@/lib/time";
+import { fmtSofia, windowState, TZ_LABEL } from "@/lib/time";
 
 export default async function Register() {
   await requireSection("register");
@@ -17,7 +18,7 @@ export default async function Register() {
   const user = osuId && session?.user?.name ? { name: session.user.name, image: session.user.image ?? null } : null;
   const status = osuId ? await getRegistration(osuId) : null;
   const state = windowState(settings.regOpensAt, settings.regClosesAt);
-  const fmt = (d: Date | null) => (d ? `${fmtSofia(d, lang === "bg" ? "bg-BG" : "en-GB")} EET` : "");
+  const fmt = (d: Date | null) => (d ? `${fmtSofia(d, lang === "bg" ? "bg-BG" : "en-GB")} ${TZ_LABEL}` : "");
   const tag =
     state === "open" ? (
       <Tag tone="balkan" className="text-xs">{settings.regClosesAt ? t.register.openTag(fmt(settings.regClosesAt)) : t.register.accent}</Tag>
@@ -30,7 +31,7 @@ export default async function Register() {
   return (
     <Container plain>
       <PageTitle mark="glints" accent={t.register.accent} right={tag}>
-        BGCC7
+        {getFormat().name}
       </PageTitle>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_1.4fr]">

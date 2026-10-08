@@ -2,6 +2,7 @@ import { Tv, MessageCircle } from "lucide-react";
 import { LangSwitch } from "./lang";
 import { TriTick } from "./graphics";
 import { DISCORD_URL, TWITCH_URL } from "@/lib/links";
+import { getFormat } from "@/db/edition";
 
 export function SiteFooter() {
   const SOCIALS = [
@@ -13,7 +14,7 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-page flex-wrap items-center justify-center gap-x-5 gap-y-3 px-4 py-5 sm:px-6 lg:px-10 2xl:px-14">
         <div className="flex items-center gap-3">
           <TriTick className="h-3 w-[22px] opacity-70" />
-          <span className="font-display text-sm font-black lowercase text-ash">bgcc7</span>
+          <span className="font-display text-sm font-black lowercase text-ash">{getFormat().name}</span>
         </div>
         <span className="size-1 rotate-45 bg-line" aria-hidden />
         <div className="flex items-center gap-1">

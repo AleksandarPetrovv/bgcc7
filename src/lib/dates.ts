@@ -1,6 +1,7 @@
-export type TimelineRow = { key: string; from: string | null; to: string | null };
+import { playerCount, versus, type Format } from "./format";
+import { TZ, TZ_LABEL } from "./time";
 
-const TZ = "Europe/Sofia";
+export type TimelineRow = { key: string; from: string | null; to: string | null };
 
 const day = (iso: string) => new Date(`${iso}T12:00:00Z`);
 
@@ -31,6 +32,8 @@ export function buildTokens(opts: {
   qualifyCount: number;
   teams?: number;
   firstTo: Record<string, number | null>;
+  format?: Format;
+  bans?: Record<string, number>;
 }) {
   const { locale, timeline, regClosesAt, qualifyCount, firstTo } = opts;
   const n = opts.teams ?? Math.floor(qualifyCount / 3);
@@ -39,7 +42,7 @@ export function buildTokens(opts: {
   tokens.regOpen = fmtRange(locale, timeline.find((r) => r.key === "reg")?.from ?? null, null);
   if (regClosesAt) {
     tokens.regClose = regClosesAt.toLocaleDateString(locale, { timeZone: TZ, day: "numeric", month: "long" });
-    tokens.regCloseTime = `${regClosesAt.toLocaleString(locale, { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} EET`;
+    tokens.regCloseTime = `${regClosesAt.toLocaleString(locale, { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} ${TZ_LABEL}`;
   }
   tokens.qualify = String(qualifyCount);
   tokens.teams = String(n);
@@ -48,6 +51,19 @@ export function buildTokens(opts: {
   tokens.teams2p = String(2 * n + 1);
   tokens.teams2p2 = String(2 * n + 2);
   for (const [slug, ft] of Object.entries(firstTo)) if (ft) tokens[`bo.${slug}`] = String(ft * 2 - 1);
+  const bg = locale.startsWith("bg");
+  for (const [slug, n] of Object.entries(opts.bans ?? {})) tokens[`bans.${slug}`] = `${n} ${bg ? (n === 1 ? "бан" : "бана") : n === 1 ? "ban" : "bans"}`;
+  const fm = opts.format;
+  if (fm) {
+    tokens.name = fm.name;
+    tokens.year = String(fm.year);
+    tokens.vs = versus(fm);
+    tokens.teamSize = String(fm.teamSize);
+    tokens.players = String(playerCount(fm));
+    tokens.tierB = String(fm.teams + 1);
+    tokens.half = String(fm.teams / 2);
+    tokens.half1 = String(fm.teams / 2 + 1);
+  }
   return tokens;
 }
 

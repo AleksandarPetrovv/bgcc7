@@ -8,8 +8,9 @@ import { useDict } from "@/components/site/lang";
 import { EDITIONS, type Edition } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { clearTest, seedTest, switchEdition } from "./actions";
+import { GOLD as GOLD_C, tint } from "@/lib/theme";
 
-const GOLD = "#e8c547";
+const GOLD = GOLD_C.c;
 
 export function EditionSwitch({ edition }: { edition: Edition }) {
   const t = useDict();
@@ -30,7 +31,7 @@ export function EditionSwitch({ edition }: { edition: Edition }) {
         {t.admin.edition}
         {pending && <Loader2 className="ml-auto size-3.5 animate-spin" />}
       </div>
-      <div role="radiogroup" aria-label={t.admin.edition} className={cn("relative grid h-12 grid-cols-2 -skew-x-12 border", pending && "opacity-70")} style={{ borderColor: `${GOLD}66` }}>
+      <div role="radiogroup" aria-label={t.admin.edition} className={cn("relative grid h-12 grid-cols-2 -skew-x-12 border", pending && "opacity-70")} style={{ borderColor: tint(GOLD, 40) }}>
         {EDITIONS.map((e) => {
           const on = e === edition;
           return (
@@ -47,7 +48,7 @@ export function EditionSwitch({ edition }: { edition: Edition }) {
                 <motion.span
                   layoutId="edition-pill"
                   transition={{ type: "spring", stiffness: 520, damping: 40 }}
-                  className="absolute inset-0 shadow-[3px_3px_0_0_#9c7f1f]"
+                  className="absolute inset-0 shadow-[3px_3px_0_0_var(--color-gold-deep)]"
                   style={{ background: GOLD }}
                   aria-hidden
                 />

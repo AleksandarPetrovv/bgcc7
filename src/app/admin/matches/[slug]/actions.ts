@@ -6,6 +6,7 @@ import { and, eq } from "drizzle-orm";
 import { matches, scoreEdits } from "@/db/schema";
 import { advance } from "@/db/bracket";
 import { getPoolStages } from "@/db/mappools";
+import { getFormat } from "@/db/edition";
 import { forgetScoreboard, getScoreboard } from "@/db/scoreboards";
 import { getMatches, getTeams } from "@/db/tournament";
 import { guard } from "@/lib/admin-action";
@@ -20,7 +21,7 @@ async function sync(matchId: string) {
   if (!match) return;
   const sb = await getScoreboard(match, teams, stages);
   if (!sb) return;
-  const firstTo = stages.find((s) => s.slug === match.stage)?.firstTo ?? 7;
+  const firstTo = stages.find((s) => s.slug === match.stage)?.firstTo ?? getFormat().firstTo;
   const [row] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
   if (!row) return;
   const [a, b] = sb.score;

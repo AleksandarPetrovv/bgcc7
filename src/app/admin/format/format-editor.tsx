@@ -211,10 +211,10 @@ function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: PlanRoun
         ].map(([k, n], j) => (
           <div key={String(k)} className={cn("px-4 py-3 sm:px-5", j % 2 && "border-l border-line", j > 1 && "border-t border-line sm:border-t-0", j === 2 && "sm:border-l")}>
             <div className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-ash">{k}</div>
-            <div className={cn("num mt-1 text-3xl leading-none", j === 3 && (s.ratio > 0.85 ? "text-rose-hi" : s.ratio < 0.5 ? "text-[#e8c547]" : "text-balkan"))}>{n}</div>
+            <div className={cn("num mt-1 text-3xl leading-none", j === 3 && (s.ratio > 0.85 ? "text-rose-hi" : s.ratio < 0.5 ? "text-gold" : "text-balkan"))}>{n}</div>
             {j === 3 && (
               <div className="mt-2 h-1 bg-line">
-                <motion.div className={cn("h-full", s.ratio > 0.85 ? "bg-rose" : s.ratio < 0.5 ? "bg-[#e8c547]" : "bg-balkan")} animate={{ width: `${fill * 100}%` }} transition={{ type: "spring", stiffness: 260, damping: 30 }} />
+                <motion.div className={cn("h-full", s.ratio > 0.85 ? "bg-rose" : s.ratio < 0.5 ? "bg-gold" : "bg-balkan")} animate={{ width: `${fill * 100}%` }} transition={{ type: "spring", stiffness: 260, damping: 30 }} />
               </div>
             )}
           </div>

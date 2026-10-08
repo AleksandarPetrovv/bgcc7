@@ -3,11 +3,12 @@ import { cache } from "react";
 import { getSettings } from "./settings";
 import { getFormat } from "./edition";
 import { getPoolStages } from "./mappools";
+import { getSkillLayouts } from "./format-plan";
 import { getLang } from "@/lib/i18n/server";
 import { buildTokens, fill } from "@/lib/dates";
 
 export const getTokens = cache(async () => {
-  const [s, stages, lang] = await Promise.all([getSettings(), getPoolStages(), getLang()]);
+  const [s, stages, lang, skills] = await Promise.all([getSettings(), getPoolStages(), getLang(), getSkillLayouts()]);
   return buildTokens({
     locale: lang === "bg" ? "bg-BG" : "en-GB",
     timeline: s.timeline,
@@ -15,6 +16,8 @@ export const getTokens = cache(async () => {
     qualifyCount: s.qualifyCount,
     teams: getFormat().edition === "bgcc6" ? undefined : getFormat().teams,
     firstTo: Object.fromEntries(stages.map((x) => [x.slug, x.firstTo])),
+    format: getFormat(),
+    bans: Object.fromEntries(Object.entries(skills ?? {}).map(([slug, l]) => [slug, l.bans])),
   });
 });
 

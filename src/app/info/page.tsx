@@ -20,7 +20,7 @@ function List({ items }: { items: string[] }) {
   );
 }
 
-const PRIZE_BAR = ["bg-[#e8c547]", "bg-[#c9ccd1]", "bg-[#c98a4b]"];
+const PRIZE_BAR = ["bg-gold", "bg-silver", "bg-bronze"];
 
 export default async function InfoPage() {
   await requireSection("info");
@@ -41,7 +41,7 @@ export default async function InfoPage() {
         <div className="mt-14 xl:grid xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] xl:gap-16">
         <div>
         <SectionHeading>{t.info.general}</SectionHeading>
-        <List items={t.info.generalItems} />
+        <List items={t.info.generalItems.map(f)} />
 
         <SectionHeading>{t.info.regTitle}</SectionHeading>
         <List items={t.info.regItems.map(f)} />

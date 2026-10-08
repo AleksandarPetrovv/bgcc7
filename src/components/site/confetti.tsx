@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { HEX } from "@/lib/theme";
 
-const COLORS = ["#e0242f", "#f24a54", "#0fa06a", "#f4f3ee", "#e8c547", "#3b82f6"];
+const COLORS = [HEX.rose, HEX.roseHi, HEX.balkan, HEX.paper, HEX.gold, HEX.azure];
 
 export function Confetti({ duration = 2500, onDone }: { duration?: number; onDone?: () => void }) {
   const ref = useRef<HTMLCanvasElement>(null);
