@@ -42,7 +42,6 @@ export type PlayerTotal = { id: number; name: string; avatar: string; team: 1 | 
 
 export type Scoreboard = {
   v?: number;
-  ez?: number;
   lobbies: { id: string; name: string }[];
   maps: MapResult[];
   score: [number, number];
@@ -55,9 +54,8 @@ export const playoffPools = (stages: Stage[]): Pool[] =>
   stages.filter((s) => s.slug !== "qualifiers").map((s) => new Map(s.pools.flatMap((p) => p.maps.map((m) => [m.id, { slot: m.slot, mod: m.mod }] as const))));
 
 const shownMods = (mods: string[]) => mods.filter((m) => m !== "NF");
-const withEz = (score: number, mods: string[], ez: number) => (mods.includes("EZ") ? Math.floor(score * ez) : score);
 
-export async function buildScoreboard(match: Match, teams: Team[], pools: Pool[], edits: ScoreEdit[] = [], ez = 1): Promise<Scoreboard> {
+export async function buildScoreboard(match: Match, teams: Team[], pools: Pool[], edits: ScoreEdit[] = []): Promise<Scoreboard> {
   const rosterIds = (teamId: string) => new Set((teams.find((t) => t.id === teamId)?.players ?? []).map((p) => p.userId));
   const ids: [Set<number>, Set<number>] = [rosterIds(match.team1.id), rosterIds(match.team2.id)];
   const lobbies = await Promise.all(match.links.map((id) => getMpMatch(id)));
@@ -112,7 +110,7 @@ export async function buildScoreboard(match: Match, teams: Team[], pools: Pool[]
         id: s.user_id,
         name: u?.name ?? String(s.user_id),
         avatar: u?.avatar ?? `https://a.ppy.sh/${s.user_id}`,
-        score: withEz(s.score, mods, ez),
+        score: s.score,
         acc: s.accuracy,
         combo: s.max_combo,
         miss: s.statistics?.count_miss ?? 0,
@@ -127,7 +125,7 @@ export async function buildScoreboard(match: Match, teams: Team[], pools: Pool[]
         id: e.osuId,
         name: u?.name ?? String(e.osuId),
         avatar: u?.avatar ?? `https://a.ppy.sh/${e.osuId}`,
-        score: withEz(e.score, e.mods.length ? e.mods : game.mods, ez),
+        score: e.score,
         acc: e.acc,
         combo: 0,
         miss: 0,
@@ -192,7 +190,6 @@ export async function buildScoreboard(match: Match, teams: Team[], pools: Pool[]
 
   return {
     v: SCOREBOARD_V,
-    ez,
     lobbies: lobbies.map((l, i) => ({ id: match.links[i], name: l.match.name })),
     maps,
     score,

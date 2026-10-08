@@ -9,7 +9,7 @@ import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { roundName } from "@/lib/i18n/dict";
 import { can } from "@/lib/roles";
-import { setDraft, setQualify, setRounds, setScoring } from "./actions";
+import { setDraft, setQualify, setRounds } from "./actions";
 import { PickemsToggle } from "./pickems-toggle";
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
@@ -25,24 +25,6 @@ export default async function AdminSettings() {
       <PageTitle mark="gears">{t.admin.menu.settings}</PageTitle>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 xl:items-start">
         <div className="space-y-6">
-          <Panel title={t.admin.set.scoring} help={t.admin.set.scoringHelp} i={0}>
-            <ActionForm key={s.ezMult} action={setScoring} className="space-y-4">
-              <div className="flex flex-wrap items-end gap-4">
-                <label className={labelCls}>
-                  {t.admin.set.ez}
-                  <span className="flex items-center gap-2">
-                    <span className="num text-2xl text-ash">×</span>
-                    <Field type="number" name="ezMult" min={1} max={3} step={0.01} defaultValue={s.ezMult} className={`${inputCls} num w-28 text-lg`} />
-                  </span>
-                </label>
-                <div className="in-pop flex items-center gap-2 border border-dashed border-line px-3 py-2 text-xs font-bold text-ash" style={v({ "--d": "0.5s" })}>
-                  <span className="num text-paper">1,000,000</span> EZ → <span className="num text-paper">500,000</span> × {s.ezMult} ={" "}
-                  <span className="num text-gold">{Math.floor(500000 * s.ezMult).toLocaleString("en-US")}</span>
-                </div>
-              </div>
-            </ActionForm>
-          </Panel>
-
           {getFormat().edition === "bgcc6" && (
           <Panel title={t.admin.set.qualify} help={t.admin.set.qualifyHelp} i={1}>
             <ActionForm key={s.qualifyCount} action={setQualify} className="space-y-4">
