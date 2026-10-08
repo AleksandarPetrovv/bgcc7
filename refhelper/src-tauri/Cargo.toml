@@ -20,6 +20,7 @@ keyring = { version = "3", features = ["windows-native"] }
 sha2 = "0.10"
 base64 = "0.22"
 rand = "0.8"
+rtosu-dataprovider = { git = "https://github.com/Raregendary/rtosu-dataprovider", tag = "v1.0.9" }
 
 [profile.release]
 opt-level = "s"
