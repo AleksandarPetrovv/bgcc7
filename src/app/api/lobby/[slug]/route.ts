@@ -2,7 +2,7 @@ import { draftAccess } from "@/db/drafts";
 import { getFormat } from "@/db/edition";
 import { matchIdFromSlug } from "@/lib/format";
 import { log } from "@/lib/authz";
-import { abortLobby, closeLobby, ensureBot, hostSlot, inviteMissing, kickSlot, lobbyView, makeLobby, moveSlot, onLobby, refreshLobby, sendChat, simpleCmd, startLobby, teamSlot } from "@/lib/bancho";
+import { abortLobby, closeLobby, ensureBot, inviteMissing, kickSlot, lobbyView, makeLobby, moveSlot, onLobby, refreshLobby, sayLocal, sendChat, simpleCmd, spareSlot, startLobby, teamSlot } from "@/lib/bancho";
 import { sse } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
@@ -16,19 +16,37 @@ async function who(ctx: Ctx) {
 }
 
 export async function GET(req: Request, ctx: Ctx) {
-  const w = await who(ctx);
-  if (!w) return Response.json({ error: "forbidden" }, { status: 403 });
+  const id = matchIdFromSlug(await getFormat(), (await ctx.params).slug);
+  const a = await draftAccess(id);
+  if (!a) return Response.json({ error: "forbidden" }, { status: 403 });
   void ensureBot().catch((e) => console.error("[bancho]", e));
-  return sse(req, () => lobbyView(w.id, w.osuId), 3000, onLobby);
+  if (a.admin) return sse(req, () => lobbyView(id, a.osuId), 3000, onLobby);
+  return sse(
+    req,
+    async () => {
+      const v = await lobbyView(id, null);
+      return { ...v, password: "", chat: v.chat.filter((c) => c.local || c.ref || (c.from === "BanchoBot" ? KEEP.test(c.text) : !c.text.startsWith("!"))) };
+    },
+    3000,
+    onLobby,
+  );
 }
+
+const KEEP = /^(Match starts in|Queued the match to start|The match has started|Started the match|Good luck|Aborted the match|The match has finished|Countdown ends in|Countdown finished|Countdown aborted|Changed beatmap to|Enabled .*FreeMod|Changed match host)/i;
 
 const int = (v: unknown) => (typeof v === "number" && Number.isInteger(v) ? v : -1);
 
 export async function POST(req: Request, ctx: Ctx) {
-  const w = await who(ctx);
-  if (!w) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
   const b = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   const act = typeof b?.act === "string" ? b.act : "";
+  if (act === "say") {
+    const a = await draftAccess(matchIdFromSlug(await getFormat(), (await ctx.params).slug));
+    if (!a || (!a.team && !a.admin)) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+    const r = await sayLocal(a.match.id, a.osuId, String(b?.text ?? ""), a.team);
+    return r === "ok" ? Response.json({ ok: true }) : Response.json({ ok: false, error: r }, { status: 429 });
+  }
+  const w = await who(ctx);
+  if (!w) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
   const { id, osuId } = w;
   try {
     switch (act) {
@@ -61,8 +79,8 @@ export async function POST(req: Request, ctx: Ctx) {
       case "kick":
         await kickSlot(id, osuId, int(b?.slot));
         break;
-      case "host":
-        await hostSlot(id, osuId, int(b?.slot));
+      case "spare":
+        await spareSlot(id, osuId, !!b?.open);
         break;
       case "team":
         await teamSlot(id, osuId, int(b?.slot), b?.team === "red" ? "red" : "blue");

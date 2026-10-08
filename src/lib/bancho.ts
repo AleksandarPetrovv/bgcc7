@@ -5,21 +5,23 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { BanchoClient, BanchoLobbyPlayerStates, BanchoLobbyTeamModes, BanchoLobbyWinConditions, type BanchoLobby, type BanchoLobbyPlayerScore, type BanchoMultiplayerChannel } from "bancho.js";
 import { RateLimiterMemory, RateLimiterQueue } from "rate-limiter-flexible";
 import { db } from "@/db";
-import { matches, mpChat, mpLobbies, users } from "@/db/schema";
-import { getTeams } from "@/db/tournament";
+import { matches, mpChat, mpLobbies, staff, users } from "@/db/schema";
+import { getAllTeams } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
 import { getFormat } from "@/db/edition";
 import { getDraft, lobbyTimer, onDraft, poolSlots, setResult } from "@/db/drafts";
 import { other, rollWinner, scoreOf, turnOf, type DraftView } from "@/lib/draft";
 import { getUser } from "@/lib/osu-api";
+import { lobbySize } from "@/lib/format";
 
-export type LobbySlot = { slot: number; name: string; id: number | null; side: 1 | 2 | null; team: "red" | "blue" | null; ready: "ready" | "notready" | "nomap"; host: boolean };
+export type LobbySlot = { slot: number; name: string; id: number | null; side: 1 | 2 | null; team: "red" | "blue" | null; ready: "ready" | "notready" | "nomap"; host: boolean; mods: string[] };
 export type LobbyView = {
   bot: "off" | "connecting" | "online";
   state: "none" | "open" | "closed";
   mpId: number | null;
   password: string;
   size: number;
+  spare?: boolean;
   slots: (LobbySlot | null)[];
   mapId: number | null;
   mapName: string | null;
@@ -31,13 +33,15 @@ export type LobbyView = {
 
 type Kind = "personal" | "bot";
 type Conn = { kind: Kind; client: BanchoClient; ready: Promise<unknown> | null };
-export type ChatLine = { at: number; from: string; text: string };
+export type ChatLine = { at: number; from: string; text: string; ref?: boolean; local?: boolean; side?: 1 | 2 };
 type Live = {
   matchId: string;
   mpId: number;
   owner: Kind;
   lobby: BanchoLobby;
   members: Map<number, 1 | 2>;
+  seats: Map<number, number>;
+  placed: Set<number>;
   chat: ChatLine[];
   names: [string, string];
   seen: DraftView | null;
@@ -138,16 +142,39 @@ export async function ensureBot() {
 
 async function membersOf(matchId: string) {
   const [m] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
-  const teams = await getTeams();
+  const teams = await getAllTeams();
   const map = new Map<number, 1 | 2>();
-  for (const [tid, side] of [[m?.team1Id, 1], [m?.team2Id, 2]] as const) for (const p of teams.find((t) => t.id === tid)?.players ?? []) map.set(p.userId, side);
+  const seats = new Map<number, number>();
+  const per = getFormat().teamSize;
+  for (const [tid, side] of [[m?.team1Id, 1], [m?.team2Id, 2]] as const)
+    for (const [k, p] of (teams.find((t) => t.id === tid)?.players ?? []).entries()) {
+      map.set(p.userId, side);
+      if (k < per) seats.set(p.userId, (side - 1) * per + k);
+    }
   const nm = (id: string | null | undefined) => teams.find((t) => t.id === id)?.name ?? "TBD";
-  return { match: m, teams, map, names: [nm(m?.team1Id), nm(m?.team2Id)] as [string, string], seen: await getDraft(matchId) };
+  return { match: m, teams, map, seats, names: [nm(m?.team1Id), nm(m?.team2Id)] as [string, string], seen: await getDraft(matchId) };
 }
 
 async function history(mpId: number): Promise<ChatLine[]> {
   const rows = await db.select().from(mpChat).where(eq(mpChat.mpId, mpId)).orderBy(desc(mpChat.id)).limit(150).catch(() => []);
-  return rows.reverse().map((r) => ({ at: r.at.getTime(), from: r.from, text: r.text }));
+  return rows.reverse().map((r) => ({ at: r.at.getTime(), from: r.from, text: r.text, ...(r.local ? { local: true } : {}), ...(r.side === 1 || r.side === 2 ? { side: r.side } : {}) }));
+}
+
+export async function sayLocal(matchId: string, by: number, raw: string, side: 1 | 2 | null) {
+  const text = raw.replace(/[\r\n]+/g, " ").trim().slice(0, 300);
+  if (!text) return "empty" as const;
+  const wait = (lastSent.get(by) ?? 0) + CHAT_GAP - Date.now();
+  if (wait > 0) return "cooldown" as const;
+  const l = g.bgccIrc?.live.get(matchId);
+  if (!l) return "closed" as const;
+  lastSent.set(by, Date.now());
+  const [u] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, by)).limit(1);
+  const line: ChatLine = { at: Date.now(), from: (u?.username ?? String(by)).replace(/ /g, "_"), text, local: true, ...(side ? { side } : {}) };
+  l.chat.push(line);
+  if (l.chat.length > 150) l.chat.splice(0, l.chat.length - 150);
+  await db.insert(mpChat).values({ matchId, mpId: l.mpId, at: new Date(line.at), from: line.from, text, local: true, side }).catch((e) => console.error("[bancho] chat save", e));
+  ping(matchId);
+  return "ok" as const;
 }
 
 async function restore(s: State, matchId: string, mpId: number, owner: Kind) {
@@ -155,8 +182,8 @@ async function restore(s: State, matchId: string, mpId: number, owner: Kind) {
   const c = await online(owner);
   const ch = c.client.getChannel(`#mp_${mpId}`) as BanchoMultiplayerChannel;
   await ch.join();
-  const { map, names, seen } = await membersOf(matchId);
-  const l: Live = { matchId, mpId, owner, lobby: ch.lobby, members: map, chat: await history(mpId), names, seen, queue: Promise.resolve(), active: Date.now() };
+  const { map, seats, names, seen } = await membersOf(matchId);
+  const l: Live = { matchId, mpId, owner, lobby: ch.lobby, members: map, seats, placed: new Set(map.keys()), chat: await history(mpId), names, seen, queue: Promise.resolve(), active: Date.now() };
   attach(l);
   s.live.set(matchId, l);
   await ch.lobby.updateSettings();
@@ -289,8 +316,32 @@ function syncIdle() {
   }
 }
 
+const CMD_GAP = 750;
+const paceQ = new Map<number, { q: Promise<unknown>; last: number }>();
+
+function pace(channel: unknown, mpId: number) {
+  const c = channel as { sendMessage: (m: string) => Promise<unknown>; paced?: boolean };
+  if (c.paced) return;
+  c.paced = true;
+  const raw = c.sendMessage.bind(c);
+  c.sendMessage = (m: string) => {
+    if (!m.startsWith("!")) return raw(m);
+    const s = paceQ.get(mpId) ?? { q: Promise.resolve(), last: 0 };
+    paceQ.set(mpId, s);
+    const run = s.q.then(async () => {
+      const wait = s.last + CMD_GAP - Date.now();
+      if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+      s.last = Date.now();
+      return raw(m);
+    });
+    s.q = run.catch(() => {});
+    return run;
+  };
+}
+
 function attach(l: Live) {
   const lb = l.lobby;
+  pace(lb.channel, l.mpId);
   const up = () => {
     l.active = Date.now();
     ping(l.matchId);
@@ -327,6 +378,12 @@ function attach(l: Live) {
       const side = l.members.get(player.user.id);
       const want = side === 1 ? "Red" : side === 2 ? "Blue" : null;
       if (want && player.team !== want) await lb.changeTeam(player, want);
+      const id = player.user.id;
+      const seat = l.seats.get(id);
+      if (seat == null || l.placed.has(id)) return;
+      l.placed.add(id);
+      const from = lb.slots.findIndex((p) => p?.user.id === id);
+      if (from >= 0 && from !== seat) await swapSlots(l, (m) => lb.channel.sendMessage(m), from, seat);
     } catch {}
   });
 }
@@ -358,10 +415,12 @@ export async function lobbyView(matchId: string, osuId: number | null): Promise<
   const l = g.bgccIrc?.live.get(matchId);
   if (!l || !row?.open) return base;
   const lb = l.lobby;
-  const size = Math.max(getFormat().teamSize * 2, ...lb.slots.map((p, i) => (p ? i + 1 : 0)));
+  const size = Math.max(lobbySize(getFormat()) + 1, ...lb.slots.map((p, i) => (p ? i + 1 : 0)));
+  const refs = await refNames();
   return {
     ...base,
     size,
+    spare: (lb.size ?? 0) > lobbySize(getFormat()),
     slots: Array.from({ length: size }, (_, i) => {
       const p = lb.slots[i];
       if (!p) return null;
@@ -374,6 +433,7 @@ export async function lobbyView(matchId: string, osuId: number | null): Promise<
         team: p.team === "Red" ? "red" : p.team === "Blue" ? "blue" : null,
         ready: READY.get(p.state as symbol) ?? "notready",
         host: p.isHost,
+        mods: (p.mods ?? []).map((m) => m.shortMod.toUpperCase()),
       };
     }),
     mapId: lb.beatmapId || null,
@@ -381,8 +441,27 @@ export async function lobbyView(matchId: string, osuId: number | null): Promise<
     mods: (lb.mods ?? []).map((m) => m.shortMod.toUpperCase()),
     freemod: !!lb.freemod,
     playing: !!lb.playing,
-    chat: l.chat.slice(-100),
+    chat: l.chat.slice(-100).map((c) => (refs.has(nameKey(c.from)) ? { ...c, ref: true } : c)),
   };
+}
+
+const nameKey = (n: string) => n.toLowerCase().replace(/ /g, "_");
+let refCache: { at: number; names: Set<string> } | null = null;
+
+async function refNames() {
+  if (refCache && Date.now() - refCache.at < 60_000) return refCache.names;
+  const rows = await db
+    .select({ username: users.username, roles: staff.permRoles })
+    .from(staff)
+    .innerJoin(users, eq(users.osuId, staff.osuId))
+    .catch(() => []);
+  const names = new Set(rows.filter((r) => r.roles.length).map((r) => nameKey(r.username)));
+  for (const k of ["personal", "bot"] as const) {
+    const u = creds(k)?.username;
+    if (u) names.add(nameKey(u));
+  }
+  refCache = { at: Date.now(), names };
+  return names;
 }
 
 async function liveOf(matchId: string) {
@@ -402,6 +481,7 @@ async function lobbyAs(matchId: string, osuId: number | null) {
     await l.lobby.addRef(c.client.getSelf().ircUsername).catch(() => {});
     await ch.join();
   }
+  pace(ch, l.mpId);
   return { l, lb: ch.lobby };
 }
 
@@ -412,14 +492,14 @@ export async function makeLobby(matchId: string, by: number) {
   if (!s) throw new Error("irc off");
   const [cur] = await db.select().from(mpLobbies).where(eq(mpLobbies.matchId, matchId)).limit(1);
   if (cur?.open && s.live.has(matchId)) return { mpId: cur.mpId };
-  const { match, teams, map, names, seen } = await membersOf(matchId);
+  const { match, teams, map, seats, names, seen } = await membersOf(matchId);
   if (!match?.team1Id || !match.team2Id) throw new Error("teams missing");
   const owner = await kindFor(by);
   const c = await online(owner);
   const name = (id: string) => clip(teams.find((t) => t.id === id)?.name ?? "TBD", 20);
-  const ch = await c.client.createLobby(`BGCC7: (${name(match.team1Id)}) vs (${name(match.team2Id)})`);
+  const ch = await c.client.createLobby(`${getFormat().name}: (${name(match.team1Id)}) vs (${name(match.team2Id)})`);
   const lb = ch.lobby;
-  const l: Live = { matchId, mpId: lb.id, owner, lobby: lb, members: map, chat: [], names, seen, queue: Promise.resolve(), active: Date.now() };
+  const l: Live = { matchId, mpId: lb.id, owner, lobby: lb, members: map, seats, placed: new Set(), chat: [], names, seen, queue: Promise.resolve(), active: Date.now() };
   attach(l);
   s.live.set(matchId, l);
   const password = randomBytes(4).toString("hex");
@@ -431,7 +511,7 @@ export async function makeLobby(matchId: string, by: number) {
   if (!ids.includes(String(lb.id))) await db.update(matches).set({ mpLinks: [...ids, String(lb.id)].join(",") }).where(eq(matches.id, matchId));
   ping(matchId);
   await lb.setPassword(password);
-  await lb.setSettings(BanchoLobbyTeamModes.TeamVs, BanchoLobbyWinConditions.ScoreV2, getFormat().teamSize * 2);
+  await lb.setSettings(BanchoLobbyTeamModes.TeamVs, BanchoLobbyWinConditions.ScoreV2, lobbySize(getFormat()));
   await lb.channel.sendMessage("!mp lock");
   const refNames = (match.referee ?? "").split(/[,&/]| and /).map((x) => x.trim().toLowerCase()).filter(Boolean);
   const known = refNames.length ? await db.select({ osuId: users.osuId }).from(users).where(inArray(sql`lower(${users.username})`, refNames)) : [];
@@ -549,11 +629,6 @@ async function slotPlayer(matchId: string, by: number, slot: number) {
   return { l, say: (m: string) => lb.channel.sendMessage(m), who: target(p) };
 }
 
-export async function hostSlot(matchId: string, by: number, slot: number) {
-  const { say, who } = await slotPlayer(matchId, by, slot);
-  await say(`!mp host ${who}`);
-}
-
 const SIMPLE = { aborttimer: "!mp aborttimer" } as const;
 export type SimpleCmd = keyof typeof SIMPLE;
 
@@ -572,17 +647,39 @@ export async function teamSlot(matchId: string, by: number, slot: number, team: 
   await say(`!mp team ${who} ${team}`);
 }
 
-export async function moveSlot(matchId: string, by: number, from: number, to: number) {
-  const { l, say, who } = await slotPlayer(matchId, by, from);
-  const size = getFormat().teamSize * 2;
-  if (to < 0 || to >= size || to === from) return;
-  const there = l.lobby.slots[to];
-  if (!there) return void (await say(`!mp move ${who} ${to + 1}`));
-  await say(`!mp size ${size + 1}`);
-  await say(`!mp move ${who} ${size + 1}`);
+async function swapSlots(l: Live, say: (m: string) => Promise<unknown>, from: number, to: number) {
+  const lb = l.lobby;
+  const me = lb.slots[from];
+  if (!me || to === from) return;
+  const cur = lb.size || lobbySize(getFormat());
+  const there = lb.slots[to];
+  const grow = to + 1 > cur ? to + 1 : 0;
+  if (!there) {
+    if (grow) await say(`!mp size ${grow}`);
+    await say(`!mp move ${target(me)} ${to + 1}`);
+    if (grow) await say(`!mp size ${cur}`);
+    return;
+  }
+  let temp = lobbySize(getFormat());
+  while (temp < 15 && (lb.slots[temp] || temp === from || temp === to)) temp++;
+  const size = Math.max(cur, temp + 1);
+  if (size !== cur) await say(`!mp size ${size}`);
+  await say(`!mp move ${target(me)} ${temp + 1}`);
   await say(`!mp move ${target(there)} ${from + 1}`);
-  await say(`!mp move ${who} ${to + 1}`);
-  await say(`!mp size ${size}`);
+  await say(`!mp move ${target(me)} ${to + 1}`);
+  if (size !== cur) await say(`!mp size ${cur}`);
+}
+
+export async function moveSlot(matchId: string, by: number, from: number, to: number) {
+  const { l, say } = await slotPlayer(matchId, by, from);
+  if (to < 0 || to > lobbySize(getFormat())) return;
+  await swapSlots(l, say, from, to);
+}
+
+export async function spareSlot(matchId: string, by: number, open: boolean) {
+  const { lb } = await lobbyAs(matchId, by);
+  const base = lobbySize(getFormat());
+  await lb.channel.sendMessage(`!mp size ${open ? base + 1 : base}`);
 }
 
 const MOD_ARGS: Record<string, string> = { NoMod: "NF", Hidden: "HD NF", HardRock: "HR NF", DoubleTime: "DT NF" };
