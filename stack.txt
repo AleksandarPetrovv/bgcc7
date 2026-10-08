@@ -1,18 +1,15 @@
 application: Next.js App Router + TypeScript
 package manager: pnpm
-UI: React + Tailwind CSS + shadcn/ui
+UI: React + Tailwind CSS + shadcn/ui (Base UI) + Motion
 validation: Zod
-forms: React Hook Form
 authentication: Auth.js with a custom osu! OAuth provider
 database: PostgreSQL
 ORM/migrations: Drizzle ORM
-background jobs: pg-boss
 live updates: server-sent events
-file storage: Cloudflare R2
+osu! lobbies: bancho.js (IRC)
 charts: Recharts
-testing: Vitest + Playwright
-error tracking: Sentry
-reverse proxy: Caddy
-deployment: Docker Compose on one Linux VPS
-DNS/security: Cloudflare
-CI: Gitea Actions
+rate limiting: rate-limiter-flexible
+chat filter: obscenity
+file storage: local uploads folder
+deployment: Docker Compose
+hosting: Tailscale Funnel
