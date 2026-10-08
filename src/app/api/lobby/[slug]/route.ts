@@ -20,11 +20,11 @@ export async function GET(req: Request, ctx: Ctx) {
   const a = await draftAccess(id);
   if (!a) return Response.json({ error: "forbidden" }, { status: 403 });
   void ensureBot().catch((e) => console.error("[bancho]", e));
-  if (a.admin) return sse(req, () => lobbyView(id, a.osuId), 3000, onLobby);
+  if (a.admin) return sse(req, () => lobbyView(id), 3000, onLobby);
   return sse(
     req,
     async () => {
-      const v = await lobbyView(id, null);
+      const v = await lobbyView(id);
       return { ...v, password: "", chat: v.chat.filter((c) => (c.text.startsWith("!") ? SHOW_CMD.test(c.text) : c.local || c.ref || c.from !== "BanchoBot" || KEEP.test(c.text))) };
     },
     3000,
@@ -61,7 +61,7 @@ export async function POST(req: Request, ctx: Ctx) {
         await makeLobby(id, osuId);
         break;
       case "invite":
-        await inviteMissing(id, osuId);
+        await inviteMissing(id);
         break;
       case "refresh":
         await refreshLobby(id);
@@ -70,10 +70,10 @@ export async function POST(req: Request, ctx: Ctx) {
         await startLobby(id, osuId, Math.min(300, Math.max(0, int(b?.secs))));
         break;
       case "abort":
-        await abortLobby(id, osuId);
+        await abortLobby(id);
         break;
       case "close":
-        await closeLobby(id, osuId);
+        await closeLobby(id);
         break;
       case "aborttimer":
         await simpleCmd(id, osuId, "aborttimer");
