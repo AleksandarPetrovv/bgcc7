@@ -99,6 +99,6 @@ export async function POST(req: Request, ctx: Ctx) {
     console.error("[lobby]", act, e);
     return Response.json({ ok: false, error: "failed" }, { status: 500 });
   }
-  if (act !== "refresh") void log(osuId, `lobby.${act}`, { matchId: id, ...(b ?? {}) });
+  if (act !== "refresh") void log(osuId, `lobby.${act}`, { ...(b ?? {}), matchId: id });
   return Response.json({ ok: true });
 }
