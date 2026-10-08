@@ -26,3 +26,6 @@ next-env.d.ts
 AGENTS.md
 CLAUDE.md
 .claude/
+/refhelper/node_modules
+/refhelper/src-tauri/target
+/refhelper/src-tauri/gen
