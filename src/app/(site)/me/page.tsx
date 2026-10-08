@@ -8,7 +8,7 @@ import { MatchDialog } from "@/components/site/match-dialog";
 import { RecordText } from "@/components/site/record";
 import { BestScore } from "@/components/site/best-score";
 import { currentOsuId } from "@/auth";
-import { login } from "@/app/pickems/actions";
+import { login } from "@/app/(site)/pickems/actions";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { roundName, type Dict } from "@/lib/i18n/dict";
 import { getSettings } from "@/db/settings";
