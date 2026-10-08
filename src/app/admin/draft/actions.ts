@@ -3,8 +3,8 @@
 import { db } from "@/db";
 import { eq, sql } from "drizzle-orm";
 
-import { drafts, matches } from "@/db/schema";
-import { emitDraft } from "@/db/drafts";
+import { drafts, matches, type DraftUndo } from "@/db/schema";
+import { emitDraft, redoStep, undoStep } from "@/db/drafts";
 import { getPoolStages } from "@/db/mappools";
 import { getSettings } from "@/db/settings";
 import { getSkillLayouts } from "@/db/format-plan";
@@ -31,7 +31,7 @@ export async function openDraft(matchId: string, stageSlug: string) {
       const fresh = cur.stageSlug !== stageSlug;
       await db
         .update(drafts)
-        .set({ open: true, stageSlug, ...(fresh ? { steps: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null } : {}), ...bump })
+        .set({ open: true, stageSlug, ...(fresh ? { steps: [], redo: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null } : {}), ...bump })
         .where(eq(drafts.matchId, matchId));
     } else await db.insert(drafts).values({ matchId, stageSlug, bans, banOrder: s.banOrder, turnAt: new Date() });
     return done(matchId, { matchId, stage: stage.title });
@@ -52,7 +52,7 @@ export async function resetDraft(matchId: string) {
     const bans = await bansFor(cur?.stageSlug ?? "", s.bans);
     await db
       .update(drafts)
-      .set({ roll1: null, roll2: null, choice: null, steps: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null, ...bump })
+      .set({ roll1: null, roll2: null, choice: null, steps: [], redo: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null, ...bump })
       .where(eq(drafts.matchId, matchId));
     return done(matchId, { matchId });
   });
@@ -60,18 +60,21 @@ export async function resetDraft(matchId: string) {
 
 export async function undoDraft(matchId: string) {
   return guard("matches", "draft.undo", async () => {
-    const [d] = await db.select().from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
-    if (!d) return { ok: false, error: "notFound" };
-    const patch = d.steps.length
-      ? { steps: d.steps.slice(0, -1) }
-      : d.choice
-        ? { choice: null }
-        : { roll1: null, roll2: null };
-    await db.update(drafts).set({ ...patch, turnAt: d.pausedAt ?? new Date(), ...bump }).where(eq(drafts.matchId, matchId));
-    const last = d.steps.at(-1);
-    return done(matchId, { matchId, step: last ? `${last.kind} ${last.slot}` : d.choice ? "choice" : "rolls" });
+    const u = await undoStep(matchId);
+    if (!u) return { ok: false, error: "notFound" };
+    return { matchId, step: stepLabel(u) };
   });
 }
+
+export async function redoDraft(matchId: string) {
+  return guard("matches", "draft.redo", async () => {
+    const r = await redoStep(matchId);
+    if (!r) return { ok: false, error: "notFound" };
+    return { matchId, step: stepLabel(r) };
+  });
+}
+
+const stepLabel = (u: DraftUndo) => (u.kind === "winner" ? `${u.slot} win` : u.kind === "step" ? `${u.step.kind} ${u.step.slot || "skip"}` : u.kind === "choice" ? "choice" : "rolls");
 
 export async function endDraft(matchId: string) {
   return guard("matches", "draft.end", async () => {

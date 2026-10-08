@@ -20,7 +20,15 @@ export type DraftView = {
   firstTo: number;
   hasTb: boolean;
   playing?: { at: number; mapId: number } | null;
+  undo?: DraftUndo | null;
+  redo?: DraftUndo | null;
 };
+
+export type DraftUndo =
+  | { kind: "winner"; slot: string; winner: Side }
+  | { kind: "step"; step: DraftStep }
+  | { kind: "choice"; choice: string }
+  | { kind: "rolls"; roll1: number | null; roll2: number | null };
 
 export type Turn =
   | { kind: "roll" }
