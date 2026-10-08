@@ -14,6 +14,7 @@ export type LogHelpers = {
   round: (s: string) => string;
   role: (r: string) => string;
   date: (d: string) => string;
+  match: (id: string) => string;
 };
 
 type P = Record<string, unknown>;
@@ -39,7 +40,7 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
     const id = text(p[k]) ?? text(p.id);
     if (!id) return b(bg ? "неизвестен мач" : "unknown match");
     const [x, y] = c.match.get(id) ?? [null, null];
-    return x || y ? `${b(`${x ?? unknownTeam} vs ${y ?? unknownTeam}`)} (${id})` : b(id);
+    return x || y ? `${b(`${x ?? unknownTeam} vs ${y ?? unknownTeam}`)} (${h.match(id)})` : b(h.match(id));
   };
   const side = (value: unknown = p.side ?? p.team) => {
     if (value !== 1 && value !== 2) return b(unknownTeam);
@@ -191,13 +192,13 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
     case "stream.scene": {
       if (p.scene === null) return bg ? `включи автоматичната смяна на стрийм сцената за ${match()}` : `enabled automatic stream scenes for ${match()}`;
       const scenes: Record<string, string> = bg
-        ? { soon: "скоро започваме", intro: "представяне", mappool: "мапуул", gameplay: "игра", winner: "победител", brb: "почивка", end: "край" }
-        : { soon: "starting soon", intro: "introduction", mappool: "map pool", gameplay: "gameplay", winner: "winner", brb: "break", end: "end" };
+        ? { soon: "Започваме скоро", intro: "Отбори", mappool: "Мапове", gameplay: "Игра", winner: "Победител", brb: "Връщаме се", end: "Благодарим" }
+        : { soon: "Starting soon", intro: "Teams", mappool: "Mappool", gameplay: "Gameplay", winner: "Winner", brb: "Be right back", end: "Thanks for watching" };
       const key = text(p.scene) ?? "";
       const scene = Object.hasOwn(scenes, key) ? scenes[key] : undefined;
       return scene
         ? bg ? `смени стрийм сцената за ${match()} на ${b(scene)}` : `changed the stream scene for ${match()} to ${b(scene)}`
-        : bg ? `обнови стрийм сцената за ${match()}` : `updated the stream scene for ${match()}`;
+        : bg ? `смени стрийм сцената за ${match()}` : `changed the stream scene for ${match()}`;
     }
 
     case "qual.import":
@@ -348,4 +349,12 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `махна ${user()} от екипа` : `removed ${user()} from the staff`;
   }
   return bg ? "извърши неразпознато действие" : "performed an unrecognized action";
+}
+
+const VARYING: Record<string, string[]> = { "stream.scene": ["scene"] };
+
+export function summarize(action: string, payload: unknown, c: LogCtx, h: LogHelpers): string {
+  const p = payload && typeof payload === "object" && !Array.isArray(payload) ? { ...(payload as P) } : {};
+  for (const k of VARYING[action] ?? []) delete p[k];
+  return describe(action, p, c, h);
 }
