@@ -73,7 +73,7 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
 
   const stageSlug = draft?.stageSlug ?? m.stage;
   const stage = stages.find((s) => s.slug === stageSlug);
-  const pool: FeedMap[] = (stage?.pools.flatMap((p) => p.maps) ?? []).map((map) => ({
+  const pool: FeedMap[] = (stage?.released ? stage.pools.flatMap((p) => p.maps) : []).map((map) => ({
     slot: map.slot,
     mod: map.mod,
     id: map.id,
@@ -148,9 +148,9 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
     },
     teams: [team(m.team1), team(m.team2)],
     pool,
-    steps,
+    steps: stage?.released ? steps : [],
     current,
-    live,
+    live: stage?.released ? live : null,
     scene,
     sceneAuto,
     at: Date.now(),
