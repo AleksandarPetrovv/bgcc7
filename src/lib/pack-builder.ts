@@ -207,7 +207,8 @@ async function build(slug: string, osuId: number, job: PackJob, ed: Edition) {
     await rm(dest, { force: true });
     await db.update(stages).set({ packSize: null, packAt: null }).where(eq(stages.id, stage.id));
 
-    const files = sets.map((s) => ({ name: `${s.slot} - ${s.name} (${s.setId}).osz`, file: got.get(s.setId)! }));
+    // A number first, so osu! imports the maps in pool order whatever the slot names sort as.
+    const files = sets.map((s, i) => ({ name: `${String(i + 1).padStart(2, "0")} ${s.slot} - ${s.name} (${s.setId}).osz`, file: got.get(s.setId)! }));
     const tmpZip = path.join(work, "pack.zip");
     const size = await zipStore(files, tmpZip);
     if (size > PACK_MAX) throw new Error("tooBig");
