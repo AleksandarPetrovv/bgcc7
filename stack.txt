@@ -10,6 +10,4 @@ osu! lobbies: bancho.js (IRC)
 charts: Recharts
 rate limiting: rate-limiter-flexible
 chat filter: obscenity
-file storage: local uploads folder
 deployment: Docker Compose
-hosting: Tailscale Funnel
