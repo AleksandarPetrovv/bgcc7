@@ -114,8 +114,8 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                             </span>
                           )}
                         </span>
-                        <span className="truncate text-xs text-paper/70 sm:text-sm">
-                          [{m.version}] <span className="text-ash">by {m.creator}</span>
+                        <span className="truncate text-xs text-ash sm:text-sm">
+                          <span className="font-bold text-paper/90">[{m.version}]</span> by {m.creator}
                         </span>
                         <span className="num mt-0.5 flex items-center gap-2 text-xs text-ash lg:hidden">
                           <span className="flex items-center gap-0.5 text-gold">
