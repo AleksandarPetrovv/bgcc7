@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { ChevronRight, ClipboardCheck, Dices, DoorOpen, Gauge, LayoutGrid, Layers, Link2, Music2, ScrollText, Settings2, Shield, Swords, Trophy, Users } from "lucide-react";
+import { ChevronRight, ClipboardCheck, Dices, DoorOpen, Gauge, LayoutGrid, Layers, Link2, MonitorPlay, Music2, ScrollText, Settings2, Shield, Swords, Trophy, Users } from "lucide-react";
 import { Sparkle } from "@/components/site/graphics";
+import { TwitchLogo } from "@/components/site/twitch-logo";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -22,6 +23,8 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   log: ScrollText,
   settings: Settings2,
   format: LayoutGrid,
+  stream: TwitchLogo,
+  overlay: MonitorPlay,
 };
 
 const spring = { type: "spring", stiffness: 520, damping: 42 } as const;

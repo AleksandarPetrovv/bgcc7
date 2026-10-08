@@ -1,4 +1,5 @@
-import { Tv, MessageCircle } from "lucide-react";
+import { MessageCircle } from "lucide-react";
+import { TwitchLogo } from "./twitch-logo";
 import { LangSwitch } from "./lang";
 import { TriTick } from "./graphics";
 import { DISCORD_URL, TWITCH_URL } from "@/lib/links";
@@ -7,7 +8,7 @@ import { getFormat } from "@/db/edition";
 export function SiteFooter() {
   const SOCIALS = [
     { label: "Discord", icon: MessageCircle, href: DISCORD_URL },
-    { label: "Twitch", icon: Tv, href: TWITCH_URL },
+    { label: "Twitch", icon: TwitchLogo, href: TWITCH_URL },
   ];
   return (
     <footer className="mt-24 border-t border-dashed border-line">
