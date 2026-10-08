@@ -1,7 +1,7 @@
 import "server-only";
 import { relayAuth } from "@/lib/relay";
 import { relayPerms } from "@/lib/relay-perms";
-import { getLive, IPC_PLAYING, putLive } from "@/lib/live-scores";
+import { getLive, IPC_PLAYING, putLive, rejectLive, type LiveReject } from "@/lib/live-scores";
 import type { ScorePacket } from "@/lib/overlay-types";
 import { currentStreamMatch } from "@/db/stream";
 import { getAllTeams } from "@/db/tournament";
@@ -107,9 +107,15 @@ export async function POST(req: Request) {
   const left = new Set(teams.find((t) => t.id === m.team1.id)?.players.map((p) => p.userId) ?? []);
   const right = new Set(teams.find((t) => t.id === m.team2.id)?.players.map((p) => p.userId) ?? []);
   const pool = stages.find((s) => s.slug === (draft?.stageSlug ?? m.stage));
-  const playersMatch = packet.clients.length > 0 && packet.clients.every((c) => (c.team === "left" ? left : right).has(c.userId));
-  const mapMatches = pool?.pools.some((p) => p.maps.some((map) => map.id === packet.mapId));
-  if (!playersMatch || !mapMatches) return Response.json({ error: "nomatch" }, { status: 409 });
+  packet.clients = packet.clients.filter((c) => c.userId > 0);
+  const reject = (why: LiveReject) => {
+    rejectLive(m.id, why);
+    return Response.json({ error: why, match: m.slug }, { status: 409 });
+  };
+  if (!packet.clients.length) return reject("noplayers");
+  if (!packet.clients.every((c) => left.has(c.userId) || right.has(c.userId))) return reject("players");
+  if (!packet.clients.every((c) => (c.team === "left" ? left : right).has(c.userId))) return reject(packet.clients.every((c) => (c.team === "left" ? right : left).has(c.userId)) ? "swapped" : "players");
+  if (!pool?.pools.some((p) => p.maps.some((map) => map.id === packet.mapId))) return reject("map");
   // a previous lobby's results must not become the first packet of a new match.
   if (m.winner === null && packet.ipcState !== IPC_PLAYING && !getLive(m.id)) {
     return Response.json({ ok: true, match: m.slug });
