@@ -4,11 +4,14 @@ import type { Edition } from "@/lib/format";
 type Deep<T> = { [K in keyof T]?: T[K] extends (...a: never[]) => unknown ? T[K] : T[K] extends readonly unknown[] ? T[K] : T[K] extends object ? Deep<T[K]> : T[K] };
 
 const en: Deep<Dict> = {
-  meta: { description: "The seventh Bulgarian Community Cup, a %vs% osu! team tournament for players from Bulgaria." },
+  meta: { title: "BGCC7 · Bulgarian Community Cup 7", description: "The seventh Bulgarian Community Cup, a %vs% osu! team tournament for players from Bulgaria." },
+  nav: { homeLabel: "BGCC7 home" },
+  me: { notIn: "You're not signed up for BGCC7." },
   timeline: { qual: "Team draw" },
   rounds: { "Losers Round 3": "Losers round 3" },
   home: {
     headline: "{{Bulgaria's}} %vs% osu! cup is back for a [[seventh]] time.",
+    headlineDone: "[[BGCC7]] is over. Here's how it went.",
     intro: "Any rank can enter, and you sign up on your own before %regClose%. The top %players% by BWS make it in, and every team is a random pair from the top and bottom half.",
     bracketSub: "Fills in once the teams are drawn",
     introBy: {
@@ -22,9 +25,9 @@ const en: Deep<Dict> = {
   },
   info: {
     intro:
-      "%name% isthe seventh Bulgarian Community Cup, a %vs% team tournament open to players of any rank from Bulgaria. The top %players% players by BWS are drawn into %teams% random pairs, those teams play a double elimination bracket, and we stream every match with Bulgarian commentary.",
+      "%name% is the seventh Bulgarian Community Cup, a %vs% team tournament open to players of any rank from Bulgaria. The top %players% players by BWS are drawn into %teams% random pairs, those teams play a double elimination bracket, and we stream every match with Bulgarian commentary.",
     generalItems: [
-      "%name% isa [[%vs%]], [[open rank]] tournament for players with {{Bulgaria}} as their osu! country",
+      "%name% is a [[%vs%]], [[open rank]] tournament for players with {{Bulgaria}} as their osu! country",
       "Everyone signs up [[solo]]. Teams of [[two]] are drawn at random, so there's no team to register",
       "All matches use [[Team VS]] and [[ScoreV2]]",
       "All times are in [[EET (UTC+2)]]",
@@ -70,11 +73,14 @@ const en: Deep<Dict> = {
 };
 
 const bg: Deep<Dict> = {
-  meta: { description: "Седмата Bulgarian Community Cup, %vs% osu! отборен турнир за играчи от България." },
+  meta: { title: "BGCC7 · Bulgarian Community Cup 7", description: "Седмата Bulgarian Community Cup, %vs% osu! отборен турнир за играчи от България." },
+  nav: { homeLabel: "BGCC7 начало" },
+  me: { notIn: "Не си записан за BGCC7." },
   timeline: { qual: "Теглене" },
   rounds: { "Losers Round 3": "Загубили, кръг 3" },
   home: {
     headline: "{{Българската}} %vs% osu! купа се завръща за [[седми]] път.",
+    headlineDone: "[[BGCC7]] приключи. Ето как мина.",
     intro: "Може да участва всеки, независимо от ранга, и се записваш сам до %regClose%. Първите %players% по BWS влизат, а всеки отбор е случайна двойка от горната и долната половина.",
     bracketSub: "Попълва се след тегленето на отборите",
     introBy: {
@@ -88,9 +94,9 @@ const bg: Deep<Dict> = {
   },
   info: {
     intro:
-      "%name% еседмото издание на Bulgarian Community Cup, %vs% отборен турнир за играчи от България от всякакъв ранг. Първите %players% играчи по BWS се теглят в %teams% случайни двойки, отборите играят схема с двойна елиминация, а всеки мач се стриймва с коментар на български.",
+      "%name% е седмото издание на Bulgarian Community Cup, %vs% отборен турнир за играчи от България от всякакъв ранг. Първите %players% играчи по BWS се теглят в %teams% случайни двойки, отборите играят схема с двойна елиминация, а всеки мач се стриймва с коментар на български.",
     generalItems: [
-      "%name% е[[%vs%]] турнир [[без ограничение на ранга]] за играчи с {{България}} като държава в osu!",
+      "%name% е [[%vs%]] турнир [[без ограничение на ранга]] за играчи с {{България}} като държава в osu!",
       "Всеки се записва [[сам]]. Отборите по [[двама]] се теглят на случаен принцип, така че няма отбор за записване",
       "Всички мачове са [[Team VS]] и [[ScoreV2]]",
       "Всички часове са по [[EET (UTC+2)]]",
