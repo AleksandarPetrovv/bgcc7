@@ -14,6 +14,7 @@ import { other, rollWinner, scoreOf, turnOf, type DraftView } from "@/lib/draft"
 import { getUser } from "@/lib/osu-api";
 import { lobbySize } from "@/lib/format";
 import { blocked } from "@/lib/chat-filter";
+import { onRelay, relayName, relaySocket } from "@/lib/relay";
 
 export type LobbySlot = { slot: number; name: string; id: number | null; side: 1 | 2 | null; team: "red" | "blue" | null; ready: "ready" | "notready" | "nomap"; host: boolean; mods: string[] };
 export type LobbyView = {
@@ -30,12 +31,15 @@ export type LobbyView = {
   freemod: boolean;
   playing: boolean;
   chat: ChatLine[];
+  owner: number | null;
+  mine?: boolean;
 };
 
-type Conn = { client: BanchoClient; ready: Promise<unknown> | null };
+type Conn = { client: BanchoClient; ready: Promise<unknown> | null; owner: number };
 export type ChatLine = { at: number; from: string; text: string; ref?: boolean; local?: boolean; side?: 1 | 2 };
 type Live = {
   matchId: string;
+  owner: number;
   mpId: number;
   lobby: BanchoLobby;
   members: Map<number, 1 | 2>;
@@ -47,62 +51,108 @@ type Live = {
   queue: Promise<unknown>;
   active: number;
 };
-type State = { conn?: Conn; live: Map<string, Live>; bus: EventEmitter; restored: boolean };
+type State = { conns: Map<number, Conn>; live: Map<string, Live>; bus: EventEmitter; restored: boolean };
 
 const g = globalThis as unknown as { bgccIrc?: State };
 
-const creds = () => {
-  const e = process.env;
-  const [u, p] = [e.OSU_IRC_USERNAME, e.OSU_IRC_PASSWORD];
-  return u && p && e.OSU_API_V1_KEY ? { username: u, password: p, apiKey: e.OSU_API_V1_KEY } : null;
+const apiKey = () => process.env.OSU_API_V1_KEY || null;
+
+const creds = (owner: number) => {
+  const key = apiKey();
+  if (!key) return null;
+  const name = relayName(owner);
+  return name ? { username: name, password: "relay", apiKey: key } : null;
 };
 
-export const botConfigured = () => !!creds();
+export const canLobby = (osuId: number) => !!creds(osuId);
+
+const ownerOf = (owner: string) => Number(owner) || 0;
 
 function state(): State | null {
-  if (!botConfigured()) return null;
+  if (!apiKey()) return null;
   if (!g.bgccIrc)
     withEdition("site", () => {
-      g.bgccIrc = { live: new Map(), bus: new EventEmitter().setMaxListeners(0), restored: false };
+      g.bgccIrc = { conns: new Map(), live: new Map(), bus: new EventEmitter().setMaxListeners(0), restored: false };
       console.log(`[bancho] state created pid=${process.pid}`);
       setInterval(sweepIdle, 30_000).unref();
       setInterval(syncIdle, 5_000).unref();
       onDraft((id) => react(id));
+      onRelay((osuId, up) => withEdition("site", () => (up ? void restoreOwner(osuId) : dropConn(osuId))));
     });
   return g.bgccIrc ?? null;
 }
 
-function conn(): Conn | null {
+function conn(owner: number): Conn | null {
   const s = state();
-  const c = creds();
-  if (!s || !c) return null;
-  return (s.conn ??= withEdition("site", () => newConn(s, c)));
+  if (!s) return null;
+  const have = s.conns.get(owner);
+  if (have) return have;
+  const c = creds(owner);
+  if (!c) return null;
+  const x = withEdition("site", () => newConn(s, c, owner));
+  s.conns.set(owner, x);
+  return x;
 }
 
-function newConn(s: State, c: NonNullable<ReturnType<typeof creds>>): Conn {
-  const client = new BanchoClient({ ...c, rateLimiter: new RateLimiterQueue(new RateLimiterMemory({ points: 9, duration: 5.5 })) as never });
-  const x: Conn = { client, ready: null };
-  client.on("error", (e) => console.error("[bancho]", e.message));
-  console.log(`[bancho] new client pid=${process.pid}`);
+function dropConn(owner: number) {
+  const s = g.bgccIrc;
+  const c = s?.conns.get(owner);
+  if (!c) return;
+  s!.conns.delete(owner);
+  for (const l of [...s!.live.values()])
+    if (l.owner === owner) {
+      l.lobby.removeAllListeners();
+      l.lobby.channel.removeAllListeners("message");
+      s!.live.delete(l.matchId);
+    }
+  try {
+    c.client.disconnect();
+  } catch {}
+  ping();
+}
+
+type Sock = { client: unknown; onClose: (e: Error) => void; handleIrcCommand: (c: string) => void; emit: (ev: string, e: Error) => void; initSocket: () => void };
+
+function newConn(s: State, c: NonNullable<ReturnType<typeof creds>>, owner: number): Conn {
+  const client = new BanchoClient({ username: c.username, password: c.password, apiKey: c.apiKey, rateLimiter: new RateLimiterQueue(new RateLimiterMemory({ points: 9, duration: 5.5 })) as never });
+  (client as unknown as Sock).initSocket = function (this: Sock) {
+    const sock = relaySocket(owner);
+    this.client = sock;
+    sock.on("error", (e: Error) => this.onClose(e));
+    let buf = "";
+    sock.on("data", (d: string) => {
+      buf += d.replace(/\r/g, "");
+      let i;
+      while ((i = buf.indexOf("\n")) !== -1) {
+        const cmd = buf.slice(0, i);
+        buf = buf.slice(i + 1);
+        this.handleIrcCommand(cmd);
+      }
+    });
+  };
+  const x: Conn = { client, ready: null, owner };
+  const tag = `[bancho ${c.username}]`;
+  client.on("error", (e) => console.error(tag, e.message));
+  console.log(`${tag} new client pid=${process.pid}`);
   client.on("connected", () => {
-    console.log("[bancho] connected");
-    for (const l of s.live.values()) void rejoin(l);
+    console.log(`${tag} connected`);
+    for (const l of s.live.values()) if (l.owner === owner) void rejoin(l);
     ping();
   });
   client.on("disconnected", (e) => {
-    console.log(`[bancho] disconnected: ${e?.message ?? "?"}`);
+    console.log(`${tag} disconnected: ${e?.message ?? "?"}`);
     ping();
   });
   client.on("PART", (m) => {
     if (!m.user.isClient()) return;
-    const l = [...s.live.values()].find((v) => `#mp_${v.mpId}` === m.channel.name);
+    const l = [...s.live.values()].find((v) => v.owner === owner && `#mp_${v.mpId}` === m.channel.name);
     if (l) void markClosed(l.matchId);
   });
   return x;
 }
 
-async function online() {
-  const c = conn();
+async function online(owner: number) {
+  const c = conn(owner);
   if (!c) throw new Error("irc off");
   if (!c.client.isConnected()) {
     c.ready ??= withEdition("site", () => c.client.connect()).finally(() => (c.ready = null));
@@ -120,20 +170,32 @@ export function onLobby(fn: () => void) {
   return () => void s.bus.off("change", fn);
 }
 
-async function nameOf(osuId: number) {
-  const [u] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, osuId)).limit(1);
-  return u?.username ?? null;
-}
-
 export async function ensureBot() {
   const s = state();
   if (!s) return null;
   if (!s.restored) {
     s.restored = true;
     const open = await db.select().from(mpLobbies).where(eq(mpLobbies.open, true));
-    for (const r of open) if (!s.live.has(r.matchId)) await restore(s, r.matchId, r.mpId).catch(() => markClosed(r.matchId));
+    for (const r of open) {
+      const owner = ownerOf(r.owner);
+      if (s.live.has(r.matchId) || !canLobby(owner)) continue;
+      await restore(s, r.matchId, r.mpId, owner).catch(() => markClosed(r.matchId));
+    }
   }
   return s;
+}
+
+async function restoreOwner(owner: number) {
+  const s = state();
+  if (!s) return;
+  ping();
+  const open = await db.select().from(mpLobbies).where(eq(mpLobbies.open, true));
+  for (const r of open) if (ownerOf(r.owner) === owner && !s.live.has(r.matchId)) await restore(s, r.matchId, r.mpId, owner).catch(() => markClosed(r.matchId));
+}
+
+export async function lobbyOwner(matchId: string) {
+  const [row] = await db.select({ owner: mpLobbies.owner, open: mpLobbies.open }).from(mpLobbies).where(eq(mpLobbies.matchId, matchId)).limit(1);
+  return row?.open ? ownerOf(row.owner) : null;
 }
 
 async function membersOf(matchId: string) {
@@ -174,13 +236,13 @@ export async function sayLocal(matchId: string, by: number, raw: string, side: 1
   return "ok" as const;
 }
 
-async function restore(s: State, matchId: string, mpId: number) {
+async function restore(s: State, matchId: string, mpId: number, owner: number) {
   console.log(`[bancho] restore ${matchId} mp ${mpId}`);
-  const c = await online();
+  const c = await online(owner);
   const ch = c.client.getChannel(`#mp_${mpId}`) as BanchoMultiplayerChannel;
   await ch.join();
   const { map, seats, names, seen } = await membersOf(matchId);
-  const l: Live = { matchId, mpId, lobby: ch.lobby, members: map, seats, placed: new Set(map.keys()), chat: await history(mpId), names, seen, queue: Promise.resolve(), active: Date.now() };
+  const l: Live = { matchId, owner, mpId, lobby: ch.lobby, members: map, seats, placed: new Set(map.keys()), chat: await history(mpId), names, seen, queue: Promise.resolve(), active: Date.now() };
   attach(l);
   s.live.set(matchId, l);
   await ch.lobby.updateSettings();
@@ -404,11 +466,14 @@ const READY = new Map<symbol, LobbySlot["ready"]>([
   [BanchoLobbyPlayerStates.NoMap as symbol, "nomap"],
 ]);
 
-export async function lobbyView(matchId: string): Promise<LobbyView> {
-  const c = state() ? conn() : null;
-  const status: LobbyView["bot"] = !c ? "off" : c.client.isConnected() ? "online" : "connecting";
+export async function lobbyView(matchId: string, viewer?: number): Promise<LobbyView> {
   const [row] = await db.select().from(mpLobbies).where(eq(mpLobbies.matchId, matchId)).limit(1);
-  const base: LobbyView = { bot: status, state: row ? (row.open ? "open" : "closed") : "none", mpId: row?.mpId ?? null, password: row?.password ?? "", size: 0, slots: [], mapId: null, mapName: null, mods: [], freemod: false, playing: false, chat: [] };
+  const owner = row?.open ? ownerOf(row.owner) : null;
+  const who = owner ?? viewer;
+  const c = state() && who ? conn(who) : null;
+  const status: LobbyView["bot"] = !c ? "off" : c.client.isConnected() ? "online" : "connecting";
+  const mine = viewer != null && (owner != null ? owner === viewer : canLobby(viewer));
+  const base: LobbyView = { bot: status, state: row ? (row.open ? "open" : "closed") : "none", mpId: row?.mpId ?? null, password: row?.password ?? "", size: 0, slots: [], mapId: null, mapName: null, mods: [], freemod: false, playing: false, chat: [], owner, ...(viewer != null ? { mine } : {}) };
   const l = g.bgccIrc?.live.get(matchId);
   if (!l || !row?.open) return base;
   const lb = l.lobby;
@@ -452,9 +517,8 @@ async function refNames() {
     .from(staff)
     .innerJoin(users, eq(users.osuId, staff.osuId))
     .catch(() => []);
-  const names = new Set(rows.filter((r) => r.roles.length).map((r) => nameKey(r.username)));
-  const me = creds()?.username;
-  if (me) names.add(nameKey(me));
+  const names = new Set(rows.filter((r) => r.roles.some((x) => x === "host" || x === "referee")).map((r) => nameKey(r.username)));
+  for (const c of g.bgccIrc?.conns.values() ?? []) names.add(nameKey(c.client.getSelf().ircUsername));
   refCache = { at: Date.now(), names };
   return names;
 }
@@ -480,18 +544,18 @@ export async function makeLobby(matchId: string, by: number) {
   if (cur?.open && s.live.has(matchId)) return { mpId: cur.mpId };
   const { match, teams, map, seats, names, seen } = await membersOf(matchId);
   if (!match?.team1Id || !match.team2Id) throw new Error("teams missing");
-  const c = await online();
+  const c = await online(by);
   const name = (id: string) => clip(teams.find((t) => t.id === id)?.name ?? "TBD", 20);
   const ch = await c.client.createLobby(`${getFormat().name}: (${name(match.team1Id)}) vs (${name(match.team2Id)})`);
   const lb = ch.lobby;
-  const l: Live = { matchId, mpId: lb.id, lobby: lb, members: map, seats, placed: new Set(), chat: [], names, seen, queue: Promise.resolve(), active: Date.now() };
+  const l: Live = { matchId, owner: by, mpId: lb.id, lobby: lb, members: map, seats, placed: new Set(), chat: [], names, seen, queue: Promise.resolve(), active: Date.now() };
   attach(l);
   s.live.set(matchId, l);
   const password = randomBytes(4).toString("hex");
   await db
     .insert(mpLobbies)
-    .values({ matchId, mpId: lb.id, password, createdBy: by })
-    .onConflictDoUpdate({ target: mpLobbies.matchId, set: { mpId: lb.id, password, open: true, createdBy: by, createdAt: new Date(), closedAt: null } });
+    .values({ matchId, mpId: lb.id, password, owner: String(by), createdBy: by })
+    .onConflictDoUpdate({ target: mpLobbies.matchId, set: { mpId: lb.id, password, owner: String(by), open: true, createdBy: by, createdAt: new Date(), closedAt: null } });
   const ids = (match.mpLinks || "").split(",").filter(Boolean);
   if (!ids.includes(String(lb.id))) await db.update(matches).set({ mpLinks: [...ids, String(lb.id)].join(",") }).where(eq(matches.id, matchId));
   ping(matchId);
@@ -573,12 +637,11 @@ export async function sendChat(matchId: string, by: number, raw: string) {
   const wait = (lastSent.get(by) ?? 0) + CHAT_GAP - Date.now();
   if (wait > 0) return "cooldown" as const;
   lastSent.set(by, Date.now());
-  const { lb } = await lobbyAs(matchId);
-  const who = text.startsWith("!") ? null : await nameOf(by);
-  const out = who && who.toLowerCase() !== creds()?.username.toLowerCase() ? `[${who}] ${text}` : text;
+  const { l, lb } = await lobbyAs(matchId);
+  if (l.owner !== by) return "forbidden" as const;
   for (const [k, at] of typed) if (Date.now() - at > 60_000) typed.delete(k);
-  typed.set(`${matchId}|${out}`, Date.now());
-  await lb.channel.sendMessage(out);
+  typed.set(`${matchId}|${text}`, Date.now());
+  await lb.channel.sendMessage(text);
   if (hit.mod) await lb.setMods(...modArgs(hit.mod)).catch(() => {});
   return "ok" as const;
 }
@@ -594,13 +657,35 @@ export async function closeLobby(matchId: string) {
     } else {
       const [row] = await db.select().from(mpLobbies).where(eq(mpLobbies.matchId, matchId)).limit(1);
       if (row?.open) {
-        const c = await online();
+        const c = await online(ownerOf(row.owner));
         const ch = c.client.getChannel(`#mp_${row.mpId}`);
         await within(ch.join().then(() => ch.sendMessage("!mp close")), 8000);
       }
     }
   } catch {}
   await markClosed(matchId);
+}
+
+const HANDOFF = 5 * 60_000;
+
+export async function handOff(matchId: string, referee: string | null) {
+  const owner = await lobbyOwner(matchId);
+  if (!owner) return;
+  const [ref] = referee ? await db.select({ osuId: users.osuId }).from(users).where(sql`lower(${users.username}) = ${referee.trim().toLowerCase()}`).limit(1) : [];
+  if (ref?.osuId === owner) return;
+  await db.update(mpLobbies).set({ open: false, closedAt: new Date() }).where(and(eq(mpLobbies.matchId, matchId), eq(mpLobbies.open, true)));
+  const s = g.bgccIrc;
+  const l = s?.live.get(matchId);
+  if (l) {
+    l.lobby.removeAllListeners();
+    l.lobby.channel.removeAllListeners("message");
+    s!.live.delete(matchId);
+    const say = (m: string) => l.lobby.channel.sendMessage(m).catch(() => {});
+    void say("The referee changed. This lobby closes in 5 minutes, a new invite is on its way.");
+    setTimeout(() => void within(say("!mp close"), 8000), HANDOFF).unref();
+  }
+  console.log(`[bancho] handoff ${matchId} from ${owner}`);
+  ping(matchId);
 }
 
 const target = (p: { user: { id: number; ircUsername: string } }) => (p.user.id ? `#${p.user.id}` : p.user.ircUsername.replace(/ /g, "_"));

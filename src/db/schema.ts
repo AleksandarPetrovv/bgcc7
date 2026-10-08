@@ -90,6 +90,16 @@ export const adminLog = pgTable("admin_log", {
   at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const refApps = pgTable("ref_apps", {
+  osuId: integer("osu_id")
+    .primaryKey()
+    .references(() => users.osuId, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  ircName: text("irc_name").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  seenAt: timestamp("seen_at", { withTimezone: true }),
+});
+
 export const lobbies = pgTable("lobbies", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),

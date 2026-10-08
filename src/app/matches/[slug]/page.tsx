@@ -20,7 +20,7 @@ export default async function DraftPage({ params }: PageProps<"/matches/[slug]">
   const { slug } = await params;
   const id = matchIdFromSlug(getFormat(), slug);
   const [access, draft] = await Promise.all([draftAccess(id), getDraft(id)]);
-  if (!access || !draft || (!draft.open && !access.admin)) notFound();
+  if (!access || !draft || (!draft.open && !access.staff)) notFound();
   const [t, teams, stages, skills, all] = await Promise.all([getDict(), getAllTeams(), getPoolStages(), getSkillLayouts(), getAllMatches()]);
   const stage = stages.find((s) => s.slug === draft.stageSlug);
   if (!stage) notFound();

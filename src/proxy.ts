@@ -9,11 +9,13 @@ const LIMITS = {
   stream: tier(40),
   write: tier(120),
   download: tier(10),
+  relay: tier(1500),
   page: tier(600),
 };
 
 function bucket(req: NextRequest, path: string): keyof typeof LIMITS {
   if (path.startsWith("/api/auth")) return "auth";
+  if (path === "/api/relay/in" || path === "/api/relay/claim") return "relay";
   if (path.startsWith("/download/")) return "download";
   if (req.method !== "GET" && req.method !== "HEAD") return "write";
   if (path.startsWith("/api/matches/")) return "osu";

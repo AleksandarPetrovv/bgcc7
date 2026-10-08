@@ -226,7 +226,7 @@ function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | "abort"
   );
 }
 
-export function LobbyPanel({ slug, maps, onOpen, readOnly }: { slug: string; maps: Beatmap[]; onOpen: (open: boolean) => void; readOnly?: boolean }) {
+export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly }: { slug: string; maps: Beatmap[]; onOpen: (open: boolean) => void; readOnly?: boolean }) {
   const t = useDict();
   const format = useFormat();
   const [v, setV] = useState<LobbyView | null>(null);
@@ -256,6 +256,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly }: { slug: string; map
   });
 
   const open = v?.state === "open";
+  const readOnly = viewOnly || v?.mine === false;
   useEffect(() => onOpen(open), [open, onOpen]);
 
   const run = (body: Record<string, unknown>) =>
