@@ -536,6 +536,7 @@ export function DraftRoom({
   firstTo,
   admin,
   side,
+  canSay,
 }: {
   slug: string;
   matchId: string;
@@ -547,6 +548,7 @@ export function DraftRoom({
   firstTo: number;
   admin: boolean;
   side: Side | null;
+  canSay: boolean;
 }) {
   const t = useDict();
   const router = useRouter();
@@ -812,7 +814,7 @@ export function DraftRoom({
         transition={{ duration: 0.7, ease: EASE, delay: 0.35 }}
         className="xl:col-start-2 xl:row-start-1"
       >
-        <LobbyPanel slug={slug} maps={pools.flatMap((p) => p.maps)} onOpen={onLobby} readOnly={!admin} />
+        <LobbyPanel slug={slug} maps={pools.flatMap((p) => p.maps)} onOpen={onLobby} readOnly={!admin} canSay={canSay} />
       </motion.aside>
       <div className="@container min-w-0 xl:col-start-1 xl:row-start-1">
       <div className="relative flex items-stretch">

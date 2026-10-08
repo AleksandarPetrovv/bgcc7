@@ -44,6 +44,7 @@ export default async function DraftPage({ params }: PageProps<"/matches/[slug]">
       firstTo={firstTo}
       admin={access.admin}
       side={access.side}
+      canSay={access.admin || !!access.team}
     />
   );
 }
