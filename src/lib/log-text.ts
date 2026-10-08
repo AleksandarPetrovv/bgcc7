@@ -47,8 +47,6 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
     }
     case "phase.dates":
       return bg ? "обнови датите за записване и лобита" : "updated the registration and lobby booking dates";
-    case "settings.scoring":
-      return bg ? `смени EZ множителя на ${b("×" + p.ezMult)}` : `set the EZ multiplier to ${b("×" + p.ezMult)}`;
     case "phase.dismiss":
       return bg ? `отложи смяната на етапа към ${b(h.phase(String(p.phase)))}` : `put off switching the stage to ${b(h.phase(String(p.phase)))}`;
     case "settings.pickems":
