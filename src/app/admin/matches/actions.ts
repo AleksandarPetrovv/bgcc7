@@ -33,7 +33,11 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
       const v = String(fd.get(k) ?? "");
       return ids.has(v) ? v : null;
     };
-    const [stage] = await db.select({ firstTo: stages.firstTo }).from(stages).where(eq(stages.slug, m.stageSlug)).limit(1);
+    const slugs = new Set((await db.select({ slug: stages.slug }).from(stages)).map((s) => s.slug));
+    const pick = String(fd.get("poolSlug") ?? "");
+    if (pick && (!slugs.has(pick) || pick === "qualifiers")) return { ok: false, error: "invalid" };
+    const poolSlug = pick && pick !== m.stageSlug ? pick : null;
+    const [stage] = await db.select({ firstTo: stages.firstTo }).from(stages).where(eq(stages.slug, poolSlug ?? m.stageSlug)).limit(1);
     const firstTo = stage?.firstTo ?? getFormat().firstTo;
     const w = String(fd.get("winner") ?? "auto");
     const winner = w === "1" ? 1 : w === "2" ? 2 : w === "none" ? null : (score1 ?? 0) >= firstTo ? 1 : (score2 ?? 0) >= firstTo ? 2 : null;
@@ -52,10 +56,11 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
       commentators: text(fd, "commentators"),
       vodUrl,
       manual,
+      poolSlug,
     };
     await db.update(matches).set(patch).where(eq(matches.id, id));
     if (patch.referee !== m.referee) await handOff(id, patch.referee).catch((e) => console.error("[handoff]", e));
-    if (mpLinks !== m.mpLinks || winner !== m.winner) await db.delete(matchCache).where(eq(matchCache.matchId, id));
+    if (mpLinks !== m.mpLinks || winner !== m.winner || poolSlug !== m.poolSlug) await db.delete(matchCache).where(eq(matchCache.matchId, id));
     await advance();
     return { id, ...patch };
   });

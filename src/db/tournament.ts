@@ -80,7 +80,7 @@ export const getAllMatches = cache(async (): Promise<Match[]> => {
     links: mpIds(m.mpLinks),
     round: m.round,
     bracket: m.bracket as Match["bracket"],
-    stage: m.stageSlug,
+    stage: m.poolSlug ?? m.stageSlug,
     referee: m.referee,
     streamer: m.streamer,
     commentators: m.commentators,
