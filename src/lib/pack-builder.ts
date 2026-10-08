@@ -8,7 +8,8 @@ import type { ReadableStream as WebStream } from "node:stream/web";
 import { crc32 } from "node:zlib";
 import { revalidatePath } from "next/cache";
 import { asc, eq } from "drizzle-orm";
-import { db } from "@/db";
+import { currentEdition, db6, db7 } from "@/db";
+import type { Edition } from "@/lib/format";
 import { maps as mapsTable, stages } from "@/db/schema";
 import { MOD_ORDER, slotOf } from "@/db/mappools";
 import { getSkillLayouts } from "@/db/format-plan";
@@ -42,8 +43,9 @@ const g = globalThis as unknown as { packJobs?: Map<string, PackJob>; packSlots?
 const jobs = (g.packJobs ??= new Map());
 const slots = (g.packSlots ??= { free: PARALLEL, queue: [] });
 
-export const packJob = (slug: string) => jobs.get(slug) ?? null;
-export const packJobs = () => Object.fromEntries(jobs);
+export const packJob = (slug: string, ed: Edition = currentEdition()) => jobs.get(`${ed}:${slug}`) ?? null;
+export const packJobs = (ed: Edition = currentEdition()) =>
+  Object.fromEntries([...jobs].filter(([k]) => k.startsWith(`${ed}:`)).map(([k, j]) => [k.slice(ed.length + 1), j]));
 
 async function withSlot<T>(fn: () => Promise<T>) {
   if (slots.free > 0) slots.free--;
@@ -159,13 +161,14 @@ async function zipStore(files: { name: string; file: string }[], dest: string) {
   return offset + dir.length + end.length;
 }
 
-async function build(slug: string, osuId: number, job: PackJob) {
-  const work = path.join(UPLOAD_DIR, "tmp", `${slug.replace(/[^\w-]/g, "")}-${Date.now()}`);
+async function build(slug: string, osuId: number, job: PackJob, ed: Edition) {
+  const work = path.join(UPLOAD_DIR, "tmp", `${ed}-${slug.replace(/[^\w-]/g, "")}-${Date.now()}`);
+  const db = ed === "bgcc7" ? db7 : db6;
   try {
     const [stage] = await db.select().from(stages).where(eq(stages.slug, slug)).limit(1);
     if (!stage) throw new Error("notFound");
     const rows = await db.select().from(mapsTable).where(eq(mapsTable.stageId, stage.id)).orderBy(asc(mapsTable.order), asc(mapsTable.id));
-    const layout = (await getSkillLayouts())?.[slug];
+    const layout = ed === currentEdition() ? (await getSkillLayouts())?.[slug] : null;
     const label = (mod: string, order: number) => skillSlot(layout, mod, order)?.label ?? slotOf(mod, order);
     const maps = layout
       ? layout.groups.flatMap((g) => g.slots.flatMap((s) => rows.filter((r) => r.mod === s.mod && r.order === s.slot).map((r) => ({ ...r, slot: s.label }))))
@@ -200,7 +203,7 @@ async function build(slug: string, osuId: number, job: PackJob) {
     if (job.missing.length) throw new Error("missing");
     job.zipping = true;
 
-    const dest = packPath(slug);
+    const dest = packPath(slug, ed);
     await rm(dest, { force: true });
     await db.update(stages).set({ packSize: null, packAt: null }).where(eq(stages.id, stage.id));
 
@@ -230,13 +233,14 @@ async function build(slug: string, osuId: number, job: PackJob) {
   }
 }
 
-export function startPackJob(slug: string, osuId: number) {
-  const running = jobs.get(slug);
+export function startPackJob(slug: string, osuId: number, ed: Edition = currentEdition()) {
+  const key = `${ed}:${slug}`;
+  const running = jobs.get(key);
   if (running?.state === "running") return running;
   const idle = ![...jobs.values()].some((j) => j.state === "running");
   const job: PackJob = { state: "running", done: 0, total: 0, missing: [], at: Date.now() };
-  jobs.set(slug, job);
+  jobs.set(key, job);
   const sweep = idle ? rm(path.join(UPLOAD_DIR, "tmp"), { recursive: true, force: true }).catch(() => {}) : Promise.resolve();
-  void sweep.then(() => build(slug, osuId, job));
+  void sweep.then(() => build(slug, osuId, job, ed));
   return job;
 }
