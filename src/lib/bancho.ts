@@ -13,6 +13,7 @@ import { getDraft, lobbyTimer, onDraft, poolSlots, setResult } from "@/db/drafts
 import { other, rollWinner, scoreOf, turnOf, type DraftView } from "@/lib/draft";
 import { getUser } from "@/lib/osu-api";
 import { lobbySize } from "@/lib/format";
+import { blocked } from "@/lib/chat-filter";
 
 export type LobbySlot = { slot: number; name: string; id: number | null; side: 1 | 2 | null; team: "red" | "blue" | null; ready: "ready" | "notready" | "nomap"; host: boolean; mods: string[] };
 export type LobbyView = {
@@ -163,6 +164,7 @@ async function history(mpId: number): Promise<ChatLine[]> {
 export async function sayLocal(matchId: string, by: number, raw: string, side: 1 | 2 | null) {
   const text = raw.replace(/[\r\n]+/g, " ").trim().slice(0, 300);
   if (!text) return "empty" as const;
+  if (blocked(text)) return "blocked" as const;
   const wait = (lastSent.get(by) ?? 0) + CHAT_GAP - Date.now();
   if (wait > 0) return "cooldown" as const;
   const l = g.bgccIrc?.live.get(matchId);
