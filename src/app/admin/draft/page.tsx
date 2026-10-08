@@ -6,7 +6,7 @@ import { getFormat } from "@/db/edition";
 import { drafts } from "@/db/schema";
 import { timers, toView } from "@/db/drafts";
 import { getPoolStages } from "@/db/mappools";
-import { getMatchRows, getTeams } from "@/db/tournament";
+import { getAllMatchRows, getAllTeams } from "@/db/tournament";
 import { getViewer } from "@/lib/authz";
 import { turnOf, pickable } from "@/lib/draft";
 import { getDict, getLang } from "@/lib/i18n/server";
@@ -22,8 +22,8 @@ export default async function AdminDraft() {
     getDict(),
     getLang(),
     getViewer(),
-    getMatchRows(),
-    getTeams(),
+    getAllMatchRows(),
+    getAllTeams(),
     getPoolStages(),
     db.select().from(drafts).catch(() => []),
     getFormat(),
