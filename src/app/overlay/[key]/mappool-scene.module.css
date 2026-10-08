@@ -1,0 +1,318 @@
+.scene {
+  --cards-height: calc(1080px - 64px - 100px - 32px - 48px - 24px - 36px - 16px - 64px);
+  --card-gap: min(12px, calc(60px / var(--pool-rows)));
+  --card-height: min(110px, calc((var(--cards-height) - (var(--pool-rows) - 1) * var(--card-gap)) / var(--pool-rows)));
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 64px 160px;
+  background: linear-gradient(135deg, var(--color-coal), var(--color-ink) 62%);
+  color: var(--color-paper);
+  font-family: var(--font-archivo), sans-serif;
+}
+
+.scene * {
+  box-sizing: border-box;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px minmax(0, 1fr);
+  align-items: center;
+  gap: 36px;
+  height: 100px;
+}
+
+.team {
+  min-width: 0;
+  padding: 16px 22px;
+  border-left: 5px solid currentColor;
+  background: linear-gradient(90deg, var(--color-coal), transparent);
+  transform: skewX(-12deg);
+}
+
+.right {
+  border-right: 5px solid currentColor;
+  border-left: 0;
+  background: linear-gradient(270deg, var(--color-coal), transparent);
+  text-align: right;
+}
+
+.teamName {
+  display: block;
+  overflow: hidden;
+  color: var(--color-paper);
+  font-family: var(--font-unbounded), sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: skewX(12deg);
+}
+
+.red {
+  color: var(--color-rose);
+}
+
+.blue {
+  color: var(--color-azure);
+}
+
+.scoreboard {
+  text-align: center;
+}
+
+.score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-family: var(--font-unbounded), sans-serif;
+  font-size: 52px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.separator {
+  color: var(--color-ash);
+  font-size: 30px;
+}
+
+.firstTo {
+  display: block;
+  margin-top: 8px;
+  color: var(--color-ash);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  gap: 32px;
+  height: 48px;
+  margin-top: 32px;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.heading h1 {
+  margin: 0;
+  font-family: var(--font-unbounded), sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.round {
+  min-width: 0;
+  margin-left: auto;
+  overflow: hidden;
+  color: var(--color-ash);
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(5, 300px);
+  gap: 25px;
+  margin-top: 24px;
+}
+
+.column {
+  min-width: 0;
+}
+
+.modHeading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 36px;
+  margin: 0 0 16px;
+}
+
+.modSlab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 32px;
+  margin-left: 4px;
+  border-bottom: 3px solid var(--mod-color);
+  background: var(--color-slate);
+  transform: skewX(-12deg);
+}
+
+.modSlab > span {
+  color: var(--color-paper);
+  font-family: var(--font-unbounded), sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  text-transform: uppercase;
+  transform: skewX(12deg);
+}
+
+.modName {
+  color: var(--color-ash);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap);
+}
+
+.card {
+  position: relative;
+  isolation: isolate;
+  width: 300px;
+  height: var(--card-height);
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 3px solid var(--color-line);
+  background: var(--color-coal);
+}
+
+.cover {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+}
+
+.card::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(90deg, rgb(13 15 14 / 0.88), rgb(13 15 14 / 0.54)), linear-gradient(0deg, rgb(13 15 14 / 0.85), transparent 80%);
+  content: "";
+}
+
+.card::after {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--mod-color);
+  content: "";
+}
+
+.picked {
+  border-color: var(--pick-color);
+}
+
+.picked::after {
+  background: var(--pick-color);
+}
+
+.banned .cover {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
+.banned .slot,
+.banned .title,
+.banned .difficulty,
+.banned .sr {
+  opacity: 0.45;
+}
+
+.banned::after {
+  background: var(--color-ash);
+}
+
+.cardContent {
+  padding: clamp(0px, calc((var(--card-height) - 87px) / 2), 10px) 12px clamp(0px, calc((var(--card-height) - 87px) / 2), 10px) 14px;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  margin-bottom: clamp(0px, calc(var(--card-height) - 79px), 8px);
+}
+
+.slot {
+  flex-shrink: 0;
+  font-family: var(--font-unbounded), sans-serif;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.sr {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.sr > span {
+  color: var(--color-gold);
+  font-size: 12px;
+}
+
+.status {
+  min-width: 0;
+  max-width: 116px;
+  padding: 3px 6px;
+  border: 1px solid var(--tag-color);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-size: 10px;
+  line-height: 1.2;
+  transform: skewX(-12deg);
+}
+
+.status > span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transform: skewX(12deg);
+}
+
+.status b {
+  color: var(--tag-color);
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.tagName,
+.title,
+.difficulty {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 22px;
+}
+
+.difficulty {
+  margin: 2px 0 0;
+  color: var(--color-paper);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 17px;
+  opacity: 0.7;
+}
