@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeftRight, Check, Copy, Crown, DoorClosed, ExternalLink, Map as MapIcon, MoveVertical, Play, Plus, RefreshCw, Send, Square, Timer, TimerOff, UserPlus, UserX, Users, WifiOff } from "lucide-react";
+import { ArrowLeftRight, Check, CircleHelp, X, Copy, Crown, DoorClosed, ExternalLink, Map as MapIcon, MoveVertical, Play, Plus, RefreshCw, Send, Square, Timer, TimerOff, UserPlus, UserX, Users, WifiOff } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import { useSSE } from "@/components/site/use-sse";
 import { EASE } from "@/components/site/motion";
@@ -44,6 +44,82 @@ function Btn({ onClick, disabled, tone = "line", wide, children }: { onClick: ()
     >
       <span className="inline-flex min-w-0 skew-x-12 items-center gap-1.5 whitespace-nowrap [&>svg]:shrink-0">{children}</span>
     </button>
+  );
+}
+
+const HELP_C = ["var(--color-azure)", "var(--color-azure)", "var(--color-azure)", "var(--color-azure)", "var(--color-paper)", "#e8c547", "#e8c547", "var(--color-balkan)", "#e8c547", "var(--color-rose)"];
+
+function LobbyHelp({ onClose }: { onClose: () => void }) {
+  const t = useDict();
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.2 } }}
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/85 p-4 backdrop-blur-sm"
+    >
+      <motion.div
+        initial={{ y: 50, scale: 0.94 }}
+        animate={{ y: 0, scale: 1 }}
+        exit={{ y: 30, opacity: 0, transition: { duration: 0.2 } }}
+        transition={{ type: "spring", stiffness: 320, damping: 26 }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative flex max-h-[88dvh] w-full max-w-3xl flex-col overflow-hidden border-2 border-paper/80 bg-coal shadow-[8px_8px_0_0_rgba(0,0,0,0.5)]"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div className="flex items-center gap-3 border-b border-line px-5 py-4 sm:px-6">
+          <CircleHelp className="size-7 text-paper" />
+          <h3 className="heading-slam text-2xl sm:text-3xl">{t.lobby.helpTitle}</h3>
+          <button type="button" onClick={onClose} className="ml-auto inline-flex size-9 items-center justify-center border border-line text-ash transition-colors hover:border-paper hover:text-paper" aria-label={t.draft.cancel}>
+            <X className="size-4" />
+          </button>
+        </div>
+        <div className="overflow-y-auto px-5 py-5 sm:px-6">
+          <ul className="space-y-4">
+            {t.lobby.helpItems.map((h, i) => (
+              <motion.li
+                key={h.k}
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.35, delay: 0.05 + i * 0.03, ease: EASE }}
+                className="grid gap-2 sm:grid-cols-[9.5rem_minmax(0,1fr)] sm:gap-4"
+              >
+                <span className="self-start">
+                  <span className="inline-flex -skew-x-12 border px-2.5 py-1 text-xs font-black uppercase tracking-wide" style={{ borderColor: HELP_C[i], color: HELP_C[i] }}>
+                    <span className="skew-x-12">{h.k}</span>
+                  </span>
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm leading-relaxed text-paper/85">{h.body}</span>
+                  {h.ex && (
+                    <span className="mt-1.5 flex flex-wrap gap-1.5">
+                      {h.ex.map((x) => (
+                        <code key={x} className="border border-line bg-ink px-2 py-0.5 text-xs font-bold text-paper">
+                          {x}
+                        </code>
+                      ))}
+                    </span>
+                  )}
+                </span>
+              </motion.li>
+            ))}
+          </ul>
+          <div className="mt-7 border-t border-dashed border-line pt-5">
+            <div className="text-[0.7rem] font-black uppercase tracking-widest text-ash">{t.lobby.helpExtra}</div>
+            <ul className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
+              {t.lobby.helpCmds.map(([cmd, what]) => (
+                <li key={cmd} className="flex flex-col gap-0.5">
+                  <code className="text-xs font-bold text-paper">{cmd}</code>
+                  <span className="text-xs text-ash">{what}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -138,6 +214,7 @@ export function LobbyPanel({ slug, maps, onOpen }: { slug: string; maps: Beatmap
   const [joinCopied, setJoinCopied] = useState(false);
   const [moving, setMoving] = useState<number | null>(null);
   const [ask, setAsk] = useState<"start" | "abort" | "close" | null>(null);
+  const [help, setHelp] = useState(false);
   const [say, setSay] = useState("");
   const sayRef = useRef<HTMLInputElement>(null);
   const fill = (cmd: string) => {
@@ -221,6 +298,11 @@ export function LobbyPanel({ slug, maps, onOpen }: { slug: string; maps: Beatmap
       </div>
       {open && (
         <div className="space-y-2 border-b border-line px-3 py-2.5">
+          <div className="grid grid-cols-1">
+            <Btn wide onClick={() => setHelp(true)}>
+              <CircleHelp className="size-3.5" /> {t.lobby.help}
+            </Btn>
+          </div>
           <div className="grid grid-cols-[minmax(0,0.85fr)_minmax(0,1.1fr)_minmax(0,0.85fr)_minmax(0,1.6fr)] gap-2">
             <Btn wide onClick={() => fill("!mp map ")} disabled={offline}>
               <MapIcon className="size-3.5" /> {t.lobby.map}
@@ -265,6 +347,7 @@ export function LobbyPanel({ slug, maps, onOpen }: { slug: string; maps: Beatmap
       {typeof document !== "undefined" &&
         createPortal(
           <AnimatePresence>
+            {help && <LobbyHelp key="help" onClose={() => setHelp(false)} />}
             {ask && (
               <LobbyAsk
                 key={ask}
@@ -419,7 +502,7 @@ function Chat({
   const [until, setUntil] = useState(0);
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
-  const [fail, setFail] = useState<boolean | "noslot">(false);
+  const [fail, setFail] = useState<boolean | "noslot" | "nouser">(false);
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -447,7 +530,7 @@ function Chat({
       setNow(t0);
       setUntil(t0 + 1500);
       if (inputRef.current?.value === sent) setText("");
-    } else setFail(res?.error === "noslot" ? "noslot" : true);
+    } else setFail(res?.error === "noslot" || res?.error === "nouser" ? res.error : true);
     inputRef.current?.focus();
   }
 
@@ -470,7 +553,9 @@ function Chat({
           <p className="py-6 text-center text-xs font-bold uppercase tracking-wide text-ash/60">{t.lobby.quiet}</p>
         )}
       </div>
-      {fail === "noslot" && <p className="border-t border-line bg-rose/10 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-rose-hi">{t.lobby.noSlot}</p>}
+      {(fail === "noslot" || fail === "nouser") && (
+        <p className="border-t border-line bg-rose/10 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-rose-hi">{fail === "noslot" ? t.lobby.noSlot : t.lobby.noUser}</p>
+      )}
       <form onSubmit={send} className="flex gap-2 border-t border-line p-2">
         <input
           ref={inputRef}
