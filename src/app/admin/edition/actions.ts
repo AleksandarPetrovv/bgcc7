@@ -1,8 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
-import { db6, setCurrentEdition } from "@/db";
+import { EDITION_COOKIE, db6, setCurrentEdition } from "@/db";
 import { settings } from "@/db/schema";
 import { getEdition } from "@/db/edition";
 import { clearTestData, seedTestData } from "@/db/test-data";
@@ -19,6 +20,7 @@ export async function switchEdition(edition: string) {
   if (!by || !isEdition(edition)) return { ok: false };
   await db6.update(settings).set({ edition }).where(eq(settings.id, 1));
   setCurrentEdition(edition);
+  (await cookies()).delete(EDITION_COOKIE);
   await log(by, "edition.switch", { edition });
   revalidatePath("/", "layout");
   return { ok: true };

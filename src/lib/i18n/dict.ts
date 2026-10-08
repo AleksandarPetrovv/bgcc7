@@ -3,8 +3,8 @@ export const LANGS: Lang[] = ["en", "bg"];
 
 const en = {
   meta: {
-    title: "BGCC7 · Bulgarian Community Cup 7",
-    description: "The seventh Bulgarian Community Cup, a 3v3 osu! team tournament for players from Bulgaria.",
+    title: "BGCC6 · Bulgarian Community Cup 6",
+    description: "The sixth Bulgarian Community Cup, a 3v3 osu! team tournament for players from Bulgaria.",
   },
   nav: {
     home: "Home",
@@ -26,7 +26,8 @@ const en = {
     logout: "Log out",
     menu: "Menu",
     openMenu: "Open menu",
-    homeLabel: "BGCC7 home",
+    homeLabel: "BGCC6 home",
+    edition: "Edition",
     main: "Main",
     section: "Section",
   },
@@ -110,7 +111,7 @@ const en = {
     ofPlayers: (p: number, n: number) => `#${p} of ${n}`,
     title: "My page",
     login: "Log in with osu! to see your page.",
-    notIn: "You're not signed up for BGCC7.",
+    notIn: "You're not signed up for BGCC6.",
     notInLate: "You didn't sign up for this one, but you can still follow along.",
     signedUp: "Signed up!",
     signedUpPending: "Signed up...",
@@ -169,7 +170,7 @@ const en = {
   },
   home: {
     badge: "bulgarian community cup",
-    headline: "{{Bulgaria's}} 3v3 osu! cup is back for a [[seventh]] time.",
+    headline: "{{Bulgaria's}} 3v3 osu! cup is back for a [[sixth]] time.",
     intro: "Any rank can enter, and you sign up on your own before %regClose%. Qualifiers run %qual%, and the top %qualify% get split into teams of three by seed.",
     registerTeam: "Sign up",
     readRules: "Read the rules",
@@ -209,7 +210,7 @@ const en = {
     streamNote: "Every match goes out on stream with Bulgarian commentary.",
     streamSchedule: "Stream schedule",
     signups: (n: number): string => (n === 1 ? "player signed up" : "players signed up"),
-    headlineDone: "[[BGCC7]] is over. Here's how it went.",
+    headlineDone: "[[BGCC6]] is over. Here's how it went.",
     login: "Log in with osu!",
     myPage: "My page",
     introBy: {
@@ -230,10 +231,10 @@ const en = {
   },
   info: {
     intro:
-      "BGCC7 is the seventh Bulgarian Community Cup, a 3v3 team tournament open to players of any rank from Bulgaria. The top %qualify% players out of qualifiers are split into %teams% teams by seed, those teams play a double elimination bracket, and we stream every match with Bulgarian commentary.",
+      "BGCC6 is the sixth Bulgarian Community Cup, a 3v3 team tournament open to players of any rank from Bulgaria. The top %qualify% players out of qualifiers are split into %teams% teams by seed, those teams play a double elimination bracket, and we stream every match with Bulgarian commentary.",
     general: "General information",
     generalItems: [
-      "BGCC7 is a [[3v3]], [[open rank]] tournament for players with {{Bulgaria}} as their osu! country",
+      "BGCC6 is a [[3v3]], [[open rank]] tournament for players with {{Bulgaria}} as their osu! country",
       "Everyone signs up [[solo]]. Teams of [[three]] are put together from the qualifier seeds, so there's no team to register",
       "All matches use [[Team VS]] and [[ScoreV2]]",
       "All times are in [[EET (UTC+2)]]",
@@ -1044,8 +1045,8 @@ export type Dict = typeof en;
 
 const bg: Dict = {
   meta: {
-    title: "BGCC7 · Bulgarian Community Cup 7",
-    description: "Седмата Bulgarian Community Cup, 3v3 osu! отборен турнир за играчи от България.",
+    title: "BGCC6 · Bulgarian Community Cup 6",
+    description: "Шестата Bulgarian Community Cup, 3v3 osu! отборен турнир за играчи от България.",
   },
   nav: {
     home: "Начало",
@@ -1067,7 +1068,8 @@ const bg: Dict = {
     logout: "Изход",
     menu: "Меню",
     openMenu: "Отвори менюто",
-    homeLabel: "BGCC7 начало",
+    homeLabel: "BGCC6 начало",
+    edition: "Издание",
     main: "Основна",
     section: "Раздел",
   },
@@ -1151,7 +1153,7 @@ const bg: Dict = {
     ofPlayers: (p: number, n: number) => `#${p} от ${n}`,
     title: "Моята страница",
     login: "Влез с osu!, за да видиш страницата си.",
-    notIn: "Не си записан за BGCC7.",
+    notIn: "Не си записан за BGCC6.",
     notInLate: "Не се записа този път, но можеш да следиш всичко.",
     signedUp: "Записан си!",
     signedUpPending: "Записан си...",
@@ -1210,7 +1212,7 @@ const bg: Dict = {
   },
   home: {
     badge: "bulgarian community cup",
-    headline: "{{Българската}} 3v3 osu! купа се завръща за [[седми]] път.",
+    headline: "{{Българската}} 3v3 osu! купа се завръща за [[шести]] път.",
     intro: "Може да участва всеки, независимо от ранга, и се записваш сам до %regClose%. Квалификациите са на %qual%, а първите %qualify% се разпределят в отбори по трима според номера си.",
     registerTeam: "Запиши се",
     readRules: "Правилата",
@@ -1250,7 +1252,7 @@ const bg: Dict = {
     streamNote: "Всеки мач се излъчва с коментар на български.",
     streamSchedule: "Програма на стрийма",
     signups: (n: number) => (n === 1 ? "записан играч" : "записани играчи"),
-    headlineDone: "[[BGCC7]] приключи. Ето как мина.",
+    headlineDone: "[[BGCC6]] приключи. Ето как мина.",
     login: "Влез с osu!",
     myPage: "Моята страница",
     introBy: {
@@ -1271,10 +1273,10 @@ const bg: Dict = {
   },
   info: {
     intro:
-      "BGCC7 е седмото издание на Bulgarian Community Cup, 3v3 отборен турнир за играчи от България от всякакъв ранг. Първите %qualify% играчи от квалификациите се разпределят в %teams% отбора според номера си, отборите играят схема с двойна елиминация, а всеки мач се стриймва с коментар на български.",
+      "BGCC6 е шестото издание на Bulgarian Community Cup, 3v3 отборен турнир за играчи от България от всякакъв ранг. Първите %qualify% играчи от квалификациите се разпределят в %teams% отбора според номера си, отборите играят схема с двойна елиминация, а всеки мач се стриймва с коментар на български.",
     general: "Обща информация",
     generalItems: [
-      "BGCC7 е [[3v3]] турнир [[без ограничение на ранга]] за играчи с {{България}} като държава в osu!",
+      "BGCC6 е [[3v3]] турнир [[без ограничение на ранга]] за играчи с {{България}} като държава в osu!",
       "Всеки се записва [[сам]]. Отборите по [[трима]] се съставят по номерата от квалификациите, така че няма отбор за записване",
       "Всички мачове са [[Team VS]] и [[ScoreV2]]",
       "Всички часове са по [[EET (UTC+2)]]",

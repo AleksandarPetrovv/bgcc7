@@ -7,6 +7,7 @@ import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can, type Perm } from "@/lib/roles";
 import { getEdition } from "@/db/edition";
+import { siteEdition } from "@/db";
 import { EditionSwitch } from "./edition/edition-switch";
 
 const MENU: { href: string; perm: Perm }[] = [
@@ -66,7 +67,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
             </div>
           </div>
           <AdminNav items={items} />
-          {viewer.roles.includes("host") && <EditionSwitch edition={edition} />}
+          {viewer.roles.includes("host") && <EditionSwitch edition={siteEdition()} viewing={edition} />}
         </div>
       </aside>
       <div className="min-w-0 flex-1">{children}</div>

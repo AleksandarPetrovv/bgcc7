@@ -4,7 +4,7 @@ import { EventEmitter } from "node:events";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { BanchoClient, BanchoLobbyPlayerStates, BanchoLobbyTeamModes, BanchoLobbyWinConditions, type BanchoLobby, type BanchoLobbyPlayerScore, type BanchoMultiplayerChannel } from "bancho.js";
 import { RateLimiterMemory, RateLimiterQueue } from "rate-limiter-flexible";
-import { db } from "@/db";
+import { db, withEdition } from "@/db";
 import { matches, mpChat, mpLobbies, staff, users } from "@/db/schema";
 import { getAllTeams } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
@@ -63,14 +63,15 @@ export const botConfigured = () => !!creds("personal");
 
 function state(): State | null {
   if (!botConfigured()) return null;
-  if (!g.bgccIrc) {
-    g.bgccIrc = { conns: {}, live: new Map(), bus: new EventEmitter().setMaxListeners(0), restored: false };
-    console.log(`[bancho] state created pid=${process.pid}`);
-    setInterval(sweepIdle, 30_000).unref();
-    setInterval(syncIdle, 5_000).unref();
-    onDraft((id) => react(id));
-  }
-  return g.bgccIrc;
+  if (!g.bgccIrc)
+    withEdition("site", () => {
+      g.bgccIrc = { conns: {}, live: new Map(), bus: new EventEmitter().setMaxListeners(0), restored: false };
+      console.log(`[bancho] state created pid=${process.pid}`);
+      setInterval(sweepIdle, 30_000).unref();
+      setInterval(syncIdle, 5_000).unref();
+      onDraft((id) => react(id));
+    });
+  return g.bgccIrc ?? null;
 }
 
 function conn(kind: Kind): Conn | null {
@@ -79,6 +80,10 @@ function conn(kind: Kind): Conn | null {
   if (!s || !c) return null;
   const cur = s.conns[kind];
   if (cur) return cur;
+  return withEdition("site", () => newConn(s, kind, c));
+}
+
+function newConn(s: State, kind: Kind, c: NonNullable<ReturnType<typeof creds>>): Conn {
   const client = new BanchoClient(kind === "bot" ? { ...c, botAccount: true } : { ...c, rateLimiter: new RateLimiterQueue(new RateLimiterMemory({ points: 9, duration: 5.5 })) as never });
   const x: Conn = { kind, client, ready: null };
   client.on("error", (e) => console.error(`[bancho ${kind}]`, e.message));
@@ -105,7 +110,7 @@ async function online(kind: Kind) {
   const c = conn(kind);
   if (!c) throw new Error("irc off");
   if (!c.client.isConnected()) {
-    c.ready ??= c.client.connect().finally(() => (c.ready = null));
+    c.ready ??= withEdition("site", () => c.client.connect()).finally(() => (c.ready = null));
     await c.ready;
   }
   return c;
