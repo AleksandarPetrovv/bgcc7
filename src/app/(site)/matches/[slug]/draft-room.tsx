@@ -14,7 +14,7 @@ import { deadline, limitOf, pickable, plan, rollWinner, scoreOf, turnOf, type Dr
 import { cn } from "@/lib/utils";
 import { slotColor } from "@/lib/format-plan";
 import { GOLD, TEAM, tint } from "@/lib/theme";
-import { redoDraft, resetDraft, undoDraft } from "@/app/admin/draft/actions";
+import { redoDraft, resetDraft, undoDraft } from "@/app/(site)/admin/draft/actions";
 import { LobbyPanel, lobbyPost } from "./lobby-panel";
 import { useSSE } from "@/components/site/use-sse";
 import { Costs, MapCard, MatchDialog } from "@/components/site/match-dialog";
