@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>BGCC7 Ref Helper</title>
+    <title>bgcc7 ref helper</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -14,12 +14,12 @@
           <polygon points="14,0 20,0 16,16 10,16" fill="#0fa06a" />
           <polygon points="24,0 30,0 26,16 20,16" fill="#e0242f" />
         </svg>
-        <span class="title" data-tauri-drag-region>BGCC7 Ref Helper</span>
+        <span class="title" data-tauri-drag-region>bgcc7 ref helper</span>
         <div class="win">
-          <button id="min" title="Minimize">
+          <button id="min" title="minimize to tray" aria-label="minimize to tray">
             <svg viewBox="0 0 12 12"><path d="M1 6h10" stroke="currentColor" stroke-width="1.6" /></svg>
           </button>
-          <button id="close" class="x" title="Hide to tray">
+          <button id="close" class="x" title="quit" aria-label="quit">
             <svg viewBox="0 0 12 12"><path d="M1.5 1.5l9 9M10.5 1.5l-9 9" stroke="currentColor" stroke-width="1.6" /></svg>
           </button>
         </div>
@@ -37,36 +37,37 @@
 
       <main class="screens">
         <section id="s-login" class="screen">
-          <div class="h in" style="--i: 0">Log in</div>
+          <div class="h in" style="--i: 0">link your account</div>
           <label class="f in" style="--i: 1">
-            osu! irc username
+            osu! username
             <span class="field"><input id="name" autocomplete="off" spellcheck="false" /></span>
           </label>
           <label class="f in" style="--i: 2">
-            irc password
+            irc password (optional)
             <span class="field"><input id="pass" type="password" autocomplete="off" /></span>
           </label>
+          <p class="help">streamers do not need irc. refs can enter their irc password now or save it after linking.</p>
           <button class="hint in" style="--i: 3" id="getirc">get your irc password</button>
           <div class="err" id="login-err"></div>
           <div class="row in" style="--i: 4">
             <button class="btn rose big" id="go">
-              <span>Log in with osu! <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+              <span>link with osu! <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
             </button>
           </div>
           <div class="foot in" style="--i: 5">
             <span class="grow"></span>
-            <button class="btn danger sm" data-uninstall><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg> Uninstall</span></button>
+            <button class="btn danger sm" data-uninstall><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg> uninstall</span></button>
           </div>
         </section>
 
         <section id="s-wait" class="screen">
-          <div class="h in" style="--i: 0">Confirm on the site</div>
+          <div class="h in" style="--i: 0">confirm on the site</div>
           <div class="code"><span id="word">····</span></div>
           <div class="beads in" style="--i: 1" aria-hidden="true"></div>
           <div class="err" id="wait-err"></div>
           <div class="row in" style="--i: 2">
-            <button class="btn outline" id="reopen"><span>Open the page again</span></button>
-            <button class="btn outline" id="cancel"><span>Cancel</span></button>
+            <button class="btn outline" id="reopen"><span>open the page again</span></button>
+            <button class="btn outline" id="cancel"><span>cancel</span></button>
           </div>
         </section>
 
@@ -74,50 +75,86 @@
           <div class="me in" style="--i: 0">
             <span class="av"><img id="avatar" alt="" /><b id="initial"></b></span>
             <span class="who">
-              <span class="k">Logged in as</span>
+              <span class="k">linked account</span>
               <span class="h" id="me-name">—</span>
+              <span class="roles" id="roles"></span>
             </span>
           </div>
-          <div class="stats">
+          <p class="help" id="role-note" role="status">checking account roles…</p>
+          <div class="stats account-status">
             <div class="stat in" style="--i: 1">
-              <span class="k">Site</span>
+              <span class="k">site</span>
               <span class="v"><i class="dia" id="d-site"></i><span id="t-site">—</span></span>
             </div>
+          </div>
+          <section class="mode" id="ref-section" hidden>
+            <div class="sec">referee</div>
+            <div class="stats">
             <div class="stat in" style="--i: 2">
               <span class="k">osu! irc</span>
               <span class="v"><i class="dia" id="d-irc"></i><span id="t-irc">—</span></span>
             </div>
             <div class="stat in" style="--i: 3">
-              <span class="k">Lobbies</span>
+              <span class="k">lobbies</span>
               <div class="lobbies" id="lobbies"></div>
             </div>
             <div class="stat in" style="--i: 4">
-              <span class="k">Commands sent</span>
+              <span class="k">commands sent</span>
               <span class="n" id="sent">0</span>
             </div>
-          </div>
-          <div class="sec in" style="--i: 5">Activity</div>
+            </div>
+            <form class="password-form" id="irc-form">
+              <p class="help" id="irc-note">save an irc password here to start the ref relay without linking again.</p>
+              <label class="f">irc password
+                <span class="field"><input id="linked-pass" type="password" autocomplete="off" /></span>
+              </label>
+              <div class="row">
+                <button class="btn outline sm" id="save-pass" type="submit"><span>save irc password</span></button>
+                <button class="hint" id="linked-getirc" type="button">get your irc password</button>
+              </div>
+              <p class="help" id="pass-note" role="status"></p>
+              <div class="err" id="pass-err" role="alert"></div>
+            </form>
+          </section>
+          <section class="mode" id="stream-section" hidden>
+            <div class="mode-head">
+              <div class="sec">streaming</div>
+              <button class="toggle" id="stream-toggle" role="switch" aria-checked="false" disabled><span class="sw" aria-hidden="true"></span><span id="stream-toggle-text">enable streaming</span></button>
+            </div>
+            <div class="stat">
+              <span class="v"><i class="dia" id="d-stream"></i><span id="t-stream" role="status">—</span></span>
+              <span class="help" id="stream-note"></span>
+            </div>
+            <dl class="stream-details">
+              <div><dt>assigned match</dt><dd id="stream-match">—</dd></div>
+              <div><dt>clients detected</dt><dd id="stream-clients">0</dd></div>
+            </dl>
+            <div class="err" id="stream-err" role="alert"></div>
+          </section>
+          <div class="sec in" style="--i: 5">activity</div>
           <ul class="log" id="log"></ul>
           <div class="foot in" style="--i: 6">
-            <button class="toggle" id="auto"><span class="sw"></span>Start with Windows</button>
+            <button class="toggle" id="auto" role="switch" aria-checked="false"><span class="sw" aria-hidden="true"></span>start with windows</button>
             <span class="grow"></span>
-            <button class="btn outline sm" id="site"><span>Open bgcc</span></button>
-            <button class="btn outline sm" id="unlink"><span>Log out</span></button>
+            <button class="btn outline sm" id="site"><span>open bgcc</span></button>
+            <button class="btn outline sm" id="unlink"><span>log out</span></button>
           </div>
           <div class="foot2 in" style="--i: 7">
-            <button class="btn danger sm" data-uninstall><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg> Uninstall</span></button>
+            <button class="btn danger sm" data-uninstall><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg> uninstall</span></button>
           </div>
+          <div class="err" id="run-err" role="alert"></div>
         </section>
       </main>
     </div>
     <div class="modal" id="modal" hidden>
       <div class="card">
-        <div class="h">Uninstall BGCC7 Ref Helper?</div>
-        <p>Removes the app, your saved login, autostart and the link to the site.</p>
+        <div class="h">uninstall bgcc7 ref helper?</div>
+        <p>removes the app, your saved login, autostart and the link to the site.</p>
         <div class="row">
-          <button class="btn rose" id="un-yes"><span>Uninstall</span></button>
-          <button class="btn outline" id="un-no"><span>Cancel</span></button>
+          <button class="btn rose" id="un-yes"><span>uninstall</span></button>
+          <button class="btn outline" id="un-no"><span>cancel</span></button>
         </div>
+        <div class="err" id="un-err" role="alert"></div>
       </div>
     </div>
     <script src="app.js"></script>
