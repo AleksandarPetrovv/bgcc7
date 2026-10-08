@@ -556,7 +556,8 @@ function Chat({
       {(fail === "noslot" || fail === "nouser") && (
         <p className="border-t border-line bg-rose/10 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-rose-hi">{fail === "noslot" ? t.lobby.noSlot : t.lobby.noUser}</p>
       )}
-      <form onSubmit={send} className="flex gap-2 border-t border-line p-2">
+      <form onSubmit={send} className="flex gap-2 border-t border-line px-3 py-2">
+        <span className={cn("flex min-w-0 flex-1 -skew-x-12 border border-line bg-ink focus-within:border-paper", fail && "border-rose focus-within:border-rose")}>
         <input
           ref={inputRef}
           value={text}
@@ -568,8 +569,9 @@ function Chat({
           autoComplete="off"
           disabled={disabled}
           placeholder={t.lobby.say}
-          className={cn("adm-bare min-w-0 flex-1 border border-line bg-ink px-3 py-2 text-[0.95rem] outline-none focus:border-paper", fail && "border-rose")}
+          className="adm-bare min-w-0 flex-1 skew-x-12 border-0 bg-transparent px-4 py-2 text-[0.95rem] outline-none"
         />
+        </span>
         <button
           type="submit"
           disabled={disabled || busy || !!left || !text.trim()}
