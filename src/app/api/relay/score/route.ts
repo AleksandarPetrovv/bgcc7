@@ -1,9 +1,12 @@
 import "server-only";
 import { relayAuth } from "@/lib/relay";
 import { relayPerms } from "@/lib/relay-perms";
-import { putLive } from "@/lib/live-scores";
+import { getLive, IPC_PLAYING, putLive } from "@/lib/live-scores";
 import type { ScorePacket } from "@/lib/overlay-types";
-import { streamMatches } from "@/db/stream";
+import { currentStreamMatch } from "@/db/stream";
+import { getAllTeams } from "@/db/tournament";
+import { getDraft } from "@/db/drafts";
+import { getPoolStages } from "@/db/mappools";
 
 export const dynamic = "force-dynamic";
 
@@ -97,10 +100,20 @@ export async function POST(req: Request) {
   const packet = parse(body);
   if (!packet) return Response.json({ error: "invalid" }, { status: 400 });
 
-  const matches = await streamMatches(app.osuId, false);
-  const m = matches[0];
+  const m = await currentStreamMatch(app.osuId);
   if (!m) return Response.json({ error: "nomatch" }, { status: 409 });
 
+  const [teams, draft, stages] = await Promise.all([getAllTeams(), getDraft(m.id), getPoolStages()]);
+  const left = new Set(teams.find((t) => t.id === m.team1.id)?.players.map((p) => p.userId) ?? []);
+  const right = new Set(teams.find((t) => t.id === m.team2.id)?.players.map((p) => p.userId) ?? []);
+  const pool = stages.find((s) => s.slug === (draft?.stageSlug ?? m.stage));
+  const playersMatch = packet.clients.length > 0 && packet.clients.every((c) => (c.team === "left" ? left : right).has(c.userId));
+  const mapMatches = pool?.pools.some((p) => p.maps.some((map) => map.id === packet.mapId));
+  if (!playersMatch || !mapMatches) return Response.json({ error: "nomatch" }, { status: 409 });
+  // a previous lobby's results must not become the first packet of a new match.
+  if (m.winner === null && packet.ipcState !== IPC_PLAYING && !getLive(m.id)) {
+    return Response.json({ ok: true, match: m.slug });
+  }
   putLive(m.id, packet);
   return Response.json({ ok: true, match: m.slug });
 }
