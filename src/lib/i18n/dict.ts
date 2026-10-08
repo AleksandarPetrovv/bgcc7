@@ -663,6 +663,7 @@ const en = {
       copied: "Copied",
       helper: "Helper",
       setup: "OBS / Streamlabs",
+      test: "test overlay",
       steps: [
         "Browser source with your overlay link, 1920 × 1080",
         "Window capture of the tourney client, under the browser source",
@@ -1750,6 +1751,7 @@ const bg: Dict = {
       copied: "Копирано",
       helper: "Помощник",
       setup: "OBS / Streamlabs",
+      test: "тест на овърлея",
       steps: [
         "Browser source с твоя линк, 1920 × 1080",
         "Window capture на турнирния клиент, под browser source-а",
