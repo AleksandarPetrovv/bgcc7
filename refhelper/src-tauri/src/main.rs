@@ -236,11 +236,14 @@ fn main() {
             }
             Ok(())
         })
-        .on_window_event(|w, e| {
-            if let WindowEvent::CloseRequested { api, .. } = e {
-                api.prevent_close();
-                let _ = w.hide();
+        .on_window_event(|w, e| match e {
+            WindowEvent::CloseRequested { .. } => w.app_handle().exit(0),
+            WindowEvent::Resized(_) => {
+                if w.is_minimized().unwrap_or(false) {
+                    let _ = w.hide();
+                }
             }
+            _ => {}
         })
         .invoke_handler(tauri::generate_handler![status, logs, saved_name, link, cancel_link, unlink, uninstall, open, autostart])
         .run(tauri::generate_context!())
