@@ -15,7 +15,7 @@ const LIMITS = {
 
 function bucket(req: NextRequest, path: string): keyof typeof LIMITS {
   if (path.startsWith("/api/auth")) return "auth";
-  if (path === "/api/relay/in" || path === "/api/relay/claim") return "relay";
+  if (path === "/api/relay/in" || path === "/api/relay/claim" || path === "/api/relay/score") return "relay";
   if (path.startsWith("/download/")) return "download";
   if (req.method !== "GET" && req.method !== "HEAD") return "write";
   if (path.startsWith("/api/matches/")) return "osu";
