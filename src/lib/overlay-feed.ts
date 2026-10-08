@@ -9,7 +9,7 @@ import { getFormat } from "@/db/edition";
 import { getPoolStages } from "@/db/mappools";
 import { nowPlaying } from "@/lib/bancho";
 import { getLive, IPC_PLAYING } from "@/lib/live-scores";
-import { overlayUser, streamMatches } from "@/db/stream";
+import { overlayUser, currentStreamMatch } from "@/db/stream";
 import { isScene, type Scene } from "@/lib/scenes";
 import type { OverlayFeed, FeedTeam, FeedMap, FeedStep } from "./overlay-types";
 
@@ -30,7 +30,7 @@ export async function resolveOverlay(key: string): Promise<{ found: boolean; mat
     return { found: false, matchId: null };
   }
 
-  const [m] = await streamMatches(u.osuId, false);
+  const m = await currentStreamMatch(u.osuId);
   return { found: true, matchId: m?.id ?? null };
 }
 
