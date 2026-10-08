@@ -117,7 +117,7 @@ export function MapCard({ m, i }: { m: MapResult; i: number }) {
   );
 }
 
-function Costs({ data, names, finished }: { data: Scoreboard; names: (string | undefined)[]; finished: boolean }) {
+export function Costs({ data, names, finished }: { data: Scoreboard; names: (string | undefined)[]; finished: boolean }) {
   const t = useDict();
   const rows = matchCosts(data, finished);
   if (!rows.length) return null;

@@ -330,7 +330,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly }: { slug: string; map
                   title={t.lobby.swapTeam}
                   disabled={pending || offline}
                   onClick={() => run({ act: "team", slot: i, team: s.team === "red" ? "blue" : "red" })}
-                  style={{ background: s.team === "red" ? TEAM_C.blue : TEAM_C.red, borderColor: "transparent" }}
+                  style={{ background: s.team === "blue" ? TEAM_C.blue : TEAM_C.red, borderColor: "transparent" }}
                   className="hover:brightness-125"
                 >
                   {null}
@@ -432,7 +432,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly }: { slug: string; map
             {t.lobby.password} <span className="text-paper">{v.password}</span> {copied ? <Check className="size-3 text-balkan" /> : <Copy className="size-3" />}
           </button>
         )}
-        {open && v.mpId && (
+        {open && v.mpId && !readOnly && (
           <button
             type="button"
             onClick={() => navigator.clipboard.writeText(`/join #mp_${v.mpId}`).then(() => setJoinCopied(true)).catch(() => {})}
@@ -525,7 +525,9 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly }: { slug: string; map
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.35, ease: EASE }} className="overflow-hidden">
             <div className="grid gap-px bg-line @4xl:grid-cols-[minmax(0,1fr)_16rem]">
               <div className="grid grid-cols-2 gap-px bg-line">
-                {all.slice(0, base).map((s, i) => slotBox(s, i))}
+                <div className="col-span-2 grid grid-flow-col grid-cols-2 gap-px bg-line" style={{ gridTemplateRows: `repeat(${Math.ceil(base / 2)}, auto)` }}>
+                  {all.slice(0, base).map((s, i) => slotBox(s, i))}
+                </div>
                 <div className="col-span-2 grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] bg-coal">
                   <span aria-hidden />
                   {slotBox(all[base], base)}
@@ -588,7 +590,7 @@ function Chat({
   const [until, setUntil] = useState(0);
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
-  const [fail, setFail] = useState<boolean | "noslot" | "nouser">(false);
+  const [fail, setFail] = useState<boolean | "noslot" | "nouser" | "blocked">(false);
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -616,7 +618,7 @@ function Chat({
       setNow(t0);
       setUntil(t0 + 1500);
       if (inputRef.current?.value === sent) setText("");
-    } else setFail(res?.error === "noslot" || res?.error === "nouser" ? res.error : true);
+    } else setFail(res?.error === "noslot" || res?.error === "nouser" || res?.error === "blocked" ? res.error : true);
     inputRef.current?.focus();
   }
 
@@ -639,8 +641,8 @@ function Chat({
           <p className="py-6 text-center text-xs font-bold uppercase tracking-wide text-ash/60">{t.lobby.quiet}</p>
         )}
       </div>
-      {(fail === "noslot" || fail === "nouser") && (
-        <p className="border-t border-line bg-rose/10 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-rose-hi">{fail === "noslot" ? t.lobby.noSlot : t.lobby.noUser}</p>
+      {(fail === "noslot" || fail === "nouser" || fail === "blocked") && (
+        <p className="border-t border-line bg-rose/10 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-rose-hi">{fail === "noslot" ? t.lobby.noSlot : fail === "nouser" ? t.lobby.noUser : t.lobby.blocked}</p>
       )}
       <form onSubmit={send} className="flex gap-2 border-t border-line px-3 py-2">
         <span className={cn("flex min-w-0 flex-1 -skew-x-12 border border-line bg-ink focus-within:border-paper", fail && "border-rose focus-within:border-rose")}>
