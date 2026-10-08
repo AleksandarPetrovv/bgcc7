@@ -14,12 +14,14 @@ import type { MapResult, PlayerLine, Scoreboard } from "@/lib/scoreboard";
 import { cn } from "@/lib/utils";
 import { matchCosts, MEDAL } from "@/lib/match-cost";
 import { MeTag, meP } from "./me";
+import { TEAM as TEAMS } from "@/lib/theme";
+import { osuMatch } from "@/lib/links";
 
 const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 const cache = new Map<string, Scoreboard>();
-const TEAM = ["border-rose", "border-azure"];
-const TEAM_TEXT = ["text-rose-hi", "text-azure-hi"];
+const TEAM = [TEAMS[1].border, TEAMS[2].border];
+const TEAM_TEXT = [TEAMS[1].text, TEAMS[2].text];
 
 function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; flip?: boolean }) {
   const t = useDict();
@@ -38,7 +40,7 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
               <span className="text-sm">{fmtNum(p.score)}</span>
               <span className="text-[0.7rem] text-ash">{pct(p.acc)}</span>
             </div>
-            {p.edited && <div className="text-[0.6rem] font-bold uppercase text-[#e8c547]">{t.match.edited}</div>}
+            {p.edited && <div className="text-[0.6rem] font-bold uppercase text-gold">{t.match.edited}</div>}
           </div>
         </li>
       ))}
@@ -46,7 +48,7 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
   );
 }
 
-function MapCard({ m, i }: { m: MapResult; i: number }) {
+export function MapCard({ m, i }: { m: MapResult; i: number }) {
   const t = useDict();
   const color = m.slot ? slotColor(m.slot) : m.mod ? MODS[m.mod]?.color : undefined;
   const sum = m.team1 + m.team2;
@@ -165,11 +167,12 @@ function Costs({ data, names, finished }: { data: Scoreboard; names: (string | u
 
 function Board({ match, data, names }: { match: Match; data: Scoreboard; names: (string | undefined)[] }) {
   const t = useDict();
+  const played = data.maps.filter((m) => !m.note);
   return (
     <div className="min-w-0 space-y-4 p-3 sm:space-y-5 sm:p-5">
-      {data.maps.map((m, i) => (
+      {played.map((m, i) => (
         <div key={`${m.lobby}-${i}`}>
-          {data.lobbies.length > 1 && (i === 0 || data.maps[i - 1].lobby !== m.lobby) && (
+          {data.lobbies.length > 1 && (i === 0 || played[i - 1].lobby !== m.lobby) && (
             <div className="mb-3 mt-1 flex items-center gap-3 text-xs font-black uppercase text-ash">
               {t.match.lobby(m.lobby + 1)}
               <span className="h-px flex-1 border-t border-dashed border-line" />
@@ -268,7 +271,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
                 {match.links.map((id, i) => (
                   <a
                     key={id}
-                    href={`https://osu.ppy.sh/community/matches/${id}`}
+                    href={osuMatch(id)}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-1.5 border border-line px-2 py-1 text-[0.7rem] font-black uppercase text-ash transition hover:border-paper/40 hover:text-paper"

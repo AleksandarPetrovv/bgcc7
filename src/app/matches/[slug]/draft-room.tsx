@@ -4,18 +4,21 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { Ban, Check, Copy, Crown, Dices, DoorClosed, Lock, Pause, RotateCcw, Star, Swords, TimerOff, Undo2, WifiOff } from "lucide-react";
+import { Ban, Check, Copy, Crown, Dices, DoorClosed, Eye, ListOrdered, Lock, Pause, Redo2, RotateCcw, Settings, Star, Swords, TimerOff, Undo2, WifiOff } from "lucide-react";
 import { Sparkle } from "@/components/site/graphics";
 import { useDict } from "@/components/site/lang";
 import { EASE } from "@/components/site/motion";
-import { MODS, fmtLen, type Beatmap } from "@/lib/data";
+import { MODS, fmtLen, type Beatmap, type Match } from "@/lib/data";
 import { Confetti } from "@/components/site/confetti";
-import { deadline, limitOf, pickable, plan, rollWinner, scoreOf, turnOf, type DraftStep, type DraftView, type Side, type Turn } from "@/lib/draft";
+import { deadline, limitOf, pickable, plan, rollWinner, scoreOf, turnOf, type DraftStep, type DraftUndo, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { slotColor } from "@/lib/format-plan";
-import { resetDraft, undoDraft } from "@/app/admin/draft/actions";
+import { GOLD, TEAM, tint } from "@/lib/theme";
+import { redoDraft, resetDraft, undoDraft } from "@/app/admin/draft/actions";
 import { LobbyPanel, lobbyPost } from "./lobby-panel";
 import { useSSE } from "@/components/site/use-sse";
+import { MapCard, MatchDialog } from "@/components/site/match-dialog";
+import type { MapResult, Scoreboard } from "@/lib/scoreboard";
 
 type TeamInfo = {
   name: string;
@@ -25,22 +28,6 @@ type TeamInfo = {
 };
 type Pool = { category: string; color?: string; maps: Beatmap[] }[];
 
-const TEAM = {
-  1: {
-    c: "var(--color-rose)",
-    deep: "var(--color-rose-deep)",
-    hi: "var(--color-rose-hi)",
-    text: "text-rose-hi",
-    bg: "bg-rose",
-  },
-  2: {
-    c: "var(--color-azure)",
-    deep: "#1d4fb8",
-    hi: "var(--color-azure-hi)",
-    text: "text-azure-hi",
-    bg: "bg-azure",
-  },
-} as const;
 
 function RollNumber({ value, side, win, lose }: { value: number | null; side: Side; win: boolean; lose: boolean }) {
   const seen = useRef(value);
@@ -108,7 +95,7 @@ function RollNumber({ value, side, win, lose }: { value: number | null; side: Si
                 <motion.span
                   key={i}
                   className="pointer-events-none absolute size-2 rotate-45"
-                  style={{ background: i % 2 ? TEAM[side].hi : "#e8c547" }}
+                  style={{ background: i % 2 ? TEAM[side].hi : GOLD.c }}
                   initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
                   animate={{
                     x: Math.cos(a) * 110,
@@ -130,7 +117,7 @@ function RollNumber({ value, side, win, lose }: { value: number | null; side: Si
                 damping: 14,
                 delay: 0.1,
               }}
-              className="absolute -top-1 right-3 text-[#e8c547] sm:right-8"
+              className="absolute -top-1 right-3 text-gold sm:right-8"
               aria-hidden
             >
               <Crown className="size-9 fill-current" />
@@ -143,6 +130,12 @@ function RollNumber({ value, side, win, lose }: { value: number | null; side: Si
 }
 
 const noop = () => () => {};
+
+const POP = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.16, ease: "easeOut" } },
+  exit: { opacity: 0, transition: { duration: 0.12 } },
+} as const;
 
 function Portal({ children }: { children: React.ReactNode }) {
   const ready = useSyncExternalStore(
@@ -160,34 +153,20 @@ function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onPick: (c
   return (
     <motion.div
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1, transition: { delay: 0.15, duration: 0.3 } }}
-      exit={{ opacity: 0, transition: { duration: 0.25 } }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm"
+      animate={{ opacity: 1, transition: { duration: 0.15 } }}
+      exit={{ opacity: 0, transition: { duration: 0.15 } }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
     >
       <motion.div
-        initial={{ y: 60, scale: 0.9, rotate: -2, opacity: 0 }}
-        animate={{
-          y: 0,
-          scale: 1,
-          rotate: 0,
-          opacity: 1,
-          transition: {
-            type: "spring",
-            stiffness: 300,
-            damping: 22,
-            delay: 0.2,
-          },
-        }}
-        exit={{ y: 30, opacity: 0, transition: { duration: 0.2 } }}
+        initial={POP.initial}
+        animate={POP.animate}
+        exit={POP.exit}
         className="relative w-full max-w-lg overflow-hidden border-2 bg-coal p-6 sm:p-8"
         style={{ borderColor: col.c, boxShadow: `8px 8px 0 0 ${col.deep}` }}
         role="dialog"
         aria-modal="true"
       >
-        <span className="anim-twinkle absolute right-5 top-4 text-lg text-[#e8c547]" aria-hidden>
-          ✦
-        </span>
-        <Crown className="size-10 fill-current text-[#e8c547]" />
+        <Crown className="size-10 fill-current text-gold" />
         <h3 className="heading-slam mt-3 text-4xl sm:text-5xl" style={{ color: col.hi }}>
           {t.draft.choose}
         </h3>
@@ -209,18 +188,7 @@ function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onPick: (c
                 )}
                 style={on ? { borderColor: col.c } : undefined}
               >
-                {on && (
-                  <motion.span
-                    layoutId="choose-fill"
-                    className="absolute inset-0"
-                    style={{
-                      background: col.c,
-                      boxShadow: `5px 5px 0 0 ${col.deep}`,
-                    }}
-                    transition={{ type: "spring", stiffness: 520, damping: 38 }}
-                    aria-hidden
-                  />
-                )}
+                {on && <span className="absolute inset-0" style={{ background: col.c, boxShadow: `5px 5px 0 0 ${col.deep}` }} aria-hidden />}
                 <span className="relative flex skew-x-6 flex-col items-center gap-2">
                   <Icon className={cn("size-8 transition-transform duration-300", on ? "scale-110" : c === "pick" ? "group-hover:rotate-12" : "group-hover:-rotate-12")} />
                   <span className="heading-slam text-xl sm:text-2xl">{c === "pick" ? t.draft.firstPick : t.draft.firstBan}</span>
@@ -273,9 +241,8 @@ function TimerDock({
 }) {
   const low = !pause && !calm && left <= 10_000;
   const pct = total ? Math.max(0, Math.min(1, left / total)) : 0;
-  const c = pause ? "#e8c547" : low ? "var(--color-rose)" : color.c;
-  const hi = pause ? "#e8c547" : low ? "var(--color-rose-hi)" : color.hi;
-  const deep = pause ? "#9c7f1f" : low ? "var(--color-rose-deep)" : color.deep;
+  const tone = pause ? { ...GOLD, hi: GOLD.c } : low ? { c: TEAM[1].c, hi: TEAM[1].hi, deep: TEAM[1].deep } : color;
+  const { c, hi, deep } = tone;
   return (
     <motion.div
       initial={{ y: 120, opacity: 0, x: "-50%" }}
@@ -307,84 +274,10 @@ function TimerDock({
           </span>
           <span
             className="num shrink-0 text-5xl font-black tabular-nums leading-none sm:text-6xl"
-            style={{ color: low || pause ? hi : "var(--color-paper)", textShadow: `0 0 24px ${c}66` }}
+            style={{ color: low || pause ? hi : "var(--color-paper)", textShadow: `0 0 24px ${tint(c, 40)}` }}
           >
             {clockText(left)}
           </span>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-function CommandPopup({ slot, map, team, onDone }: { slot: string; map: Beatmap; team: Side; onDone: () => void }) {
-  const t = useDict();
-  const text = `!mp map ${map.id}`;
-  const [fail, setFail] = useState(false);
-  const color = slotColor(slot);
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(text);
-      onDone();
-    } catch {
-      setFail(true);
-    }
-  }
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.2 } }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm"
-    >
-      <motion.div
-        initial={{ y: 50, scale: 0.9, rotate: 2 }}
-        animate={{ y: 0, scale: 1, rotate: 0 }}
-        exit={{ y: 30, opacity: 0, transition: { duration: 0.2 } }}
-        transition={{ type: "spring", stiffness: 320, damping: 24 }}
-        className="relative w-full max-w-md overflow-hidden border-2 bg-coal"
-        style={{ borderColor: TEAM[team].c, boxShadow: `8px 8px 0 0 ${TEAM[team].deep}` }}
-        role="dialog"
-        aria-modal="true"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={map.cover} alt="" className="absolute inset-x-0 top-0 h-32 w-full object-cover opacity-40" />
-        <span className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-transparent to-coal" aria-hidden />
-        <div className="relative p-6 pt-8">
-          <span className="text-xs font-black uppercase tracking-[0.2em]" style={{ color: TEAM[team].hi }}>
-            {t.draft.picked}
-          </span>
-          <div className="mt-1 flex items-baseline gap-3">
-            <span className="heading-slam text-4xl" style={{ color }}>
-              {slot}
-            </span>
-            <span className="min-w-0 truncate text-sm font-bold text-paper/80">{map.title}</span>
-          </div>
-          <p className="mt-5 text-xs font-bold uppercase tracking-wide text-ash">{t.draft.cmdHint}</p>
-          <motion.button
-            type="button"
-            onClick={copy}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.96 }}
-            transition={{ duration: 0.15 }}
-            className="sheen group mt-2 flex min-h-16 w-full -skew-x-6 items-center gap-3 px-5 text-left text-white"
-            style={{ background: TEAM[team].c, boxShadow: `5px 5px 0 0 ${TEAM[team].deep}` }}
-          >
-            <span className="flex w-full skew-x-6 items-center gap-3">
-              <code className="num min-w-0 flex-1 select-all truncate text-xl font-black sm:text-2xl">{text}</code>
-              <span className="inline-flex shrink-0 items-center gap-1.5 bg-black/20 px-2.5 py-1.5 text-xs font-black uppercase tracking-wide">
-                <Copy className="size-4 transition-transform group-hover:-rotate-6" /> {t.draft.copy}
-              </span>
-            </span>
-          </motion.button>
-          {fail && (
-            <div className="mt-3 flex items-center gap-3">
-              <p className="flex-1 text-xs font-bold text-rose-hi">{t.draft.copyFail}</p>
-              <button type="button" onClick={onDone} className="text-xs font-black uppercase tracking-wide text-ash hover:text-paper">
-                {t.draft.close}
-              </button>
-            </div>
-          )}
         </div>
       </motion.div>
     </motion.div>
@@ -398,6 +291,7 @@ function WinnerPopup({
   current,
   onPick,
   onClose,
+  onScores,
 }: {
   slot: string;
   map: Beatmap;
@@ -405,6 +299,7 @@ function WinnerPopup({
   current?: Side;
   onPick: (w: Side) => void;
   onClose: () => void;
+  onScores?: () => void;
 }) {
   const t = useDict();
   const [busy, setBusy] = useState<Side | null>(null);
@@ -413,35 +308,25 @@ function WinnerPopup({
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.2 } }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/85 p-4 backdrop-blur-sm"
+      exit={{ opacity: 0, transition: { duration: 0.15 } }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
     >
       <motion.div
-        initial={{ y: 60, scale: 0.85 }}
-        animate={{ y: 0, scale: 1 }}
-        exit={{ y: 30, opacity: 0, transition: { duration: 0.2 } }}
-        transition={{ type: "spring", stiffness: 300, damping: 22 }}
+        initial={POP.initial}
+        animate={POP.animate}
+        exit={POP.exit}
         className="relative w-full max-w-xl overflow-hidden border-2 border-line bg-coal p-6 sm:p-8"
         role="dialog"
         aria-modal="true"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={map.cover} alt="" className="absolute inset-0 size-full object-cover opacity-15" />
-        <span className="absolute inset-0 bg-gradient-to-t from-coal via-coal/90 to-coal/60" aria-hidden />
-        <span className="anim-twinkle absolute left-6 top-5 text-lg text-rose-hi" aria-hidden>
-          ✦
-        </span>
-        <span className="anim-twinkle absolute right-6 top-8 text-sm text-azure-hi [animation-delay:0.7s]" aria-hidden>
-          ✦
-        </span>
         <div className="relative text-center">
-          <Crown className="mx-auto size-9 fill-current text-[#e8c547]" />
+          <Crown className="mx-auto size-9 fill-current text-gold" />
           <h3 className="heading-slam mt-2 text-4xl sm:text-5xl">{t.draft.whoWon}</h3>
           <p className="mt-1 truncate text-sm font-bold text-ash">
             <span style={{ color }}>{slot}</span> · {map.title}
           </p>
           <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
-            {([1, 2] as const).map((s, i) => (
+            {([1, 2] as const).map((s) => (
               <motion.button
                 key={s}
                 type="button"
@@ -450,14 +335,11 @@ function WinnerPopup({
                   setBusy(s);
                   onPick(s);
                 }}
-                initial={{ opacity: 0, x: s === 1 ? -30 : 30 }}
-                animate={{ opacity: 1, x: 0, transition: { delay: 0.15 + i * 0.08, duration: 0.4, ease: EASE } }}
-                whileHover={{ y: -4 }}
-                whileTap={{ scale: 0.94 }}
-                transition={{ duration: 0.15 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ duration: 0.1 }}
                 className={cn(
                   "group relative flex min-h-28 flex-col items-center justify-center gap-2 overflow-hidden px-3 text-white disabled:opacity-60",
-                  s === 1 ? "-skew-x-6" : "skew-x-6",
+                  "-skew-x-6",
                 )}
                 style={{
                   background: `linear-gradient(${s === 1 ? "135deg" : "225deg"}, ${TEAM[s].c}, ${TEAM[s].deep})`,
@@ -465,7 +347,7 @@ function WinnerPopup({
                 }}
               >
                 <span className="pointer-events-none absolute -right-4 -top-4 size-16 rotate-45 bg-white/10 transition-transform duration-300 group-hover:scale-150" aria-hidden />
-                <span className={cn("relative flex max-w-full flex-col items-center gap-1", s === 1 ? "skew-x-6" : "-skew-x-6")}>
+                <span className={cn("relative flex max-w-full flex-col items-center gap-1", "skew-x-6")}>
                   <span className="text-[0.65rem] font-black uppercase tracking-[0.25em] text-white/70">{s === 1 ? t.draft.red : t.draft.blue}</span>
                   <span className="line-clamp-2 max-w-full break-words text-sm font-black uppercase leading-tight sm:text-base">{teams[s - 1]}</span>
                   {busy === s && <Waiting />}
@@ -473,10 +355,64 @@ function WinnerPopup({
               </motion.button>
             ))}
           </div>
-          <button type="button" onClick={onClose} className="mt-5 text-xs font-black uppercase tracking-wide text-ash hover:text-paper">
+          {onScores && (
+            <button
+              type="button"
+              onClick={onScores}
+              className="mt-5 inline-flex min-h-9 -skew-x-12 items-center border border-paper/40 px-4 text-xs font-black uppercase tracking-wide text-paper transition-colors hover:border-paper"
+            >
+              <span className="inline-flex skew-x-12 items-center gap-1.5">
+                <ListOrdered className="size-3.5" /> {t.draft.fullScores}
+              </span>
+            </button>
+          )}
+          <button type="button" onClick={onClose} className="mt-5 block w-full text-xs font-black uppercase tracking-wide text-ash hover:text-paper">
             {t.draft.later}
           </button>
         </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function ScoresPopup({ slug, slot, onClose }: { slug: string; slot: string; onClose: () => void }) {
+  const t = useDict();
+  const [data, setData] = useState<MapResult | "none" | null>(null);
+  useEffect(() => {
+    let live = true;
+    fetch(`/api/matches/${slug}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d: Scoreboard) => live && setData(d.maps.findLast((m) => m.slot === slot && !m.note) ?? "none"))
+      .catch(() => live && setData("none"));
+    return () => {
+      live = false;
+    };
+  }, [slug, slot]);
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.2 } }}
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
+    >
+      <motion.div
+        initial={POP.initial}
+        animate={POP.animate}
+        exit={POP.exit}
+        onClick={(e) => e.stopPropagation()}
+        className="relative max-h-[88dvh] w-full max-w-lg overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+      >
+        {data && data !== "none" ? (
+          <MapCard m={data} i={0} />
+        ) : (
+          <div className="border border-line bg-coal px-6 py-10 text-center text-sm font-bold text-ash">{data === "none" ? t.draft.noScores : <Waiting />}</div>
+        )}
+        <button type="button" onClick={onClose} className="mt-3 block w-full text-xs font-black uppercase tracking-wide text-ash hover:text-paper">
+          {t.draft.close}
+        </button>
       </motion.div>
     </motion.div>
   );
@@ -490,13 +426,12 @@ function ResetPopup({ lobby, busy, onCancel, onReset }: { lobby: boolean; busy: 
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
       onClick={onCancel}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/85 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
     >
       <motion.div
-        initial={{ y: 50, scale: 0.9, rotate: -2 }}
-        animate={{ y: 0, scale: 1, rotate: 0 }}
-        exit={{ y: 30, opacity: 0, transition: { duration: 0.2 } }}
-        transition={{ type: "spring", stiffness: 320, damping: 24 }}
+        initial={POP.initial}
+        animate={POP.animate}
+        exit={POP.exit}
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-md overflow-hidden border-2 border-rose bg-coal p-6 shadow-[8px_8px_0_0_var(--color-rose-deep)]"
         role="dialog"
@@ -587,6 +522,7 @@ function Waiting() {
 export function DraftRoom({
   slug,
   matchId,
+  match,
   initial,
   teams,
   pools,
@@ -597,6 +533,7 @@ export function DraftRoom({
 }: {
   slug: string;
   matchId: string;
+  match: Match | null;
   initial: DraftView;
   teams: [TeamInfo, TeamInfo];
   pools: Pool;
@@ -637,32 +574,28 @@ export function DraftRoom({
         window.location.reload();
       }
     });
-  const [cmd, setCmd] = useState<string | null>(null);
   const [ask, setAsk] = useState<string | null>(null);
+  const [scores, setScores] = useState<string | null>(null);
   const lobbyOpen = useRef(false);
   const [askReset, setAskReset] = useState(false);
-  const onLobby = useCallback((o: boolean) => void (lobbyOpen.current = o), []);
-  const known = useRef(new Set(initial.steps.filter((s) => s.kind === "pick" && !s.skip).map((s) => s.slot)));
+  const [lobbyShown, setLobbyShown] = useState(false);
+  const onLobby = useCallback((o: boolean) => {
+    lobbyOpen.current = o;
+    setLobbyShown(o);
+  }, []);
   const mapOf = useMemo(() => new Map(pools.flatMap((p) => p.maps.map((m) => [m.slot, m] as const))), [pools]);
 
   const take = useCallback(
     (next: DraftView) => {
-      const picks = next.steps.filter((s) => s.kind === "pick" && !s.skip);
-      const fresh = picks.filter((s) => !known.current.has(s.slot)).at(-1);
-      known.current = new Set(picks.map((s) => s.slot));
-      if (fresh && admin && !lobbyOpen.current) {
-        setAsk(null);
-        setCmd(fresh.slot);
-      }
       const both = next.roll1 != null && next.roll2 != null;
       if (both && !rolled.current) setHoldUntil(Date.now() + 1600);
       rolled.current = both;
-      const w = !admin && !!side && wonBy(next) === side;
+      const w = !!side && wonBy(next) === side;
       if (w && !won.current) setParty(true);
       won.current = w;
       setD((cur) => (next.rev >= cur.rev ? next : cur));
     },
-    [admin, side],
+    [side],
   );
   const me: Side | null = admin ? acting : side;
 
@@ -672,6 +605,8 @@ export function DraftRoom({
   const turn: Turn = hold && (real.kind === "choose" || real.kind === "tie") ? { kind: "roll" } : real;
   const winner = hold ? null : rollWinner(d);
   const name = (s: Side) => teams[s - 1].name;
+  const stepText = (u: DraftUndo) =>
+    u.kind === "winner" ? t.draft.stepWin(u.slot) : u.kind === "step" ? (u.step.skip ? t.draft.stepSkip : t.draft.stepDo(u.step.kind, u.step.slot)) : u.kind === "choice" ? t.draft.stepChoice : t.draft.stepRolls;
   const mine = "team" in turn && turn.team === me;
   const stageRef = useRef(initial.stageSlug);
 
@@ -730,10 +665,6 @@ export function DraftRoom({
     setAsk(null);
   }
 
-  function copied() {
-    setCmd(null);
-  }
-
   const used = new Map(
     d.steps.flatMap((s, i) =>
       s.skip
@@ -774,9 +705,9 @@ export function DraftRoom({
               ? t.draft.matchWon(name(score[0] > score[1] ? 1 : 2))
               : t.draft.done
             : turn.kind === "wait"
-              ? admin
-                ? t.draft.setResult
-                : t.draft.waitResult
+              ? d.playing
+                ? ""
+                : t.draft.waitStart
               : turn.team === me
                 ? t.draft.yours(turn.kind)
                 : t.draft.turn(name(turn.team), turn.kind);
@@ -814,16 +745,23 @@ export function DraftRoom({
             ))}
           </div>
           <span className="ml-auto flex gap-2">
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => adminAct(() => undoDraft(matchId))}
-              className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-line px-3 text-xs font-black uppercase tracking-wide text-paper transition-colors [--lift:var(--color-rose)] hover:border-rose disabled:opacity-50"
-            >
-              <span className="inline-flex skew-x-12 items-center gap-1.5">
-                <Undo2 className="size-3.5" /> {t.draft.undo}
-              </span>
-            </button>
+            {([
+              ["undo", d.undo, Undo2, () => undoDraft(matchId)],
+              ["redo", d.redo, Redo2, () => redoDraft(matchId)],
+            ] as const).map(([k, u, Icon, fn]) => (
+              <button
+                key={k}
+                type="button"
+                disabled={pending || !u}
+                onClick={() => adminAct(fn)}
+                className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-line px-3 text-xs font-black uppercase tracking-wide text-paper transition-colors [--lift:var(--color-rose)] hover:border-rose disabled:opacity-50"
+              >
+                <span className="inline-flex skew-x-12 items-center gap-1.5">
+                  <Icon className="size-3.5" /> {k === "undo" ? t.draft.undo : t.draft.redo}
+                  {u && <span className="normal-case text-ash">· {stepText(u)}</span>}
+                </span>
+              </button>
+            ))}
             <button
               type="button"
               disabled={pending}
@@ -861,12 +799,15 @@ export function DraftRoom({
       </AnimatePresence>
       </Portal>
 
-      <div className={cn(admin && "xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(26rem,30%)] xl:items-start xl:gap-8 2xl:gap-10")}>
-      {admin && (
-        <aside className="xl:col-start-2 xl:row-start-1">
-          <LobbyPanel slug={slug} maps={pools.flatMap((p) => p.maps)} onOpen={onLobby} />
-        </aside>
-      )}
+      <div className={cn((admin || lobbyShown) && "xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(26rem,30%)] xl:items-start xl:gap-8 2xl:gap-10")}>
+      <motion.aside
+        initial={{ opacity: 0, x: 40 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.7, ease: EASE, delay: 0.35 }}
+        className="xl:col-start-2 xl:row-start-1"
+      >
+        <LobbyPanel slug={slug} maps={pools.flatMap((p) => p.maps)} onOpen={onLobby} readOnly={!admin} />
+      </motion.aside>
       <div className="@container min-w-0 xl:col-start-1 xl:row-start-1">
       <div className="relative flex items-stretch">
         {([1, 2] as const).map((s) => {
@@ -947,7 +888,7 @@ export function DraftRoom({
                   exit={{ y: 30, opacity: 0 }}
                   transition={{ type: "spring", stiffness: 420, damping: 18 }}
                   className="num text-4xl font-black tabular-nums sm:text-7xl"
-                  style={{ color: TEAM[s].hi, textShadow: `0 0 28px ${TEAM[s].c}66` }}
+                  style={{ color: TEAM[s].hi, textShadow: `0 0 28px ${tint(TEAM[s].c, 40)}` }}
                 >
                   {score[s - 1]}
                 </motion.span>
@@ -966,6 +907,12 @@ export function DraftRoom({
           <span className={cn("heading-slam text-paper drop-shadow-[3px_3px_0_var(--color-ink)]", scored ? "text-xl sm:text-4xl" : "text-3xl sm:text-6xl")}>VS</span>
         </motion.div>
       </div>
+
+      {match && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.4, ease: EASE }} className="mt-3 flex justify-center">
+          <MatchDialog match={match} compact />
+        </motion.div>
+      )}
 
       <motion.div
         initial={{ opacity: 0 }}
@@ -1002,23 +949,24 @@ export function DraftRoom({
       )}
 
       <AnimatePresence>
-        {unscored && !cmd && mapOf.get(unscored.slot) && (
+        {unscored && mapOf.get(unscored.slot) && (
           <motion.div
             key={`ask${unscored.slot}`}
             initial={{ opacity: 0, y: 16, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 380, damping: 24 }}
-            className="mt-6 flex justify-center"
+            className="mt-4 flex justify-center"
           >
             <button
               type="button"
               onClick={() => setAsk(unscored.slot)}
-              className="sheen group relative inline-flex min-h-16 -skew-x-12 items-center gap-3 border-2 border-[#e8c547] bg-[#e8c547] px-7 text-ink shadow-[6px_6px_0_0_#9c7f1f] transition-transform hover:-translate-y-0.5 active:scale-95"
+              title={t.draft.whoWonHint}
+              className="group inline-flex min-h-8 -skew-x-12 items-center border border-dashed border-gold/60 px-3 text-gold/80 transition-colors hover:border-gold hover:text-gold"
             >
-              <span className="flex skew-x-12 items-center gap-3">
-                <Crown className="size-6 fill-current transition-transform group-hover:-rotate-12" />
-                <span className="heading-slam text-xl sm:text-2xl">{t.draft.whoWonSlot(unscored.slot)}</span>
+              <span className="flex skew-x-12 items-center gap-1.5 text-[0.7rem] font-black uppercase tracking-wide">
+                <Crown className="size-3.5" />
+                {t.draft.whoWonSlot(unscored.slot)}
               </span>
             </button>
           </motion.div>
@@ -1086,7 +1034,7 @@ export function DraftRoom({
                           {t.draft.waiting} <Waiting />
                         </span>
                       ) : winner === s ? (
-                        <motion.span initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-xs font-black uppercase tracking-wide text-[#e8c547]">
+                        <motion.span initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-xs font-black uppercase tracking-wide text-gold">
                           {t.draft.wins(name(s))}
                         </motion.span>
                       ) : null}
@@ -1122,11 +1070,11 @@ export function DraftRoom({
                     )}
                     style={{
                       borderColor: TEAM[x.team].c,
-                      background: x.step ? (x.kind === "ban" || x.step.skip ? "var(--color-coal)" : TEAM[x.team].c) : now ? `${TEAM[x.team].c}22` : "transparent",
+                      background: x.step ? (x.kind === "ban" || x.step.skip ? "var(--color-coal)" : TEAM[x.team].c) : now ? tint(TEAM[x.team].c, 13) : "transparent",
                     }}
                     title={x.step?.skip ? t.draft.skipped : undefined}
                   >
-                    {now && <span className="dr-glow absolute inset-0" style={{ background: `${TEAM[x.team].c}33` }} aria-hidden />}
+                    {now && <span className="dr-glow absolute inset-0" style={{ background: tint(TEAM[x.team].c, 20) }} aria-hidden />}
                     <span
                       className={cn(
                         "relative skew-x-12 text-[0.6rem] font-black uppercase tracking-wider",
@@ -1178,12 +1126,15 @@ export function DraftRoom({
                   const tap = canTap(m.slot);
                   const chosen = sel === m.slot;
                   const col = u ? TEAM[u.team] : me ? TEAM[me] : TEAM[1];
+                  const tbu = !!u && m.slot === "TB";
+                  const grey = u?.kind === "ban" || !!u?.winner || tbu;
+                  const peek = u?.kind === "pick" && (admin || !!u.winner);
                   return (
+                    <div key={m.slot} className="relative">
                     <motion.button
-                      key={m.slot}
                       type="button"
-                      disabled={!tap && !(admin && u?.kind === "pick")}
-                      onClick={() => (tap ? setSel(chosen ? null : m.slot) : setAsk(m.slot))}
+                      disabled={!tap}
+                      onClick={() => tap && setSel(chosen ? null : m.slot)}
                       initial={{ opacity: 0, y: 16 }}
                       animate={{
                         opacity: 1,
@@ -1214,11 +1165,11 @@ export function DraftRoom({
                         admin ? "h-28" : "h-24",
                         tb && "border-dashed",
                         tap && "cursor-pointer",
-                        (u?.kind === "ban" || u?.winner) && "brightness-[0.5] grayscale-[0.85] transition-[filter] duration-700",
+                        grey && "brightness-[0.5] grayscale-[0.85] transition-[filter] duration-700",
                       )}
                       style={{
-                        borderColor: chosen || u ? col.c : tb ? "var(--color-line)" : "transparent",
-                        boxShadow: chosen ? `5px 5px 0 0 ${col.deep}` : u?.kind === "pick" ? `inset 6px 0 0 0 ${col.c}` : undefined,
+                        borderColor: (chosen || u) && !tbu ? col.c : tb ? "var(--color-line)" : "transparent",
+                        boxShadow: chosen ? `5px 5px 0 0 ${col.deep}` : u?.kind === "pick" && !tbu ? `inset 6px 0 0 0 ${col.c}` : undefined,
                       }}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1227,7 +1178,7 @@ export function DraftRoom({
                         alt=""
                         className={cn(
                           "absolute inset-0 size-full object-cover transition duration-700",
-                          u?.kind === "ban" || u?.winner
+                          grey
                             ? "opacity-15 grayscale"
                             : u?.kind === "pick"
                               ? "opacity-50"
@@ -1245,13 +1196,13 @@ export function DraftRoom({
                       <span
                         className={cn(
                           "heading-slam relative flex w-[5.5rem] shrink-0 items-center justify-center pl-2 pr-1 text-lg sm:w-28 sm:text-2xl",
-                          (u?.kind === "ban" || u?.winner) && "opacity-40",
+                          grey && "opacity-40",
                         )}
                         style={{ color: skill ? mod.color : slotColor(m.slot) }}
                       >
                         {m.slot}
                       </span>
-                      <span className={cn("relative flex min-w-0 flex-1 flex-col justify-center pl-1 pr-3", (u?.kind === "ban" || u?.winner) && "opacity-40")}>
+                      <span className={cn("relative flex min-w-0 flex-1 flex-col justify-center pl-1 pr-3", grey && "opacity-40")}>
                         <span className="flex min-w-0 items-center gap-2">
                           <span className="truncate text-sm font-black sm:text-base">{m.title}</span>
                           {skill && !tb && MODS[m.mod] && (
@@ -1262,7 +1213,7 @@ export function DraftRoom({
                         </span>
                         <span className="truncate text-xs text-paper/70">[{m.version}]</span>
                         <span className="num mt-1 flex items-center gap-2.5 text-xs text-ash">
-                          <span className="flex items-center gap-0.5 text-[#e8c547]">
+                          <span className="flex items-center gap-0.5 text-gold">
                             <Star className="size-3 fill-current" /> {m.sr.toFixed(2)}
                           </span>
                           <span>{Math.round(m.bpm)}bpm</span>
@@ -1270,7 +1221,7 @@ export function DraftRoom({
                         </span>
                         {admin && <CopyId id={m.id} />}
                       </span>
-                      {u?.kind === "pick" && u.winner && (
+                      {u?.kind === "pick" && u.winner && !tbu && (
                         <motion.span
                           initial={{ scaleX: 0 }}
                           animate={{ scaleX: 1 }}
@@ -1281,7 +1232,7 @@ export function DraftRoom({
                         </motion.span>
                       )}
                       <AnimatePresence>
-                        {u && (
+                        {u && !tbu && (
                           <motion.span
                             key={u.kind}
                             initial={{
@@ -1314,7 +1265,7 @@ export function DraftRoom({
                           </motion.span>
                         )}
                       </AnimatePresence>
-                      {(u?.kind === "ban" || u?.winner) && (
+                      {(u?.kind === "ban" || u?.winner) && !tbu && (
                         <motion.span
                           key={u.winner ?? "ban"}
                           initial={{ scaleX: 0 }}
@@ -1326,6 +1277,23 @@ export function DraftRoom({
                         />
                       )}
                     </motion.button>
+                    {peek && (
+                      <motion.button
+                        type="button"
+                        initial={{ opacity: 0, scale: 0.6 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, ease: EASE }}
+                        onClick={() => (admin ? setAsk(m.slot) : setScores(m.slot))}
+                        title={admin ? t.draft.mapSettings : t.draft.fullScores}
+                        aria-label={admin ? t.draft.mapSettings : t.draft.fullScores}
+                        className="group absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
+                      >
+                        <span className="relative inline-flex h-8 w-12 -skew-x-12 items-center justify-center border border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--color-rose-deep)] transition-[background-color,translate,box-shadow] duration-200 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 group-hover:bg-rose-hi group-hover:shadow-[5px_5px_0_0_var(--color-rose-deep)]">
+                          {admin ? <Settings className="size-[18px] skew-x-12" /> : <Eye className="size-[18px] skew-x-12" />}
+                        </span>
+                      </motion.button>
+                    )}
+                    </div>
                   );
                 })}
               </div>
@@ -1355,10 +1323,7 @@ export function DraftRoom({
           )}
         </AnimatePresence>
         <AnimatePresence>
-          {cmd && mapOf.get(cmd) && <CommandPopup key={`c${cmd}`} slot={cmd} map={mapOf.get(cmd)!} team={used.get(cmd)?.team ?? 1} onDone={copied} />}
-        </AnimatePresence>
-        <AnimatePresence>
-          {ask && !cmd && mapOf.get(ask) && (
+          {ask && mapOf.get(ask) && (
             <WinnerPopup
               key={`w${ask}`}
               slot={ask}
@@ -1367,9 +1332,11 @@ export function DraftRoom({
               current={used.get(ask)?.winner}
               onPick={(w) => result(ask, w)}
               onClose={() => setAsk(null)}
+              onScores={used.get(ask)?.winner ? () => (setScores(ask), setAsk(null)) : undefined}
             />
           )}
         </AnimatePresence>
+        <AnimatePresence>{scores && <ScoresPopup key={`s${scores}`} slug={slug} slot={scores} onClose={() => setScores(null)} />}</AnimatePresence>
         <AnimatePresence>
           {sel && (turn.kind === "ban" || turn.kind === "pick") && mine && me && (
             <motion.div
