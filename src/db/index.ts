@@ -1,11 +1,13 @@
 import "server-only";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { workUnitAsyncStorage } from "next/dist/server/app-render/work-unit-async-storage.external";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
 import type { Edition } from "@/lib/format";
 
 const url = process.env.DATABASE_URL ?? "postgres://unset@127.0.0.1:1/unset";
-const g = globalThis as unknown as { pg?: ReturnType<typeof postgres>; pg7?: ReturnType<typeof postgres>; bgccEdition?: Edition };
+const g = globalThis as unknown as { pg?: ReturnType<typeof postgres>; pg7?: ReturnType<typeof postgres>; bgccEdition?: Edition; bgccPin?: AsyncLocalStorage<Edition | "site"> };
 const client = g.pg ?? postgres(url, { max: 10 });
 const client7 = g.pg7 ?? postgres(url, { max: 6, connection: { search_path: "bgcc7,public" } });
 if (process.env.NODE_ENV !== "production") {
@@ -16,7 +18,25 @@ if (process.env.NODE_ENV !== "production") {
 export const db6 = drizzle(client, { schema });
 export const db7 = drizzle(client7, { schema });
 
-export const currentEdition = (): Edition => g.bgccEdition ?? "bgcc6";
+export const EDITION_COOKIE = "edition";
+const pin = (g.bgccPin ??= new AsyncLocalStorage<Edition | "site">());
+
+export const siteEdition = (): Edition => g.bgccEdition ?? "bgcc6";
+
+const viewEdition = (): Edition | null => {
+  const store = workUnitAsyncStorage.getStore();
+  if (store?.type !== "request") return null;
+  const v = store.cookies.get(EDITION_COOKIE)?.value;
+  return v === "bgcc6" || v === "bgcc7" ? v : null;
+};
+
+export const currentEdition = (): Edition => {
+  const p = pin.getStore();
+  if (p) return p === "site" ? siteEdition() : p;
+  return viewEdition() ?? siteEdition();
+};
+
+export const withEdition = <T>(ed: Edition | "site", fn: () => T): T => pin.run(ed, fn);
 export const setCurrentEdition = (e: Edition) => {
   g.bgccEdition = e;
 };

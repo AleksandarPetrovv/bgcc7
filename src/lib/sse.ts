@@ -1,4 +1,5 @@
 import "server-only";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { onDraft } from "@/db/drafts";
 
 export function sse(req: Request, read: () => Promise<unknown>, every = 3000, subscribe: (fn: () => void) => () => void = onDraft) {
@@ -9,6 +10,7 @@ export function sse(req: Request, read: () => Promise<unknown>, every = 3000, su
   let timer: ReturnType<typeof setInterval> | undefined;
   const t0 = Date.now();
   const path = new URL(req.url).pathname;
+  const here = AsyncLocalStorage.snapshot();
   const stop = (why = "?") => {
     if (closed) return;
     console.log(`[sse] close ${path} after ${Math.round((Date.now() - t0) / 1000)}s (${why})`);
@@ -41,10 +43,10 @@ export function sse(req: Request, read: () => Promise<unknown>, every = 3000, su
           busy = false;
         }
       };
-      off = subscribe(() => void push());
+      off = subscribe(() => here(() => void push()));
       timer = setInterval(() => {
         send(": ping\n\n");
-        void push();
+        here(() => void push());
       }, every);
       req.signal.addEventListener("abort", () => {
         stop("client gone");
