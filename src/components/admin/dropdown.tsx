@@ -5,12 +5,14 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/site/avatar";
 
 export type DropOption = {
   value: string;
   label: string;
   hint?: string;
   color?: string;
+  avatar?: string | null;
 };
 
 type Props = {
@@ -29,6 +31,14 @@ type Props = {
 
 const noop = () => () => {};
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+function OptionAvatar({ src }: { src: string | null }) {
+  return (
+    <span className="relative inline-flex size-7 shrink-0 -skew-x-12 overflow-hidden border border-paper/30 bg-slate">
+      <Avatar src={src} className="size-full scale-125 skew-x-12 rounded-none ring-0 ring-offset-0" />
+    </span>
+  );
+}
 
 export function Dropdown({ options, name, value, defaultValue, onChange, placeholder, required, disabled, className, multiple, "aria-label": aria }: Props) {
   const id = useId();
@@ -53,7 +63,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
   const search = options.length > 8;
   const shown = q ? options.filter((o) => `${o.label} ${o.hint ?? ""}`.toLowerCase().includes(q.toLowerCase())) : options;
   const picked = multiple ? cur.split(",").map((s) => s.trim()).filter(Boolean) : [];
-  const sel = multiple ? (picked.length ? { label: options.filter((o) => picked.includes(o.value)).map((o) => o.label).join(", "), color: undefined } : undefined) : options.find((o) => o.value === cur);
+  const sel: DropOption | undefined = multiple ? (picked.length ? { value: cur, label: options.filter((o) => picked.includes(o.value)).map((o) => o.label).join(", ") } : undefined) : options.find((o) => o.value === cur);
 
   const place = useCallback(() => {
     const r = btn.current?.getBoundingClientRect();
@@ -159,6 +169,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
         )}
       >
         <span className="flex min-w-0 flex-1 skew-x-12 items-center gap-2">
+          {sel?.avatar !== undefined && <OptionAvatar src={sel.avatar} />}
           {sel?.color && <span className="size-2 shrink-0 rotate-45" style={{ background: sel.color }} aria-hidden />}
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.span
@@ -277,6 +288,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
                         )}
                         {!lit && on && <span className="absolute inset-0 bg-rose/80" aria-hidden />}
                         {o.color && <span className="relative size-2 shrink-0 rotate-45" style={{ background: o.color }} aria-hidden />}
+                        {o.avatar !== undefined && <OptionAvatar src={o.avatar} />}
                         <span className="relative min-w-0 flex-1 truncate font-bold">{o.label}</span>
                         {o.hint && <span className="num relative shrink-0 text-xs opacity-60">{o.hint}</span>}
                         {on && (

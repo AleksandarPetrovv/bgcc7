@@ -23,19 +23,34 @@ const num = (v: unknown) => (typeof v === "number" ? v : Number(v) || 0);
 const mb = (n: number) => `${(n / 1024 / 1024).toFixed(1)} MB`;
 
 export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelpers): string {
-  const p = (payload && typeof payload === "object" ? payload : {}) as P;
+  const p = (payload && typeof payload === "object" && !Array.isArray(payload) ? payload : {}) as P;
   const bg = h.lang === "bg";
-  const user = (k = "osuId") => b(c.user.get(num(p[k])) ?? p.username ?? `#${p[k]}`);
-  const lobby = (k = "lobbyId") => b(p.name && k === "id" ? p.name : (c.lobby.get(num(p[k])) ?? `#${p[k]}`));
-  const team = (k = "teamId") => b(c.team.get(String(p[k])) ?? p.name ?? p[k]);
-  const stage = (k = "stageId") => b(h.round(typeof p.stage === "string" ? p.stage : (c.stage.get(num(p[k])) ?? `#${p[k]}`)));
-  const map = () => b(p.title ? `${p.title}${p.version ? ` [${p.version}]` : ""}` : (c.map.get(num(p.id)) ?? `#${p.id}`));
-  const beatmap = () => b(c.beatmap.get(num(p.beatmapId)) ?? `#${p.beatmapId}`);
+  const text = (v: unknown) => typeof v === "string" && v.trim() ? v.trim() : typeof v === "number" && Number.isFinite(v) ? String(v) : undefined;
+  const unknownPlayer = bg ? "неизвестен играч" : "unknown player";
+  const unknownTeam = bg ? "неизвестен отбор" : "unknown team";
+  const ref = (v: unknown, fallback: string) => (text(v) ? `#${text(v)}` : fallback);
+  const user = (k = "osuId") => b((text(p[k]) ? c.user.get(num(p[k])) : undefined) ?? text(p.username) ?? ref(p[k], unknownPlayer));
+  const lobby = (k = "lobbyId") => b((k === "id" ? text(p.name) : undefined) ?? c.lobby.get(num(p[k])) ?? ref(p[k], bg ? "неизвестно лоби" : "unknown lobby"));
+  const team = (k = "teamId") => b(c.team.get(text(p[k]) ?? "") ?? text(p.name) ?? text(p[k]) ?? unknownTeam);
+  const stage = (k = "stageId") => b(h.round(text(p.stage) ?? c.stage.get(num(p[k])) ?? ref(p[k], bg ? "неизвестен етап" : "unknown stage")));
+  const map = () => b(text(p.title) ? `${text(p.title)}${text(p.version) ? ` [${text(p.version)}]` : ""}` : (c.map.get(num(p.id)) ?? ref(p.id, bg ? "неизвестен мап" : "unknown map")));
+  const beatmap = () => b(c.beatmap.get(num(p.beatmapId)) ?? ref(p.beatmapId, bg ? "неизвестен мап" : "unknown map"));
   const match = (k = "matchId") => {
-    const id = String(p[k] ?? p.id ?? "?");
+    const id = text(p[k]) ?? text(p.id);
+    if (!id) return b(bg ? "неизвестен мач" : "unknown match");
     const [x, y] = c.match.get(id) ?? [null, null];
-    return x && y ? `${b(`${x} vs ${y}`)} (${id})` : b(id);
+    return x || y ? `${b(`${x ?? unknownTeam} vs ${y ?? unknownTeam}`)} (${id})` : b(id);
   };
+  const side = (value: unknown = p.side ?? p.team) => {
+    if (value !== 1 && value !== 2) return b(unknownTeam);
+    const names = c.match.get(text(p.matchId) ?? text(p.id) ?? "");
+    return b(names?.[value - 1] ?? (bg ? `отбор ${value}` : `team ${value}`));
+  };
+  const slot = (k = "slot") => {
+    const v = p[k];
+    return b(typeof v === "number" && Number.isInteger(v) && v >= 0 && v <= 15 ? v + 1 : bg ? "неизвестно място" : "unknown seat");
+  };
+  const draftMap = () => b(text(p.slot) ?? (bg ? "неизвестен мап" : "unknown map"));
   const when = () => (typeof p.proposedAt === "string" ? h.date(p.proposedAt) : "?");
 
   switch (action) {
@@ -71,6 +86,22 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `върна последната стъпка (${b(p.step)}) в ${match()}` : `undid the last step (${b(p.step)}) in ${match()}`;
     case "draft.redo":
       return bg ? `повтори стъпка (${b(p.step)}) в ${match()}` : `redid a step (${b(p.step)}) in ${match()}`;
+    case "draft.pick":
+      return bg ? `избра ${draftMap()} за ${side()} в ${match()}` : `picked ${draftMap()} for ${side()} in ${match()}`;
+    case "draft.ban":
+      return bg ? `банна ${draftMap()} за ${side()} в ${match()}` : `banned ${draftMap()} for ${side()} in ${match()}`;
+    case "draft.roll":
+      return bg ? `хвърли зар за ${side()} в ${match()}` : `rolled for ${side()} in ${match()}`;
+    case "draft.choice": {
+      const choice = p.value ?? p.choice;
+      if (choice === "pick") return bg ? `избра първи пик за ${side()} в ${match()}` : `chose first pick for ${side()} in ${match()}`;
+      if (choice === "ban") return bg ? `избра първи бан за ${side()} в ${match()}` : `chose first ban for ${side()} in ${match()}`;
+      return bg ? `промени избора за реда на пик и бан в ${match()}` : `changed the pick and ban order choice in ${match()}`;
+    }
+    case "draft.winner":
+      if (p.winner === null) return bg ? `изчисти победителя на ${draftMap()} в ${match()}` : `cleared the winner of ${draftMap()} in ${match()}`;
+      if (p.winner === 1 || p.winner === 2) return bg ? `отбеляза победа за ${side(p.winner)} на ${draftMap()} в ${match()}` : `recorded a win for ${side(p.winner)} on ${draftMap()} in ${match()}`;
+      return bg ? `обнови победителя на ${draftMap()} в ${match()}` : `updated the winner of ${draftMap()} in ${match()}`;
     case "settings.qualify":
       return bg ? `смени колко играчи се класират на ${b(p.qualifyCount)}` : `set qualifying players to ${b(p.qualifyCount)}`;
     case "settings.rounds":
@@ -111,6 +142,63 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `си запази място в лоби ${lobby()}` : `booked a spot in lobby ${lobby()}`;
     case "lobby.leave":
       return bg ? "напусна лобито си" : "left their lobby";
+    case "lobby.make":
+      return bg ? `създаде osu! лоби за ${match()}` : `created an osu! lobby for ${match()}`;
+    case "lobby.invite":
+      return bg ? `покани липсващите играчи в лобито за ${match()}` : `invited the missing players to the lobby for ${match()}`;
+    case "lobby.refresh":
+      return bg ? `обнови състоянието на лобито за ${match()}` : `refreshed the lobby state for ${match()}`;
+    case "lobby.start": {
+      const secs = typeof p.secs === "number" && Number.isInteger(p.secs) ? Math.min(300, Math.max(0, p.secs)) : null;
+      if (secs === 0) return bg ? `стартира играта в лобито за ${match()}` : `started play in the lobby for ${match()}`;
+      if (secs !== null) return bg ? `насрочи старт след ${b(secs)} секунди в лобито за ${match()}` : `scheduled play to start in ${b(secs)} seconds in the lobby for ${match()}`;
+      return bg ? `подаде команда за старт в лобито за ${match()}` : `requested play to start in the lobby for ${match()}`;
+    }
+    case "lobby.abort":
+      return bg ? `прекрати текущата игра в лобито за ${match()}` : `aborted the current game in the lobby for ${match()}`;
+    case "lobby.aborttimer":
+      return bg ? `спря обратното броене в лобито за ${match()}` : `stopped the countdown in the lobby for ${match()}`;
+    case "lobby.close":
+      return bg ? `затвори osu! лобито за ${match()}` : `closed the osu! lobby for ${match()}`;
+    case "lobby.chat":
+      return bg ? `изпрати съобщение или команда в лобито за ${match()}` : `sent a message or command in the lobby for ${match()}`;
+    case "lobby.cmd":
+      return bg ? `изпрати команда в лобито за ${match()}` : `sent a command in the lobby for ${match()}`;
+    case "lobby.kick":
+      return bg ? `изгони играча от място ${slot()} в лобито за ${match()}` : `kicked the player in seat ${slot()} from the lobby for ${match()}`;
+    case "lobby.move":
+      return bg ? `премести играча от място ${slot()} на място ${slot("to")} в лобито за ${match()}` : `moved the player from seat ${slot()} to seat ${slot("to")} in the lobby for ${match()}`;
+    case "lobby.spare":
+      if (typeof p.open !== "boolean") return bg ? `промени резервното място в лобито за ${match()}` : `changed the spare seat in the lobby for ${match()}`;
+      return p.open
+        ? bg ? `отвори резервното място в лобито за ${match()}` : `opened the spare seat in the lobby for ${match()}`
+        : bg ? `затвори резервното място в лобито за ${match()}` : `closed the spare seat in the lobby for ${match()}`;
+    case "lobby.team": {
+      const color = p.team === "red" ? (bg ? "червения" : "red") : p.team === "blue" ? (bg ? "синия" : "blue") : null;
+      return color
+        ? bg ? `премести играча от място ${slot()} в ${color} отбор в лобито за ${match()}` : `moved the player in seat ${slot()} to the ${color} team in the lobby for ${match()}`
+        : bg ? `смени отбора на играча от място ${slot()} в лобито за ${match()}` : `changed the team of the player in seat ${slot()} in the lobby for ${match()}`;
+    }
+
+    case "refapp.link":
+      return bg ? "свърза приложението за съдии" : "linked the referee app";
+    case "refapp.unlink":
+      return bg ? "прекъсна връзката с приложението за съдии" : "unlinked the referee app";
+    case "overlay.link":
+      return bg ? "свърза помощното приложение за стрийм оувърлея" : "linked the stream overlay helper";
+    case "overlay.unlink":
+      return bg ? "прекъсна връзката с помощното приложение за стрийм оувърлея" : "unlinked the stream overlay helper";
+    case "stream.scene": {
+      if (p.scene === null) return bg ? `включи автоматичната смяна на стрийм сцената за ${match()}` : `enabled automatic stream scenes for ${match()}`;
+      const scenes: Record<string, string> = bg
+        ? { soon: "скоро започваме", intro: "представяне", mappool: "мапуул", gameplay: "игра", winner: "победител", brb: "почивка", end: "край" }
+        : { soon: "starting soon", intro: "introduction", mappool: "map pool", gameplay: "gameplay", winner: "winner", brb: "break", end: "end" };
+      const key = text(p.scene) ?? "";
+      const scene = Object.hasOwn(scenes, key) ? scenes[key] : undefined;
+      return scene
+        ? bg ? `смени стрийм сцената за ${match()} на ${b(scene)}` : `changed the stream scene for ${match()} to ${b(scene)}`
+        : bg ? `обнови стрийм сцената за ${match()}` : `updated the stream scene for ${match()}`;
+    }
 
     case "qual.import":
       return bg ? `вкара ${num(p.scores)} резултата от лоби ${lobby()}` : `imported ${num(p.scores)} scores from lobby ${lobby()}`;
@@ -259,5 +347,5 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
     case "staff.remove":
       return bg ? `махна ${user()} от екипа` : `removed ${user()} from the staff`;
   }
-  return action;
+  return bg ? "извърши неразпознато действие" : "performed an unrecognized action";
 }
