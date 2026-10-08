@@ -9,6 +9,7 @@ import { matchSlug } from "@/lib/format";
 import { fmtSofia, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { clearCache, saveMatch } from "./actions";
+import { osuMp } from "@/lib/links";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 const group = "relative border border-line bg-coal/60 p-3.5 pt-5";
@@ -216,7 +217,7 @@ export function MatchCard({ m, k, t, locale, teams }: { m: MatchRow; k: number; 
             <div className="grid gap-3 md:grid-cols-2">
               <label className={label}>
                 {t.admin.mpLinks}
-                <Field name="mpLinks" defaultValue={mp.map((x) => `https://osu.ppy.sh/mp/${x}`).join(", ")} className={inputCls} />
+                <Field name="mpLinks" defaultValue={mp.map((x) => osuMp(x)).join(", ")} className={inputCls} />
               </label>
               <label className={label}>
                 {t.admin.vodUrl}

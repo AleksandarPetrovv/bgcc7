@@ -1,4 +1,5 @@
-const TZ = "Europe/Sofia";
+export const TZ = "Europe/Sofia";
+export const TZ_LABEL = "EET";
 
 const fmt = new Intl.DateTimeFormat("en-US", {
   timeZone: TZ,

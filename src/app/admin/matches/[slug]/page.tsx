@@ -90,7 +90,7 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img src={p.avatar} alt="" className="size-6 shrink-0" />
                                   <span className="min-w-0 flex-1 truncate font-bold">{p.name}</span>
-                                  {p.edited && <span className="text-[0.6rem] font-black uppercase text-[#e8c547]">{t.admin.ms.edited}</span>}
+                                  {p.edited && <span className="text-[0.6rem] font-black uppercase text-gold">{t.admin.ms.edited}</span>}
                                   {p.mods.length > 0 && <span className="text-[0.65rem] font-black uppercase text-ash">{p.mods.join("")}</span>}
                                   <span className="num hidden w-14 text-right text-ash min-[400px]:block">{(p.acc * 100).toFixed(2)}%</span>
                                   <span className="num w-20 text-right">{fmtNum(p.score)}</span>

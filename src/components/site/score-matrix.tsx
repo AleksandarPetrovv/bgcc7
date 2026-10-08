@@ -7,6 +7,7 @@ import { useDict } from "./lang";
 import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
 import { MeTag, meP } from "./me";
+import { MEDAL_BG } from "@/lib/theme";
 
 const MOD_COLOR: Record<string, string> = {
   NM: "text-mod-nm",
@@ -15,7 +16,6 @@ const MOD_COLOR: Record<string, string> = {
   DT: "text-mod-dt",
 };
 
-const MEDAL = ["bg-[#e8c547] text-ink", "bg-[#c9ccd1] text-ink", "bg-[#c98a4b] text-ink"];
 
 type Hover = { x: number; y: number; map: QualMap; perf: QualPerf; player: QualPlayer } | null;
 
@@ -71,7 +71,7 @@ export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]
               return (
                 <tr key={p.id} className={cn("in-left border-t border-line", seed <= cut ? "" : "opacity-60")} style={{ "--i": Math.min(i, 24), "--s": "0.03s", "--d": "0.2s" } as React.CSSProperties}>
                   <td className="sticky left-0 z-10 bg-ink px-3 py-2">
-                    <span className={cn("num inline-block min-w-9 px-1.5 text-center text-base", seed <= 3 ? MEDAL[seed - 1] : "bg-slate text-paper")}>#{seed}</span>
+                    <span className={cn("num inline-block min-w-9 px-1.5 text-center text-base", seed <= 3 ? `${MEDAL_BG[seed - 1]} text-ink` : "bg-slate text-paper")}>#{seed}</span>
                   </td>
                   <td {...meP(p.id)} className="me-hl sticky left-14 z-10 bg-ink px-3 py-2">
                     <span className="flex items-center gap-2 whitespace-nowrap font-bold">
@@ -99,7 +99,7 @@ export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]
                         }}
                       >
                         {perf ? (
-                          <span className={cn(place === 0 && "text-[#e8c547]", place === 1 && "text-[#c9ccd1]", place === 2 && "text-[#c98a4b]", perf.manual && "underline decoration-[#e8c547] decoration-dotted underline-offset-4")}>
+                          <span className={cn(place === 0 && "text-gold", place === 1 && "text-silver", place === 2 && "text-bronze", perf.manual && "underline decoration-gold decoration-dotted underline-offset-4")}>
                             {fmtNum(perf.score)}
                           </span>
                         ) : (
@@ -153,7 +153,7 @@ function ScoreCard({ x, y, map, perf, player }: NonNullable<Hover>) {
           </div>
         ))}
       </div>
-      <div className="px-3 py-1.5 text-[0.65rem] font-bold uppercase text-ash">{perf.manual ? <span className="text-[#e8c547]">{t.qual.manual}</span> : perf.matchName}</div>
+      <div className="px-3 py-1.5 text-[0.65rem] font-bold uppercase text-ash">{perf.manual ? <span className="text-gold">{t.qual.manual}</span> : perf.matchName}</div>
     </div>
   );
 }

@@ -31,7 +31,7 @@ function AdminCrest({ on }: { on: boolean }) {
         <path d="M18 18 20.2 20.2" strokeWidth={2.2} strokeLinecap="round" />
         <circle cx="20.9" cy="20.9" r="1.4" stroke="none" />
       </g>
-      <path d="M12 0.2 12.8 2.4 15 3.2 12.8 4 12 6.2 11.2 4 9 3.2 11.2 2.4Z" className="adm-spark fill-[#e8c547]" />
+      <path d="M12 0.2 12.8 2.4 15 3.2 12.8 4 12 6.2 11.2 4 9 3.2 11.2 2.4Z" className="adm-spark fill-gold" />
     </svg>
   );
 }
@@ -69,7 +69,7 @@ function Countdown({ clock }: { clock: Clock }) {
   const s = Math.ceil(left / 1000);
   const low = !clock.pause && s <= 10;
   return (
-    <span className={cn("num ml-0.5 tabular-nums", clock.pause ? "text-[#ffe08a]" : low ? "text-white" : "text-white/85")}>
+    <span className={cn("num ml-0.5 tabular-nums", clock.pause ? "text-gold-hi" : low ? "text-white" : "text-white/85")}>
       {Math.floor(s / 60)}:{String(s % 60).padStart(2, "0")}
     </span>
   );

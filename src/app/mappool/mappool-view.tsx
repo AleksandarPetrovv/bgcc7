@@ -118,7 +118,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                           [{m.version}] <span className="text-ash">by {m.creator}</span>
                         </span>
                         <span className="num mt-0.5 flex items-center gap-2 text-xs text-ash lg:hidden">
-                          <span className="flex items-center gap-0.5 text-[#e8c547]">
+                          <span className="flex items-center gap-0.5 text-gold">
                             <Star className="size-3 fill-current" /> {m.sr.toFixed(2)}
                           </span>
                           <span>{Math.round(m.bpm)}bpm</span>
@@ -126,7 +126,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                         </span>
                       </div>
                       <div className="in-right num relative hidden shrink-0 items-center pr-6 text-base lg:grid lg:grid-cols-[4.25rem_5.25rem_3rem_3.5rem_3.5rem_3.5rem] xl:gap-x-4 xl:pr-10 xl:text-lg 2xl:gap-x-8 [--d:0.35s]">
-                        <span className="flex items-center justify-end gap-1 text-[#e8c547]">
+                        <span className="flex items-center justify-end gap-1 text-gold">
                           <Star className="size-4 fill-current" /> {m.sr.toFixed(2)}
                         </span>
                         <span className="text-right">
@@ -229,11 +229,11 @@ function StageStrip({ stage, info }: { stage: Stage; info: { firstTo: number; ba
       label: t.mappool.avgSr,
       val: (
         <span className="flex items-center gap-1.5">
-          <Star className="size-5 fill-current text-[#e8c547] sm:size-6" />
+          <Star className="size-5 fill-current text-gold sm:size-6" />
           {sr.toFixed(2)}
         </span>
       ),
-      accent: "#e8c547",
+      accent: "var(--color-gold)",
     },
   ];
 

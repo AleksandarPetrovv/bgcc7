@@ -20,7 +20,7 @@ export function Roster({ team }: { team: Team }) {
             <img src={flagUrl(p.country)} alt="" className="h-2.5" />
             <span className="font-bold">{p.username}</span>
             <MeTag p={p.userId} />
-            {p.isCaptain && <Crown className="size-3.5 text-[#e8c547]" />}
+            {p.isCaptain && <Crown className="size-3.5 text-gold" />}
             <span className="num ml-auto text-ash">#{fmtNum(p.rank)}</span>
           </li>
         ))}

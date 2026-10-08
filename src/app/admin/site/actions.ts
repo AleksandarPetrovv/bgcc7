@@ -7,6 +7,7 @@ import { guard } from "@/lib/admin-action";
 import { requireRole } from "@/lib/authz";
 import { getUser } from "@/lib/osu-api";
 import type { ActionResult } from "@/lib/roles";
+import { osuUser } from "@/lib/links";
 
 const osuQuery = (v: FormDataEntryValue | null) => {
   const s = String(v ?? "").trim().slice(0, 200);
@@ -19,7 +20,7 @@ async function sponsorFrom(fd: FormData) {
   if (!q || q.length > 40) return null;
   const u = await getUser(q);
   if (!u) return null;
-  return { osuId: u.id, name: u.username, image: u.avatar_url, url: `https://osu.ppy.sh/users/${u.id}` };
+  return { osuId: u.id, name: u.username, image: u.avatar_url, url: osuUser(u.id) };
 }
 
 export async function addSponsor(_: ActionResult, fd: FormData) {

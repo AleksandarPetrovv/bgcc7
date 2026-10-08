@@ -7,6 +7,9 @@ export type Half = "u" | "l";
 
 export type Format = {
   edition: Edition;
+  name: string;
+  year: number;
+  firstTo: number;
   teamSize: number;
   teams: number;
   feed: Record<string, [Src, Src]>;
@@ -38,6 +41,9 @@ const range = (n: number) => Array.from({ length: n }, (_, i) => i + 1);
 
 const BGCC6: Format = {
   edition: "bgcc6",
+  name: "BGCC6",
+  year: 2027,
+  firstTo: 7,
   teamSize: 3,
   teams: 8,
   feed: {
@@ -154,6 +160,9 @@ function bgcc7(): Format {
 
   return {
     edition: "bgcc7",
+    name: "BGCC7",
+    year: 2027,
+    firstTo: 7,
     teamSize: 2,
     teams: 16,
     feed,
@@ -215,13 +224,22 @@ export const winTargets = (f: Format) => {
   return out;
 };
 
+export const TEST_MATCH = { id: "TEST-M1", slug: "test-1" } as const;
+export const isTestTeam = (id: string | null | undefined) => !!id?.startsWith("test-");
+
+export const lobbySize =(f: Format) => f.teamSize * 2;
+export const versus = (f: Format) => `${f.teamSize}v${f.teamSize}`;
+export const playerCount = (f: Format) => f.teams * f.teamSize;
+
 export function matchSlug(f: Format, id: string) {
+  if (id === TEST_MATCH.id) return TEST_MATCH.slug;
   const m = id.match(/^(GF|[WL]B-R\d)-M(\d+)$/);
   const r = m && f.rounds[m[1]];
   return m && r ? `${r.slug}-${m[2]}` : id.toLowerCase();
 }
 
 export function matchIdFromSlug(f: Format, slug: string) {
+  if (slug === TEST_MATCH.slug) return TEST_MATCH.id;
   const m = slug.match(/^([a-z0-9-]+)-([1-9]\d*)$/);
   if (!m) return "";
   const round = Object.entries(f.rounds).find(([, r]) => r.slug === m[1])?.[0];

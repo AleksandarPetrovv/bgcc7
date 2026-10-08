@@ -7,13 +7,14 @@ import { useDict, useLang } from "./lang";
 import { MatchDialog } from "./match-dialog";
 import { cn } from "@/lib/utils";
 import { MeTag, meT } from "./me";
+import { TZ } from "@/lib/time";
 
 function when(dt: string | null, locale: string) {
   if (!dt) return null;
   const d = new Date(dt);
   return {
-    date: d.toLocaleDateString(locale, { timeZone: "Europe/Sofia", day: "2-digit", month: "short", weekday: "short" }),
-    time: d.toLocaleTimeString("en-GB", { timeZone: "Europe/Sofia", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
+    date: d.toLocaleDateString(locale, { timeZone: TZ, day: "2-digit", month: "short", weekday: "short" }),
+    time: d.toLocaleTimeString("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
   };
 }
 

@@ -66,7 +66,7 @@ export default async function Players() {
         <div className="in-up num mt-1.5 flex items-center gap-2.5 text-sm" style={v({ "--d": "0.35s" })}>
           {suiji && p.bws !== null && (
             <>
-              <span className="text-[#e8c547]">BWS {fmtNum(p.bws)}</span>
+              <span className="text-gold">BWS {fmtNum(p.bws)}</span>
               <Rhombus className="size-1 text-line" />
             </>
           )}

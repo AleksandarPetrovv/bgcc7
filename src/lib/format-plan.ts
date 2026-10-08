@@ -1,3 +1,5 @@
+import { MOD_COLOR } from "./theme";
+
 export const PLAN_MODS = ["NM", "HD", "HR", "DT"] as const;
 export type PlanMod = (typeof PLAN_MODS)[number];
 
@@ -115,7 +117,6 @@ const TB_SKILL = { abbr: "TB", color: "var(--color-mod-tb)" };
 const skillOf = (c: { id: string; name: string }) =>
   SKILLS[c.id] ?? SKILLS[c.name.trim().toLowerCase().replace(/\s+/g, "-")] ?? { abbr: c.name.replace(/[^a-z]/gi, "").slice(0, 3).toUpperCase() || "MAP", color: "var(--color-paper)" };
 
-const MOD_COLOR: Record<string, string> = { NM: "var(--color-mod-nm)", HD: "var(--color-mod-hd)", HR: "var(--color-mod-hr)", DT: "var(--color-mod-dt)", FM: "var(--color-mod-fm)", TB: "var(--color-mod-tb)" };
 
 export const skillColor = (slot: string) => Object.values(SKILLS).find((s) => s.abbr === slot.replace(/\d+$/, ""))?.color;
 

@@ -1,6 +1,7 @@
 import "server-only";
 import { randomInt } from "node:crypto";
-import { and, arrayOverlaps, asc, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, arrayOverlaps, asc, eq, gte, inArray, lte, ne, notLike } from "drizzle-orm";
+import { TEST_MATCH } from "@/lib/format";
 import { db, db6 } from "./index";
 import { drafts, maps, matchCache, matches, pickems, poolSuggestions, poolVotes, registrations, reschedules, scoreEdits, staff, stages, teamMembers, teams, users } from "./schema";
 import { advance } from "./bracket";
@@ -98,7 +99,7 @@ function fakeBoard(link: string, names: [string, string], sides: [Who[], Who[]],
   return {
     v: SCOREBOARD_V,
     ez,
-    lobbies: [{ id: link, name: `BGCC7: (${names[0]}) vs (${names[1]})` }],
+    lobbies: [{ id: link, name: `${getFormat().name}: (${names[0]}) vs (${names[1]})` }],
     maps: out,
     score: [running[0], running[1]],
     totals: [...totals.values()].map(({ accSum, ...t }) => ({ ...t, acc: accSum / t.maps })).sort((a, b) => b.score - a.score),
@@ -188,7 +189,7 @@ export async function seedTestData() {
 
   await drawSuiji();
 
-  const firstTo = new Map(mine.map((s) => [s.slug, layouts[s.slug]?.firstTo ?? s.firstTo ?? 7]));
+  const firstTo = new Map(mine.map((s) => [s.slug, layouts[s.slug]?.firstTo ?? s.firstTo ?? f.firstTo]));
   const all = await db.select().from(matches);
   for (const m of all) {
     const w = WEEK_OF[m.stageSlug] ?? 0;
@@ -209,7 +210,7 @@ export async function seedTestData() {
   for (const id of played) {
     const [m] = await db.select().from(matches).where(eq(matches.id, id)).limit(1);
     if (!m?.team1Id || !m.team2Id) continue;
-    const ft = firstTo.get(m.stageSlug) ?? 7;
+    const ft = firstTo.get(m.stageSlug) ?? f.firstTo;
     const s1 = seed.get(m.team1Id) ?? 8;
     const s2 = seed.get(m.team2Id) ?? 8;
     const one = Math.random() < s2 / (s1 + s2);
@@ -268,8 +269,8 @@ export async function clearTestData() {
     await tx.delete(matchCache);
     await tx.delete(scoreEdits);
     await tx.delete(reschedules);
-    await tx.update(matches).set({ team1Id: null, team2Id: null, score1: null, score2: null, winner: null, startsAt: null, mpLinks: "", referee: null, streamer: null, commentators: null, vodUrl: null, manual: false });
-    await tx.delete(teams);
+    await tx.update(matches).set({ team1Id: null, team2Id: null, score1: null, score2: null, winner: null, startsAt: null, mpLinks: "", referee: null, streamer: null, commentators: null, vodUrl: null, manual: false }).where(ne(matches.id, TEST_MATCH.id));
+    await tx.delete(teams).where(notLike(teams.id, "test-%"));
     await tx.delete(maps).where(eq(maps.seeded, true));
     await tx.delete(poolSuggestions).where(eq(poolSuggestions.seeded, true));
     if (touched.length) await tx.update(stages).set({ poolReleased: false }).where(inArray(stages.id, touched));

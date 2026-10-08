@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { stages } from "@/db/schema";
 import { getVisibility } from "@/lib/authz";
+import { getFormat } from "@/db/edition";
 import { packPath } from "@/lib/uploads";
 
 export async function GET(_: Request, { params }: RouteContext<"/download/[slug]">) {
@@ -15,7 +16,7 @@ export async function GET(_: Request, { params }: RouteContext<"/download/[slug]
   const file = packPath(stage.slug);
   const info = await stat(file).catch(() => null);
   if (!info) return new Response("not found", { status: 404 });
-  const name = `BGCC7 ${stage.title}.zip`;
+  const name = `${getFormat().name} ${stage.title}.zip`;
   return new Response(Readable.toWeb(createReadStream(file)) as ReadableStream, {
     headers: {
       "Content-Type": "application/zip",

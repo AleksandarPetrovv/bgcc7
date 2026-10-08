@@ -4,7 +4,7 @@ import { Avatar } from "@/components/site/avatar";
 import { InView } from "@/components/site/in-view";
 import type { Dict } from "@/lib/i18n/dict";
 import { describe, type LogCtx } from "@/lib/log-text";
-import { fmtSofia, fmtSofiaDay, fmtSofiaTime } from "@/lib/time";
+import { fmtSofia, fmtSofiaDay, fmtSofiaTime, TZ_LABEL } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
 export const LOG_GROUPS: Record<string, string[]> = {
@@ -31,8 +31,8 @@ const DOT: Record<string, string> = {
   phase: "bg-paper",
   lobbies: "bg-rose",
   qualifiers: "bg-rose",
-  mappools: "bg-[#a78bfa]",
-  teams: "bg-[#f5b820]",
+  mappools: "bg-mod-dt",
+  teams: "bg-mod-hd",
   matches: "bg-rose-hi",
   site: "bg-ash",
   staff: "bg-paper",
@@ -62,7 +62,7 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
     phase: (p: string) => t.admin.phases[p as keyof typeof t.admin.phases] ?? p,
     round: (s: string) => t.rounds[s] ?? s,
     role: (r: string) => t.admin.roles[r] ?? r,
-    date: (d: string) => `${fmtSofia(new Date(d), locale)} EET`,
+    date: (d: string) => `${fmtSofia(new Date(d), locale)} ${TZ_LABEL}`,
   };
   const days = new Map<string, LogRow[]>();
   for (const r of rows) {

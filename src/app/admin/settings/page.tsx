@@ -37,7 +37,7 @@ export default async function AdminSettings() {
                 </label>
                 <div className="in-pop flex items-center gap-2 border border-dashed border-line px-3 py-2 text-xs font-bold text-ash" style={v({ "--d": "0.5s" })}>
                   <span className="num text-paper">1,000,000</span> EZ → <span className="num text-paper">500,000</span> × {s.ezMult} ={" "}
-                  <span className="num text-[#e8c547]">{Math.floor(500000 * s.ezMult).toLocaleString("en-US")}</span>
+                  <span className="num text-gold">{Math.floor(500000 * s.ezMult).toLocaleString("en-US")}</span>
                 </div>
               </div>
             </ActionForm>
@@ -109,7 +109,7 @@ export default async function AdminSettings() {
             <ActionForm key={rounds.map((r) => r.firstTo).join()} action={setRounds} className="space-y-4">
               <div className="divide-y divide-line border border-line">
                 {rounds.map((st, i) => {
-                  const ft = st.firstTo ?? 7;
+                  const ft = st.firstTo ?? getFormat().firstTo;
                   return (
                     <label
                       key={st.id}

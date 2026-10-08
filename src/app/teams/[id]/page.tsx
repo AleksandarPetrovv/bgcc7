@@ -71,7 +71,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
                   <a href={osuUser(p.userId)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">
                     {p.username}
                   </a>
-                  {p.isCaptain && <Crown className="size-4 text-[#d4a72c]" aria-label={t.common.captain} />}
+                  {p.isCaptain && <Crown className="size-4 text-gold" aria-label={t.common.captain} />}
                 </div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={flagUrl(p.country)} alt="" className="mt-1 h-3" />

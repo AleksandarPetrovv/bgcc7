@@ -1,14 +1,15 @@
 import { cn } from "@/lib/utils";
+import { HEX } from "@/lib/theme";
 
 export function SpeedMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 120 40" className={className} aria-hidden>
       {Array.from({ length: 9 }).map((_, i) => (
-        <rect key={i} x={0} y={8 + i * 3} width={70 - i * 4} height={1.2} fill="#f4f3ee" opacity={0.18 + i * 0.06} />
+        <rect key={i} x={0} y={8 + i * 3} width={70 - i * 4} height={1.2} fill={HEX.paper} opacity={0.18 + i * 0.06} />
       ))}
-      <polygon points="48,6 64,6 52,34 36,34" fill="#f4f3ee" />
-      <polygon points="68,6 84,6 72,34 56,34" fill="#0fa06a" />
-      <polygon points="88,6 104,6 92,34 76,34" fill="#e0242f" />
+      <polygon points="48,6 64,6 52,34 36,34" fill={HEX.paper} />
+      <polygon points="68,6 84,6 72,34 56,34" fill={HEX.balkan} />
+      <polygon points="88,6 104,6 92,34 76,34" fill={HEX.rose} />
     </svg>
   );
 }
@@ -26,9 +27,9 @@ export function Wordmark({ className, size = "md" }: { className?: string; size?
 export function TriTick({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 30 16" className={cn("h-4 w-[30px] shrink-0", className)} aria-hidden>
-      <polygon points="4,0 10,0 6,16 0,16" fill="#f4f3ee" />
-      <polygon points="14,0 20,0 16,16 10,16" fill="#0fa06a" />
-      <polygon points="24,0 30,0 26,16 20,16" fill="#e0242f" />
+      <polygon points="4,0 10,0 6,16 0,16" fill={HEX.paper} />
+      <polygon points="14,0 20,0 16,16 10,16" fill={HEX.balkan} />
+      <polygon points="24,0 30,0 26,16 20,16" fill={HEX.rose} />
     </svg>
   );
 }

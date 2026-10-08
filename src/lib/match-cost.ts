@@ -9,8 +9,7 @@ const MOD_BONUS = 0.02;
 const TB_FACTOR = 0.25;
 const TB_MAX = 0.5;
 
-export const MEDAL = ["text-[#e8c547]", "text-white", "text-[#c98a4b]"];
-export const MEDAL_BG = ["bg-[#e8c547]", "bg-white", "bg-[#c98a4b]"];
+export { MEDAL, MEDAL_BG } from "./theme";
 
 export function matchCosts(data: Scoreboard, finished: boolean): Cost[] {
   const games = data.maps.filter((m) => !m.note).map((m) => ({ m, scores: m.players.flatMap((side, k) => side.filter((p) => p.score > 0).map((p) => ({ p, team: (k + 1) as 1 | 2 }))) })).filter((g) => g.scores.length);

@@ -33,7 +33,7 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
       return ids.has(v) ? v : null;
     };
     const [stage] = await db.select({ firstTo: stages.firstTo }).from(stages).where(eq(stages.slug, m.stageSlug)).limit(1);
-    const firstTo = stage?.firstTo ?? 7;
+    const firstTo = stage?.firstTo ?? getFormat().firstTo;
     const w = String(fd.get("winner") ?? "auto");
     const winner = w === "1" ? 1 : w === "2" ? 2 : w === "none" ? null : (score1 ?? 0) >= firstTo ? 1 : (score2 ?? 0) >= firstTo ? 2 : null;
     const mpLinks = (String(fd.get("mpLinks") ?? "").match(/\d{6,}/g) ?? []).join(",");

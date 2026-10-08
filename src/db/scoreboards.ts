@@ -1,7 +1,7 @@
 import { db } from "./index";
 import "server-only";
 import { eq } from "drizzle-orm";
-import { getEdition } from "./edition";
+import { getEdition, getFormat } from "./edition";
 import { matchCache, scoreEdits } from "./schema";
 import { finishMatch } from "./bracket";
 import type { PoolStage } from "./mappools";
@@ -49,7 +49,7 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
   const hit = live.get(key);
   if (hit && hit.data.ez === ezMult && Date.now() - hit.at < LIVE_TTL) return hit.data;
 
-  const firstTo = stages.find((s) => s.slug === match.stage)?.firstTo ?? 7;
+  const firstTo = stages.find((s) => s.slug === match.stage)?.firstTo ?? getFormat().firstTo;
   try {
     const data = await buildScoreboard(match, teams, playoffPools(stages), await getEdits(match.id), ezMult);
     if (Math.max(...data.score) >= firstTo || match.winner) {

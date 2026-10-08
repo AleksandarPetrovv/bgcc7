@@ -9,6 +9,7 @@ import { useDict } from "@/components/site/lang";
 import { Tabs } from "@/components/site/tabs";
 import type { Pack } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import { TZ } from "@/lib/time";
 
 type StageInfo = { slug: string; title: string; pack: Pack | null };
 type Job = { state: "running" | "done" | "error"; done: number; total: number; missing: string[]; error?: string; size?: number; zipping?: boolean };
@@ -161,7 +162,7 @@ export function PackUploader({ stages, locale, simple }: { stages: StageInfo[]; 
               <span className="num text-ash">
                 {mb(pack.size)}
                 {pack.at &&
-                  ` · ${new Date(pack.at).toLocaleString(locale, { timeZone: "Europe/Sofia", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}`}
+                  ` · ${new Date(pack.at).toLocaleString(locale, { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}`}
               </span>
             </span>
             {simple ? (
