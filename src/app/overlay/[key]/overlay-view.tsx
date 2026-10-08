@@ -9,11 +9,14 @@ import { MappoolScene } from "./mappool-scene";
 import { GameplayScene } from "./gameplay-scene";
 import styles from "./overlay-view.module.css";
 
-export function OverlayView({ overlayKey, scene }: { overlayKey: string; scene?: Scene }) {
-  const query = overlayKey === "demo" && scene ? `?scene=${scene}` : "";
+export function OverlayView({ overlayKey, scene, stage }: { overlayKey: string; scene?: Scene; stage?: string }) {
+  const q = new URLSearchParams();
+  if (overlayKey === "demo" && scene) q.set("scene", scene);
+  if (overlayKey === "demo" && stage) q.set("stage", stage);
+  const query = q.size ? `?${q}` : "";
   const url = `/api/overlay/${encodeURIComponent(overlayKey)}${query}`;
 
-  return <OverlaySubscription key={JSON.stringify([overlayKey, scene])} url={url} />;
+  return <OverlaySubscription key={JSON.stringify([overlayKey, scene, stage])} url={url} />;
 }
 
 function OverlaySubscription({ url }: { url: string }) {
