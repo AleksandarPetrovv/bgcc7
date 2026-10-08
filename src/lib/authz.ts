@@ -8,7 +8,7 @@ import { adminLog, staff } from "@/db/schema";
 import { safe } from "@/db/queries";
 import { getSettings } from "@/db/settings";
 import { getFormat } from "@/db/edition";
-import { can, cleanRoles, type Perm, type Role } from "./roles";
+import { can, cleanRoles, hasAdmin, type Perm, type Role } from "./roles";
 import type { Section } from "./sections";
 
 export const getViewer = cache(async (): Promise<{ osuId: number; roles: Role[] } | null> => {
@@ -38,7 +38,7 @@ export const getVisibility = cache(async () => {
   const [s, v] = await Promise.all([getSettings(), getViewer()]);
   const off = getFormat().sectionsOff;
   const sections = Object.fromEntries(Object.entries(s.sections).map(([k, on]) => [k, on && !off.includes(k)])) as typeof s.sections;
-  return { sections, staff: !!v?.roles.length, off };
+  return { sections, staff: hasAdmin(v?.roles), off };
 });
 
 export async function requireSection(section: Section) {
