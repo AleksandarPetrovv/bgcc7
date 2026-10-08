@@ -226,7 +226,7 @@ function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | "abort"
   );
 }
 
-export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, canSay }: { slug: string; maps: Beatmap[]; onOpen: (open: boolean) => void; readOnly?: boolean; canSay: boolean }) {
+export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, canSay, teamNames }: { slug: string; maps: Beatmap[]; onOpen: (open: boolean) => void; readOnly?: boolean; canSay: boolean; teamNames: [string, string] }) {
   const t = useDict();
   const format = useFormat();
   const [v, setV] = useState<LobbyView | null>(null);
@@ -276,6 +276,63 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, canSay }: {
     all.map((s, k) => k).filter((k) => k !== i && (mode === "swap" ? !!all[k] : !all[k] && (k < base || (k === base && v.spare))));
   const warn = all.flatMap((s) => (s && s.ready !== "ready" ? [`${s.name}: ${t.lobby.ready[s.ready]}`] : []));
   const seated = all.filter(Boolean).length;
+  const wantOf = (s: NonNullable<LobbyView["slots"][number]>) => (s.side === 1 ? "red" : s.side === 2 ? "blue" : null);
+  const wrong = all.flatMap((s, i) => (s && wantOf(s) && s.team !== wantOf(s) ? [{ slot: i, team: wantOf(s)! }] : []));
+  const fixAll = () =>
+    start(async () => {
+      setErr(false);
+      for (const w of wrong) {
+        const res = await lobbyPost(slug, { act: "team", slot: w.slot, team: w.team });
+        if (!res?.ok) setErr(true);
+      }
+    });
+  const sideCol = (side: 1 | 2) => {
+    const want = side === 1 ? "red" : "blue";
+    const people = all.flatMap((s, i) => (s && s.side === side ? [{ s, i }] : []));
+    return (
+      <div className="min-w-0 bg-coal">
+        <div className="flex items-center gap-2 border-b border-line px-3 py-1.5" style={{ boxShadow: `inset 0 2px 0 ${TEAM_C[want]}` }}>
+          <span className="text-[0.62rem] font-black uppercase tracking-[0.14em]" style={{ color: TEAM_C[want] }}>
+            {t.lobby.side[want]}
+          </span>
+          <span className="min-w-0 truncate text-xs font-black text-paper">{teamNames[side - 1]}</span>
+        </div>
+        <ul className="divide-y divide-line">
+          {people.map(({ s, i }) => {
+            const ok = s.team === want;
+            return (
+              <li key={s.name} className={cn("flex min-h-10 items-center gap-2 px-3 py-1.5", !ok && "shadow-[inset_3px_0_0_var(--color-gold)] bg-gold/5")}>
+                <span className="min-w-0 flex-1 truncate text-sm font-black">{s.name}</span>
+                {ok ? (
+                  <span className="inline-flex items-center gap-1 text-[0.6rem] font-black uppercase text-ash/70">
+                    <span className="size-1.5 rotate-45" style={{ background: TEAM_C[want] }} aria-hidden />
+                    {t.lobby.side[want]}
+                  </span>
+                ) : (
+                  <>
+                    <span className="text-[0.62rem] font-black uppercase text-gold">{t.lobby.onWrong(s.team ? t.lobby.side[s.team] : "–", t.lobby.side[want])}</span>
+                    {!readOnly && (
+                      <button
+                        type="button"
+                        disabled={pending || offline}
+                        onClick={() => run({ act: "team", slot: i, team: want })}
+                        className="inline-flex h-7 -skew-x-12 items-center border px-2 text-[0.62rem] font-black uppercase text-white transition-[filter] hover:brightness-125 disabled:opacity-50"
+                        style={{ background: TEAM_C[want], borderColor: TEAM_C[want] }}
+                      >
+                        <span className="skew-x-12">{t.lobby.moveTo(t.lobby.side[want])}</span>
+                      </button>
+                    )}
+                  </>
+                )}
+              </li>
+            );
+          })}
+          {people.length === 0 && <li className="px-3 py-2 text-xs font-bold uppercase text-ash/60">{t.lobby.noneHere}</li>}
+        </ul>
+      </div>
+    );
+  };
+  const strangers = all.filter((s): s is NonNullable<typeof s> => !!s && s.side === null);
   if (seated < base) warn.unshift(t.lobby.fewPlayers(seated, base));
 
   const slotBox = (s: LobbyView["slots"][number], i: number) => {
@@ -524,6 +581,35 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, canSay }: {
       <AnimatePresence initial={false}>
         {open && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.35, ease: EASE }} className="overflow-hidden">
+            {wrong.length > 0 && (
+              <div className="flex flex-wrap items-center gap-3 border-b border-gold/50 bg-gold/10 px-3 py-2">
+                <span className="text-xs font-black uppercase tracking-wide text-gold">{t.lobby.wrongSides(wrong.length)}</span>
+                {!readOnly && (
+                  <button
+                    type="button"
+                    disabled={pending || offline}
+                    onClick={fixAll}
+                    className="ml-auto inline-flex h-8 -skew-x-12 items-center border border-gold bg-gold px-3 text-xs font-black uppercase text-ink transition-colors hover:bg-paper disabled:opacity-50"
+                  >
+                    <span className="skew-x-12">{t.lobby.fixAll}</span>
+                  </button>
+                )}
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-px border-b border-line bg-line">
+              {sideCol(1)}
+              {sideCol(2)}
+              {strangers.length > 0 && (
+                <div className="col-span-2 flex flex-wrap items-center gap-2 bg-coal px-3 py-1.5">
+                  <span className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-rose-hi">{t.lobby.notInMatch}</span>
+                  {strangers.map((s) => (
+                    <span key={s.name} className="text-xs font-black text-paper/80">
+                      {s.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
             <div className="grid gap-px bg-line @4xl:grid-cols-[minmax(0,1fr)_16rem]">
               <div className="grid grid-cols-2 gap-px bg-line">
                 <div className="col-span-2 grid grid-flow-col grid-cols-2 gap-px bg-line" style={{ gridTemplateRows: `repeat(${Math.ceil(base / 2)}, auto)` }}>

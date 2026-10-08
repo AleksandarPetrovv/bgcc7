@@ -814,7 +814,7 @@ export function DraftRoom({
         transition={{ duration: 0.7, ease: EASE, delay: 0.35 }}
         className="xl:col-start-2 xl:row-start-1"
       >
-        <LobbyPanel slug={slug} maps={pools.flatMap((p) => p.maps)} onOpen={onLobby} readOnly={!admin} canSay={canSay} />
+        <LobbyPanel slug={slug} maps={pools.flatMap((p) => p.maps)} onOpen={onLobby} readOnly={!admin} canSay={canSay} teamNames={[teams[0].name, teams[1].name]} />
       </motion.aside>
       <div className="@container min-w-0 xl:col-start-1 xl:row-start-1">
       <div className="relative flex items-stretch">
