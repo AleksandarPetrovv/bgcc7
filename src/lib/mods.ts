@@ -17,4 +17,4 @@ export function applyMod(mod: string, s: BaseStats): BaseStats {
   return s;
 }
 
-export const MOD_ACRONYM: Record<string, string[]> = { HardRock: ["HR"], DoubleTime: ["DT"] };
+export const MOD_ACRONYM: Record<string, string[]> = { Hidden: ["HD"], HardRock: ["HR"], DoubleTime: ["DT"] };
