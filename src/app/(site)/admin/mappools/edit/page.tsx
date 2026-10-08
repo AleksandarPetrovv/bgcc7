@@ -34,6 +34,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
   const name = (s: { title: string }) => t.rounds[s.title] ?? s.title;
   const checks = await getMapChecks(stage.pools.flatMap((p) => p.maps.map((m) => m.id)));
   const skill = (await getSkillLayouts())?.[stage.slug];
+  const poolMaps = stage.pools.flatMap((p) => p.maps);
   const mapsOf = (mod: string) => stage.pools.find((p) => p.category === mod)?.maps ?? [];
   const countOf = (mod: string) => stage.blueprint[mod] ?? 0;
   type Item = { mod: string; slot: number; out: boolean; note?: string; label?: string };
@@ -83,8 +84,26 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
       {edit ? (
         <Panel title={t.admin.poolDone} help={t.admin.poolDoneHelp} className="mb-6 border-rose/60" i={1}>
           <div className="space-y-4">
-            <ReleaseToggle key={`${stage.id}-${stage.released}`} stageId={stage.id} released={stage.released} />
-            <PackUploader key={stage.slug} simple stages={[{ slug: stage.slug, title: stage.title, pack: stage.pack }]} locale={lang === "bg" ? "bg-BG" : "en-GB"} />
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { k: t.admin.poolStatMaps, v: String(poolMaps.length) },
+                { k: t.admin.poolStatSr, v: poolMaps.length ? `${(poolMaps.reduce((n, m) => n + m.sr, 0) / poolMaps.length).toFixed(2)}★` : "–" },
+              ].map((s) => (
+                <div key={s.k} className="-skew-x-12 border border-line bg-ink/50 px-4 py-2.5">
+                  <div className="skew-x-12">
+                    <div className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-ash">{s.k}</div>
+                    <div className="num text-2xl text-paper">{s.v}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <PackUploader
+              key={stage.slug}
+              simple
+              stages={[{ slug: stage.slug, title: stage.title, pack: stage.pack }]}
+              locale={lang === "bg" ? "bg-BG" : "en-GB"}
+              lead={<ReleaseToggle key={`${stage.id}-${stage.released}`} stageId={stage.id} released={stage.released} className="w-full justify-center" />}
+            />
           </div>
         </Panel>
       ) : (

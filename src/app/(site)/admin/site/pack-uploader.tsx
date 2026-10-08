@@ -18,7 +18,7 @@ const mb = (n: number) => `${(n / 1024 / 1024).toFixed(n > 100 * 1024 * 1024 ? 0
 
 const latest = (a: Pack | null, b: Pack | null | undefined) => (b === undefined ? a : !a || !b ? (b ?? a) : (b.at ?? "") > (a.at ?? "") ? b : a);
 
-export function PackUploader({ stages, locale, simple }: { stages: StageInfo[]; locale: string; simple?: boolean }) {
+export function PackUploader({ stages, locale, simple, lead }: { stages: StageInfo[]; locale: string; simple?: boolean; lead?: React.ReactNode }) {
   const t = useDict();
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
@@ -222,17 +222,20 @@ export function PackUploader({ stages, locale, simple }: { stages: StageInfo[]; 
           {progress !== null && <span className="num text-lg text-paper">{Math.round(progress * 100)}%</span>}
         </button>
       )}
-      <div className={cn("flex flex-wrap items-center gap-3", simple ? "flex-col items-stretch" : "border border-line bg-ink/50 px-4 py-3")}>
-        <Btn
-          type="button"
-          tone={simple ? "rose" : "outline"}
-          small={!simple}
-          onClick={generate}
-          disabled={generating || progress !== null}
-          className={cn(simple && "min-h-14 text-base shadow-[4px_4px_0_0_var(--color-rose-deep)]", simple && !generating && "btn-shine")}
-        >
-          <PackagePlus className={simple ? "size-5" : "size-3.5"} /> {t.admin.packGenerate}
-        </Btn>
+      {simple && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {lead}
+          <Btn type="button" tone="rose" onClick={generate} disabled={generating || progress !== null} className="h-10 w-full shadow-[3px_3px_0_0_var(--color-rose-deep)]">
+            <PackagePlus className="size-3.5" /> {t.admin.packGenerate}
+          </Btn>
+        </div>
+      )}
+      <div className={cn("flex flex-wrap items-center gap-3", simple ? (generating ? "" : "hidden") : "border border-line bg-ink/50 px-4 py-3")}>
+        {!simple && (
+          <Btn type="button" tone="outline" small onClick={generate} disabled={generating || progress !== null}>
+            <PackagePlus className="size-3.5" /> {t.admin.packGenerate}
+          </Btn>
+        )}
         {generating ? (
           <span className="num min-w-0 flex-1 text-xs text-paper">
             {job.zipping ? t.admin.packZipping : job.total ? t.admin.packGenerating(job.done, job.total) : t.admin.packPreparing}
