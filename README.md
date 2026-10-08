@@ -6,4 +6,4 @@ hi
 its the site
 
 currently hosted here
-[https://alek.taild01a53.ts.net/]([url](https://alek.taild01a53.ts.net/))
+[https://alek.taild01a53.ts.net/](https://alek.taild01a53.ts.net/)
