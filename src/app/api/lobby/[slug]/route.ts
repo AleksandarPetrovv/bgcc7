@@ -2,7 +2,7 @@ import { draftAccess } from "@/db/drafts";
 import { getFormat } from "@/db/edition";
 import { matchIdFromSlug } from "@/lib/format";
 import { log } from "@/lib/authz";
-import { abortLobby, closeLobby, ensureBot, inviteMissing, kickSlot, lobbyView, makeLobby, moveSlot, onLobby, refreshLobby, sayLocal, sendChat, simpleCmd, spareSlot, startLobby, teamSlot } from "@/lib/bancho";
+import { abortLobby, canLobby, closeLobby, lobbyOwner, ensureBot, inviteMissing, kickSlot, lobbyView, makeLobby, moveSlot, onLobby, refreshLobby, sayLocal, sendChat, simpleCmd, spareSlot, startLobby, teamSlot } from "@/lib/bancho";
 import { sse } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +20,7 @@ export async function GET(req: Request, ctx: Ctx) {
   const a = await draftAccess(id);
   if (!a) return Response.json({ error: "forbidden" }, { status: 403 });
   void ensureBot().catch((e) => console.error("[bancho]", e));
-  if (a.admin) return sse(req, () => lobbyView(id), 3000, onLobby);
+  if (a.admin) return sse(req, () => lobbyView(id, a.osuId), 3000, onLobby);
   return sse(
     req,
     async () => {
@@ -50,11 +50,13 @@ export async function POST(req: Request, ctx: Ctx) {
   const w = await who(ctx);
   if (!w) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
   const { id, osuId } = w;
+  const owner = await lobbyOwner(id);
+  if (act === "make" ? (owner !== null && owner !== osuId) || !canLobby(osuId) : owner !== osuId) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
   try {
     switch (act) {
       case "chat": {
         const r = await sendChat(id, osuId, String(b?.text ?? ""));
-        if (r !== "ok") return Response.json({ ok: false, error: r }, { status: r === "noslot" || r === "nouser" ? 404 : 429 });
+        if (r !== "ok") return Response.json({ ok: false, error: r }, { status: r === "noslot" || r === "nouser" ? 404 : r === "forbidden" ? 403 : 429 });
         break;
       }
       case "make":
