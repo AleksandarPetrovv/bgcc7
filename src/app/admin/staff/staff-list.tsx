@@ -3,7 +3,7 @@
 import { Flash } from "@/components/admin/flash";
 import { useRef, useState, useTransition } from "react";
 import { Reorder, useDragControls } from "motion/react";
-import { Check, Crown, Gamepad2, Gavel, GripVertical, Lock, Map as MapIcon, TriangleAlert } from "lucide-react";
+import { Check, Crown, Gamepad2, Gavel, GripVertical, Lock, Map as MapIcon, Mic, Radio, TriangleAlert } from "lucide-react";
 import { ActionForm } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
 import { flagUrl } from "@/lib/data";
@@ -68,7 +68,7 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
   );
 }
 
-const PERM_ICON: Record<Role, typeof Crown> = { host: Crown, referee: Gavel, mappooler: MapIcon, playtester: Gamepad2 };
+const PERM_ICON: Record<Role, typeof Crown> = { host: Crown, referee: Gavel, mappooler: MapIcon, playtester: Gamepad2, streamer: Radio, commentator: Mic };
 
 function PermPicker({ initial }: { initial: string[] }) {
   const t = useDict();

@@ -5,7 +5,7 @@ import { Tag } from "@/components/site/page";
 import { auth } from "@/auth";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
-import { can, type Perm } from "@/lib/roles";
+import { can, hasAdmin, type Perm } from "@/lib/roles";
 import { getEdition } from "@/db/edition";
 import { siteEdition } from "@/db";
 import { EditionSwitch } from "./edition/edition-switch";
@@ -20,6 +20,7 @@ const MENU: { href: string; perm: Perm }[] = [
   { href: "/admin/teams", perm: "teams" },
   { href: "/admin/matches", perm: "matches" },
   { href: "/admin/draft", perm: "draft" },
+  { href: "/admin/refapp", perm: "matches" },
   { href: "/admin/site", perm: "phase" },
   { href: "/admin/staff", perm: "staff" },
   { href: "/admin/log", perm: "log" },
@@ -31,7 +32,7 @@ const QUALS = ["/admin/lobbies", "/admin/qualifiers"];
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const [viewer, session, t] = await Promise.all([getViewer(), auth(), getDict()]);
-  if (!viewer?.roles.length) notFound();
+  if (!viewer || !hasAdmin(viewer.roles)) notFound();
   const edition = getEdition();
   const items = MENU.filter((m) => can(viewer.roles, m.perm) && (edition === "bgcc6" || !QUALS.includes(m.href))).map((m) => ({ href: m.href, label: t.admin.menu[m.href.split("/")[2] ?? "overview"] }));
   const name = session?.user?.name;
