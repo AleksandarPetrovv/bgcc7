@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowUpDown, Check, CircleHelp, X, Copy, DoorClosed, ExternalLink, Lock, LockOpen, Map as MapIcon, MoveVertical, OctagonX, Play, Plus, RefreshCw, Send, Timer, TimerOff, TriangleAlert, UserPlus, UserX, Users, WifiOff } from "lucide-react";
+import { ArrowUpDown, Check, CircleHelp, X, Copy, DoorClosed, Download, ExternalLink, Lock, LockOpen, Map as MapIcon, MoveVertical, OctagonX, Play, Plus, RefreshCw, Send, Timer, TimerOff, TriangleAlert, UserPlus, UserX, Users, WifiOff } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import { useSSE } from "@/components/site/use-sse";
 import { useFormat } from "@/components/site/tournament";
@@ -56,6 +56,60 @@ function Btn({ onClick, disabled, tone = "line", wide, children }: { onClick: ()
   );
 }
 
+export function HelperMissing({ onClose }: { onClose: () => void }) {
+  const t = useDict();
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.2 } }}
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
+    >
+      <motion.div
+        initial={POP.initial}
+        animate={POP.animate}
+        exit={POP.exit}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md overflow-hidden border-2 border-gold bg-coal p-6 shadow-[8px_8px_0_0_rgb(0_0_0/0.55)]"
+        role="dialog"
+        aria-modal="true"
+      >
+        <button type="button" onClick={onClose} aria-label={t.draft.cancel} className="absolute right-3 top-3 p-1 text-ash hover:text-paper">
+          <X className="size-4" />
+        </button>
+        <WifiOff className="size-8 text-gold" />
+        <h3 className="heading-slam mt-2 text-3xl">{t.lobby.noHelper}</h3>
+        <p className="mt-1 text-sm font-bold text-paper/70">{t.lobby.noHelperBody}</p>
+        <div className="mt-6 flex flex-col gap-2.5">
+          <motion.a
+            href="/download/helper"
+            whileHover={{ x: 4 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex min-h-12 -skew-x-6 items-center bg-gold px-5 font-black uppercase tracking-wide text-ink shadow-[5px_5px_0_0_rgb(0_0_0/0.55)]"
+          >
+            <span className="inline-flex skew-x-6 items-center gap-2">
+              <Download className="size-4" strokeWidth={3} /> {t.lobby.helperDownload}
+            </span>
+          </motion.a>
+          <motion.a
+            href="/admin/refapp"
+            target="_blank"
+            rel="noreferrer"
+            whileHover={{ x: 4 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex min-h-12 -skew-x-6 items-center border border-gold px-5 font-black uppercase tracking-wide text-gold hover:bg-gold/10"
+          >
+            <span className="inline-flex skew-x-6 items-center gap-2">
+              <ExternalLink className="size-4" /> {t.lobby.helperPage}
+            </span>
+          </motion.a>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 const HELP_C = ["var(--color-azure)", "var(--color-azure)", "var(--color-azure)", "var(--color-azure)", "var(--color-paper)", "var(--color-gold)", "var(--color-gold)", "var(--color-balkan)", "var(--color-gold)", "var(--color-rose)"];
 
 function LobbyHelp({ onClose }: { onClose: () => void }) {
@@ -87,6 +141,12 @@ function LobbyHelp({ onClose }: { onClose: () => void }) {
           </button>
         </div>
         <div className="overflow-y-auto px-5 py-5 sm:px-6">
+          <div className="mb-5 flex gap-3 border border-gold/60 bg-gold/10 px-4 py-3">
+            <TriangleAlert className="mt-0.5 size-4 shrink-0 text-gold" />
+            <p className="text-sm leading-relaxed text-paper/90">
+              <span className="font-black uppercase tracking-wide text-gold">{t.lobby.streamTitle}</span> {t.lobby.streamBody}
+            </p>
+          </div>
           <ul className="space-y-4">
             {t.lobby.helpItems.map((h, i) => (
               <motion.li
@@ -237,6 +297,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, canSay, tea
   const [picking, setPicking] = useState<{ slot: number; mode: "swap" | "move" } | null>(null);
   const [ask, setAsk] = useState<"start" | "abort" | "close" | null>(null);
   const [help, setHelp] = useState(false);
+  const [noHelper, setNoHelper] = useState(false);
   const [say, setSay] = useState("");
   const sayRef = useRef<HTMLInputElement>(null);
   const fill = (cmd: string) => {
@@ -505,7 +566,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, canSay, tea
         {err && <span className="text-xs font-black text-rose-hi">{t.lobby.failed}</span>}
         {!open && !readOnly && (
           <span className="ml-auto">
-            <Btn tone="go" onClick={() => run({ act: "make" })} disabled={pending || v.bot === "off"}>
+            <Btn tone="go" onClick={() => (v.helper === false ? setNoHelper(true) : run({ act: "make" }))} disabled={pending}>
               <Plus className="size-3.5" strokeWidth={3} /> {v.state === "closed" ? t.lobby.again : t.lobby.make}
             </Btn>
           </span>
@@ -563,6 +624,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, canSay, tea
         createPortal(
           <AnimatePresence>
             {help && <LobbyHelp key="help" onClose={() => setHelp(false)} />}
+            {noHelper && <HelperMissing key="helper" onClose={() => setNoHelper(false)} />}
             {ask && (
               <LobbyAsk
                 key={ask}
