@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { getFormat } from "@/db/edition";
-import { getMatches } from "@/db/tournament";
+import { getAllMatches } from "@/db/tournament";
 import { overlayUser } from "@/db/stream";
 import { matchIdFromSlug } from "@/lib/format";
 import { userPath } from "@/lib/data";
@@ -18,7 +18,7 @@ export default async function Overlay({ params, searchParams }: { params: Promis
   }
   const f = getFormat();
   const id = matchIdFromSlug(f, key);
-  const match = id ? ((await getMatches()).find((m) => m.id === id) ?? null) : null;
+  const match = id ? ((await getAllMatches()).find((m) => m.id === id) ?? null) : null;
   if (!id) {
     const u = await overlayUser(key);
     if (!u) notFound();
