@@ -69,12 +69,12 @@ function Points({ score, firstTo, side }: { score: number; firstTo: number; side
   );
 }
 
-// matches osu!tourney's own 2v2 layout at tournament.cfg Height = 1080: four 480x360 clients in a
-// 2x2 block, team 1 on the left. one display/window capture of the manager area lines up 1:1.
+// four 4:3 tourney clients in a 2x2 block, team 1 on the left. "stream layout.ps1" sizes and places
+// the client windows to match, so one display capture of the manager area lines up 1:1.
 const TOP = 170;
-const CW = 480;
-const CH = 360;
-const LEFT = 480;
+const CW = 528;
+const CH = 396;
+const LEFT = (1920 - 2 * CW) / 2;
 const BOTTOM = TOP + 2 * CH;
 const BOXES = [
   { x: LEFT, y: TOP, side: 0, n: 1 },
@@ -282,23 +282,23 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
         <FlagBar className="absolute inset-x-0 top-0 h-[4px]" />
         <motion.div
           key={current?.id ?? "none"}
-          className="flex h-full items-center gap-7 px-[var(--gp-side)]"
+          className="flex h-full items-center gap-4 px-[var(--gp-side)] pt-[4px]"
           initial={{ x: -60, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         >
           {current ? (
             <>
-              <span className="inline-flex -skew-x-12 px-5 py-2" style={{ background: mod?.color ?? "var(--color-paper)", boxShadow: "5px 5px 0 0 rgba(0,0,0,0.6)" }}>
-                <span className="skew-x-12 font-display text-[54px] font-black italic leading-none text-ink">{current.slot}</span>
+              <span className="inline-flex -skew-x-12 px-3 py-1" style={{ background: mod?.color ?? "var(--color-paper)", boxShadow: "4px 4px 0 0 rgba(0,0,0,0.6)" }}>
+                <span className="skew-x-12 font-display text-[34px] font-black italic leading-none text-ink">{current.slot}</span>
               </span>
               <div className="min-w-0 flex-1">
-                <h3 className="truncate text-[38px] font-black leading-tight">{current.title}</h3>
-                <p className="truncate text-[22px] font-bold text-ash">
+                <h3 className="truncate text-[24px] font-black leading-tight">{current.title}</h3>
+                <p className="truncate text-[14px] font-bold text-ash">
                   [{current.version}] · {current.creator}
                 </p>
               </div>
-              <dl className="flex shrink-0 items-center gap-3">
+              <dl className="flex shrink-0 items-center gap-2">
                 {[
                   ["★", current.sr.toFixed(2)],
                   ["BPM", integer.format(current.bpm)],
@@ -307,19 +307,19 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
                   ["OD", current.od.toFixed(1)],
                   ["Length", len(current.length)],
                 ].map(([k, v]) => (
-                  <div key={k} className="inline-flex -skew-x-12 border border-line bg-coal px-3 py-1.5">
-                    <div className="flex skew-x-12 items-baseline gap-2">
-                      <dt className={cn("text-[13px] font-black uppercase tracking-[0.05em]", k === "★" ? "text-gold" : "text-ash")}>{k}</dt>
-                      <dd className="num text-[26px] font-black">{v}</dd>
+                  <div key={k} className="inline-flex -skew-x-12 border border-line bg-coal px-2 py-1">
+                    <div className="flex skew-x-12 items-baseline gap-1.5">
+                      <dt className={cn("text-[10px] font-black uppercase tracking-[0.05em]", k === "★" ? "text-gold" : "text-ash")}>{k}</dt>
+                      <dd className="num text-[17px] font-black">{v}</dd>
                     </div>
                   </div>
                 ))}
               </dl>
             </>
           ) : (
-            <span className="text-[18px] font-black uppercase tracking-[0.08em] text-ash">{feed.match.round}</span>
+            <span className="text-[14px] font-black uppercase tracking-[0.08em] text-ash">{feed.match.round}</span>
           )}
-          <Lockup num={editionNum(feed)} size={34} className="ml-auto shrink-0 pl-4" />
+          <Lockup num={editionNum(feed)} size={22} className="ml-auto shrink-0 pl-3" />
         </motion.div>
       </motion.footer>
     </div>
