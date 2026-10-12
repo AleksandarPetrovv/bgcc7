@@ -3,11 +3,11 @@
 import { Flash } from "@/components/admin/flash";
 import { useRef, useState, useTransition } from "react";
 import { Reorder, useDragControls } from "motion/react";
-import { Check, Crown, Gamepad2, Gavel, GripVertical, Lock, Map as MapIcon, Mic, Radio, TriangleAlert } from "lucide-react";
+import { Brush, Check, Crown, Gamepad2, Gavel, GripVertical, Lock, Map as MapIcon, Mic, Palette, Radio, TriangleAlert, Wrench } from "lucide-react";
 import { ActionForm } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
 import { flagUrl } from "@/lib/data";
-import { ROLES, type Role } from "@/lib/roles";
+import { ROLES, titleOnly, type Role } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { removeStaff, reorderStaff, updateStaff } from "./actions";
 
@@ -68,7 +68,7 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
   );
 }
 
-const PERM_ICON: Record<Role, typeof Crown> = { host: Crown, referee: Gavel, mappooler: MapIcon, playtester: Gamepad2, streamer: Radio, commentator: Mic };
+const PERM_ICON: Record<Role, typeof Crown> = { host: Crown, referee: Gavel, mappooler: MapIcon, playtester: Gamepad2, streamer: Radio, commentator: Mic, technical: Wrench, leadDesign: Palette, designer: Brush };
 
 function PermPicker({ initial }: { initial: string[] }) {
   const t = useDict();
@@ -78,7 +78,7 @@ function PermPicker({ initial }: { initial: string[] }) {
     setOn((prev) => {
       const next = new Set(prev);
       if (next.has(r)) next.delete(r);
-      else if (r === "host") return new Set([r]);
+      else if (r === "host") return new Set([r, ...[...prev].filter((x) => titleOnly(x as Role))]);
       else next.add(r);
       return next;
     });
@@ -92,7 +92,7 @@ function PermPicker({ initial }: { initial: string[] }) {
         {ROLES.map((r, k) => {
           const Icon = PERM_ICON[r];
           const checked = on.has(r);
-          const blocked = host && r !== "host";
+          const blocked = host && r !== "host" && !titleOnly(r);
           return (
             <label
               key={r}

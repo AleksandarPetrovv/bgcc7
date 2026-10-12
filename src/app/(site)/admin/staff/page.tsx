@@ -6,14 +6,14 @@ import { ActionForm, inputCls, Panel, Field } from "@/components/admin/form";
 import { getStaff } from "@/db/admin";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
-import { can } from "@/lib/roles";
+import { can, PLAYABLE, type Role } from "@/lib/roles";
 import { addStaff } from "./actions";
 import { StaffList } from "./staff-list";
 
 export default async function AdminStaff() {
   const [t, viewer, rows, regs] = await Promise.all([getDict(), getViewer(), getStaff(), getRegistrations()]);
   const playing = new Set(regs.filter((r) => r.status !== "denied").map((r) => r.osuId));
-  const clash = (s: (typeof rows)[number]) => playing.has(s.osuId) && s.permRoles.length > 0;
+  const clash = (s: (typeof rows)[number]) => playing.has(s.osuId) && s.permRoles.some((r) => !PLAYABLE.includes(r as Role));
   if (!can(viewer?.roles, "staff")) notFound();
   return (
     <>
