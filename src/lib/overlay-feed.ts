@@ -13,7 +13,35 @@ import { nowPlaying } from "@/lib/bancho";
 import { getLive, IPC_PLAYING } from "@/lib/live-scores";
 import { overlayUser, currentStreamMatch } from "@/db/stream";
 import { isScene, type Scene } from "@/lib/scenes";
-import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup } from "./overlay-types";
+import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup, FeedMatch } from "./overlay-types";
+import { TEST_MATCH } from "@/lib/format";
+
+const BUILD = String(Date.now());
+
+const ROLL_HOLD = 10_000;
+const gr = globalThis as unknown as { bgccRolledAt?: Map<string, { key: string; at: number }> };
+function rolledSince(matchId: string, key: string, fallback: number) {
+  const m = (gr.bgccRolledAt ??= new Map());
+  const hit = m.get(matchId);
+  if (hit?.key === key) return hit.at;
+  const at = hit ? Date.now() : fallback;
+  m.set(matchId, { key, at });
+  return at;
+}
+
+export async function scheduleFeed(): Promise<FeedMatch[]> {
+  return (await getAllMatches())
+    .filter((m) => m.id !== TEST_MATCH.id)
+    .map((m) => ({
+      id: m.id,
+      round: m.round,
+      bracket: m.bracket,
+      startsAt: m.datetime,
+      teams: [m.team1.name, m.team2.name],
+      score: [m.team1.score, m.team2.score],
+      winner: m.winner ?? null,
+    }));
+}
 
 export async function poolFeed(stage: PoolStage | undefined): Promise<{ pool: FeedMap[]; groups?: FeedGroup[] }> {
   if (!stage?.released) return { pool: [] };
@@ -85,6 +113,8 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
           id: p.userId,
           name: p.username,
           avatar: p.avatar,
+          rank: p.rank || null,
+          country: p.country,
         })),
       };
     }
@@ -137,7 +167,11 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
   const current =
     pool.find((x) => x.id === mapId) ?? (lastPick ? pool.find((x) => x.slot === lastPick.slot) : undefined) ?? null;
 
-  const auto: Scene = winner !== null ? "winner" : inPlay ? "gameplay" : draft?.open ? draft.roll1 == null || draft.roll2 == null ? "intro" : "mappool" : "soon";
+  const rolled = draft?.roll1 != null && draft?.roll2 != null && draft.roll1 !== draft.roll2;
+  const rolledAt = rolled ? rolledSince(matchId, `${draft.roll1}:${draft.roll2}`, draft.choice || draft.steps.length ? 0 : Date.parse(draft.turnAt ?? "") || Date.now()) : null;
+  // stay on the intro so the roll reveal plays out, then move to the pool
+  const introDone = rolledAt !== null && Date.now() - rolledAt >= ROLL_HOLD;
+  const auto: Scene = winner !== null ? "winner" : inPlay ? "gameplay" : draft?.open ? (introDone ? "mappool" : "intro") : "soon";
 
   const o = sceneRow[0]?.scene;
   const scene: Scene = isScene(o) ? o : auto;
@@ -160,11 +194,15 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
     teams: [team(m.team1), team(m.team2)],
     pool,
     groups,
+    schedule: await scheduleFeed(),
     steps: stage?.released ? steps : [],
+    rolls: [draft?.roll1 ?? null, draft?.roll2 ?? null],
+    choice: draft?.choice === "pick" || draft?.choice === "ban" ? draft.choice : null,
     current,
     live: stage?.released ? live : null,
     scene,
     sceneAuto,
     at: Date.now(),
+    build: BUILD,
   };
 }

@@ -2,7 +2,7 @@ import "server-only";
 import { asc, eq, inArray, sql } from "drizzle-orm";
 import { currentEdition, db } from "./index";
 import { drafts, matches, mpLobbies, staff, userNames, users } from "./schema";
-import { getAllMatches, getMatches } from "./tournament";
+import { getAllMatches } from "./tournament";
 import { getFormat } from "./edition";
 import { matchSlug } from "@/lib/format";
 import { userPath } from "@/lib/data";
@@ -27,7 +27,7 @@ export const streamersOf = (m: { streamer: string | null }) => (m.streamer ?? ""
 
 export async function streamMatches(osuId: number, all: boolean) {
   const me = userPath((await usernameOf(osuId)) ?? "");
-  const list = (await getMatches()).filter((m) => m.winner == null && (all || streamersOf(m).includes(me)));
+  const list = (await getAllMatches()).filter((m) => m.winner == null && (all || streamersOf(m).includes(me)));
   list.sort((a, b) => (a.datetime ? Date.parse(a.datetime) : Infinity) - (b.datetime ? Date.parse(b.datetime) : Infinity));
   const rows = list.length ? await db.select({ id: matches.id, scene: matches.scene }).from(matches).where(inArray(matches.id, list.map((m) => m.id))) : [];
   const scene = new Map(rows.map((r) => [r.id, isScene(r.scene) ? r.scene : null] as const));

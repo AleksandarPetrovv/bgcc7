@@ -7,6 +7,7 @@ import type { Scene } from "@/lib/scenes";
 import { CalmScene } from "./calm-scenes";
 import { MappoolScene } from "./mappool-scene";
 import { GameplayScene } from "./gameplay-scene";
+import { BracketScene, ScheduleScene } from "./schedule-scenes";
 import styles from "./overlay-view.module.css";
 
 export function OverlayView({ overlayKey, scene, stage }: { overlayKey: string; scene?: Scene; stage?: string }) {
@@ -27,10 +28,15 @@ function OverlaySubscription({ url }: { url: string }) {
     const source = new EventSource(url);
     let active = true;
     let expiry: ReturnType<typeof setTimeout> | undefined;
+    let build: string | undefined;
     source.onmessage = (event) => {
       if (!active || event.currentTarget !== source) return;
       try {
         const next: OverlayFeed | null = JSON.parse(event.data);
+        if (next?.build) {
+          if (build && build !== next.build) return window.location.reload();
+          build = next.build;
+        }
         clearTimeout(expiry);
         if (!next?.live) {
           setFeed(next);
@@ -60,22 +66,80 @@ function OverlaySubscription({ url }: { url: string }) {
     };
   }, [url]);
 
+  const target = feed ? `${feed.match.id}:${feed.scene}` : null;
+  const [shown, setShown] = useState<string | null>(target);
+  const [wipe, setWipe] = useState(0);
+  useEffect(() => {
+    if (target === shown) return;
+    if (shown === null || target === null || reducedMotion) {
+      const id = setTimeout(() => setShown(target), 0);
+      return () => clearTimeout(id);
+    }
+    const start = setTimeout(() => setWipe((w) => w + 1), 0);
+    const swap = setTimeout(() => setShown(target), 520);
+    return () => {
+      clearTimeout(start);
+      clearTimeout(swap);
+    };
+  }, [target, shown, reducedMotion]);
+
+  const scene = (shown?.slice(shown.lastIndexOf(":") + 1) ?? feed?.scene) as OverlayFeed["scene"];
+  const view = feed && shown ? { ...feed, scene } : null;
+
   return (
+    <Fit>
     <div className={styles.stage}>
-      {feed && (
-        <AnimatePresence initial={false} mode="wait">
-          <motion.div
-            key={`${feed.match.id}:${feed.scene}`}
-            className={styles.scene}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: reducedMotion ? 0 : 0.18, ease: "easeOut" }}
-          >
-            {feed.scene === "gameplay" ? <GameplayScene feed={feed} /> : feed.scene === "mappool" ? <MappoolScene feed={feed} /> : <CalmScene feed={feed} />}
-          </motion.div>
-        </AnimatePresence>
+      {view && (
+        <div key={shown} className={styles.scene}>
+          {scene === "gameplay" ? <GameplayScene feed={view} /> : scene === "mappool" ? <MappoolScene feed={view} /> : scene === "schedule" ? <ScheduleScene feed={view} /> : scene === "bracket" ? <BracketScene feed={view} /> : <CalmScene feed={view} />}
+        </div>
       )}
+      <AnimatePresence>{wipe > 0 && <Wipe key={wipe} />}</AnimatePresence>
+    </div>
+    </Fit>
+  );
+}
+
+const SWEEP = [
+  { c: "var(--color-paper)", d: 0 },
+  { c: "var(--color-balkan)", d: 0.07 },
+  { c: "var(--color-rose)", d: 0.14 },
+];
+
+function Wipe() {
+  return (
+    <motion.div className="pointer-events-none absolute inset-0 z-50 overflow-hidden" initial={{ opacity: 1 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0 } }}>
+      {SWEEP.map((s, i) => (
+        <motion.span
+          key={i}
+          className="absolute inset-y-[-10%] left-0 w-[2600px] -skew-x-12"
+          style={{ background: s.c, boxShadow: "-24px 0 0 0 rgba(0,0,0,0.35)" }}
+          initial={{ x: -2900 }}
+          animate={{ x: 2300 }}
+          transition={{ duration: 1.05, delay: s.d, ease: [0.76, 0, 0.24, 1] }}
+        />
+      ))}
+    </motion.div>
+  );
+}
+
+function Fit({ children }: { children: React.ReactNode }) {
+  const [scale, setScale] = useState(1);
+  const [boxed, setBoxed] = useState(false);
+  useEffect(() => {
+    const fit = () => {
+      setScale(Math.min(window.innerWidth / 1920, window.innerHeight / 1080));
+      setBoxed(Math.abs(window.innerWidth / window.innerHeight - 16 / 9) > 0.01);
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, []);
+  return (
+    <div className={`fixed inset-0 flex items-center justify-center overflow-hidden ${boxed ? "bg-ink" : ""}`}>
+      <div className="shrink-0" style={{ transform: `scale(${scale})` }}>
+        {children}
+      </div>
     </div>
   );
 }
