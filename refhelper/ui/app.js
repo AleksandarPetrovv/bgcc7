@@ -16,7 +16,7 @@ const ERR = {
   noroles: "this account has no ref or streaming role",
 };
 const SITE = { off: ["offline", ""], connecting: ["connecting", "wait"], online: ["online", "ok"] };
-const IRC = { idle: ["idle", ""], connecting: ["connecting", "wait"], online: ["online", "ok"], badpass: ["wrong password", "bad"] };
+const IRC = { idle: ["standby", ""], connecting: ["connecting", "wait"], online: ["online", "ok"], badpass: ["wrong password", "bad"] };
 const STREAM = {
   off: ["off", "", "enable streaming to send live scores"],
   waiting: ["waiting for the tourney client", "wait", "open osu!tourney; streamers do not need irc"],
@@ -33,6 +33,14 @@ const STREAM = {
 const errorText = (e) => ERR[String(e)] ?? "couldn't complete the action; try again and check the activity log";
 
 let screen = null;
+let tabPicked = false;
+let tab = (() => {
+  try {
+    return localStorage.getItem("tab");
+  } catch {
+    return null;
+  }
+})();
 let latestStatus = null;
 let streamBusy = false;
 let unlinkBusy = false;
@@ -74,8 +82,24 @@ function render(s) {
   $("sent").textContent = s.sent;
   $("me-name").textContent = s.name;
   $("initial").textContent = (s.name[0] ?? "?").toLowerCase();
-  $("ref-section").hidden = !s.roles_ready || !s.can_ref;
-  $("stream-section").hidden = !s.roles_ready || !s.can_stream;
+  if (!tab) tab = s.can_stream && !s.can_ref ? "stream" : "ref";
+  const allowed = { ref: !!s.can_ref, stream: !!s.can_stream };
+  const other = tab === "ref" ? "stream" : "ref";
+  if (s.roles_ready && !tabPicked && !allowed[tab] && allowed[other]) tab = other;
+  for (const b of document.querySelectorAll(".tab")) {
+    const on = b.dataset.tab === tab;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-selected", String(on));
+    b.classList.toggle("nope", !!s.roles_ready && !allowed[b.dataset.tab]);
+  }
+  $("ref-section").hidden = !s.roles_ready || tab !== "ref" || !s.can_ref;
+  $("stream-section").hidden = !s.roles_ready || tab !== "stream" || !s.can_stream;
+  const locked = !!s.roles_ready && !allowed[tab];
+  $("locked").hidden = !locked;
+  if (locked) {
+    $("locked-h").textContent = tab === "ref" ? "no referee role" : "no streamer role";
+    $("locked-t").textContent = tab === "ref" ? "ask tournament staff to give this account the referee role on the site, then switch here again." : "ask tournament staff to give this account the streamer role on the site, then switch here again.";
+  }
   const roles = !s.roles_ready ? [] : [s.can_ref && "referee", s.can_stream && "streamer"].filter(Boolean);
   const roleKey = roles.join(",");
   if ($("roles").dataset.k !== roleKey) {
@@ -179,7 +203,6 @@ async function action(id, command, args, errorId = "run-err") {
 $("avatar").onload = () => $("avatar").classList.add("ok");
 $("min").onclick = () => win.minimize();
 $("close").onclick = () => win.close();
-$("getirc").onclick = () => action("getirc", "open", { what: "irc" }, "login-err");
 $("linked-getirc").onclick = () => action("linked-getirc", "open", { what: "irc" }, "pass-err");
 $("site").onclick = () => action("site", "open", { what: "site" });
 $("reopen").onclick = () => action("reopen", "open", { what: "page" }, "wait-err");
@@ -213,7 +236,10 @@ $("irc-form").onsubmit = async (e) => {
   }
   $("linked-pass").value = "";
   if (await action("save-pass", "save_irc_password", { pass }, "pass-err")) {
-    $("pass-note").textContent = "irc password saved. waiting for the relay status…";
+    $("pass-note").textContent = "irc password saved. osu! irc connects when a lobby opens.";
+    setTimeout(() => {
+      if ($("pass-note").textContent.startsWith("irc password saved")) $("pass-note").textContent = "";
+    }, 8000);
   }
 };
 
@@ -221,19 +247,11 @@ $("go").onclick = async () => {
   const btn = $("go");
   if (btn.disabled || unlinkBusy) return;
   $("login-err").textContent = "";
-  const name = $("name").value.trim();
-  if (!name) {
-    $("login-err").textContent = ERR.empty;
-    return;
-  }
   btn.disabled = true;
-  const pass = $("pass").value;
-  $("pass").value = "";
   try {
-    const word = await invoke("link", { name, pass });
+    const word = await invoke("link");
     $("word").textContent = word;
     $("wait-err").textContent = "";
-    $("pass").value = "";
     if (latestStatus?.linked) show("s-run");
     else show("s-wait");
   } catch (e) {
@@ -242,7 +260,6 @@ $("go").onclick = async () => {
     btn.disabled = false;
   }
 };
-for (const id of ["name", "pass"]) $(id).addEventListener("keydown", (e) => e.key === "Enter" && $("go").click());
 
 for (const b of document.querySelectorAll("[data-uninstall]")) b.onclick = () => ($("modal").hidden = false);
 $("un-no").onclick = () => ($("modal").hidden = true);
@@ -292,7 +309,6 @@ $("unlink").onclick = async () => {
     await listen("link_error", (e) => {
       $("wait-err").textContent = errorText(e.payload);
     });
-    $("name").value = await invoke("saved_name");
     for (const e of await invoke("logs")) addLog(e, false);
     render(await invoke("status"));
     await syncAuto();
@@ -300,3 +316,15 @@ $("unlink").onclick = async () => {
     $(screen === "s-run" ? "run-err" : "login-err").textContent = errorText(e);
   }
 })();
+
+for (const b of document.querySelectorAll(".tab")) {
+  b.addEventListener("click", () => {
+    tab = b.dataset.tab;
+    tabPicked = true;
+    try {
+      localStorage.setItem("tab", tab);
+    } catch {}
+    if (latestStatus) render(latestStatus);
+    invoke("recheck_roles").catch(() => {});
+  });
+}

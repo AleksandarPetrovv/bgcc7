@@ -1,5 +1,5 @@
 [package]
-name = "bgcc-ref"
+name = "bgcc-helper"
 version = "1.0.0"
 edition = "2021"
 
