@@ -111,14 +111,34 @@ function dropConn(owner: number) {
   ping();
 }
 
-type Sock = { client: unknown; onClose: (e: Error) => void; handleIrcCommand: (c: string) => void; emit: (ev: string, e: Error) => void; initSocket: () => void };
+type Sock = {
+  client: unknown;
+  reconnect: boolean;
+  connectCallback: ((e?: Error) => void) | null;
+  isConnected: () => boolean;
+  onClose: (e: Error) => void;
+  handleIrcCommand: (c: string) => void;
+  emit: (ev: string, e: Error) => void;
+  initSocket: () => void;
+};
 
 function newConn(s: State, c: NonNullable<ReturnType<typeof creds>>, owner: number): Conn {
   const client = new BanchoClient({ username: c.username, password: c.password, apiKey: c.apiKey, rateLimiter: new RateLimiterQueue(new RateLimiterMemory({ points: 9, duration: 5.5 })) as never });
   (client as unknown as Sock).initSocket = function (this: Sock) {
     const sock = relaySocket(owner);
     this.client = sock;
-    sock.on("error", (e: Error) => this.onClose(e));
+    sock.on("error", (e: Error) => {
+      // bancho.js retries every 5s forever and never settles connect(); through the relay that
+      // reopens osu! irc over and over until bancho stops accepting us. fail once, reconnect on demand.
+      const wasUp = this.isConnected();
+      const cb = this.connectCallback;
+      this.reconnect = false;
+      this.onClose(e);
+      if (!wasUp && cb) {
+        this.connectCallback = null;
+        cb(e);
+      }
+    });
     let buf = "";
     sock.on("data", (d: string) => {
       buf += d.replace(/\r/g, "");
