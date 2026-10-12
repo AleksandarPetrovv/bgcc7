@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>bgcc7 ref helper</title>
+    <title>bgcc7 helper</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -14,7 +14,7 @@
           <polygon points="14,0 20,0 16,16 10,16" fill="#0fa06a" />
           <polygon points="24,0 30,0 26,16 20,16" fill="#e0242f" />
         </svg>
-        <span class="title" data-tauri-drag-region>bgcc7 ref helper</span>
+        <span class="title" data-tauri-drag-region>bgcc7 helper</span>
         <div class="win">
           <button id="min" title="minimize to tray" aria-label="minimize to tray">
             <svg viewBox="0 0 12 12"><path d="M1 6h10" stroke="currentColor" stroke-width="1.6" /></svg>
@@ -32,22 +32,13 @@
           <div class="word"><span class="letter" style="animation-delay: 0.05s">b</span><span class="letter" style="animation-delay: 0.12s">g</span><span class="letter" style="animation-delay: 0.19s">c</span><span class="letter" style="animation-delay: 0.26s">c</span></div>
           <span class="num7"><span class="echo" aria-hidden="true">7</span><span class="main">7</span><span class="shine" aria-hidden="true">7</span></span>
         </div>
-        <span class="tag"><span>ref helper</span></span>
+        <span class="tag"><span>helper</span></span>
       </section>
 
       <main class="screens">
         <section id="s-login" class="screen">
           <div class="h in" style="--i: 0">link your account</div>
-          <label class="f in" style="--i: 1">
-            osu! username
-            <span class="field"><input id="name" autocomplete="off" spellcheck="false" /></span>
-          </label>
-          <label class="f in" style="--i: 2">
-            irc password (optional)
-            <span class="field"><input id="pass" type="password" autocomplete="off" /></span>
-          </label>
-          <p class="help">streamers do not need irc. refs can enter their irc password now or save it after linking.</p>
-          <button class="hint in" style="--i: 3" id="getirc">get your irc password</button>
+          <p class="help in" style="--i: 1">log in with osu! on the site and this pc links to your account.</p>
           <div class="err" id="login-err"></div>
           <div class="row in" style="--i: 4">
             <button class="btn rose big" id="go">
@@ -81,6 +72,14 @@
             </span>
           </div>
           <p class="help" id="role-note" role="status">checking account roles…</p>
+          <div class="tabs in" style="--i: 1" role="tablist">
+            <button class="tab" data-tab="ref" role="tab" aria-selected="false"><span>referee</span></button>
+            <button class="tab" data-tab="stream" role="tab" aria-selected="false"><span>streamer</span></button>
+          </div>
+          <div class="locked" id="locked" hidden>
+            <span class="lk-h" id="locked-h"></span>
+            <span class="help" id="locked-t"></span>
+          </div>
           <div class="stats account-status">
             <div class="stat in" style="--i: 1">
               <span class="k">site</span>
@@ -148,7 +147,7 @@
     </div>
     <div class="modal" id="modal" hidden>
       <div class="card">
-        <div class="h">uninstall bgcc7 ref helper?</div>
+        <div class="h">uninstall bgcc7 helper?</div>
         <p>removes the app, your saved login, autostart and the link to the site.</p>
         <div class="row">
           <button class="btn rose" id="un-yes"><span>uninstall</span></button>

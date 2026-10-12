@@ -75,6 +75,9 @@ impl Shared {
         let e = Entry { at, kind, text: text.into() };
         {
             let mut l = self.log.lock().unwrap();
+            if l.front().is_some_and(|p| p.text == e.text && p.kind == e.kind && e.at.saturating_sub(p.at) < 120_000) {
+                return;
+            }
             l.push_front(e.clone());
             l.truncate(80);
         }
@@ -89,9 +92,15 @@ pub async fn check_irc(name: &str, pass: &str) -> Result<(), String> {
     let s = timeout(Duration::from_secs(10), TcpStream::connect(IRC)).await.map_err(|_| "noirc")?.map_err(|_| "noirc")?;
     let (r, mut w) = s.into_split();
     w.write_all(format!("PASS {pass}\r\nUSER {name} 0 * :{name}\r\nNICK {name}\r\n").as_bytes()).await.map_err(|_| "noirc")?;
-    let mut lines = BufReader::new(r).lines();
+    let mut reader = BufReader::new(r);
     let res = timeout(Duration::from_secs(15), async {
-        while let Ok(Some(l)) = lines.next_line().await {
+        let mut heard = false;
+        let mut buf = Vec::new();
+        // bancho's welcome text isn't always valid utf-8, so read raw bytes
+        while matches!(reader.read_until(b'\n', &mut buf).await, Ok(n) if n > 0) {
+            let l = String::from_utf8_lossy(&buf).into_owned();
+            buf.clear();
+            heard = true;
             if l.contains(" 001 ") {
                 return Ok(());
             }
@@ -99,7 +108,8 @@ pub async fn check_irc(name: &str, pass: &str) -> Result<(), String> {
                 return Err("badpass".to_string());
             }
         }
-        Err("noirc".to_string())
+        // bancho answers then hangs up when the login is wrong, so a reply means irc is up
+        Err(if heard { "badpass" } else { "noirc" }.to_string())
     })
     .await
     .unwrap_or(Err("noirc".into()));
@@ -135,7 +145,7 @@ impl Irc {
 }
 
 pub async fn run(sh: Arc<Shared>, token: String, name: String, pass: String, mut stop: watch::Receiver<bool>) {
-    let http = reqwest::Client::builder().user_agent("bgcc-ref/1.0").build().expect("http client");
+    let http = reqwest::Client::builder().user_agent("bgcc-helper/1.0").build().expect("http client");
     let mut wait = 2;
     loop {
         if *stop.borrow() || !sh.status().can_ref || !sh.status().linked {
@@ -281,8 +291,11 @@ async fn open(sh: &Arc<Shared>, name: &str, tx: &mpsc::UnboundedSender<Value>, s
 }
 
 async fn read_loop(sh: Arc<Shared>, r: tokio::net::tcp::OwnedReadHalf, w: Arc<AsyncMutex<OwnedWriteHalf>>, name: String, tx: mpsc::UnboundedSender<Value>, stop: watch::Receiver<bool>) {
-    let mut lines = BufReader::new(r).lines();
-    while let Ok(Some(l)) = lines.next_line().await {
+    let mut reader = BufReader::new(r);
+    let mut buf = Vec::new();
+    while matches!(reader.read_until(b'\n', &mut buf).await, Ok(n) if n > 0) {
+        let l = String::from_utf8_lossy(&buf).trim_end_matches(['\r', '\n']).to_string();
+        buf.clear();
         if *stop.borrow() { return; }
         if let Some(rest) = l.strip_prefix("PING") {
             let _ = w.lock().await.write_all(format!("PONG{rest}\r\n").as_bytes()).await;
