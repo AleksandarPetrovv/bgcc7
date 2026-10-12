@@ -5,7 +5,7 @@ import { TriTick } from "@/components/site/graphics";
 import { MODS } from "@/lib/data";
 import type { FeedMap, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
-import { Backdrop, editionNum, Lockup, TEAM, TeamPlate } from "./chrome";
+import { Backdrop, editionNum, LABEL, Lockup, ScoreNum, TEAM, TeamPlate } from "./chrome";
 
 const GROUPS = ["NoMod", "Hidden", "HardRock", "DoubleTime", "Tiebreaker"] as const;
 const norm = (v: string) => v.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -20,9 +20,15 @@ function groupFor(map: FeedMap) {
 
 function Tag({ text, color, dark }: { text: string; color: string; dark?: boolean }) {
   return (
-    <span className="inline-flex -skew-x-12 px-2 py-0.5" style={{ background: color }}>
-      <span className={cn("skew-x-12 text-[13px] font-black uppercase tracking-[0.12em]", dark ? "text-ink" : "text-white")}>{text}</span>
-    </span>
+    <motion.span
+      className="inline-flex -skew-x-12 px-2 py-0.5"
+      style={{ background: color }}
+      initial={{ scale: 2.4, opacity: 0, rotate: -14 }}
+      animate={{ scale: 1, opacity: 1, rotate: 0 }}
+      transition={{ type: "spring", stiffness: 520, damping: 20 }}
+    >
+      <span className={cn("skew-x-12 text-[13px] font-black uppercase tracking-[0.05em]", dark ? "text-ink" : "text-white")}>{text}</span>
+    </motion.span>
   );
 }
 
@@ -50,11 +56,11 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
           <div className="flex items-center gap-4">
             {[0, 1].map((i) => (
               <span key={i} className="inline-flex -skew-x-12 px-5 py-1" style={{ background: TEAM[i].c, boxShadow: `6px 6px 0 0 ${TEAM[i].deep}` }}>
-                <span className="num skew-x-12 font-display text-[64px] font-black leading-none text-white">{feed.match.score[i]}</span>
+                <ScoreNum value={feed.match.score[i]} side={i as 0 | 1} className="num skew-x-12 font-display text-[64px] font-black leading-none text-white" />
               </span>
             ))}
           </div>
-          <span className="text-[15px] font-black uppercase tracking-[0.22em] text-ash">First to {feed.match.firstTo}</span>
+          <span className={LABEL}>First to {feed.match.firstTo}</span>
         </div>
         <TeamPlate team={feed.teams[1]} side={1} className="max-w-[640px] justify-self-end" />
       </header>
@@ -63,7 +69,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
         <div className="flex items-center gap-5">
           <TriTick className="h-[24px] w-[46px]" />
           <h1 className="font-display text-[48px] font-black italic uppercase leading-none">Mappool</h1>
-          <span className="text-[20px] font-black uppercase tracking-[0.16em] text-ash">{feed.match.round}</span>
+          <span className={LABEL}>{feed.match.round}</span>
         </div>
         <Lockup num={editionNum(feed)} size={30} />
       </div>
@@ -75,43 +81,92 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
               <span className="inline-flex -skew-x-12 px-3 py-0.5" style={{ background: g.color }}>
                 <span className="skew-x-12 text-[18px] font-black text-ink">{g.short}</span>
               </span>
-              <span className="text-[15px] font-black uppercase tracking-[0.16em] text-ash">{g.label || g.maps.length}</span>
+              <span className={LABEL}>{g.label || g.maps.length}</span>
             </h2>
             <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${spans[gi]}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${rows}, ${cardH}px)`, gridAutoFlow: "column" }}>
             {g.maps.map((map, mi) => {
               const step = steps.get(norm(map.slot));
               const ban = step?.kind === "ban";
               const pick = step?.kind === "pick";
-              const won = pick && step.winner ? step.winner : null;
               const now = !ban && nowSlot === norm(map.slot);
+              const done = ban || (pick && !now);
               const team = step ? TEAM[step.team - 1] : null;
+              const won = pick && step.winner ? step.winner : null;
+              const stamp = step && team && !now ? { word: ban ? "Banned" : won ? "Won" : "Picked", side: won ? TEAM[won - 1] : team, name: feed.teams[(won ?? step.team) - 1].name } : null;
               return (
                 <motion.article
                   key={`${map.slot}-${map.id}`}
                   initial={{ opacity: 0, y: 18 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: gi * 0.06 + mi * 0.04, ease: [0.16, 1, 0.3, 1] }}
-                  className={cn("relative overflow-hidden border-2 bg-coal", ban && "opacity-40 grayscale")}
+                  className={cn("relative overflow-hidden border-2 bg-coal transition-[border-color,box-shadow] duration-500", now && "border-[3px]")}
                   style={{
                     height: cardH,
-                    borderColor: now ? "var(--color-gold)" : pick && team ? team.c : "var(--color-line)",
-                    boxShadow: now ? "0 0 0 3px rgba(232,197,71,0.35), 6px 6px 0 0 var(--color-gold-deep)" : pick && team ? `6px 6px 0 0 ${team.deep}` : "4px 4px 0 0 rgba(0,0,0,0.5)",
+                    borderColor: now ? "var(--color-gold)" : "var(--color-line)",
+                    boxShadow: now ? "0 0 0 3px rgba(232,197,71,0.35), 6px 6px 0 0 var(--color-gold-deep)" : "4px 4px 0 0 rgba(0,0,0,0.5)",
                   }}
                 >
-                  {map.cover && <div className="absolute inset-0 bg-cover bg-center opacity-45" style={{ backgroundImage: `url(${JSON.stringify(map.cover)})` }} aria-hidden />}
-                  <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(13,15,14,0.95)_30%,rgba(13,15,14,0.55))]" aria-hidden />
-                  <span className="absolute inset-y-0 left-0 w-[6px]" style={{ background: g.color }} aria-hidden />
-                  {ban && <span className="absolute left-0 top-1/2 h-[3px] w-[140%] origin-left -rotate-[8deg]" style={{ background: team?.c }} aria-hidden />}
-                  <div className="relative flex h-full flex-col justify-center gap-1 pl-5 pr-3">
+                  <div className={cn("absolute inset-0 transition-[filter,opacity] duration-500", done && "opacity-15 grayscale")} aria-hidden>
+                    {map.cover && <div className="absolute -inset-3 bg-cover bg-center opacity-45 blur-[3px]" style={{ backgroundImage: `url(${JSON.stringify(map.cover)})` }} />}
+                    <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(13,15,14,0.95)_30%,rgba(13,15,14,0.55))]" />
+                  </div>
+                  <span className={cn("absolute inset-y-0 left-0 w-[6px]", done && "opacity-25 grayscale")} style={{ background: g.color }} aria-hidden />
+                  {pick && team && !now && (
+                    <motion.svg
+                      className="pointer-events-none absolute inset-0 z-10 size-full"
+                      viewBox="0 0 100 100"
+                      preserveAspectRatio="none"
+                      style={{ filter: `drop-shadow(3px 3px 0 ${team.deep})` }}
+                      initial={{ clipPath: "inset(0 100% 0 0)" }}
+                      animate={{ clipPath: "inset(0 0% 0 0)" }}
+                      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                      aria-hidden
+                    >
+                      <line x1="2" y1="88" x2="98" y2="12" stroke={team.c} strokeWidth="8" vectorEffect="non-scaling-stroke" />
+                    </motion.svg>
+                  )}
+                  {stamp && (
+                    <motion.div
+                      key={stamp.word}
+                      className="absolute inset-0 z-20 flex items-center justify-center"
+                      initial={{ scale: 2.2, opacity: 0, rotate: -20 }}
+                      animate={{ scale: 1, opacity: 1, rotate: -8 }}
+                      transition={{ type: "spring", stiffness: 420, damping: 18 }}
+                    >
+                      <span className="flex flex-col items-center border-[3px] bg-ink/85 px-4 py-1" style={{ borderColor: stamp.side.c, boxShadow: `4px 4px 0 0 ${stamp.side.deep}` }}>
+                        <span className="font-display text-[26px] font-black italic uppercase leading-none" style={{ color: stamp.side.hi }}>
+                          {stamp.word}
+                        </span>
+                        <span className="max-w-[200px] truncate text-[13px] font-black uppercase tracking-[0.05em] text-paper/80">{stamp.name}</span>
+                      </span>
+                    </motion.div>
+                  )}
+                  {pick && team && (
+                    <motion.span
+                      key={`flash-${map.slot}`}
+                      className="pointer-events-none absolute inset-0"
+                      style={{ background: team.c }}
+                      initial={{ opacity: 0.55 }}
+                      animate={{ opacity: 0 }}
+                      transition={{ duration: 0.9, ease: "easeOut" }}
+                      aria-hidden
+                    />
+                  )}
+                  {now && (
+                    <motion.span
+                      className="pointer-events-none absolute inset-0 border-2 border-gold"
+                      animate={{ opacity: [0.2, 0.9, 0.2] }}
+                      transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                      aria-hidden
+                    />
+                  )}
+                  <div className={cn("relative flex h-full flex-col justify-center gap-1 pl-5 pr-3 transition-opacity duration-500", done && "opacity-25 grayscale")}>
                     <div className="flex items-center gap-2">
                       <span className="font-display text-[30px] font-black italic leading-none" style={{ color: modColor(map.slot) ?? g.color }}>
                         {map.slot}
                       </span>
                       <span className="ml-auto flex items-center gap-1.5">
                         {now && <Tag text="Now" color="var(--color-gold)" dark />}
-                        {ban && team && <Tag text="Ban" color={team.c} />}
-                        {pick && team && !won && !now && <Tag text="Pick" color={team.c} />}
-                        {won && <Tag text="Win" color={TEAM[won - 1].c} />}
                         <span className="num text-[16px] font-black text-gold">{map.sr.toFixed(2)}★</span>
                       </span>
                     </div>
