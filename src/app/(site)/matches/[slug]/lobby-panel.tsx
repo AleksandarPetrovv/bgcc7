@@ -281,7 +281,8 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, canSay, tea
   const fixAll = () =>
     start(async () => {
       setErr(false);
-      for (const w of wrong) {
+      for (const [i, w] of wrong.entries()) {
+        if (i > 0) await new Promise((r) => setTimeout(r, 1000));
         const res = await lobbyPost(slug, { act: "team", slot: w.slot, team: w.team });
         if (!res?.ok) setErr(true);
       }
