@@ -267,6 +267,13 @@
       "when": 1791450656833,
       "tag": "0037_drop_ez",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1791580134961,
+      "tag": "0038_info_copy",
+      "breakpoints": true
     }
   ]
 }

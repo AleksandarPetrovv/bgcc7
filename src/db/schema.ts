@@ -67,6 +67,7 @@ export const settings = pgTable("settings", {
   timeoutSecs: integer("timeout_secs").notNull().default(180),
   edition: text("edition").notNull().default("bgcc6"),
   formatPlan: jsonb("format_plan"),
+  copy: jsonb("copy").$type<Record<string, string>>().notNull().default({}),
   bwsLockedAt: timestamp("bws_locked_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
