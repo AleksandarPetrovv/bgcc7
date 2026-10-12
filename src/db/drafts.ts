@@ -183,8 +183,8 @@ export async function draftAccess(matchId: string) {
   const [m] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
   if (!m) return null;
   const staff = can(v.roles, "matches");
-  const { ref, refLive, onSite } = await siteRun(m);
-  const admin = staff && v.osuId === ref && refLive;
+  const { ref, onSite } = await siteRun(m);
+  const admin = staff && v.osuId === ref;
   const watch = staff || can(v.roles, "draft");
   const [mem] = await db.select({ teamId: teamMembers.teamId, isCaptain: teamMembers.isCaptain }).from(teamMembers).where(eq(teamMembers.osuId, v.osuId)).limit(1);
   const team: Side | null = mem && mem.teamId === m.team1Id ? 1 : mem && mem.teamId === m.team2Id ? 2 : null;

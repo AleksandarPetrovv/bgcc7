@@ -414,6 +414,10 @@ const en = {
   },
   lobby: {
     title: "Lobby",
+    noHelper: "BGCC7 Helper isn't connected",
+    noHelperBody: "Lobbies are made through your own osu! IRC, so the helper needs to be open and linked first. Open it, then try again.",
+    helperPage: "Helper page",
+    helperDownload: "Download helper",
     bot: { online: "Bot online", connecting: "Connecting", off: "Bot off" } as Record<"online" | "connecting" | "off", string>,
     make: "Make lobby",
     again: "New lobby",
@@ -427,6 +431,8 @@ const en = {
     blocked: "That message isn't allowed",
     help: "Help",
     helpTitle: "Lobby buttons",
+    streamTitle: "Ref and stream on one account?",
+    streamBody: "Make the lobby first, then open the tourney client. If the lobby disconnects while the client is open, it can't reconnect: close the tourney client, reconnect the lobby, then open the client again.",
     helpExtra: "Other commands you can type yourself",
     helpItems: [
       { k: "Map", body: "Writes !mp map in the chat box. Finish it with a map ID (copy it from the map cards below) or the slot name. A slot or pool map ID also sets that map's mods for you. The tiebreaker gets freemod, and osu! doesn't let refs force NF with freemod on, so players turn on NF themselves.", ex: ["!mp map spd1", "!mp map 398449"] },
@@ -1543,6 +1549,10 @@ const bg: Dict = {
   },
   lobby: {
     title: "Лоби",
+    noHelper: "BGCC7 Helper не е свързан",
+    noHelperBody: "Лобитата се правят през твоя osu! IRC, затова helper-ът трябва да е отворен и свързан. Отвори го и опитай пак.",
+    helperPage: "Страница на helper-а",
+    helperDownload: "Изтегли helper-а",
     bot: { online: "Ботът е онлайн", connecting: "Свързване", off: "Ботът е изключен" },
     make: "Направи лоби",
     again: "Ново лоби",
@@ -1556,6 +1566,8 @@ const bg: Dict = {
     blocked: "Това съобщение не е позволено",
     help: "Помощ",
     helpTitle: "Бутоните на лобито",
+    streamTitle: "Рефираш и стриймваш с един акаунт?",
+    streamBody: "Първо направи лобито, после отвори турнирния клиент. Ако лобито се разкачи, докато клиентът е отворен, няма да може да се свърже пак: затвори турнирния клиент, свържи лобито отново и пак отвори клиента.",
     helpExtra: "Други команди, които можеш да пишеш сам",
     helpItems: [
       { k: "Мап", body: "Пише !mp map в полето за чат. Довърши с ID на мап (копирай го от картите на мапите по-долу) или с името на слота. Слот или ID на мап от пула слага и модовете на мапа автоматично. Тайбрейкът е с freemod, а osu! не позволява на съдиите да налагат NF при freemod, затова играчите си пускат NF сами.", ex: ["!mp map spd1", "!mp map 398449"] },
