@@ -14,7 +14,7 @@ export default async function AdminFormat() {
   return (
     <>
       <PageTitle mark="bars">{t.admin.menu.format}</PageTitle>
-      <FormatEditor initial={plan} edit={can(viewer?.roles, "settings")} />
+      <FormatEditor initial={plan} edit={can(viewer?.roles, "formatEdit")} />
     </>
   );
 }

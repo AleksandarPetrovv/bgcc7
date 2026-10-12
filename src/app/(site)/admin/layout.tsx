@@ -5,30 +5,11 @@ import { Tag } from "@/components/site/page";
 import { auth } from "@/auth";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
-import { can, hasAdmin, type Perm } from "@/lib/roles";
+import { can, hasAdmin } from "@/lib/roles";
 import { getEdition } from "@/db/edition";
 import { siteEdition } from "@/db";
 import { EditionSwitch } from "./edition/edition-switch";
-
-const MENU: { href: string; perm: Perm }[] = [
-  { href: "/admin", perm: "overview" },
-  { href: "/admin/phase", perm: "phase" },
-  { href: "/admin/screening", perm: "screening" },
-  { href: "/admin/lobbies", perm: "lobbies" },
-  { href: "/admin/qualifiers", perm: "qualifiers" },
-  { href: "/admin/mappools", perm: "mappools" },
-  { href: "/admin/teams", perm: "teams" },
-  { href: "/admin/matches", perm: "matches" },
-  { href: "/admin/draft", perm: "draft" },
-  { href: "/admin/refapp", perm: "matches" },
-  { href: "/admin/stream", perm: "stream" },
-  { href: "/admin/overlay", perm: "overlay" },
-  { href: "/admin/site", perm: "phase" },
-  { href: "/admin/staff", perm: "staff" },
-  { href: "/admin/log", perm: "log" },
-  { href: "/admin/settings", perm: "settings" },
-  { href: "/admin/format", perm: "format" },
-];
+import { MENU } from "./menu";
 
 const QUALS = ["/admin/lobbies", "/admin/qualifiers"];
 
@@ -36,7 +17,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const [viewer, session, t] = await Promise.all([getViewer(), auth(), getDict()]);
   if (!viewer || !hasAdmin(viewer.roles)) notFound();
   const edition = getEdition();
-  const items = MENU.filter((m) => can(viewer.roles, m.perm) && (edition === "bgcc6" || !QUALS.includes(m.href))).map((m) => ({ href: m.href, label: t.admin.menu[m.href.split("/")[2] ?? "overview"] }));
+  const items = MENU.filter((m) => m.perm.some((p) => can(viewer.roles, p)) && (edition === "bgcc6" || !QUALS.includes(m.href))).map((m) => ({ href: m.href, label: t.admin.menu[m.href.split("/")[2] ?? "overview"] }));
   const name = session?.user?.name;
   const avatar = session?.user?.image;
   return (
