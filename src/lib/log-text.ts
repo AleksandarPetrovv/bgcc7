@@ -192,8 +192,8 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
     case "stream.scene": {
       if (p.scene === null) return bg ? `включи автоматичната смяна на стрийм сцената за ${match()}` : `enabled automatic stream scenes for ${match()}`;
       const scenes: Record<string, string> = bg
-        ? { soon: "Започваме скоро", intro: "Отбори", mappool: "Мапове", gameplay: "Игра", winner: "Победител", brb: "Връщаме се", end: "Благодарим" }
-        : { soon: "Starting soon", intro: "Teams", mappool: "Mappool", gameplay: "Gameplay", winner: "Winner", brb: "Be right back", end: "Thanks for watching" };
+        ? { soon: "Започваме скоро", intro: "Отбори", mappool: "Мапове", gameplay: "Игра", winner: "Победител", brb: "Връщаме се", end: "Благодарим", schedule: "Програма", bracket: "Схема" }
+        : { soon: "Starting soon", intro: "Teams", mappool: "Mappool", gameplay: "Gameplay", winner: "Winner", brb: "Be right back", end: "Thanks for watching", schedule: "Schedule", bracket: "Bracket" };
       const key = text(p.scene) ?? "";
       const scene = Object.hasOwn(scenes, key) ? scenes[key] : undefined;
       return scene
@@ -351,9 +351,44 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
   return bg ? "извърши неразпознато действие" : "performed an unrecognized action";
 }
 
-const VARYING: Record<string, string[]> = { "stream.scene": ["scene"] };
+const VARYING: Record<string, string[]> = { "stream.scene": ["scene"], "match.save": ["score1", "score2"] };
+
+const SUMMARY: Record<string, [string, string]> = {
+  "phase.set": ["switched the phase", "смени фазата"],
+  "phase.sections": ["changed which pages are public", "промени кои страници са публични"],
+  "phase.dates": ["updated the registration and lobby dates", "обнови датите за записване и лобита"],
+  "phase.timeline": ["updated the timeline dates", "обнови датите в графика"],
+  "settings.draft": ["changed the pick and ban settings", "промени настройките за пик и бан"],
+  "settings.qualify": ["changed how many players qualify", "промени колко играчи се класират"],
+  "settings.pickems": ["opened and closed pick'ems", "отваряше и затваряше прогнозите"],
+  "stage.update": ["updated pool settings", "обнови настройките на пул"],
+  "stage.rename": ["renamed stages", "преименува етапи"],
+  "stage.blueprint": ["changed pool layouts", "промени разпределението на пулове"],
+  "stage.refreshMaps": ["refreshed map data", "обнови данните за маповете"],
+  "map.delete": ["removed maps from pools", "махна мапове от пуловете"],
+  "pack.upload": ["uploaded map packs", "качи пакове с мапове"],
+  "pack.generate": ["generated map packs", "генерира пакове с мапове"],
+  "pack.delete": ["deleted map packs", "изтри пакове с мапове"],
+  "staff.update": ["changed staff access", "промени правата в екипа"],
+  "staff.add": ["added staff members", "добави хора в екипа"],
+  "staff.remove": ["removed staff members", "махна хора от екипа"],
+  "team.update": ["edited teams", "промени отбори"],
+  "team.placeMember": ["moved players between teams", "местеше играчи между отбори"],
+  "team.removeMember": ["took players off teams", "вади играчи от отбори"],
+  "teams.seed": ["drew the teams", "изтегли отборите"],
+  "lobby.update": ["edited qualifier lobbies", "промени лобита"],
+  "lobby.create": ["created qualifier lobbies", "създаде лобита"],
+  "lobby.delete": ["deleted qualifier lobbies", "изтри лобита"],
+  "qual.import": ["imported qualifier scores", "вкара квалификационни резултати"],
+  "sponsor.update": ["edited sponsors", "промени спонсори"],
+  "sponsor.add": ["added sponsors", "добави спонсори"],
+  "sponsor.delete": ["deleted sponsors", "изтри спонсори"],
+  "screening.decide": ["reviewed registrations", "прегледа записвания"],
+};
 
 export function summarize(action: string, payload: unknown, c: LogCtx, h: LogHelpers): string {
+  const s = SUMMARY[action];
+  if (s) return h.lang === "bg" ? s[1] : s[0];
   const p = payload && typeof payload === "object" && !Array.isArray(payload) ? { ...(payload as P) } : {};
   for (const k of VARYING[action] ?? []) delete p[k];
   return describe(action, p, c, h);
