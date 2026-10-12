@@ -33,6 +33,7 @@ export type LobbyView = {
   chat: ChatLine[];
   owner: number | null;
   mine?: boolean;
+  helper?: boolean;
 };
 
 type Conn = { client: BanchoClient; ready: Promise<unknown> | null; owner: number };
@@ -492,8 +493,8 @@ export async function lobbyView(matchId: string, viewer?: number): Promise<Lobby
   const who = owner ?? viewer;
   const c = state() && who ? conn(who) : null;
   const status: LobbyView["bot"] = !c ? "off" : c.client.isConnected() ? "online" : "connecting";
-  const mine = viewer != null && (owner != null ? owner === viewer : canLobby(viewer));
-  const base: LobbyView = { bot: status, state: row ? (row.open ? "open" : "closed") : "none", mpId: row?.mpId ?? null, password: row?.password ?? "", size: 0, slots: [], mapId: null, mapName: null, mods: [], freemod: false, playing: false, chat: [], owner, ...(viewer != null ? { mine } : {}) };
+  const mine = viewer != null && (owner == null || owner === viewer);
+  const base: LobbyView = { bot: status, state: row ? (row.open ? "open" : "closed") : "none", mpId: row?.mpId ?? null, password: row?.password ?? "", size: 0, slots: [], mapId: null, mapName: null, mods: [], freemod: false, playing: false, chat: [], owner, ...(viewer != null ? { mine, helper: canLobby(viewer) } : {}) };
   const l = g.bgccIrc?.live.get(matchId);
   if (!l || !row?.open) return base;
   const lb = l.lobby;
