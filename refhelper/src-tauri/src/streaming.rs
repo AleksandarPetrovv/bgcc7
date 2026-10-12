@@ -87,7 +87,7 @@ fn state(sh: &Shared, value: &str, clients: usize, matched: Option<String>) {
 }
 
 pub async fn run(sh: Arc<Shared>, token: String, mut stop: watch::Receiver<bool>) {
-    let http = match reqwest::Client::builder().user_agent("bgcc-ref/1.0").timeout(Duration::from_secs(5)).build() {
+    let http = match reqwest::Client::builder().user_agent("bgcc-helper/1.0").timeout(Duration::from_secs(5)).build() {
         Ok(http) => http,
         Err(_) => { state(&sh, "error", 0, None); return; }
     };

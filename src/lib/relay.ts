@@ -69,26 +69,32 @@ export function confirmLink(st: string, osuId: number) {
   return true;
 }
 
-export async function claim(st: string, irc: string) {
+export async function claim(st: string, irc: string | null) {
   const { codes } = store();
   const hit = codes.get(st);
   if (!hit || hit.exp < Date.now()) return "pending" as const;
   const [u] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, hit.osuId)).limit(1);
   codes.delete(st);
-  if (!u || ircKey(u.username) !== ircKey(irc)) return "wrongname" as const;
+  if (!u || (irc !== null && ircKey(u.username) !== ircKey(irc))) return "wrongname" as const;
   const token = randomBytes(32).toString("base64url");
   const row = { tokenHash: hash(token), ircName: u.username.replace(/ /g, "_"), createdAt: new Date(), seenAt: null };
   await db.insert(refApps).values({ osuId: hit.osuId, ...row }).onConflictDoUpdate({ target: refApps.osuId, set: row });
   drop(hit.osuId);
-  return { token, osuId: hit.osuId };
+  return { token, osuId: hit.osuId, name: row.ircName };
 }
 
 export async function relayAuth(req: Request) {
   const t = req.headers.get("authorization")?.match(/^Bearer (\S+)$/)?.[1];
   if (!t) return null;
   const [row] = await db.select().from(refApps).where(eq(refApps.tokenHash, hash(t))).limit(1);
+  if (row) seen().set(row.osuId, Date.now());
   return row ?? null;
 }
+
+const gs = globalThis as unknown as { bgccHelperSeen?: Map<number, number> };
+const seen = () => (gs.bgccHelperSeen ??= new Map());
+// the helper pings /api/relay/me every 20s, so this covers streamers that never open the irc relay
+export const appRunning = (osuId: number) => relayOnline(osuId) || Date.now() - (seen().get(osuId) ?? 0) < 45_000;
 
 export async function unpair(osuId: number) {
   await db.delete(refApps).where(eq(refApps.osuId, osuId));

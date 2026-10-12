@@ -1,10 +1,13 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { guard } from "@/lib/admin-action";
 import { confirmLink, unpair } from "@/lib/relay";
 
 export async function linkApp(state: string) {
-  return guard("matches", "refapp.link", async (osuId) => (confirmLink(state, osuId) ? { linked: true } : { ok: false, error: "invalid" }));
+  const res = await guard("matches", "refapp.link", async (osuId) => (confirmLink(state, osuId) ? { linked: true } : { ok: false, error: "invalid" }));
+  if (res?.ok) redirect("/admin/refapp");
+  return res;
 }
 
 export async function unlinkApp() {

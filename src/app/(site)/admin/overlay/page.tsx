@@ -41,7 +41,7 @@ export default async function Overlay({ searchParams }: { searchParams: Promise<
                 </span>
                 <span className="text-sm font-bold text-ash">{r.linkCode}</span>
               </div>
-              <ActionForm action={linkHelper.bind(null, st)} submit={r.link} />
+              <ActionForm action={linkHelper.bind(null, st, "overlay")} submit={r.link} />
             </div>
           </Panel>
         )}
@@ -60,7 +60,7 @@ export default async function Overlay({ searchParams }: { searchParams: Promise<
               <span className={online ? "text-paper" : "text-ash"}>{online ? r.online : app ? r.offline : r.none}</span>
             </span>
             <span className="ml-auto flex flex-wrap items-center gap-3">
-              <SlantButton href="/download/ref-helper" download tone="paper">
+              <SlantButton href="/download/helper" download tone="paper">
                 <Download className="size-4" /> {r.download}
               </SlantButton>
               {app && <ActionForm action={unlinkHelper} submit={r.unlink} ghost confirm={r.unlinkAsk} />}

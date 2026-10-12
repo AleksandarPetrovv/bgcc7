@@ -48,7 +48,7 @@ npm install
 npm run build
 ```
 
-the executable is written to `src-tauri/target/release/BGCC7 Ref Helper.exe`. `npm run dev` runs it with live reload of the ui. building and uploading are separate steps.
+the executable is written to `src-tauri/target/release/BGCC7 Helper.exe`. `npm run dev` runs it with live reload of the ui. building and uploading are separate steps.
 
 ## validation status
 
