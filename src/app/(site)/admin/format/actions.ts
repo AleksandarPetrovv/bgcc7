@@ -16,7 +16,7 @@ async function store(plan: Plan) {
 }
 
 export async function savePlan(input: unknown) {
-  return guard("settings", "format.save", async () => {
+  return guard("formatEdit", "format.save", async () => {
     const plan = cleanPlan(input);
     if (!plan) return { ok: false, error: "invalid" };
     await store(plan);
@@ -25,7 +25,7 @@ export async function savePlan(input: unknown) {
 }
 
 export async function resetPlan() {
-  return guard("settings", "format.reset", async () => {
+  return guard("formatEdit", "format.reset", async () => {
     await store(DEFAULT_PLAN);
     return { rounds: DEFAULT_PLAN.rounds.length };
   });

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { ChevronRight, ClipboardCheck, Dices, DoorOpen, Gauge, LayoutGrid, Layers, Link2, MonitorPlay, Music2, ScrollText, Settings2, Shield, Swords, Trophy, Users } from "lucide-react";
+import { ChevronRight, ClipboardCheck, Download, Dices, DoorOpen, Gauge, LayoutGrid, Layers, Link2, MonitorPlay, Music2, ScrollText, Settings2, Shield, Swords, Trophy, Users } from "lucide-react";
 import { Sparkle } from "@/components/site/graphics";
 import { TwitchLogo } from "@/components/site/twitch-logo";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   log: ScrollText,
   settings: Settings2,
   format: LayoutGrid,
+  refapp: Download,
   stream: TwitchLogo,
   overlay: MonitorPlay,
 };
@@ -46,7 +47,8 @@ export function AdminNav({ items }: { items: { href: string; label: string }[] }
             title={i.label}
             className={cn(
               "group relative flex min-w-0 flex-1 items-center justify-center gap-3 whitespace-nowrap py-2 lg:flex-none lg:justify-start lg:whitespace-normal lg:px-2.5 text-[0.8rem] font-black uppercase tracking-wide transition-colors duration-200",
-              active ? "text-white" : "text-ash hover:text-paper",
+              active ? "text-white" : key === "refapp" ? "text-balkan hover:text-paper" : "text-ash hover:text-paper",
+              key === "refapp" && !active && "lg:mb-2 lg:border lg:border-dashed lg:border-balkan/50",
             )}
           >
             {active && (
@@ -58,7 +60,7 @@ export function AdminNav({ items }: { items: { href: string; label: string }[] }
             <span
               className={cn(
                 "relative flex size-7 shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform,translate,scale,rotate] duration-300",
-                active ? "bg-white/20" : "bg-slate group-hover:scale-110 group-hover:bg-rose/20 group-hover:text-rose-hi",
+                active ? "bg-white/20" : key === "refapp" ? "bg-balkan/20 group-hover:scale-110" : "bg-slate group-hover:scale-110 group-hover:bg-rose/20 group-hover:text-rose-hi",
               )}
             >
               <Icon className={cn("size-3.5", active && "anim-bob")} />
