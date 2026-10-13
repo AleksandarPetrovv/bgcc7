@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { Ban, Check, Copy, Crown, Dices, DoorClosed, Eye, ListOrdered, Lock, Pause, Redo2, RotateCcw, Settings, Star, Swords, TimerOff, Undo2, WifiOff } from "lucide-react";
+import { Ban, Check, CircleHelp, Copy, Crown, Dices, DoorClosed, Eye, ListOrdered, Lock, Pause, Redo2, RotateCcw, Settings, Star, Swords, TimerOff, Undo2, WifiOff } from "lucide-react";
 import { Sparkle } from "@/components/site/graphics";
 import { useDict } from "@/components/site/lang";
 import { EASE } from "@/components/site/motion";
@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { slotColor } from "@/lib/format-plan";
 import { GOLD, TEAM, tint } from "@/lib/theme";
 import { redoDraft, resetDraft, undoDraft } from "@/app/(site)/admin/draft/actions";
-import { LobbyPanel, lobbyPost } from "./lobby-panel";
+import { LobbyHelp, LobbyPanel, lobbyPost } from "./lobby-panel";
 import { useSSE } from "@/components/site/use-sse";
 import { Costs, MapCard, MatchDialog } from "@/components/site/match-dialog";
 import type { MapResult, Scoreboard } from "@/lib/scoreboard";
@@ -535,6 +535,7 @@ export function DraftRoom({
   title,
   firstTo,
   admin,
+  streams,
   side,
   canSay,
 }: {
@@ -547,6 +548,7 @@ export function DraftRoom({
   title: string;
   firstTo: number;
   admin: boolean;
+  streams: boolean;
   side: Side | null;
   canSay: boolean;
 }) {
@@ -586,6 +588,7 @@ export function DraftRoom({
   const [scores, setScores] = useState<string | null>(null);
   const lobbyOpen = useRef(false);
   const [askReset, setAskReset] = useState(false);
+  const [help, setHelp] = useState(false);
   const [lobbyShown, setLobbyShown] = useState(false);
   const onLobby = useCallback((o: boolean) => {
     lobbyOpen.current = o;
@@ -738,7 +741,7 @@ export function DraftRoom({
           animate={{ opacity: 1, y: 0 }}
           className="mb-5 flex flex-wrap items-center gap-2 border border-dashed border-line bg-coal/80 px-3 py-2 text-xs font-black uppercase tracking-wide"
         >
-          <div className="flex gap-1">
+          <div className="flex flex-1 gap-1">
             {([1, 2] as const).map((s) => (
               <button
                 key={s}
@@ -752,7 +755,16 @@ export function DraftRoom({
               </button>
             ))}
           </div>
-          <span className="ml-auto flex gap-2">
+          <button
+            type="button"
+            onClick={() => setHelp(true)}
+            className="lift-sm inline-flex min-h-8 -skew-x-12 items-center bg-gold px-4 text-xs font-black uppercase tracking-wide text-ink shadow-[3px_3px_0_0_rgb(0_0_0/0.5)] transition-colors [--lift:var(--color-gold)] hover:bg-paper"
+          >
+            <span className="inline-flex skew-x-12 items-center gap-1.5">
+              <CircleHelp className="size-3.5" strokeWidth={3} /> {t.lobby.help}
+            </span>
+          </button>
+          <span className="flex flex-1 justify-end gap-2">
             {([
               ["undo", d.undo, Undo2, () => undoDraft(matchId)],
               ["redo", d.redo, Redo2, () => redoDraft(matchId)],
@@ -790,6 +802,7 @@ export function DraftRoom({
       )}
       <Portal>
       <AnimatePresence>
+        {help && <LobbyHelp key="help" onClose={() => setHelp(false)} />}
         {askReset && (
           <ResetPopup
             lobby
@@ -814,7 +827,7 @@ export function DraftRoom({
         transition={{ duration: 0.7, ease: EASE, delay: 0.35 }}
         className="xl:col-start-2 xl:row-start-1"
       >
-        <LobbyPanel slug={slug} maps={pools.flatMap((p) => p.maps)} onOpen={onLobby} readOnly={!admin} canSay={canSay} teamNames={[teams[0].name, teams[1].name]} />
+        <LobbyPanel slug={slug} maps={pools.flatMap((p) => p.maps)} onOpen={onLobby} readOnly={!admin} streams={streams} canSay={canSay} teamNames={[teams[0].name, teams[1].name]} />
       </motion.aside>
       <div className="@container min-w-0 xl:col-start-1 xl:row-start-1">
       <div className="relative flex items-stretch">
