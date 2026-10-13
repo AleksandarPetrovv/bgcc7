@@ -110,9 +110,60 @@ export function HelperMissing({ onClose }: { onClose: () => void }) {
   );
 }
 
+function StreamOrder({ onClose }: { onClose: () => void }) {
+  const t = useDict();
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.2 } }}
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
+    >
+      <motion.div
+        initial={POP.initial}
+        animate={POP.animate}
+        exit={POP.exit}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md overflow-hidden border-2 border-gold bg-coal p-6 shadow-[8px_8px_0_0_rgb(0_0_0/0.55)]"
+        role="dialog"
+        aria-modal="true"
+      >
+        <button type="button" onClick={onClose} aria-label={t.draft.cancel} className="absolute right-3 top-3 p-1 text-ash hover:text-paper">
+          <X className="size-4" />
+        </button>
+        <TriangleAlert className="size-8 text-gold" />
+        <h3 className="heading-slam mt-2 text-3xl">{t.lobby.makeFailed}</h3>
+        <p className="mt-1 text-sm font-black uppercase tracking-wide text-gold">{t.lobby.streamTitle}</p>
+        <ol className="mt-4 space-y-2.5">
+          {t.lobby.streamSteps.map((s, i) => (
+            <li key={i} className="flex items-start gap-3">
+              <span className="num inline-flex size-6 shrink-0 -skew-x-12 items-center justify-center bg-gold text-xs font-black text-ink">
+                <span className="skew-x-12">{i + 1}</span>
+              </span>
+              <span className="text-sm font-bold leading-relaxed text-paper/85">{s}</span>
+            </li>
+          ))}
+        </ol>
+        <motion.button
+          type="button"
+          onClick={onClose}
+          whileHover={{ x: 4 }}
+          whileTap={{ scale: 0.97 }}
+          className="mt-6 flex min-h-12 w-full -skew-x-6 items-center bg-gold px-5 font-black uppercase tracking-wide text-ink shadow-[5px_5px_0_0_rgb(0_0_0/0.55)]"
+        >
+          <span className="inline-flex skew-x-6 items-center gap-2">
+            <Check className="size-4" strokeWidth={3} /> {t.lobby.gotIt}
+          </span>
+        </motion.button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 const HELP_C = ["var(--color-azure)", "var(--color-azure)", "var(--color-azure)", "var(--color-azure)", "var(--color-paper)", "var(--color-gold)", "var(--color-gold)", "var(--color-balkan)", "var(--color-gold)", "var(--color-rose)"];
 
-function LobbyHelp({ onClose }: { onClose: () => void }) {
+export function LobbyHelp({ onClose }: { onClose: () => void }) {
   const t = useDict();
   const size = String(lobbySize(useFormat()));
   const fill = (s: string) => s.replaceAll("%size%", size);
@@ -286,7 +337,7 @@ function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | "abort"
   );
 }
 
-export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, canSay, teamNames }: { slug: string; maps: Beatmap[]; onOpen: (open: boolean) => void; readOnly?: boolean; canSay: boolean; teamNames: [string, string] }) {
+export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = false, canSay, teamNames }: { slug: string; maps: Beatmap[]; onOpen: (open: boolean) => void; readOnly?: boolean; streams?: boolean; canSay: boolean; teamNames: [string, string] }) {
   const t = useDict();
   const format = useFormat();
   const [v, setV] = useState<LobbyView | null>(null);
@@ -296,8 +347,8 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, canSay, tea
   const [joinCopied, setJoinCopied] = useState(false);
   const [picking, setPicking] = useState<{ slot: number; mode: "swap" | "move" } | null>(null);
   const [ask, setAsk] = useState<"start" | "abort" | "close" | null>(null);
-  const [help, setHelp] = useState(false);
   const [noHelper, setNoHelper] = useState(false);
+  const [order, setOrder] = useState(false);
   const [say, setSay] = useState("");
   const sayRef = useRef<HTMLInputElement>(null);
   const fill = (cmd: string) => {
@@ -324,7 +375,10 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, canSay, tea
     start(async () => {
       setErr(false);
       const res = await lobbyPost(slug, body);
-      if (!res?.ok) setErr(true);
+      if (!res?.ok) {
+        setErr(true);
+        if (body.act === "make" && streams) setOrder(true);
+      }
     });
 
   if (!v || (readOnly && v.state !== "open")) return null;
@@ -574,11 +628,6 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, canSay, tea
       </div>
       {open && !readOnly && (
         <div className="space-y-2 border-b border-line px-3 py-2.5">
-          <div className="grid grid-cols-1">
-            <Btn wide onClick={() => setHelp(true)}>
-              <CircleHelp className="size-3.5" /> {t.lobby.help}
-            </Btn>
-          </div>
           <div className="grid grid-cols-[minmax(0,0.85fr)_minmax(0,1.1fr)_minmax(0,0.85fr)_minmax(0,1.6fr)] gap-2">
             <Btn wide onClick={() => fill("!mp map ")} disabled={offline}>
               <MapIcon className="size-3.5" /> {t.lobby.map}
@@ -623,8 +672,8 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, canSay, tea
       {typeof document !== "undefined" &&
         createPortal(
           <AnimatePresence>
-            {help && <LobbyHelp key="help" onClose={() => setHelp(false)} />}
             {noHelper && <HelperMissing key="helper" onClose={() => setNoHelper(false)} />}
+            {order && <StreamOrder key="order" onClose={() => setOrder(false)} />}
             {ask && (
               <LobbyAsk
                 key={ask}

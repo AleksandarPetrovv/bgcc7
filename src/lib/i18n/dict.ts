@@ -432,6 +432,9 @@ const en = {
     help: "Help",
     helpTitle: "Lobby buttons",
     streamTitle: "Ref and stream on one account?",
+    makeFailed: "Lobby didn't open",
+    gotIt: "Got it",
+    streamSteps: ["Close the osu! tourney client.", "Make the lobby again.", "Open the tourney client once the lobby is up."],
     streamBody: "Make the lobby first, then open the tourney client. If the lobby disconnects while the client is open, it can't reconnect: close the tourney client, reconnect the lobby, then open the client again.",
     helpExtra: "Other commands you can type yourself",
     helpItems: [
@@ -1567,6 +1570,9 @@ const bg: Dict = {
     help: "Помощ",
     helpTitle: "Бутоните на лобито",
     streamTitle: "Рефираш и стриймваш с един акаунт?",
+    makeFailed: "Лобито не се отвори",
+    gotIt: "Ясно",
+    streamSteps: ["Затвори турнирния клиент на osu!.", "Направи лобито отново.", "Отвори турнирния клиент, след като лобито е готово."],
     streamBody: "Първо направи лобито, после отвори турнирния клиент. Ако лобито се разкачи, докато клиентът е отворен, няма да може да се свърже пак: затвори турнирния клиент, свържи лобито отново и пак отвори клиента.",
     helpExtra: "Други команди, които можеш да пишеш сам",
     helpItems: [

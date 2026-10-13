@@ -190,7 +190,8 @@ export async function draftAccess(matchId: string) {
   const team: Side | null = mem && mem.teamId === m.team1Id ? 1 : mem && mem.teamId === m.team2Id ? 2 : null;
   const side = team && mem?.isCaptain ? team : null;
   if (!admin && !watch && !(team && onSite)) return null;
-  return { osuId: v.osuId, admin, staff, side, team, match: m };
+  const streams = !!v.roles?.includes("host") || (!!v.roles?.includes("referee") && !!v.roles?.includes("streamer"));
+  return { osuId: v.osuId, admin, staff, streams, side, team, match: m };
 }
 
 export async function isPlayer(osuId: number) {

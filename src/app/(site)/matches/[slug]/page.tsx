@@ -43,6 +43,7 @@ export default async function DraftPage({ params }: PageProps<"/matches/[slug]">
       title={stage.slug === (access.match.poolSlug ?? access.match.stageSlug) ? round : `${round} · ${t.rounds[stage.title] ?? stage.title}`}
       firstTo={firstTo}
       admin={access.admin}
+      streams={access.streams}
       side={access.side}
       canSay={access.admin || !!access.team}
     />
