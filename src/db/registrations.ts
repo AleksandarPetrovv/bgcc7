@@ -6,6 +6,7 @@ import { safe } from "./safe";
 import { saveOsuUser } from "./users";
 import { getSettings, saveSettings } from "./settings";
 import { getUser } from "@/lib/osu-api";
+import { avatarCol } from "./avatar";
 
 export const STATUSES = ["pending", "approved", "denied"] as const;
 export type Status = (typeof STATUSES)[number];
@@ -41,7 +42,7 @@ export const getRegistrations = () =>
         .select({
           osuId: users.osuId,
           username: users.username,
-          avatarUrl: users.avatarUrl,
+          avatarUrl: avatarCol,
           country: users.country,
           rank: users.rank,
           countryRank: users.countryRank,

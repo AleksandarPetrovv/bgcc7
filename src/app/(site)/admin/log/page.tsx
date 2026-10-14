@@ -6,6 +6,7 @@ import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { LogTable } from "./log-table";
 import { StaffFilter } from "./staff-filter";
+import { avatarPath } from "@/lib/avatar";
 
 export default async function AdminLog({ searchParams }: PageProps<"/admin/log">) {
   const [t, lang, viewer, sp] = await Promise.all([getDict(), getLang(), getViewer(), searchParams]);
@@ -14,9 +15,9 @@ export default async function AdminLog({ searchParams }: PageProps<"/admin/log">
   const raw = typeof sp.user === "string" && /^\d+$/.test(sp.user) ? Number(sp.user) : null;
   const filter = raw !== null && Number.isSafeInteger(raw) && raw > 0 && (raw === viewer?.osuId || staff.some((s) => s.osuId === raw)) ? raw : undefined;
   const [rows, ctx] = await Promise.all([getLog(500, filter), getLogCtx()]);
-  const options = staff.filter((s) => s.osuId > 0).map((s) => ({ value: String(s.osuId), label: s.username, avatar: s.avatarUrl ?? `https://a.ppy.sh/${s.osuId}`, hint: s.permRoles.map((r) => t.admin.roles[r] ?? r).join(" · ") }));
+  const options = staff.filter((s) => s.osuId > 0).map((s) => ({ value: String(s.osuId), label: s.username, avatar: s.avatarUrl ?? avatarPath(s.osuId), hint: s.permRoles.map((r) => t.admin.roles[r] ?? r).join(" · ") }));
   if (viewer && !options.some((o) => o.value === String(viewer.osuId))) {
-    options.unshift({ value: String(viewer.osuId), label: ctx.user.get(viewer.osuId) ?? `#${viewer.osuId}`, avatar: `https://a.ppy.sh/${viewer.osuId}`, hint: viewer.roles.map((r) => t.admin.roles[r] ?? r).join(" · ") });
+    options.unshift({ value: String(viewer.osuId), label: ctx.user.get(viewer.osuId) ?? `#${viewer.osuId}`, avatar: avatarPath(viewer.osuId), hint: viewer.roles.map((r) => t.admin.roles[r] ?? r).join(" · ") });
   }
   return (
     <>

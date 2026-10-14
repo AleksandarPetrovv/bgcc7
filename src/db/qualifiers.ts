@@ -7,6 +7,7 @@ import { safe } from "./safe";
 import { getQualifierMaps } from "./mappools";
 import type { QualMap, QualPlayer } from "@/lib/data";
 import { rankQualifiers } from "@/lib/qualifiers";
+import { avatarCol } from "./avatar";
 
 export type QualResults = { maps: QualMap[]; players: QualPlayer[] };
 
@@ -37,7 +38,7 @@ export const getQualResults = cache(async (): Promise<QualResults> => {
           lobbyId: qualScores.lobbyId,
           seeded: qualScores.seeded,
           username: users.username,
-          avatar: users.avatarUrl,
+          avatar: avatarCol,
           cc: users.country,
         })
         .from(qualScores)

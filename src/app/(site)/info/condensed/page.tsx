@@ -6,6 +6,10 @@ import { currentEdition } from "@/db";
 import { getInfoCopy } from "@/db/info-copy";
 import { getViewer, requireSection } from "@/lib/authz";
 import { Editable } from "../editable";
+import { CondensedFolk } from "../folk";
+import { getPlan } from "@/db/format-plan";
+import { getMatches } from "@/db/tournament";
+import { getHosts } from "@/db/admin";
 
 export default async function Condensed() {
   await requireSection("info");
@@ -13,6 +17,14 @@ export default async function Condensed() {
   const on = currentEdition() === "bgcc7" && !!viewer?.roles.includes("host");
   const raw = (path: string, fallback: string) => copy[`${lang}:${path}`] ?? fallback;
   const title = raw("info.condensed", t.info.condensed);
+  if (currentEdition() === "bgcc7") {
+    const [plan, matches, hosts] = await Promise.all([getPlan(), getMatches(), getHosts()]);
+    return (
+      <Container plain>
+        <CondensedFolk t={t} f={f} raw={raw} on={on} locale={lang === "bg" ? "bg-BG" : "en-GB"} plan={plan} matches={matches} hosts={hosts} />
+      </Container>
+    );
+  }
   return (
     <Container plain>
       <PageTitle mark="bubble">

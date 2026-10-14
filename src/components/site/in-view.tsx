@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
+export const belowFold = (el: Element) => el.getBoundingClientRect().top >= window.innerHeight;
+
 export function InView({
   as: Tag = "div",
   className,
   style,
   self,
-  scrub,
   children,
 }: {
   as?: "div" | "ul" | "ol" | "section" | "li" | "article";
@@ -19,30 +20,18 @@ export function InView({
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLElement>(null);
-  const [state, setState] = useState<"" | "in" | "live">("");
+  const [state, setState] = useState<"" | "in" | "skip">("");
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (scrub && CSS.supports("animation-timeline: view()") && el.getBoundingClientRect().top > window.innerHeight) {
-      setState("live");
+    if (belowFold(el)) {
+      setState("skip");
       return;
     }
-    const io = new IntersectionObserver(([e]) => {
-      if (!e.isIntersecting) return;
-      setState((s) => s || "in");
-      io.disconnect();
-    });
-    io.observe(el);
-    const fallback = setTimeout(() => {
-      if (el.getBoundingClientRect().top < window.innerHeight) setState((s) => s || "in");
-    }, 1500);
-    return () => {
-      io.disconnect();
-      clearTimeout(fallback);
-    };
-  }, [scrub]);
+    setState("in");
+  }, []);
   return (
-    <Tag ref={ref as React.Ref<never>} className={cn("iv", self && "iv-self", state && "in", state === "live" && "sr-live", className)} style={style}>
+    <Tag ref={ref as React.Ref<never>} className={cn("iv", self && "iv-self", state && "in", state === "skip" && "no-intro", className)} style={style}>
       {children}
     </Tag>
   );

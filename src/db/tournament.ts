@@ -8,6 +8,8 @@ import { mpIds } from "./lobbies";
 import type { Match, Player, Sponsor, Team } from "@/lib/data";
 import { optImg } from "@/lib/img";
 import { isTestTeam, TEST_MATCH } from "@/lib/format";
+import { avatarCol } from "./avatar";
+import { avatarPath } from "@/lib/avatar";
 
 export const getTeams = cache(async () => (await getAllTeams()).filter((t) => !isTestTeam(t.id)));
 
@@ -21,7 +23,7 @@ export const getAllTeams = cache(() =>
           isCaptain: teamMembers.isCaptain,
           userId: users.osuId,
           username: users.username,
-          avatar: users.avatarUrl,
+          avatar: avatarCol,
           country: users.country,
           pp: users.pp,
           rank: users.rank,
@@ -37,7 +39,7 @@ export const getAllTeams = cache(() =>
         .map((m) => ({
           userId: m.userId,
           username: m.username,
-          avatar: m.avatar ?? `https://a.ppy.sh/${m.userId}`,
+          avatar: m.avatar ?? avatarPath(m.userId),
           country: m.country ?? "",
           pp: m.pp ?? 0,
           rank: m.rank ?? 0,
