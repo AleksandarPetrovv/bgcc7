@@ -3,6 +3,7 @@ import { and, arrayOverlaps, asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "./index";
 import { poolSuggestions, poolVotes, staff, users } from "./schema";
 import { MOD_ORDER, slotOf } from "./mappools";
+import { avatarCol } from "./avatar";
 
 export type Suggestion = typeof poolSuggestions.$inferSelect & {
   by: string;
@@ -19,7 +20,7 @@ export type SheetSlot = { mod: string; slot: number; label: string; picked: bool
 
 const poolers = async () => {
   const rows = await db
-    .select({ osuId: staff.osuId, username: users.username, avatar: users.avatarUrl })
+    .select({ osuId: staff.osuId, username: users.username, avatar: avatarCol })
     .from(staff)
     .innerJoin(users, eq(users.osuId, staff.osuId))
     .where(arrayOverlaps(staff.permRoles, ["mappooler", "playtester"]));
@@ -48,7 +49,7 @@ export async function getSheet(stageId: number, viewer: number, blueprint: Recor
   const ids = rows.map((r) => r.s.id);
   const votes = ids.length
     ? await db
-        .select({ suggestionId: poolVotes.suggestionId, osuId: poolVotes.osuId, score: poolVotes.score, note: poolVotes.note, username: users.username, avatar: users.avatarUrl })
+        .select({ suggestionId: poolVotes.suggestionId, osuId: poolVotes.osuId, score: poolVotes.score, note: poolVotes.note, username: users.username, avatar: avatarCol })
         .from(poolVotes)
         .leftJoin(users, eq(users.osuId, poolVotes.osuId))
         .where(inArray(poolVotes.suggestionId, ids))

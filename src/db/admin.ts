@@ -4,6 +4,7 @@ import { db } from "./index";
 import { adminLog, lobbies, maps, matches, stages, staff, teams, users } from "./schema";
 import type { LogCtx } from "@/lib/log-text";
 import { safe } from "./safe";
+import { avatarCol } from "./avatar";
 
 export type LogRow = { id: number; action: string; payload: unknown; at: Date; username: string | null; avatarUrl: string | null; osuId: number };
 
@@ -17,7 +18,7 @@ export const getLog = (limit = 200, osuId?: number) =>
           payload: adminLog.payload,
           at: adminLog.at,
           username: users.username,
-          avatarUrl: users.avatarUrl,
+          avatarUrl: avatarCol,
           osuId: adminLog.osuId,
         })
         .from(adminLog)
@@ -44,7 +45,7 @@ export const getStaff = () =>
         .select({
           osuId: staff.osuId,
           username: users.username,
-          avatarUrl: users.avatarUrl,
+          avatarUrl: avatarCol,
           country: users.country,
           permRoles: staff.permRoles,
           order: staff.order,
@@ -56,6 +57,9 @@ export const getStaff = () =>
   );
 
 export const getPublicStaff = async () => (await getStaff()).filter((s) => s.osuId > 0 && s.permRoles.length > 0);
+
+export const getHosts = async () =>
+  (await getPublicStaff()).filter((s) => s.permRoles.includes("host")).map((s) => ({ osuId: s.osuId, username: s.username, avatarUrl: s.avatarUrl, roles: s.permRoles }));
 
 export const getLogCtx = () =>
   safe(

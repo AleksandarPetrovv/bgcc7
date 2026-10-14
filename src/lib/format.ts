@@ -81,21 +81,21 @@ const BGCC6: Format = {
   winnersFinal: "WB-R3-M1",
   sectionsOff: [],
   layout: {
-    gfCol: 5,
+    gfCol: 4,
     gfRow: 1.5,
     upRows: 4,
     lowRows: 2,
-    mark: 3,
+    mark: 2,
     box: { g: 28, h: 92, gap: 18, minW: 210 },
     pick: { w: 214, g: 40, h: 78, pitch: 100 },
     pos: {
       "WB-R1-M1": [0, 0, "u"], "WB-R1-M2": [0, 1, "u"], "WB-R1-M3": [0, 2, "u"], "WB-R1-M4": [0, 3, "u"],
       "WB-R2-M1": [1, 0.5, "u"], "WB-R2-M2": [1, 2.5, "u"],
       "WB-R3-M1": [2, 1.5, "u"],
-      "LB-R1-M1": [1, 0, "l"], "LB-R1-M2": [1, 1, "l"],
-      "LB-R2-M1": [2, 0, "l"], "LB-R2-M2": [2, 1, "l"],
-      "LB-R3-M1": [3, 0.5, "l"],
-      "LB-R4-M1": [4, 0.5, "l"],
+      "LB-R1-M1": [0, 0, "l"], "LB-R1-M2": [0, 1, "l"],
+      "LB-R2-M1": [1, 0, "l"], "LB-R2-M2": [1, 1, "l"],
+      "LB-R3-M1": [2, 0.5, "l"],
+      "LB-R4-M1": [3, 0.5, "l"],
     },
     drops: [
       ["WB-R1-M1", "LB-R1-M1"], ["WB-R1-M4", "LB-R1-M1"], ["WB-R1-M2", "LB-R1-M2"], ["WB-R1-M3", "LB-R1-M2"],
@@ -105,10 +105,10 @@ const BGCC6: Format = {
       { c: 0, s: "u", t: "Round 1 (Quarter-Finals)" },
       { c: 1, s: "u", t: "Round 2 (Semi-Finals)" },
       { c: 2, s: "u", t: "Winners Finals" },
-      { c: 1, s: "l", t: "Losers Round 1" },
-      { c: 2, s: "l", t: "Losers Round 2" },
-      { c: 3, s: "l", t: "Losers Round 3" },
-      { c: 4, s: "l", t: "Losers Finals" },
+      { c: 0, s: "l", t: "Losers Round 1" },
+      { c: 1, s: "l", t: "Losers Round 2" },
+      { c: 2, s: "l", t: "Losers Round 3" },
+      { c: 3, s: "l", t: "Losers Finals" },
     ],
   },
 };
@@ -148,12 +148,12 @@ function bgcc7(): Format {
   for (const k of range(4)) pos[id("WB-R2", k)] = [1, 2 * k - 1.5, "u"];
   for (const k of range(2)) pos[id("WB-R3", k)] = [2, 4 * k - 2.5, "u"];
   pos["WB-R4-M1"] = [3, 3.5, "u"];
-  for (const k of range(4)) pos[id("LB-R1", k)] = [1, k - 1, "l"];
-  for (const k of range(4)) pos[id("LB-R2", k)] = [2, k - 1, "l"];
-  for (const k of range(2)) pos[id("LB-R3", k)] = [3, 2 * k - 1.5, "l"];
-  for (const k of range(2)) pos[id("LB-R4", k)] = [4, 2 * k - 1.5, "l"];
-  pos["LB-R5-M1"] = [5, 1.5, "l"];
-  pos["LB-R6-M1"] = [6, 1.5, "l"];
+  for (const k of range(4)) pos[id("LB-R1", k)] = [0, k - 1, "l"];
+  for (const k of range(4)) pos[id("LB-R2", k)] = [1, k - 1, "l"];
+  for (const k of range(2)) pos[id("LB-R3", k)] = [2, 2 * k - 1.5, "l"];
+  for (const k of range(2)) pos[id("LB-R4", k)] = [3, 2 * k - 1.5, "l"];
+  pos["LB-R5-M1"] = [4, 1.5, "l"];
+  pos["LB-R6-M1"] = [5, 1.5, "l"];
 
   const drops: [string, string][] = [];
   for (const [to, srcs] of Object.entries(feed)) if (to.startsWith("LB")) for (const s of srcs) if (s.take === "L") drops.push([s.from, to]);
@@ -186,12 +186,12 @@ function bgcc7(): Format {
     winnersFinal: "WB-R4-M1",
     sectionsOff: ["lobbies", "qualScores", "seeding"],
     layout: {
-      gfCol: 7,
+      gfCol: 6,
       gfRow: 3.5,
       upRows: 8,
       lowRows: 4,
-      mark: 4,
-      box: { g: 20, h: 80, gap: 14, minW: 176 },
+      mark: 3,
+      box: { g: 16, h: 80, gap: 14, minW: 176 },
       pick: { w: 162, g: 22, h: 66, pitch: 82 },
       pos,
       drops,
@@ -200,12 +200,12 @@ function bgcc7(): Format {
         { c: 1, s: "u", t: "Quarterfinals" },
         { c: 2, s: "u", t: "Semifinals" },
         { c: 3, s: "u", t: "Winners Finals" },
-        { c: 1, s: "l", t: "Losers Round 1" },
-        { c: 2, s: "l", t: "Losers Round 2" },
-        { c: 3, s: "l", t: "Losers Round 3" },
-        { c: 4, s: "l", t: "Losers Round 4" },
-        { c: 5, s: "l", t: "Losers Round 5" },
-        { c: 6, s: "l", t: "Losers Finals" },
+        { c: 0, s: "l", t: "Losers Round 1" },
+        { c: 1, s: "l", t: "Losers Round 2" },
+        { c: 2, s: "l", t: "Losers Round 3" },
+        { c: 3, s: "l", t: "Losers Round 4" },
+        { c: 4, s: "l", t: "Losers Round 5" },
+        { c: 5, s: "l", t: "Losers Finals" },
       ],
     },
   };

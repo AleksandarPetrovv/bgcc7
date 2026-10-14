@@ -3,6 +3,7 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "./index";
 import { lobbies, lobbyBookings, users } from "./schema";
 import { safe } from "./safe";
+import { avatarCol } from "./avatar";
 
 export type LobbyPlayer = { osuId: number; username: string; avatarUrl: string | null; country: string | null };
 export type Lobby = { id: number; name: string; startsAt: Date; capacity: number; referee: string | null; mpLinks: string; players: LobbyPlayer[] };
@@ -12,7 +13,7 @@ export const getLobbies = () =>
     const [rows, booked] = await Promise.all([
       db.select().from(lobbies).orderBy(asc(lobbies.startsAt), asc(lobbies.name)),
       db
-        .select({ lobbyId: lobbyBookings.lobbyId, osuId: users.osuId, username: users.username, avatarUrl: users.avatarUrl, country: users.country })
+        .select({ lobbyId: lobbyBookings.lobbyId, osuId: users.osuId, username: users.username, avatarUrl: avatarCol, country: users.country })
         .from(lobbyBookings)
         .innerJoin(users, eq(users.osuId, lobbyBookings.osuId))
         .orderBy(asc(lobbyBookings.bookedAt)),

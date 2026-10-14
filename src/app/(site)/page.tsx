@@ -15,7 +15,7 @@ import { getMatches, getTeams } from "@/db/tournament";
 import { getLang } from "@/lib/i18n/server";
 import { fmtSofiaTime, isFuture, windowState } from "@/lib/time";
 import { ResultCard } from "@/components/site/result-card";
-import { getPoolStages } from "@/db/mappools";
+import { getPoolStages, type PoolStage } from "@/db/mappools";
 import { getRegistrations } from "@/db/registrations";
 import { splitAlive } from "@/lib/alive";
 import { getLobbies, type Lobby } from "@/db/lobbies";
@@ -30,8 +30,8 @@ import { currentOsuId } from "@/auth";
 import { login } from "@/app/(site)/pickems/actions";
 import { HeroGate } from "@/components/site/hero-gate";
 import { MeTag } from "@/components/site/me";
-import { SKILLS, slotColor } from "@/lib/format-plan";
-import { getEdition } from "@/db/edition";
+import { slotColor } from "@/lib/format-plan";
+import { getEdition, getFormat } from "@/db/edition";
 import { ShrinkWrap } from "@/components/site/shrink-wrap";
 
 const INK: Record<string, number> = { "6": 0.15, "7": 0.22 };
@@ -117,22 +117,26 @@ function ModChips({ stage }: { stage: Stage }) {
   );
 }
 
-const POOL_MODS = ["NoMod", "Hidden", "HardRock", "DoubleTime", "FreeMod", "Tiebreaker"];
+const SHORT: Record<string, string> = { Qualifiers: "QUALS", "Round of 32": "RO32", "Round of 16": "RO16", Quarterfinals: "QF", Semifinals: "SF", Finals: "F", "Grand Finals": "GF" };
+const short = (title: string) => SHORT[title] ?? (title.match(/\b[A-Z0-9]/g)?.join("") || title);
+const STACK_COLORS: Record<string, string> = { QUALS: "var(--color-mod-tb)", RO32: "var(--color-mod-tb)", RO16: "var(--color-mod-nm)", QF: "var(--color-mod-hd)", SF: "var(--color-mod-fm)", F: "var(--color-mod-dt)", GF: "var(--color-mod-hr)" };
 
-function PoolStack({ stages, skill }: { stages: Stage[]; skill: boolean }) {
-  const colors = skill ? [...Object.values(SKILLS).map((s) => s.color), MODS.Tiebreaker.color] : POOL_MODS.filter((m) => MODS[m]).map((m) => MODS[m].color);
+function PoolStack({ stages }: { stages: PoolStage[] }) {
   return (
-    <div className="flex h-full flex-col justify-center gap-2 px-5" aria-hidden>
-      <div className="flex gap-1.5">
-        {colors.map((c, i) => (
-          <span key={i} className="anim-rise h-7 flex-1 sm:h-9 -skew-x-12 opacity-80 transition-opacity group-hover:opacity-100" style={{ background: c, animationDelay: `${0.3 + i * 0.05}s` }} />
-        ))}
-      </div>
-      <div className="flex gap-x-3 overflow-hidden whitespace-nowrap text-[0.65rem] font-black uppercase text-ash [mask-image:linear-gradient(to_left,transparent,black_2rem)]">
-        {stages.map((st) => (
-          <span key={st.slug}>{st.title}</span>
-        ))}
-      </div>
+    <div className="flex h-full items-center gap-1.5 px-5" aria-hidden>
+      {stages.map((st, i) => (
+        <span
+          key={st.slug}
+          className={cn(
+            "anim-rise grid h-11 flex-1 -skew-x-12 place-items-center transition-colors sm:h-14",
+            "text-ink",
+            st.released ? "opacity-85 group-hover:opacity-100" : "opacity-45",
+          )}
+          style={{ animationDelay: `${0.3 + i * 0.05}s`, background: STACK_COLORS[short(st.title)] ?? "var(--color-mod-tb)" }}
+        >
+          <span className="heading-slam skew-x-12 text-base sm:text-2xl">{short(st.title)}</span>
+        </span>
+      ))}
     </div>
   );
 }
@@ -186,8 +190,8 @@ function AvatarCloud({ people }: { people: { id: number; avatar: string | null }
   return (
     <div className="flex h-full flex-wrap content-center items-center gap-2.5 px-5" aria-hidden>
       {people.slice(0, 18).map((p, i) => (
-        <span key={p.id} className="anim-rise transition-transform duration-300 group-hover:-translate-y-0.5" style={{ animationDelay: `${0.25 + i * 0.04}s`, transitionDelay: `${i * 25}ms` }}>
-          <Avatar src={p.avatar} className="size-9" />
+        <span key={p.id} className={cn("anim-rise transition-transform duration-300 group-hover:-translate-y-0.5", i >= 12 && "max-sm:hidden")} style={{ animationDelay: `${0.25 + i * 0.04}s`, transitionDelay: `${i * 25}ms` }}>
+          <Avatar src={p.avatar} className="size-8 sm:size-9" />
         </span>
       ))}
     </div>
@@ -346,11 +350,11 @@ export default async function Home() {
     ),
     see("mappool") && !qualPool && visiblePools.length > 0 && (
       <EntryCard key="pools" title={t.home.mappools} sub={t.home.poolsSub(visiblePools.length)} href="/mappool" className="bg-slate">
-        <PoolStack skill={getEdition() === "bgcc7"} stages={visiblePools.map((st) => ({ ...st, title: t.rounds[st.title] ?? st.title }))} />
+        <PoolStack stages={pools.filter((s) => s.pools.length)} />
       </EntryCard>
     ),
     see("teams") && teams.length > 0 && (
-      <EntryCard key="teams" title={t.home.teams} sub={phase === "playoffs" || phase === "finished" ? t.home.teamsDone(teams.length, teams.length * 3) : t.home.teamsSub(teams.length, teams.length * 3)} href="/teams" className="bg-coal">
+      <EntryCard key="teams" title={t.home.teams} sub={phase === "playoffs" || phase === "finished" ? t.home.teamsDone(teams.length, teams.length * getFormat().teamSize) : t.home.teamsSub(teams.length, teams.length * getFormat().teamSize)} href="/teams" className="bg-coal">
         <TeamMosaic teams={teams} />
       </EntryCard>
     ),

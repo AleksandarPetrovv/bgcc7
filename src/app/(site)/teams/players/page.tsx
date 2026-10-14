@@ -49,7 +49,7 @@ export default async function Players() {
       <span className="in-spin shrink-0" style={v({ "--d": "0.12s" })}>
         <Avatar src={p.avatarUrl} className="size-12 transition-transform duration-300 group-hover:scale-105" />
       </span>
-      <div className="relative min-w-0 flex-1">
+      <div className="@container relative min-w-0 flex-1">
         <div className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           {p.country && <img src={flagUrl(p.country)} alt="" className="h-3 shrink-0" />}
@@ -63,7 +63,7 @@ export default async function Players() {
             </Tag>
           )}
         </div>
-        <div className="in-up num mt-1.5 flex items-center gap-2.5 text-sm" style={v({ "--d": "0.35s" })}>
+        <div className="in-up num mt-1.5 flex items-center gap-2 whitespace-nowrap text-sm @max-[14rem]:text-xs" style={v({ "--d": "0.35s" })}>
           {suiji && p.bws !== null && (
             <>
               <span className="text-gold">BWS {fmtNum(p.bws)}</span>
@@ -81,8 +81,8 @@ export default async function Players() {
           )}
           {p.pp !== null && (
             <>
-              <Rhombus className="size-1 text-line" />
-              <span className="text-ash">{fmtNum(Math.round(p.pp))}pp</span>
+              <Rhombus className="size-1 text-line @max-[18.5rem]:hidden" />
+              <span className="text-ash @max-[18.5rem]:hidden">{fmtNum(Math.round(p.pp))}pp</span>
             </>
           )}
         </div>

@@ -1,4 +1,5 @@
 import type { QualMap, QualPerf, QualPlayer } from "./data";
+import { avatarPath } from "@/lib/avatar";
 
 export type ScoreIn = { osuId: number; beatmapId: number; score: number; acc: number; mods: string; grade: string; lobby: string; manual?: boolean };
 export type PlayerIn = { osuId: number; username: string; avatar: string; cc: string };
@@ -41,7 +42,7 @@ export function rankQualifiers(maps: QualMap[], scores: ScoreIn[], players: Map<
       return {
         id: osuId,
         username: who?.username ?? String(osuId),
-        avatar: who?.avatar ?? `https://a.ppy.sh/${osuId}`,
+        avatar: who?.avatar ?? avatarPath(osuId),
         cc: who?.cc ?? "",
         avgAcc: v.reduce((n, x) => n + x.acc, 0) / v.length,
         avgScore: Math.round(v.reduce((n, x) => n + x.score, 0) / v.length),

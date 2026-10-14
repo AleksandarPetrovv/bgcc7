@@ -19,6 +19,7 @@ import { getFormat } from "@/db/edition";
 import { rankBws } from "@/lib/bws";
 import { Dropdown } from "@/components/admin/dropdown";
 import { RemoveMember } from "./remove-member";
+import { avatarPath } from "@/lib/avatar";
 
 const bwsGrid = "grid grid-cols-[2rem_minmax(0,1fr)_3rem_5rem] items-center gap-x-3 px-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_6rem_10rem_6rem]";
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
@@ -77,7 +78,7 @@ export default async function AdminTeams() {
                       <span className={cn("num text-right text-base", tier ? "text-paper" : "text-ash")}>{p.bws === null ? "–" : i + 1}</span>
                       <span className="flex min-w-0 items-center gap-2.5">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={p.avatarUrl ?? `https://a.ppy.sh/${p.osuId}`} alt="" className="size-7 shrink-0" />
+                        <img src={p.avatarUrl ?? avatarPath(p.osuId)} alt="" className="size-7 shrink-0" />
                         <span className="truncate font-bold">{p.username}</span>
                       </span>
                       <span className="flex justify-center">

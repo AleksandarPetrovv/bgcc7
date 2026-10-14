@@ -100,7 +100,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-30 transition duration-500 group-hover:scale-105 group-hover:opacity-45 [--d:0.15s]" />
                       <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-transparent" />
-                      <span className="in-pop heading-slam relative flex w-14 shrink-0 items-center justify-center text-lg sm:w-24 sm:text-2xl [--d:0.3s]" style={{ color: mc }}>
+                      <span className="in-pop heading-slam relative mr-2 flex w-16 shrink-0 items-center justify-center text-lg sm:mr-0 sm:w-24 sm:text-2xl [--d:0.3s]" style={{ color: mc }}>
                         {m.slot}
                       </span>
                       <div className="relative flex min-w-0 flex-1 flex-col justify-center">

@@ -9,6 +9,10 @@ import { currentEdition } from "@/db";
 import { getInfoCopy } from "@/db/info-copy";
 import { getLang } from "@/lib/i18n/server";
 import { Editable } from "./editable";
+import { InfoFolk } from "./folk";
+import { getPlan } from "@/db/format-plan";
+import { getMatches } from "@/db/tournament";
+import { getHosts } from "@/db/admin";
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
@@ -16,13 +20,13 @@ type Ed = (path: string, fallback: string) => { raw: string; path: string };
 
 function List({ path, items, ed, f, on }: { path: string; items: string[]; ed: Ed; f: (s: string) => string; on: boolean }) {
   return (
-    <InView as="ul" className="ml-5 list-disc space-y-2 text-[0.97rem] leading-relaxed marker:text-rose">
+    <InView as="ul" className="ml-5 list-disc space-y-2 text-[0.97rem] leading-relaxed text-paper/75 marker:text-rose">
       {items.map((item, i) => {
         const e = ed(`${path}.${i}`, item);
         return (
           <li key={i} className="in-left" style={v({ "--i": i, "--s": "0.07s", "--d": "0.1s" })}>
             <Editable path={e.path} raw={e.raw} on={on}>
-              <Rich text={f(e.raw)} />
+              <Rich text={f(e.raw)} plain />
             </Editable>
           </li>
         );
@@ -47,6 +51,14 @@ export default async function InfoPage() {
     );
   };
   const intro = ed("info.intro", t.info.intro);
+  if (currentEdition() === "bgcc7") {
+    const [plan, matches, hosts] = await Promise.all([getPlan(), getMatches(), getHosts()]);
+    return (
+      <Container plain>
+        <InfoFolk t={t} f={f} raw={(path, fallback) => ed(path, fallback).raw} on={on} locale={lang === "bg" ? "bg-BG" : "en-GB"} plan={plan} matches={matches} hosts={hosts} />
+      </Container>
+    );
+  }
   return (
     <Container plain>
       <PageTitle mark="bubble">{t.nav.info}</PageTitle>

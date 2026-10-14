@@ -2,11 +2,13 @@ import { ExternalLink, Mic, User, Video } from "lucide-react";
 import { Container, PageTitle, SlantButton, SubHeading, Tag } from "@/components/site/page";
 import { TwitchEmbed } from "@/components/site/twitch-embed";
 import { getDict } from "@/lib/i18n/server";
-import { roundName } from "@/lib/i18n/dict";
+import { roundName, type Dict } from "@/lib/i18n/dict";
 import { TWITCH_URL } from "@/lib/links";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getLang } from "@/lib/i18n/server";
-import { fmtSofia } from "@/lib/time";
+import { fmtSofia, isFuture } from "@/lib/time";
+import { Countdown } from "@/components/site/countdown";
+import type { Team } from "@/lib/data";
 import { getLive } from "@/lib/twitch";
 import { requireSection } from "@/lib/authz";
 import { MeTag, meT } from "@/components/site/me";
@@ -16,6 +18,8 @@ export default async function Streams() {
   const [t, lang, matches, teams, live] = await Promise.all([getDict(), getLang(), getMatches(), getTeams(), getLive()]);
   const teamById = (id: string) => teams.find((x) => x.id === id);
   const upcoming = matches.filter((m) => !m.winner && m.datetime && m.team1.id && m.team2.id).sort((a, b) => a.datetime!.localeCompare(b.datetime!));
+  const soon = upcoming.find((m) => isFuture(new Date(m.datetime!)));
+  const next = soon ? { round: roundName(t, soon.round), at: soon.datetime!, a: teamById(soon.team1.id), b: teamById(soon.team2.id) } : null;
   return (
     <Container plain>
       <PageTitle mark="glints"
@@ -35,7 +39,7 @@ export default async function Streams() {
             </span>
           )}
           <div className="in-wipe aspect-video overflow-hidden border border-line bg-coal" style={{ "--d": "0.15s" } as React.CSSProperties}>
-            <TwitchEmbed title={t.streams.title} />
+            {live ? <TwitchEmbed title={t.streams.title} /> : <Offline t={t} next={next} />}
           </div>
           <div className="in-up mt-4 flex flex-wrap items-center justify-end gap-3" style={{ "--d": "0.7s" } as React.CSSProperties}>
             <SlantButton href={TWITCH_URL} tone="paper">
@@ -85,5 +89,40 @@ export default async function Streams() {
         </div>
       </div>
     </Container>
+  );
+}
+
+function Offline({ t, next }: { t: Dict; next: { round: string; at: string; a?: Team; b?: Team } | null }) {
+  return (
+    <div className="relative flex size-full flex-col justify-between p-5 sm:p-8">
+      {next && (
+        <div className="absolute inset-0 grid grid-cols-2 opacity-15 grayscale" aria-hidden>
+          {[next.a, next.b].map((x, i) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={i} src={x?.image} alt="" className="size-full object-cover" />
+          ))}
+        </div>
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-coal via-coal/70 to-coal/30" aria-hidden />
+      <span className="relative flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-ash">
+        <span className="size-2 rotate-45 bg-ash" aria-hidden /> {t.streams.offline}
+      </span>
+      {next ? (
+        <div className="relative">
+          <div className="text-xs font-black uppercase tracking-[0.14em] text-paper/70">{t.streams.nextUp}</div>
+          <div className="mt-1 text-sm font-black uppercase text-rose-hi">{next.round}</div>
+          <div className="heading-slam mt-2 flex flex-wrap items-baseline gap-x-3 text-[clamp(1.5rem,4vw,3rem)] leading-none">
+            <span>{next.a?.name}</span>
+            <span className="text-rose-hi">{t.common.vs}</span>
+            <span>{next.b?.name}</span>
+          </div>
+          <Countdown to={next.at} />
+        </div>
+      ) : (
+        <div className="heading-slam relative select-none text-[clamp(3rem,10vw,7rem)] leading-none text-transparent [-webkit-text-stroke:1.5px_rgba(244,243,238,0.18)]" aria-hidden>
+          {t.streams.offline}
+        </div>
+      )}
+    </div>
   );
 }

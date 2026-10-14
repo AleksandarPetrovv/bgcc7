@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Crown } from "lucide-react";
+import { ChevronRight, Crown } from "lucide-react";
 import type { Match } from "@/lib/data";
 import { TWITCH_URL } from "@/lib/links";
 import { useTournament } from "./tournament";
@@ -36,7 +36,7 @@ function bracketLayout(f: Format) {
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
-function Line({ m, slot, live }: { m: Match; slot: 1 | 2; live?: [number, number] | null }) {
+function Line({ m, slot, live, slim }: { m: Match; slot: 1 | 2; live?: [number, number] | null; slim?: boolean }) {
   const { teamById } = useTournament();
   const side = slot === 1 ? m.team1 : m.team2;
   const team = teamById(side.id);
@@ -47,16 +47,16 @@ function Line({ m, slot, live }: { m: Match; slot: 1 | 2; live?: [number, number
   const leads = !!live && !tie && live[slot - 1] > live[2 - slot];
   const score = live ? live[slot - 1] : m.winner !== null ? (side.score ?? 0) : null;
   return (
-    <div {...meT(team.id)} className={cn("relative flex min-h-0 flex-1 items-center gap-2 px-2", won && "bg-balkan/12", leads && "bg-rose/10", lost && "opacity-45")}>
+    <div {...meT(team.id)} className={cn("relative flex min-h-0 flex-1 items-center gap-1.5 pl-2 pr-2.5", won && "bg-balkan/12", leads && "bg-rose/10", lost && "opacity-45")}>
       {(won || leads) && <span className={cn("absolute inset-y-1 left-0 w-0.5", won ? "bg-balkan" : "bg-rose/60")} aria-hidden />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={team.image} alt="" className="in-pop size-6 shrink-0 object-cover" style={v({ "--d": "0.45s" })} />
-      <span className={cn("in-wipe min-w-0 flex-1 truncate text-[0.82rem] font-bold", won && "font-black text-balkan", leads && "font-black text-rose-soft")} style={v({ "--d": "0.5s" })}>
+      {!slim && <img src={team.image} alt="" className="in-pop size-5 shrink-0 object-cover" style={v({ "--d": "0.45s" })} />}
+      <span title={team.name} className={cn("in-wipe min-w-0 flex-1 truncate text-[0.8rem] font-bold", won && "font-black text-balkan", leads && "font-black text-rose-soft")} style={v({ "--d": "0.5s" })}>
         {team.name}
       </span>
       <MeTag t={team.id} className="-mx-1" />
       {score !== null && (
-        <span className={cn("in-slam num w-5 shrink-0 text-right text-xl leading-none", won ? "text-balkan" : leads || tie ? "text-rose-soft" : "text-paper/80")} style={v({ "--d": "0.65s" })}>
+        <span className={cn("in-slam num ml-2 shrink-0 text-right text-xl leading-none", won ? "text-balkan" : leads || tie ? "text-rose-soft" : "text-paper/80")} style={v({ "--d": "0.65s" })}>
           {score}
         </span>
       )}
@@ -64,7 +64,7 @@ function Line({ m, slot, live }: { m: Match; slot: 1 | 2; live?: [number, number
   );
 }
 
-function Box({ id, m, live, className, style, onEnter, onLeave }: { id: string; m: Match; live?: [number, number] | null; className?: string; style?: React.CSSProperties; onEnter?: () => void; onLeave?: () => void }) {
+function Box({ id, m, live, slim, className, style, onEnter, onLeave }: { id: string; m: Match; live?: [number, number] | null; slim?: boolean; className?: string; style?: React.CSSProperties; onEnter?: () => void; onLeave?: () => void }) {
   const t = useDict();
   const lang = useLang();
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
@@ -73,16 +73,16 @@ function Box({ id, m, live, className, style, onEnter, onLeave }: { id: string; 
   return (
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className={cn("flex flex-col overflow-hidden border bg-coal transition-[border-color] duration-200", className)} style={style}>
       <div className="flex h-7 shrink-0 items-center gap-2 border-b border-line bg-ink/70 px-2.5">
-        <span className="num truncate text-[0.78rem] text-paper/75">{m.datetime ? `${day(m.datetime)} · ${clock(m.datetime)}` : t.common.tbd}</span>
+        <span className="num truncate text-[0.78rem] text-paper/75">{m.datetime ? `${id === "GF-M2" ? new Date(m.datetime).toLocaleDateString(locale, { timeZone: TZ, day: "2-digit", month: "short" }) : day(m.datetime)} · ${clock(m.datetime)}` : t.common.tbd}</span>
         {id === "GF-M2" && <span className="shrink-0 whitespace-nowrap text-[0.6rem] font-black uppercase text-gold">{t.rounds.reset}</span>}
         <span className="ml-auto flex items-center gap-1">
           {live !== undefined && <LiveDot />}
           {m.links.length > 0 && <MatchDialog match={m} compact />}
         </span>
       </div>
-      <Line m={m} slot={1} live={live} />
+      <Line m={m} slot={1} live={live} slim={slim} />
       <div className="h-px shrink-0 bg-line" />
-      <Line m={m} slot={2} live={live} />
+      <Line m={m} slot={2} live={live} slim={slim} />
     </div>
   );
 }
@@ -104,6 +104,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   const { matches, format } = useTournament();
   const { G, H, P, minW, LOW, POS, top, WIN, DROPS, HEADERS, gfCol, upRows, lowRows, mark } = bracketLayout(format);
   const [hover, setHover] = useState<string | null>(null);
+  const [end, setEnd] = useState(false);
   const anyLive = Object.keys(live).length > 0;
   useEffect(() => {
     if (!anyLive) return;
@@ -125,6 +126,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   const height = LOW + (lowRows - 1) * P + H + 12;
   const scale = shrink < 1 ? shrink : seen >= 1280 && width < seen ? Math.min(1.35, seen / width) : 1;
   const fit = fitBox(width, height, scale);
+  const lowCol = Math.min(...HEADERS.filter((h) => h.s === "l").map((h) => h.c));
   const midY = (id: string) => top(id) + H / 2;
   const wire = (a: string, b: string) => {
     const x1 = col(POS[a][0]) + W;
@@ -141,7 +143,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   };
 
   const section = (s: "u" | "l") => (
-    <div className="pointer-events-none absolute flex items-center gap-3" style={{ left: s === "u" ? 0 : col(1), top: s === "u" ? 0 : LOW - 72 }}>
+    <div className="pointer-events-none absolute flex items-center gap-3" style={{ left: s === "u" ? 0 : col(lowCol), top: s === "u" ? 0 : LOW - 72 }}>
       <span className="in-left-far inline-flex" style={v({ "--d": s === "u" ? "0.05s" : "0.35s" })}>
         <TriTick />
       </span>
@@ -154,7 +156,8 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   const up = (w: string) => w.toLocaleUpperCase(locale);
 
   return (
-    <div ref={box} className="snap-x snap-mandatory overflow-x-auto overflow-y-hidden pb-4 md:snap-none">
+    <div className="relative">
+    <div ref={box} onScroll={(e) => setEnd(e.currentTarget.scrollLeft + e.currentTarget.clientWidth >= e.currentTarget.scrollWidth - 8)} className="snap-x snap-mandatory overflow-x-auto overflow-y-hidden pb-4 md:snap-none">
       <div className="mx-auto mt-4" style={fit.outer}>
       <div className={cn("relative", scale === 1 && "mx-auto")} style={fit.inner}>
         <svg className="pointer-events-none absolute inset-0 overflow-visible" width={width} height={height} aria-hidden>
@@ -225,6 +228,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
               id={id}
               m={m}
               live={id in live ? live[id] : undefined}
+              slim={W < 200}
               onEnter={() => setHover(id)}
               onLeave={() => setHover(null)}
               className={cn("in-left-far absolute", gf ? "border-gold/25" : "border-line hover:border-paper/30", linked.has(id) && "border-rose/80")}
@@ -234,6 +238,12 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
         })}
       </div>
       </div>
+    </div>
+      {seen > 0 && width * scale > seen + 1 && (
+        <div className={cn("pointer-events-none absolute inset-y-0 right-0 flex w-12 items-center justify-end bg-gradient-to-l from-ink to-transparent transition-opacity duration-300", end && "opacity-0")} aria-hidden>
+          <ChevronRight className="anim-chevron size-5 text-paper/60" />
+        </div>
+      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { Sparkle, TriTick } from "./graphics";
 import { Tabs } from "./tabs";
+import { useBelowFold } from "./motion";
 import { useDict } from "./lang";
 import { cn } from "@/lib/utils";
 
@@ -285,9 +286,22 @@ export function Wide({ children, className }: { children: React.ReactNode; class
 }
 
 export function SectionHeading({ children }: { children: React.ReactNode }) {
+  const [ref, below] = useBelowFold<HTMLHeadingElement>();
+  const cls = "heading-slam mb-5 mt-14 flex items-center gap-3 text-[clamp(1.6rem,7.5vw,2.25rem)] first:mt-0";
+  if (below)
+    return (
+      <h2 ref={ref} className={cls}>
+        <span>
+          <TriTick />
+        </span>
+        <span className="min-w-0 break-words">{children}</span>
+        <span className="h-px flex-1 border-t border-dashed border-line" aria-hidden />
+      </h2>
+    );
   return (
     <motion.h2
-      className="heading-slam mb-5 mt-14 flex items-center gap-3 text-[clamp(1.6rem,7.5vw,2.25rem)] first:mt-0"
+      ref={ref}
+      className={cls}
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, amount: "some" }}

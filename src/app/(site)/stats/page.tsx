@@ -92,20 +92,19 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
 
       <SectionHeading>{t.stats.mapLeaders}</SectionHeading>
       <InView key={`l-${current!.slug}`} className="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
-        {data.maps.map((m, k) => {
+        {data.maps.filter((m) => data.players.some((p) => p.perf[m.id])).map((m, k) => {
           const top = data.players
             .filter((p) => p.perf[m.id])
             .sort((a, b) => b.perf[m.id].score - a.perf[m.id].score)
             .slice(0, 3);
           return (
-            <div key={m.id} className={cn("flex items-stretch border border-line bg-coal", k % 2 ? "in-right" : "in-left", !top.length && "opacity-45")} style={{ "--i": k, "--s": "0.06s" } as React.CSSProperties}>
+            <div key={m.id} className={cn("flex items-stretch border border-line bg-coal", k % 2 ? "in-right" : "in-left")} style={{ "--i": k, "--s": "0.06s" } as React.CSSProperties}>
               <div className="relative w-28 shrink-0 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={m.cover} alt="" className="absolute inset-0 size-full object-cover opacity-50" />
                 <span className="in-pop heading-slam relative flex h-full min-h-16 items-center justify-center text-3xl [text-shadow:0_2px_6px_rgb(0_0_0/0.85),0_0_2px_rgb(0_0_0/0.9)]" style={{ "--d": "0.25s", color: skillColor(m.slot) } as React.CSSProperties}>{m.slot}</span>
               </div>
               <ol className="flex-1 divide-y divide-line">
-                {top.length === 0 && <li className="px-3 py-1.5 text-sm text-ash">—</li>}
                 {top.map((p, i) => (
                   <li key={p.id} {...meP(p.id)} className="me-hl flex items-center gap-2 px-3 py-1.5 text-sm">
                     <span className={cn("num w-5", MEDAL[i])}>{i + 1}</span>
