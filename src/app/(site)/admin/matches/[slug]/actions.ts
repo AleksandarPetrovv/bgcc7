@@ -10,6 +10,7 @@ import { getFormat } from "@/db/edition";
 import { forgetScoreboard, getScoreboard } from "@/db/scoreboards";
 import { getMatches, getTeams } from "@/db/tournament";
 import { guard } from "@/lib/admin-action";
+import { canRunMatch } from "@/db/drafts";
 import type { ActionResult } from "@/lib/roles";
 
 const parseMods = (v: string) => (v.toUpperCase().replace(/[^A-Z]/g, "").match(/.{2}/g) ?? []).filter((m) => m !== "NM").join(",");
@@ -27,8 +28,10 @@ async function sync(matchId: string) {
   const [a, b] = sb.score;
   const winner = a >= firstTo && a > b ? 1 : b >= firstTo && b > a ? 2 : null;
   if (row.score1 === a && row.score2 === b && row.winner === winner) return;
-  await db.update(matches).set({ score1: a, score2: b, winner }).where(eq(matches.id, matchId));
-  await advance();
+  await db.transaction(async (tx) => {
+    await tx.update(matches).set({ score1: a, score2: b, winner }).where(eq(matches.id, matchId));
+    await advance(tx);
+  });
 }
 
 async function rosterTeam(matchId: string, osuId: number) {
@@ -41,6 +44,7 @@ async function rosterTeam(matchId: string, osuId: number) {
 
 export async function saveScore(matchId: string, gameId: number, fixedOsuId: number | null, _: ActionResult, fd: FormData) {
   return guard("matches", "match.score.save", async (by) => {
+    if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
     const osuId = fixedOsuId ?? Number(fd.get("osuId"));
     const score = Math.round(Number(String(fd.get("score") ?? "").replace(/[\s,.]/g, "")));
     const accIn = Number(String(fd.get("acc") ?? "").replace(",", "."));
@@ -60,6 +64,7 @@ export async function saveScore(matchId: string, gameId: number, fixedOsuId: num
 
 export async function removeScore(matchId: string, gameId: number, osuId: number, team: 1 | 2) {
   return guard("matches", "match.score.remove", async (by) => {
+    if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
     const values = { matchId, gameId, osuId, team, score: 0, acc: 0, mods: "", removed: true, editedBy: by, editedAt: new Date() };
     await db
       .insert(scoreEdits)
@@ -72,6 +77,7 @@ export async function removeScore(matchId: string, gameId: number, osuId: number
 
 export async function undoScore(matchId: string, gameId: number, osuId: number) {
   return guard("matches", "match.score.undo", async () => {
+    if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
     await db.delete(scoreEdits).where(and(eq(scoreEdits.matchId, matchId), eq(scoreEdits.gameId, gameId), eq(scoreEdits.osuId, osuId)));
     await sync(matchId);
     return { matchId, gameId, osuId };
