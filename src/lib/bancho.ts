@@ -7,14 +7,14 @@ import { RateLimiterMemory, RateLimiterQueue } from "rate-limiter-flexible";
 import { db, withEdition } from "@/db";
 import { matches, mpChat, mpLobbies, staff, users } from "@/db/schema";
 import { getAllTeams } from "@/db/tournament";
-import { getPoolStages } from "@/db/mappools";
 import { getFormat } from "@/db/edition";
-import { getDraft, lobbyTimer, onDraft, poolSlots, setResult } from "@/db/drafts";
+import { draftMaps, draftSlots, getDraft, lobbyTimer, onDraft, setResult } from "@/db/drafts";
 import { other, rollWinner, scoreOf, turnOf, type DraftView } from "@/lib/draft";
 import { getUser } from "@/lib/osu-api";
 import { lobbySize } from "@/lib/format";
 import { blocked } from "@/lib/chat-filter";
-import { onRelay, relayName, relaySocket } from "@/lib/relay";
+import { onRelay, relayName, relayOnline, relaySocket } from "@/lib/relay";
+import { alertId, clearWhere, describeMatch, raise } from "@/lib/alerts";
 
 export type LobbySlot = { slot: number; name: string; id: number | null; side: 1 | 2 | null; team: "red" | "blue" | null; ready: "ready" | "notready" | "nomap"; host: boolean; mods: string[] };
 export type LobbyView = {
@@ -158,10 +158,13 @@ function newConn(s: State, c: NonNullable<ReturnType<typeof creds>>, owner: numb
   client.on("connected", () => {
     console.log(`${tag} connected`);
     for (const l of s.live.values()) if (l.owner === owner) void rejoin(l);
+    clearWhere((a) => a.kind === "ircLost" && a.id.endsWith(`:${owner}`));
     ping();
   });
   client.on("disconnected", (e) => {
     console.log(`${tag} disconnected: ${e?.message ?? "?"}`);
+    // with the helper gone the helperOffline alert covers it; this one is for irc dropping on its own
+    if (relayOnline(owner)) void ircLost(s, owner, e?.message).catch(() => {});
     ping();
   });
   client.on("PART", (m) => {
@@ -170,6 +173,16 @@ function newConn(s: State, c: NonNullable<ReturnType<typeof creds>>, owner: numb
     if (l) void markClosed(l.matchId);
   });
   return x;
+}
+
+async function ircLost(s: State, owner: number, why?: string) {
+  await withEdition("site", async () => {
+    for (const l of s.live.values()) {
+      if (l.owner !== owner) continue;
+      const match = await describeMatch(l.matchId);
+      raise({ id: alertId("ircLost", `${l.matchId}:${owner}`), kind: "ircLost", level: "red", match, href: `/matches/${match.slug}`, detail: why }, { hosts: true, osuIds: [owner] });
+    }
+  });
 }
 
 async function online(owner: number) {
@@ -288,7 +301,7 @@ export async function onFinished(matchId: string, scores: ScoreLine[]) {
   const d = await getDraft(matchId);
   const pick = d?.steps.findLast((s) => s.kind === "pick" && !s.skip && !s.winner);
   if (!d || !pick) return null;
-  const map = (await getPoolStages()).find((s) => s.slug === d.stageSlug)?.pools.flatMap((p) => p.maps).find((m) => m.slot === pick.slot);
+  const map = (await draftMaps(matchId, d.stageSlug)).find((m) => m.slot === pick.slot);
   if (!map || (l.lobby.beatmapId && l.lobby.beatmapId !== map.id)) return null;
   const sum = [0, 0];
   for (const s of scores) {
@@ -316,7 +329,7 @@ async function narrate(l: Live, n: DraftView | null) {
   if (!n || !p || g.bgccIrc?.live.get(l.matchId) !== l) return;
   const name = (s: 1 | 2) => l.names[s - 1];
   const say = (text: string) => l.lobby.channel.sendMessage(text).catch(() => {});
-  const slots = await poolSlots(n.stageSlug);
+  const slots = await draftSlots(l.matchId, n.stageSlug);
 
   if ((n.roll1 != null && n.roll1 !== p.roll1) || (n.roll2 != null && n.roll2 !== p.roll2)) await new Promise((r) => setTimeout(r, 2000));
   for (const s of [1, 2] as const) {
@@ -478,6 +491,7 @@ async function markClosed(matchId: string) {
     s!.live.delete(matchId);
   }
   await db.update(mpLobbies).set({ open: false, closedAt: new Date() }).where(and(eq(mpLobbies.matchId, matchId), eq(mpLobbies.open, true)));
+  clearWhere((a) => a.match?.id === matchId && (a.kind === "ircLost" || a.kind === "helperOffline"));
   ping(matchId);
 }
 
@@ -639,7 +653,7 @@ async function poolMap(matchId: string, text: string) {
   const d = await getDraft(matchId);
   const [match] = d ? [] : await db.select({ stageSlug: matches.stageSlug, poolSlug: matches.poolSlug }).from(matches).where(eq(matches.id, matchId)).limit(1);
   const stage = d?.stageSlug ?? match?.poolSlug ?? match?.stageSlug;
-  const maps = (await getPoolStages()).find((s) => s.slug === stage)?.pools.flatMap((p) => p.maps) ?? [];
+  const maps = stage ? await draftMaps(matchId, stage) : [];
   const byId = /^\d+$/.test(m[1]);
   const map = maps.find((x) => (byId ? x.id === Number(m[1]) : x.slot.toLowerCase() === m[1].toLowerCase()));
   if (!map) return byId ? { text, mod: undefined } : ("noslot" as const);
@@ -775,7 +789,7 @@ const MOD_ARGS: Record<string, string> = { NoMod: "NF", Hidden: "HD NF", HardRoc
 
 export async function lobbyPick(matchId: string, stageSlug: string, slot: string) {
   if (!g.bgccIrc?.live.has(matchId)) return;
-  const map = (await getPoolStages()).find((s) => s.slug === stageSlug)?.pools.flatMap((p) => p.maps).find((m) => m.slot === slot);
+  const map = (await draftMaps(matchId, stageSlug)).find((m) => m.slot === slot);
   if (!map) return;
   const l = await liveOf(matchId);
   if (l.lobby.beatmapId !== map.id) await l.lobby.setMap(map.id, 0);
