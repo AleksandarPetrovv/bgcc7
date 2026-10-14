@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Search } from "lucide-react";
 import { fmtNum, flagUrl, type QualPerf, type QualMap, type QualPlayer } from "@/lib/data";
 import { useDict } from "./lang";
@@ -17,12 +18,22 @@ const MOD_COLOR: Record<string, string> = {
 };
 
 
-type Hover = { x: number; y: number; map: QualMap; perf: QualPerf; player: QualPlayer } | null;
+type Open = { id: string; at: React.CSSProperties; map: QualMap; perf: QualPerf; player: QualPlayer } | null;
+
+const W = 300;
 
 export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]; players: QualPlayer[] }; cut: number }) {
   const t = useDict();
   const [q, setQ] = useState("");
-  const [hover, setHover] = useState<Hover>(null);
+  const [open, setOpen] = useState<Open>(null);
+  const close = useCallback(() => setOpen(null), []);
+  const show = (el: HTMLElement, key: string, map: QualMap, perf: QualPerf, player: QualPlayer) => {
+    if (open?.id === key) return setOpen(null);
+    const r = el.getBoundingClientRect();
+    const left = Math.max(12, Math.min(window.innerWidth - W - 12, r.right)) + window.scrollX;
+    const at: React.CSSProperties = r.top > 330 ? { left, top: r.top + window.scrollY - 6, transform: "translateY(-100%)" } : { left, top: r.bottom + window.scrollY + 6 };
+    setOpen({ id: key, at, map, perf, player });
+  };
 
   const places = useMemo(() => {
     const out: Record<string, Record<number, number>> = {};
@@ -50,7 +61,7 @@ export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]
         />
       </div>
 
-      <div className="overflow-x-auto border border-line" onMouseLeave={() => setHover(null)}>
+      <div className="overflow-x-auto border border-line" onScroll={close}>
         <table className="w-full min-w-[1100px] border-collapse text-sm">
           <thead>
             <tr className="bg-slate text-left text-[0.7rem] font-black uppercase tracking-wide text-ash">
@@ -88,20 +99,21 @@ export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]
                   {qualifiers.maps.map((m) => {
                     const perf = p.perf[m.id];
                     const place = places[m.id][p.id];
+                    const key = `${p.id}-${m.id}`;
                     return (
-                      <td
-                        key={m.id}
-                        className={cn("num cursor-default px-2 py-2 text-right text-base transition-colors hover:bg-slate", !perf && "text-line")}
-                        onMouseEnter={(e) => {
-                          if (!perf) return setHover(null);
-                          const r = e.currentTarget.getBoundingClientRect();
-                          setHover({ x: r.right, y: r.top, map: m, perf, player: p });
-                        }}
-                      >
+                      <td key={m.id} className={cn("num p-0 text-right text-base", !perf && "px-2 py-2 text-line")}>
                         {perf ? (
-                          <span className={cn(place === 0 && "text-gold", place === 1 && "text-silver", place === 2 && "text-bronze", perf.manual && "underline decoration-gold decoration-dotted underline-offset-4")}>
-                            {fmtNum(perf.score)}
-                          </span>
+                          <button
+                            type="button"
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => show(e.currentTarget, key, m, perf, p)}
+                            aria-expanded={open?.id === key}
+                            className={cn("w-full px-2 py-2 text-right transition-colors hover:bg-slate", open?.id === key && "bg-slate")}
+                          >
+                            <span className={cn(place === 0 && "text-gold", place === 1 && "text-silver", place === 2 && "text-bronze", perf.manual && "underline decoration-gold decoration-dotted underline-offset-4")}>
+                              {fmtNum(perf.score)}
+                            </span>
+                          </button>
                         ) : (
                           "—"
                         )}
@@ -115,19 +127,29 @@ export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]
         </table>
       </div>
 
-      {hover && <ScoreCard {...hover} />}
+      {open && createPortal(<ScoreCard {...open} key={open.id} onClose={close} />, document.body)}
     </div>
   );
 }
 
-function ScoreCard({ x, y, map, perf, player }: NonNullable<Hover>) {
+function ScoreCard({ at, map, perf, player, onClose }: NonNullable<Open> & { onClose: () => void }) {
   const t = useDict();
-  const W = 300;
-  const H = 230;
-  const left = Math.min(x + 8, window.innerWidth - W - 12);
-  const top = Math.max(84, y - H - 8);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const down = (e: PointerEvent) => e.target instanceof Node && !box.current?.contains(e.target) && onClose();
+    const key = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("pointerdown", down);
+    window.addEventListener("keydown", key);
+    window.addEventListener("resize", onClose);
+    return () => {
+      window.removeEventListener("pointerdown", down);
+      window.removeEventListener("keydown", key);
+      window.removeEventListener("resize", onClose);
+    };
+  }, [onClose]);
   return (
-    <div className="pointer-events-none fixed z-50 w-[300px] border border-balkan bg-ink shadow-2xl shadow-black/60" style={{ left, top }}>
+    <div ref={box} role="dialog" aria-label={`${map.slot} ${player.username}`} className="absolute z-50" style={{ ...at, width: W }}>
+    <div className="vote-pop border border-balkan bg-ink shadow-[5px_5px_0_0_var(--color-rose-deep)]">
       <div className="relative h-16 overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={map.cover} alt="" className="absolute inset-0 size-full object-cover opacity-50" />
@@ -154,6 +176,7 @@ function ScoreCard({ x, y, map, perf, player }: NonNullable<Hover>) {
         ))}
       </div>
       <div className="px-3 py-1.5 text-[0.65rem] font-bold uppercase text-ash">{perf.manual ? <span className="text-gold">{t.qual.manual}</span> : perf.matchName}</div>
+    </div>
     </div>
   );
 }

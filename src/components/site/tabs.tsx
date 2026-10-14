@@ -69,7 +69,7 @@ export function LinkTabs({ items, label, className }: { items: { href: string; l
     <nav className={cn("flex flex-wrap gap-1", className)} aria-label={label}>
       {items.map((t) =>
         t.disabled ? (
-          <span key={t.href} aria-disabled className={item(false, "cursor-not-allowed opacity-35 hover:text-ash")}>
+          <span key={t.href} aria-disabled className={item(false, "cursor-not-allowed text-paper/45 hover:text-paper/45")}>
             {t.label}
           </span>
         ) : (

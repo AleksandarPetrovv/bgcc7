@@ -58,7 +58,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
             {t.rounds[h.t] ?? h.t}
           </div>
         ))}
-        <div className="in-wipe heading-slam absolute text-2xl text-gold" style={{ left: x(1), top: LB - 90, "--d": "0.4s" } as React.CSSProperties}>
+        <div className="in-wipe heading-slam absolute text-2xl text-gold" style={{ left: x(0), top: LB - 90, "--d": "0.4s" } as React.CSSProperties}>
           <span className="text-rose-hi">{t.schedule.lower}</span>
         </div>
 

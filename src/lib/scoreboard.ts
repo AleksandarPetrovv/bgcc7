@@ -1,6 +1,7 @@
 import "server-only";
 import { getMpMatch, type OsuGame } from "./osu-api";
 import type { Match, Stage, Team } from "./data";
+import { avatarPath } from "@/lib/avatar";
 
 export type PlayerLine = {
   id: number;
@@ -109,7 +110,7 @@ export async function buildScoreboard(match: Match, teams: Team[], pools: Pool[]
       players[team - 1].push({
         id: s.user_id,
         name: u?.name ?? String(s.user_id),
-        avatar: u?.avatar ?? `https://a.ppy.sh/${s.user_id}`,
+        avatar: u?.avatar ?? avatarPath(s.user_id),
         score: s.score,
         acc: s.accuracy,
         combo: s.max_combo,
@@ -124,7 +125,7 @@ export async function buildScoreboard(match: Match, teams: Team[], pools: Pool[]
       players[e.team - 1].push({
         id: e.osuId,
         name: u?.name ?? String(e.osuId),
-        avatar: u?.avatar ?? `https://a.ppy.sh/${e.osuId}`,
+        avatar: u?.avatar ?? avatarPath(e.osuId),
         score: e.score,
         acc: e.acc,
         combo: 0,

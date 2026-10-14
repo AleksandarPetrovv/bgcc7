@@ -6,6 +6,7 @@ import { pickems, registrations, users } from "./schema";
 import { actualOf, resolve, score, seedingOf } from "@/lib/pickems";
 import { safe } from "./safe";
 import { getMatches } from "./tournament";
+import { avatarCol } from "./avatar";
 
 export { safe };
 
@@ -22,7 +23,7 @@ export const getBracketOf = (osuId: number) =>
   safe(async () => {
     const f = getFormat();
     const [row] = await db
-      .select({ osuId: users.osuId, username: users.username, avatarUrl: users.avatarUrl, picks: pickems.picks })
+      .select({ osuId: users.osuId, username: users.username, avatarUrl: avatarCol, picks: pickems.picks })
       .from(users)
       .leftJoin(pickems, eq(pickems.osuId, users.osuId))
       .where(eq(users.osuId, osuId))
@@ -38,7 +39,7 @@ export const getLeaderboard = () =>
     const f = getFormat();
     const [rows, ms] = await Promise.all([
       db
-        .select({ osuId: users.osuId, username: users.username, avatarUrl: users.avatarUrl, picks: pickems.picks })
+        .select({ osuId: users.osuId, username: users.username, avatarUrl: avatarCol, picks: pickems.picks })
         .from(pickems)
         .innerJoin(users, eq(users.osuId, pickems.osuId)),
       getMatches(),

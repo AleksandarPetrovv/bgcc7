@@ -9,16 +9,19 @@ const COLOR: Record<string, string> = { NM: HEX.azure, HD: HEX.hd, HR: HEX.rose,
 
 export function MapDifficultyChart({ qualifiers }: { qualifiers: { maps: QualMap[]; players: QualPlayer[] } }) {
   const t = useDict();
-  const data = qualifiers.maps.map((m) => {
-    const scores = qualifiers.players.map((p) => p.perf[m.id]?.score).filter(Boolean) as number[];
-    return { slot: m.slot, avg: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0, title: m.title };
-  });
+  const data = qualifiers.maps
+    .map((m) => {
+      const scores = qualifiers.players.map((p) => p.perf[m.id]?.score).filter(Boolean) as number[];
+      return { slot: m.slot, avg: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0, title: m.title };
+    })
+    .filter((d) => d.avg > 0);
+  const top = Math.ceil(Math.max(1, ...data.map((d) => d.avg)) / 100_000) * 100_000;
   return (
     <div className="h-72">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
           <XAxis dataKey="slot" tick={{ fill: HEX.paper, fontSize: 13, fontWeight: 800 }} axisLine={{ stroke: HEX.line }} tickLine={false} />
-          <YAxis tickFormatter={(v) => `${Math.round(v / 1000)}k`} tick={{ fill: HEX.ash, fontSize: 11 }} axisLine={false} tickLine={false} />
+          <YAxis domain={[0, top]} tickCount={top / 100_000 + 1} tickFormatter={(v) => `${Math.round(v / 1000)}k`} tick={{ fill: HEX.ash, fontSize: 11 }} axisLine={false} tickLine={false} />
           <Tooltip
             cursor={{ fill: "rgba(255,255,255,0.04)" }}
             contentStyle={{ background: HEX.coal, border: `1px solid ${HEX.line}`, borderRadius: 0, fontWeight: 700, color: HEX.paper }}

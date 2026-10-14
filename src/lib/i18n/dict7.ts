@@ -24,6 +24,18 @@ const en: Deep<Dict> = {
     cta: { screening: "See the players", qualifiers: "See the players", seeding: "See the teams", playoffs: "Matches", finished: "Final results" },
   },
   info: {
+    prizeRows: [
+      { place: "1st", reward: "Profile badge", extra: "6 months of osu! supporter" },
+      { place: "2nd", reward: "Profile banner", extra: "3 months of osu! supporter" },
+      { place: "3rd", reward: "Profile banner", extra: "1 month of osu! supporter" },
+    ],
+    procItems: [
+      "Each team gets [[one warmup]] under 4 minutes",
+      "Captains [[!roll]] at the start of the match. The higher roll chooses whether their team picks or bans first, and the other team gets the remaining choice",
+      "Picks and bans have a [[90 second]] timer set by the referee. A missed ban is lost, and a missed pick passes to the other team",
+      "Double picks and double bans aren't allowed. Each team gets [[one timeout]] of up to 2 minutes per match, called between maps",
+      "If someone disconnects in the first [[30 seconds]], the map is replayed once per match with the same two players. After that, the scores at the end of the map stand",
+    ],
     intro:
       "%name% is the seventh Bulgarian Community Cup, a %vs% team tournament open to players of any rank from Bulgaria. The top %players% players by BWS are drawn into %teams% random pairs, those teams play a double elimination bracket, and we stream every match with Bulgarian commentary.",
     generalItems: [
@@ -93,6 +105,18 @@ const bg: Deep<Dict> = {
     cta: { screening: "Виж играчите", qualifiers: "Виж играчите", seeding: "Виж отборите", playoffs: "Мачове", finished: "Крайни резултати" },
   },
   info: {
+    prizeRows: [
+      { place: "1-во", reward: "Значка в профила", extra: "6 месеца osu! supporter" },
+      { place: "2-ро", reward: "Банер в профила", extra: "3 месеца osu! supporter" },
+      { place: "3-то", reward: "Банер в профила", extra: "1 месец osu! supporter" },
+    ],
+    procItems: [
+      "Всеки отбор има [[една загрявка]] до 4 минути",
+      "Капитаните пишат [[!roll]] в началото на мача. По-високият рол избира дали отборът му пикова или банва първи, а другият отбор взима оставащия избор",
+      "Пиковете и бановете имат [[90 секунди]] таймер от рефера. Пропуснат бан се губи, а пропуснат пик минава към другия отбор",
+      "Двойни пикове и двойни банове не са позволени. Всеки отбор има [[един таймаут]] до 2 минути на мач, взет между мапове",
+      "Ако някой се disconnect-не в първите [[30 секунди]], мапът се изиграва отново веднъж на мач със същите двама играчи. След това резултатите в края на мапа остават",
+    ],
     intro:
       "%name% е седмото издание на Bulgarian Community Cup, %vs% отборен турнир за играчи от България от всякакъв ранг. Първите %players% играчи по BWS се теглят в %teams% случайни двойки, отборите играят схема с двойна елиминация, а всеки мач се стриймва с коментар на български.",
     generalItems: [

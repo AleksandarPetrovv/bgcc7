@@ -1,11 +1,11 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState, useTransition } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion, Reorder, useDragControls } from "motion/react";
-import { GripVertical, Minus, Plus, RotateCcw, Trash2, X } from "lucide-react";
+import { ChevronDown, GripVertical, Star, Minus, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import { Btn } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
-import { DEFAULT_PLAN, newId, PLAN_MODS, roundStats, sortMaps, type Plan, type PlanCat, type PlanMod, type PlanRound } from "@/lib/format-plan";
+import { DEFAULT_PLAN, selectedSubcategories, subcategoryNames, type SubcategoryGroup, newId, PLAN_MODS, roundStats, sortMaps, type Plan, type PlanCat, type PlanMod, type PlanRound } from "@/lib/format-plan";
 import { cn } from "@/lib/utils";
 import { resetPlan, savePlan } from "./actions";
 
@@ -18,6 +18,7 @@ const COLOR: Record<PlanMod | "FM", string> = {
 };
 
 const Edit = createContext(false);
+const Catalog = createContext<SubcategoryGroup[]>([]);
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
 function Stepper({ value, min, max, onChange, label }: { value: number; min: number; max: number; onChange: (n: number) => void; label: string }) {
@@ -41,13 +42,119 @@ function Stepper({ value, min, max, onChange, label }: { value: number; min: num
   );
 }
 
-function Tile({ mod, note, title, onNote, onRemove, from }: { mod: PlanMod | "FM"; note: string; title: string; onNote: (s: string) => void; onRemove?: () => void; from?: string }) {
+function ModPick({ mod, onMod, label }: { mod: PlanMod; onMod: (mod: PlanMod) => void; label: string }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const down = (e: PointerEvent) => e.target instanceof Node && !box.current?.contains(e.target) && setOpen(false);
+    window.addEventListener("pointerdown", down);
+    return () => window.removeEventListener("pointerdown", down);
+  }, [open]);
+  return (
+    <span ref={box} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={label}
+        className="flex h-7 -skew-x-12 items-center border px-2.5 transition-colors hover:bg-white/[0.06]"
+        style={{ borderColor: COLOR[mod], color: COLOR[mod] }}
+      >
+        <span className="flex skew-x-12 items-center gap-1 text-xs font-black">
+          {mod}
+          <ChevronDown className={cn("size-3 transition-transform duration-200", open && "rotate-180")} strokeWidth={3} />
+        </span>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            role="listbox"
+            aria-label={label}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.12 }}
+            className="absolute left-0 top-full z-10 mt-1.5 flex flex-col gap-1 border border-line bg-ink p-1.5 shadow-[3px_3px_0_0_var(--color-rose-deep)]"
+          >
+            {PLAN_MODS.map((m) => (
+              <button
+                key={m}
+                type="button"
+                role="option"
+                aria-selected={m === mod}
+                onClick={() => {
+                  onMod(m);
+                  setOpen(false);
+                }}
+                className={cn("flex h-7 w-16 -skew-x-12 items-center justify-center border text-xs font-black transition-colors", m === mod ? "text-ink" : "hover:bg-[color-mix(in_srgb,var(--c)_22%,transparent)]")}
+                style={{ borderColor: COLOR[m], color: m === mod ? undefined : COLOR[m], background: m === mod ? COLOR[m] : undefined, ...v({ "--c": COLOR[m] }) }}
+              >
+                <span className="skew-x-12">{m}</span>
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </span>
+  );
+}
+
+function SrInput({ value, onChange, label }: { value: number | null; onChange: (sr: number | null) => void; label: string }) {
+  const edit = useContext(Edit);
+  const fmt = (n: number | null) => (n === null ? "" : String(Math.round(n * 100) / 100));
+  const [text, setText] = useState(fmt(value));
+  const step = (d: number) => {
+    const n = Math.min(15, Math.max(0.1, Math.round(((value ?? 6) + d) * 100) / 100));
+    setText(fmt(n));
+    onChange(n);
+  };
+  const btn = "grid w-8 place-items-center text-ash transition-colors hover:bg-white/[0.06] hover:text-paper disabled:opacity-30";
+  return (
+    <div className="flex h-9 -skew-x-12 border border-line transition-colors focus-within:border-gold" role="group" aria-label={label}>
+      {edit && (
+        <button type="button" onClick={() => step(-0.1)} aria-label={`${label} −`} className={btn}>
+          <Minus className="size-3.5 skew-x-12" strokeWidth={3} />
+        </button>
+      )}
+      <span className={cn("flex w-[4.75rem] items-center justify-center gap-1 bg-ink/60", edit && "border-x border-line")}>
+        <Star className="size-3 shrink-0 skew-x-12 fill-current text-gold" />
+        <input
+          value={text}
+          readOnly={!edit}
+          inputMode="decimal"
+          placeholder="—"
+          aria-label={label}
+          onChange={(e) => {
+            const raw = e.target.value.replace(/[^\d.,]/g, "").slice(0, 5);
+            setText(raw);
+            const n = Number(raw.replace(",", "."));
+            onChange(raw && Number.isFinite(n) && n > 0 ? Math.min(15, n) : null);
+          }}
+          onBlur={() => setText(fmt(value))}
+          className="adm-bare num w-11 skew-x-12 border-0 bg-transparent p-0 text-center text-lg leading-none text-paper outline-none placeholder:text-ash"
+        />
+      </span>
+      {edit && (
+        <button type="button" onClick={() => step(0.1)} aria-label={`${label} +`} className={btn}>
+          <Plus className="size-3.5 skew-x-12" strokeWidth={3} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "FM"; ids: string[]; title: string; onSelect: (ids: string[]) => void; onMod?: (mod: PlanMod) => void; onRemove?: () => void }) {
   const t = useDict();
   const edit = useContext(Edit);
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLSpanElement>(null);
   const c = COLOR[mod];
-  const shown = note || from || "";
+  const groups = useContext(Catalog);
+  const [query, setQuery] = useState("");
+  const [popupLeft, setPopupLeft] = useState(0);
+  const names = subcategoryNames(groups, ids);
   useEffect(() => {
     if (!open) return;
     const down = (e: PointerEvent) => e.target instanceof Node && !box.current?.contains(e.target) && setOpen(false);
@@ -61,18 +168,18 @@ function Tile({ mod, note, title, onNote, onRemove, from }: { mod: PlanMod | "FM
   }, [open]);
 
   return (
-    <motion.span ref={box} layout initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }} transition={{ type: "spring", stiffness: 520, damping: 34 }} className="relative inline-flex">
+    <motion.span ref={box} layout initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }} transition={{ type: "spring", stiffness: 520, damping: 34 }} className={cn("relative inline-flex", open && "z-30")}>
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={(e) => { setPopupLeft(Math.min(0, window.innerWidth - e.currentTarget.getBoundingClientRect().left - 304)); setOpen((o) => !o); }}
         aria-expanded={open}
-        className={cn("relative flex h-16 w-40 -skew-x-6 flex-col items-start justify-start gap-0.5 border px-3 py-1.5 text-left transition-shadow", open && "shadow-[3px_3px_0_0_var(--color-rose-deep)]")}
+        className={cn("relative flex min-h-16 w-40 -skew-x-6 flex-col items-start justify-start gap-0.5 border px-3 py-1.5 text-left transition-shadow", open && "shadow-[3px_3px_0_0_var(--color-rose-deep)]")}
         style={{ borderColor: c, background: `color-mix(in srgb, ${c} ${open ? 26 : 12}%, transparent)` }}
       >
         <span className="skew-x-6 text-xs font-black" style={{ color: c }}>
           {mod}
         </span>
-        <span className={cn("line-clamp-2 skew-x-6 text-[0.72rem] font-semibold leading-snug", shown ? "text-paper/85" : "text-ash/50")}>{shown || "—"}</span>
+        <span className="flex w-full skew-x-6 flex-col text-[0.72rem] font-semibold leading-snug text-paper/85">{names.length ? names.map((name, i) => <span key={i} className="break-words">{name}</span>) : <span className="text-ash/50">—</span>}</span>
       </button>
       <AnimatePresence>
         {open && (
@@ -81,28 +188,43 @@ function Tile({ mod, note, title, onNote, onRemove, from }: { mod: PlanMod | "FM
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.97 }}
             transition={{ duration: 0.14 }}
-            className="absolute left-0 top-full z-30 mt-2 w-72 origin-top-left border border-line bg-coal shadow-[5px_5px_0_0_var(--color-rose-deep)]"
+            style={{ left: popupLeft }}
+            role="dialog"
+            aria-label={title}
+            className="absolute top-full z-30 mt-2 w-72 origin-top-left border border-line bg-coal shadow-[5px_5px_0_0_var(--color-rose-deep)]"
           >
             <span className="absolute inset-x-0 top-0 h-0.5" style={{ background: c }} aria-hidden />
             <div className="flex items-center gap-2 border-b border-line bg-ink/60 px-3 py-2">
-              <span className="-skew-x-12 border px-1.5 text-xs font-black" style={{ borderColor: c, color: c }}>
-                <span className="inline-block skew-x-12">{mod}</span>
-              </span>
-              <span className="min-w-0 flex-1 truncate text-xs font-black uppercase tracking-wide text-paper/80">{title}</span>
+              {edit && onMod && mod !== "FM" ? (
+                <ModPick mod={mod} onMod={onMod} label={t.admin.fp.mods} />
+              ) : (
+                <span className="-skew-x-12 border px-1.5 text-xs font-black" style={{ borderColor: c, color: c }}>
+                  <span className="inline-block skew-x-12">{mod}</span>
+                </span>
+              )}
+              <span className="flex-1" />
               <button type="button" onClick={() => setOpen(false)} aria-label={t.admin.close} className="grid size-6 place-items-center text-ash hover:text-paper">
                 <X className="size-3.5" />
               </button>
             </div>
-            <textarea
-              autoFocus={edit}
-              readOnly={!edit}
-              value={shown}
-              maxLength={300}
-              rows={4}
-              onChange={(e) => onNote(e.target.value === from ? "" : e.target.value)}
-              placeholder={edit ? t.admin.fp.notePh : t.admin.fp.noNote}
-              className="adm-bare block w-full resize-none border-0 bg-transparent px-3 py-2.5 text-sm text-paper shadow-none outline-none placeholder:text-ash/60"
-            />
+            <div className="p-3">
+              <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t.admin.fp.searchSubcategories} aria-label={t.admin.fp.searchSubcategories} className="adm-bare w-full border border-line bg-ink/60 px-2 py-2 text-sm outline-none focus:border-rose" />
+            </div>
+            <div className="max-h-64 overflow-y-auto overscroll-contain px-3 pb-3">
+              {groups.map((group) => {
+                const matches = group.items.filter((item) => `${group.name} ${item.name}`.toLowerCase().includes(query.trim().toLowerCase()));
+                if (!matches.length) return null;
+                return <fieldset key={group.id} className="mb-3 last:mb-0">
+                  <legend className="mb-1 text-[0.65rem] font-black uppercase tracking-wide text-ash">{group.name}</legend>
+                  {matches.map((item) => <label key={item.id} className="flex cursor-pointer items-center gap-2 py-1.5 text-sm text-paper hover:text-rose-hi">
+                    <input type="checkbox" checked={ids.includes(item.id)} disabled={!edit} onChange={(e) => onSelect(e.target.checked ? [...ids, item.id] : ids.filter((id) => id !== item.id))} className="size-4 shrink-0 accent-rose" />
+                    {item.name}
+                  </label>)}
+                </fieldset>;
+              })}
+              {!groups.some((g) => g.items.some((item) => `${g.name} ${item.name}`.toLowerCase().includes(query.trim().toLowerCase()))) && <p className="text-sm text-ash">{t.admin.fp.noSubcategories}</p>}
+            </div>
+            {edit && ids.length > 0 && <button type="button" onClick={() => onSelect([])} className="w-full border-t border-line px-3 py-2 text-left text-xs text-ash hover:text-paper">{t.admin.fp.clearSelection}</button>}
             {edit && onRemove && (
               <div className="flex justify-end border-t border-line px-2 py-1.5">
                 <button type="button" onClick={onRemove} className="flex items-center gap-1.5 px-2 py-1 text-[0.65rem] font-black uppercase tracking-wide text-ash transition-colors hover:text-rose-hi">
@@ -124,16 +246,10 @@ function CatRow({ c, onChange, onRemove, prev }: { c: PlanCat; onChange: (c: Pla
   const t = useDict();
   const edit = useContext(Edit);
   const drag = useDragControls();
-  const setMap = (id: string, note: string) => onChange({ ...c, maps: c.maps.map((m) => (m.id === id ? { ...m, note } : m)) });
-  const inherit = (mapId: string) => {
-    for (const r of [...prev].reverse()) {
-      const note = r.cats.find((x) => x.id === c.id)?.maps.find((m) => m.id === mapId)?.note;
-      if (note) return note;
-    }
-  };
+  const setMap = (id: string, subcategoryIds: string[]) => onChange({ ...c, maps: c.maps.map((m) => (m.id === id ? { ...m, note: "", subcategoryIds } : m)) });
   const add = (mod: PlanMod) => onChange({ ...c, maps: sortMaps([...c.maps, { id: newId(), mod, note: "" }]) });
   return (
-    <Reorder.Item value={c} dragListener={false} dragControls={drag} whileDrag={{ scale: 1.01, boxShadow: "6px 6px 0 0 var(--color-rose-deep)", zIndex: 10 }} className={cn(rowCls, "relative")}>
+    <Reorder.Item value={c} dragListener={false} dragControls={drag} whileDrag={{ scale: 1.01, boxShadow: "6px 6px 0 0 var(--color-rose-deep)", zIndex: 10 }} className={cn(rowCls, "relative focus-within:z-30")}>
       {edit ? (
         <button type="button" onPointerDown={(e) => drag.start(e)} aria-label={t.admin.fp.drag} title={t.admin.fp.drag} className="-mx-1 grid h-8 w-6 cursor-grab touch-none place-items-center text-ash transition-colors hover:text-paper active:cursor-grabbing">
           <GripVertical className="size-4" />
@@ -146,7 +262,7 @@ function CatRow({ c, onChange, onRemove, prev }: { c: PlanCat; onChange: (c: Pla
       <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
         <AnimatePresence initial={false} mode="popLayout">
           {sortMaps(c.maps).map((m) => (
-            <Tile key={m.id} mod={m.mod} note={m.note} from={inherit(m.id)} title={c.name} onNote={(s) => setMap(m.id, s)} onRemove={() => onChange({ ...c, maps: c.maps.filter((x) => x.id !== m.id) })} />
+            <Tile key={m.id} mod={m.mod} ids={selectedSubcategories([...prev, { cats: [c] } as PlanRound], c.id, m.id)} title={c.name} onSelect={(ids) => setMap(m.id, ids)} onMod={(mod) => onChange({ ...c, maps: sortMaps(c.maps.map((x) => x.id === m.id ? { ...x, mod } : x)) })} onRemove={() => onChange({ ...c, maps: c.maps.filter((x) => x.id !== m.id) })} />
           ))}
         </AnimatePresence>
       </div>
@@ -178,11 +294,7 @@ function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: PlanRoun
   const t = useDict();
   const edit = useContext(Edit);
   const s = roundStats(r);
-  const total = PLAN_MODS.reduce((n, m) => n + s.tally[m], 0);
   const setCat = (k: number, c: PlanCat) => onChange({ ...r, cats: r.cats.map((x, j) => (j === k ? c : x)) });
-  const fill = Math.min(1, s.ratio);
-  const tbPrev = [...prev].reverse().find((x) => x.tbNote);
-  const tbFrom = tbPrev?.tbNote;
 
   return (
     <section className="relative border border-line bg-coal">
@@ -192,48 +304,36 @@ function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: PlanRoun
           <span className="inline-block skew-x-12">BO{s.bestOf}</span>
         </span>
         <h2 className="heading-slam min-w-0 flex-1 text-2xl sm:text-3xl">{t.rounds[r.name] ?? r.name}</h2>
-        <label className="flex items-center gap-2 text-[0.65rem] font-black uppercase tracking-[0.12em] text-ash">
+        <div className="flex items-center gap-2 text-[0.65rem] font-black uppercase tracking-[0.12em] text-ash">
           {t.admin.fp.firstTo}
           <Stepper value={r.firstTo} min={1} max={15} onChange={(n) => onChange({ ...r, firstTo: n })} label={t.admin.fp.firstTo} />
-        </label>
-        <label className="flex items-center gap-2 text-[0.65rem] font-black uppercase tracking-[0.12em] text-ash">
+        </div>
+        <div className="flex items-center gap-2 text-[0.65rem] font-black uppercase tracking-[0.12em] text-ash">
           {t.admin.fp.bans}
           <Stepper value={r.bans} min={0} max={6} onChange={(n) => onChange({ ...r, bans: n })} label={t.admin.fp.bans} />
-        </label>
+        </div>
+        <div className="flex items-center gap-2 text-[0.65rem] font-black uppercase tracking-[0.12em] text-ash">
+          {t.admin.fp.targetSr}
+          <SrInput value={r.sr ?? null} onChange={(sr) => onChange({ ...r, sr })} label={t.admin.fp.targetSr} />
+        </div>
       </header>
 
-      <div className="grid grid-cols-2 border-b border-line sm:grid-cols-4">
-        {[
-          [t.admin.fp.maps, s.maps],
-          [t.admin.fp.picks, s.picks],
-          [t.admin.fp.open, s.open],
-          [t.admin.fp.used, `${Math.round(s.ratio * 100)}%`],
-        ].map(([k, n], j) => (
-          <div key={String(k)} className={cn("px-4 py-3 sm:px-5", j % 2 && "border-l border-line", j > 1 && "border-t border-line sm:border-t-0", j === 2 && "sm:border-l")}>
-            <div className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-ash">{k}</div>
-            <div className={cn("num mt-1 text-3xl leading-none", j === 3 && (s.ratio > 0.85 ? "text-rose-hi" : s.ratio < 0.5 ? "text-gold" : "text-balkan"))}>{n}</div>
-            {j === 3 && (
-              <div className="mt-2 h-1 bg-line">
-                <motion.div className={cn("h-full", s.ratio > 0.85 ? "bg-rose" : s.ratio < 0.5 ? "bg-gold" : "bg-balkan")} animate={{ width: `${fill * 100}%` }} transition={{ type: "spring", stiffness: 260, damping: 30 }} />
-              </div>
-            )}
+      <div className="grid grid-cols-3 gap-px border-b border-line bg-line sm:grid-cols-6">
+        {(
+          [
+            [t.admin.fp.maps, s.maps],
+            [t.admin.fp.pickable, s.pickable],
+            [t.admin.fp.totalBans, r.bans * 2],
+            [t.admin.fp.open, s.open],
+            [t.admin.fp.picks, s.picks],
+            [t.admin.fp.used, s.open ? `${Math.round(Math.min(1, s.ratio) * 100)}%` : "—"],
+          ] as const
+        ).map(([k, val]) => (
+          <div key={k} className="flex flex-col gap-0.5 bg-coal px-4 py-2.5">
+            <span className="text-[0.62rem] font-black uppercase tracking-[0.12em] text-ash">{k}</span>
+            <span className="num text-xl leading-none text-paper">{val}</span>
           </div>
         ))}
-      </div>
-
-      <div className="px-4 pt-4 sm:px-5">
-        <div className="flex h-3 overflow-hidden bg-line">
-          {PLAN_MODS.filter((m) => s.tally[m]).map((m) => (
-            <motion.div key={m} layout className="h-full" style={{ background: COLOR[m], flexGrow: s.tally[m] }} transition={{ type: "spring", stiffness: 300, damping: 32 }} />
-          ))}
-        </div>
-        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs font-black">
-          {PLAN_MODS.filter((m) => s.tally[m]).map((m) => (
-            <span key={m} style={{ color: COLOR[m] }}>
-              {s.tally[m]} {m} <span className="num font-bold text-ash">{total ? Math.round((s.tally[m] / total) * 100) : 0}%</span>
-            </span>
-          ))}
-        </div>
       </div>
 
       <div className="space-y-2 p-4 sm:p-5">
@@ -247,7 +347,7 @@ function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: PlanRoun
           <span className={cn(nameCls, "text-paper")}>{t.admin.fp.tb}</span>
           <span className="w-6" />
           <div className="flex min-w-0 flex-1">
-            <Tile mod="FM" note={r.tbNote} from={tbFrom} title={t.admin.fp.tb} onNote={(tbNote) => onChange({ ...r, tbNote })} />
+            <Tile mod="FM" ids={selectedSubcategories([...prev, r], "tb")} title={t.admin.fp.tb} onSelect={(tbSubcategoryIds) => onChange({ ...r, tbNote: "", tbSubcategoryIds })} />
           </div>
         </div>
         {edit && (
@@ -266,73 +366,141 @@ function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: PlanRoun
   );
 }
 
+type SubItem = SubcategoryGroup["items"][number];
+
+function SubRow({ item, group, onName, onRemove }: { item: SubItem; group: string; onName: (name: string) => void; onRemove: () => void }) {
+  const t = useDict();
+  const edit = useContext(Edit);
+  const drag = useDragControls();
+  return (
+    <Reorder.Item value={item} dragListener={false} dragControls={drag} whileDrag={{ scale: 1.02, boxShadow: "4px 4px 0 0 var(--color-rose-deep)", zIndex: 10 }} className="relative flex items-center border border-line bg-ink">
+      <input value={item.name} readOnly={!edit} maxLength={80} aria-label={`${group}: ${t.admin.fp.subcategory}`} onChange={(e) => onName(e.target.value)} className="min-w-0 flex-1 bg-transparent px-2 py-2 text-xs font-semibold outline-none focus:text-rose-hi" />
+      {edit && (
+        <>
+          <button type="button" onPointerDown={(e) => drag.start(e)} aria-label={t.admin.fp.drag} title={t.admin.fp.drag} className="grid size-8 shrink-0 cursor-grab touch-none place-items-center text-ash transition-colors hover:text-paper active:cursor-grabbing">
+            <GripVertical className="size-3.5" />
+          </button>
+          <button type="button" onClick={onRemove} aria-label={`${t.admin.fp.removeSubcategory}: ${item.name}`} className="grid size-8 shrink-0 place-items-center text-ash transition-colors hover:text-rose-hi">
+            <Trash2 className="size-3.5" />
+          </button>
+        </>
+      )}
+    </Reorder.Item>
+  );
+}
+
+function SubcategoryEditor({ groups, onChange }: { groups: SubcategoryGroup[]; onChange: (groups: SubcategoryGroup[]) => void }) {
+  const t = useDict();
+  const edit = useContext(Edit);
+  const update = (id: string, group: SubcategoryGroup) => onChange(groups.map((g) => g.id === id ? group : g));
+  const removeGroup = (group: SubcategoryGroup) => {
+    if (group.items.length && !window.confirm(t.admin.fp.confirmRemoveGroup(group.name))) return;
+    onChange(groups.filter((g) => g.id !== group.id));
+  };
+  return <section className="relative border border-line bg-coal">
+    <span className="absolute inset-x-0 top-0 h-0.5 bg-rose" aria-hidden />
+    <header className="border-b border-line px-4 py-3 sm:px-5"><h2 className="heading-slam text-2xl">{t.admin.fp.subcategories}</h2></header>
+    <div className="grid gap-5 p-4 sm:grid-cols-2 sm:p-5 xl:grid-cols-5">
+      {groups.map((group) => <div key={group.id} className="min-w-0">
+        <h3 className="mb-3 flex items-center gap-1 border-b border-line pb-2 text-sm font-black uppercase tracking-wide text-rose-hi">
+          <input value={group.name} readOnly={!edit} maxLength={60} aria-label={`${t.admin.fp.category}: ${group.name}`} onChange={(e) => update(group.id, { ...group, name: e.target.value })} className="w-full min-w-0 flex-1 bg-transparent font-inherit uppercase tracking-wide outline-none focus:text-paper" />
+          {edit && (
+            <button type="button" onClick={() => removeGroup(group)} aria-label={`${t.admin.fp.removeGroup}: ${group.name}`} title={t.admin.fp.removeGroup} className="grid size-7 shrink-0 place-items-center text-ash transition-colors hover:text-rose-hi">
+              <X className="size-4" />
+            </button>
+          )}
+        </h3>
+        <Reorder.Group axis="y" values={group.items} onReorder={(items) => update(group.id, { ...group, items })} className="space-y-1.5">
+          {group.items.map((item) => (
+            <SubRow
+              key={item.id}
+              item={item}
+              group={group.name}
+              onName={(name) => update(group.id, { ...group, items: group.items.map((x) => x.id === item.id ? { ...x, name } : x) })}
+              onRemove={() => update(group.id, { ...group, items: group.items.filter((x) => x.id !== item.id) })}
+            />
+          ))}
+        </Reorder.Group>
+        {edit && <button type="button" onClick={() => update(group.id, { ...group, items: [...group.items, { id: newId(), name: t.admin.fp.newSubcategory }] })} className="mt-2 flex w-full items-center justify-center gap-1 border border-dashed border-line px-2 py-2 text-xs font-bold text-ash hover:border-rose hover:text-rose-hi"><Plus className="size-3.5" />{t.admin.fp.addSubcategory}</button>}
+      </div>)}
+      {edit && groups.length < 16 && (
+        <button
+          type="button"
+          onClick={() => onChange([...groups, { id: newId(), name: t.admin.fp.newGroup, items: [] }])}
+          className="flex min-h-24 -skew-x-6 items-center justify-center gap-2 border border-dashed border-line text-xs font-black uppercase tracking-wide text-ash transition-colors hover:border-rose hover:text-rose-hi"
+        >
+          <span className="flex skew-x-6 items-center gap-2">
+            <Plus className="size-3.5" strokeWidth={3} /> {t.admin.fp.addGroup}
+          </span>
+        </button>
+      )}
+    </div>
+  </section>;
+}
+
 export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }) {
   const t = useDict();
   const [plan, setPlan] = useState(initial);
-  const [saved, setSaved] = useState(JSON.stringify(initial));
   const [pending, start] = useTransition();
-  const [flash, setFlash] = useState<"ok" | "err" | null>(null);
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "err">("idle");
   const [tab, setTab] = useState(0);
-  const dirty = JSON.stringify(plan) !== saved;
-  const setRound = (k: number, r: PlanRound) => setPlan((p) => ({ rounds: p.rounds.map((x, j) => (j === k ? r : x)) }));
+  const sent = useRef(JSON.stringify(initial));
+  const busy = useRef(false);
+  const queued = useRef<Plan | null>(null);
+  const setRound = (k: number, r: PlanRound) => setPlan((p) => ({ ...p, rounds: p.rounds.map((x, j) => (j === k ? r : x)) }));
 
-  const save = () =>
-    start(async () => {
-      const r = await savePlan(plan).catch(() => null);
-      if (r?.ok) setSaved(JSON.stringify(plan));
-      setFlash(r?.ok ? "ok" : "err");
-      setTimeout(() => setFlash(null), 2500);
-    });
+  const push = useCallback(async (p: Plan) => {
+    if (busy.current) {
+      queued.current = p;
+      return;
+    }
+    busy.current = true;
+    setStatus("saving");
+    let next: Plan | null = p;
+    let ok = true;
+    while (next) {
+      const cur: Plan = next;
+      queued.current = null;
+      const r = await savePlan(cur).catch(() => null);
+      if (r?.ok) sent.current = JSON.stringify(cur);
+      ok = !!r?.ok;
+      next = queued.current;
+    }
+    busy.current = false;
+    setStatus(ok ? "saved" : "err");
+  }, []);
+
+  useEffect(() => {
+    if (!edit || JSON.stringify(plan) === sent.current) return;
+    const id = setTimeout(() => push(plan), 450);
+    return () => clearTimeout(id);
+  }, [plan, edit, push]);
+
+  useEffect(() => {
+    if (!edit) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      if (busy.current || JSON.stringify(plan) !== sent.current) e.preventDefault();
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [edit, plan]);
+
   const reset = () => {
     if (!window.confirm(t.admin.fp.confirmReset)) return;
     start(async () => {
       const r = await resetPlan().catch(() => null);
       if (r?.ok) {
+        sent.current = JSON.stringify(DEFAULT_PLAN);
         setPlan(DEFAULT_PLAN);
-        setSaved(JSON.stringify(DEFAULT_PLAN));
+        setStatus("saved");
       }
     });
   };
 
   return (
     <Edit.Provider value={edit}>
+      <Catalog.Provider value={plan.subcategories}>
       <div className="space-y-6 pb-24">
-        <div className="in-up overflow-x-auto border border-line bg-coal">
-          <table className="w-full min-w-[560px] text-sm">
-            <thead>
-              <tr className="border-b border-line text-left text-[0.62rem] font-black uppercase tracking-[0.14em] text-ash">
-                <th className="px-4 py-2.5">{t.admin.fp.round}</th>
-                <th className="px-3 py-2.5">Bo</th>
-                <th className="px-3 py-2.5">{t.admin.fp.maps}</th>
-                <th className="px-3 py-2.5">{t.admin.fp.picks}</th>
-                <th className="px-3 py-2.5">{t.admin.fp.open}</th>
-                <th className="w-1/3 px-4 py-2.5">{t.admin.fp.mods}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {plan.rounds.map((r, k) => {
-                const s = roundStats(r);
-                return (
-                  <tr key={k} onClick={() => setTab(k)} className={cn("cursor-pointer border-b border-line transition-colors last:border-0 hover:bg-white/[0.03]", k === tab && "bg-rose/10")}>
-                    <td className="px-4 py-2.5 font-black">{t.rounds[r.name] ?? r.name}</td>
-                    <td className="num px-3 py-2.5 text-lg text-rose-hi">{s.bestOf}</td>
-                    <td className="num px-3 py-2.5 text-lg">{s.maps}</td>
-                    <td className="num px-3 py-2.5 text-lg">{s.picks}</td>
-                    <td className="num px-3 py-2.5 text-lg">{s.open}</td>
-                    <td className="px-4 py-2.5">
-                      <div className="flex h-2.5 overflow-hidden bg-line">
-                        {PLAN_MODS.filter((m) => s.tally[m]).map((m) => (
-                          <div key={m} title={`${s.tally[m]} ${m}`} style={{ background: COLOR[m], flexGrow: s.tally[m] }} />
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
         <div role="tablist" aria-label={t.admin.fp.round} className="flex flex-wrap gap-2">
           {plan.rounds.map((r, k) => {
             const on = k === tab;
@@ -361,29 +529,36 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
           </motion.div>
         </AnimatePresence>
 
+        <SubcategoryEditor groups={plan.subcategories} onChange={(subcategories) => setPlan((p) => ({ ...p, subcategories }))} />
+
         {edit && (
           <div className="fixed inset-x-4 bottom-4 z-40 flex justify-end gap-3 sm:inset-x-auto sm:right-6">
-            <AnimatePresence>
-              {flash && (
+            <AnimatePresence mode="wait">
+              {status !== "idle" && (
                 <motion.span
-                  initial={{ opacity: 0, x: 12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 12 }}
-                  className={cn("self-center text-xs font-black uppercase tracking-wide", flash === "ok" ? "text-balkan" : "text-rose-hi")}
+                  key={status}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.15 }}
+                  className={cn("flex items-center gap-2 self-center text-xs font-black uppercase tracking-wide", status === "saved" ? "text-balkan" : status === "err" ? "text-rose-hi" : "text-ash")}
                 >
-                  {flash === "ok" ? t.admin.saved : t.admin.error}
+                  {status === "saving" ? t.admin.saving : status === "saved" ? t.admin.saved : t.admin.error}
+                  {status === "err" && (
+                    <button type="button" onClick={() => push(plan)} className="underline underline-offset-2 hover:text-paper">
+                      {t.error.retry}
+                    </button>
+                  )}
                 </motion.span>
               )}
             </AnimatePresence>
             <Btn type="button" tone="outline" onClick={reset} disabled={pending} className="bg-ink">
               <RotateCcw className="size-3.5" /> {t.admin.fp.reset}
             </Btn>
-            <Btn type="button" onClick={save} disabled={pending || !dirty} className="shadow-[4px_4px_0_0_var(--color-rose-deep)]">
-              {pending ? t.admin.saving : t.admin.fp.save}
-            </Btn>
           </div>
         )}
       </div>
+      </Catalog.Provider>
     </Edit.Provider>
   );
 }
