@@ -43,7 +43,7 @@ export default async function AdminDraft() {
   const list: DraftRow[] = live.map((m) => {
     const raw = all.find((d) => d.matchId === m.id);
     const d = raw ? toView(raw, cfg) : null;
-    const turn = d ? turnOf(d, slotsOf(d.stageSlug)) : null;
+    const turn = d ? turnOf(d, raw?.rules?.slots ?? slotsOf(d.stageSlug)) : null;
     const a = team(m.team1Id);
     const b = team(m.team2Id);
     return {

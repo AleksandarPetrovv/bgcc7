@@ -3,7 +3,7 @@ import "server-only";
 import { randomInt } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { and, eq, or, sql } from "drizzle-orm";
-import { drafts, matches, mpLobbies, teamMembers, users, type DraftUndo } from "./schema";
+import { drafts, matches, mpLobbies, teamMembers, users, type DraftRules, type DraftUndo } from "./schema";
 import { getPoolStages } from "./mappools";
 import { getSettings } from "./settings";
 import { can } from "@/lib/roles";
@@ -37,6 +37,35 @@ export async function timers(): Promise<Timers> {
 
 const stageCfg = (c: Timers, slug: string) => c.stages.find((s) => s.slug === slug) ?? { firstTo: 7, hasTb: false };
 
+/** snapshot of the stage's rules and maps, stored on the draft when it opens or resets */
+export async function rulesFor(stageSlug: string): Promise<DraftRules> {
+  const [c, stages] = await Promise.all([timers(), getPoolStages()]);
+  const { firstTo, hasTb } = stageCfg(c, stageSlug);
+  const maps = (stages.find((s) => s.slug === stageSlug)?.pools ?? []).flatMap((p) => p.maps);
+  return {
+    firstTo,
+    hasTb,
+    banSecs: c.banSecs,
+    pickSecs: c.pickSecs,
+    slots: maps.map((m) => m.slot).filter(pickable),
+    maps: Object.fromEntries(maps.map((m) => [m.slot, m])),
+  };
+}
+
+/** the draft's maps: its snapshot when it has one, else the stage's current pool */
+export async function draftMaps(matchId: string, stageSlug: string) {
+  const [r] = await db.select({ rules: drafts.rules, stageSlug: drafts.stageSlug }).from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
+  if (r?.rules && r.stageSlug === stageSlug) return Object.values(r.rules.maps);
+  return ((await getPoolStages()).find((s) => s.slug === stageSlug)?.pools ?? []).flatMap((p) => p.maps);
+}
+
+const slotsOf = async (r: Pick<Row, "rules" | "stageSlug">) => r.rules?.slots ?? poolSlots(r.stageSlug);
+
+export async function draftSlots(matchId: string, stageSlug: string) {
+  const [r] = await db.select({ rules: drafts.rules, stageSlug: drafts.stageSlug }).from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
+  return r?.rules && r.stageSlug === stageSlug ? r.rules.slots : poolSlots(stageSlug);
+}
+
 export const toView = (r: Row, c: Timers = { banSecs: 90, pickSecs: 120, stages: [] }): DraftView => ({
   open: r.open,
   stageSlug: r.stageSlug,
@@ -51,10 +80,10 @@ export const toView = (r: Row, c: Timers = { banSecs: 90, pickSecs: 120, stages:
   pausedAt: r.pausedAt?.toISOString() ?? null,
   pauseUntil: r.pauseUntil?.toISOString() ?? null,
   now: Date.now(),
-  banSecs: c.banSecs,
-  pickSecs: c.pickSecs,
-  firstTo: stageCfg(c, r.stageSlug).firstTo,
-  hasTb: stageCfg(c, r.stageSlug).hasTb,
+  banSecs: r.rules?.banSecs ?? c.banSecs,
+  pickSecs: r.rules?.pickSecs ?? c.pickSecs,
+  firstTo: r.rules?.firstTo ?? stageCfg(c, r.stageSlug).firstTo,
+  hasTb: r.rules?.hasTb ?? stageCfg(c, r.stageSlug).hasTb,
   undo: undoPlan(r),
   redo: r.redo?.at(-1) ?? null,
 });
@@ -70,39 +99,46 @@ export function undoPlan(r: Pick<Row, "steps" | "choice" | "roll1" | "roll2">): 
   return null;
 }
 
+// both lock the draft row like every other draft write; a result undo goes through setResult, which locks it itself
 export async function undoStep(matchId: string) {
-  const [d] = await db.select().from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
-  if (!d) return null;
-  const u = undoPlan(d);
-  if (!u) return null;
-  const redo = [...(d.redo ?? []), u];
-  if (u.kind === "winner") await setResult(matchId, u.slot, null, redo);
-  else {
+  const out = await db.transaction(async (tx) => {
+    const [d] = await tx.select().from(drafts).where(eq(drafts.matchId, matchId)).for("update");
+    if (!d) return null;
+    const u = undoPlan(d);
+    if (!u) return null;
+    const redo = [...(d.redo ?? []), u];
+    if (u.kind === "winner") return { u, redo };
     const patch = u.kind === "step" ? { steps: d.steps.slice(0, -1) } : u.kind === "choice" ? { choice: null } : { roll1: null, roll2: null };
-    await db
+    await tx
       .update(drafts)
       .set({ ...patch, redo, turnAt: d.pausedAt ?? new Date(), rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
       .where(eq(drafts.matchId, matchId));
-    emitDraft(matchId);
-  }
-  return u;
+    return { u, redo: null };
+  });
+  if (!out) return null;
+  if (out.u.kind === "winner" && out.redo) await setResult(matchId, out.u.slot, null, out.redo);
+  else emitDraft(matchId);
+  return out.u;
 }
 
 export async function redoStep(matchId: string) {
-  const [d] = await db.select().from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
-  const r = d?.redo?.at(-1);
-  if (!d || !r) return null;
-  const redo = d.redo.slice(0, -1);
-  if (r.kind === "winner") await setResult(matchId, r.slot, r.winner, redo);
-  else {
+  const out = await db.transaction(async (tx) => {
+    const [d] = await tx.select().from(drafts).where(eq(drafts.matchId, matchId)).for("update");
+    const r = d?.redo?.at(-1);
+    if (!d || !r) return null;
+    const redo = d.redo.slice(0, -1);
+    if (r.kind === "winner") return { r, redo };
     const patch = r.kind === "step" ? { steps: [...d.steps, r.step] } : r.kind === "choice" ? { choice: r.choice } : { roll1: r.roll1, roll2: r.roll2 };
-    await db
+    await tx
       .update(drafts)
       .set({ ...patch, redo, turnAt: d.pausedAt ?? new Date(), rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
       .where(eq(drafts.matchId, matchId));
-    emitDraft(matchId);
-  }
-  return r;
+    return { r, redo: null };
+  });
+  if (!out) return null;
+  if (out.r.kind === "winner" && out.redo) await setResult(matchId, out.r.slot, out.r.winner, out.redo);
+  else emitDraft(matchId);
+  return out.r;
 }
 
 export async function getDraft(matchId: string) {
@@ -121,7 +157,7 @@ export async function settle(matchId: string) {
   const c = await timers();
   const d = await getDraft(matchId);
   if (!d?.open) return d;
-  const slots = await poolSlots(d.stageSlug);
+  const slots = await draftSlots(matchId, d.stageSlug);
   if (!due(d, slots, Date.now())) return d;
   const next = await db.transaction(async (tx) => {
     const [row] = await tx.select().from(drafts).where(eq(drafts.matchId, matchId)).for("update");
@@ -177,6 +213,19 @@ async function siteRun(m: { id: string; referee: string | null }) {
   return { ref, refLive, onSite: refLive || !!lob };
 }
 
+/** hosts run any match, a referee only the ones assigned to them (and, with `unassigned`, ones nobody has yet) */
+export async function canRunMatch(matchId: string, opts: { unassigned?: boolean } = {}) {
+  const v = await getViewer();
+  if (!v) return false;
+  if (v.roles.includes("host")) return true;
+  if (!can(v.roles, "matches")) return false;
+  const [m] = await db.select({ referee: matches.referee }).from(matches).where(eq(matches.id, matchId)).limit(1);
+  if (!m) return false;
+  if (!m.referee?.trim()) return !!opts.unassigned;
+  const [u] = await db.select({ osuId: users.osuId }).from(users).where(sql`lower(${users.username}) = ${m.referee.trim().toLowerCase()}`).limit(1);
+  return u?.osuId === v.osuId;
+}
+
 export async function draftAccess(matchId: string) {
   const v = await getViewer();
   if (!v) return null;
@@ -213,7 +262,7 @@ export async function myDraftClock(osuId: number) {
   const id = await myOpenId(osuId);
   if (!id) return { slug: null, end: null, pause: false, now: Date.now() };
   const d = await settle(id);
-  const end = !d ? null : d.pausedAt ? (d.pauseUntil ? new Date(d.pauseUntil).getTime() : null) : deadline(d, await poolSlots(d.stageSlug));
+  const end = !d ? null : d.pausedAt ? (d.pauseUntil ? new Date(d.pauseUntil).getTime() : null) : deadline(d, await draftSlots(id, d.stageSlug));
   return { slug: matchSlug(await getFormat(), id), end, pause: !!d?.pausedAt, now: Date.now() };
 }
 
@@ -244,7 +293,7 @@ export async function applyDraft(matchId: string, side: Side, a: DraftAct) {
     if (!row?.open) return "closed" as const;
     if (row.pausedAt) return "paused" as const;
     const d = toView(row, c);
-    const slots = await poolSlots(d.stageSlug);
+    const slots = await slotsOf(row);
     const turn = turnOf(d, slots);
     const patch: Partial<Row> = {};
     if (a.act === "roll") {
@@ -284,7 +333,7 @@ export async function setResult(matchId: string, slot: string, winner: Side | nu
     const [s1, s2] = scoreOf(base);
     if (tbOpen >= 0 && !(s1 === base.firstTo - 1 && s2 === base.firstTo - 1)) steps = steps.filter((_, k) => k !== tbOpen);
     else if (tbDue(base)) {
-      const t = turnOf({ ...base, hasTb: false, firstTo: 0 }, await poolSlots(row.stageSlug));
+      const t = turnOf({ ...base, hasTb: false, firstTo: 0 }, await slotsOf(row));
       steps = [...steps, { team: "team" in t ? t.team : 1, kind: "pick", slot: "TB", auto: true }];
     }
     const [next] = await tx

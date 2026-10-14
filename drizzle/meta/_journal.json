@@ -274,6 +274,13 @@
       "when": 1791580134961,
       "tag": "0038_info_copy",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1791981126815,
+      "tag": "0039_draft_rules",
+      "breakpoints": true
     }
   ]
 }
