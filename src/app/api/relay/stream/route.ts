@@ -8,7 +8,7 @@ export async function GET(req: Request) {
   if (!app) return Response.json({ error: "unpaired" }, { status: 401 });
   const perms = await relayPerms(app.osuId);
   if (!perms.ref && !perms.stream) return Response.json({ error: "noroles" }, { status: 403 });
-  return relayStream(req, app.osuId, app.ircName);
+  return relayStream(req, app.osuId, app.ircName, perms.host);
 }
 
 export async function DELETE(req: Request) {

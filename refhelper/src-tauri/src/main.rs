@@ -10,7 +10,7 @@ use rand::RngCore;
 use relay::{Entry, Shared, Status};
 use sha2::{Digest, Sha256};
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use store::{Config, Store};
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
@@ -94,6 +94,7 @@ pub(crate) fn invalidate(sh: &Shared, token: &str) {
     stop_streaming(&ctl);
     c.token = None;
     sh.store.save(&c);
+    sh.clear_alerts();
     sh.set(|s| {
         s.linked = false;
         s.roles_ready = false;
@@ -117,6 +118,8 @@ struct Roles {
     can_ref: bool,
     #[serde(rename = "stream")]
     can_stream: bool,
+    #[serde(default)]
+    alerts: Vec<serde_json::Value>,
 }
 
 fn refresh_roles(ctl: &Ctl) {
@@ -143,16 +146,37 @@ fn refresh_roles(ctl: &Ctl) {
     tauri::async_runtime::spawn(async move {
         let http = reqwest::Client::builder().timeout(Duration::from_secs(15)).build().expect("http client");
         let mut started = false;
+        let mut failed_since: Option<(Instant, u64)> = None;
         loop {
             let result = tokio::select! {
                 result = async {
                     let r = http.get(format!("{SITE}/api/relay/me")).bearer_auth(&token).send().await.map_err(|_| 0u16)?;
                     if !r.status().is_success() { return Err(r.status().as_u16()); }
-                    r.json::<Roles>().await.map_err(|_| 0u16)
+                    r.json::<Roles>().await.map_err(|e| if e.is_decode() { 200u16 } else { 0u16 })
                 } => result,
                 _ = stop.changed() => return,
             };
             if *stop.borrow() || sh.store.load().token.as_deref() != Some(token.as_str()) { return; }
+            match &result {
+                Ok(roles) => {
+                    failed_since = None;
+                    sh.server_alerts(roles.alerts.clone(), true);
+                }
+                Err(0 | 500..=599) => {
+                    let (start, since) = failed_since.get_or_insert_with(|| {
+                        let since = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
+                        (Instant::now(), since)
+                    });
+                    if start.elapsed() >= Duration::from_secs(60) {
+                        sh.site_down(Some(*since));
+                    }
+                }
+                Err(200) => {
+                    failed_since = None;
+                    sh.site_down(None);
+                }
+                _ => failed_since = None,
+            }
             match result {
                 Ok(roles) if started => {
                     let before = sh.status();
@@ -184,6 +208,7 @@ fn refresh_roles(ctl: &Ctl) {
                 }
                 Err(401) => { invalidate(&sh, &token); return; }
                 Err(403) => {
+                    sh.clear_alerts();
                     sh.set(|s| { s.roles_ready = true; s.site = "off"; s.stream_state = "forbidden".into(); });
                     sh.note("warn", "this account has no helper roles");
                     return;
@@ -253,6 +278,11 @@ async fn recheck_roles(ctl: State<'_, Ctl>) -> Result<(), String> {
 #[tauri::command]
 fn status(ctl: State<'_, Ctl>) -> Status {
     ctl.shared.status()
+}
+
+#[tauri::command]
+fn alerts(ctl: State<'_, Ctl>) -> Vec<serde_json::Value> {
+    ctl.shared.alerts()
 }
 
 #[tauri::command]
@@ -346,6 +376,7 @@ async fn unlink(ctl: State<'_, Ctl>) -> Result<(), String> {
     stop_streaming(&ctl);
     let c = ctl.shared.store.load();
     ctl.shared.store.forget(&c.name);
+    ctl.shared.clear_alerts();
     ctl.shared.set(|s| {
         s.linked = false; s.sent = 0; s.roles_ready = false; s.can_ref = false; s.can_stream = false;
         s.site = "off"; s.irc = "idle"; s.lobbies.clear();
@@ -385,6 +416,7 @@ async fn uninstall(app: AppHandle, ctl: State<'_, Ctl>) -> Result<(), String> {
 #[tauri::command]
 fn open(app: AppHandle, ctl: State<'_, Ctl>, what: String) {
     let url = match what.as_str() {
+        path if path.starts_with('/') && !path.starts_with("//") && !path.contains('\\') && !path.chars().any(char::is_control) => format!("{}{path}", SITE.trim_end_matches('/')),
         "irc" => IRC_PAGE.to_string(),
         "page" if ctl.shared.status().can_stream && !ctl.shared.status().can_ref => format!("{SITE}/admin/overlay"),
         "page" => format!("{SITE}/admin/refapp"),
@@ -460,7 +492,7 @@ fn main() {
             }
             _ => {}
         })
-        .invoke_handler(tauri::generate_handler![status, logs, saved_name, link, cancel_link, unlink, uninstall, open, autostart, set_streaming, save_irc_password, recheck_roles])
+        .invoke_handler(tauri::generate_handler![status, alerts, logs, saved_name, link, cancel_link, unlink, uninstall, open, autostart, set_streaming, save_irc_password, recheck_roles])
         .run(tauri::generate_context!())
         .expect("error while running BGCC7 Helper");
 }
