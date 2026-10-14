@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { boolean, doublePrecision, index, integer, jsonb, pgTable, serial, text, timestamp, unique } from "drizzle-orm/pg-core";
+import type { Beatmap } from "@/lib/data";
 
 export const users = pgTable("users", {
   osuId: integer("osu_id").primaryKey(),
@@ -340,6 +341,8 @@ export const scoreEdits = pgTable(
 );
 
 export type DraftStep = { team: 1 | 2; kind: "ban" | "pick"; slot: string; skip?: boolean; winner?: 1 | 2; auto?: boolean };
+/** the stage's rules and maps when the draft started, so format or pool edits don't change a running match */
+export type DraftRules = { firstTo: number; hasTb: boolean; banSecs: number; pickSecs: number; slots: string[]; maps: Record<string, Beatmap & { rowId: number; order: number }> };
 export type DraftUndo =
   | { kind: "winner"; slot: string; winner: 1 | 2 }
   | { kind: "step"; step: DraftStep }
@@ -359,6 +362,7 @@ export const drafts = pgTable("drafts", {
   choice: text("choice"),
   steps: jsonb("steps").$type<DraftStep[]>().notNull().default([]),
   redo: jsonb("redo").$type<DraftUndo[]>().notNull().default([]),
+  rules: jsonb("rules").$type<DraftRules>(),
   rev: integer("rev").notNull().default(0),
   turnAt: timestamp("turn_at", { withTimezone: true }),
   pausedAt: timestamp("paused_at", { withTimezone: true }),

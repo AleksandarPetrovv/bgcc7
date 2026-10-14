@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { eq, sql } from "drizzle-orm";
 
 import { drafts, matches, type DraftUndo } from "@/db/schema";
-import { emitDraft, redoStep, undoStep } from "@/db/drafts";
+import { canRunMatch, emitDraft, redoStep, rulesFor, undoStep } from "@/db/drafts";
 import { getPoolStages } from "@/db/mappools";
 import { getSettings } from "@/db/settings";
 import { getSkillLayouts } from "@/db/format-plan";
@@ -21,25 +21,28 @@ async function done<T>(matchId: string, res: T) {
 
 export async function openDraft(matchId: string, stageSlug: string) {
   return guard("matches", "draft.open", async () => {
+    if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
     const [m] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
     const stage = (await getPoolStages()).find((s) => s.slug === stageSlug && s.pools.length);
     if (!m || !stage) return { ok: false, error: "invalid" };
     const [cur] = await db.select().from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
     const s = await getSettings();
     const bans = await bansFor(stageSlug, s.bans);
+    const rules = await rulesFor(stageSlug);
     if (cur) {
       const fresh = cur.stageSlug !== stageSlug;
       await db
         .update(drafts)
-        .set({ open: true, stageSlug, ...(fresh ? { steps: [], redo: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null } : {}), ...bump })
+        .set({ open: true, stageSlug, ...(fresh || !cur.rules ? { rules } : {}), ...(fresh ? { steps: [], redo: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null } : {}), ...bump })
         .where(eq(drafts.matchId, matchId));
-    } else await db.insert(drafts).values({ matchId, stageSlug, bans, banOrder: s.banOrder, turnAt: new Date() });
+    } else await db.insert(drafts).values({ matchId, stageSlug, bans, banOrder: s.banOrder, rules, turnAt: new Date() });
     return done(matchId, { matchId, stage: stage.title });
   });
 }
 
 export async function closeDraft(matchId: string) {
   return guard("matches", "draft.close", async () => {
+    if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
     await db.update(drafts).set({ open: false, ...bump }).where(eq(drafts.matchId, matchId));
     return done(matchId, { matchId });
   });
@@ -47,12 +50,14 @@ export async function closeDraft(matchId: string) {
 
 export async function resetDraft(matchId: string) {
   return guard("matches", "draft.reset", async () => {
+    if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
     const s = await getSettings();
     const [cur] = await db.select({ stageSlug: drafts.stageSlug }).from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
     const bans = await bansFor(cur?.stageSlug ?? "", s.bans);
+    const rules = cur ? await rulesFor(cur.stageSlug) : null;
     await db
       .update(drafts)
-      .set({ roll1: null, roll2: null, choice: null, steps: [], redo: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null, ...bump })
+      .set({ rules, roll1: null, roll2: null, choice: null, steps: [], redo: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null, ...bump })
       .where(eq(drafts.matchId, matchId));
     return done(matchId, { matchId });
   });
@@ -60,6 +65,7 @@ export async function resetDraft(matchId: string) {
 
 export async function undoDraft(matchId: string) {
   return guard("matches", "draft.undo", async () => {
+    if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
     const u = await undoStep(matchId);
     if (!u) return { ok: false, error: "notFound" };
     return { matchId, step: stepLabel(u) };
@@ -68,6 +74,7 @@ export async function undoDraft(matchId: string) {
 
 export async function redoDraft(matchId: string) {
   return guard("matches", "draft.redo", async () => {
+    if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
     const r = await redoStep(matchId);
     if (!r) return { ok: false, error: "notFound" };
     return { matchId, step: stepLabel(r) };
@@ -78,6 +85,7 @@ const stepLabel = (u: DraftUndo) => (u.kind === "winner" ? `${u.slot} win` : u.k
 
 export async function endDraft(matchId: string) {
   return guard("matches", "draft.end", async () => {
+    if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
     await db.delete(drafts).where(eq(drafts.matchId, matchId));
     return done(matchId, { matchId });
   });
@@ -85,6 +93,7 @@ export async function endDraft(matchId: string) {
 
 export async function pauseDraft(matchId: string) {
   return guard("matches", "draft.pause", async () => {
+    if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
     const [d] = await db.select().from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
     if (!d) return { ok: false, error: "notFound" };
     if (d.pausedAt) return { ok: true };
@@ -100,6 +109,7 @@ export async function pauseDraft(matchId: string) {
 
 export async function resumeDraft(matchId: string) {
   return guard("matches", "draft.resume", async () => {
+    if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
     const [d] = await db.select().from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
     if (!d?.pausedAt) return { ok: true };
     const now = Date.now();

@@ -8,6 +8,7 @@ import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
 import { fromSofiaInput } from "@/lib/time";
 import { advance } from "@/db/bracket";
+import { canRunMatch } from "@/db/drafts";
 import { handOff } from "@/lib/bancho";
 
 const text = (fd: FormData, k: string, max = 120) => String(fd.get(k) ?? "").trim().slice(0, max) || null;
@@ -23,6 +24,8 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     const f = getFormat();
     const [m] = await db.select().from(matches).where(eq(matches.id, id)).limit(1);
     if (!m) return { ok: false, error: "notFound" };
+    // unassigned matches stay open so a referee can take one; assigned ones only their ref or a host
+    if (!(await canRunMatch(id, { unassigned: true }))) return { ok: false, error: "forbidden" };
     const score1 = num(fd, "score1");
     const score2 = num(fd, "score2");
     if (score1 === undefined || score2 === undefined) return { ok: false, error: "invalid" };
@@ -58,16 +61,19 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
       manual,
       poolSlug,
     };
-    await db.update(matches).set(patch).where(eq(matches.id, id));
+    await db.transaction(async (tx) => {
+      await tx.update(matches).set(patch).where(eq(matches.id, id));
+      if (mpLinks !== m.mpLinks || winner !== m.winner || poolSlug !== m.poolSlug) await tx.delete(matchCache).where(eq(matchCache.matchId, id));
+      await advance(tx);
+    });
     if (patch.referee !== m.referee) await handOff(id, patch.referee).catch((e) => console.error("[handoff]", e));
-    if (mpLinks !== m.mpLinks || winner !== m.winner || poolSlug !== m.poolSlug) await db.delete(matchCache).where(eq(matchCache.matchId, id));
-    await advance();
     return { id, ...patch };
   });
 }
 
 export async function clearCache(id: string) {
   return guard("matches", "match.clearCache", async () => {
+    if (!(await canRunMatch(id))) return { ok: false, error: "forbidden" };
     await db.delete(matchCache).where(eq(matchCache.matchId, id));
     return { id };
   });

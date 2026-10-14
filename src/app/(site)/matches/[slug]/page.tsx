@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { draftAccess, getDraft } from "@/db/drafts";
+import { draftAccess, draftMaps, getDraft } from "@/db/drafts";
 import { getPoolStages } from "@/db/mappools";
 import { getSkillLayouts } from "@/db/format-plan";
 import { bySkill } from "@/lib/format-plan";
@@ -22,15 +22,18 @@ export default async function DraftPage({ params }: PageProps<"/matches/[slug]">
   const [access, draft] = await Promise.all([draftAccess(id), getDraft(id)]);
   if (!access || !draft || (!draft.open && !access.staff)) notFound();
   const [t, teams, stages, skills, all] = await Promise.all([getDict(), getAllTeams(), getPoolStages(), getSkillLayouts(), getAllMatches()]);
-  const stage = stages.find((s) => s.slug === draft.stageSlug);
-  if (!stage) notFound();
+  const live = stages.find((s) => s.slug === draft.stageSlug);
+  if (!live) notFound();
+  // a running draft shows the maps it started with, the same ones the lobby plays
+  const frozen = new Map((await draftMaps(id, draft.stageSlug)).map((m) => [m.slot, m]));
+  const stage = { ...live, pools: live.pools.map((p) => ({ ...p, maps: p.maps.map((m) => frozen.get(m.slot) ?? m) })) };
   const side = (tid: string | null) => {
     const x = teams.find((tm) => tm.id === tid);
     const cap = x?.players.find((p) => p.isCaptain) ?? x?.players[0];
     return { name: x?.name ?? t.common.tbd, image: x?.image ?? "", captain: cap?.username ?? "", players: x?.players.map((p) => p.username) ?? [] };
   };
   const round = t.rounds[access.match.round] ?? access.match.round;
-  const firstTo = stage.firstTo ?? getFormat().firstTo;
+  const firstTo = draft.firstTo;
 
   return (
     <DraftRoom
