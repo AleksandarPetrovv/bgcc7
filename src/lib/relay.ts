@@ -1,9 +1,10 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 import { EventEmitter } from "node:events";
-import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { refApps, users } from "@/db/schema";
+import { and, eq } from "drizzle-orm";
+import { db, withEdition } from "@/db";
+import { mpLobbies, refApps, users } from "@/db/schema";
+import { alertId, alertsFor, clearWhere, describeMatch, onAlerts, raise } from "./alerts";
 
 export type RelayMsg = { t: "open" } | { t: "line"; l: string } | { t: "close" };
 export type RelayEv = { t: "opened" } | { t: "line"; l: string } | { t: "closed"; why?: string };
@@ -123,21 +124,42 @@ function drop(osuId: number) {
   r.sock?.end("app gone");
   store().relays.delete(osuId);
   store().bus.emit("relay", osuId, false);
+  setTimeout(() => void helperGone(osuId).catch(() => {}), OFFLINE_GRACE).unref();
+}
+
+// a helper restart takes a few seconds; only call it offline when it stays gone
+const OFFLINE_GRACE = 20_000;
+
+const ownsHelperAlert = (osuId: number) => (a: { kind: string; id: string }) => a.kind === "helperOffline" && a.id.endsWith(`:${osuId}`);
+
+async function helperGone(osuId: number) {
+  if (relayOnline(osuId)) return;
+  await withEdition("site", async () => {
+    const open = await db.select({ matchId: mpLobbies.matchId }).from(mpLobbies).where(and(eq(mpLobbies.open, true), eq(mpLobbies.owner, String(osuId))));
+    for (const { matchId } of open) {
+      if (relayOnline(osuId)) return;
+      const match = await describeMatch(matchId);
+      raise({ id: alertId("helperOffline", `${matchId}:${osuId}`), kind: "helperOffline", level: "red", match, href: "/download/helper" }, { osuIds: [osuId] });
+    }
+  });
 }
 
 export function relayKick(osuId: number) {
   drop(osuId);
 }
 
-export function relayStream(req: Request, osuId: number, ircName: string) {
+export function relayStream(req: Request, osuId: number, ircName: string, host = false) {
   const { relays, bus } = store();
   drop(osuId);
   const enc = new TextEncoder();
   const r: Relay = { osuId, ircName };
   relays.set(osuId, r);
   let timer: ReturnType<typeof setInterval> | undefined;
+  let offAlerts = () => {};
+  let lastAlerts = "";
   const stop = () => {
     clearInterval(timer);
+    offAlerts();
     if (relays.get(osuId) === r) drop(osuId);
   };
   const stream = new ReadableStream({
@@ -155,6 +177,15 @@ export function relayStream(req: Request, osuId: number, ircName: string) {
       send(`data: ${JSON.stringify({ t: "hello", name: ircName, id: osuId })}\n\n`);
       void db.update(refApps).set({ seenAt: new Date() }).where(eq(refApps.osuId, osuId)).catch(() => {});
       bus.emit("relay", osuId, true);
+      clearWhere(ownsHelperAlert(osuId));
+      const pushAlerts = () => {
+        const json = JSON.stringify(alertsFor(osuId, host));
+        if (json === lastAlerts) return;
+        lastAlerts = json;
+        send(`data: {"t":"alerts","alerts":${json}}\n\n`);
+      };
+      offAlerts = onAlerts(pushAlerts);
+      pushAlerts();
     },
     cancel: stop,
   });

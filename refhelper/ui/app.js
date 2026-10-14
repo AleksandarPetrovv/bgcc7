@@ -32,6 +32,183 @@ const STREAM = {
 };
 const errorText = (e) => ERR[String(e)] ?? "couldn't complete the action; try again and check the activity log";
 
+const ALERT_TEXT = {
+  ircLost: {
+    title: "Lobby lost its osu! connection",
+    means: "The site can't talk to the match lobby, so picks, bans and scores won't reach osu!. The lobby itself is still open in osu!.",
+    steps: [
+      "Close the osu! tournament client, it blocks the helper's login.",
+      "Press Make lobby on the match page. It reconnects to the same lobby.",
+      "Open the tournament client again once the lobby is back.",
+    ],
+    button: "Open match",
+  },
+  helperOffline: {
+    title: "Your BGCC7 Helper is offline",
+    means: "Your match lobby is open, but the site can't reach your helper, so the lobby can't be controlled from the site.",
+    steps: [
+      "Open BGCC7 Helper on your PC.",
+      "Check it shows connected and you're signed in.",
+      "Not installed? Download it with the button below.",
+    ],
+    button: "Download helper",
+  },
+  finishFailed: {
+    title: "Match result wasn't saved",
+    means: "The match reached its winning score, but saving the result failed, so the bracket didn't move on.",
+    steps: ["Press Retry.", "If it fails again, set the score and winner by hand in Admin → Matches."],
+    button: "Open match admin",
+  },
+  bracketBlocked: {
+    title: "Bracket correction is blocked",
+    means: "A changed result would put a different team into matches that are already played or in progress, so the bracket was left as it was.",
+    steps: [
+      "Check the matches listed below.",
+      "If they really need to change, clear their result in Admin → Matches, then save the corrected match again.",
+      "Otherwise put the old result back.",
+    ],
+    button: "Open matches",
+  },
+  scoresStale: {
+    title: "Scores aren't updating",
+    means: "The site hasn't been able to load this match's scores from osu! for over 2 minutes.",
+    steps: ["Check the mp link on the match is right.", "osu! may be having API problems. Scores catch up on their own once it works again."],
+    button: "Open match admin",
+  },
+  overlayFailing: {
+    title: "Stream overlay isn't updating",
+    means: "The overlay's data feed has been failing for over a minute, so the stream may show old info.",
+    steps: ["Refresh the browser source in OBS.", "Check the scene in Admin → Stream."],
+    button: "Open stream admin",
+  },
+  siteDown: {
+    title: "Can't reach the site",
+    means: "The helper hasn't reached the site for over a minute.",
+    steps: [
+      "The osu! lobby keeps running, keep refereeing in osu! directly.",
+      "Check this PC's internet.",
+      "Picks and scores can be fixed on the site once it's back.",
+    ],
+  },
+};
+let latestAlerts = [];
+let alertRevision = 0;
+let alertsExpanded = false;
+let alertExpiry;
+const alertSnoozes = new Map();
+const alertCards = new Map();
+
+function alertElement(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function alertCard(alert) {
+  const text = ALERT_TEXT[alert.kind];
+  const card = alertElement("article", `alert-card ${alert.level}`);
+  const title = alertElement("h2", "alert-title", text.title);
+  const titleId = `alert-title-${alert.id}`;
+  title.id = titleId;
+  card.setAttribute("aria-labelledby", titleId);
+  const close = alertElement("button", "alert-close");
+  close.type = "button";
+  const minutes = alert.level === "red" ? 10 : 30;
+  close.title = `Snooze for ${minutes} minutes`;
+  close.setAttribute("aria-label", close.title);
+  close.innerHTML = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1.5 1.5l9 9M10.5 1.5l-9 9" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>';
+  close.onclick = () => {
+    alertSnoozes.set(alert.id, Date.now() + minutes * 60_000);
+    renderAlerts();
+  };
+  card.append(close, title);
+  if (alert.match?.label) card.append(alertElement("p", "alert-match", alert.match.label));
+  card.append(alertElement("p", "alert-means", text.means));
+  const steps = alertElement("ol", "alert-steps");
+  for (const step of text.steps) steps.append(alertElement("li", "", step));
+  card.append(steps);
+  if (alert.kind === "bracketBlocked" && Array.isArray(alert.blocked) && alert.blocked.length) {
+    const blocked = alertElement("ul", "alert-blocked");
+    for (const label of alert.blocked) blocked.append(alertElement("li", "", label));
+    card.append(blocked);
+  }
+  if (typeof alert.href === "string" && alert.href.startsWith("/") && !alert.href.startsWith("//") && text.button) {
+    const actions = alertElement("div", "alert-actions");
+    const button = alertElement("button", "btn sm alert-action");
+    button.type = "button";
+    button.append(alertElement("span", "", text.button));
+    const error = alertElement("p", "alert-error");
+    error.setAttribute("role", "alert");
+    button.onclick = async () => {
+      if (button.disabled) return;
+      button.disabled = true;
+      error.textContent = "";
+      try {
+        await invoke("open", { what: alert.href });
+      } catch {
+        error.textContent = "Couldn't open the page. Open the site in your browser.";
+      } finally {
+        button.disabled = false;
+      }
+    };
+    actions.append(button);
+    card.append(actions, error);
+  }
+  if (alert.detail) {
+    const details = alertElement("details", "alert-details");
+    details.append(alertElement("summary", "", "Details"), alertElement("pre", "", alert.detail));
+    card.append(details);
+  }
+  return card;
+}
+
+function renderAlerts() {
+  clearTimeout(alertExpiry);
+  const now = Date.now();
+  const ids = new Set(latestAlerts.map((alert) => alert.id));
+  for (const [id, until] of alertSnoozes) if (!ids.has(id) || until <= now) alertSnoozes.delete(id);
+  for (const id of alertCards.keys()) if (!ids.has(id)) alertCards.delete(id);
+  const visible = latestAlerts.filter((alert) => !alertSnoozes.has(alert.id)).sort((a, b) => b.since - a.since);
+  const stack = $("alerts");
+  const cards = (alertsExpanded ? visible : visible.slice(0, 3)).map((alert) => {
+    const key = JSON.stringify(alert);
+    let cached = alertCards.get(alert.id);
+    if (!cached || cached.key !== key) {
+      const node = alertCard(alert);
+      const previous = cached?.node.querySelector("details");
+      if (previous?.open && node.querySelector("details")) node.querySelector("details").open = true;
+      cached = { key, node };
+      alertCards.set(alert.id, cached);
+    }
+    return cached.node;
+  });
+  if (visible.length > 3) {
+    const more = alertElement("button", "alert-more", alertsExpanded ? "Show fewer" : `+${visible.length - 3} more`);
+    more.type = "button";
+    more.setAttribute("aria-expanded", String(alertsExpanded));
+    more.onclick = () => {
+      alertsExpanded = !alertsExpanded;
+      renderAlerts();
+    };
+    cards.push(more);
+  }
+  for (const node of [...stack.children]) if (!cards.includes(node)) node.remove();
+  cards.forEach((node, index) => {
+    if (stack.children[index] !== node) stack.insertBefore(node, stack.children[index] ?? null);
+  });
+  stack.hidden = !visible.length;
+  const nearest = Math.min(...alertSnoozes.values());
+  if (Number.isFinite(nearest)) alertExpiry = setTimeout(renderAlerts, Math.max(0, nearest - Date.now()));
+}
+
+function receiveAlerts(alerts) {
+  if (!Array.isArray(alerts)) return;
+  latestAlerts = alerts.filter((alert) => alert && typeof alert.id === "string" && Object.hasOwn(ALERT_TEXT, alert.kind) && (alert.level === "red" || alert.level === "gold"));
+  alertRevision++;
+  renderAlerts();
+}
+
 let screen = null;
 let tabPicked = false;
 let tab = (() => {
@@ -298,6 +475,10 @@ $("unlink").onclick = async () => {
   try {
     await listen("status", (e) => render(e.payload));
     await listen("log", (e) => addLog(e.payload));
+    await listen("alerts", (e) => receiveAlerts(e.payload));
+    const revision = alertRevision;
+    const alerts = await invoke("alerts");
+    if (revision === alertRevision) receiveAlerts(alerts);
     await listen("linked", async () => {
       try {
         render(await invoke("status"));

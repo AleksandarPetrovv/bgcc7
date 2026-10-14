@@ -3,6 +3,7 @@ import { Backdrop } from "@/components/site/backdrop";
 import { LiteSettle } from "@/components/site/lite-settle";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Flash } from "@/components/site/flash";
+import { AlertPopups } from "@/components/site/alert-popups";
 import { TournamentProvider } from "@/components/site/tournament";
 import { meStyle } from "@/components/site/me";
 import { getMatches, getTeams } from "@/db/tournament";
@@ -38,6 +39,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       </TournamentProvider>
       <SiteFooter />
       <Flash />
+      {viewer?.roles.length ? <AlertPopups /> : null}
     </>
   );
 }

@@ -45,12 +45,20 @@ pub struct Shared {
     pub store: Store,
     status: Mutex<Status>,
     log: Mutex<VecDeque<Entry>>,
+    alerts: Mutex<AlertState>,
+}
+
+#[derive(Default)]
+struct AlertState {
+    server: Vec<Value>,
+    site_down: Option<Value>,
+    merged: Vec<Value>,
 }
 
 impl Shared {
     pub fn new(app: AppHandle, store: Store) -> Self {
         let status = Status { site: "off", irc: "idle", streaming: true, stream_state: "unpaired".into(), ..Default::default() };
-        Self { app, store, status: Mutex::new(status), log: Mutex::new(VecDeque::new()) }
+        Self { app, store, status: Mutex::new(status), log: Mutex::new(VecDeque::new()), alerts: Mutex::new(AlertState::default()) }
     }
 
     pub fn status(&self) -> Status {
@@ -59,6 +67,51 @@ impl Shared {
 
     pub fn logs(&self) -> Vec<Entry> {
         self.log.lock().unwrap().iter().cloned().collect()
+    }
+
+    pub fn alerts(&self) -> Vec<Value> {
+        self.alerts.lock().unwrap().merged.clone()
+    }
+
+    fn update_alerts(&self, f: impl FnOnce(&mut AlertState)) {
+        let mut state = self.alerts.lock().unwrap();
+        f(&mut state);
+        let mut merged = state.server.clone();
+        if let Some(local) = &state.site_down {
+            merged.push(local.clone());
+        }
+        if merged != state.merged {
+            state.merged = merged;
+            let _ = self.app.emit("alerts", &state.merged);
+        }
+    }
+
+    pub fn server_alerts(&self, alerts: Vec<Value>, reached_site: bool) {
+        self.update_alerts(|state| {
+            state.server = alerts;
+            if reached_site {
+                state.site_down = None;
+            }
+        });
+    }
+
+    pub fn site_down(&self, since: Option<u64>) {
+        self.update_alerts(|state| {
+            if let Some(since) = since {
+                if state.site_down.is_none() {
+                    state.site_down = Some(json!({ "id": "siteDown", "kind": "siteDown", "level": "red", "since": since }));
+                }
+            } else {
+                state.site_down = None;
+            }
+        });
+    }
+
+    pub fn clear_alerts(&self) {
+        self.update_alerts(|state| {
+            state.server.clear();
+            state.site_down = None;
+        });
     }
 
     pub fn set(&self, f: impl FnOnce(&mut Status)) {
@@ -128,6 +181,8 @@ enum Msg {
     Close,
     #[serde(rename = "hello")]
     Hello { id: u64 },
+    #[serde(rename = "alerts")]
+    Alerts { alerts: Vec<serde_json::Value> },
     #[serde(other)]
     Other,
 }
@@ -252,6 +307,7 @@ async fn session(sh: &Arc<Shared>, http: &reqwest::Client, token: &str, name: &s
                             sh.store.save(&c);
                         }
                     }
+                    Ok(Msg::Alerts { alerts }) => sh.server_alerts(alerts, false),
                     Ok(Msg::Other) => {}
                     Err(_) => {
                         if *stop.borrow() {
