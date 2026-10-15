@@ -101,10 +101,11 @@ function ModPick({ mod, onMod, label }: { mod: PlanMod; onMod: (mod: PlanMod) =>
 function SrInput({ value, onChange, label }: { value: number | null; onChange: (sr: number | null) => void; label: string }) {
   const edit = useContext(Edit);
   const fmt = (n: number | null) => (n === null ? "" : String(Math.round(n * 100) / 100));
-  const [text, setText] = useState(fmt(value));
+  const [draft, setDraft] = useState({ value, text: fmt(value) });
+  const text = draft.value === value ? draft.text : fmt(value);
   const step = (d: number) => {
     const n = Math.min(15, Math.max(0.1, Math.round(((value ?? 6) + d) * 100) / 100));
-    setText(fmt(n));
+    setDraft({ value: n, text: fmt(n) });
     onChange(n);
   };
   const btn = "grid w-8 place-items-center text-ash transition-colors hover:bg-white/[0.06] hover:text-paper disabled:opacity-30";
@@ -125,11 +126,12 @@ function SrInput({ value, onChange, label }: { value: number | null; onChange: (
           aria-label={label}
           onChange={(e) => {
             const raw = e.target.value.replace(/[^\d.,]/g, "").slice(0, 5);
-            setText(raw);
             const n = Number(raw.replace(",", "."));
-            onChange(raw && Number.isFinite(n) && n > 0 ? Math.min(15, n) : null);
+            const next = raw && Number.isFinite(n) && n > 0 ? Math.min(15, n) : null;
+            setDraft({ value: next, text: raw });
+            onChange(next);
           }}
-          onBlur={() => setText(fmt(value))}
+          onBlur={() => setDraft({ value, text: fmt(value) })}
           className="adm-bare num w-11 skew-x-12 border-0 bg-transparent p-0 text-center text-lg leading-none text-paper outline-none placeholder:text-ash"
         />
       </span>

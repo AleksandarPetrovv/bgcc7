@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { RotateCcw } from "lucide-react";
 import { Btn } from "@/components/admin/form";
@@ -11,70 +11,61 @@ import { resetPlan, savePlan } from "./actions";
 import { Catalog, Edit } from "./format-context";
 import { RoundCard } from "./format-round";
 import { SubcategoryEditor } from "./format-subcategories";
+import { FormatWriter, type WriteState } from "./format-writer";
+
+function runAction(action: () => Promise<{ ok: boolean } | null>) {
+  return new Promise<{ ok: boolean } | null>((resolve) => {
+    startTransition(async () => {
+      try {
+        resolve(await action());
+      } catch {
+        resolve(null);
+      }
+    });
+  });
+}
 
 export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }) {
   const t = useDict();
   const [plan, setPlan] = useState(initial);
-  const [pending, start] = useTransition();
-  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "err">("idle");
+  const [{ status, resetting }, setWriteState] = useState<WriteState>({ status: "idle", resetting: false });
   const [tab, setTab] = useState(0);
-  const sent = useRef(JSON.stringify(initial));
-  const busy = useRef(false);
-  const queued = useRef<Plan | null>(null);
-  const setRound = (k: number, r: PlanRound) => setPlan((p) => ({ ...p, rounds: p.rounds.map((x, j) => (j === k ? r : x)) }));
-
-  const push = useCallback(async (p: Plan) => {
-    if (busy.current) {
-      queued.current = p;
-      return;
-    }
-    busy.current = true;
-    setStatus("saving");
-    let next: Plan | null = p;
-    let ok = true;
-    while (next) {
-      const cur: Plan = next;
-      queued.current = null;
-      const r = await savePlan(cur).catch(() => null);
-      if (r?.ok) sent.current = JSON.stringify(cur);
-      ok = !!r?.ok;
-      next = queued.current;
-    }
-    busy.current = false;
-    setStatus(ok ? "saved" : "err");
-  }, []);
+  const [writer] = useState(() => new FormatWriter({
+    initial,
+    defaults: DEFAULT_PLAN,
+    save: (next) => runAction(() => savePlan(next)),
+    reset: () => runAction(resetPlan),
+    onPlan: setPlan,
+    onState: setWriteState,
+  }));
+  const change = (update: (current: Plan) => Plan) => {
+    if (edit) writer.change(update);
+  };
+  const setRound = (k: number, r: PlanRound) => change((p) => ({ ...p, rounds: p.rounds.map((x, j) => (j === k ? r : x)) }));
 
   useEffect(() => {
-    if (!edit || JSON.stringify(plan) === sent.current) return;
-    const id = setTimeout(() => push(plan), 450);
-    return () => clearTimeout(id);
-  }, [plan, edit, push]);
+    writer.activate();
+    return () => writer.dispose();
+  }, [writer]);
 
   useEffect(() => {
     if (!edit) return;
     const warn = (e: BeforeUnloadEvent) => {
-      if (busy.current || JSON.stringify(plan) !== sent.current) e.preventDefault();
+      if (writer.dirty) e.preventDefault();
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [edit, plan]);
+  }, [edit, writer]);
 
   const reset = () => {
-    if (!window.confirm(t.admin.fp.confirmReset)) return;
-    start(async () => {
-      const r = await resetPlan().catch(() => null);
-      if (r?.ok) {
-        sent.current = JSON.stringify(DEFAULT_PLAN);
-        setPlan(DEFAULT_PLAN);
-        setStatus("saved");
-      }
-    });
+    if (!edit || resetting || !window.confirm(t.admin.fp.confirmReset)) return;
+    writer.reset();
   };
 
   return (
-    <Edit.Provider value={edit}>
+    <Edit.Provider value={edit && !resetting}>
       <Catalog.Provider value={plan.subcategories}>
-      <div className="space-y-6 pb-24">
+      <div className="space-y-6 pb-24" aria-busy={resetting}>
         <div role="tablist" aria-label={t.admin.fp.round} className="flex flex-wrap gap-2">
           {plan.rounds.map((r, k) => {
             const on = k === tab;
@@ -103,7 +94,7 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
           </motion.div>
         </AnimatePresence>
 
-        <SubcategoryEditor groups={plan.subcategories} onChange={(subcategories) => setPlan((p) => ({ ...p, subcategories }))} />
+        <SubcategoryEditor groups={plan.subcategories} onChange={(subcategories) => change((p) => ({ ...p, subcategories }))} />
 
         {edit && (
           <div className="fixed inset-x-4 bottom-4 z-40 flex justify-end gap-3 sm:inset-x-auto sm:right-6">
@@ -119,14 +110,14 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
                 >
                   {status === "saving" ? t.admin.saving : status === "saved" ? t.admin.saved : t.admin.error}
                   {status === "err" && (
-                    <button type="button" onClick={() => push(plan)} className="underline underline-offset-2 hover:text-paper">
+                    <button type="button" onClick={() => writer.retry()} className="underline underline-offset-2 hover:text-paper">
                       {t.error.retry}
                     </button>
                   )}
                 </motion.span>
               )}
             </AnimatePresence>
-            <Btn type="button" tone="outline" onClick={reset} disabled={pending} className="bg-ink">
+            <Btn type="button" tone="outline" onClick={reset} disabled={resetting} className="bg-ink">
               <RotateCcw className="size-3.5" /> {t.admin.fp.reset}
             </Btn>
           </div>
