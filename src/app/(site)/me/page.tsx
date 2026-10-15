@@ -1,7 +1,5 @@
-import Link from "next/link";
 import { ArrowRight, CalendarClock, Crown, ExternalLink, Flag, Mic, Tv, Video } from "lucide-react";
 import { Container, PageTitle, SlantButton, Tag } from "@/components/site/page";
-import { TriTick } from "@/components/site/graphics";
 import { Avatar } from "@/components/site/avatar";
 import { Countdown } from "@/components/site/countdown";
 import { MatchDialog } from "@/components/site/match-dialog";
@@ -10,7 +8,7 @@ import { BestScore } from "@/components/site/best-score";
 import { currentOsuId } from "@/auth";
 import { login } from "@/app/(site)/pickems/actions";
 import { getDict, getLang } from "@/lib/i18n/server";
-import { roundName, type Dict } from "@/lib/i18n/dict";
+import { roundName } from "@/lib/i18n/dict";
 import { getSettings } from "@/db/settings";
 import { getRegistrations } from "@/db/registrations";
 import { getLobbies, mpIds } from "@/db/lobbies";
@@ -20,129 +18,18 @@ import { getPoolStages } from "@/db/mappools";
 import { getScoreboard } from "@/db/scoreboards";
 import { fmtRange, phaseStates } from "@/lib/dates";
 import { fmtSofia, fmtSofiaTime, isFuture, windowState, TZ_LABEL } from "@/lib/time";
-import { flagUrl, fmtNum, teamHref, type Match, type Team } from "@/lib/data";
+import { flagUrl, fmtNum, type Match } from "@/lib/data";
 import { rankBws } from "@/lib/bws";
 import { sourceLabel, isLive } from "@/lib/matches";
 import { getFormat } from "@/db/edition";
-import { TWITCH_URL, osuMatch, osuUser } from "@/lib/links";
+import { TWITCH_URL, osuMatch } from "@/lib/links";
 import type { MapResult, PlayerLine } from "@/lib/scoreboard";
 import { cn } from "@/lib/utils";
 import { matchCosts, MEDAL, MEDAL_BG } from "@/lib/match-cost";
+import { Card, Stat, PlayerLink, TeamCard, Side, Info, label, v } from "./cards";
+import { QualifierPlacement, QualifierScores } from "./qualifier-scores";
 
 type MyCost = { m: Match; cost: number; place: number; of: number };
-
-
-const v = (o: Record<string, string | number>) => o as React.CSSProperties;
-const label = "text-[0.65rem] font-black uppercase tracking-[0.14em] text-ash";
-
-function Card({ title, children, className, i = 0, right, flush }: { title: string; children: React.ReactNode; className?: string; i?: number; right?: React.ReactNode; flush?: boolean }) {
-  return (
-    <section className={cn("in-up relative overflow-hidden border border-line bg-coal", className)} style={v({ "--i": i, "--s": "0.08s", "--d": "0.2s" })}>
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-4 pb-1 pt-4 sm:px-5">
-        <TriTick className="h-2.5 w-[18px]" />
-        <h2 className="heading-slam text-lg">{title}</h2>
-        {right && <div className="ml-auto">{right}</div>}
-      </div>
-      <div className={flush ? "pt-3" : "p-4 pt-3 sm:p-5 sm:pt-3"}>{children}</div>
-    </section>
-  );
-}
-
-function Stat({ k, n, className }: { k: string; n: React.ReactNode; className?: string }) {
-  return (
-    <div className={cn("border-l-2 border-line pl-3", className)}>
-      <div className={label}>{k}</div>
-      <div className="num mt-1 text-2xl leading-none sm:text-3xl">{n}</div>
-    </div>
-  );
-}
-
-function PlayerLink({ id, name, className }: { id: number; name: string; className?: string }) {
-  return (
-    <a href={osuUser(id)} target="_blank" rel="noreferrer" className={cn("transition-colors hover:text-rose-hi", className)}>
-      {name}
-    </a>
-  );
-}
-
-function TeamCard({ t, team, me, record, i }: { t: Dict; team: Team; me: number; record?: [number, number]; i?: number }) {
-  const avg = Math.round(team.players.reduce((n, p) => n + p.rank, 0) / Math.max(1, team.players.length));
-  return (
-    <Card title={t.me.team} i={i} flush>
-      <div className="relative mx-4 flex items-center gap-3 overflow-hidden border border-line bg-ink p-3 sm:mx-5 sm:gap-4">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={team.image} alt="" className="pointer-events-none absolute inset-0 size-full scale-110 object-cover opacity-15 blur-md" aria-hidden />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={team.image} alt="" className="relative size-12 shrink-0 object-cover sm:size-16" />
-        <div className="relative min-w-0 flex-1">
-          <div className="heading-slam break-words text-lg leading-tight sm:text-2xl">{team.name}</div>
-          <div className="num mt-1 flex flex-wrap gap-x-3 text-sm text-paper/70 sm:gap-x-4">
-            <span>{t.me.seed(team.seed)}</span>
-            {record && <RecordText t={t} w={record[0]} l={record[1]} />}
-            <span>
-              {t.me.avgRank} #{fmtNum(avg)}
-            </span>
-          </div>
-        </div>
-      </div>
-      <ul className="mt-2 divide-y divide-line">
-        {team.players.map((p) => (
-          <li key={p.userId} className="flex items-center gap-2.5 px-4 py-2.5 sm:gap-3 sm:px-5">
-            <Avatar src={p.avatar} className="size-8 sm:size-9" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={flagUrl(p.country)} alt="" className="h-3" />
-            <PlayerLink id={p.userId} name={p.username} className={cn("min-w-0 truncate font-black", p.userId === me && "text-balkan")} />
-            {p.userId === me && <span className="text-[0.6rem] font-black uppercase text-ash">{t.me.you}</span>}
-            {p.isCaptain && <Crown className="size-3.5 shrink-0 text-gold" aria-label={t.common.captain} />}
-            <span className="num ml-auto text-sm text-paper/80">#{fmtNum(p.rank)}</span>
-            <span className="num hidden w-16 text-right text-sm text-ash sm:block">{fmtNum(Math.round(p.pp))}pp</span>
-          </li>
-        ))}
-      </ul>
-      <div className="border-t border-line px-4 py-3 sm:px-5">
-        <Link href={teamHref(team)} className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wide text-ash transition-colors hover:text-paper">
-          {t.me.teamPage} <ArrowRight className="size-3.5" />
-        </Link>
-      </div>
-    </Card>
-  );
-}
-
-function Side({ team, flip, fallback }: { team?: Team; flip?: boolean; fallback?: string }) {
-  return (
-    <div className={cn("flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4", flip && "items-end text-right sm:flex-row-reverse")}>
-      {team ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={team.image} alt="" className="size-14 shrink-0 object-cover sm:size-20" />
-      ) : (
-        <span className="size-14 shrink-0 border border-dashed border-line sm:size-20" />
-      )}
-      <div className="min-w-0">
-        <div className="heading-slam line-clamp-2 break-words text-sm leading-tight sm:text-2xl">{team?.name ?? fallback}</div>
-        {team && (
-          <div className={cn("mt-1.5 hidden flex-wrap sm:flex gap-x-3 gap-y-1 text-sm text-paper/70", flip && "justify-end")}>
-            {team.players.map((p) => (
-              <PlayerLink key={p.userId} id={p.userId} name={p.username} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Info({ icon: Icon, k, n }: { icon: typeof Flag; k: string; n: string }) {
-  return (
-    <div className="flex min-w-0 items-center gap-3 px-4 py-3">
-      <Icon className="size-4 shrink-0 text-rose-hi" />
-      <div className="min-w-0">
-        <div className={label}>{k}</div>
-        <div className="truncate text-sm font-black">{n}</div>
-      </div>
-    </div>
-  );
-}
-
 type Best = { p: PlayerLine; map: MapResult; match: Match };
 
 export default async function Me() {
@@ -310,38 +197,7 @@ export default async function Me() {
 
   const myQual = qual.players.findIndex((p) => p.id === me);
   const qp = myQual >= 0 ? qual.players[myQual] : null;
-  const qualTable = qp && (
-    <Card title={t.me.yourScores} i={3} className="lg:col-span-2" flush>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[460px] text-sm">
-          <thead>
-            <tr className={cn("border-y border-line text-left", label)}>
-              <th className="px-5 py-2">{t.me.map}</th>
-              <th className="py-2 pr-4 text-right">{t.me.score}</th>
-              <th className="py-2 pr-4 text-right">{t.me.acc}</th>
-              <th className="py-2 pr-5 text-right">{t.me.mapRank}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
-            {qual.maps.map((m) => {
-              const p = qp.perf[m.id];
-              return (
-                <tr key={m.id}>
-                  <td className="px-5 py-2.5">
-                    <span className="heading-slam mr-3 text-base">{m.slot}</span>
-                    <span className="text-paper/70">{m.title}</span>
-                  </td>
-                  <td className="num py-2.5 pr-4 text-right text-base">{p ? fmtNum(p.score) : "—"}</td>
-                  <td className="num py-2.5 pr-4 text-right text-ash">{p ? `${p.acc.toFixed(2)}%` : "—"}</td>
-                  <td className={cn("num py-2.5 pr-5 text-right", p?.placement === 1 && "text-gold")}>{p ? `#${p.placement}` : "—"}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </Card>
-  );
+  const qualTable = qp && <QualifierScores t={t} maps={qual.maps} player={qp} />;
 
   if (phase === "qualifiers") {
     const booking = windowState(settings.bookingOpensAt, settings.bookingClosesAt);
@@ -414,21 +270,7 @@ export default async function Me() {
     );
   }
 
-  const cut = settings.qualifyCount;
-  const placementCard = qp && (
-    <Card title={t.me.placement} i={1}>
-      <div className="flex items-end gap-3">
-        <span className="num text-6xl leading-[0.8] sm:text-7xl">#{myQual + 1}</span>
-        <span className="pb-1 text-sm text-ash">{t.me.ofN(qual.players.length)}</span>
-        <Tag tone={myQual < cut ? "balkan" : "rose"} className="mb-1 ml-auto text-xs">
-          {myQual < cut ? t.me.qualified : t.me.notQualified}
-        </Tag>
-      </div>
-      <div className="mt-4 h-1.5 bg-ink">
-        <div className={cn("h-full", myQual < cut ? "bg-balkan" : "bg-rose/70")} style={{ width: `${Math.max(4, 100 - (myQual / Math.max(1, qual.players.length - 1)) * 100)}%` }} />
-      </div>
-    </Card>
-  );
+  const placementCard = qp && <QualifierPlacement t={t} placement={myQual} total={qual.players.length} cut={settings.qualifyCount} />;
 
   if (phase === "seeding" || !team)
     return shell(
