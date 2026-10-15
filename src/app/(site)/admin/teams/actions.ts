@@ -27,7 +27,7 @@ export async function generateTeams() {
       for (let k = 0; k < n; k++) {
         const picks = [top[k], top[2 * n - 1 - k], top[2 * n + k]].filter(Boolean);
         const id = newId();
-        await tx.insert(teams).values({ id, name: `Team ${picks[0].username}`, seed: k + 1 });
+        await tx.insert(teams).values({ id, name: picks[0].username, seed: k + 1 });
         for (const [i, p] of picks.entries()) await tx.insert(teamMembers).values({ osuId: p.id, teamId: id, isCaptain: i === 0 });
       }
     });
