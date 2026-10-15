@@ -21,6 +21,31 @@ import { ChoosePopup, Portal, ResetPopup, ScoresPopup, TimerDock, Waiting, Winne
 import { AdminBar, Rolls, Sequence, TeamsHeader, type TeamInfo } from "./draft-parts";
 import { MapGrid, type Pool } from "./draft-maps";
 
+function isDraftResponse(value: unknown): value is DraftView {
+  const object = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
+  const number = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+  const side = (v: unknown) => v === 1 || v === 2;
+  const roll = (v: unknown) => v === null || (number(v) && Number.isInteger(v) && v >= 1 && v <= 100);
+  const time = (v: unknown) => v === null || (typeof v === "string" && Number.isFinite(Date.parse(v)));
+  const step = (v: unknown) => object(v) && side(v.team) && (v.kind === "ban" || v.kind === "pick") && typeof v.slot === "string" &&
+    (v.winner === undefined || side(v.winner)) && [v.skip, v.auto].every((flag) => flag === undefined || typeof flag === "boolean");
+  const undo = (v: unknown) => v == null || (object(v) && (
+    v.kind === "winner" ? typeof v.slot === "string" && side(v.winner) :
+    v.kind === "step" ? step(v.step) :
+    v.kind === "choice" ? typeof v.choice === "string" :
+    v.kind === "rolls" && roll(v.roll1) && roll(v.roll2)
+  ));
+  return object(value) && typeof value.open === "boolean" && typeof value.stageSlug === "string" && value.stageSlug.length > 0 &&
+    [value.bans, value.rev, value.firstTo].every((v) => number(v) && Number.isInteger(v) && v >= 0) &&
+    (value.banOrder === "abab" || value.banOrder === "abba") && roll(value.roll1) && roll(value.roll2) &&
+    (value.choice === null || value.choice === "pick" || value.choice === "ban") &&
+    Array.isArray(value.steps) && value.steps.every(step) &&
+    [value.turnAt, value.pausedAt, value.pauseUntil].every(time) && number(value.now) &&
+    [value.banSecs, value.pickSecs].every((v) => number(v) && v >= 0) && typeof value.hasTb === "boolean" &&
+    (value.playing == null || (object(value.playing) && number(value.playing.at) && number(value.playing.mapId) && Number.isInteger(value.playing.mapId) && value.playing.mapId > 0)) &&
+    undo(value.undo) && undo(value.redo);
+}
+
 export function DraftRoom({
   slug,
   matchId,
@@ -81,6 +106,7 @@ export function DraftRoom({
       }
     });
   const [ask, setAsk] = useState<string | null>(null);
+  const savingResult = useRef(false);
   const [scores, setScores] = useState<string | null>(null);
   const lobbyOpen = useRef(false);
   const [askReset, setAskReset] = useState(false);
@@ -160,15 +186,30 @@ export function DraftRoom({
   const scored = picked.length > 0;
   const score = [picked.filter((s) => s.winner === 1).length, picked.filter((s) => s.winner === 2).length];
 
-  async function result(slot: string, winner: Side) {
-    const res = await fetch(`/api/draft/${slug}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ act: "result", slot, winner }),
-    }).catch(() => null);
-    if (!res?.ok) return setErr(true);
-    take((await res.json()) as DraftView);
-    setAsk(null);
+  async function result(slot: string, winner: Side): Promise<boolean> {
+    if (savingResult.current) return false;
+    savingResult.current = true;
+    setErr(false);
+    try {
+      const res = await fetch(`/api/draft/${slug}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ act: "result", slot, winner }),
+      });
+      if (!res.ok) throw new Error("result failed");
+      const next: unknown = await res.json();
+      if (!isDraftResponse(next) || !next.steps.some((step) => step.kind === "pick" && !step.skip && step.slot === slot && step.winner === winner)) {
+        throw new Error("invalid result");
+      }
+      take(next);
+      setAsk((current) => current === slot ? null : current);
+      return true;
+    } catch {
+      setErr(true);
+      return false;
+    } finally {
+      savingResult.current = false;
+    }
   }
 
   const used = new Map(
