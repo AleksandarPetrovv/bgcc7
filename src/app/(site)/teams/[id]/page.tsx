@@ -7,6 +7,7 @@ import { RecordText } from "@/components/site/record";
 import { getDict } from "@/lib/i18n/server";
 import { fmtNum, flagUrl } from "@/lib/data";
 import { getMatches, getTeams } from "@/db/tournament";
+import { getPlayerSeeds } from "@/db/seeds";
 import { osuUser } from "@/lib/links";
 import { requireSection } from "@/lib/authz";
 import { MeTag, meP } from "@/components/site/me";
@@ -15,9 +16,11 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
   await requireSection("teams");
   const { id: raw } = await params;
   if (!/^[1-9]\d*$/.test(raw)) notFound();
-  const [t, teams, allMatches] = await Promise.all([getDict(), getTeams(), getMatches()]);
+  const [t, teams, allMatches, pos] = await Promise.all([getDict(), getTeams(), getMatches(), getPlayerSeeds()]);
   const team = teams.find((x) => x.seed === Number(raw));
   if (!team) notFound();
+  const seeds = team.players.map((p) => pos.get(p.userId)).filter((s) => s !== undefined);
+  const avgSeed = seeds.length ? (seeds.reduce((a, b) => a + b, 0) / seeds.length).toFixed(1).replace(/\.0$/, "") : "-";
   const id = team.id;
   const matches = allMatches.filter((m) => m.team1.id === id || m.team2.id === id);
   const wins = matches.filter((m) => (m.team1.id === id && m.winner === 1) || (m.team2.id === id && m.winner === 2)).length;
@@ -43,7 +46,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
               {(
                 [
                   [t.common.avgRank, `#${fmtNum(team.avgRank)}`],
-                  [t.common.avgPp, fmtNum(team.avgPp)],
+                  [t.common.avgSeed, seeds.length ? `#${avgSeed}` : avgSeed],
                   [t.common.record, <RecordText key="record" t={t} w={wins} l={matches.filter((m) => m.winner).length - wins} />],
                 ] as [string, React.ReactNode][]
               ).map(([k, v], i) => (

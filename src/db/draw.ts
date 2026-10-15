@@ -61,7 +61,7 @@ export async function drawSuiji() {
     await tx.delete(teams).where(notLike(teams.id, "test-%"));
     for (const [k, a] of top.entries()) {
       const id = newTeamId();
-      await tx.insert(teams).values({ id, name: `Team ${a.username}` });
+      await tx.insert(teams).values({ id, name: a.username });
       await tx.insert(teamMembers).values([
         { osuId: a.osuId, teamId: id, isCaptain: true },
         { osuId: low[k].osuId, teamId: id, isCaptain: false },

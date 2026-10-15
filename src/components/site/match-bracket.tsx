@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronRight, Crown } from "lucide-react";
 import type { Match } from "@/lib/data";
@@ -114,24 +114,47 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   const { ref: box, avail: seen, scale: shrink } = useFit((gfCol + 1) * minW + gfCol * G, 768, 1);
   const avail = seen || 1500;
 
-  const W = avail < 640 ? Math.round(Math.min(290, avail - 40)) : Math.floor(Math.min(290, Math.max(minW, (avail - gfCol * G - 8) / (gfCol + 1))));
-  const col = (c: number) => c * (W + G);
+  const phone = seen > 0 && seen < 640;
+  const gap = phone ? 44 : G;
+  const W = phone ? Math.round(avail - gap) : Math.floor(Math.min(290, Math.max(minW, (avail - gfCol * G - 8) / (gfCol + 1))));
+  const col = (c: number) => c * (W + gap);
   const byId = new Map(matches.map((m) => [m.id, m]));
+  const inner = useRef<HTMLDivElement>(null);
+  const lastCol = useRef(0);
+  const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    setEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 8);
+    if (!phone) return;
+    const c = Math.round(el.scrollLeft / (W + gap));
+    if (c === lastCol.current) return;
+    lastCol.current = c;
+    const ids = Object.keys(POS).filter((id) => POS[id][0] === c);
+    if (!ids.length || !inner.current) return;
+    if (new Set(ids.map((id) => POS[id][2])).size > 1 && !ids.some((id) => id.startsWith("GF"))) return;
+    const y0 = Math.min(...ids.map(top)) - 62;
+    const y1 = Math.max(...ids.map(top)) + H;
+    const base = inner.current.getBoundingClientRect().top + window.scrollY;
+    const head = 72;
+    const room = window.innerHeight - head;
+    const y = y1 - y0 <= room ? base + (y0 + y1) / 2 - head - room / 2 : base + y0 - head - 8;
+    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+  };
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
 
   const linked = new Set<string>();
   if (hover) for (const [a, b] of DROPS) if (a === hover || b === hover) linked.add(a).add(b);
 
-  const width = col(gfCol) + W;
+  const width = col(gfCol) + W + (phone ? gap : 0);
   const height = LOW + (lowRows - 1) * P + H + 12;
   const scale = shrink < 1 ? shrink : seen >= 1280 && width < seen ? Math.min(1.35, seen / width) : 1;
   const fit = fitBox(width, height, scale);
   const lowCol = Math.min(...HEADERS.filter((h) => h.s === "l").map((h) => h.c));
   const midY = (id: string) => top(id) + H / 2;
+  const firstTop = (c: number, s: Half) => Math.min(...Object.keys(POS).filter((id) => !id.startsWith("GF") && POS[id][0] === c && POS[id][2] === s).map(top));
   const wire = (a: string, b: string) => {
     const x1 = col(POS[a][0]) + W;
     const x2 = col(POS[b][0]);
-    const mx = x2 - G / 2;
+    const mx = x2 - gap / 2;
     return `M${x1} ${midY(a)} H${mx} V${midY(b)} H${x2}`;
   };
   const drop = (a: string, b: string) => {
@@ -157,9 +180,9 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
 
   return (
     <div className="relative">
-    <div ref={box} onScroll={(e) => setEnd(e.currentTarget.scrollLeft + e.currentTarget.clientWidth >= e.currentTarget.scrollWidth - 8)} className="snap-x snap-mandatory overflow-x-auto overflow-y-hidden pb-4 md:snap-none">
+    <div ref={box} onScroll={onScroll} className="snap-x snap-mandatory overflow-x-auto overflow-y-hidden pb-4 md:snap-none">
       <div className="mx-auto mt-4" style={fit.outer}>
-      <div className={cn("relative", scale === 1 && "mx-auto")} style={fit.inner}>
+      <div ref={inner} className={cn("relative", scale === 1 && "mx-auto")} style={fit.inner}>
         <svg className="pointer-events-none absolute inset-0 overflow-visible" width={width} height={height} aria-hidden>
           <text x={col(mark)} y={TOP + (upRows - 1) * P + H - 6} className="in-trace heading-slam" fontSize={118} fill="none" stroke="rgba(244,243,238,0.08)" strokeWidth={1.5}>
             {up(t.schedule.upperWord)}
@@ -198,18 +221,28 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
           <path d={`M${col(gfCol) + W / 2} ${top("GF-M1") + H} V${top("GF-M2")}`} strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="3 4" className="in-up" style={v({ "--d": "1.3s", stroke: "var(--color-gold)" })} />
         </svg>
 
-        {section("u")}
-        {section("l")}
+        {!phone && section("u")}
+        {!phone && section("l")}
 
-        {HEADERS.map((h) => (
-          <div
-            key={h.t}
-            className="in-drop absolute snap-start truncate border-b border-line pb-1 text-xs font-black uppercase tracking-[0.14em] text-ash"
-            style={{ left: col(h.c), top: (h.s === "u" ? TOP : LOW) - 30, width: W, ...v({ "--i": h.c, "--s": "0.12s", "--d": h.s === "u" ? "0.15s" : "0.45s" }) }}
-          >
-            {t.rounds[h.t] ?? h.t}
-          </div>
-        ))}
+        {HEADERS.map((h) => {
+          const y = phone ? firstTop(h.c, h.s) : h.s === "u" ? TOP : LOW;
+          return (
+            <div key={h.t}>
+              {phone && (
+                <div className="pointer-events-none absolute flex items-center gap-2" style={{ left: col(h.c), top: y - 62 }}>
+                  <TriTick />
+                  <span className={cn("heading-slam whitespace-nowrap text-xl", h.s === "l" && "text-rose-hi")}>{h.s === "u" ? t.schedule.upper : t.schedule.lower}</span>
+                </div>
+              )}
+              <div
+                className="in-drop absolute snap-start truncate border-b border-line pb-1 text-xs font-black uppercase tracking-[0.14em] text-ash"
+                style={{ left: col(h.c), top: y - 30, width: W, ...v({ "--i": h.c, "--s": "0.12s", "--d": h.s === "u" ? "0.15s" : "0.45s" }) }}
+              >
+                {t.rounds[h.t] ?? h.t}
+              </div>
+            </div>
+          );
+        })}
         <div
           className="in-drop absolute flex snap-start items-center gap-2 border-b border-gold/20 pb-1 text-xs font-black uppercase tracking-[0.14em] text-gold/80"
           style={{ left: col(gfCol), top: top("GF-M1") - 30, width: W, ...v({ "--d": "0.7s" }) }}
