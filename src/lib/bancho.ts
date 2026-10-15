@@ -107,7 +107,7 @@ export async function lobbyView(matchId: string, viewer?: number): Promise<Lobby
   if (!l || !row?.open) return base;
   const lb = l.lobby;
   const size = Math.max(lobbySize(getFormat()) + 1, ...lb.slots.map((p, i) => (p ? i + 1 : 0)));
-  const refs = await refNames();
+  const refs = await lobbyRefNames();
   return {
     ...base,
     size,
@@ -139,7 +139,7 @@ export async function lobbyView(matchId: string, viewer?: number): Promise<Lobby
 const nameKey = (n: string) => n.toLowerCase().replace(/ /g, "_");
 let refCache: { at: number; names: Set<string> } | null = null;
 
-async function refNames() {
+export async function lobbyRefNames() {
   if (refCache && Date.now() - refCache.at < 60_000) return refCache.names;
   const rows = await db
     .select({ username: users.username, roles: staff.permRoles })

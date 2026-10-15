@@ -36,7 +36,7 @@ export type LobbyView = {
 };
 
 export type Conn = { client: BanchoClient; ready: Promise<unknown> | null; owner: number };
-export type ChatLine = { at: number; from: string; text: string; ref?: boolean; local?: boolean; side?: 1 | 2 };
+export type ChatLine = { id?: number; at: number; from: string; text: string; ref?: boolean; local?: boolean; side?: 1 | 2 };
 export type Live = {
   matchId: string;
   owner: number;
@@ -248,7 +248,7 @@ export async function membersOf(matchId: string) {
 
 async function history(mpId: number): Promise<ChatLine[]> {
   const rows = await db.select().from(mpChat).where(eq(mpChat.mpId, mpId)).orderBy(desc(mpChat.id)).limit(150).catch(() => []);
-  return rows.reverse().map((r) => ({ at: r.at.getTime(), from: r.from, text: r.text, ...(r.local ? { local: true } : {}), ...(r.side === 1 || r.side === 2 ? { side: r.side } : {}) }));
+  return rows.reverse().map((r) => ({ id: r.id, at: r.at.getTime(), from: r.from, text: r.text, ...(r.local ? { local: true } : {}), ...(r.side === 1 || r.side === 2 ? { side: r.side } : {}) }));
 }
 
 export async function sayLocal(matchId: string, by: number, raw: string, side: 1 | 2 | null) {
@@ -264,7 +264,7 @@ export async function sayLocal(matchId: string, by: number, raw: string, side: 1
   const line: ChatLine = { at: Date.now(), from: (u?.username ?? String(by)).replace(/ /g, "_"), text, local: true, ...(side ? { side } : {}) };
   l.chat.push(line);
   if (l.chat.length > 150) l.chat.splice(0, l.chat.length - 150);
-  await db.insert(mpChat).values({ matchId, mpId: l.mpId, at: new Date(line.at), from: line.from, text, local: true, side }).catch((e) => console.error("[bancho] chat save", e));
+  await db.insert(mpChat).values({ matchId, mpId: l.mpId, at: new Date(line.at), from: line.from, text, local: true, side }).returning({ id: mpChat.id }).then(([row]) => { line.id = row.id; }).catch((e) => console.error("[bancho] chat save", e));
   ping(matchId);
   return "ok" as const;
 }
@@ -372,11 +372,13 @@ export function attach(l: Live) {
     const shown = msg.self && !own && NONCED.test(msg.message) ? msg.message.replace(/^(!mp \S+.*?) (?=[a-z0-9]*[a-z])[a-z0-9]{8,}$/, "$1") : msg.message;
     const quiet = Date.now() < (synced.get(l.matchId)?.quietUntil ?? 0);
     if (quiet && (msg.self ? shown === "!mp settings" : msg.user.ircUsername === "BanchoBot" && SETTINGS_LINE.test(msg.message))) return;
-    const line = { at: Date.now(), from: msg.user.ircUsername, text: shown.slice(0, 1000) };
+    const line: ChatLine = { at: Date.now(), from: msg.user.ircUsername, text: shown.slice(0, 1000) };
     l.chat.push(line);
     void db
       .insert(mpChat)
       .values({ matchId: l.matchId, mpId: l.mpId, at: new Date(line.at), from: line.from, text: line.text })
+      .returning({ id: mpChat.id })
+      .then(([row]) => { line.id = row.id; ping(l.matchId); })
       .catch((e) => console.error("[bancho] chat save", e));
     if (l.chat.length > 150) l.chat.splice(0, l.chat.length - 150);
     const cmd = msg.message.trim().match(/^!mp\s+(timer|aborttimer)\b\s*(\d+)?/i);
