@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "motion/react";
 import { Ban, Check, Copy, Crown, DoorClosed, ListOrdered, Pause, RotateCcw, Swords } from "lucide-react";
@@ -181,13 +181,25 @@ export function WinnerPopup({
   map: Beatmap;
   teams: [string, string];
   current?: Side;
-  onPick: (w: Side) => void;
+  onPick: (w: Side) => Promise<boolean>;
   onClose: () => void;
   onScores?: () => void;
 }) {
   const t = useDict();
   const [busy, setBusy] = useState<Side | null>(null);
+  const saving = useRef(false);
   const color = slotColor(slot);
+  async function pick(side: Side) {
+    if (saving.current) return;
+    saving.current = true;
+    setBusy(side);
+    try {
+      await onPick(side);
+    } finally {
+      saving.current = false;
+      setBusy(null);
+    }
+  }
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -215,10 +227,7 @@ export function WinnerPopup({
                 key={s}
                 type="button"
                 disabled={busy != null}
-                onClick={() => {
-                  setBusy(s);
-                  onPick(s);
-                }}
+                onClick={() => pick(s)}
                 whileTap={{ scale: 0.96 }}
                 transition={{ duration: 0.1 }}
                 className={cn(
@@ -242,15 +251,16 @@ export function WinnerPopup({
           {onScores && (
             <button
               type="button"
-              onClick={onScores}
-              className="mt-5 inline-flex min-h-9 -skew-x-12 items-center border border-paper/40 px-4 text-xs font-black uppercase tracking-wide text-paper transition-colors hover:border-paper"
+              disabled={busy != null}
+              onClick={() => { if (!saving.current) onScores(); }}
+              className="mt-5 inline-flex min-h-9 -skew-x-12 items-center border border-paper/40 px-4 text-xs font-black uppercase tracking-wide text-paper transition-colors hover:border-paper disabled:opacity-50"
             >
               <span className="inline-flex skew-x-12 items-center gap-1.5">
                 <ListOrdered className="size-3.5" /> {t.draft.fullScores}
               </span>
             </button>
           )}
-          <button type="button" onClick={onClose} className="mt-5 block w-full text-xs font-black uppercase tracking-wide text-ash hover:text-paper">
+          <button type="button" disabled={busy != null} onClick={() => { if (!saving.current) onClose(); }} className="mt-5 block w-full text-xs font-black uppercase tracking-wide text-ash hover:text-paper disabled:opacity-50">
             {t.draft.later}
           </button>
         </div>
