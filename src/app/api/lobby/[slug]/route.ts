@@ -4,6 +4,7 @@ import { matchIdFromSlug } from "@/lib/format";
 import { log } from "@/lib/authz";
 import { abortLobby, canLobby, closeLobby, lobbyOwner, ensureBot, inviteMissing, kickSlot, lobbyView, makeLobby, moveSlot, onLobby, refreshLobby, sayLocal, sendChat, simpleCmd, spareSlot, startLobby, teamSlot } from "@/lib/bancho";
 import { sse } from "@/lib/sse";
+import { visibleChatLine } from "@/lib/chat-visibility";
 
 export const dynamic = "force-dynamic";
 
@@ -25,16 +26,12 @@ export async function GET(req: Request, ctx: Ctx) {
     req,
     async () => {
       const v = await lobbyView(id);
-      return { ...v, password: "", chat: v.chat.filter((c) => (c.text.startsWith("!") ? SHOW_CMD.test(c.text) : c.local || c.ref || c.from !== "BanchoBot" || KEEP.test(c.text))) };
+      return { ...v, password: "", chat: v.chat.filter(visibleChatLine) };
     },
     3000,
     onLobby,
   );
 }
-
-const KEEP = /^(Match starts in|Queued the match to start|The match has started|Started the match|Good luck|Aborted the match|The match has finished|Countdown ends in|Countdown finished|Countdown aborted|Changed beatmap to|Enabled .*FreeMod|Changed match host)/i;
-
-const SHOW_CMD = /^!mp (start|timer|aborttimer|abort)\b/i;
 
 const int = (v: unknown) => (typeof v === "number" && Number.isInteger(v) ? v : -1);
 

@@ -441,7 +441,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                 </span>
               </div>
             </div>
-            <Chat slug={slug} lines={v.chat} sides={new Map(v.slots.flatMap((s) => (s?.team ? [[s.name.toLowerCase().replace(/ /g, "_"), s.team] as const] : [])))} disabled={offline} text={say} setText={setSay} inputRef={sayRef} readOnly={readOnly} canSay={canSay} />
+            <Chat slug={slug} mpId={v.mpId} lines={v.chat} sides={new Map(v.slots.flatMap((s) => (s?.team ? [[s.name.toLowerCase().replace(/ /g, "_"), s.team] as const] : [])))} disabled={offline} text={say} setText={setSay} inputRef={sayRef} readOnly={readOnly} canSay={canSay} />
           </motion.div>
         )}
       </AnimatePresence>

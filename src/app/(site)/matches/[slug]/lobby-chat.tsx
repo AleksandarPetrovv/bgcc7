@@ -1,24 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Send } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import type { LobbyView } from "@/lib/bancho";
 import { cn } from "@/lib/utils";
 import { lobbyPost } from "./lobby-popups";
+import { useChatHistory } from "./use-chat-history";
 
-export function Chat({
-  slug,
-  lines,
-  sides,
-  disabled,
-  text,
-  setText,
-  inputRef,
-  readOnly,
-  canSay,
-}: {
+type ChatProps = {
   slug: string;
+  mpId: number | null;
   lines: LobbyView["chat"];
   sides: Map<string, "red" | "blue">;
   disabled: boolean;
@@ -27,24 +19,36 @@ export function Chat({
   text: string;
   setText: (s: string) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
-}) {
+};
+
+export function Chat(props: ChatProps) {
+  return <ChatSession key={`${props.slug}:${props.mpId ?? "none"}`} {...props} />;
+}
+
+function ChatSession({
+  slug,
+  mpId,
+  lines,
+  sides,
+  disabled,
+  text,
+  setText,
+  inputRef,
+  readOnly,
+  canSay,
+}: ChatProps) {
   const t = useDict();
   const [until, setUntil] = useState(0);
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
   const [fail, setFail] = useState<boolean | "noslot" | "nouser" | "blocked">(false);
-  const box = useRef<HTMLDivElement>(null);
+  const { box, entries, page, loadMore, onScroll } = useChatHistory(slug, mpId, lines);
 
   useEffect(() => {
     if (until <= now) return;
     const id = setTimeout(() => setNow(Date.now()), 250);
     return () => clearTimeout(id);
   }, [until, now]);
-
-  useEffect(() => {
-    const el = box.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [lines.length]);
 
   const left = Math.max(0, Math.ceil((until - now) / 1000));
   async function send(e: React.FormEvent) {
@@ -66,13 +70,18 @@ export function Chat({
 
   return (
     <div className="border-t border-line">
-      <div ref={box} className="h-[25rem] overflow-y-auto px-3 py-2 text-[0.95rem]">
-        {lines.length ? (
-          lines.map((m, i) => {
+      <div ref={box} onScroll={onScroll} className="h-[25rem] overflow-y-auto px-3 py-2 text-[0.95rem] [overflow-anchor:none]">
+        {(page.hasMore || page.loading || page.failed) && (
+          <div className="flex min-h-9 items-center justify-center gap-2 pb-2 text-xs font-bold text-ash" aria-live="polite">
+            {page.loading ? t.lobby.chatLoading : page.failed ? <><span>{t.lobby.chatLoadFailed}</span><button type="button" onClick={() => void loadMore()} className="underline underline-offset-2 hover:text-paper">{t.error.retry}</button></> : <button type="button" onClick={() => void loadMore()} className="underline underline-offset-2 hover:text-paper">{t.lobby.chatLoadMore}</button>}
+          </div>
+        )}
+        {entries.length ? (
+          entries.map((m) => {
             const bancho = m.from === "BanchoBot";
             const side = m.side === 1 ? "red" : m.side === 2 ? "blue" : sides.get(m.from.toLowerCase());
             return (
-              <p key={`${m.at}-${i}`} className={cn("break-words py-0.5 leading-snug", m.ref && !bancho && "-mx-3 border-l-2 border-balkan bg-balkan/10 px-3")}>
+              <p key={m.key} data-chat-key={m.key} className={cn("break-words py-0.5 leading-snug", m.ref && !bancho && "-mx-3 border-l-2 border-balkan bg-balkan/10 px-3")}>
                 <span className="num mr-2 text-xs text-ash/70">{new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                 <span className={cn("font-black", bancho ? "text-gold" : m.ref ? "text-balkan" : side === "red" ? "text-rose-hi" : side === "blue" ? "text-azure-hi" : "text-paper")}>{m.from.replace(/_/g, " ")}</span>
                 <span className={cn("ml-2", bancho ? "text-paper/70" : "text-paper")}>{m.text}</span>
