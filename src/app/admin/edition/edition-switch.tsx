@@ -12,7 +12,7 @@ import { GOLD as GOLD_C, tint } from "@/lib/theme";
 
 const GOLD = GOLD_C.c;
 
-export function EditionSwitch({ edition }: { edition: Edition }) {
+export function EditionSwitch({ edition, viewing }: { edition: Edition; viewing: Edition }) {
   const t = useDict();
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -58,7 +58,7 @@ export function EditionSwitch({ edition }: { edition: Edition }) {
           );
         })}
       </div>
-      {edition === "bgcc7" && (
+      {viewing === "bgcc7" && (
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button
             type="button"

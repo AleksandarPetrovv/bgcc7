@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { LogOut, Menu, Swords } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Sparkle, SpeedMark, Wordmark } from "./graphics";
-import { useDict } from "./lang";
+import { EditionView, useDict } from "./lang";
 import { cn } from "@/lib/utils";
 import { login, logout } from "@/app/pickems/actions";
 import type { NavItem } from "@/lib/sections";
@@ -176,6 +176,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
           <SpeedMark className="h-8 w-24 transition-transform duration-300 group-hover:translate-x-1 lg:h-10 lg:w-28" />
           <Wordmark size="md" className="text-paper" />
         </Link>
+        <EditionView className="-ml-2 sm:ml-0" />
 
         <nav ref={navRef} className="relative ml-auto hidden h-full items-stretch xl:flex" aria-label={t.nav.main}>
           <span ref={shadowRef} className={cn(bar, "bottom-0")} aria-hidden>
