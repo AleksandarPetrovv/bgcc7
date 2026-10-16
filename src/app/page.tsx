@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Check, Crown } from "lucide-react";
-import { Sparkle, TriTick } from "@/components/site/graphics";
+import { Sparkle } from "@/components/site/graphics";
 import { SlantButton } from "@/components/site/page";
 import { Words } from "@/components/site/rich";
 import { Avatar } from "@/components/site/avatar";
@@ -31,11 +31,14 @@ import { login } from "@/app/pickems/actions";
 import { HeroGate } from "@/components/site/hero-gate";
 import { MeTag } from "@/components/site/me";
 import { SKILLS, slotColor } from "@/lib/format-plan";
-import { getEdition, getFormat } from "@/db/edition";
+import { getEdition } from "@/db/edition";
+import { ShrinkWrap } from "@/components/site/shrink-wrap";
 
-function HeroLockup({ label }: { label: string }) {
+const INK: Record<string, number> = { "6": 0.15, "7": 0.22 };
+
+function HeroLockup({ num }: { num: string }) {
   return (
-    <div className="inline-block select-none font-display font-black lowercase text-[clamp(4.5rem,14vw,12.5rem)] lg:text-[clamp(6rem,10vw,11.5rem)]">
+    <div className="flex select-none items-end font-display font-black lowercase text-[clamp(4.5rem,15vw,12.5rem)] lg:text-[clamp(6rem,10.5vw,12rem)]">
       <div className="whitespace-nowrap leading-[0.8] tracking-[-0.05em] text-paper">
         {"bgcc".split("").map((c, i) => (
           <span key={i} className="anim-letter" style={{ animationDelay: `${0.05 + i * 0.07}s` }}>
@@ -43,24 +46,18 @@ function HeroLockup({ label }: { label: string }) {
           </span>
         ))}
       </div>
-      <div className="mt-[0.05em] flex items-end justify-between gap-4">
-        <div className="anim-rise mb-[0.12em] flex min-w-0 flex-col gap-2 font-sans text-[clamp(0.6rem,1vw,0.75rem)] font-black uppercase leading-snug tracking-[0.14em] text-ash" style={{ animationDelay: "0.6s" }}>
-          <TriTick className="h-3 w-[22px]" />
-          <span className="max-w-[26ch]">{label}</span>
-        </div>
-        <span className="anim-slam relative mr-[0.02em] text-[1.45em] italic leading-[0.74] tracking-[-0.06em]" style={{ animationDelay: "0.35s" }}>
-          <span className="anim-echo absolute left-[0.05em] top-[0.035em] pr-[0.3em] text-transparent [-webkit-text-stroke:2px_rgba(244,243,238,0.35)]" aria-hidden>
-            7
-          </span>
-          <span className="relative -mr-[0.3em] pr-[0.3em] text-rose">7</span>
-          <span
-            className="anim-shine pointer-events-none absolute -left-[0.3em] -top-[0.3em] p-[0.3em] pr-[0.7em] bg-[linear-gradient(105deg,transparent_42%,rgba(255,255,255,0.55)_50%,transparent_58%)] bg-[length:300%_100%] bg-clip-text text-transparent"
-            aria-hidden
-          >
-            7
-          </span>
+      <span className="anim-slam relative ml-[0.04em] mb-[-0.06em] text-[1.45em] italic leading-[0.74] tracking-[-0.06em]" style={{ animationDelay: "0.35s", marginRight: `${INK[num] ?? 0.2}em` }}>
+        <span className="anim-echo absolute left-[0.05em] top-[0.035em] pr-[0.3em] text-transparent [-webkit-text-stroke:2px_rgba(244,243,238,0.35)]" aria-hidden>
+          {num}
         </span>
-      </div>
+        <span className="relative -mr-[0.3em] pr-[0.3em] text-rose">{num}</span>
+        <span
+          className="anim-shine pointer-events-none absolute -left-[0.3em] -top-[0.3em] p-[0.3em] pr-[0.7em] bg-[linear-gradient(105deg,transparent_42%,rgba(255,255,255,0.55)_50%,transparent_58%)] bg-[length:300%_100%] bg-clip-text text-transparent"
+          aria-hidden
+        >
+          {num}
+        </span>
+      </span>
     </div>
   );
 }
@@ -393,14 +390,14 @@ export default async function Home() {
           style={{ animationDuration: "1.6s" }}
           aria-hidden
         >
-          7
+          {getEdition().slice(4)}
         </div>
-        <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] gap-8 px-4 pb-10 pt-8 sm:gap-10 sm:px-6 sm:pb-12 sm:pt-10 lg:grid-cols-[1.1fr_1fr] lg:items-end lg:px-10 lg:pb-16 lg:pt-16 2xl:gap-20 2xl:px-14 2xl:pb-24 2xl:pt-24">
-          <div className="min-w-0">
-            <HeroLockup label={`${t.home.badge} · ${getFormat().year}`} />
+        <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] gap-8 px-4 pb-10 pt-8 sm:gap-10 sm:px-6 sm:pb-12 sm:pt-10 lg:flex lg:items-end lg:justify-center lg:gap-[clamp(4rem,5vw,7rem)] lg:px-10 lg:pb-16 lg:pt-16 2xl:gap-20 2xl:px-14 2xl:pb-24 2xl:pt-24">
+          <div className="min-w-0 lg:shrink-0">
+            <HeroLockup num={getEdition().slice(4)} />
           </div>
 
-          <div className="flex min-w-0 flex-col justify-end">
+          <ShrinkWrap className="flex min-w-0 flex-col justify-end lg:max-w-[36rem] 2xl:max-w-[40rem]">
             <h1 className="text-balance text-[clamp(1.8rem,3.2vw,2.9rem)] font-black leading-[1.05] tracking-tight">
               <Words text={f(phase === "finished" ? t.home.headlineDone : t.home.headline)} d={0.35} s={0.055} />
             </h1>
@@ -451,7 +448,7 @@ export default async function Home() {
                 </span>
               )}
             </div>
-          </div>
+          </ShrinkWrap>
         </div>
       </HeroGate>
 
