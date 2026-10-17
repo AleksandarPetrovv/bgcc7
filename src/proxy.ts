@@ -24,7 +24,7 @@ function bucket(req: NextRequest, path: string): keyof typeof LIMITS {
 }
 
 function ipOf(req: NextRequest) {
-  const fwd = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const fwd = req.headers.get("x-forwarded-for")?.split(",").pop()?.trim();
   return fwd || req.headers.get("x-real-ip") || "anon";
 }
 
