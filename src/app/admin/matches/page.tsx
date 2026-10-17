@@ -9,9 +9,12 @@ import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { MatchCard } from "./match-card";
+import { db } from "@/db";
+import { drafts, mpLobbies, staff, users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export default async function AdminMatches() {
-  const [t, lang, viewer, rows, teams, stages] = await Promise.all([getDict(), getLang(), getViewer(), getMatchRows(), getTeams(), getPoolStages()]);
+  const [t, lang, viewer, rows, teams, stages, refs, live] = await Promise.all([getDict(), getLang(), getViewer(), getMatchRows(), getTeams(), getPoolStages(), refList(), liveList()]);
   if (!can(viewer?.roles, "matches")) notFound();
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const bracketStages = stages.filter((s) => s.slug !== "qualifiers");
@@ -40,7 +43,7 @@ export default async function AdminMatches() {
                     </h3>
                     <div className="space-y-2">
                       {list.map((m, k) => (
-                        <MatchCard key={m.id} m={m} k={k} t={t} locale={locale} teams={teams} />
+                        <MatchCard key={m.id} m={m} k={k} t={t} locale={locale} teams={teams} refs={refs} live={m.winner ? undefined : live.get(m.id)} />
                       ))}
                     </div>
                   </div>
@@ -52,4 +55,21 @@ export default async function AdminMatches() {
       </div>
     </>
   );
+}
+
+async function refList() {
+  const rows = await db
+    .select({ username: users.username, roles: staff.permRoles })
+    .from(staff)
+    .innerJoin(users, eq(users.osuId, staff.osuId))
+    .orderBy(users.username);
+  const has = (r: string) => rows.filter((x) => x.roles.includes("host") || x.roles.includes(r)).map((x) => x.username);
+  return { referee: has("referee"), streamer: has("streamer"), commentator: has("commentator") };
+}
+
+async function liveList() {
+  const [lob, dr] = await Promise.all([db.select({ id: mpLobbies.matchId }).from(mpLobbies).where(eq(mpLobbies.open, true)), db.select({ id: drafts.matchId }).from(drafts).where(eq(drafts.open, true))]);
+  const out = new Map<string, { lobby: boolean }>(dr.map((d) => [d.id, { lobby: false }]));
+  for (const l of lob) out.set(l.id, { lobby: true });
+  return out;
 }

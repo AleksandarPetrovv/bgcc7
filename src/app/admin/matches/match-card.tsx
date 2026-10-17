@@ -2,6 +2,8 @@ import Link from "next/link";
 import { CalendarClock, ChevronDown, Gavel, Link2, Radio, Video } from "lucide-react";
 import { ActionForm, dateCls, Field, inputCls } from "@/components/admin/form";
 import { Dropdown } from "@/components/admin/dropdown";
+import { MpLinks } from "@/components/admin/mp-links";
+import { RefSwapGuard } from "./ref-swap-guard";
 import type { MatchRow } from "@/db/tournament";
 import type { Dict } from "@/lib/i18n/dict";
 import { getFormat } from "@/db/edition";
@@ -22,7 +24,7 @@ function Legend({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function MatchCard({ m, k, t, locale, teams }: { m: MatchRow; k: number; t: Dict; locale: string; teams: { id: string; name: string }[] }) {
+export function MatchCard({ m, k, t, locale, teams, refs, live }: { m: MatchRow; k: number; t: Dict; locale: string; teams: { id: string; name: string }[]; refs: { referee: string[]; streamer: string[]; commentator: string[] }; live?: { lobby: boolean } }) {
   const f = getFormat();
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? t.common.tbd;
   const mp = m.mpLinks.split(",").filter(Boolean);
@@ -198,15 +200,16 @@ export function MatchCard({ m, k, t, locale, teams }: { m: MatchRow; k: number; 
                 </label>
                 <label className={label}>
                   {t.admin.referee}
-                  <Field name="referee" maxLength={120} defaultValue={m.referee ?? ""} className={inputCls} />
+                  <RefSwapGuard live={!!live} lobby={!!live?.lobby} from={m.referee ?? ""} />
+                  <Dropdown name="referee" defaultValue={m.referee ?? ""} options={[{ value: "", label: t.common.tbd }, ...refs.referee.map((r) => ({ value: r, label: r }))]} />
                 </label>
                 <label className={label}>
                   {t.admin.streamer}
-                  <Field name="streamer" maxLength={120} defaultValue={m.streamer ?? ""} className={inputCls} />
+                  <Dropdown name="streamer" multiple placeholder={t.common.tbd} defaultValue={m.streamer ?? ""} options={refs.streamer.map((r) => ({ value: r, label: r }))} />
                 </label>
                 <label className={cn(label, "col-span-2")}>
                   {t.admin.commentators}
-                  <Field name="commentators" maxLength={120} defaultValue={m.commentators ?? ""} className={inputCls} />
+                  <Dropdown name="commentators" multiple placeholder={t.common.tbd} defaultValue={m.commentators ?? ""} options={refs.commentator.map((r) => ({ value: r, label: r }))} />
                 </label>
               </div>
             </fieldset>
@@ -217,7 +220,7 @@ export function MatchCard({ m, k, t, locale, teams }: { m: MatchRow; k: number; 
             <div className="grid gap-3 md:grid-cols-2">
               <label className={label}>
                 {t.admin.mpLinks}
-                <Field name="mpLinks" defaultValue={mp.map((x) => osuMp(x)).join(", ")} className={inputCls} />
+                <MpLinks name="mpLinks" initial={mp.map((x) => osuMp(x))} className={inputCls} />
               </label>
               <label className={label}>
                 {t.admin.vodUrl}

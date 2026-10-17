@@ -194,7 +194,7 @@ export async function seedTestData() {
   for (const m of all) {
     const w = WEEK_OF[m.stageSlug] ?? 0;
     const k = Number(m.id.match(/M(\d+)$/)?.[1] ?? 1);
-    await db.update(matches).set({ startsAt: day(WEEKS[w], 14 + ((k * 2) % 8) + (m.bracket === "losers" ? 1 : 0)), referee: people[k % COUNT].username, streamer: k % 2 ? "BGCC" : null }).where(eq(matches.id, m.id));
+    await db.update(matches).set({ startsAt: day(WEEKS[w], 14 + ((k * 2) % 8) + (m.bracket === "losers" ? 1 : 0)) }).where(eq(matches.id, m.id));
   }
 
   const ts = await db.select({ id: teams.id, seed: teams.seed, name: teams.name }).from(teams);

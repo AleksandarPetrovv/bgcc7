@@ -23,13 +23,14 @@ type Props = {
   required?: boolean;
   disabled?: boolean;
   className?: string;
+  multiple?: boolean;
   "aria-label"?: string;
 };
 
 const noop = () => () => {};
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-export function Dropdown({ options, name, value, defaultValue, onChange, placeholder, required, disabled, className, "aria-label": aria }: Props) {
+export function Dropdown({ options, name, value, defaultValue, onChange, placeholder, required, disabled, className, multiple, "aria-label": aria }: Props) {
   const id = useId();
   const mounted = useSyncExternalStore(
     noop,
@@ -51,7 +52,8 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
   const list = useRef<HTMLDivElement>(null);
   const search = options.length > 8;
   const shown = q ? options.filter((o) => `${o.label} ${o.hint ?? ""}`.toLowerCase().includes(q.toLowerCase())) : options;
-  const sel = options.find((o) => o.value === cur);
+  const picked = multiple ? cur.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  const sel = multiple ? (picked.length ? { label: options.filter((o) => picked.includes(o.value)).map((o) => o.label).join(", "), color: undefined } : undefined) : options.find((o) => o.value === cur);
 
   const place = useCallback(() => {
     const r = btn.current?.getBoundingClientRect();
@@ -105,9 +107,11 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
     setOpen(next);
   };
 
-  const choose = (v: string) => {
+  const choose = (raw: string) => {
+    const v = multiple ? options.filter((o) => (o.value === raw ? !picked.includes(raw) : picked.includes(o.value))).map((o) => o.value).join(", ") : raw;
     if (value === undefined) setInner(v);
     onChange?.(v);
+    if (multiple) return;
     setOpen(false);
     btn.current?.focus();
   };
@@ -232,7 +236,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
                 )}
                 <div className="min-h-0 overflow-y-auto overscroll-contain p-1">
                   {shown.map((o, i) => {
-                    const on = o.value === cur;
+                    const on = multiple ? picked.includes(o.value) : o.value === cur;
                     const lit = i === hi;
                     return (
                       <motion.button
