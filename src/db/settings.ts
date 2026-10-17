@@ -18,7 +18,6 @@ export type Settings = {
   pickemsOpen: boolean;
   timeline: TimelineRow[];
   qualifyCount: number;
-  ezMult: number;
   phasePrompts: Record<string, string>;
   links: Record<string, string>;
   bans: number;
@@ -41,7 +40,6 @@ export const DEFAULT_SETTINGS: Settings = {
   pickemsOpen: false,
   timeline: DEFAULT_TIMELINE,
   qualifyCount: 24,
-  ezMult: 1.8,
   phasePrompts: {},
   links: {},
   bans: 2,
@@ -80,7 +78,6 @@ export const getSettings = cache(() =>
       pickemsOpen: row.pickemsOpen,
       timeline: withReg(row.timeline, row.regOpensAt, row.regClosesAt),
       qualifyCount: row.qualifyCount,
-      ezMult: row.ezMult,
       phasePrompts: row.phasePrompts ?? {},
       links: row.links ?? {},
       bans: row.bans,

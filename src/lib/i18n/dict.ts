@@ -825,9 +825,6 @@ const en = {
       no: "Not now",
     },
     set: {
-      scoring: "Scoring",
-      scoringHelp: "EZ scores from the mp get multiplied by this on top of osu!'s own EZ penalty. Counts for map winners, results, stats and match cost.",
-      ez: "EZ multiplier",
       qualify: "Qualifiers",
       qualifyHelp: "How many players make it through qualifiers into the teams.",
       rounds: "Rounds",
@@ -1910,9 +1907,6 @@ const bg: Dict = {
       no: "Не сега",
     },
     set: {
-      scoring: "Точкуване",
-      scoringHelp: "EZ резултатите от mp-то се умножават по това, върху наказанието на osu! за EZ. Важи за победител на мапа, резултати, статистики и match cost.",
-      ez: "EZ множител",
       qualify: "Квалификации",
       qualifyHelp: "Колко играчи минават от квалификациите в отборите.",
       rounds: "Рундове",

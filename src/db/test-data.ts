@@ -7,7 +7,7 @@ import { drafts, maps, matchCache, matches, pickems, poolSuggestions, poolVotes,
 import { advance } from "./bracket";
 import { drawSuiji, shuffle } from "./draw";
 import { getFormat } from "./edition";
-import { getSettings, saveSettings } from "./settings";
+import { saveSettings } from "./settings";
 import { slotOf } from "./mappools";
 import { getPlan, syncStages } from "./format-plan";
 import { skillLayout, skillSlot } from "@/lib/format-plan";
@@ -50,7 +50,7 @@ function line(p: Who, mods: string[]): PlayerLine {
   };
 }
 
-function fakeBoard(link: string, names: [string, string], sides: [Who[], Who[]], pool: PoolMap[], ft: number, winner: 1 | 2, lose: number, ez: number, game0: number, label: (mod: string, order: number) => string): Scoreboard {
+function fakeBoard(link: string, names: [string, string], sides: [Who[], Who[]], pool: PoolMap[], ft: number, winner: 1 | 2, lose: number, game0: number, label: (mod: string, order: number) => string): Scoreboard {
   const tb = pool.find((m) => m.mod === "Tiebreaker");
   const picks = shuffle(pool.filter((m) => m.mod !== "Tiebreaker"));
   const loser = (3 - winner) as 1 | 2;
@@ -98,7 +98,6 @@ function fakeBoard(link: string, names: [string, string], sides: [Who[], Who[]],
   });
   return {
     v: SCOREBOARD_V,
-    ez,
     lobbies: [{ id: link, name: `${getFormat().name}: (${names[0]}) vs (${names[1]})` }],
     maps: out,
     score: [running[0], running[1]],
@@ -205,7 +204,6 @@ export async function seedTestData() {
   const roster = (teamId: string) => members.filter((m) => m.teamId === teamId).flatMap((m) => who.get(m.osuId) ?? []);
   const pools = await db.select().from(maps);
   const stageId = new Map(mine.map((s) => [s.slug, s.id]));
-  const { ezMult } = await getSettings();
   const played = f.order.filter((id) => /^(WB|LB)-R[12]-/.test(id));
   for (const id of played) {
     const [m] = await db.select().from(matches).where(eq(matches.id, id)).limit(1);
@@ -219,7 +217,7 @@ export async function seedTestData() {
     const n = played.indexOf(id);
     const link = String(990_000_000 + n);
     if (pool.length) {
-      const data = fakeBoard(link, [teamName.get(m.team1Id) ?? "", teamName.get(m.team2Id) ?? ""], [roster(m.team1Id), roster(m.team2Id)], pool, ft, one ? 1 : 2, lose, ezMult, 900_000_000 + n * 100, (mod, order) => skillSlot(layouts[m.stageSlug], mod, order)?.label ?? slotOf(mod, order));
+      const data = fakeBoard(link, [teamName.get(m.team1Id) ?? "", teamName.get(m.team2Id) ?? ""], [roster(m.team1Id), roster(m.team2Id)], pool, ft, one ? 1 : 2, lose, 900_000_000 + n * 100, (mod, order) => skillSlot(layouts[m.stageSlug], mod, order)?.label ?? slotOf(mod, order));
       await db.insert(matchCache).values({ matchId: id, links: link, data });
     }
     await db

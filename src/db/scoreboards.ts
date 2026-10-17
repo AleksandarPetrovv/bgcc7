@@ -8,15 +8,14 @@ import type { PoolStage } from "./mappools";
 import type { Match, Team } from "@/lib/data";
 import { buildScoreboard, playoffPools, SCOREBOARD_V, type ScoreEdit, type Scoreboard } from "@/lib/scoreboard";
 import { isLive } from "@/lib/matches";
-import { getSettings } from "./settings";
 
 const LIVE_TTL = 30_000;
 const live = new Map<string, { at: number; data: Scoreboard }>();
 
-async function stored(id: string, links: string, ez: number) {
+async function stored(id: string, links: string) {
   try {
     const [row] = await db.select().from(matchCache).where(eq(matchCache.matchId, id)).limit(1);
-    return row && row.links === links && (row.data as Scoreboard).v === SCOREBOARD_V && (row.data as Scoreboard).ez === ez ? (row.data as Scoreboard) : null;
+    return row && row.links === links && (row.data as Scoreboard).v === SCOREBOARD_V ? (row.data as Scoreboard) : null;
   } catch (e) {
     console.error("[match cache]", e);
     return null;
@@ -41,17 +40,16 @@ export async function forgetScoreboard(matchId: string) {
 export async function getScoreboard(match: Match, teams: Team[], stages: PoolStage[]): Promise<Scoreboard | null> {
   if (!match.links.length) return null;
   const links = match.links.join(",");
-  const { ezMult } = await getSettings();
-  const saved = await stored(match.id, links, ezMult);
+  const saved = await stored(match.id, links);
   if (saved) return saved;
 
   const key = `${await getEdition()}:${match.id}`;
   const hit = live.get(key);
-  if (hit && hit.data.ez === ezMult && Date.now() - hit.at < LIVE_TTL) return hit.data;
+  if (hit && Date.now() - hit.at < LIVE_TTL) return hit.data;
 
   const firstTo = stages.find((s) => s.slug === match.stage)?.firstTo ?? getFormat().firstTo;
   try {
-    const data = await buildScoreboard(match, teams, playoffPools(stages), await getEdits(match.id), ezMult);
+    const data = await buildScoreboard(match, teams, playoffPools(stages), await getEdits(match.id));
     if (Math.max(...data.score) >= firstTo || match.winner) {
       await db
         .insert(matchCache)
