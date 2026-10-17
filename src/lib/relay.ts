@@ -119,6 +119,10 @@ function drop(osuId: number) {
   store().bus.emit("relay", osuId, false);
 }
 
+export function relayKick(osuId: number) {
+  drop(osuId);
+}
+
 export function relayStream(req: Request, osuId: number, ircName: string) {
   const { relays, bus } = store();
   drop(osuId);

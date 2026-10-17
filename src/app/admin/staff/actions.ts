@@ -6,6 +6,8 @@ import { staff, users } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
 import { getUser } from "@/lib/osu-api";
 import { cleanRoles, type ActionResult } from "@/lib/roles";
+import { relayPerms } from "@/lib/relay-perms";
+import { relayKick } from "@/lib/relay";
 
 export async function addStaff(_: ActionResult, fd: FormData) {
   return guard("staff", "staff.add", async () => {
@@ -28,6 +30,8 @@ export async function updateStaff(osuId: number, _: ActionResult, fd: FormData) 
     const permRoles = cleanRoles(fd.getAll("permRoles").map(String));
     if (!permRoles.includes("host") && !(await otherHost(osuId))) return { ok: false, error: "lastHost" };
     await db.update(staff).set({ permRoles }).where(eq(staff.osuId, osuId));
+    const p = await relayPerms(osuId);
+    if (!p.ref && !p.stream) relayKick(osuId);
     return { osuId, permRoles };
   });
 }
@@ -44,6 +48,8 @@ export async function removeStaff(osuId: number) {
   return guard("staff", "staff.remove", async () => {
     if (!(await otherHost(osuId))) return { ok: false, error: "lastHost" };
     await db.delete(staff).where(eq(staff.osuId, osuId));
+    const p = await relayPerms(osuId);
+    if (!p.ref && !p.stream) relayKick(osuId);
     return { osuId };
   });
 }
