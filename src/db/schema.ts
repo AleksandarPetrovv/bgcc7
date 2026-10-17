@@ -231,6 +231,7 @@ export const teamMembers = pgTable("team_members", {
 export const matches = pgTable("matches", {
   id: text("id").primaryKey(),
   stageSlug: text("stage_slug").notNull(),
+  poolSlug: text("pool_slug"),
   bracket: text("bracket").notNull(),
   round: text("round").notNull(),
   order: integer("order").notNull(),

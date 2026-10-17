@@ -43,7 +43,7 @@ export default async function AdminMatches() {
                     </h3>
                     <div className="space-y-2">
                       {list.map((m, k) => (
-                        <MatchCard key={m.id} m={m} k={k} t={t} locale={locale} teams={teams} refs={refs} live={m.winner ? undefined : live.get(m.id)} />
+                        <MatchCard key={m.id} m={m} k={k} t={t} locale={locale} teams={teams} refs={refs} pools={bracketStages.filter((x) => x.pools.length).map((x) => ({ slug: x.slug, title: t.rounds[x.title] ?? x.title }))} live={m.winner ? undefined : live.get(m.id)} />
                       ))}
                     </div>
                   </div>

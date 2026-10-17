@@ -616,8 +616,8 @@ async function poolMap(matchId: string, text: string) {
   const m = text.match(/^!mp map\s+(\S+)(.*)$/i);
   if (!m) return { text, mod: undefined };
   const d = await getDraft(matchId);
-  const [match] = d ? [] : await db.select({ stageSlug: matches.stageSlug }).from(matches).where(eq(matches.id, matchId)).limit(1);
-  const stage = d?.stageSlug ?? match?.stageSlug;
+  const [match] = d ? [] : await db.select({ stageSlug: matches.stageSlug, poolSlug: matches.poolSlug }).from(matches).where(eq(matches.id, matchId)).limit(1);
+  const stage = d?.stageSlug ?? match?.poolSlug ?? match?.stageSlug;
   const maps = (await getPoolStages()).find((s) => s.slug === stage)?.pools.flatMap((p) => p.maps) ?? [];
   const byId = /^\d+$/.test(m[1]);
   const map = maps.find((x) => (byId ? x.id === Number(m[1]) : x.slot.toLowerCase() === m[1].toLowerCase()));
