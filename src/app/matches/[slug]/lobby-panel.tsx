@@ -226,7 +226,7 @@ function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | "abort"
   );
 }
 
-export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly }: { slug: string; maps: Beatmap[]; onOpen: (open: boolean) => void; readOnly?: boolean }) {
+export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, canSay }: { slug: string; maps: Beatmap[]; onOpen: (open: boolean) => void; readOnly?: boolean; canSay: boolean }) {
   const t = useDict();
   const format = useFormat();
   const [v, setV] = useState<LobbyView | null>(null);
@@ -559,7 +559,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly }: { slug: s
                 </span>
               </div>
             </div>
-            <Chat slug={slug} lines={v.chat} sides={new Map(v.slots.flatMap((s) => (s?.team ? [[s.name.toLowerCase().replace(/ /g, "_"), s.team] as const] : [])))} disabled={offline} text={say} setText={setSay} inputRef={sayRef} readOnly={readOnly} />
+            <Chat slug={slug} lines={v.chat} sides={new Map(v.slots.flatMap((s) => (s?.team ? [[s.name.toLowerCase().replace(/ /g, "_"), s.team] as const] : [])))} disabled={offline} text={say} setText={setSay} inputRef={sayRef} readOnly={readOnly} canSay={canSay} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -577,12 +577,14 @@ function Chat({
   setText,
   inputRef,
   readOnly,
+  canSay,
 }: {
   slug: string;
   lines: LobbyView["chat"];
   sides: Map<string, "red" | "blue">;
   disabled: boolean;
   readOnly?: boolean;
+  canSay: boolean;
   text: string;
   setText: (s: string) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
@@ -645,6 +647,7 @@ function Chat({
       {(fail === "noslot" || fail === "nouser" || fail === "blocked") && (
         <p className="border-t border-line bg-rose/10 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-rose-hi">{fail === "noslot" ? t.lobby.noSlot : fail === "nouser" ? t.lobby.noUser : t.lobby.blocked}</p>
       )}
+      {canSay && (
       <form onSubmit={send} className="flex gap-2 border-t border-line px-3 py-2">
         <span className={cn("flex min-w-0 flex-1 -skew-x-12 border border-line bg-ink focus-within:border-paper", fail && "border-rose focus-within:border-rose")}>
         <input
@@ -669,6 +672,7 @@ function Chat({
           <span className="inline-flex skew-x-12 items-center gap-1.5">{left ? <span className="num">{left}s</span> : <><Send className="size-3.5" /> {t.lobby.send}</>}</span>
         </button>
       </form>
+      )}
     </div>
   );
 }
