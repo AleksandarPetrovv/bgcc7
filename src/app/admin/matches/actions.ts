@@ -8,6 +8,7 @@ import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
 import { fromSofiaInput } from "@/lib/time";
 import { advance } from "@/db/bracket";
+import { handOff } from "@/lib/bancho";
 
 const text = (fd: FormData, k: string, max = 120) => String(fd.get(k) ?? "").trim().slice(0, max) || null;
 const num = (fd: FormData, k: string) => {
@@ -36,7 +37,7 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     const firstTo = stage?.firstTo ?? getFormat().firstTo;
     const w = String(fd.get("winner") ?? "auto");
     const winner = w === "1" ? 1 : w === "2" ? 2 : w === "none" ? null : (score1 ?? 0) >= firstTo ? 1 : (score2 ?? 0) >= firstTo ? 2 : null;
-    const mpLinks = (String(fd.get("mpLinks") ?? "").match(/\d{6,}/g) ?? []).join(",");
+    const mpLinks = [...new Set(fd.getAll("mpLinks").join(" ").match(/\d{6,}/g) ?? [])].join(",");
     const manual = fd.get("manual") === "on";
     const patch = {
       startsAt: fromSofiaInput(String(fd.get("startsAt") ?? "")),
@@ -53,6 +54,7 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
       manual,
     };
     await db.update(matches).set(patch).where(eq(matches.id, id));
+    if (patch.referee !== m.referee) await handOff(id, patch.referee).catch((e) => console.error("[handoff]", e));
     if (mpLinks !== m.mpLinks || winner !== m.winner) await db.delete(matchCache).where(eq(matchCache.matchId, id));
     await advance();
     return { id, ...patch };
