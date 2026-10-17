@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Download } from "lucide-react";
 import { PageTitle, SlantButton } from "@/components/site/page";
 import { ActionForm, Panel } from "@/components/admin/form";
@@ -13,8 +13,9 @@ export const dynamic = "force-dynamic";
 
 export default async function RefApp({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [t, viewer, { link }] = await Promise.all([getDict(), getViewer(), searchParams]);
-  if (!viewer || !can(viewer.roles, "matches")) notFound();
   const st = typeof link === "string" && validState(link) ? link : null;
+  if (viewer && !can(viewer.roles, "matches") && can(viewer.roles, "overlay")) redirect(st ? `/admin/overlay?link=${st}` : "/admin/overlay");
+  if (!viewer || !can(viewer.roles, "matches")) notFound();
   const app = await appOf(viewer.osuId);
   const online = relayOnline(viewer.osuId);
   const r = t.admin.refApp;
