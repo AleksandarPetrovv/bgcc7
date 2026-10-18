@@ -63,7 +63,7 @@ const ROUTES: [string, Section][] = [
 
 export const sectionOf = (path: string) => ROUTES.find(([p]) => path === p || path.startsWith(`${p}/`))?.[1] ?? null;
 
-export type NavKey = "home" | "me" | "info" | "qualifiers" | "teams" | "players" | "schedule" | "mappool" | "pickems" | "stats" | "streams" | "staff";
+export type NavKey = "home" | "me" | "info" | "qualifiers" | "teams" | "players" | "schedule" | "scheduling" | "mappool" | "pickems" | "stats" | "streams" | "staff";
 
 const NAV: { key: NavKey; base: string; items: { href: string; section: Section | null; key?: NavKey }[] }[] = [
   { key: "home", base: "/", items: [{ href: "/", section: null }] },

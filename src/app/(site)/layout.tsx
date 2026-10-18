@@ -9,6 +9,7 @@ import { meStyle } from "@/components/site/me";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getSettings } from "@/db/settings";
 import { isPlayer, myOpenDraft } from "@/db/drafts";
+import { schedNav } from "@/db/schedule";
 import { auth } from "@/auth";
 import { getViewer, getVisibility } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
@@ -21,7 +22,7 @@ import { windowState } from "@/lib/time";
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [session, viewer, vis, teams, matches, settings, dict] = await Promise.all([auth(), getViewer(), getVisibility(), getTeams(), getMatches(), getSettings(), getDict()]);
   const user = session?.user?.name ? { name: session.user.name, image: session.user.image ?? null, admin: hasAdmin(viewer?.roles) } : null;
-  const [captain, twitch] = await Promise.all([viewer ? isPlayer(viewer.osuId) : false, vis.sections.streams || vis.staff ? getLive().then(Boolean) : false]);
+  const [captain, twitch, sched] = await Promise.all([viewer ? isPlayer(viewer.osuId) : false, vis.sections.streams || vis.staff ? getLive().then(Boolean) : false, schedNav(viewer?.osuId ?? null).catch(() => null)]);
   const match = captain && viewer ? await myOpenDraft(viewer.osuId).catch(() => null) : null;
   const regOpen = vis.sections.register && settings.phase === "registration" && windowState(settings.regOpensAt, settings.regClosesAt) === "open";
   const me = viewer?.osuId ?? null;
@@ -33,7 +34,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       {meCss && <style dangerouslySetInnerHTML={{ __html: meCss }} />}
       <Backdrop />
       <LiteSettle />
-      <SiteNav user={user} nav={buildNav(vis.sections, vis.staff, vis.off)} register={regOpen} live={live} captain={captain} match={match} />
+      <SiteNav user={user} nav={buildNav(vis.sections, vis.staff, vis.off)} register={regOpen} live={live} captain={captain} match={match} sched={sched} />
       <TournamentProvider teams={teams} matches={matches} edition={settings.edition}>
         <main className="flex-1">{children}</main>
       </TournamentProvider>

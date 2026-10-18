@@ -117,8 +117,10 @@ export function MatchRow({ match, live }: { match: Match; live?: [number, number
                 <span className="hidden sm:inline">{w.day}</span>
                 <span>{w.date}</span> <span className="text-paper/90">{w.time}</span>
               </>
-            ) : (
+            ) : match.team1.id && match.team2.id ? (
               t.common.tbd
+            ) : (
+              "—"
             )}
           </div>
           <div className="in-slam flex flex-col items-center gap-1" style={d("0.4s")}>

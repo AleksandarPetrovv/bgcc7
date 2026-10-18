@@ -12,6 +12,7 @@ export const site: typeof en = {
     qualifiers: "Квалификации",
     teams: "Отбори",
     schedule: "Мачове",
+    scheduling: "График",
     mappool: "Мапове",
     pickems: "Прогнози",
     stats: "Статистика",

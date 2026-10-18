@@ -10,6 +10,7 @@ export const site = {
     qualifiers: "Qualifiers",
     teams: "Teams",
     schedule: "Matches",
+    scheduling: "Scheduling",
     mappool: "Mappool",
     pickems: "Pick'ems",
     stats: "Stats",

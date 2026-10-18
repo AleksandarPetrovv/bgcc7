@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { ChevronRight, ClipboardCheck, Download, Dices, DoorOpen, Gauge, LayoutGrid, Layers, Link2, MonitorPlay, Music2, ScrollText, Settings2, Shield, Swords, Trophy, Users } from "lucide-react";
+import { CalendarClock, ChevronRight, ClipboardCheck, Download, Dices, DoorOpen, Gauge, LayoutGrid, Layers, Link2, MonitorPlay, Music2, ScrollText, Settings2, Shield, Swords, Trophy, Users } from "lucide-react";
 import { Sparkle } from "@/components/site/graphics";
 import { TwitchLogo } from "@/components/site/twitch-logo";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   mappools: Music2,
   teams: Users,
   matches: Swords,
+  scheduling: CalendarClock,
   draft: Dices,
   site: Link2,
   staff: Shield,

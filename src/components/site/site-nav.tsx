@@ -14,6 +14,12 @@ import type { NavItem } from "@/lib/sections";
 
 const bar = "pointer-events-none absolute left-0 h-1 w-[100px] origin-left opacity-0 transition-[transform,opacity,translate,scale,rotate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform";
 
+const withSched = (nav: NavItem[]): NavItem[] => {
+  const item: NavItem = { key: "scheduling", href: "/scheduling", base: "/scheduling", hidden: false };
+  const at = nav.findIndex((n) => n.key === "schedule");
+  return at < 0 ? [...nav, item] : [...nav.slice(0, at + 1), item, ...nav.slice(at + 1)];
+};
+
 const isActive = (path: string, base: string) => (base === "/" ? path === "/" : path === base || path.startsWith(`${base}/`));
 
 function AdminCrest({ on }: { on: boolean }) {
@@ -36,7 +42,7 @@ function AdminCrest({ on }: { on: boolean }) {
   );
 }
 
-type Props = { user: { name: string; image: string | null; admin: boolean } | null; nav: NavItem[]; register: boolean; live: string[]; captain: boolean; match: string | null };
+type Props = { user: { name: string; image: string | null; admin: boolean } | null; nav: NavItem[]; register: boolean; live: string[]; captain: boolean; match: string | null; sched: { dot: boolean; discord: boolean } | null };
 
 type Clock = { end: number | null; pause: boolean; offset: number };
 
@@ -125,7 +131,14 @@ function LivePill({ big }: { big?: boolean }) {
   );
 }
 
-export function SiteNav({ user, nav, register, live, captain, match: initialMatch }: Props) {
+function Dot({ className }: { className?: string }) {
+  return <span className={cn("size-2 shrink-0 rounded-full bg-rose shadow-[0_0_0_2px_var(--color-ink)]", className)} aria-hidden />;
+}
+
+export function SiteNav({ user, nav: base, register, live, captain, match: initialMatch, sched }: Props) {
+  const nav = sched ? withSched(base) : base;
+  const meDot = !!sched?.discord;
+  const dots = [...(sched?.dot ? ["scheduling"] : []), ...(meDot ? ["me"] : [])];
   const { slug: match, clock } = useMatch(captain, initialMatch);
   const path = usePathname();
   const [pending, start] = useTransition();
@@ -207,6 +220,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
                   {!active && <span className="absolute inset-x-0.5 inset-y-4 -skew-x-12 scale-90 bg-white/0 transition duration-200 group-hover:scale-100 group-hover:bg-white/[0.05]" aria-hidden />}
                   <span className={cn("relative transition-transform duration-200 group-hover:-translate-y-px", n.hidden && "opacity-40")}>{t.nav[n.key]}</span>
                   {live.includes(n.key) && <LivePill />}
+                  {dots.includes(n.key) && <Dot className="absolute right-1 top-5" />}
                 </Link>
               </Fragment>
             );
@@ -247,6 +261,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {user.image && <img src={user.image} alt="" className="size-7 object-cover" />}
                 <span className="max-w-32 truncate text-[0.8rem] font-black leading-none">{user.name}</span>
+                {meDot && <Dot className="-ml-1" />}
               </Link>
               <button
                 type="button"
@@ -286,7 +301,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger className="relative p-2 text-paper xl:hidden" aria-label={t.nav.openMenu}>
               <Menu className="size-6" />
-              {live.length > 0 && <span className="absolute right-1.5 top-1.5 size-2 animate-pulse rounded-full bg-rose" aria-hidden />}
+              {(live.length > 0 || dots.length > 0 || meDot) && <span className="absolute right-1.5 top-1.5 size-2 animate-pulse rounded-full bg-rose" aria-hidden />}
             </SheetTrigger>
             <SheetContent side="right" className="flex h-dvh w-full max-w-sm flex-col border-line bg-ink p-0">
               <SheetTitle className="sr-only">{t.nav.menu}</SheetTitle>
@@ -313,6 +328,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
                   >
                     {t.nav[n.key]}
                     {live.includes(n.key) && <LivePill big />}
+                    {dots.includes(n.key) && <Dot className="ml-3" />}
                   </Link>
                 ))}
               </nav>
@@ -323,6 +339,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       {user.image && <img src={user.image} alt="" className="size-9 object-cover" />}
                       <span className="min-w-0 flex-1 truncate text-sm font-black">{user.name}</span>
+                      {meDot && <Dot />}
                     </Link>
                     <button
                       type="button"

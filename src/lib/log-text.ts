@@ -316,6 +316,22 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `одобри ${match()} да се играе на ${b(when())}` : `approved moving ${match()} to ${b(when())}`;
     case "reschedule.deny":
       return bg ? `отказа смяната на часа за ${match()}` : `denied the reschedule for ${match()}`;
+    case "schedule.week":
+      return p.week
+        ? bg
+          ? `зададе седмицата за ${stage()} на ${b(h.date(String(p.week)))}`
+          : `set the match week for ${stage()} to ${b(h.date(String(p.week)))}`
+        : bg
+          ? `изчисти седмицата за ${stage()}`
+          : `cleared the match week for ${stage()}`;
+    case "schedule.set":
+      return p.at
+        ? bg
+          ? `зададе ${match("match")} за ${b(h.date(String(p.at)))}`
+          : `set ${match("match")} to ${b(h.date(String(p.at)))}`
+        : bg
+          ? `изчисти часа за ${match("match")}`
+          : `cleared the time for ${match("match")}`;
 
     case "site.links":
       return bg ? "обнови линковете в сайта" : "updated the site links";

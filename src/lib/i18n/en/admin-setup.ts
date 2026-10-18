@@ -9,6 +9,7 @@ export const adminSetup = {
     mappools: "Mappools",
     teams: "Teams",
     matches: "Matches",
+    scheduling: "Scheduling",
     site: "Links and sponsors",
     staff: "Staff",
     log: "Audit log",
