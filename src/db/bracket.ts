@@ -3,6 +3,7 @@ import "server-only";
 import { and, eq, isNull } from "drizzle-orm";
 import { drafts, matches, mpLobbies } from "./schema";
 import { getFormat } from "./edition";
+import { staffOverride } from "./schedule";
 import { alertId, clear, describeMatch, raise } from "@/lib/alerts";
 
 type Q = Pick<typeof db, "select" | "update">;
@@ -38,8 +39,10 @@ export async function advance(q: Q = db) {
       blocked.push({ id: r.id, team1Id, team2Id });
       continue;
     }
-    await q.update(matches).set({ team1Id, team2Id }).where(eq(matches.id, r.id));
-    byId.set(r.id, { ...r, team1Id, team2Id });
+    const reset = !!replaces;
+    await q.update(matches).set(reset ? { team1Id, team2Id, startsAt: null } : { team1Id, team2Id }).where(eq(matches.id, r.id));
+    if (reset) await staffOverride(q, r.id, null);
+    byId.set(r.id, { ...r, team1Id, team2Id, startsAt: reset ? null : r.startsAt });
   }
   await reportBlocked(blocked).catch((e) => console.error("[bracket alert]", e));
   return blocked;

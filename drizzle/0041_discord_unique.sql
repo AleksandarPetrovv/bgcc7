@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "users_discord_id_uq" ON "users" USING btree ("discord_id") WHERE "users"."discord_id" is not null;

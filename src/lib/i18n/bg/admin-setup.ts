@@ -11,6 +11,7 @@ export const adminSetup: typeof en = {
     mappools: "Мапове",
     teams: "Отбори",
     matches: "Мачове",
+    scheduling: "График",
     site: "Линкове и спонсори",
     staff: "Екип",
     log: "Одит лог",

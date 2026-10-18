@@ -1,23 +1,29 @@
 import { sql } from "drizzle-orm";
-import { boolean, doublePrecision, index, integer, jsonb, pgTable, serial, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { boolean, doublePrecision, index, integer, jsonb, pgTable, serial, text, timestamp, unique, uniqueIndex } from "drizzle-orm/pg-core";
 import type { Beatmap } from "@/lib/data";
 
-export const users = pgTable("users", {
-  osuId: integer("osu_id").primaryKey(),
-  username: text("username").notNull(),
-  avatarUrl: text("avatar_url"),
-  country: text("country"),
-  seeded: boolean("seeded").notNull().default(false),
-  rank: integer("rank"),
-  countryRank: integer("country_rank"),
-  pp: doublePrecision("pp"),
-  accuracy: doublePrecision("accuracy"),
-  badges: integer("badges"),
-  badgeOverride: integer("badge_override"),
-  statsAt: timestamp("stats_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const users = pgTable(
+  "users",
+  {
+    osuId: integer("osu_id").primaryKey(),
+    username: text("username").notNull(),
+    avatarUrl: text("avatar_url"),
+    country: text("country"),
+    seeded: boolean("seeded").notNull().default(false),
+    rank: integer("rank"),
+    countryRank: integer("country_rank"),
+    pp: doublePrecision("pp"),
+    accuracy: doublePrecision("accuracy"),
+    badges: integer("badges"),
+    badgeOverride: integer("badge_override"),
+    discordId: text("discord_id"),
+    discordName: text("discord_name"),
+    statsAt: timestamp("stats_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("users_discord_id_uq").on(t.discordId).where(sql`${t.discordId} is not null`)],
+);
 
 export const pickems = pgTable("pickems", {
   osuId: integer("osu_id")
@@ -143,6 +149,7 @@ export const stages = pgTable("stages", {
   packSize: integer("pack_size"),
   packAt: timestamp("pack_at", { withTimezone: true }),
   blueprint: jsonb("blueprint").$type<Record<string, number>>().notNull().default({}),
+  week: text("week"),
 });
 
 export const maps = pgTable("maps", {
