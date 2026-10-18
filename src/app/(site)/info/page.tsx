@@ -13,6 +13,7 @@ import { InfoFolk } from "./folk";
 import { getPlan } from "@/db/format-plan";
 import { getMatches } from "@/db/tournament";
 import { getHosts } from "@/db/admin";
+import { stageWeeks } from "@/db/schedule";
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
@@ -52,10 +53,10 @@ export default async function InfoPage() {
   };
   const intro = ed("info.intro", t.info.intro);
   if (currentEdition() === "bgcc7") {
-    const [plan, matches, hosts] = await Promise.all([getPlan(), getMatches(), getHosts()]);
+    const [plan, matches, hosts, weeks] = await Promise.all([getPlan(), getMatches(), getHosts(), stageWeeks()]);
     return (
       <Container plain>
-        <InfoFolk t={t} f={f} raw={(path, fallback) => ed(path, fallback).raw} on={on} locale={lang === "bg" ? "bg-BG" : "en-GB"} plan={plan} matches={matches} hosts={hosts} />
+        <InfoFolk t={t} f={f} raw={(path, fallback) => ed(path, fallback).raw} on={on} locale={lang === "bg" ? "bg-BG" : "en-GB"} plan={plan} matches={matches} weeks={weeks} hosts={hosts} />
       </Container>
     );
   }

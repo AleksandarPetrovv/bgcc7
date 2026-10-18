@@ -349,6 +349,7 @@ export function SlantButton({
   onClick,
   type = "button",
   download,
+  disabled,
 }: {
   children: React.ReactNode;
   tone?: "rose" | "balkan" | "paper" | "outline";
@@ -357,6 +358,7 @@ export function SlantButton({
   onClick?: () => void;
   type?: "button" | "submit";
   download?: boolean;
+  disabled?: boolean;
 }) {
   const t = {
     rose: "bg-rose text-white hover:bg-rose-hi",
@@ -383,7 +385,7 @@ export function SlantButton({
       {inner}
     </Link>
   ) : (
-    <button type={type} onClick={onClick} className={cls}>
+    <button type={type} onClick={onClick} disabled={disabled} className={cn(cls, "disabled:pointer-events-none disabled:opacity-60")}>
       {inner}
     </button>
   );

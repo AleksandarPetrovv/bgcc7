@@ -9,6 +9,7 @@ export const MENU: { href: string; perm: Perm[] }[] = [
   { href: "/admin/mappools", perm: ["mappools"] },
   { href: "/admin/teams", perm: ["teams"] },
   { href: "/admin/matches", perm: ["matches"] },
+  { href: "/admin/scheduling", perm: ["matches"] },
   { href: "/admin/draft", perm: ["draft"] },
   { href: "/admin/stream", perm: ["stream"] },
   { href: "/admin/overlay", perm: ["overlay"] },

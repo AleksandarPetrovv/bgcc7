@@ -5,6 +5,7 @@ import { Rich, Words } from "@/components/site/rich";
 import type { Dict } from "@/lib/i18n/dict";
 import { DISCORD_URL } from "@/lib/links";
 import { fmtRange, sofiaDate } from "@/lib/dates";
+import { weekOf } from "@/lib/schedule";
 import { roundStats, type Plan } from "@/lib/format-plan";
 import type { Match } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ export type FolkProps = {
   locale: string;
   plan: Plan;
   matches: Match[];
+  weeks?: Record<string, string | null>;
   hosts?: { osuId: number; username: string; avatarUrl: string | null; roles: string[] }[];
 };
 
@@ -108,6 +110,8 @@ function stageRows(p: FolkProps) {
   return p.plan.rounds.map((r) => {
     const s = roundStats(r);
     const days = p.matches.filter((m) => m.stage === r.slug && m.datetime).map((m) => sofiaDate(new Date(m.datetime!))).sort();
+    const wk = weekOf(p.weeks?.[r.slug]);
+    if (!days.length && wk) days.push(wk.min.slice(0, 10), wk.max.slice(0, 10));
     return {
       slug: r.slug,
       name: p.t.rounds[r.name] ?? r.name,

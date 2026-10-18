@@ -8,6 +8,7 @@ import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
 import { fromSofiaInput } from "@/lib/time";
 import { advance } from "@/db/bracket";
+import { lockMatch, staffOverride } from "@/db/schedule";
 import { canRunMatch } from "@/db/drafts";
 import { handOff } from "@/lib/bancho";
 
@@ -20,7 +21,7 @@ const num = (fd: FormData, k: string) => {
 };
 
 export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
-  return guard("matches", "match.save", async () => {
+  return guard("matches", "match.save", async (osuId) => {
     const f = getFormat();
     const [m] = await db.select().from(matches).where(eq(matches.id, id)).limit(1);
     if (!m) return { ok: false, error: "notFound" };
@@ -46,8 +47,8 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     const winner = w === "1" ? 1 : w === "2" ? 2 : w === "none" ? null : (score1 ?? 0) >= firstTo ? 1 : (score2 ?? 0) >= firstTo ? 2 : null;
     const mpLinks = [...new Set(fd.getAll("mpLinks").join(" ").match(/\d{6,}/g) ?? [])].join(",");
     const manual = fd.get("manual") === "on";
-    const patch = {
-      startsAt: fromSofiaInput(String(fd.get("startsAt") ?? "")),
+    const startsAt = fromSofiaInput(String(fd.get("startsAt") ?? ""));
+    const base = {
       team1Id: manual || !f.feed[id] ? team("team1Id") : m.team1Id,
       team2Id: manual || !f.feed[id] ? team("team2Id") : m.team2Id,
       score1,
@@ -61,11 +62,20 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
       manual,
       poolSlug,
     };
-    await db.transaction(async (tx) => {
+    let patch: typeof base & { startsAt?: Date | null } = base;
+    const gone = await db.transaction(async (tx) => {
+      const cur = await lockMatch(tx, id);
+      if (!cur) return true;
+      const swapped = (!!cur.team1Id && cur.team1Id !== base.team1Id) || (!!cur.team2Id && cur.team2Id !== base.team2Id);
+      const moved = (startsAt?.getTime() ?? null) !== (cur.startsAt?.getTime() ?? null);
+      patch = { ...base, ...(moved ? { startsAt } : swapped ? { startsAt: null } : {}) };
       await tx.update(matches).set(patch).where(eq(matches.id, id));
+      if (moved || swapped) await staffOverride(tx, id, osuId);
       if (mpLinks !== m.mpLinks || winner !== m.winner || poolSlug !== m.poolSlug) await tx.delete(matchCache).where(eq(matchCache.matchId, id));
       await advance(tx);
+      return false;
     });
+    if (gone) return { ok: false, error: "notFound" };
     if (patch.referee !== m.referee) await handOff(id, patch.referee).catch((e) => console.error("[handoff]", e));
     return { id, ...patch };
   });
