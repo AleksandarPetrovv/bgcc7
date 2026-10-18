@@ -6,6 +6,7 @@ import { RateLimiterMemory, RateLimiterQueue } from "rate-limiter-flexible";
 import { db, withEdition } from "@/db";
 import { matches, mpChat, mpLobbies, users } from "@/db/schema";
 import { getAllTeams } from "@/db/tournament";
+import { getHosts } from "@/db/admin";
 import { getFormat } from "@/db/edition";
 import { getDraft, lobbyTimer, onDraft } from "@/db/drafts";
 import type { DraftView } from "@/lib/draft";
@@ -382,7 +383,7 @@ export function attach(l: Live) {
       .catch((e) => console.error("[bancho] chat save", e));
     if (l.chat.length > 150) l.chat.splice(0, l.chat.length - 150);
     const cmd = msg.message.trim().match(/^!mp\s+(timer|aborttimer)\b\s*(\d+)?/i);
-    if (cmd) void lobbyTimer(l.matchId, cmd[1].toLowerCase() === "timer" ? Math.min(Number(cmd[2] ?? 30), 3600) || 30 : null).catch((e) => console.error("[bancho] timer", e));
+    if (cmd) void timerBy(l.matchId, msg.self, msg.user.ircUsername).then((ok) => (ok ? lobbyTimer(l.matchId, cmd[1].toLowerCase() === "timer" ? Math.min(Number(cmd[2] ?? 30), 3600) || 30 : null) : undefined)).catch((e) => console.error("[bancho] timer", e));
     up();
   });
   (lb as unknown as EventEmitter).on("matchFinished", (scores: BanchoLobbyPlayerScore[]) =>
@@ -405,6 +406,16 @@ export function attach(l: Live) {
       if (from >= 0 && from !== seat) await swapSlots(l, (m) => lb.channel.sendMessage(m), from, seat);
     } catch {}
   });
+}
+
+const nameKey = (n: string) => n.trim().toLowerCase().replace(/ /g, "_");
+
+async function timerBy(matchId: string, self: boolean, from: string) {
+  if (self) return true;
+  const [m] = await db.select({ referee: matches.referee }).from(matches).where(eq(matches.id, matchId)).limit(1);
+  const refs = (m?.referee ?? "").split(/[,&/]| and /).map(nameKey).filter(Boolean);
+  const hosts = (await getHosts()).map((h) => nameKey(h.username));
+  return [...refs, ...hosts].includes(nameKey(from));
 }
 
 export async function markClosed(matchId: string) {
