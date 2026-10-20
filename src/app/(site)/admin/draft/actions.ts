@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { eq, sql } from "drizzle-orm";
 
 import { drafts, matches, type DraftUndo } from "@/db/schema";
-import { canRunMatch, emitDraft, redoStep, rulesFor, undoStep } from "@/db/drafts";
+import { canRunMatch, emitDraft, redoStep, rulesFor, settle, undoStep } from "@/db/drafts";
 import { getPoolStages } from "@/db/mappools";
 import { getSettings } from "@/db/settings";
 import { getSkillLayouts } from "@/db/format-plan";
@@ -96,6 +96,7 @@ export async function endDraft(matchId: string) {
 export async function pauseDraft(matchId: string) {
   return guard("matches", "draft.pause", async () => {
     if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
+    await settle(matchId);
     const [d] = await db.select().from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
     if (!d) return { ok: false, error: "notFound" };
     if (d.pausedAt) return { ok: true };
