@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { currentOsuId } from "@/auth";
 import { db } from "@/db";
@@ -31,7 +31,8 @@ export async function withdraw() {
   if (!osuId) return { ok: false as const, error: "auth" };
   const s = await getSettings();
   if (windowState(s.regOpensAt, s.regClosesAt) !== "open") return { ok: false as const, error: "closed" };
-  const gone = await db.delete(registrations).where(eq(registrations.osuId, osuId)).returning({ osuId: registrations.osuId });
+  // a denied entry stays so withdraw + sign up can't reset it to pending
+  const gone = await db.delete(registrations).where(and(eq(registrations.osuId, osuId), ne(registrations.status, "denied"))).returning({ osuId: registrations.osuId });
   await db.delete(lobbyBookings).where(eq(lobbyBookings.osuId, osuId));
   if (gone.length) await log(osuId, "register.withdraw");
   revalidatePath("/", "layout");
