@@ -1,11 +1,13 @@
 import { sofiaDate, type TimelineRow } from "./dates";
 import { PHASES, type Phase } from "./sections";
 
-export function duePhase(timeline: TimelineRow[], current: Phase, now = new Date()): Phase | null {
+/** noQuals: bgcc7 has no qualifiers phase, its "qual" row is the team draw (seeding) */
+export function duePhase(timeline: TimelineRow[], current: Phase, noQuals = false, now = new Date()): Phase | null {
   const today = sofiaDate(now);
   let due = -1;
   timeline.forEach((r, i) => {
     if (r.from && r.from <= today) due = i;
   });
-  return due > PHASES.indexOf(current) ? PHASES[due] : null;
+  const p = noQuals && PHASES[due] === "qualifiers" ? "seeding" : PHASES[due];
+  return due >= 0 && PHASES.indexOf(p) > PHASES.indexOf(current) ? p : null;
 }
