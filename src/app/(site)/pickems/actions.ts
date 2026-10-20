@@ -21,7 +21,7 @@ export async function savePickems(input: unknown) {
   const locked = new Set(lockedOf(matches));
   const old = (await getPicks(osuId)) ?? {};
   const keep = (p: Record<string, string>, l: boolean) => Object.fromEntries(Object.entries(p).filter(([id]) => locked.has(id) === l));
-  const { picks } = resolve(f, { ...keep(parsed.data, false), ...keep(old, true) }, seedingOf(matches));
+  const { picks } = resolve(f, { ...keep(parsed.data as Record<string, string>, false), ...keep(old, true) }, seedingOf(matches));
   await db
     .insert(pickems)
     .values({ osuId, picks })
