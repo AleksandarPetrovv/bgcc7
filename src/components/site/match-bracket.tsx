@@ -73,7 +73,7 @@ function Box({ id, m, live, slim, className, style, onEnter, onLeave }: { id: st
   return (
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className={cn("flex flex-col overflow-hidden border bg-coal transition-[border-color] duration-200", className)} style={style}>
       <div className="flex h-7 shrink-0 items-center gap-2 border-b border-line bg-ink/70 px-2.5">
-        <span className="num truncate text-[0.78rem] text-paper/75">{m.datetime ? `${id === "GF-M2" ? new Date(m.datetime).toLocaleDateString(locale, { timeZone: TZ, day: "2-digit", month: "short" }) : day(m.datetime)} · ${clock(m.datetime)}` : m.team1.id && m.team2.id ? t.common.tbd : "—"}</span>
+        <span className="num truncate text-[0.78rem] text-paper/75">{m.datetime ? `${id === "GF-M2" ? new Date(m.datetime).toLocaleDateString(locale, { timeZone: TZ, day: "2-digit", month: "short" }) : day(m.datetime)} · ${clock(m.datetime)}` : m.winner ? "" : m.team1.id && m.team2.id ? t.common.tbd : "—"}</span>
         {id === "GF-M2" && <span className="shrink-0 whitespace-nowrap text-[0.6rem] font-black uppercase text-gold">{t.rounds.reset}</span>}
         <span className="ml-auto flex items-center gap-1">
           {live !== undefined && <LiveDot />}
