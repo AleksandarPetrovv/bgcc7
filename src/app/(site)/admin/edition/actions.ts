@@ -5,8 +5,6 @@ import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { EDITION_COOKIE, db6, setCurrentEdition } from "@/db";
 import { settings } from "@/db/schema";
-import { getEdition } from "@/db/edition";
-import { clearTestData, seedTestData } from "@/db/test-data";
 import { getViewer, log } from "@/lib/authz";
 import { isEdition } from "@/lib/format";
 
@@ -22,34 +20,6 @@ export async function switchEdition(edition: string) {
   setCurrentEdition(edition);
   (await cookies()).delete(EDITION_COOKIE);
   await log(by, "edition.switch", { edition });
-  revalidatePath("/", "layout");
-  return { ok: true };
-}
-
-export async function seedTest() {
-  const by = await host();
-  if (!by || getEdition() !== "bgcc7") return { ok: false };
-  try {
-    await seedTestData();
-  } catch (e) {
-    console.error("[seed]", e);
-    return { ok: false };
-  }
-  await log(by, "edition.seed");
-  revalidatePath("/", "layout");
-  return { ok: true };
-}
-
-export async function clearTest() {
-  const by = await host();
-  if (!by || getEdition() !== "bgcc7") return { ok: false };
-  try {
-    await clearTestData();
-  } catch (e) {
-    console.error("[seed clear]", e);
-    return { ok: false };
-  }
-  await log(by, "edition.clear");
   revalidatePath("/", "layout");
   return { ok: true };
 }

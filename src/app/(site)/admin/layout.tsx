@@ -51,7 +51,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
             </div>
           </div>
           <AdminNav items={items} />
-          {viewer.roles.includes("host") && <EditionSwitch edition={siteEdition()} viewing={edition} />}
+          {viewer.roles.includes("host") && <EditionSwitch edition={siteEdition()} />}
         </div>
       </aside>
       <div className="min-w-0 flex-1">{children}</div>
