@@ -79,7 +79,7 @@ export function RegisterForm({ user, status, state, opensAt }: Props) {
               <SlantButton tone="balkan" onClick={() => start(() => login(path))}>
                 {t.nav.login}
               </SlantButton>
-            ) : status ? (
+            ) : status === "denied" ? null : status ? (
               <SlantButton tone="outline" onClick={() => run(withdraw)}>
                 {pending ? "…" : t.register.withdraw}
               </SlantButton>
