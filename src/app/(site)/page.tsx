@@ -409,7 +409,7 @@ export default async function Home() {
               <Words text={f(phase === "registration" ? t.home.intro : (t.home.introBy[phase] ?? t.home.intro))} d={0.85} s={0.018} />
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3 sm:mt-9 sm:gap-4" style={{ "--d": "1.45s", "--s": "0.1s" } as React.CSSProperties}>
-              {phase === "registration" && see("register") ? (
+              {phase === "registration" && see("register") && regState === "open" ? (
                 <span className="in-pop inline-flex">
                   {mine && mine.status !== "denied" ? (
                     <span className="inline-flex -skew-x-12 cursor-default items-center border border-line bg-slate px-6 py-3 text-base font-black sm:px-8 sm:py-4 sm:text-xl uppercase tracking-wide text-ash" aria-disabled>
