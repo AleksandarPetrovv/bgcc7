@@ -2,7 +2,7 @@ import { db } from "./index";
 import "server-only";
 import { randomInt } from "node:crypto";
 import { EventEmitter } from "node:events";
-import { and, eq, or, sql } from "drizzle-orm";
+import { and, eq, isNull, or, sql } from "drizzle-orm";
 import { drafts, matches, mpLobbies, teamMembers, users, type DraftRules, type DraftUndo } from "./schema";
 import { getPoolStages } from "./mappools";
 import { getSettings } from "./settings";
@@ -273,7 +273,7 @@ async function myOpenId(osuId: number) {
     .select({ id: matches.id, referee: matches.referee })
     .from(drafts)
     .innerJoin(matches, eq(matches.id, drafts.matchId))
-    .where(and(eq(drafts.open, true), or(eq(matches.team1Id, cap.teamId), eq(matches.team2Id, cap.teamId))))
+    .where(and(eq(drafts.open, true), isNull(matches.winner), or(eq(matches.team1Id, cap.teamId), eq(matches.team2Id, cap.teamId))))
     .limit(1);
   return row && (await siteRun(row)).onSite ? row.id : null;
 }
