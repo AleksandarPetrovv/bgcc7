@@ -73,7 +73,7 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
 
   const staleId = alertId("scoresStale", match.id);
   try {
-    const data = await buildScoreboard(match, teams, playoffPools(stages), await getEdits(match.id));
+    const data = await buildScoreboard(match, teams, playoffPools([...stages].sort((x, y) => +(y.slug === match.stage) - +(x.slug === match.stage))), await getEdits(match.id));
     clear(staleId);
     if (decided(data.score) || match.winner) {
       if (!match.winner && !(await settleFinish(match, data.score))) {

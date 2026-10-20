@@ -18,7 +18,7 @@ export type PlayerLine = {
 
 export type ScoreEdit = { gameId: number; osuId: number; team: 1 | 2; score: number; acc: number; mods: string[]; removed: boolean };
 
-export const SCOREBOARD_V = 5;
+export const SCOREBOARD_V = 6;
 
 export type MapResult = {
   lobby: number;
@@ -95,8 +95,9 @@ export async function buildScoreboard(match: Match, teams: Team[], pools: Pool[]
 
   const noteOf = (i: number): MapResult["note"] => {
     const { game } = games[i];
-    const next = games[i + 1]?.game;
-    return !game.end_time || !game.scores.length ? "aborted" : !POOL.get(game.beatmap_id) ? "warmup" : next && next.beatmap_id === game.beatmap_id ? "replayed" : null;
+    const done = (g: OsuGame) => !!g.end_time && !!g.scores.length;
+    const next = games.slice(i + 1).find((g) => done(g.game))?.game;
+    return !done(game) ? "aborted" : !POOL.get(game.beatmap_id) ? "warmup" : next && next.beatmap_id === game.beatmap_id ? "replayed" : null;
   };
 
   const linesOf = (lobby: number, game: OsuGame) => {
