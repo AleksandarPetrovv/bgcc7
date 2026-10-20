@@ -31,9 +31,11 @@ export async function openDraft(matchId: string, stageSlug: string) {
     const rules = await rulesFor(stageSlug);
     if (cur) {
       const fresh = cur.stageSlug !== stageSlug;
+      // reopening restarts the current turn's clock so the closed time doesn't skip turns
+      const reopen = !fresh && !cur.open ? { turnAt: new Date(), pausedAt: null, pauseUntil: null } : {};
       await db
         .update(drafts)
-        .set({ open: true, stageSlug, ...(fresh || !cur.rules ? { rules } : {}), ...(fresh ? { steps: [], redo: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null } : {}), ...bump })
+        .set({ open: true, stageSlug, ...(fresh || !cur.rules ? { rules } : {}), ...(fresh ? { steps: [], redo: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null } : reopen), ...bump })
         .where(eq(drafts.matchId, matchId));
     } else await db.insert(drafts).values({ matchId, stageSlug, bans, banOrder: s.banOrder, rules, turnAt: new Date() });
     return done(matchId, { matchId, stage: stage.title });
