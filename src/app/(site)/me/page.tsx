@@ -152,33 +152,35 @@ export default async function Me() {
       </>,
     );
 
+  const ff = getFormat();
+  const ranked = ff.edition === "bgcc7" ? rankBws(regs.filter((r) => r.status !== "denied")).filter((r) => r.bws !== null) : [];
+  const bwsAt = ranked.findIndex((r) => r.osuId === me);
+  const myBws = bwsAt >= 0 ? ranked[bwsAt] : null;
+  const bwsTier = bwsAt < 0 ? 0 : bwsAt < ff.teams ? 1 : bwsAt < ff.teams * ff.teamSize ? 2 : 0;
+  const bwsCard = myBws && (
+    <Card title="BWS" i={1}>
+      <div className="flex items-end gap-3">
+        <span className="num text-6xl leading-[0.8] sm:text-7xl">#{bwsAt + 1}</span>
+        <span className="pb-1 text-sm text-ash">{t.me.ofN(ranked.length)}</span>
+        <Tag tone={bwsTier ? "balkan" : "rose"} className="mb-1 ml-auto text-xs">
+          {bwsTier ? t.admin.tier(bwsTier) : t.me.outsideCut(ff.teams * ff.teamSize)}
+        </Tag>
+      </div>
+      <div className="num mt-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-line pt-3 text-sm text-paper/80">
+        <span>BWS {fmtNum(myBws.bws ?? 0)}</span>
+        {myBws.rank && <span>#{fmtNum(myBws.rank)}</span>}
+        <span>
+          {myBws.badgeCount} {t.admin.badges.toLowerCase()}
+        </span>
+      </div>
+    </Card>
+  );
+
   if (signupPhase) {
     const closes = phase === "registration" && isFuture(settings.regClosesAt) ? settings.regClosesAt!.toISOString() : null;
-    const f = getFormat();
-    const ranked = f.edition === "bgcc7" ? rankBws(regs.filter((r) => r.status !== "denied")).filter((r) => r.bws !== null) : [];
-    const at = ranked.findIndex((r) => r.osuId === me);
-    const mine = at >= 0 ? ranked[at] : null;
-    const tier = at < 0 ? 0 : at < f.teams ? 1 : at < f.teams * f.teamSize ? 2 : 0;
     return shell(
       <>
-        {mine && (
-          <Card title="BWS" i={1}>
-            <div className="flex items-end gap-3">
-              <span className="num text-6xl leading-[0.8] sm:text-7xl">#{at + 1}</span>
-              <span className="pb-1 text-sm text-ash">{t.me.ofN(ranked.length)}</span>
-              <Tag tone={tier ? "balkan" : "rose"} className="mb-1 ml-auto text-xs">
-                {tier ? t.admin.tier(tier) : t.me.outsideCut(f.teams * f.teamSize)}
-              </Tag>
-            </div>
-            <div className="num mt-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-line pt-3 text-sm text-paper/80">
-              <span>BWS {fmtNum(mine.bws ?? 0)}</span>
-              {mine.rank && <span>#{fmtNum(mine.rank)}</span>}
-              <span>
-                {mine.badgeCount} {t.admin.badges.toLowerCase()}
-              </span>
-            </div>
-          </Card>
-        )}
+        {bwsCard}
         <Card title={t.me.signup} i={1}>
           <p className="text-lg leading-snug text-paper/90">{t.register.doneTexts[reg!.status]}</p>
           {reg!.status === "denied" && reg!.note && <p className="mt-3 border-l-2 border-rose pl-3 text-sm text-paper/70">{reg!.note}</p>}
@@ -275,11 +277,19 @@ export default async function Me() {
   if (phase === "seeding" || !team)
     return shell(
       <>
-        {!qp && !team && (
-          <Card title={t.me.signup} i={1} className="lg:col-span-2">
-            <p className="text-paper/80">{t.me.notInLate}</p>
-          </Card>
-        )}
+        {!qp && !team &&
+          (myBws ? (
+            <>
+              {bwsCard}
+              <Card title={t.me.team} i={2}>
+                <p className="text-ash">{bwsTier ? t.me.noTeam : t.me.outsideCut(ff.teams * ff.teamSize)}</p>
+              </Card>
+            </>
+          ) : (
+            <Card title={t.me.signup} i={1} className="lg:col-span-2">
+              <p className="text-paper/80">{t.me.notInLate}</p>
+            </Card>
+          ))}
         {placementCard}
         {team ? (
           <TeamCard t={t} team={team} me={me} i={2} />
@@ -300,8 +310,8 @@ export default async function Me() {
   const record: [number, number] = [played.filter(usWon).length, played.filter((m) => !usWon(m)).length];
   const upcomingMatch = mine.filter((m) => !m.winner).sort((a, b) => (a.datetime ?? "9").localeCompare(b.datetime ?? "9"))[0];
   const lostIn = played.find((m) => (m.bracket === "losers" || m.bracket === "grand") && !usWon(m));
-  const gfWon = played.some((m) => m.bracket === "grand" && usWon(m));
-  const champion = gfWon && !upcomingMatch;
+  const lastGf = played.find((m) => m.id === "GF-M2") ?? played.find((m) => m.id === "GF-M1");
+  const champion = !!lastGf && usWon(lastGf) && !upcomingMatch;
   const path = champion ? "champion" : lostIn && !upcomingMatch ? "out" : (upcomingMatch?.bracket ?? played.at(-1)?.bracket ?? "winners");
   const pathTag = (
     <span className={cn("text-xs font-black uppercase tracking-wide", path === "out" ? "text-rose-hi" : path === "champion" ? "text-gold" : "text-balkan")}>{t.me.path[path]}</span>
