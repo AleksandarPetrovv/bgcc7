@@ -213,7 +213,7 @@ export async function ensureBot() {
     for (const r of open) {
       const owner = ownerOf(r.owner);
       if (s.live.has(r.matchId) || !canLobby(owner)) continue;
-      await restore(s, r.matchId, r.mpId, owner).catch(() => markClosed(r.matchId));
+      await restore(s, r.matchId, r.mpId, owner).catch((e) => dropIfGone(r.matchId, e));
     }
   }
   return s;
@@ -224,7 +224,7 @@ async function restoreOwner(owner: number) {
   if (!s) return;
   ping();
   const open = await db.select().from(mpLobbies).where(eq(mpLobbies.open, true));
-  for (const r of open) if (ownerOf(r.owner) === owner && !s.live.has(r.matchId)) await restore(s, r.matchId, r.mpId, owner).catch(() => markClosed(r.matchId));
+  for (const r of open) if (ownerOf(r.owner) === owner && !s.live.has(r.matchId)) await restore(s, r.matchId, r.mpId, owner).catch((e) => dropIfGone(r.matchId, e));
 }
 
 export async function lobbyOwner(matchId: string) {
@@ -287,13 +287,19 @@ async function rejoin(l: Live) {
   try {
     await l.lobby.channel.join();
     await l.lobby.updateSettings();
-  } catch {
-    await markClosed(l.matchId);
+  } catch (e) {
+    await dropIfGone(l.matchId, e);
   }
   ping(l.matchId);
 }
 
-const IDLE = 5 * 60_000;
+// only a lobby bancho no longer has is closed; a failed login or slow reply keeps the row so the next relay "up" retries
+async function dropIfGone(matchId: string, e: unknown) {
+  console.error(`[bancho] restore ${matchId}`, e);
+  if (/no such channel/i.test(e instanceof Error ? e.message : String(e))) await markClosed(matchId);
+}
+
+const IDLE = 10 * 60_000;
 
 function sweepIdle() {
   const s = g.bgccIrc;
