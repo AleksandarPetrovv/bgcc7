@@ -26,7 +26,7 @@ export const PRESETS: Record<Phase, Section[]> = {
   registration: [...base, "register", "players"],
   screening: [...base, "players"],
   qualifiers: [...base, "players", "lobbies", "mappool"],
-  seeding: seeded,
+  seeding: [...seeded, "pickems"],
   playoffs: [...seeded, "schedule", "pickems", "streams"],
   finished: [...seeded.filter((s) => s !== "players"), "schedule", "pickems", "streams"],
 };
