@@ -12,6 +12,9 @@ export const actualOf = (matches: Match[]): Picks =>
 
 export type Picks = Record<string, string>;
 
+/** decided or already started matches can't be picked any more */
+export const lockedOf = (matches: Match[], now = Date.now()) => matches.filter((m) => m.winner || (m.datetime && new Date(m.datetime).getTime() <= now)).map((m) => m.id);
+
 export const picksSchema = (f: Format) => z.record(z.enum(f.order as [string, ...string[]]), z.string().min(1).max(64));
 
 export function resolve(f: Format, picks: Picks, seeded: Seeding) {

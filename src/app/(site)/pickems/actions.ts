@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { currentOsuId, signIn, signOut } from "@/auth";
 import { getFormat } from "@/db/edition";
 import { pickems } from "@/db/schema";
-import { picksSchema, resolve, seedingOf } from "@/lib/pickems";
+import { lockedOf, picksSchema, resolve, seedingOf } from "@/lib/pickems";
+import { getPicks } from "@/db/queries";
 import { getSettings } from "@/db/settings";
 import { getMatches } from "@/db/tournament";
 
@@ -17,7 +18,10 @@ export async function savePickems(input: unknown) {
   if (!parsed.success) return { ok: false as const, error: "invalid" };
   const [settings, matches] = await Promise.all([getSettings(), getMatches()]);
   if (!settings.pickemsOpen || !settings.sections.pickems) return { ok: false as const, error: "closed" };
-  const { picks } = resolve(f, parsed.data, seedingOf(matches));
+  const locked = new Set(lockedOf(matches));
+  const old = (await getPicks(osuId)) ?? {};
+  const keep = (p: Record<string, string>, l: boolean) => Object.fromEntries(Object.entries(p).filter(([id]) => locked.has(id) === l));
+  const { picks } = resolve(f, { ...keep(parsed.data, false), ...keep(old, true) }, seedingOf(matches));
   await db
     .insert(pickems)
     .values({ osuId, picks })
