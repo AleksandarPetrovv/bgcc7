@@ -194,6 +194,7 @@ export async function settle(matchId: string) {
 }
 
 export async function lobbyTimer(matchId: string, secs: number | null) {
+  await settle(matchId);
   const [d] = await db.select().from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
   if (!d?.open || (!secs && !d.pausedAt)) return;
   const now = Date.now();
