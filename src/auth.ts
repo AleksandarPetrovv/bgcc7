@@ -1,8 +1,8 @@
 import NextAuth from "next-auth";
 import type { OAuthConfig } from "next-auth/providers";
-import { eq, sql } from "drizzle-orm";
-import { db, db6, db7 } from "@/db";
-import { lobbies, matches, userNames, users } from "@/db/schema";
+import { db } from "@/db";
+import { carryRename } from "@/db/users";
+import { userNames, users } from "@/db/schema";
 
 type OsuProfile = { id: number; username: string; avatar_url: string; country_code: string };
 
@@ -26,12 +26,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const p = profile as unknown as OsuProfile | undefined;
       if (!p?.id) return false;
       const row = { username: p.username, avatarUrl: p.avatar_url, country: p.country_code, updatedAt: new Date() };
-      const [old] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, p.id)).limit(1);
+      await carryRename(p.id, p.username);
       await db.insert(users).values({ osuId: p.id, ...row }).onConflictDoUpdate({ target: users.osuId, set: row });
-      // ref assignments are stored by name, so carry them over an osu! rename in both editions
-      if (old && old.username !== p.username)
-        for (const d of [db6, db7])
-          for (const t of [matches, lobbies]) await d.update(t).set({ referee: p.username }).where(sql`lower(trim(${t.referee})) = ${old.username.toLowerCase()}`);
       await db.insert(userNames).values({ osuId: p.id, username: p.username }).onConflictDoNothing();
       return true;
     },
