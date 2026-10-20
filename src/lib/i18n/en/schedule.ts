@@ -28,7 +28,7 @@ export const schedule = {
       set: "Set by staff",
     },
     warnTitle: "Reschedule?",
-    warnText: "The agreed time gets cancelled and the match goes back to TBD for everyone. Your new time has to be accepted again.",
+    warnText: "The agreed time stays until the other team accepts your new one.",
     withdrawTitle: "Withdraw agreed time?",
     withdrawText: "The agreed time gets cancelled and the match goes back to TBD for everyone. You can propose a new time afterwards.",
     err: {

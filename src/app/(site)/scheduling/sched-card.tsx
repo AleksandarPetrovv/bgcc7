@@ -206,7 +206,7 @@ export function SchedCard({ m, round, me, opp, week, open }: { m: SchedMatch; ro
                 <X className="size-4" /> {t.sched.withdraw}
               </SlantButton>
             )}
-            {agreed && !theirs && (
+            {agreed && !pend && (
               <SlantButton tone="outline" onClick={() => setWd(true)} disabled={pending} className="px-5 py-2.5">
                 <X className="size-4" /> {t.sched.withdraw}
               </SlantButton>
