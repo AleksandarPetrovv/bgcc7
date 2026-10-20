@@ -214,11 +214,11 @@ function LobbySlots({ lobbies }: { lobbies: Lobby[] }) {
   );
 }
 
-function FormatBadge({ tags }: { tags: readonly string[] }) {
+function FormatBadge({ tags, teamSize }: { tags: readonly string[]; teamSize: number }) {
   return (
     <div className="relative flex h-full items-center gap-5 px-5" aria-hidden>
       <span className="heading-slam text-7xl leading-none text-paper transition-transform duration-500 group-hover:-rotate-3 group-hover:scale-105">
-        3<span className="text-rose">v</span>3
+        {teamSize}<span className="text-rose">v</span>{teamSize}
       </span>
       <span className="flex flex-col gap-1 text-[0.65rem] font-black uppercase tracking-[0.14em] text-ash">
         {tags.map((x) => (
@@ -370,7 +370,7 @@ export default async function Home() {
     ),
     see("info") && (
       <EntryCard key="info" title={t.home.info} sub={t.home.infoSub} href="/info" className="bg-coal">
-        <FormatBadge tags={t.home.formatTags} />
+        <FormatBadge tags={t.home.formatTags} teamSize={getFormat().teamSize} />
       </EntryCard>
     ),
     see("staff") && staff.length > 0 && (
