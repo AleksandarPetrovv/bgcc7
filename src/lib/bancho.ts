@@ -323,7 +323,7 @@ const target = (p: { user: { id: number; ircUsername: string } }) => (p.user.id 
 async function slotPlayer(matchId: string, by: number, slot: number) {
   const { l, lb } = await lobbyAs(matchId);
   const p = l.lobby.slots[slot];
-  if (!p) throw new Error("empty slot");
+  if (!p) return null;
   return { l, say: (m: string) => lb.channel.sendMessage(m), who: target(p) };
 }
 
@@ -336,12 +336,16 @@ export async function simpleCmd(matchId: string, by: number, cmd: SimpleCmd) {
 }
 
 export async function kickSlot(matchId: string, by: number, slot: number) {
-  const { say, who } = await slotPlayer(matchId, by, slot);
+  const p = await slotPlayer(matchId, by, slot);
+  if (!p) return "empty" as const;
+  const { say, who } = p;
   await say(`!mp kick ${who}`);
 }
 
 export async function teamSlot(matchId: string, by: number, slot: number, team: "red" | "blue") {
-  const { say, who } = await slotPlayer(matchId, by, slot);
+  const p = await slotPlayer(matchId, by, slot);
+  if (!p) return "empty" as const;
+  const { say, who } = p;
   await say(`!mp team ${who} ${team}`);
 }
 
@@ -369,7 +373,9 @@ export async function swapSlots(l: Live, say: (m: string) => Promise<unknown>, f
 }
 
 export async function moveSlot(matchId: string, by: number, from: number, to: number) {
-  const { l, say } = await slotPlayer(matchId, by, from);
+  const p = await slotPlayer(matchId, by, from);
+  if (!p) return "empty" as const;
+  const { l, say } = p;
   if (to < 0 || to > lobbySize(getFormat())) return;
   await swapSlots(l, say, from, to);
 }
