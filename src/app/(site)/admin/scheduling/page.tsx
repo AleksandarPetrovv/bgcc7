@@ -8,7 +8,7 @@ import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { fmtSofia, toSofiaInput } from "@/lib/time";
-import { weekOf, type Proposal } from "@/lib/schedule";
+import { isOpen, weekOf, type Proposal } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
 import { setTime, setWeek } from "./actions";
 
@@ -43,7 +43,7 @@ export default async function AdminScheduling() {
                   {ms.map((m) => {
                     const h = hist.get(m.id) ?? [];
                     const pend = h.find((p) => p.status === "pending");
-                    const state = !m.team1Id || !m.team2Id ? "waiting" : m.startsAt ? "agreed" : pend ? "proposed" : "tbd";
+                    const state = !m.team1Id || !m.team2Id ? "waiting" : m.startsAt ? "agreed" : !isOpen(wk) ? "staff" : pend ? "proposed" : "tbd";
                     return (
                       <div key={m.id} className="border border-line bg-ink/40 p-3 sm:p-4">
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -51,7 +51,7 @@ export default async function AdminScheduling() {
                           <span className="min-w-0 font-black">
                             {name(m.team1Id)} <span className="text-ash">vs</span> {name(m.team2Id)}
                           </span>
-                          <span className={cn("ml-auto text-[0.68rem] font-black uppercase tracking-wide", state === "agreed" ? "text-balkan" : state === "proposed" ? "text-gold" : "text-ash")}>{s.admin.state[state]}</span>
+                          <span className={cn("ml-auto text-[0.68rem] font-black uppercase tracking-wide", state === "agreed" ? "text-balkan" : state === "staff" ? "text-rose-hi" : state === "proposed" ? "text-gold" : "text-ash")}>{s.admin.state[state]}</span>
                         </div>
                         <p className="num mt-1 text-sm text-paper/85">
                           {m.startsAt ? fmtSofia(m.startsAt, locale) : pend ? `${fmtSofia(new Date(pend.at), locale)} · ${name(pend.teamId)}` : "—"}
