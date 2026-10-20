@@ -48,7 +48,9 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     const winner = w === "1" ? 1 : w === "2" ? 2 : w === "none" ? null : (score1 ?? 0) >= firstTo ? 1 : (score2 ?? 0) >= firstTo ? 2 : null;
     const mpLinks = [...new Set(fd.getAll("mpLinks").join(" ").match(/\d{6,}/g) ?? [])].join(",");
     const manual = fd.get("manual") === "on";
-    const startsAt = fromSofiaInput(String(fd.get("startsAt") ?? ""));
+    const rawStartsAt = String(fd.get("startsAt") ?? "").trim();
+    const startsAt = fromSofiaInput(rawStartsAt);
+    if (rawStartsAt && !startsAt) return { ok: false, error: "invalid" };
     const base = {
       team1Id: manual || !f.feed[id] ? team("team1Id") : m.team1Id,
       team2Id: manual || !f.feed[id] ? team("team2Id") : m.team2Id,

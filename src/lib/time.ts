@@ -1,5 +1,4 @@
 export const TZ = "Europe/Sofia";
-export const TZ_LABEL = "EET";
 
 const fmt = new Intl.DateTimeFormat("en-US", {
   timeZone: TZ,
@@ -17,12 +16,18 @@ function offsetMs(at: Date) {
   return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - Math.floor(at.getTime() / 1000) * 1000;
 }
 
+export const tzLabel = (d: Date) => offsetMs(d) === 3 * 3_600_000 ? "EEST" : "EET";
+
 export function fromSofiaInput(s: string | null | undefined) {
-  if (!s) return null;
-  const naive = new Date(`${s}:00Z`);
-  if (Number.isNaN(naive.getTime())) return null;
-  const guess = new Date(naive.getTime() - offsetMs(naive));
-  return new Date(naive.getTime() - offsetMs(guess));
+  if (!s || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(s)) return null;
+  const wall = s.length === 16 ? `${s}:00` : s;
+  const naive = new Date(`${wall}Z`);
+  if (Number.isNaN(naive.getTime()) || naive.toISOString().slice(0, 19) !== wall) return null;
+  const ms = naive.getTime();
+  const offsets = new Set([-1, 0, 1].map((n) => offsetMs(new Date(ms + n * 86_400_000))));
+  const candidates = [...offsets].map((offset) => ms - offset).filter((at) => at + offsetMs(new Date(at)) === ms);
+  // reject spring gaps; pick the earlier occurrence of a repeated autumn time.
+  return candidates.length ? new Date(Math.min(...candidates)) : null;
 }
 
 export function toSofiaInput(d: Date | null | undefined) {
