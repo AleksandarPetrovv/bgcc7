@@ -8,6 +8,7 @@ import type { MatchRow } from "@/db/tournament";
 import type { Dict } from "@/lib/i18n/dict";
 import { getFormat } from "@/db/edition";
 import { matchSlug } from "@/lib/format";
+import { matchStamp } from "@/lib/matches";
 import { fmtSofia, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { clearCache, saveMatch } from "./actions";
@@ -145,6 +146,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
 
       <div className="border-t border-line bg-[linear-gradient(180deg,rgb(255_255_255/0.015),transparent)] p-3.5 sm:p-4">
         <ActionForm key={JSON.stringify(m)} action={saveMatch.bind(null, m.id)} className="space-y-5">
+          <input type="hidden" name="stamp" value={matchStamp(m)} />
           <div className="grid gap-5 lg:grid-cols-[1.25fr_1fr]">
             <fieldset className={group}>
               <Legend>{t.admin.secResult}</Legend>
