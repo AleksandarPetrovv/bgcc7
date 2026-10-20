@@ -77,7 +77,8 @@ export function state(): State | null {
       console.log(`[bancho] state created pid=${process.pid}`);
       setInterval(sweepIdle, 30_000).unref();
       setInterval(syncIdle, 5_000).unref();
-      onDraft((id) => react(id));
+      // events can come from a bgcc6 view with the same match id; lobbies only follow the site edition
+      onDraft((id) => withEdition("site", () => react(id)));
       onRelay((osuId, up) => withEdition("site", () => (up ? void restoreOwner(osuId) : dropConn(osuId))));
     });
   return g.bgccIrc ?? null;
