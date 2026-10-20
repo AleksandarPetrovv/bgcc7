@@ -17,7 +17,7 @@ import { getMatches, getTeams } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
 import { getScoreboard } from "@/db/scoreboards";
 import { fmtRange, phaseStates } from "@/lib/dates";
-import { fmtSofia, fmtSofiaTime, isFuture, windowState, TZ_LABEL } from "@/lib/time";
+import { fmtSofia, fmtSofiaTime, isFuture, windowState, tzLabel } from "@/lib/time";
 import { flagUrl, fmtNum, type Match } from "@/lib/data";
 import { rankBws } from "@/lib/bws";
 import { sourceLabel, isLive } from "@/lib/matches";
@@ -64,7 +64,7 @@ export default async function Me() {
   const reg = regs.find((r) => r.osuId === me);
   const team = teams.find((x) => x.players.some((p) => p.userId === me));
   const teamById = (id: string) => teams.find((x) => x.id === id);
-  const fmt = (d: Date | string) => `${fmtSofia(new Date(d), locale)} ${TZ_LABEL}`;
+  const fmt = (d: Date | string) => `${fmtSofia(new Date(d), locale)} ${tzLabel(new Date(d))}`;
   const phaseKey: Record<string, string> = { registration: "reg", screening: "scr", qualifiers: "qual", seeding: "seed", playoffs: "play", finished: "done" };
 
   const header = (
