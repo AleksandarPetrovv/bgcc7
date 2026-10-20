@@ -29,8 +29,10 @@ export async function advance(q: Q = db) {
   for (const r of rows) {
     const feed = f.feed[r.id];
     if (!feed || r.manual) continue;
-    const team1Id = result(feed[0].from, feed[0].take);
-    const team2Id = result(feed[1].from, feed[1].take);
+    // the reset final only exists when the lower bracket side (team2) wins GF-M1
+    const noReset = r.id === "GF-M2" && byId.get("GF-M1")?.winner === 1;
+    const team1Id = noReset ? null : result(feed[0].from, feed[0].take);
+    const team2Id = noReset ? null : result(feed[1].from, feed[1].take);
     if (team1Id === r.team1Id && team2Id === r.team2Id) continue;
     // filling an empty slot is always fine; replacing a team that already played or started is not
     const replaces = (r.team1Id && r.team1Id !== team1Id) || (r.team2Id && r.team2Id !== team2Id);
