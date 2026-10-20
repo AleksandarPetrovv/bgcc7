@@ -4,7 +4,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "./index";
 import { matches, reschedules, stages, users } from "./schema";
 import { safe } from "./safe";
-import { getAllTeams, getMatchRows, type MatchRow } from "./tournament";
+import { getAllTeams, getMatchRows, getTeams, type MatchRow } from "./tournament";
 import { getSettings } from "./settings";
 import { getFormat } from "./edition";
 import { matchSlug } from "@/lib/format";
@@ -21,7 +21,7 @@ export const stageWeeks = cache(() =>
 );
 
 export const myCaptainTeam = cache(async (osuId: number) => {
-  const ts = await getAllTeams();
+  const ts = await getTeams();
   return ts.find((t) => captainOf(t) === osuId)?.id ?? null;
 });
 
