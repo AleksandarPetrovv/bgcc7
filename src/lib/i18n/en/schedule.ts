@@ -62,7 +62,7 @@ export const schedule = {
       at: "Set time (BG time)",
       set: "Set time",
       none: "No matches yet.",
-      state: { tbd: "TBD", proposed: "Proposed", agreed: "Agreed", waiting: "Teams not known" } as Record<string, string>,
+      state: { tbd: "TBD", proposed: "Proposed", agreed: "Agreed", waiting: "Teams not known", staff: "Needs staff time" } as Record<string, string>,
       help: "Captains propose and accept times on their scheduling page. Setting a time here overrides theirs and cancels any open proposal. Leave it empty to clear.",
     },
   },
