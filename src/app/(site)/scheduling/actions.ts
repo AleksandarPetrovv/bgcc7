@@ -63,8 +63,6 @@ export async function propose(matchId: string, input: string): Promise<Res> {
           .set(p.teamId === team ? { status: "withdrawn" } : { status: "rejected", answeredBy: osuId })
           .where(eq(reschedules.id, p.id));
       }
-      if (m.startsAt) await tx.update(matches).set({ startsAt: null }).where(eq(matches.id, m.id));
-      await tx.update(reschedules).set({ status: "cancelled", answeredBy: osuId }).where(and(eq(reschedules.matchId, m.id), eq(reschedules.status, "accepted")));
       await tx.insert(reschedules).values({ matchId: m.id, teamId: team, requestedBy: osuId, proposedAt: at });
       return m.team1Id === team ? m.team2Id! : m.team1Id!;
     });
@@ -85,6 +83,7 @@ export async function accept(matchId: string, proposalId: number): Promise<Res> 
       const p = (await pendingOf(tx, m.id)).find((x) => x.id === proposalId);
       if (!p || p.teamId !== (m.team1Id === team ? m.team2Id : m.team1Id)) throw new Stop("gone");
       if (!inWindow(w, p.proposedAt)) throw new Stop("window");
+      await tx.update(reschedules).set({ status: "cancelled", answeredBy: osuId }).where(and(eq(reschedules.matchId, m.id), eq(reschedules.status, "accepted")));
       await tx.update(reschedules).set({ status: "accepted", answeredBy: osuId }).where(eq(reschedules.id, p.id));
       await tx.update(matches).set({ startsAt: p.proposedAt }).where(eq(matches.id, m.id));
       return { by: p.teamId, at: p.proposedAt };
