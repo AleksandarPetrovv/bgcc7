@@ -6,6 +6,7 @@ import { MatchDialog } from "@/components/site/match-dialog";
 import { RecordText } from "@/components/site/record";
 import { BestScore } from "@/components/site/best-score";
 import { currentOsuId } from "@/auth";
+import { canSee } from "@/lib/authz";
 import { login } from "@/app/(site)/pickems/actions";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { roundName } from "@/lib/i18n/dict";
@@ -49,7 +50,7 @@ export default async function Me() {
       </Container>
     );
 
-  const [settings, regs, lobbies, qual, teams, matches, stages] = await Promise.all([
+  const [settings, regs, lobbies, qual, teams, matches, stages, schedule] = await Promise.all([
     getSettings(),
     getRegistrations(),
     getLobbies(),
@@ -57,6 +58,7 @@ export default async function Me() {
     getTeams(),
     getMatches(),
     getPoolStages(),
+    canSee("schedule"),
   ]);
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const phase = settings.phase;
@@ -475,9 +477,11 @@ export default async function Me() {
               {t.me.pool} · {roundName(t, stage.title)} <ArrowRight className="size-4" />
             </SlantButton>
           )}
-          <SlantButton href="/matches" tone="outline" className="justify-center px-4 py-2.5 sm:px-5 sm:py-3">
-            {t.home.bracket}
-          </SlantButton>
+          {schedule && (
+            <SlantButton href="/matches" tone="outline" className="justify-center px-4 py-2.5 sm:px-5 sm:py-3">
+              {t.home.bracket}
+            </SlantButton>
+          )}
           <SlantButton href={TWITCH_URL} tone="outline" className="justify-center px-4 py-2.5 sm:px-5 sm:py-3">
             <Tv className="size-4" /> <span className="sm:hidden">Twitch</span><span className="hidden sm:inline">{t.me.watch}</span>
           </SlantButton>
