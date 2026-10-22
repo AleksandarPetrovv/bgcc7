@@ -112,6 +112,7 @@ export function TimerDock({
   color,
   label,
   pause,
+  forever,
   raised,
   calm,
 }: {
@@ -120,11 +121,12 @@ export function TimerDock({
   color: { c: string; hi: string; deep: string };
   label: string;
   pause?: boolean;
+  forever?: boolean;
   raised?: boolean;
   calm?: boolean;
 }) {
   const low = !pause && !calm && left <= 10_000;
-  const pct = total ? Math.max(0, Math.min(1, left / total)) : 0;
+  const pct = forever ? 1 : total ? Math.max(0, Math.min(1, left / total)) : 0;
   const tone = pause ? GOLD : low ? { c: TEAM[1].c, hi: TEAM[1].hi, deep: TEAM[1].deep } : color;
   const { c, hi, deep } = tone;
   return (
@@ -160,7 +162,7 @@ export function TimerDock({
             className="num shrink-0 text-5xl font-display font-black tabular-nums leading-none sm:text-6xl"
             style={{ color: low || pause ? hi : "var(--paper)", textShadow: `0 0 24px ${tint(c, 40)}` }}
           >
-            {clockText(left)}
+            {forever ? <Pause className="size-12 fill-current sm:size-14" /> : clockText(left)}
           </span>
         </div>
       </motion.div>
