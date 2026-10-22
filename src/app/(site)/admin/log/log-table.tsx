@@ -2,7 +2,6 @@ import { Fragment } from "react";
 import { ChevronDown } from "lucide-react";
 import type { LogRow } from "@/db/admin";
 import { Avatar } from "@/components/site/avatar";
-import { InView } from "@/components/site/in-view";
 import type { Dict } from "@/lib/i18n/dict";
 import { describe, summarize, type LogCtx } from "@/lib/log-text";
 import { getFormat } from "@/db/edition";
@@ -92,17 +91,17 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
   const renderRow = (r: LogRow, i: number) => {
     const g = categoryOf(r.action);
     return (
-      <li key={r.id} className="in-left group relative flex items-center gap-3 border-b border-line px-3 py-2.5 transition-colors last:border-b-0 hover:bg-slate" style={{ "--i": Math.min(i, 20), "--s": "0.04s", "--d": "0.2s" } as React.CSSProperties}>
+      <li key={r.id} className="in-left group relative flex items-center gap-3 border-b border-line px-3 py-2.5 transition-colors last:border-b-0 hover:bg-slate" style={{ "--i": Math.min(i, 24), "--s": "0.05s", "--d": "0.15s" } as React.CSSProperties}>
         <span className={cn("absolute inset-y-0 left-0 w-0.5 origin-top scale-y-0 transition-transform duration-300 group-hover:scale-y-100", DOT[g])} aria-hidden />
-        <span className="in-spin inline-flex [--d:0.3s]">
+        <span className="inline-flex">
           <Avatar src={r.avatarUrl} className="size-7 ring-offset-1" />
         </span>
         <p className="min-w-0 flex-1 break-words text-sm leading-snug text-paper/70">
           <span className="font-display font-black text-paper">{r.username ?? `#${r.osuId}`}</span>{" "}
           <Rich text={describe(r.action, r.payload, ctx, helpers)} />
         </p>
-        <span className={cn("in-pop size-1.5 shrink-0 rotate-45 [--d:0.5s]", DOT[g])} title={t.admin.logGroups[g]} aria-hidden />
-        <time className="in-wipe-r num w-12 shrink-0 text-right text-sm text-ash [--d:0.45s]" dateTime={r.at.toISOString()}>
+        <span className={cn("size-1.5 shrink-0 rotate-45", DOT[g])} title={t.admin.logGroups[g]} aria-hidden />
+        <time className="num w-12 shrink-0 text-right text-sm text-ash" dateTime={r.at.toISOString()}>
           {fmtSofiaTime(r.at)}
         </time>
       </li>
@@ -120,20 +119,22 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
     }
     day.entries.push(entry);
   }
+  let n = 0;
+  const step = (i: number) => ({ "--i": Math.min(i, 24), "--s": "0.05s", "--d": "0.15s" }) as React.CSSProperties;
   return (
     <div className="space-y-6">
       {[...days.entries()].map(([day, list]) => (
         <section key={day}>
-          <h3 className="mb-2 flex items-center gap-3 text-xs font-display font-bold text-ash">
-            <span className="in-wipe [--d:0.15s]">{list.label}</span>
-            <span className="in-grow h-px flex-1 border-t border-dashed border-line [--d:0.25s]" aria-hidden />
+          <h3 className="in-left mb-2 flex items-center gap-3 text-xs font-display font-bold text-ash" style={step(n)}>
+            <span>{list.label}</span>
+            <span className="h-px flex-1 border-t border-dashed border-line" aria-hidden />
           </h3>
-          <InView as="ol" className="relative border border-line bg-coal">
-            {list.entries.map((entry, i) => {
-              if (entry.kind === "row") return renderRow(entry.row, i);
+          <ol className="relative border border-line bg-coal">
+            {list.entries.map((entry) => {
+              if (entry.kind === "row") return renderRow(entry.row, n++);
               const r = entry.latest;
               return (
-                <li key={r.id} className="border-b border-line last:border-b-0">
+                <li key={r.id} className="in-left border-b border-line last:border-b-0" style={step(n++)}>
                   <details className="group/audit">
                     <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-2.5 hover:bg-slate focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-rose [&::-webkit-details-marker]:hidden">
                       <Avatar src={r.avatarUrl} className="size-7 shrink-0 ring-offset-1" />
@@ -151,7 +152,7 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
                 </li>
               );
             })}
-          </InView>
+          </ol>
         </section>
       ))}
     </div>
