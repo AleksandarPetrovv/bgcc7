@@ -182,7 +182,7 @@ export const adminSetup = {
   exportTeams: "Players with teams",
   exportHelp: "A plain text file in the format osu! asks for: username,osu id. The team version adds the team name in the middle.",
   denyNote: "Write the reason in the note first.",
-  seedLocked: "Seeds come from qualifiers and can't be changed by hand.",
+  seedLocked: "Seeds come from the players' average BWS seed and can't be changed by hand.",
   staffPlays: "Also signed up as a player. In a badged tournament only streamers, commentators and designers can play. Referees and playtesters only once they're knocked out.",
   mapDmca: "Download disabled on osu! (DMCA). This map can't be used.",
   all: "All",

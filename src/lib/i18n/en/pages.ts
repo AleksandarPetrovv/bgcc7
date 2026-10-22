@@ -62,7 +62,7 @@ export const pages = {
     scoresHint: "Hover any score to see the full play. Gold, silver and bronze are the top three on each map.",
     seedingTitle: "Seeding",
     seedingTag: "Based on qualifier results",
-    noResults: "Qualifier results aren't in yet.",
+    noResults: "No results yet.",
     chartLabel: "Player percentile sum · top %qualify%",
     seedingNote: "Seeds 1 to 4 (in green) open the winners bracket against seeds 5 to 8.",
     avg: (n: string) => `avg #${n}`,
