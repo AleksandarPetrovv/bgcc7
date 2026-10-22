@@ -134,7 +134,9 @@ export const LONG_MOD: Record<PlanMod, string> = { NM: "NoMod", HD: "Hidden", HR
 export const SKILLS: Record<string, { abbr: string; color: string }> = {
   aim: { abbr: "AIM", color: "var(--mod-nm)" },
   speed: { abbr: "SPD", color: "var(--mod-dt)" },
-  reading: { abbr: "RDG", color: "var(--mod-fm)" },
+  reading: { abbr: "RDG", color: "var(--rose-light)" },
+  tapping: { abbr: "TAP", color: "var(--mod-hr)" },
+  gimmick: { abbr: "GMK", color: "var(--mod-fm)" },
   "finger-control": { abbr: "FGC", color: "var(--mod-hd)" },
   stamina: { abbr: "STM", color: "var(--mod-hr)" },
 };
