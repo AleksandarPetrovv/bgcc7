@@ -82,7 +82,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
         </div>
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
           <Team team={r.teams[0]} side={1} />
-          <span className="heading-slam w-8 text-center text-sm text-ash">vs</span>
+          <span className="heading-slam w-8 text-center text-sm text-ash">VS</span>
           <Team team={r.teams[1]} side={2} />
         </div>
         <div className="flex justify-start md:justify-end">
