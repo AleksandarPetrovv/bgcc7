@@ -38,8 +38,8 @@ function Countdown({ startsAt, at }: { startsAt: string | null; at: number }) {
         <div key={i} className="flex items-start gap-5">
           {i > 0 && <span className="mt-[80px] size-4 rotate-45 bg-rose" aria-hidden />}
           <div className="flex flex-col items-center gap-3">
-            <span className="inline-flex -skew-x-12 border border-line bg-coal/90 px-9 py-4 shadow-[8px_8px_0_0_color-mix(in_srgb,var(--rose-deep)_42%,transparent)]">
-              <span className="num relative flex h-[136px] skew-x-12 items-center px-1 font-display text-[112px] [clip-path:inset(0_-30%)] font-black leading-none tabular-nums text-paper">
+            <span className="inline-flex -skew-x-12 overflow-hidden border border-line bg-coal/90 px-9 py-4 shadow-[8px_8px_0_0_color-mix(in_srgb,var(--rose-deep)_42%,transparent)]">
+              <span className="num relative flex h-[136px] skew-x-12 items-center px-1 font-display text-[112px] font-black leading-none tabular-nums text-paper">
                 {String(p)
                   .padStart(2, "0")
                   .split("")
@@ -100,12 +100,7 @@ function Soon({ feed }: { feed: OverlayFeed }) {
         <motion.div initial={{ opacity: 0, y: -40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: EASE }}>
           <Lockup num={editionNum(feed)} size={150} animate />
         </motion.div>
-        <div className="mt-12 flex items-center gap-4">
-          <Glyph kind="asterisk" className="size-[22px]" />
-          <span className="text-[26px] font-black uppercase tracking-[0.05em] text-balkan-hi">Starting soon</span>
-          <Glyph kind="asterisk" className="size-[22px]" />
-        </div>
-        <div className="mt-10">
+        <div className="mt-16">
           <Countdown key={`${feed.match.id}:${feed.match.startsAt}`} startsAt={feed.match.startsAt} at={feed.at} />
         </div>
       </div>
@@ -125,7 +120,7 @@ function Soon({ feed }: { feed: OverlayFeed }) {
   );
 }
 
-// same timing as the pick and ban page: ~1.3s slot-machine spin, winner revealed 1.6s after the second roll
+// counts up to the roll over ~1.3s, winner revealed 1.6s after the second roll
 function useSpin(value: number | null) {
   const seen = useRef(value);
   const [shown, setShown] = useState<number | null>(value);
@@ -137,29 +132,21 @@ function useSpin(value: number | null) {
       const id = setTimeout(() => setShown(null), 0);
       return () => clearTimeout(id);
     }
-    let alive = true;
-    let delay = 30;
-    let timer: ReturnType<typeof setTimeout>;
+    let frame = 0;
     const start = performance.now();
-    const tick = () => {
-      if (!alive) return;
-      if (performance.now() - start > 1300) {
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / 1300);
+      if (p >= 1) {
         setShown(value);
         setSpinning(false);
         return;
       }
-      setShown(1 + Math.floor(Math.random() * 100));
-      delay *= 1.14;
-      timer = setTimeout(tick, delay);
-    };
-    timer = setTimeout(() => {
       setSpinning(true);
-      tick();
-    }, 0);
-    return () => {
-      alive = false;
-      clearTimeout(timer);
+      setShown(Math.max(1, Math.round(value * (1 - (1 - p) ** 3))));
+      frame = requestAnimationFrame(tick);
     };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
   }, [value]);
   return { shown, spinning };
 }
@@ -186,15 +173,15 @@ function Roll({ value, state, side }: { value: number | null; state: "wait" | "w
         className="inline-flex -skew-x-12 items-center gap-4 border-[3px] px-6 py-2 transition-[border-color,box-shadow,background-color] duration-500"
         style={{ borderColor: won ? "var(--gold-deep)" : c.c, background: won ? "var(--gold)" : "color-mix(in srgb, var(--coal) 92%, transparent)", boxShadow: `7px 7px 0 0 ${won ? "var(--gold-deep)" : c.deep}` }}
       >
-        <span className={cn("skew-x-12 text-[16px] font-black uppercase tracking-[0.06em]", won ? "text-paper/75" : "text-ash")}>Roll</span>
+        <span className={cn("skew-x-12 text-[16px] font-display font-bold", won ? "text-paper/75" : "text-ash")}>Roll</span>
         <span className="relative flex h-[64px] min-w-[96px] skew-x-12 items-center justify-center">
           <AnimatePresence initial={false} mode="popLayout">
             <motion.span
-              key={spinning ? `s${shown}` : `f${shown}`}
-              className={cn("num font-display text-[56px] font-black leading-none", shown == null ? "text-ash/50" : spinning ? "text-paper/70 blur-[1px]" : "text-paper")}
-              initial={spinning ? { y: -24, opacity: 0 } : { scale: 2.2, opacity: 0, rotate: -8 }}
+              key={spinning ? "s" : `f${shown}`}
+              className={cn("num font-display text-[56px] font-black leading-none", shown == null ? "text-ash/50" : spinning ? "text-paper/70" : "text-paper")}
+              initial={spinning ? { opacity: 0 } : { scale: 2.2, opacity: 0, rotate: -8 }}
               animate={shown == null ? { y: 0, scale: 1, rotate: 0, opacity: [0.35, 0.8, 0.35] } : { y: 0, scale: 1, rotate: 0, opacity: 1 }}
-              exit={spinning ? { y: 24, opacity: 0 } : { opacity: 0 }}
+              exit={{ opacity: 0 }}
               transition={shown == null ? { opacity: { duration: 1.6, repeat: Infinity } } : spinning ? { duration: 0.08 } : { type: "spring", stiffness: 520, damping: 18 }}
             >
               {shown ?? "?"}
@@ -308,7 +295,7 @@ function Winner({ feed }: { feed: OverlayFeed }) {
       <div className="absolute left-[72px] top-[200px] flex flex-col gap-8 text-white">
         <div className="flex items-center gap-5">
           <Glyph kind="crown" className="size-[30px]" />
-          <span className="text-[28px] font-black uppercase tracking-[0.05em] text-gold">Winner</span>
+          <span className="text-[28px] font-display font-bold text-gold">Winner</span>
         </div>
         <div className="flex items-center gap-10">
           {team.image.trim() && (
@@ -371,7 +358,7 @@ function Break({ feed, end }: { feed: OverlayFeed; end?: boolean }) {
           transition={{ duration: 0.7, delay: 0.15, ease: EASE }}
         >
           {end ? (
-            <Echo text="Thanks for watching" className="text-[84px]" />
+            <Echo text="Thanks for watching!" className="text-[84px]" />
           ) : (
             <motion.div className="flex flex-col items-center" animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
               <Echo text="Be right" className="text-[180px]" />
@@ -385,7 +372,7 @@ function Break({ feed, end }: { feed: OverlayFeed; end?: boolean }) {
       <div className="absolute inset-x-[72px] bottom-[120px]">
         {end && w ? (
           <div className="flex items-center justify-center gap-6">
-            <span className="text-[22px] font-black uppercase tracking-[0.05em] text-gold-hi">Winner</span>
+            <span className="text-[22px] font-display font-bold text-gold-hi">Winner</span>
             <TeamPlate team={feed.teams[w - 1]} side={(w - 1) as 0 | 1} big />
           </div>
         ) : (

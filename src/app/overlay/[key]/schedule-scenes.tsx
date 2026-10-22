@@ -14,8 +14,8 @@ const time = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", m
 function Heading({ text }: { text: string }) {
   return (
     <div className="flex items-center gap-4">
-      <Glyph kind="play" className="size-[24px]" />
-      <h2 className="text-[22px] font-black uppercase tracking-[0.05em] text-paper">{text}</h2>
+      <Glyph kind="spark" className="size-[24px]" />
+      <h2 className="text-[22px] font-display font-bold text-paper">{text}</h2>
     </div>
   );
 }
@@ -32,26 +32,33 @@ function Row({ m, current, i }: { m: FeedMatch; current: boolean; i: number }) {
       style={{ borderColor: current ? "var(--gold)" : "var(--line)", boxShadow: current ? "6px 6px 0 0 var(--gold-deep)" : "5px 5px 0 0 color-mix(in srgb, var(--rose-deep) 42%, transparent)" }}
     >
       <div className={cn("flex w-[170px] shrink-0 flex-col items-center justify-center", done ? "bg-slate" : "bg-rose")}>
-        <span className={cn("skew-x-12 text-[15px] font-black uppercase tracking-[0.05em]", done ? "text-ash" : "text-white/85")}>{at ? day.format(at) : "TBD"}</span>
+        <span className={cn("skew-x-12 text-[15px] font-display font-bold", done ? "text-ash" : "text-white/85")}>{at ? day.format(at) : "TBD"}</span>
         <span className={cn("num skew-x-12 font-display text-[26px] font-black leading-none", done ? "text-paper" : "text-white")}>{at ? time.format(at) : "--:--"}</span>
       </div>
       <div className="flex min-w-0 flex-1 skew-x-12 flex-col justify-center gap-1 px-6">
         <span className={LABEL}>{m.round}</span>
-        <div className="flex min-w-0 items-center gap-4 text-[24px] font-black">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 text-[24px] font-black">
           {[0, 1].map((s) => {
             const lost = done && m.winner !== s + 1;
             return (
-              <span key={s} className={cn("flex min-w-0 items-center gap-3", s === 1 && "flex-row-reverse", s === 0 ? "flex-1" : "flex-1 justify-start")}>
+              <span key={s} className={cn("flex min-w-0 items-center gap-3", s === 1 && "order-3 flex-row-reverse")}>
                 <span className="h-6 w-1.5 shrink-0" style={{ background: TEAM[s].c }} />
                 <span className={cn("min-w-0 truncate", lost && "text-paper/40")}>{m.teams[s]}</span>
-                {done && (
-                  <span className="num font-display" style={{ color: lost ? "var(--ash)" : TEAM[s].hi }}>
-                    {m.score[s] ?? 0}
-                  </span>
-                )}
               </span>
             );
           })}
+          <span className="order-2 flex items-center gap-2 font-display">
+            {done ? (
+              [0, 1].map((s) => (
+                <span key={s} className={cn("num flex items-center gap-2", s === 1 && "flex-row-reverse")} style={{ color: m.winner === s + 1 ? TEAM[s].hi : "var(--ash)" }}>
+                  {m.score[s] ?? 0}
+                  {s === 0 && <span className="text-ash/60">-</span>}
+                </span>
+              ))
+            ) : (
+              <span className="text-[18px] italic text-ash">vs</span>
+            )}
+          </span>
         </div>
       </div>
     </motion.div>
@@ -127,7 +134,7 @@ function Lane({ title, rounds, feed, height }: { title: string; rounds: [string,
             transition={{ duration: 0.4, delay: ri * 0.07, ease: EASE }}
             className="flex min-w-0 flex-col"
           >
-            <span className="mb-1.5 truncate text-[13px] font-black uppercase tracking-[0.05em] text-paper/70">{round}</span>
+            <span className="mb-1.5 truncate text-[13px] font-display font-bold text-paper/70">{round}</span>
             <div className="flex flex-1 flex-col justify-around gap-1.5">
               {ms.map((m) => (
                 <Mini key={m.id} m={m} current={m.id === feed.match.id} />

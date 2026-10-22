@@ -14,6 +14,7 @@ const decimal = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maxim
 const Count = memo(function Count({ value, decimals = false, reduced, signed = false }: { value: number; decimals?: boolean; reduced: boolean; signed?: boolean }) {
   const node = useRef<HTMLSpanElement>(null);
   const shown = useRef(value);
+  const lastAt = useRef(0);
   const fmt = (v: number) => `${signed && v > 0 ? "+" : ""}${(decimals ? decimal : integer).format(signed ? Math.abs(v) : v)}`;
   const [initial] = useState(() => fmt(value));
   useEffect(() => {
@@ -27,9 +28,12 @@ const Count = memo(function Count({ value, decimals = false, reduced, signed = f
       el.textContent = format(value);
       return;
     }
+    // roll over the gap between updates so the number keeps moving instead of jumping then pausing
     const start = performance.now();
+    const span = Math.min(1000, Math.max(120, start - lastAt.current));
+    lastAt.current = start;
     const tick = (now: number) => {
-      const p = Math.min(1, (now - start) / 95);
+      const p = Math.min(1, (now - start) / span);
       shown.current = from + (value - from) * p;
       el.textContent = format(shown.current);
       if (p < 1) frame = requestAnimationFrame(tick);
@@ -310,7 +314,7 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
                 ].map(([k, v]) => (
                   <div key={k} className="inline-flex -skew-x-12 border border-line bg-coal px-2 py-1">
                     <div className="flex skew-x-12 items-baseline gap-1.5">
-                      <dt className={cn("text-[10px] font-black uppercase tracking-[0.05em]", k === "★" ? "text-gold-hi" : "text-ash")}>{k}</dt>
+                      <dt className={cn("text-[10px] font-display font-bold", k === "★" ? "text-gold-hi" : "text-ash")}>{k}</dt>
                       <dd className="num text-[17px] font-black">{v}</dd>
                     </div>
                   </div>
@@ -318,7 +322,7 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
               </dl>
             </>
           ) : (
-            <span className="text-[14px] font-black uppercase tracking-[0.08em] text-ash">{feed.match.round}</span>
+            <span className="text-[14px] font-display font-bold text-ash">{feed.match.round}</span>
           )}
           <Lockup num={editionNum(feed)} size={22} className="ml-auto shrink-0 pl-3" />
         </motion.div>

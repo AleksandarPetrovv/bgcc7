@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, MotionGlobalConfig, useReducedMotion } from "motion/react";
 import type { OverlayFeed } from "@/lib/overlay-types";
 import type { Scene } from "@/lib/scenes";
 import { CalmScene } from "./calm-scenes";
@@ -66,12 +66,22 @@ function OverlaySubscription({ url }: { url: string }) {
     };
   }, [url]);
 
+  // a hidden tab doesn't save up animations: whatever changed while away just shows when you come back
+  useEffect(() => {
+    const sync = () => {
+      MotionGlobalConfig.skipAnimations = document.hidden;
+    };
+    sync();
+    document.addEventListener("visibilitychange", sync);
+    return () => document.removeEventListener("visibilitychange", sync);
+  }, []);
+
   const target = feed ? `${feed.match.id}:${feed.scene}` : null;
   const [shown, setShown] = useState<string | null>(target);
   const [wipe, setWipe] = useState(0);
   useEffect(() => {
     if (target === shown) return;
-    if (shown === null || target === null || reducedMotion) {
+    if (shown === null || target === null || reducedMotion || document.hidden) {
       const id = setTimeout(() => setShown(target), 0);
       return () => clearTimeout(id);
     }
