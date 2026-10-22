@@ -7,9 +7,24 @@
     "dev": "tauri dev",
     "prebuild": "node ../scripts/palette.mjs",
     "build": "tauri build --no-bundle",
+    "ui": "vite",
+    "ui:build": "tsc && vite build",
     "icon": "tauri icon icon.svg"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2"
-  }
+    "@tailwindcss/vite": "^4.3.3",
+    "@tauri-apps/cli": "^2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.5"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.12.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "type": "module"
 }

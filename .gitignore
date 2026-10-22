@@ -27,5 +27,6 @@ AGENTS.md
 CLAUDE.md
 .claude/
 /helper/node_modules
+/helper/dist
 /helper/src-tauri/target
 /helper/src-tauri/gen
