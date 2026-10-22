@@ -40,7 +40,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                 <Download className="size-4" /> {t.mappool.pack(count)}
               </SlantButton>
             ) : (
-              <span className="inline-flex -skew-x-12 items-center border border-dashed border-line px-3 py-1.5 text-sm font-black uppercase tracking-wide text-ash" title={t.mappool.packSoon}>
+              <span className="inline-flex -skew-x-12 items-center border border-dashed border-line px-3 py-1.5 text-sm font-display font-bold text-ash" title={t.mappool.packSoon}>
                 <span className="inline-flex skew-x-12 items-center gap-2">
                   <Download className="size-4" /> {t.mappool.packSoon}
                 </span>
@@ -71,7 +71,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                   <Play className={cn("size-4 fill-current transition-transform", isOpen && "rotate-90", light ? "text-paper" : "text-white")} />
                 </span>
                 <span
-                  className={cn("in-grow flex flex-1 items-center justify-between px-3 py-1.5 font-black uppercase [--d:0.08s]", light ? "text-paper" : "text-white")}
+                  className={cn("in-grow flex flex-1 items-center justify-between px-3 py-1.5 font-display font-bold [--d:0.08s]", light ? "text-paper" : "text-white")}
                   style={{ background: mod.color }}
                 >
                   {mod.label}
@@ -96,7 +96,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                       initial={{ opacity: 0, x: -14 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.45, delay: 0.05 + k * 0.04, ease: [0.16, 1, 0.3, 1] }}
-                      key={m.slot} className="lift group relative flex h-20 items-stretch overflow-hidden border border-transparent bg-coal hover:border-line 2xl:h-24"
+                      key={m.slot} className="lift group relative flex h-20 items-stretch overflow-hidden border border-line bg-coal hover:border-rose/50 2xl:h-24"
                       style={{ "--lift": modHi(mc), "--i": pi + k, "--s": "0.05s" } as React.CSSProperties}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-45 saturate-[1.15] transition duration-500 group-hover:scale-105 group-hover:opacity-60 [--d:0.15s]" />
@@ -106,11 +106,11 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                       </span>
                       <div className="relative flex min-w-0 flex-1 flex-col justify-center">
                         <span className="flex min-w-0 items-center gap-2">
-                          <a href={osuMap(m.id)} target="_blank" rel="noreferrer" className="truncate text-base font-black transition-colors hover:text-[var(--lift)] sm:text-lg 2xl:text-xl">
+                          <a href={osuMap(m.id)} target="_blank" rel="noreferrer" className="truncate text-base font-display font-black transition-colors hover:text-[var(--lift)] sm:text-lg 2xl:text-xl">
                             {m.title}
                           </a>
                           {skill && m.mod !== "Tiebreaker" && MODS[m.mod] && (
-                            <span className="shrink-0 -skew-x-12 border px-2 py-0.5 text-xs font-black leading-4 sm:text-sm" style={{ borderColor: modHi(MODS[m.mod].color), color: modHi(MODS[m.mod].color) }}>
+                            <span className="shrink-0 -skew-x-12 border px-2 py-0.5 text-xs font-display font-black leading-4 sm:text-sm" style={{ borderColor: modHi(MODS[m.mod].color), color: modHi(MODS[m.mod].color) }}>
                               <span className="inline-block skew-x-12">{MODS[m.mod].short}</span>
                             </span>
                           )}
@@ -256,9 +256,9 @@ function StageStrip({ stage, info }: { stage: Stage; info: { firstTo: number; ba
                 animate={{ scaleX: 1 }}
                 transition={{ duration: 0.7, delay: 0.2 + k * 0.08, ease: EASE }}
               />
-            <span className="text-[0.65rem] font-black uppercase tracking-widest text-ash sm:text-xs">{c.label}</span>
+            <span className="text-[0.65rem] font-display font-bold text-ash sm:text-xs">{c.label}</span>
             <span className="heading-slam num text-3xl leading-tight sm:text-4xl">{c.val}</span>
-            {c.sub && <span className="text-[0.7rem] font-black uppercase tracking-wide text-paper/60 sm:text-xs">{c.sub}</span>}
+            {c.sub && <span className="text-[0.7rem] font-display font-bold text-paper/60 sm:text-xs">{c.sub}</span>}
           </motion.div>
         ))}
       </div>

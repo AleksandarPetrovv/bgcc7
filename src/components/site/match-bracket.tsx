@@ -8,7 +8,6 @@ import { TWITCH_URL } from "@/lib/links";
 import { useTournament } from "./tournament";
 import { useDict, useLang } from "./lang";
 import { MatchDialog } from "./match-dialog";
-import { Glyph } from "./graphics";
 import { cn } from "@/lib/utils";
 import { MeTag, meT } from "./me";
 import { fitBox, useFit } from "./use-fit";
@@ -16,14 +15,14 @@ import { winTargets, type Format, type Half } from "@/lib/format";
 import { TZ } from "@/lib/time";
 import { HEX } from "@/lib/theme";
 
-const TOP = 72;
+const TOP = 92;
 type Pos = Record<string, [number, number, Half]>;
 
 function bracketLayout(f: Format) {
   const { upRows, lowRows, gfRow, gfCol } = f.layout;
   const { g: G, h: H, gap, minW } = f.layout.box;
   const P = H + gap;
-  const LOW = TOP + (upRows - 1) * P + H + 110;
+  const LOW = TOP + (upRows - 1) * P + H + 130;
   const CENTER = gfRow * P + H / 2;
   const POS: Pos = { "GF-M1": [gfCol, CENTER - H - 12, "u"], "GF-M2": [gfCol, CENTER + 12, "u"] };
   for (const [id, [c, r, h]] of Object.entries(f.layout.pos)) POS[id] = [c, r * P, h];
@@ -51,7 +50,7 @@ function Line({ m, slot, live, slim }: { m: Match; slot: 1 | 2; live?: [number, 
       {(won || leads) && <span className={cn("absolute inset-y-1 left-0 w-0.5", won ? "bg-balkan" : "bg-rose/60")} aria-hidden />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {!slim && <img src={team.image} alt="" className="in-pop size-5 shrink-0 object-cover" style={v({ "--d": "0.45s" })} />}
-      <span title={team.name} className={cn("in-wipe min-w-0 flex-1 truncate text-[0.8rem] font-bold", won && "font-black text-paper", leads && "font-black text-rose-hi")} style={v({ "--d": "0.5s" })}>
+      <span title={team.name} className={cn("in-wipe min-w-0 flex-1 truncate text-[0.8rem] font-display font-bold", won && "font-display font-black text-paper", leads && "font-display font-black text-rose-hi")} style={v({ "--d": "0.5s" })}>
         {team.name}
       </span>
       <MeTag t={team.id} className="-mx-1" />
@@ -74,7 +73,7 @@ function Box({ id, m, live, slim, className, style, onEnter, onLeave }: { id: st
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className={cn("flex flex-col overflow-hidden border bg-coal transition-[border-color] duration-200", className)} style={style}>
       <div className="flex h-7 shrink-0 items-center gap-2 border-b border-line bg-ink/70 px-2.5">
         <span className="num truncate text-[0.78rem] text-paper/75">{m.datetime ? `${id === "GF-M2" ? new Date(m.datetime).toLocaleDateString(locale, { timeZone: TZ, day: "2-digit", month: "short" }) : day(m.datetime)} · ${clock(m.datetime)}` : m.winner ? "" : m.team1.id && m.team2.id ? t.common.tbd : "—"}</span>
-        {id === "GF-M2" && <span className="shrink-0 whitespace-nowrap text-[0.6rem] font-black uppercase text-gold-hi">{t.rounds.reset}</span>}
+        {id === "GF-M2" && <span className="shrink-0 whitespace-nowrap text-[0.6rem] font-display font-bold text-gold-hi">{t.rounds.reset}</span>}
         <span className="ml-auto flex items-center gap-1">
           {live !== undefined && <LiveDot />}
           {m.links.length > 0 && <MatchDialog match={m} compact />}
@@ -166,10 +165,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   };
 
   const section = (s: "u" | "l") => (
-    <div className="pointer-events-none absolute flex items-center gap-3" style={{ left: s === "u" ? 0 : col(lowCol), top: s === "u" ? 0 : LOW - 72 }}>
-      <span className="in-left-far inline-flex" style={v({ "--d": s === "u" ? "0.05s" : "0.35s" })}>
-        <Glyph kind="flag" className="size-5" />
-      </span>
+    <div className="pointer-events-none absolute flex items-center gap-3" style={{ left: s === "u" ? 0 : col(lowCol), top: s === "u" ? 0 : LOW - 100 }}>
       <span className={cn("in-wipe heading-slam whitespace-nowrap text-xl sm:text-3xl", s === "l" && "text-rose-hi")} style={v({ "--d": s === "u" ? "0.1s" : "0.4s" })}>
         {s === "u" ? t.schedule.upper : t.schedule.lower}
       </span>
@@ -229,13 +225,12 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
           return (
             <div key={h.t}>
               {phone && (
-                <div className="pointer-events-none absolute flex items-center gap-2" style={{ left: col(h.c), top: y - 62 }}>
-                  <Glyph kind="flag" className="size-5" />
+                <div className="pointer-events-none absolute flex items-center gap-2" style={{ left: col(h.c), top: y - 74 }}>
                   <span className={cn("heading-slam whitespace-nowrap text-xl", h.s === "l" && "text-rose-hi")}>{h.s === "u" ? t.schedule.upper : t.schedule.lower}</span>
                 </div>
               )}
               <div
-                className="in-drop absolute snap-start truncate border-b border-line pb-1 text-xs font-black uppercase tracking-[0.14em] text-ash"
+                className="in-drop absolute snap-start truncate border-b border-line pb-1 text-xs font-display font-bold text-ash"
                 style={{ left: col(h.c), top: y - 30, width: W, ...v({ "--i": h.c, "--s": "0.12s", "--d": h.s === "u" ? "0.15s" : "0.45s" }) }}
               >
                 {t.rounds[h.t] ?? h.t}
@@ -244,7 +239,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
           );
         })}
         <div
-          className="in-drop absolute flex snap-start items-center gap-2 border-b border-gold/20 pb-1 text-xs font-black uppercase tracking-[0.14em] text-gold-hi/80"
+          className="in-drop absolute flex snap-start items-center gap-2 border-b border-gold/20 pb-1 text-xs font-display font-bold text-gold-hi/80"
           style={{ left: col(gfCol), top: top("GF-M1") - 30, width: W, ...v({ "--d": "0.7s" }) }}
         >
           <Crown className="size-3.5" /> {t.rounds["Grand Finals"]}
