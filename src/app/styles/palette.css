@@ -1,5 +1,5 @@
 /* the only place colors are defined. site, overlays and the ref app all read these.
-   after editing, run `pnpm palette` to copy this file into the helper.
+   the helper imports this file directly; after editing, run `pnpm palette` to sync its window color.
    "-hi" = the shade used for text and small marks on the canvas (needs contrast with ink). */
 :root {
   color-scheme: light;
@@ -10,7 +10,7 @@
   --coal: #fefefd;
   --slate: #ffffff;
   --field: #ffffff;
-  --line: #ece4e2;
+  --line: #dccdca;
 
   /* text */
   --paper: #2b2326;
@@ -25,6 +25,7 @@
   --rose-deep: #9a3b62;
   --rose-hi: #a8436b;
   --rose-soft: #efa3bc;
+  --rose-light: #e27fa3;
 
   /* accent: ginkgo (one hue: fill, -deep for shadows, -hi for text) */
   --balkan: #93b43d;
