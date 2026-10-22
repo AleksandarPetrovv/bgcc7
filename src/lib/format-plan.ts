@@ -132,23 +132,23 @@ export function cleanPlan(v: unknown): Plan | null {
 export const LONG_MOD: Record<PlanMod, string> = { NM: "NoMod", HD: "Hidden", HR: "HardRock", DT: "DoubleTime" };
 
 export const SKILLS: Record<string, { abbr: string; color: string }> = {
-  aim: { abbr: "AIM", color: "var(--color-mod-nm)" },
-  speed: { abbr: "SPD", color: "var(--color-mod-dt)" },
-  reading: { abbr: "RDG", color: "var(--color-mod-fm)" },
-  "finger-control": { abbr: "FGC", color: "var(--color-mod-hd)" },
-  stamina: { abbr: "STM", color: "var(--color-mod-hr)" },
+  aim: { abbr: "AIM", color: "var(--mod-nm)" },
+  speed: { abbr: "SPD", color: "var(--mod-dt)" },
+  reading: { abbr: "RDG", color: "var(--mod-fm)" },
+  "finger-control": { abbr: "FGC", color: "var(--mod-hd)" },
+  stamina: { abbr: "STM", color: "var(--mod-hr)" },
 };
-const TB_SKILL = { abbr: "TB", color: "var(--color-mod-tb)" };
+const TB_SKILL = { abbr: "TB", color: "var(--mod-tb)" };
 
 const skillOf = (c: { id: string; name: string }) =>
-  SKILLS[c.id] ?? SKILLS[c.name.trim().toLowerCase().replace(/\s+/g, "-")] ?? { abbr: c.name.replace(/[^a-z]/gi, "").slice(0, 3).toUpperCase() || "MAP", color: "var(--color-paper)" };
+  SKILLS[c.id] ?? SKILLS[c.name.trim().toLowerCase().replace(/\s+/g, "-")] ?? { abbr: c.name.replace(/[^a-z]/gi, "").slice(0, 3).toUpperCase() || "MAP", color: "var(--paper)" };
 
 
 export const skillColor = (slot: string) => Object.values(SKILLS).find((s) => s.abbr === slot.replace(/\d+$/, ""))?.color;
 
 export const slotColor = (slot: string) => {
   const p = slot.replace(/\d+$/, "");
-  return Object.values(SKILLS).find((s) => s.abbr === p)?.color ?? MOD_COLOR[p] ?? "var(--color-paper)";
+  return Object.values(SKILLS).find((s) => s.abbr === p)?.color ?? MOD_COLOR[p] ?? "var(--paper)";
 };
 
 export type SkillSlot = { mod: string; slot: number; note: string; label: string };

@@ -84,7 +84,7 @@
 
 .lift:hover {
   translate: -3px -3px;
-  box-shadow: 6px 6px 0 0 var(--lift, var(--color-rose));
+  box-shadow: 6px 6px 0 0 var(--lift, var(--rose));
 }
 
 .lift-sm {
@@ -93,12 +93,12 @@
 
 .lift-sm:hover {
   translate: -2px -2px;
-  box-shadow: 4px 4px 0 0 var(--lift, var(--color-rose-deep));
+  box-shadow: 4px 4px 0 0 var(--lift, var(--rose-deep));
 }
 
 .lift-sm:active {
   translate: 0 0;
-  box-shadow: 0 0 0 0 var(--lift, var(--color-rose-deep));
+  box-shadow: 0 0 0 0 var(--lift, var(--rose-deep));
 }
 
 .sheen {
@@ -111,7 +111,7 @@
   position: absolute;
   inset: 0;
   width: 40%;
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.18), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--white) 45%, transparent), transparent);
   transform: translateX(-120%) skewX(-20deg);
   pointer-events: none;
 }
