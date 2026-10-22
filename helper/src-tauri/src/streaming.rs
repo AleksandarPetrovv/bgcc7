@@ -5,7 +5,7 @@ use std::sync::{atomic::{AtomicBool, Ordering}, Arc};
 use std::time::{Duration, Instant};
 use tokio::sync::watch;
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct ScorePacket {
     ipc_state: i32,
@@ -13,7 +13,7 @@ struct ScorePacket {
     clients: Vec<LiveClient>,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct LiveClient {
     ipc_id: u64,
@@ -114,6 +114,8 @@ pub async fn run(sh: Arc<Shared>, token: String, mut stop: watch::Receiver<bool>
         }
     });
     let mut last_count = None;
+    // the reader polls every 100ms; only send when something changed, plus a keepalive well under the site's 10s expiry
+    let mut sent: Option<(ScorePacket, Instant)> = None;
     let mut diagnostic = Instant::now() - Duration::from_secs(30);
     loop {
         if *stop.borrow() { break; }
@@ -132,6 +134,7 @@ pub async fn run(sh: Arc<Shared>, token: String, mut stop: watch::Receiver<bool>
             Sample::Error => { state(&sh, "error", 0, None); continue; }
             Sample::Packet(p) => p,
         };
+        if sent.as_ref().is_some_and(|(last, at)| *last == p && at.elapsed() < Duration::from_secs(2)) { continue; }
         let count = p.clients.len();
         if last_count != Some(count) && diagnostic.elapsed() >= Duration::from_secs(15) {
             sh.note("info", format!("tourney clients: {count}"));
@@ -150,6 +153,7 @@ pub async fn run(sh: Arc<Shared>, token: String, mut stop: watch::Receiver<bool>
             _ = stop.changed() => break,
         };
         if *stop.borrow() { break; }
+        if result.is_ok() { sent = Some((p.clone(), Instant::now())); }
         match result {
             Ok((200, Some(matched), _)) => state(&sh, "sending", count, Some(matched)),
             Ok((409, matched, why)) => {

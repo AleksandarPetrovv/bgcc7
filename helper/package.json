@@ -3,7 +3,9 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "predev": "node ../scripts/palette.mjs",
     "dev": "tauri dev",
+    "prebuild": "node ../scripts/palette.mjs",
     "build": "tauri build --no-bundle",
     "icon": "tauri icon icon.svg"
   },

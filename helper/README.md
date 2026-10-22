@@ -1,4 +1,4 @@
-# bgcc7 ref helper
+# bgcc7 helper
 
 a small windows tray app for referees and streamers. link your osu! account once and confirm the link on the site. the helper shows the linked account and its referee and streamer roles after the site supplies them.
 
@@ -41,7 +41,7 @@ the x button requests window close so the app quits. minimize keeps using the ba
 
 requires rust with the msvc toolchain, node.js and webview2. the site address is baked in at build time from `PUBLIC_URL`, supplied through the build environment or the hosting configuration next to the repo.
 
-from `refhelper/`:
+from `helper/`:
 
 ```
 npm install
