@@ -59,7 +59,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
           const skill = !!p.color;
           const mod = { label: MODS[p.category]?.label ?? p.category, color: p.color ?? MODS[p.category]?.color ?? "var(--rose)" };
           const isOpen = !closed[p.category];
-          const light = modOn(mod.color) === "var(--paper)";
+          const light = modOn(mod.color) === "var(--on-fill)";
           return (
             <section key={p.category} style={{ "--i": pi, "--s": "0.09s" } as React.CSSProperties}>
               <button
@@ -89,7 +89,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                 <div className="mt-2 space-y-2 sm:pl-10">
                   {p.maps.map((m, k) => {
                     const mc = skill ? mod.color : (MODS[m.mod]?.color ?? mod.color);
-                    const ml = modOn(mc) === "var(--paper)";
+                    const ml = modOn(mc) === "var(--on-fill)";
                     return (
                     <motion.div
                       initial={{ opacity: 0, x: -14 }}
@@ -98,7 +98,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                       key={m.slot} className="lift group relative flex items-stretch overflow-hidden border border-line bg-coal hover:border-rose/50"
                       style={{ "--lift": modHi(mc), "--i": pi + k, "--s": "0.05s" } as React.CSSProperties}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-45 saturate-[1.15] transition duration-500 group-hover:scale-105 group-hover:opacity-60 [--d:0.15s]" />
+                      <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-45 saturate-[1.15] transition duration-500 group-hover:scale-105 group-hover:opacity-60 dark:opacity-25 dark:group-hover:opacity-35 [--d:0.15s]" />
                       <div className="absolute inset-0 bg-gradient-to-r from-coal via-coal/85 to-coal/5" />
                       <div className="relative grid min-w-0 flex-1 grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 gap-y-3 p-3 sm:gap-x-5 sm:p-4 xl:flex xl:gap-6">
                       <span className="in-pop heading-slam shrink-0 text-lg sm:text-2xl [--d:0.3s]" style={{ color: modHi(mc) }}>
@@ -126,7 +126,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                           href={`osu://b/${m.id}`}
                           title={t.mappool.direct}
                           aria-label={`${m.slot} ${t.mappool.direct}`}
-                          className={cn("group/b flex flex-1 items-center justify-center pl-3 transition-[filter] hover:brightness-110", ml ? "text-paper" : "text-white")}
+                          className={cn("group/b flex flex-1 items-center justify-center pl-3 transition-[filter] hover:brightness-110", ml ? "text-on-fill" : "text-white")}
                           style={{ background: mc }}
                         >
                           <span className={cn("heading-slam flex items-center gap-2 text-[0.95rem]", ml ? "[text-shadow:0_1px_2px_color-mix(in_srgb,var(--white)_35%,transparent)]" : "[text-shadow:0_1px_3px_color-mix(in_srgb,var(--black)_45%,transparent)]")}>
@@ -167,7 +167,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
 function MapStats({ map }: { map: Stage["pools"][number]["maps"][number] }) {
   const stats = [["BPM", Math.round(map.bpm)], ["Length", fmtLen(map.length)], ["CS", map.cs], ["AR", map.ar], ["OD", map.od]] as const;
   return (
-    <dl className="num col-span-2 grid grid-cols-3 items-center gap-x-3 gap-y-2 border-t border-line pt-2.5 text-center text-paper [text-shadow:0_1px_2px_color-mix(in_srgb,var(--white)_85%,transparent)] sm:grid-cols-6 sm:gap-x-4 xl:w-[27rem] xl:shrink-0 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0 2xl:w-[31rem]">
+    <dl className="num col-span-2 grid grid-cols-3 items-center gap-x-3 gap-y-2 border-t border-line pt-2.5 text-center text-paper [text-shadow:0_1px_2px_color-mix(in_srgb,var(--ink)_85%,transparent)] sm:grid-cols-6 sm:gap-x-4 xl:w-[27rem] xl:shrink-0 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0 2xl:w-[31rem]">
       <div>
         <dt className="sr-only">SR</dt>
         <dd className="flex items-center justify-center gap-1 text-sm font-black text-gold-hi xl:text-lg">
