@@ -30,7 +30,7 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
       dragControls={controls}
       onDragEnd={onDrop}
       layout="position"
-      whileDrag={{ scale: 1.01, boxShadow: "6px 6px 0 0 var(--color-rose-deep)", zIndex: 10 }}
+      whileDrag={{ scale: 1.01, boxShadow: "6px 6px 0 0 var(--rose-deep)", zIndex: 10 }}
       className="relative border border-line bg-coal"
     >
       <div className="flex items-center gap-3 border-b border-line px-3 py-3 sm:px-4">
@@ -99,7 +99,7 @@ function PermPicker({ initial }: { initial: string[] }) {
               style={{ "--i": k, "--s": "0.05s", "--d": "0.65s" } as React.CSSProperties}
               className={cn(
                 "in-pop group/perm flex h-10 -skew-x-12 items-center border px-3 transition-[color,background-color,border-color,box-shadow,opacity] duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose",
-                checked ? "border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--color-rose-deep)]" : "border-line bg-ink/40 text-ash",
+                checked ? "border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--rose-deep)]" : "border-line bg-ink/40 text-ash",
                 blocked ? "cursor-not-allowed" : "cursor-pointer",
                 blocked && !checked && "opacity-35",
                 !blocked && !checked && "hover:border-paper/40 hover:text-paper",
@@ -141,7 +141,7 @@ export function StaffList({ rows }: { rows: StaffRow[] }) {
     <div>
       <p className="mb-2 text-xs text-ash">
         {t.admin.dragHint}
-        {saved && !pending && <Flash className="ml-2 font-bold uppercase tracking-wide text-balkan">{t.admin.saved}</Flash>}
+        {saved && !pending && <Flash className="ml-2 font-bold uppercase tracking-wide text-balkan-hi">{t.admin.saved}</Flash>}
       </p>
       <Reorder.Group
         axis="y"

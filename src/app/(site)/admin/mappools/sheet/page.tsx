@@ -10,6 +10,7 @@ import { getViewer } from "@/lib/authz";
 import { fmtLen, MODS } from "@/lib/data";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
+import { modHi } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { PoolMode } from "../pool-mode";
 import { pickNow, pickSuggestion, removeSuggestion, suggestMap } from "./actions";
@@ -94,11 +95,11 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
               color={color}
               header={
                 <>
-                  <span className="sr in-slam heading-slam text-2xl [--d:0.6s]" style={{ color }}>
+                  <span className="sr in-slam heading-slam text-2xl [--d:0.6s]" style={{ color: modHi(color) }}>
                     {label}
                   </span>
                   {sk && s.mod !== "Tiebreaker" && (
-                    <span className="-skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-black" style={{ borderColor: MODS[s.mod].color, color: MODS[s.mod].color }}>
+                    <span className="-skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-black" style={{ borderColor: modHi(MODS[s.mod].color), color: modHi(MODS[s.mod].color) }}>
                       <span className="inline-block skew-x-12">{MODS[s.mod].short}</span>
                     </span>
                   )}
@@ -109,7 +110,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                     </span>
                   )}
                   {s.picked ? (
-                    <span className="sr in-pop flex items-center gap-1.5 text-xs font-black uppercase text-balkan [--d:0.7s]">
+                    <span className="sr in-pop flex items-center gap-1.5 text-xs font-black uppercase text-balkan-hi [--d:0.7s]">
                       <Check className="size-3.5" strokeWidth={3} /> {t.admin.slotPicked}
                     </span>
                   ) : s.tie ? (
@@ -155,7 +156,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                         className={cn(
                           "grid size-8 shrink-0 -skew-x-12 place-items-center border text-sm font-black",
                           m.picked
-                            ? "border-balkan bg-balkan text-ink"
+                            ? "border-balkan bg-balkan text-paper"
                             : tiedWin
                               ? "border-paper/25 bg-paper/10 text-paper/60"
                               : lead
@@ -178,7 +179,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                           {m.title} <span className="text-ash">[{m.version}]</span>
                         </a>
                         <div className="num flex flex-wrap gap-x-3 text-sm text-paper/70">
-                          <span className="flex items-center gap-1 text-gold">
+                          <span className="flex items-center gap-1 text-gold-hi">
                             <Star className="size-3.5 fill-current" /> {m.sr.toFixed(2)}
                           </span>
                           <span>{Math.round(m.bpm)} bpm</span>

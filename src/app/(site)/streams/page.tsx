@@ -119,7 +119,7 @@ function Offline({ t, next }: { t: Dict; next: { round: string; at: string; a?: 
           <Countdown to={next.at} />
         </div>
       ) : (
-        <div className="heading-slam relative select-none text-[clamp(3rem,10vw,7rem)] leading-none text-transparent [-webkit-text-stroke:1.5px_rgba(244,243,238,0.18)]" aria-hidden>
+        <div className="heading-slam relative select-none text-[clamp(3rem,10vw,7rem)] leading-none text-transparent [-webkit-text-stroke:1.5px_color-mix(in_srgb,var(--paper)_18%,transparent)]" aria-hidden>
           {t.streams.offline}
         </div>
       )}

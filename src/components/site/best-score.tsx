@@ -4,6 +4,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { useDict } from "./lang";
 import { fmtNum, MODS } from "@/lib/data";
 import { slotColor } from "@/lib/format-plan";
+import { modHi } from "@/lib/theme";
 
 type Props = {
   score: number;
@@ -17,7 +18,7 @@ type Props = {
 
 export function BestScore({ score, acc, combo, miss, mods, rank, map }: Props) {
   const t = useDict();
-  const color = (map.slot && slotColor(map.slot)) || (map.mod && MODS[map.mod]?.color) || "var(--color-rose-hi)";
+  const color = modHi((map.slot && slotColor(map.slot)) || (map.mod && MODS[map.mod]?.color) || "var(--rose-hi)");
   return (
     <HoverCard>
       <HoverCardTrigger
@@ -46,7 +47,7 @@ export function BestScore({ score, acc, combo, miss, mods, rank, map }: Props) {
         </div>
         <div className="grid grid-cols-2 gap-px bg-line text-sm">
           {[
-            [t.qual.detail[0], fmtNum(score), "text-balkan"],
+            [t.qual.detail[0], fmtNum(score), "text-balkan-hi"],
             [t.qual.detail[1], `${(acc * 100).toFixed(2)}%`, "text-paper"],
             [t.match.combo, `${fmtNum(combo)}x`, "text-paper"],
             [t.match.miss, String(miss), miss ? "text-rose-hi" : "text-paper"],

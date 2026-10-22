@@ -22,7 +22,7 @@ function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
       dragControls={controls}
       onDragEnd={onDrop}
       layout="position"
-      whileDrag={{ scale: 1.02, boxShadow: "6px 6px 0 0 var(--color-rose-deep)", zIndex: 10 }}
+      whileDrag={{ scale: 1.02, boxShadow: "6px 6px 0 0 var(--rose-deep)", zIndex: 10 }}
       className="relative border border-line bg-coal"
     >
       <div className="flex items-center gap-3 px-3 py-2.5">
@@ -114,7 +114,7 @@ export function SponsorList({ sponsors }: { sponsors: Sponsor[] }) {
       </Reorder.Group>
       <p className="mt-2 text-xs text-ash">
         {t.admin.dragHint}
-        {saved && !pending && <Flash className="ml-2 font-bold uppercase tracking-wide text-balkan">{t.admin.saved}</Flash>}
+        {saved && !pending && <Flash className="ml-2 font-bold uppercase tracking-wide text-balkan-hi">{t.admin.saved}</Flash>}
       </p>
     </div>
   );

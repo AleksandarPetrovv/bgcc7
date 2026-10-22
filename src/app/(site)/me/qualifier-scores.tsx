@@ -28,7 +28,7 @@ export function QualifierScores({ t, maps, player }: { t: Dict; maps: QualMap[];
                   </td>
                   <td className="num py-2.5 pr-4 text-right text-base">{p ? fmtNum(p.score) : "—"}</td>
                   <td className="num py-2.5 pr-4 text-right text-ash">{p ? `${p.acc.toFixed(2)}%` : "—"}</td>
-                  <td className={cn("num py-2.5 pr-5 text-right", p?.placement === 1 && "text-gold")}>{p ? `#${p.placement}` : "—"}</td>
+                  <td className={cn("num py-2.5 pr-5 text-right", p?.placement === 1 && "text-gold-hi")}>{p ? `#${p.placement}` : "—"}</td>
                 </tr>
               );
             })}

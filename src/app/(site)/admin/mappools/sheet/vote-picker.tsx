@@ -59,7 +59,7 @@ export function VotePicker({ id, mine, mineNote, onDraft }: { id: number; mine: 
                     className={cn(
                       "flex-1 -skew-x-12 border transition-[background-color,border-color,transform,box-shadow,translate,scale,rotate] duration-150",
                       on ? "border-transparent" : "border-line bg-ink/60",
-                      head && "-translate-y-0.5 shadow-[2px_2px_0_0_var(--color-ink)]",
+                      head && "-translate-y-0.5 shadow-[2px_2px_0_0_var(--ink)]",
                     )}
                     style={on && draft !== null ? { background: scoreColor(draft), opacity: head ? 1 : 0.45 } : undefined}
                   />
@@ -98,7 +98,7 @@ export function VotePicker({ id, mine, mineNote, onDraft }: { id: number; mine: 
           )}
         </span>
         {saved.n !== null && !dirty ? (
-          <span className="flex min-h-10 w-24 shrink-0 -skew-x-12 items-center justify-center border border-balkan/60 text-xs font-black uppercase text-balkan">
+          <span className="flex min-h-10 w-24 shrink-0 -skew-x-12 items-center justify-center border border-balkan/60 text-xs font-black uppercase text-balkan-hi">
             <span className="flex skew-x-12 items-center gap-1.5">
               <Check className="size-3.5" strokeWidth={3} /> {t.admin.voted}
             </span>

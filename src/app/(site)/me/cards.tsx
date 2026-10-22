@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Crown, Flag } from "lucide-react";
-import { TriTick } from "@/components/site/graphics";
+import { Glyph } from "@/components/site/graphics";
 import { Avatar } from "@/components/site/avatar";
 import { RecordText } from "@/components/site/record";
 import type { Dict } from "@/lib/i18n/dict";
@@ -15,7 +15,7 @@ export function Card({ title, children, className, i = 0, right, flush }: { titl
   return (
     <section className={cn("in-up relative overflow-hidden border border-line bg-coal", className)} style={v({ "--i": i, "--s": "0.08s", "--d": "0.2s" })}>
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-4 pb-1 pt-4 sm:px-5">
-        <TriTick className="h-2.5 w-[18px]" />
+        <Glyph kind="ring" className="size-3" />
         <h2 className="heading-slam text-lg">{title}</h2>
         {right && <div className="ml-auto">{right}</div>}
       </div>
@@ -67,9 +67,9 @@ export function TeamCard({ t, team, me, record, i }: { t: Dict; team: Team; me: 
             <Avatar src={p.avatar} className="size-8 sm:size-9" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={flagUrl(p.country)} alt="" className="h-3" />
-            <PlayerLink id={p.userId} name={p.username} className={cn("min-w-0 truncate font-black", p.userId === me && "text-balkan")} />
+            <PlayerLink id={p.userId} name={p.username} className={cn("min-w-0 truncate font-black", p.userId === me && "text-balkan-hi")} />
             {p.userId === me && <span className="text-[0.6rem] font-black uppercase text-ash">{t.me.you}</span>}
-            {p.isCaptain && <Crown className="size-3.5 shrink-0 text-gold" aria-label={t.common.captain} />}
+            {p.isCaptain && <Crown className="size-3.5 shrink-0 text-gold-hi" aria-label={t.common.captain} />}
             <span className="num ml-auto text-sm text-paper/80">#{fmtNum(p.rank)}</span>
             <span className="num hidden w-16 text-right text-sm text-ash sm:block">{fmtNum(Math.round(p.pp))}pp</span>
           </li>

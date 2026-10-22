@@ -17,7 +17,7 @@ export function PoolMode({ t, on, stage, edit }: { t: Dict; on: "sheet" | "edit"
           aria-current={on === k ? "page" : undefined}
           className={cn(
             "flex h-9 -skew-x-12 items-center border px-3.5 transition-[color,background-color,border-color,box-shadow] duration-200",
-            on === k ? "border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--color-rose-deep)]" : "border-line bg-ink/40 text-ash hover:border-paper/40 hover:text-paper",
+            on === k ? "border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--rose-deep)]" : "border-line bg-ink/40 text-ash hover:border-paper/40 hover:text-paper",
           )}
         >
           <span className="flex skew-x-12 items-center gap-2 text-xs font-black uppercase">

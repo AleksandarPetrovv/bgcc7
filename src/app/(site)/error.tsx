@@ -10,7 +10,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
   return (
     <section className="grain relative flex min-h-[70vh] items-center overflow-hidden">
       <div
-        className="pointer-events-none absolute right-[4%] top-1/2 -translate-y-1/2 select-none font-display text-[clamp(14rem,34vw,30rem)] font-black italic leading-[0.8] text-white/[0.03]"
+        className="pointer-events-none absolute right-[4%] top-1/2 -translate-y-1/2 select-none font-display text-[clamp(14rem,34vw,30rem)] font-black italic leading-[0.8] text-paper/[0.05]"
         aria-hidden
       >
         500

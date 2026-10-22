@@ -15,9 +15,9 @@ import { getSkillLayouts } from "@/db/format-plan";
 import { requireSection } from "@/lib/authz";
 import { InView } from "@/components/site/in-view";
 import { MeTag, meP } from "@/components/site/me";
-import { MEDAL } from "@/lib/theme";
+import { MEDAL, modHi } from "@/lib/theme";
 
-const TONES = ["bg-rose text-white", "bg-balkan text-ink", "border border-line bg-coal", "border border-line bg-coal"];
+const TONES = ["bg-rose text-white", "bg-balkan text-paper", "border border-line bg-coal", "border border-line bg-coal"];
 
 export default async function Stats({ searchParams }: { searchParams: Promise<{ stage?: string }> }) {
   await requireSection("stats");
@@ -102,7 +102,7 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
               <div className="relative w-28 shrink-0 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={m.cover} alt="" className="absolute inset-0 size-full object-cover opacity-50" />
-                <span className="in-pop heading-slam relative flex h-full min-h-16 items-center justify-center text-3xl [text-shadow:0_2px_6px_rgb(0_0_0/0.85),0_0_2px_rgb(0_0_0/0.9)]" style={{ "--d": "0.25s", color: skillColor(m.slot) } as React.CSSProperties}>{m.slot}</span>
+                <span className="in-pop heading-slam relative flex h-full min-h-16 items-center justify-center text-3xl [text-shadow:0_0_8px_var(--coal),0_0_2px_var(--coal)]" style={{ "--d": "0.25s", color: modHi(skillColor(m.slot)) } as React.CSSProperties}>{m.slot}</span>
               </div>
               <ol className="flex-1 divide-y divide-line">
                 {top.map((p, i) => (

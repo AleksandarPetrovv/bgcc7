@@ -7,7 +7,7 @@ import { ArrowRight, Check, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { acceptPhase, dismissPhase } from "@/app/(site)/admin/phase/actions";
 import { PHASES } from "@/lib/sections";
-import { TriTick } from "./graphics";
+import { Glyph } from "./graphics";
 import { useDict } from "./lang";
 import { cn } from "@/lib/utils";
 
@@ -30,11 +30,11 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent showCloseButton={false} className="mdlg overflow-hidden rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-lg">
+      <DialogContent showCloseButton={false} className="mdlg overflow-hidden rounded-none border-2 border-rose bg-coal p-0 shadow-[6px_6px_0_0_var(--rose-deep)] ring-0 sm:max-w-lg">
         <div className="relative overflow-hidden border-b border-line px-5 pb-6 pt-5 sm:px-7">
-          <div className="anim-drift pointer-events-none absolute inset-0 w-[calc(100%+120px)] bg-[repeating-linear-gradient(115deg,transparent_0_40px,rgba(224,36,47,0.07)_40px_42px)]" aria-hidden />
+          <div className="anim-drift pointer-events-none absolute inset-0 w-[calc(100%+120px)] bg-[repeating-linear-gradient(115deg,transparent_0_40px,color-mix(in_srgb,var(--rose)_7%,transparent)_40px_42px)]" aria-hidden />
           <div className="in-left relative flex items-center gap-2.5 text-xs font-black uppercase text-rose-hi" style={v({ "--d": "0.15s" })}>
-            <TriTick className="h-2.5 w-[18px]" /> {t.admin.prompt.kicker}
+            <Glyph kind="spark" className="size-3" /> {t.admin.prompt.kicker}
           </div>
           <DialogTitle className="in-wipe heading-slam relative mt-3 text-3xl leading-none sm:text-4xl" style={v({ "--d": "0.25s" })}>
             {t.admin.prompt.title(name)}
@@ -67,7 +67,7 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
           <button
             type="button"
             onClick={() => run(() => acceptPhase(next))}
-            className="in-pop lift-sm sheen inline-flex -skew-x-12 items-center justify-center bg-rose px-5 py-3 text-sm font-black uppercase text-white shadow-[3px_3px_0_0_var(--color-rose-deep)] hover:bg-rose-hi"
+            className="in-pop lift-sm sheen inline-flex -skew-x-12 items-center justify-center bg-rose px-5 py-3 text-sm font-black uppercase text-white shadow-[3px_3px_0_0_var(--rose-deep)] hover:bg-rose-hi"
             style={v({ "--d": "0.7s" })}
           >
             <span className="inline-flex skew-x-12 items-center gap-2">
@@ -77,7 +77,7 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
           <Link
             href="/admin/phase"
             onClick={() => setOpen(false)}
-            className="in-pop lift-sm inline-flex -skew-x-12 items-center justify-center border border-line px-5 py-3 text-sm font-black uppercase text-paper [--lift:var(--color-rose)] hover:border-rose"
+            className="in-pop lift-sm inline-flex -skew-x-12 items-center justify-center border border-line px-5 py-3 text-sm font-black uppercase text-paper [--lift:var(--rose)] hover:border-rose"
             style={v({ "--d": "0.78s" })}
           >
             <span className="inline-flex skew-x-12 items-center gap-2">

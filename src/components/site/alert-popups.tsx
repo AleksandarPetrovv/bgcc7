@@ -46,7 +46,7 @@ function AlertCard({ alert, onSnooze }: { alert: Alert; onSnooze: (alert: Alert)
   const [pending, start] = useTransition();
   const [failed, setFailed] = useState(false);
   const red = alert.level === "red";
-  const button = cn("inline-flex min-h-10 -skew-x-12 items-center justify-center gap-2 px-4 py-2 text-sm font-black text-ink transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-paper disabled:opacity-60", red ? "bg-rose-hi hover:bg-paper" : "bg-gold hover:bg-paper");
+  const button = cn("inline-flex min-h-10 -skew-x-12 items-center justify-center gap-2 px-4 py-2 text-sm font-black text-paper transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-paper disabled:opacity-60", red ? "bg-rose text-white hover:bg-paper hover:text-ink" : "bg-gold hover:bg-paper hover:text-ink");
 
   const retry = () => {
     if (!alert.match || pending) return;
@@ -65,12 +65,12 @@ function AlertCard({ alert, onSnooze }: { alert: Alert; onSnooze: (alert: Alert)
   return (
     <article
       aria-labelledby={titleId}
-      className={cn("relative shrink-0 border-2 bg-coal p-5 shadow-[6px_6px_0_0_var(--alert-shadow)]", red ? "border-rose [--alert-shadow:var(--color-rose-deep)]" : "border-gold [--alert-shadow:var(--color-gold-deep)]")}
+      className={cn("relative shrink-0 border-2 bg-coal p-5 shadow-[6px_6px_0_0_var(--alert-shadow)]", red ? "border-rose [--alert-shadow:var(--rose-deep)]" : "border-gold [--alert-shadow:var(--gold-deep)]")}
     >
       <button type="button" onClick={() => onSnooze(alert)} aria-label={t.snooze(red ? 10 : 30)} title={t.snooze(red ? 10 : 30)} className="absolute right-1 top-1 grid size-10 place-items-center text-ash transition-colors hover:text-paper focus-visible:outline-2 focus-visible:outline-paper">
         <X className="size-4" aria-hidden />
       </button>
-      <h2 id={titleId} className={cn("heading-slam pr-7 text-xl leading-tight", red ? "text-rose-hi" : "text-gold")}>{text.title}</h2>
+      <h2 id={titleId} className={cn("heading-slam pr-7 text-xl leading-tight", red ? "text-rose-hi" : "text-gold-hi")}>{text.title}</h2>
       {alert.match && <p className="mt-2 break-words text-sm font-black text-paper">{alert.match.label}</p>}
       <p className="mt-3 text-sm leading-relaxed text-paper/85">{text.means}</p>
       <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-paper/85 marker:font-black marker:text-paper">
@@ -168,7 +168,7 @@ export function AlertPopups() {
 
   return (
     <aside aria-label={t.label} aria-live="polite" aria-relevant="additions" className="pointer-events-none fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[90] sm:left-auto sm:right-6 sm:w-[26rem]">
-      <div className="pointer-events-auto flex max-h-[calc(100dvh-6rem)] flex-col gap-3 overflow-y-auto overscroll-contain p-2 [scrollbar-color:var(--color-ash)_var(--color-coal)]">
+      <div className="pointer-events-auto flex max-h-[calc(100dvh-6rem)] flex-col gap-3 overflow-y-auto overscroll-contain p-2 [scrollbar-color:var(--ash)_var(--coal)]">
         {(expanded ? visible : visible.slice(0, 3)).map((alert) => <AlertCard key={alert.id} alert={alert} onSnooze={snooze} />)}
         {visible.length > 3 && <button type="button" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)} className="min-h-10 shrink-0 border border-line bg-coal px-3 text-sm font-bold text-paper hover:border-gold focus-visible:outline-2 focus-visible:outline-paper">{expanded ? t.less : t.more(visible.length - 3)}</button>}
       </div>

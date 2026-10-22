@@ -16,13 +16,13 @@ function Row({ m, slot }: { m: Match; slot: 1 | 2 }) {
   const won = m.winner === slot;
   const lost = m.winner !== null && !won;
   return (
-    <span {...meT(side.id)} className={cn("relative flex items-center gap-3 px-4 py-2.5", won && "bg-balkan/12", lost && "opacity-45")}>
+    <span {...meT(side.id)} className={cn("relative flex items-center gap-3 px-4 py-2.5", won && "bg-[color-mix(in_oklab,var(--balkan)_14%,var(--white))]", lost && "opacity-45")}>
       {won && <span className="absolute inset-y-1.5 left-0 w-0.5 bg-balkan" aria-hidden />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {team && <img src={team.image} alt="" className="size-9 shrink-0 object-cover" />}
-      <span className={cn("min-w-0 flex-1 truncate text-[0.95rem] font-bold", won && "font-black text-balkan")}>{team?.name ?? side.name}</span>
+      <span className={cn("min-w-0 flex-1 truncate text-[0.95rem] font-bold", won && "font-black text-paper")}>{team?.name ?? side.name}</span>
       <MeTag t={side.id} />
-      <span className={cn("num w-7 shrink-0 text-right text-2xl leading-none", won ? "text-balkan" : "text-paper/80")}>{side.score ?? 0}</span>
+      <span className={cn("num w-7 shrink-0 text-right text-2xl leading-none", won ? "text-balkan-hi" : "text-paper/80")}>{side.score ?? 0}</span>
     </span>
   );
 }

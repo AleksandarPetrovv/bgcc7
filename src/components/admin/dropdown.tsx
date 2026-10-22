@@ -165,7 +165,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
         onKeyDown={key}
         className={cn(
           "group relative flex h-10 w-full min-w-0 -skew-x-12 items-center border border-b-2 bg-field px-3 text-left text-sm normal-case tracking-normal outline-none transition-[border-color,background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-rose disabled:cursor-not-allowed disabled:opacity-50",
-          open ? "border-rose bg-rose/10 shadow-[4px_4px_0_0_var(--color-rose-deep)]" : "border-line hover:border-paper/40",
+          open ? "border-rose bg-rose/10 shadow-[4px_4px_0_0_var(--rose-deep)]" : "border-line hover:border-paper/40",
         )}
       >
         <span className="flex min-w-0 flex-1 skew-x-12 items-center gap-2">
@@ -217,7 +217,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
                 }}
                 transition={{ duration: 0.28, ease: EASE }}
                 onKeyDown={key}
-                className="fixed z-[70] flex max-h-72 flex-col overflow-hidden border border-rose bg-coal shadow-[6px_6px_0_0_var(--color-rose-deep)]"
+                className="fixed z-[70] flex max-h-72 flex-col overflow-hidden border border-rose bg-coal shadow-[6px_6px_0_0_var(--rose-deep)]"
                 style={{
                   left: pos.left,
                   width: pos.width,
@@ -271,13 +271,13 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
                         onClick={() => choose(o.value)}
                         className={cn(
                           "relative flex min-h-9 w-full items-center gap-2 px-3 text-left text-sm transition-colors",
-                          on ? "text-white" : lit ? "text-paper" : "text-paper/75",
+                          on ? "text-white font-bold" : lit ? "text-paper" : "text-paper/75",
                         )}
                       >
                         {lit && (
                           <motion.span
                             layoutId={`${id}-hi`}
-                            className={cn("absolute inset-0", on ? "bg-rose" : "bg-white/[0.07]")}
+                            className={cn("absolute inset-0", on ? "bg-rose" : "bg-rose/12")}
                             transition={{
                               type: "spring",
                               stiffness: 600,

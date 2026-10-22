@@ -57,9 +57,9 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
             return (
               <Panel key={m.gameId} i={Math.min(n, 4)} title={`${m.slot ?? "—"} · ${m.title} [${m.version}]`}>
                 <div className="mb-3 flex items-center gap-3 text-sm">
-                  <span className="h-4 w-1" style={{ background: color ?? "var(--color-line)" }} />
+                  <span className="h-4 w-1" style={{ background: color ?? "var(--line)" }} />
                   <span className="num text-lg">
-                    <span className={m.winner === 1 ? "text-rose-hi" : "text-ash"}>{fmtNum(m.team1)}</span>
+                    <span className={m.winner === 1 ? "text-crimson-hi" : "text-ash"}>{fmtNum(m.team1)}</span>
                     <span className="text-ash"> vs </span>
                     <span className={m.winner === 2 ? "text-azure-hi" : "text-ash"}>{fmtNum(m.team2)}</span>
                   </span>
@@ -73,9 +73,9 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
                     const out = new Set(gone.map((e) => e.osuId));
                     const blank = (team?.players ?? []).filter((p) => !lines.some((l) => l.id === p.userId) && !out.has(p.userId));
                     return (
-                      <div key={k} className={cn("border-l-[3px] bg-ink p-3", k === 0 ? "border-l-rose" : "border-l-azure")}>
+                      <div key={k} className={cn("border-l-[3px] bg-ink p-3", k === 0 ? "border-l-crimson" : "border-l-azure")}>
                         <div className="mb-2 flex items-center gap-2">
-                          <span className={cn("text-xs font-black uppercase tracking-wide", k === 0 ? "text-rose-hi" : "text-azure-hi")}>{team?.name ?? t.common.tbd}</span>
+                          <span className={cn("text-xs font-black uppercase tracking-wide", k === 0 ? "text-crimson-hi" : "text-azure-hi")}>{team?.name ?? t.common.tbd}</span>
                           {missing > 0 && (
                             <span className="ml-auto inline-flex items-center gap-1 bg-rose/15 px-1.5 py-0.5 text-[0.65rem] font-black uppercase text-rose-hi">
                               <TriangleAlert className="size-3" /> {t.admin.ms.missing(missing)}
@@ -90,7 +90,7 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img src={p.avatar} alt="" className="size-6 shrink-0" />
                                   <span className="min-w-0 flex-1 truncate font-bold">{p.name}</span>
-                                  {p.edited && <span className="text-[0.6rem] font-black uppercase text-gold">{t.admin.ms.edited}</span>}
+                                  {p.edited && <span className="text-[0.6rem] font-black uppercase text-gold-hi">{t.admin.ms.edited}</span>}
                                   {p.mods.length > 0 && <span className="text-[0.65rem] font-black uppercase text-ash">{p.mods.join("")}</span>}
                                   <span className="num hidden w-14 text-right text-ash min-[400px]:block">{(p.acc * 100).toFixed(2)}%</span>
                                   <span className="num w-20 text-right">{fmtNum(p.score)}</span>

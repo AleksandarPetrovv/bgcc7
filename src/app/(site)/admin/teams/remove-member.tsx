@@ -50,14 +50,14 @@ export function RemoveMember({ osuId, captain, mates }: { osuId: number; captain
                   exit={{ y: 20, opacity: 0 }}
                   transition={{ type: "spring", stiffness: 340, damping: 26 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="relative w-full max-w-sm border-2 border-gold bg-coal p-5 shadow-[6px_6px_0_0_var(--color-gold-deep)]"
+                  className="relative w-full max-w-sm border-2 border-gold bg-coal p-5 shadow-[6px_6px_0_0_var(--gold-deep)]"
                   role="dialog"
                   aria-modal="true"
                 >
                   <button type="button" onClick={() => setOpen(false)} aria-label={t.draft.close} className="absolute right-2 top-2 p-2 text-ash hover:text-paper">
                     <X className="size-4" />
                   </button>
-                  <Crown className="size-7 fill-current text-gold" />
+                  <Crown className="size-7 fill-current text-gold-hi" />
                   <h3 className="heading-slam mt-2 text-2xl">{t.admin.heirTitle}</h3>
                   <p className="mt-1 text-sm text-ash">{t.admin.heirText}</p>
                   <div className="mt-4 grid gap-2">
@@ -76,7 +76,7 @@ export function RemoveMember({ osuId, captain, mates }: { osuId: number; captain
                           <img src={m.avatar} alt="" className="size-8" />
                           <span className="font-black">{m.name}</span>
                         </span>
-                        <Crown className="ml-auto size-4 skew-x-6 text-ash transition-colors group-hover:text-gold" />
+                        <Crown className="ml-auto size-4 skew-x-6 text-ash transition-colors group-hover:text-gold-hi" />
                       </motion.button>
                     ))}
                   </div>

@@ -12,6 +12,7 @@ import { fmtLen, MODS } from "@/lib/data";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { PackUploader } from "../../site/pack-uploader";
 import { can } from "@/lib/roles";
+import { modHi } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { deleteMap, moveMap, renameStage, setSlotMap } from "../actions";
 import { SlotInput } from "../slot-input";
@@ -42,7 +43,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
   const sections: { key: string; title: string; color: string; items: Item[] }[] = skill
     ? [
         ...skill.groups.map((g) => ({ key: g.id, title: g.name, color: g.color, items: g.slots.map((x) => ({ ...x, out: false })) })),
-        { key: "out", title: t.admin.outsideLayout, color: "var(--color-rose)", items: MOD_ORDER.flatMap(extras) },
+        { key: "out", title: t.admin.outsideLayout, color: "var(--rose)", items: MOD_ORDER.flatMap(extras) },
       ].filter((x) => x.items.length)
     : MOD_ORDER.filter((mod) => countOf(mod) > 0 || mapsOf(mod).length).map((mod) => ({
         key: mod,
@@ -111,7 +112,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
           <a
             href={`/download/${stage.slug}?v=${stage.pack.at ?? stage.pack.size}`}
             download
-            className="in-left lift-sm mb-6 flex w-fit -skew-x-12 items-center border border-balkan/60 px-4 py-2.5 text-balkan transition-colors hover:bg-balkan hover:text-white [--d:0.2s]"
+            className="in-left lift-sm mb-6 flex w-fit -skew-x-12 items-center border border-balkan/60 px-4 py-2.5 text-balkan-hi transition-colors hover:bg-balkan hover:text-paper [--d:0.2s]"
           >
             <span className="flex skew-x-12 items-center gap-2 text-xs font-black uppercase">
               <Download className="size-4" /> {t.admin.packDownload}
@@ -144,7 +145,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
               style={{ "--i": pi < 5 ? pi : 0, "--s": "0.1s", "--d": "0.45s" } as React.CSSProperties}
             >
               <span className="sr in-grow absolute inset-x-0 top-0 h-0.5 [--d:0.6s]" style={{ background: accent }} aria-hidden />
-              <h2 className="flex items-center gap-3 border-b border-line px-4 py-2 text-sm font-black uppercase" style={{ color: accent }}>
+              <h2 className="flex items-center gap-3 border-b border-line px-4 py-2 text-sm font-black uppercase" style={{ color: modHi(accent) }}>
                 <span className="sr in-wipe inline-block [--d:0.6s]">{title}</span>
                 {total > 0 && (
                   <span className="num text-xs text-ash">
@@ -156,7 +157,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                 {items.map(({ mod, slot, out, note, label: tagLabel }, i) => {
                   const color = skill && !out ? accent : MODS[mod].color;
                   const chip = skill && mod !== "Tiebreaker" ? (
-                    <span className="-skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-black" style={{ borderColor: MODS[mod].color, color: MODS[mod].color }}>
+                    <span className="-skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-black" style={{ borderColor: modHi(MODS[mod].color), color: modHi(MODS[mod].color) }}>
                       <span className="inline-block skew-x-12">{MODS[mod].short}</span>
                     </span>
                   ) : null;
@@ -168,9 +169,9 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                       <SwapRow
                         key={`empty-${mod}-${slot}`}
                         style={{ "--i": i, "--s": "0.05s", "--d": "0.7s" } as React.CSSProperties}
-                        className="sr in-left flex items-center gap-3 bg-[repeating-linear-gradient(135deg,transparent_0_10px,rgb(255_255_255/0.018)_10px_20px)] px-3 py-2.5"
+                        className="sr in-left flex items-center gap-3 bg-[repeating-linear-gradient(135deg,transparent_0_10px,color-mix(in_srgb,var(--rose)_5%,transparent)_10px_20px)] px-3 py-2.5"
                       >
-                        <span className={cn("heading-slam shrink-0 text-xl opacity-60", skill ? "w-16" : "w-12")} style={{ color }}>
+                        <span className={cn("heading-slam shrink-0 text-xl opacity-60", skill ? "w-16" : "w-12")} style={{ color: modHi(color) }}>
                           {tagLabel ?? slotOf(mod, slot)}
                         </span>
                         {chip}
@@ -190,7 +191,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                       style={{ "--i": i, "--s": "0.05s", "--d": "0.7s" } as React.CSSProperties}
                       className={cn("sr in-left flex flex-wrap items-center gap-3 px-3 py-2", out && "bg-rose/[0.06]")}
                     >
-                      <span className={cn("sr in-slam heading-slam text-xl [--d:0.8s]", skill ? "w-16" : "w-12")} style={{ color }}>
+                      <span className={cn("sr in-slam heading-slam text-xl [--d:0.8s]", skill ? "w-16" : "w-12")} style={{ color: modHi(color) }}>
                         {m.slot}
                       </span>
                       {chip}
@@ -209,7 +210,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                         {tag}
                         {checks.get(m.id)?.dmca && <div className="text-xs font-black uppercase text-rose-hi">{t.admin.mapDmca}</div>}
                         <div className="num flex flex-wrap gap-x-3 text-sm text-paper/70">
-                          <span className="flex items-center gap-1 text-gold">
+                          <span className="flex items-center gap-1 text-gold-hi">
                             <Star className="size-3.5 fill-current" /> {m.sr.toFixed(2)}
                           </span>
                           <span>{Math.round(m.bpm)} bpm</span>

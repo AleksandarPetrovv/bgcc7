@@ -38,7 +38,7 @@ function Side({ id, flip, lost }: { id: string; flip?: boolean; lost?: boolean }
         <>
           <Link href={teamHref(team)} className="shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={team.image} alt="" className={cn("in-pop size-14 border-b-[3px] object-cover sm:size-20", flip ? "border-azure" : "border-rose", lost && "opacity-50")} style={d("0.25s")} />
+            <img src={team.image} alt="" className={cn("in-pop size-14 border-b-[3px] object-cover sm:size-20", flip ? "border-azure" : "border-crimson", lost && "opacity-50")} style={d("0.25s")} />
           </Link>
           <span className="flex max-w-full min-w-0 flex-col items-center gap-1.5">
             <Link href={teamHref(team)} className={cn("line-clamp-2 min-w-0 max-w-full break-words text-sm font-black leading-tight hover:text-rose-hi sm:text-lg", lost && "text-ash")}>
@@ -89,7 +89,7 @@ export function MatchRow({ match, live }: { match: Match; live?: [number, number
         live !== undefined ? "border-rose/70" : "border-line",
       )}
     >
-      <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/4 -skew-x-12 bg-linear-to-r from-transparent via-white/[0.06] to-transparent transition-transform duration-1000 ease-out group-hover/row:translate-x-[650%] motion-reduce:hidden" aria-hidden />
+      <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/4 -skew-x-12 bg-linear-to-r from-transparent via-white/45 to-transparent transition-transform duration-1000 ease-out group-hover/row:translate-x-[650%] motion-reduce:hidden" aria-hidden />
       <div className="pointer-events-none absolute inset-0 -z-10 flex" aria-hidden>
         {teams.map((team, i) => (
           <div key={i} className="relative w-1/2 overflow-hidden">

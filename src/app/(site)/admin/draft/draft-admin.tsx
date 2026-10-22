@@ -30,7 +30,7 @@ function Team({ team, side }: { team: TeamLite; side: 1 | 2 }) {
     <span className={cn("flex min-w-0 items-center gap-2", side === 1 && "flex-row-reverse justify-start text-right")}>
       {team?.image && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={team.image} alt="" className={cn("size-8 shrink-0 -skew-x-6 border-2 object-cover", side === 1 ? "border-rose" : "border-azure")} />
+        <img src={team.image} alt="" className={cn("size-8 shrink-0 -skew-x-6 border-2 object-cover", side === 1 ? "border-crimson" : "border-azure")} />
       )}
       <span className={cn("truncate text-sm font-black uppercase", !team && "text-ash")}>{team?.name ?? t.common.tbd}</span>
     </span>
@@ -95,7 +95,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
                 exit={{ opacity: 0, scale: 0.7 }}
                 className={cn(
                   "inline-flex items-center gap-1.5 px-2 py-1 text-[0.65rem] font-black uppercase tracking-wider",
-                  r.draft.open ? "bg-balkan/15 text-balkan" : "bg-slate text-ash",
+                  r.draft.open ? "bg-balkan/15 text-balkan-hi" : "bg-slate text-ash",
                 )}
               >
                 {r.draft.open ? (
@@ -119,7 +119,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
             href={`/matches/${r.slug}`}
             target="_blank"
             rel="noopener"
-            className="lift-sm sheen group ml-auto inline-flex min-h-9 -skew-x-12 items-center bg-paper px-3 text-xs font-black uppercase tracking-wide text-ink [--lift:var(--color-balkan)] hover:bg-white"
+            className="lift-sm sheen group ml-auto inline-flex min-h-9 -skew-x-12 items-center bg-paper px-3 text-xs font-black uppercase tracking-wide text-ink [--lift:var(--balkan)] hover:bg-rose-deep"
           >
             <span className="inline-flex skew-x-12 items-center gap-1.5">
               {t.admin.dr.view}
@@ -189,7 +189,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
                     href={`/matches/${r.slug}`}
                     target="_blank"
                     rel="noopener"
-                    className="lift-sm sheen group inline-flex min-h-9 -skew-x-12 items-center bg-paper px-3 text-xs font-black uppercase tracking-wide text-ink [--lift:var(--color-balkan)] hover:bg-white"
+                    className="lift-sm sheen group inline-flex min-h-9 -skew-x-12 items-center bg-paper px-3 text-xs font-black uppercase tracking-wide text-ink [--lift:var(--balkan)] hover:bg-rose-deep"
                   >
                     <span className="inline-flex skew-x-12 items-center gap-1.5">
                       {t.admin.dr.view}

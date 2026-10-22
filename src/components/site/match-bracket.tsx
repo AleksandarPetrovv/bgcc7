@@ -8,7 +8,7 @@ import { TWITCH_URL } from "@/lib/links";
 import { useTournament } from "./tournament";
 import { useDict, useLang } from "./lang";
 import { MatchDialog } from "./match-dialog";
-import { TriTick } from "./graphics";
+import { Glyph } from "./graphics";
 import { cn } from "@/lib/utils";
 import { MeTag, meT } from "./me";
 import { fitBox, useFit } from "./use-fit";
@@ -47,16 +47,16 @@ function Line({ m, slot, live, slim }: { m: Match; slot: 1 | 2; live?: [number, 
   const leads = !!live && !tie && live[slot - 1] > live[2 - slot];
   const score = live ? live[slot - 1] : m.winner !== null ? (side.score ?? 0) : null;
   return (
-    <div {...meT(team.id)} className={cn("relative flex min-h-0 flex-1 items-center gap-1.5 pl-2 pr-2.5", won && "bg-balkan/12", leads && "bg-rose/10", lost && "opacity-45")}>
+    <div {...meT(team.id)} className={cn("relative flex min-h-0 flex-1 items-center gap-1.5 pl-2 pr-2.5", won && "bg-[color-mix(in_oklab,var(--balkan)_14%,var(--white))]", leads && "bg-rose/10", lost && "opacity-45")}>
       {(won || leads) && <span className={cn("absolute inset-y-1 left-0 w-0.5", won ? "bg-balkan" : "bg-rose/60")} aria-hidden />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {!slim && <img src={team.image} alt="" className="in-pop size-5 shrink-0 object-cover" style={v({ "--d": "0.45s" })} />}
-      <span title={team.name} className={cn("in-wipe min-w-0 flex-1 truncate text-[0.8rem] font-bold", won && "font-black text-balkan", leads && "font-black text-rose-soft")} style={v({ "--d": "0.5s" })}>
+      <span title={team.name} className={cn("in-wipe min-w-0 flex-1 truncate text-[0.8rem] font-bold", won && "font-black text-paper", leads && "font-black text-rose-hi")} style={v({ "--d": "0.5s" })}>
         {team.name}
       </span>
       <MeTag t={team.id} className="-mx-1" />
       {score !== null && (
-        <span className={cn("in-slam num ml-2 shrink-0 text-right text-xl leading-none", won ? "text-balkan" : leads || tie ? "text-rose-soft" : "text-paper/80")} style={v({ "--d": "0.65s" })}>
+        <span className={cn("in-slam num ml-2 shrink-0 text-right text-xl leading-none", won ? "text-balkan-hi" : leads || tie ? "text-rose-hi" : "text-paper/80")} style={v({ "--d": "0.65s" })}>
           {score}
         </span>
       )}
@@ -74,7 +74,7 @@ function Box({ id, m, live, slim, className, style, onEnter, onLeave }: { id: st
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className={cn("flex flex-col overflow-hidden border bg-coal transition-[border-color] duration-200", className)} style={style}>
       <div className="flex h-7 shrink-0 items-center gap-2 border-b border-line bg-ink/70 px-2.5">
         <span className="num truncate text-[0.78rem] text-paper/75">{m.datetime ? `${id === "GF-M2" ? new Date(m.datetime).toLocaleDateString(locale, { timeZone: TZ, day: "2-digit", month: "short" }) : day(m.datetime)} · ${clock(m.datetime)}` : m.winner ? "" : m.team1.id && m.team2.id ? t.common.tbd : "—"}</span>
-        {id === "GF-M2" && <span className="shrink-0 whitespace-nowrap text-[0.6rem] font-black uppercase text-gold">{t.rounds.reset}</span>}
+        {id === "GF-M2" && <span className="shrink-0 whitespace-nowrap text-[0.6rem] font-black uppercase text-gold-hi">{t.rounds.reset}</span>}
         <span className="ml-auto flex items-center gap-1">
           {live !== undefined && <LiveDot />}
           {m.links.length > 0 && <MatchDialog match={m} compact />}
@@ -168,7 +168,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   const section = (s: "u" | "l") => (
     <div className="pointer-events-none absolute flex items-center gap-3" style={{ left: s === "u" ? 0 : col(lowCol), top: s === "u" ? 0 : LOW - 72 }}>
       <span className="in-left-far inline-flex" style={v({ "--d": s === "u" ? "0.05s" : "0.35s" })}>
-        <TriTick />
+        <Glyph kind="flag" className="size-5" />
       </span>
       <span className={cn("in-wipe heading-slam whitespace-nowrap text-xl sm:text-3xl", s === "l" && "text-rose-hi")} style={v({ "--d": s === "u" ? "0.1s" : "0.4s" })}>
         {s === "u" ? t.schedule.upper : t.schedule.lower}
@@ -184,10 +184,10 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
       <div className="mx-auto mt-4" style={fit.outer}>
       <div ref={inner} className={cn("relative", scale === 1 && "mx-auto")} style={fit.inner}>
         <svg className="pointer-events-none absolute inset-0 overflow-visible" width={width} height={height} aria-hidden>
-          <text x={col(mark)} y={TOP + (upRows - 1) * P + H - 6} className="in-trace heading-slam" fontSize={118} fill="none" stroke="rgba(244,243,238,0.08)" strokeWidth={1.5}>
+          <text x={col(mark)} y={TOP + (upRows - 1) * P + H - 6} className="in-trace heading-slam" fontSize={118} fill="none" stroke="color-mix(in srgb, var(--paper) 8%, transparent)" strokeWidth={1.5}>
             {up(t.schedule.upperWord)}
           </text>
-          <text x={width} y={LOW + (lowRows - 1) * P + H - 4} textAnchor="end" className="in-trace heading-slam" fontSize={118} fill="none" stroke="rgba(224,36,47,0.13)" strokeWidth={1.5} style={v({ "--d": "0.4s" })}>
+          <text x={width} y={LOW + (lowRows - 1) * P + H - 4} textAnchor="end" className="in-trace heading-slam" fontSize={118} fill="none" stroke="color-mix(in srgb, var(--rose) 13%, transparent)" strokeWidth={1.5} style={v({ "--d": "0.4s" })}>
             {up(t.schedule.lowerWord)}
           </text>
           {Object.entries(WIN).map(([a, b]) => {
@@ -200,8 +200,8 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
                 className="in-draw"
                 style={v({ "--d": `${0.6 + POS[a][0] * 0.14}s` })}
                 fill="none"
-                stroke={done ? HEX.balkan : HEX.line}
-                strokeOpacity={done ? 0.7 : 1}
+                stroke={done ? "var(--balkan-deep)" : HEX.line}
+                strokeOpacity={1}
                 strokeWidth={2}
               />
             );
@@ -218,7 +218,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
               opacity={linked.has(a) && linked.has(b) ? 0.9 : 0}
             />
           ))}
-          <path d={`M${col(gfCol) + W / 2} ${top("GF-M1") + H} V${top("GF-M2")}`} strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="3 4" className="in-up" style={v({ "--d": "1.3s", stroke: "var(--color-gold)" })} />
+          <path d={`M${col(gfCol) + W / 2} ${top("GF-M1") + H} V${top("GF-M2")}`} strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="3 4" className="in-up" style={v({ "--d": "1.3s", stroke: "var(--gold)" })} />
         </svg>
 
         {!phone && section("u")}
@@ -230,7 +230,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
             <div key={h.t}>
               {phone && (
                 <div className="pointer-events-none absolute flex items-center gap-2" style={{ left: col(h.c), top: y - 62 }}>
-                  <TriTick />
+                  <Glyph kind="flag" className="size-5" />
                   <span className={cn("heading-slam whitespace-nowrap text-xl", h.s === "l" && "text-rose-hi")}>{h.s === "u" ? t.schedule.upper : t.schedule.lower}</span>
                 </div>
               )}
@@ -244,7 +244,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
           );
         })}
         <div
-          className="in-drop absolute flex snap-start items-center gap-2 border-b border-gold/20 pb-1 text-xs font-black uppercase tracking-[0.14em] text-gold/80"
+          className="in-drop absolute flex snap-start items-center gap-2 border-b border-gold/20 pb-1 text-xs font-black uppercase tracking-[0.14em] text-gold-hi/80"
           style={{ left: col(gfCol), top: top("GF-M1") - 30, width: W, ...v({ "--d": "0.7s" }) }}
         >
           <Crown className="size-3.5" /> {t.rounds["Grand Finals"]}
@@ -264,7 +264,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
               slim={W < 200}
               onEnter={() => setHover(id)}
               onLeave={() => setHover(null)}
-              className={cn("in-left-far absolute", gf ? "border-gold/25" : "border-line hover:border-paper/30", linked.has(id) && "border-rose/80")}
+              className={cn("in-left-far absolute", gf ? "border-gold/70" : "border-line hover:border-paper/30", linked.has(id) && "border-rose/80")}
               style={{ left: col(c), top: top(id), width: W, height: H, ...v({ "--i": c, "--s": "0.14s", "--d": `${(POS[id][2] === "u" ? 0.2 : 0.5) + POS[id][1] / 2500}s` }) }}
             />
           );

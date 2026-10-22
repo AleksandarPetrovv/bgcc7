@@ -36,7 +36,7 @@ export default async function Overlay({ searchParams }: { searchParams: Promise<
           <Panel title={r.linkTitle} i={i++}>
             <div className="space-y-5">
               <div className="flex flex-wrap items-center gap-4">
-                <span className="in-pop inline-flex -skew-x-12 border border-rose bg-rose/10 px-5 py-2 shadow-[4px_4px_0_0_var(--color-rose-deep)]">
+                <span className="in-pop inline-flex -skew-x-12 border border-rose bg-rose/10 px-5 py-2 shadow-[4px_4px_0_0_var(--rose-deep)]">
                   <span className="num inline-block skew-x-12 text-4xl tracking-[0.2em] text-paper">{linkWord(st)}</span>
                 </span>
                 <span className="text-sm font-bold text-ash">{r.linkCode}</span>

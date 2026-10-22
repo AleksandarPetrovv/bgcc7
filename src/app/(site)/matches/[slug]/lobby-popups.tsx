@@ -31,8 +31,8 @@ export function IconBtn({ children, className, ...p }: React.ButtonHTMLAttribute
 export function Btn({ onClick, disabled, tone = "line", wide, children }: { onClick: () => void; disabled?: boolean; tone?: "line" | "go" | "warn" | "bad"; wide?: boolean; children: React.ReactNode }) {
   const cls = {
     line: "border-line text-paper hover:border-paper",
-    go: "border-balkan bg-balkan text-ink hover:bg-paper hover:border-paper",
-    warn: "border-gold text-gold hover:bg-gold/10",
+    go: "border-balkan bg-balkan text-paper hover:bg-paper hover:text-ink hover:border-paper",
+    warn: "border-gold text-gold-hi hover:bg-gold/10",
     bad: "border-rose text-rose-hi hover:bg-rose/10",
   }[tone];
   return (
@@ -55,21 +55,21 @@ export function HelperMissing({ onClose }: { onClose: () => void }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm"
     >
       <motion.div
         initial={POP.initial}
         animate={POP.animate}
         exit={POP.exit}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md overflow-hidden border-2 border-gold bg-coal p-6 shadow-[8px_8px_0_0_rgb(0_0_0/0.55)]"
+        className="relative w-full max-w-md overflow-hidden border-2 border-gold bg-coal p-6 shadow-[8px_8px_0_0_var(--gold-deep)]"
         role="dialog"
         aria-modal="true"
       >
         <button type="button" onClick={onClose} aria-label={t.draft.cancel} className="absolute right-3 top-3 p-1 text-ash hover:text-paper">
           <X className="size-4" />
         </button>
-        <WifiOff className="size-8 text-gold" />
+        <WifiOff className="size-8 text-gold-hi" />
         <h3 className="heading-slam mt-2 text-3xl">{t.lobby.noHelper}</h3>
         <p className="mt-1 text-sm font-bold text-paper/70">{t.lobby.noHelperBody}</p>
         <div className="mt-6 flex flex-col gap-2.5">
@@ -77,7 +77,7 @@ export function HelperMissing({ onClose }: { onClose: () => void }) {
             href="/download/helper"
             whileHover={{ x: 4 }}
             whileTap={{ scale: 0.97 }}
-            className="flex min-h-12 -skew-x-6 items-center bg-gold px-5 font-black uppercase tracking-wide text-ink shadow-[5px_5px_0_0_rgb(0_0_0/0.55)]"
+            className="flex min-h-12 -skew-x-6 items-center bg-gold px-5 font-black uppercase tracking-wide text-paper shadow-[5px_5px_0_0_var(--gold-deep)]"
           >
             <span className="inline-flex skew-x-6 items-center gap-2">
               <Download className="size-4" strokeWidth={3} /> {t.lobby.helperDownload}
@@ -89,7 +89,7 @@ export function HelperMissing({ onClose }: { onClose: () => void }) {
             rel="noreferrer"
             whileHover={{ x: 4 }}
             whileTap={{ scale: 0.97 }}
-            className="flex min-h-12 -skew-x-6 items-center border border-gold px-5 font-black uppercase tracking-wide text-gold hover:bg-gold/10"
+            className="flex min-h-12 -skew-x-6 items-center border border-gold px-5 font-black uppercase tracking-wide text-gold-hi hover:bg-gold/10"
           >
             <span className="inline-flex skew-x-6 items-center gap-2">
               <ExternalLink className="size-4" /> {t.lobby.helperPage}
@@ -109,27 +109,27 @@ export function StreamOrder({ onClose }: { onClose: () => void }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm"
     >
       <motion.div
         initial={POP.initial}
         animate={POP.animate}
         exit={POP.exit}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md overflow-hidden border-2 border-gold bg-coal p-6 shadow-[8px_8px_0_0_rgb(0_0_0/0.55)]"
+        className="relative w-full max-w-md overflow-hidden border-2 border-gold bg-coal p-6 shadow-[8px_8px_0_0_var(--gold-deep)]"
         role="dialog"
         aria-modal="true"
       >
         <button type="button" onClick={onClose} aria-label={t.draft.cancel} className="absolute right-3 top-3 p-1 text-ash hover:text-paper">
           <X className="size-4" />
         </button>
-        <TriangleAlert className="size-8 text-gold" />
+        <TriangleAlert className="size-8 text-gold-hi" />
         <h3 className="heading-slam mt-2 text-3xl">{t.lobby.makeFailed}</h3>
-        <p className="mt-1 text-sm font-black uppercase tracking-wide text-gold">{t.lobby.streamTitle}</p>
+        <p className="mt-1 text-sm font-black uppercase tracking-wide text-gold-hi">{t.lobby.streamTitle}</p>
         <ol className="mt-4 space-y-2.5">
           {t.lobby.streamSteps.map((s, i) => (
             <li key={i} className="flex items-start gap-3">
-              <span className="num inline-flex size-6 shrink-0 -skew-x-12 items-center justify-center bg-gold text-xs font-black text-ink">
+              <span className="num inline-flex size-6 shrink-0 -skew-x-12 items-center justify-center bg-gold text-xs font-black text-paper">
                 <span className="skew-x-12">{i + 1}</span>
               </span>
               <span className="text-sm font-bold leading-relaxed text-paper/85">{s}</span>
@@ -141,7 +141,7 @@ export function StreamOrder({ onClose }: { onClose: () => void }) {
           onClick={onClose}
           whileHover={{ x: 4 }}
           whileTap={{ scale: 0.97 }}
-          className="mt-6 flex min-h-12 w-full -skew-x-6 items-center bg-gold px-5 font-black uppercase tracking-wide text-ink shadow-[5px_5px_0_0_rgb(0_0_0/0.55)]"
+          className="mt-6 flex min-h-12 w-full -skew-x-6 items-center bg-gold px-5 font-black uppercase tracking-wide text-paper shadow-[5px_5px_0_0_var(--gold-deep)]"
         >
           <span className="inline-flex skew-x-6 items-center gap-2">
             <Check className="size-4" strokeWidth={3} /> {t.lobby.gotIt}
@@ -152,7 +152,7 @@ export function StreamOrder({ onClose }: { onClose: () => void }) {
   );
 }
 
-const HELP_C = ["var(--color-azure)", "var(--color-azure)", "var(--color-azure)", "var(--color-azure)", "var(--color-paper)", "var(--color-gold)", "var(--color-gold)", "var(--color-balkan)", "var(--color-gold)", "var(--color-rose)"];
+const HELP_C = ["var(--azure-hi)", "var(--azure-hi)", "var(--azure-hi)", "var(--azure-hi)", "var(--paper)", "var(--gold-hi)", "var(--gold-hi)", "var(--balkan-hi)", "var(--gold-hi)", "var(--rose-hi)"];
 
 export function LobbyHelp({ onClose }: { onClose: () => void }) {
   const t = useDict();
@@ -164,14 +164,14 @@ export function LobbyHelp({ onClose }: { onClose: () => void }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm"
     >
       <motion.div
         initial={POP.initial}
         animate={POP.animate}
         exit={POP.exit}
         onClick={(e) => e.stopPropagation()}
-        className="relative flex max-h-[88dvh] w-full max-w-3xl flex-col overflow-hidden border-2 border-paper/80 bg-coal shadow-[8px_8px_0_0_rgba(0,0,0,0.5)]"
+        className="relative flex max-h-[88dvh] w-full max-w-3xl flex-col overflow-hidden border-2 border-paper/80 bg-coal shadow-[8px_8px_0_0_color-mix(in_srgb,var(--rose-deep)_60%,transparent)]"
         role="dialog"
         aria-modal="true"
       >
@@ -184,9 +184,9 @@ export function LobbyHelp({ onClose }: { onClose: () => void }) {
         </div>
         <div className="overflow-y-auto px-5 py-5 sm:px-6">
           <div className="mb-5 flex gap-3 border border-gold/60 bg-gold/10 px-4 py-3">
-            <TriangleAlert className="mt-0.5 size-4 shrink-0 text-gold" />
+            <TriangleAlert className="mt-0.5 size-4 shrink-0 text-gold-hi" />
             <p className="text-sm leading-relaxed text-paper/90">
-              <span className="font-black uppercase tracking-wide text-gold">{t.lobby.streamTitle}</span> {t.lobby.streamBody}
+              <span className="font-black uppercase tracking-wide text-gold-hi">{t.lobby.streamTitle}</span> {t.lobby.streamBody}
             </p>
           </div>
           <ul className="space-y-4">
@@ -239,7 +239,7 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
   const t = useDict();
   const [secs, setSecs] = useState(10);
   const [custom, setCustom] = useState("");
-  const tone = { start: { c: "var(--color-balkan)", deep: "var(--color-balkan-deep)", Icon: Play }, abort: { c: "var(--color-gold)", deep: "var(--color-gold-deep)", Icon: OctagonX }, close: { c: "var(--color-rose)", deep: "var(--color-rose-deep)", Icon: DoorClosed } }[kind];
+  const tone = { start: { c: "var(--balkan)", deep: "var(--balkan-deep)", hi: "var(--balkan-hi)", Icon: Play }, abort: { c: "var(--gold)", deep: "var(--gold-deep)", hi: "var(--gold-hi)", Icon: OctagonX }, close: { c: "var(--rose)", deep: "var(--rose-deep)", hi: "var(--rose-hi)", Icon: DoorClosed } }[kind];
   const copy = { start: [t.lobby.startTitle, null, t.lobby.start], abort: [t.lobby.abortTitle, t.lobby.abortBody, t.lobby.abort], close: [t.lobby.closeTitle, t.lobby.closeBody, t.lobby.closeYes] }[kind];
   const pickSecs = custom ? Math.min(300, Math.max(0, Math.round(Number(custom)) || 0)) : secs;
   return (
@@ -248,7 +248,7 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
       onClick={onCancel}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm"
     >
       <motion.div
         initial={POP.initial}
@@ -260,12 +260,12 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
         role="dialog"
         aria-modal="true"
       >
-        <tone.Icon className={cn("size-8", kind === "start" && "fill-current")} style={{ color: tone.c }} />
+        <tone.Icon className={cn("size-8", kind === "start" && "fill-current")} style={{ color: tone.hi }} />
         <h3 className="heading-slam mt-2 text-3xl">{copy[0]}</h3>
         {copy[1] && <p className="mt-1 text-sm font-bold text-paper/70">{copy[1]}</p>}
         {kind === "start" && warn.length > 0 && (
           <div className="mt-4 border border-gold/50 bg-gold/10 px-3 py-2">
-            <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wide text-gold">
+            <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wide text-gold-hi">
               <TriangleAlert className="size-3.5" /> {t.lobby.notAllReady}
             </div>
             <ul className="mt-1 space-y-0.5 text-sm font-bold text-paper/85">
@@ -289,7 +289,7 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
                   }}
                   className={cn(
                     "num min-h-9 min-w-12 -skew-x-12 border px-2.5 text-sm font-black transition-colors",
-                    !custom && secs === s ? "border-balkan bg-balkan text-ink" : "border-line text-paper hover:border-paper",
+                    !custom && secs === s ? "border-balkan bg-balkan text-paper" : "border-line text-paper hover:border-paper",
                   )}
                 >
                   <span className="inline-block skew-x-12">{s ? `${s}s` : t.lobby.now}</span>
@@ -300,7 +300,7 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
                 onChange={(e) => setCustom(e.target.value.replace(/\D/g, "").slice(0, 3))}
                 inputMode="numeric"
                 placeholder={t.lobby.secs}
-                className={cn("adm-bare num min-h-9 w-20 border bg-ink px-2 text-sm outline-none", custom ? "border-balkan" : "border-line focus:border-paper")}
+                className={cn("adm-bare num min-h-9 w-20 border bg-field px-2 text-sm outline-none placeholder:text-ash", custom ? "border-balkan" : "border-line focus:border-paper")}
               />
             </div>
           </div>
@@ -311,7 +311,7 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
             whileHover={{ x: 4 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => onGo(pickSecs)}
-            className={cn("flex min-h-12 -skew-x-6 items-center px-5 text-left font-black uppercase tracking-wide", kind === "close" ? "text-white" : "text-ink")}
+            className={cn("flex min-h-12 -skew-x-6 items-center px-5 text-left font-black uppercase tracking-wide", kind === "close" ? "text-white" : "text-paper")}
             style={{ background: tone.c, boxShadow: `5px 5px 0 0 ${tone.deep}` }}
           >
             <span className="inline-flex skew-x-6 items-center gap-2">

@@ -30,7 +30,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? t.common.tbd;
   const mp = m.mpLinks.split(",").filter(Boolean);
   const status = m.winner ? "done" : mp.length ? "live" : m.startsAt ? "soon" : "tbd";
-  const tone = { done: "bg-balkan", live: "bg-rose", soon: "bg-azure", tbd: "bg-line" }[status];
+  const tone = { done: "bg-balkan", live: "bg-crimson", soon: "bg-azure", tbd: "bg-line" }[status];
   const side = (n: 1 | 2) => {
     const won = m.winner === n;
     const lost = !!m.winner && !won;
@@ -43,17 +43,17 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
   const score = (n: 1 | 2) => {
     const v = n === 1 ? m.score1 : m.score2;
     const won = m.winner === n;
-    const c = n === 1 ? "rose" : "azure";
+    const c = n === 1 ? "crimson" : "azure";
     return (
       <span
         className={cn(
           "grid h-10 w-10 -skew-x-12 place-items-center border sm:w-11",
           won
-            ? c === "rose"
-              ? "border-rose bg-rose text-white"
+            ? c === "crimson"
+              ? "border-crimson bg-crimson text-white"
               : "border-azure bg-azure text-white"
-            : c === "rose"
-              ? "border-rose/40 text-rose-hi"
+            : c === "crimson"
+              ? "border-crimson/40 text-crimson-hi"
               : "border-azure/40 text-azure-hi",
         )}
       >
@@ -65,7 +65,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
   return (
     <details
       style={{ "--i": Math.min(k, 8), "--s": "0.05s", "--d": "0.55s" } as React.CSSProperties}
-      className="adm-match group in-left relative border border-line bg-ink transition-[border-color,box-shadow] duration-200 hover:border-paper/25 open:border-paper/30 open:shadow-[4px_4px_0_0_var(--color-rose-deep)]"
+      className="adm-match group in-left relative border border-line bg-ink transition-[border-color,box-shadow] duration-200 hover:border-paper/25 open:border-paper/30 open:shadow-[4px_4px_0_0_var(--rose-deep)]"
     >
       <summary className="relative flex cursor-pointer list-none items-center gap-3 py-3 pl-4 pr-3 [&::-webkit-details-marker]:hidden">
         <span className={cn("absolute inset-y-0 left-0 w-1", tone)} aria-hidden />
@@ -75,7 +75,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
             className={cn(
               "w-fit -skew-x-12 px-1.5 py-0.5 text-[0.6rem] font-black uppercase tracking-wider",
               status === "done"
-                ? "bg-balkan/15 text-balkan"
+                ? "bg-balkan/15 text-balkan-hi"
                 : status === "live"
                   ? "bg-rose/15 text-rose-hi"
                   : status === "soon"
@@ -90,7 +90,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
         <span className="flex min-w-0 flex-1 flex-col gap-1.5 sm:hidden">
           {([1, 2] as const).map((n) => (
             <span key={n} className="flex items-center gap-2.5">
-              <span className={cn("h-5 w-1 shrink-0", n === 1 ? "bg-rose" : "bg-azure")} aria-hidden />
+              <span className={cn("h-5 w-1 shrink-0", n === 1 ? "bg-crimson" : "bg-azure")} aria-hidden />
               <span className={cn(side(n), "flex-1")}>{name(n === 1 ? m.team1Id : m.team2Id)}</span>
               {score(n)}
             </span>
@@ -105,7 +105,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
         <span className="hidden min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 sm:grid">
           <span className="flex min-w-0 items-center justify-end gap-2">
             <span className={side(1)}>{name(m.team1Id)}</span>
-            <span className="h-5 w-1 shrink-0 bg-rose" aria-hidden />
+            <span className="h-5 w-1 shrink-0 bg-crimson" aria-hidden />
           </span>
           <span className="flex items-center gap-1.5">
             {score(1)}
@@ -144,7 +144,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
         </span>
       </summary>
 
-      <div className="border-t border-line bg-[linear-gradient(180deg,rgb(255_255_255/0.015),transparent)] p-3.5 sm:p-4">
+      <div className="border-t border-line bg-[linear-gradient(180deg,var(--field),transparent)] p-3.5 sm:p-4">
         <ActionForm key={JSON.stringify(m)} action={saveMatch.bind(null, m.id)} className="space-y-5">
           <input type="hidden" name="stamp" value={matchStamp(m)} />
           <div className="grid gap-5 lg:grid-cols-[1.25fr_1fr]">
@@ -153,7 +153,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
               <div className="grid grid-cols-[minmax(0,1fr)_5rem] gap-x-3 gap-y-3">
                 <label className={label}>
                   <span className="flex items-center gap-1.5">
-                    <span className="size-2 bg-rose" /> {t.admin.teamN(1)}
+                    <span className="size-2 bg-crimson" /> {t.admin.teamN(1)}
                   </span>
                   <Dropdown name="team1Id" defaultValue={m.team1Id ?? ""} options={[{ value: "", label: t.common.tbd }, ...teams.map((x) => ({ value: x.id, label: x.name }))]} />
                 </label>
@@ -178,8 +178,8 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
                     defaultValue="auto"
                     options={[
                       { value: "auto", label: t.admin.winnerAuto },
-                      { value: "1", label: name(m.team1Id), color: "var(--color-rose)" },
-                      { value: "2", label: name(m.team2Id), color: "var(--color-azure)" },
+                      { value: "1", label: name(m.team1Id), color: "var(--crimson)" },
+                      { value: "2", label: name(m.team2Id), color: "var(--azure)" },
                       { value: "none", label: t.admin.winnerNone },
                     ]}
                   />
@@ -244,7 +244,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-dashed border-line pt-4">
             <Link
               href={`/admin/matches/${matchSlug(f, m.id)}`}
-              className="lift-sm inline-flex min-h-10 -skew-x-12 items-center bg-balkan px-4 text-xs font-black uppercase tracking-wide text-ink hover:bg-paper"
+              className="lift-sm inline-flex min-h-10 -skew-x-12 items-center bg-balkan px-4 text-xs font-black uppercase tracking-wide text-paper hover:bg-paper hover:text-ink"
             >
               <span className="skew-x-12">{t.admin.ms.open}</span>
             </Link>

@@ -9,7 +9,7 @@ import type { Beatmap } from "@/lib/data";
 import type { Side } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { slotColor } from "@/lib/format-plan";
-import { GOLD, TEAM, tint } from "@/lib/theme";
+import { GOLD, modHi, TEAM, tint } from "@/lib/theme";
 import { Costs, MapCard } from "@/components/site/match-dialog";
 import type { MapResult, Scoreboard } from "@/lib/scoreboard";
 
@@ -39,7 +39,7 @@ export function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onP
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: { duration: 0.15 } }}
       exit={{ opacity: 0, transition: { duration: 0.15 } }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm"
     >
       <motion.div
         initial={POP.initial}
@@ -50,7 +50,7 @@ export function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onP
         role="dialog"
         aria-modal="true"
       >
-        <Crown className="size-10 fill-current text-gold" />
+        <Crown className="size-10 fill-current text-gold-hi" />
         <h3 className="heading-slam mt-3 text-4xl sm:text-5xl" style={{ color: col.hi }}>
           {t.draft.choose}
         </h3>
@@ -85,9 +85,9 @@ export function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onP
           type="button"
           disabled={!choice || busy}
           onClick={() => choice && onPick(choice)}
-          className="sheen heading-slam mt-5 flex min-h-14 w-full -skew-x-12 items-center justify-center text-2xl text-white transition-[transform,opacity,filter,translate,scale,rotate] duration-200 hover:brightness-110 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-35"
+          className={cn("sheen heading-slam mt-5 flex min-h-14 w-full -skew-x-12 items-center justify-center text-2xl transition-[transform,opacity,filter,translate,scale,rotate] duration-200 hover:brightness-110 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50", choice ? "text-white" : "text-ash")}
           style={{
-            background: choice ? col.c : "var(--color-slate)",
+            background: choice ? col.c : "var(--slate)",
             boxShadow: choice ? `5px 5px 0 0 ${col.deep}` : undefined,
           }}
         >
@@ -125,7 +125,7 @@ export function TimerDock({
 }) {
   const low = !pause && !calm && left <= 10_000;
   const pct = total ? Math.max(0, Math.min(1, left / total)) : 0;
-  const tone = pause ? { ...GOLD, hi: GOLD.c } : low ? { c: TEAM[1].c, hi: TEAM[1].hi, deep: TEAM[1].deep } : color;
+  const tone = pause ? GOLD : low ? { c: TEAM[1].c, hi: TEAM[1].hi, deep: TEAM[1].deep } : color;
   const { c, hi, deep } = tone;
   return (
     <motion.div
@@ -158,7 +158,7 @@ export function TimerDock({
           </span>
           <span
             className="num shrink-0 text-5xl font-black tabular-nums leading-none sm:text-6xl"
-            style={{ color: low || pause ? hi : "var(--color-paper)", textShadow: `0 0 24px ${tint(c, 40)}` }}
+            style={{ color: low || pause ? hi : "var(--paper)", textShadow: `0 0 24px ${tint(c, 40)}` }}
           >
             {clockText(left)}
           </span>
@@ -205,7 +205,7 @@ export function WinnerPopup({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.15 } }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm"
     >
       <motion.div
         initial={POP.initial}
@@ -216,10 +216,10 @@ export function WinnerPopup({
         aria-modal="true"
       >
         <div className="relative text-center">
-          <Crown className="mx-auto size-9 fill-current text-gold" />
+          <Crown className="mx-auto size-9 fill-current text-gold-hi" />
           <h3 className="heading-slam mt-2 text-4xl sm:text-5xl">{t.draft.whoWon}</h3>
           <p className="mt-1 truncate text-sm font-bold text-ash">
-            <span style={{ color }}>{slot}</span> · {map.title}
+            <span style={{ color: modHi(color) }}>{slot}</span> · {map.title}
           </p>
           <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
             {([1, 2] as const).map((s) => (
@@ -236,7 +236,7 @@ export function WinnerPopup({
                 )}
                 style={{
                   background: `linear-gradient(${s === 1 ? "135deg" : "225deg"}, ${TEAM[s].c}, ${TEAM[s].deep})`,
-                  boxShadow: current === s ? `0 0 0 3px var(--color-paper), 5px 5px 0 0 ${TEAM[s].deep}` : `5px 5px 0 0 ${TEAM[s].deep}`,
+                  boxShadow: current === s ? `0 0 0 3px var(--paper), 5px 5px 0 0 ${TEAM[s].deep}` : `5px 5px 0 0 ${TEAM[s].deep}`,
                 }}
               >
                 <span className="pointer-events-none absolute -right-4 -top-4 size-16 rotate-45 bg-white/10 transition-transform duration-300 group-hover:scale-150" aria-hidden />
@@ -291,7 +291,7 @@ export function ScoresPopup({ slug, slot, names, onClose }: { slug: string; slot
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm"
     >
       <motion.div
         initial={POP.initial}
@@ -326,14 +326,14 @@ export function ResetPopup({ lobby, busy, onCancel, onReset }: { lobby: boolean;
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
       onClick={onCancel}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm"
     >
       <motion.div
         initial={POP.initial}
         animate={POP.animate}
         exit={POP.exit}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md overflow-hidden border-2 border-rose bg-coal p-6 shadow-[8px_8px_0_0_var(--color-rose-deep)]"
+        className="relative w-full max-w-md overflow-hidden border-2 border-rose bg-coal p-6 shadow-[8px_8px_0_0_var(--rose-deep)]"
         role="dialog"
         aria-modal="true"
       >
@@ -348,7 +348,7 @@ export function ResetPopup({ lobby, busy, onCancel, onReset }: { lobby: boolean;
               whileHover={{ x: 4 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => onReset(true)}
-              className="flex min-h-12 -skew-x-6 items-center bg-rose px-5 text-left font-black uppercase tracking-wide text-white shadow-[5px_5px_0_0_var(--color-rose-deep)] disabled:opacity-60"
+              className="flex min-h-12 -skew-x-6 items-center bg-rose px-5 text-left font-black uppercase tracking-wide text-white shadow-[5px_5px_0_0_var(--rose-deep)] disabled:opacity-60"
             >
               <span className="inline-flex skew-x-6 items-center gap-2">
                 <DoorClosed className="size-4" /> {t.draft.resetClose}
@@ -363,7 +363,7 @@ export function ResetPopup({ lobby, busy, onCancel, onReset }: { lobby: boolean;
             onClick={() => onReset(false)}
             className={cn(
               "flex min-h-12 -skew-x-6 items-center px-5 text-left font-black uppercase tracking-wide disabled:opacity-60",
-              lobby ? "border border-rose text-rose-hi hover:bg-rose/10" : "bg-rose text-white shadow-[5px_5px_0_0_var(--color-rose-deep)]",
+              lobby ? "border border-rose text-rose-hi hover:bg-rose/10" : "bg-rose text-white shadow-[5px_5px_0_0_var(--rose-deep)]",
             )}
           >
             <span className="inline-flex skew-x-6 items-center gap-2">
@@ -403,7 +403,7 @@ export function CopyId({ id }: { id: number }) {
         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && copy(e)}
         className="inline-flex size-6 cursor-pointer items-center justify-center border border-line text-ash transition-colors hover:border-paper hover:text-paper"
       >
-        {done ? <Check className="size-3.5 text-balkan" strokeWidth={3} /> : <Copy className="size-3.5" />}
+        {done ? <Check className="size-3.5 text-balkan-hi" strokeWidth={3} /> : <Copy className="size-3.5" />}
       </span>
     </span>
   );

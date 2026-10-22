@@ -29,11 +29,11 @@ export default async function Stream() {
       <div className="grid max-w-4xl gap-6">
         {list.length === 0 && <p className="text-sm font-bold text-ash">{all ? s.noneAll : s.none}</p>}
         {list.map((m, i) => (
-          <Panel key={m.id} title={t.rounds[m.round] ?? m.round} i={i + 1} className={m.mine ? "border-2 border-gold shadow-[6px_6px_0_0_var(--color-gold-deep)]" : undefined}>
+          <Panel key={m.id} title={t.rounds[m.round] ?? m.round} i={i + 1} className={m.mine ? "border-2 border-gold shadow-[6px_6px_0_0_var(--gold-deep)]" : undefined}>
             <div className="grid gap-4">
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
                 <span className="flex min-w-0 items-center gap-2 text-lg font-black">
-                  <span className="h-5 w-1 shrink-0 bg-rose" aria-hidden />
+                  <span className="h-5 w-1 shrink-0 bg-crimson" aria-hidden />
                   <span className="truncate">{m.team1.name}</span>
                   <span className="text-[0.62rem] uppercase text-ash">vs</span>
                   <span className="truncate">{m.team2.name}</span>
@@ -43,7 +43,7 @@ export default async function Stream() {
                   <CalendarClock className="size-3.5 text-ash" />
                   {m.datetime ? fmtSofia(new Date(m.datetime), lang === "bg" ? "bg-BG" : "en-GB") : t.common.tbd}
                 </span>
-                <span className={m.mine ? "flex items-center gap-1.5 text-xs font-black uppercase text-gold" : "flex items-center gap-1.5 text-xs text-ash"}>
+                <span className={m.mine ? "flex items-center gap-1.5 text-xs font-black uppercase text-gold-hi" : "flex items-center gap-1.5 text-xs text-ash"}>
                   <Radio className="size-3.5" />
                   {m.mine ? s.you : (m.streamer ?? t.common.tbd)}
                 </span>

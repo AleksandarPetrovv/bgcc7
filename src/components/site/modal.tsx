@@ -16,11 +16,11 @@ export function Modal({ open, onClose, children, tone = "rose", className }: { o
     return () => window.removeEventListener("keydown", key);
   }, [open, onClose]);
   if (typeof document === "undefined") return null;
-  const edge = { rose: "border-rose shadow-[6px_6px_0_0_var(--color-rose-deep)]", gold: "border-gold shadow-[6px_6px_0_0_var(--color-gold-deep)]", balkan: "border-balkan shadow-[6px_6px_0_0_var(--color-balkan-deep)]" }[tone];
+  const edge = { rose: "border-rose shadow-[6px_6px_0_0_var(--rose-deep)]", gold: "border-gold shadow-[6px_6px_0_0_var(--gold-deep)]", balkan: "border-balkan shadow-[6px_6px_0_0_var(--balkan-deep)]" }[tone];
   return createPortal(
     <AnimatePresence>
       {open && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm" onClick={onClose}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-rose-deep/25 p-4 backdrop-blur-sm" onClick={onClose}>
           <motion.div
             initial={{ y: 40, scale: 0.92 }}
             animate={{ y: 0, scale: 1 }}

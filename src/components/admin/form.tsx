@@ -2,7 +2,7 @@
 
 import { useActionState, useTransition } from "react";
 import { Flash } from "./flash";
-import { TriTick } from "@/components/site/graphics";
+import { Glyph } from "@/components/site/graphics";
 import { useDict } from "@/components/site/lang";
 import type { ActionResult } from "@/lib/roles";
 import { cn } from "@/lib/utils";
@@ -14,9 +14,9 @@ export const checkLabelCls = "flex min-h-10 cursor-pointer items-center gap-2.5 
 
 const TONES = {
   rose: "bg-rose text-white hover:bg-rose-hi",
-  balkan: "bg-balkan text-ink hover:bg-paper [--lift:var(--color-balkan-deep)]",
-  outline: "border border-line text-paper hover:border-rose [--lift:var(--color-rose)]",
-  danger: "border border-rose text-rose-hi hover:bg-rose/10 [--lift:var(--color-rose)]",
+  balkan: "bg-balkan text-paper hover:bg-paper hover:text-ink [--lift:var(--balkan-deep)]",
+  outline: "border border-line text-paper hover:border-rose [--lift:var(--rose)]",
+  danger: "border border-rose text-rose-hi hover:bg-rose/10 [--lift:var(--rose)]",
 };
 
 type BtnProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { tone?: keyof typeof TONES; small?: boolean };
@@ -74,7 +74,7 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
         {msg &&
           !pending &&
           (state?.ok ? (
-            <Flash className="text-xs font-bold uppercase tracking-wide text-balkan">{msg}</Flash>
+            <Flash className="text-xs font-bold uppercase tracking-wide text-balkan-hi">{msg}</Flash>
           ) : (
             <span role="status" className="text-xs font-bold uppercase tracking-wide text-rose-hi">
               {msg}
@@ -91,7 +91,7 @@ export function Panel({ title, help, children, className, i = 0 }: { title: stri
       <div className="border-b border-line px-4 py-3 sm:px-5">
         <h2 className="heading-slam flex items-center gap-3 text-xl sm:text-2xl">
           <span className="in-left-far inline-flex [--d:0.25s]">
-            <TriTick className="h-3 w-[22px]" />
+            <Glyph kind="plus" className="size-3.5" />
           </span>
           <span className="in-wipe min-w-0 break-words [--d:0.3s]">{title}</span>
         </h2>

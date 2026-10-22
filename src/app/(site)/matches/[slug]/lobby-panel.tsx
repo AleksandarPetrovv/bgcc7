@@ -13,13 +13,14 @@ import type { Beatmap } from "@/lib/data";
 import type { LobbyView } from "@/lib/bancho";
 import { slotColor } from "@/lib/format-plan";
 import { cn } from "@/lib/utils";
-import { LOBBY_TEAM, MOD_COLOR } from "@/lib/theme";
+import { LOBBY_TEAM, MOD_COLOR, modHi, TEAM } from "@/lib/theme";
 import { osuMp } from "@/lib/links";
 import { Btn, HelperMissing, IconBtn, LobbyAsk, StreamOrder, lobbyPost } from "./lobby-popups";
 import { Chat } from "./lobby-chat";
 
 const TEAM_C = LOBBY_TEAM;
-const MOD_C = MOD_COLOR;
+const TEAM_HI = { red: TEAM[1].hi, blue: TEAM[2].hi } as const;
+const modC = (m: string) => modHi(MOD_COLOR[m]) ?? "var(--ash)";
 
 export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = false, canSay, teamNames }: { slug: string; maps: Beatmap[]; onOpen: (open: boolean) => void; readOnly?: boolean; streams?: boolean; canSay: boolean; teamNames: [string, string] }) {
   const t = useDict();
@@ -92,7 +93,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
     return (
       <div className="min-w-0 bg-coal">
         <div className="flex items-center gap-2 border-b border-line px-3 py-1.5" style={{ boxShadow: `inset 0 2px 0 ${TEAM_C[want]}` }}>
-          <span className="text-[0.62rem] font-black uppercase tracking-[0.14em]" style={{ color: TEAM_C[want] }}>
+          <span className="text-[0.62rem] font-black uppercase tracking-[0.14em]" style={{ color: TEAM_HI[want] }}>
             {t.lobby.side[want]}
           </span>
           <span className="min-w-0 truncate text-xs font-black text-paper">{teamNames[side - 1]}</span>
@@ -101,16 +102,16 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
           {people.map(({ s, i }) => {
             const ok = s.team === want;
             return (
-              <li key={s.name} className={cn("flex min-h-10 items-center gap-2 px-3 py-1.5", !ok && "shadow-[inset_3px_0_0_var(--color-gold)] bg-gold/5")}>
+              <li key={s.name} className={cn("flex min-h-10 items-center gap-2 px-3 py-1.5", !ok && "shadow-[inset_3px_0_0_var(--gold-deep)] bg-gold/15")}>
                 <span className="min-w-0 flex-1 truncate text-sm font-black">{s.name}</span>
                 {ok ? (
-                  <span className="inline-flex items-center gap-1 text-[0.6rem] font-black uppercase text-ash/70">
+                  <span className="inline-flex items-center gap-1 text-[0.6rem] font-black uppercase text-ash">
                     <span className="size-1.5 rotate-45" style={{ background: TEAM_C[want] }} aria-hidden />
                     {t.lobby.side[want]}
                   </span>
                 ) : (
                   <>
-                    <span className="text-[0.62rem] font-black uppercase text-gold">{t.lobby.onWrong(s.team ? t.lobby.side[s.team] : "–", t.lobby.side[want])}</span>
+                    <span className="text-[0.62rem] font-black uppercase text-gold-hi">{t.lobby.onWrong(s.team ? t.lobby.side[s.team] : "–", t.lobby.side[want])}</span>
                     {!readOnly && (
                       <button
                         type="button"
@@ -127,7 +128,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
               </li>
             );
           })}
-          {people.length === 0 && <li className="px-3 py-2 text-xs font-bold uppercase text-ash/60">{t.lobby.noneHere}</li>}
+          {people.length === 0 && <li className="px-3 py-2 text-xs font-bold uppercase text-ash">{t.lobby.noneHere}</li>}
         </ul>
       </div>
     );
@@ -148,18 +149,18 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
       >
         {s ? (
           <>
-            <span className="absolute inset-y-0 left-0 w-1" style={{ background: s.team ? TEAM_C[s.team] : "var(--color-line)" }} />
+            <span className="absolute inset-y-0 left-0 w-1" style={{ background: s.team ? TEAM_C[s.team] : "var(--line)" }} />
             <span className="flex min-w-0 flex-1 flex-col gap-1.5">
               <span className="flex min-w-0 items-baseline gap-2">
                 <span className="num w-4 shrink-0 text-[0.7rem] font-black text-ash">{i + 1}</span>
-                <span className={cn("min-w-0 truncate text-sm font-black", s.team === "red" ? "text-rose-hi" : s.team === "blue" ? "text-azure-hi" : "text-ash")}>{s.name}</span>
+                <span className={cn("min-w-0 truncate text-sm font-black", s.team === "red" ? "text-crimson-hi" : s.team === "blue" ? "text-azure-hi" : "text-ash")}>{s.name}</span>
               </span>
               <span className="flex flex-col items-start gap-1.5 pl-6">
               <span className="flex min-w-0 flex-wrap items-center gap-1">
                 <span
                   className={cn(
                     "inline-flex -skew-x-12 items-center whitespace-nowrap border px-1.5 text-[0.6rem] font-black uppercase leading-4 tracking-wide",
-                    s.ready === "ready" ? "border-balkan bg-balkan text-ink" : s.ready === "nomap" ? "border-rose text-rose-hi" : "border-line text-ash",
+                    s.ready === "ready" ? "border-balkan bg-balkan text-paper" : s.ready === "nomap" ? "border-rose text-rose-hi" : "border-line text-ash",
                   )}
                 >
                   <span className="inline-flex skew-x-12 items-center gap-1">
@@ -175,7 +176,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                       </span>
                     )}
                     {s.mods.map((m) => (
-                      <span key={m} className="-skew-x-12 border px-1.5 text-[0.6rem] font-black leading-4" style={{ borderColor: MOD_C[m] ?? "var(--color-line)", color: MOD_C[m] ?? "var(--color-ash)" }}>
+                      <span key={m} className="-skew-x-12 border px-1.5 text-[0.6rem] font-black leading-4" style={{ borderColor: modC(m), color: modC(m) }}>
                         <span className="inline-block skew-x-12">{m}</span>
                       </span>
                     ))}
@@ -224,7 +225,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                             setPicking(null);
                             run({ act: "move", slot: i, to: k });
                           }}
-                          className="num inline-flex h-7 min-w-8 max-w-48 -skew-x-12 items-center border border-line bg-ink px-2.5 text-xs font-black text-paper shadow-[3px_3px_0_0_rgba(0,0,0,0.45)] transition-colors hover:border-paper hover:bg-paper hover:text-ink"
+                          className="num inline-flex h-7 min-w-8 max-w-48 -skew-x-12 items-center border border-line bg-ink px-2.5 text-xs font-black text-paper shadow-[3px_3px_0_0_color-mix(in_srgb,var(--rose-deep)_45%,transparent)] transition-colors hover:border-paper hover:bg-paper hover:text-ink"
                         >
                           <span className="inline-flex min-w-0 skew-x-12 items-center gap-1.5">
                             <span>{k + 1}</span>
@@ -271,8 +272,8 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
     >
       <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2">
         <span className="heading-slam text-lg">{t.lobby.title}</span>
-        <span title={t.lobby.bot[v.bot]} className={cn("inline-flex items-center", v.bot === "off" ? "text-rose-hi" : "text-gold")}>
-          {v.bot === "online" ? <span className="size-2 rounded-full bg-balkan shadow-[0_0_8px_var(--color-balkan)]" /> : <WifiOff className="size-3.5" />}
+        <span title={t.lobby.bot[v.bot]} className={cn("inline-flex items-center", v.bot === "off" ? "text-rose-hi" : "text-gold-hi")}>
+          {v.bot === "online" ? <span className="size-2 rounded-full bg-balkan-deep shadow-[0_0_8px_var(--balkan)]" /> : <WifiOff className="size-3.5" />}
         </span>
         {link && (
           <a href={link} target="_blank" rel="noreferrer" className="num inline-flex items-center gap-1 text-xs font-black text-ash hover:text-paper">
@@ -287,7 +288,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
             className="num inline-flex items-center gap-1 text-xs font-black text-ash hover:text-paper"
             title={t.lobby.password}
           >
-            {t.lobby.password} <span className="text-paper">{v.password}</span> {copied ? <Check className="size-3 text-balkan" /> : <Copy className="size-3" />}
+            {t.lobby.password} <span className="text-paper">{v.password}</span> {copied ? <Check className="size-3 text-balkan-hi" /> : <Copy className="size-3" />}
           </button>
         )}
         {open && v.mpId && !readOnly && (
@@ -298,7 +299,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
             className="num inline-flex items-center gap-1 text-xs font-black text-ash hover:text-paper"
             title={t.lobby.joinHint}
           >
-            {t.lobby.inGame} <span className="text-paper">/join #mp_{v.mpId}</span> {joinCopied ? <Check className="size-3 text-balkan" /> : <Copy className="size-3" />}
+            {t.lobby.inGame} <span className="text-paper">/join #mp_{v.mpId}</span> {joinCopied ? <Check className="size-3 text-balkan-hi" /> : <Copy className="size-3" />}
           </button>
         )}
         {err && <span className="text-xs font-black text-rose-hi">{t.lobby.failed}</span>}
@@ -379,13 +380,13 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.35, ease: EASE }} className="overflow-hidden">
             {wrong.length > 0 && (
               <div className="flex flex-wrap items-center gap-3 border-b border-gold/50 bg-gold/10 px-3 py-2">
-                <span className="text-xs font-black uppercase tracking-wide text-gold">{t.lobby.wrongSides(wrong.length)}</span>
+                <span className="text-xs font-black uppercase tracking-wide text-gold-hi">{t.lobby.wrongSides(wrong.length)}</span>
                 {!readOnly && (
                   <button
                     type="button"
                     disabled={pending || offline}
                     onClick={fixAll}
-                    className="ml-auto inline-flex h-8 -skew-x-12 items-center border border-gold bg-gold px-3 text-xs font-black uppercase text-ink transition-colors hover:bg-paper disabled:opacity-50"
+                    className="ml-auto inline-flex h-8 -skew-x-12 items-center border border-gold bg-gold px-3 text-xs font-black uppercase text-paper transition-colors hover:bg-paper hover:text-ink disabled:opacity-50"
                   >
                     <span className="skew-x-12">{t.lobby.fixAll}</span>
                   </button>
@@ -425,7 +426,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                 )}
                 <span className="relative text-[0.65rem] font-black uppercase tracking-widest text-ash">{v.playing ? t.lobby.playing : t.lobby.map}</span>
                 {map && (
-                  <span className="heading-slam relative text-2xl" style={{ color: slotColor(map.slot) }}>
+                  <span className="heading-slam relative text-2xl" style={{ color: modHi(slotColor(map.slot)) }}>
                     {map.slot}
                   </span>
                 )}
@@ -434,7 +435,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                 </span>
                 <span className="relative mt-1.5 flex flex-wrap gap-1">
                   {(v.freemod ? [...v.mods, "FM"] : v.mods.length ? v.mods : ["NM"]).map((m) => (
-                    <span key={m} className="-skew-x-12 border px-1.5 text-[0.7rem] font-black leading-5" style={{ borderColor: MOD_C[m] ?? "var(--color-line)", color: MOD_C[m] ?? "var(--color-ash)" }}>
+                    <span key={m} className="-skew-x-12 border px-1.5 text-[0.7rem] font-black leading-5" style={{ borderColor: modC(m), color: modC(m) }}>
                       <span className="inline-block skew-x-12">{m}</span>
                     </span>
                   ))}

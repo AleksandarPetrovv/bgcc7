@@ -53,14 +53,14 @@ export function VoteCell({ id, viewer, mine, mineNote, canVote, own, picked, won
             preview
               ? "border-dashed border-paper/40"
               : won
-                ? "border-balkan shadow-[3px_3px_0_0_var(--color-balkan-deep)]"
+                ? "border-balkan shadow-[3px_3px_0_0_var(--balkan-deep)]"
                 : lead && !picked
-                  ? "border-rose shadow-[3px_3px_0_0_var(--color-rose-deep)]"
+                  ? "border-rose shadow-[3px_3px_0_0_var(--rose-deep)]"
                   : "border-line",
           )}
         >
           {lead && !picked && (
-            <span className="absolute -left-2.5 -top-2.5 grid size-6 place-items-center bg-rose text-white shadow-[2px_2px_0_0_var(--color-rose-deep)]">
+            <span className="absolute -left-2.5 -top-2.5 grid size-6 place-items-center bg-rose text-white shadow-[2px_2px_0_0_var(--rose-deep)]">
               <Crown className="size-3.5 skew-x-12" />
             </span>
           )}

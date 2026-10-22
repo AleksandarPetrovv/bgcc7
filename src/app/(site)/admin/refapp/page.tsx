@@ -40,7 +40,7 @@ export default async function RefApp({ searchParams }: { searchParams: Promise<R
           <Panel title={r.linkTitle} i={1}>
             <div className="space-y-5">
               <div className="flex flex-wrap items-center gap-4">
-                <span className="in-pop inline-flex -skew-x-12 border border-rose bg-rose/10 px-5 py-2 shadow-[4px_4px_0_0_var(--color-rose-deep)]">
+                <span className="in-pop inline-flex -skew-x-12 border border-rose bg-rose/10 px-5 py-2 shadow-[4px_4px_0_0_var(--rose-deep)]">
                   <span className="num inline-block skew-x-12 text-4xl tracking-[0.2em] text-paper">{linkWord(st)}</span>
                 </span>
                 <span className="text-sm font-bold text-ash">{r.linkCode}</span>
@@ -82,14 +82,14 @@ export default async function RefApp({ searchParams }: { searchParams: Promise<R
             {ref && (
               <div className={tile}>
                 <span className={k}>{r.irc}</span>
-                <span className={cn("text-base font-black", irc ? "text-balkan" : "text-ash")}>{irc ? r.ircOn : r.ircOff}</span>
+                <span className={cn("text-base font-black", irc ? "text-balkan-hi" : "text-ash")}>{irc ? r.ircOn : r.ircOff}</span>
               </div>
             )}
             {streamer && (
               <div className={tile}>
                 <span className={k}>{r.streaming}</span>
                 <span className="truncate text-base font-black">{match ? `${match.team1.name} vs ${match.team2.name}` : r.noMatch}</span>
-                {match && <span className={cn("text-xs font-bold", live ? "text-balkan" : "text-ash")}>{live ? r.liveOn(live.clients.length) : r.liveOff}</span>}
+                {match && <span className={cn("text-xs font-bold", live ? "text-balkan-hi" : "text-ash")}>{live ? r.liveOn(live.clients.length) : r.liveOff}</span>}
               </div>
             )}
           </div>

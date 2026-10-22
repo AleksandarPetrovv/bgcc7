@@ -6,14 +6,15 @@ import { ChevronDown, GripVertical, Star, Minus, Plus, Trash2, X } from "lucide-
 import { useDict } from "@/components/site/lang";
 import { selectedSubcategories, subcategoryNames, newId, PLAN_MODS, roundStats, sortMaps, type PlanCat, type PlanMod, type PlanRound } from "@/lib/format-plan";
 import { cn } from "@/lib/utils";
+import { modHi, modOn } from "@/lib/theme";
 import { Catalog, Edit } from "./format-context";
 
 const COLOR: Record<PlanMod | "FM", string> = {
-  NM: "var(--color-mod-nm)",
-  HD: "var(--color-mod-hd)",
-  HR: "var(--color-mod-hr)",
-  DT: "var(--color-mod-dt)",
-  FM: "var(--color-mod-fm)",
+  NM: "var(--mod-nm)",
+  HD: "var(--mod-hd)",
+  HR: "var(--mod-hr)",
+  DT: "var(--mod-dt)",
+  FM: "var(--mod-fm)",
 };
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
@@ -23,7 +24,7 @@ function Stepper({ value, min, max, onChange, label }: { value: number; min: num
   return (
     <div className="flex h-9 -skew-x-12 border border-line" role="group" aria-label={label}>
       {edit && (
-        <button type="button" onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min} aria-label={`${label} −`} className="grid w-8 place-items-center text-ash transition-colors hover:bg-white/[0.06] hover:text-paper disabled:opacity-30">
+        <button type="button" onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min} aria-label={`${label} −`} className="grid w-8 place-items-center text-ash transition-colors hover:bg-field hover:text-paper disabled:opacity-30">
           <Minus className="size-3.5 skew-x-12" strokeWidth={3} />
         </button>
       )}
@@ -31,7 +32,7 @@ function Stepper({ value, min, max, onChange, label }: { value: number; min: num
         <span className="skew-x-12">{value}</span>
       </span>
       {edit && (
-        <button type="button" onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max} aria-label={`${label} +`} className="grid w-8 place-items-center text-ash transition-colors hover:bg-white/[0.06] hover:text-paper disabled:opacity-30">
+        <button type="button" onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max} aria-label={`${label} +`} className="grid w-8 place-items-center text-ash transition-colors hover:bg-field hover:text-paper disabled:opacity-30">
           <Plus className="size-3.5 skew-x-12" strokeWidth={3} />
         </button>
       )}
@@ -56,8 +57,8 @@ function ModPick({ mod, onMod, label }: { mod: PlanMod; onMod: (mod: PlanMod) =>
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={label}
-        className="flex h-7 -skew-x-12 items-center border px-2.5 transition-colors hover:bg-white/[0.06]"
-        style={{ borderColor: COLOR[mod], color: COLOR[mod] }}
+        className="flex h-7 -skew-x-12 items-center border px-2.5 transition-colors hover:bg-field"
+        style={{ borderColor: modHi(COLOR[mod]), color: modHi(COLOR[mod]) }}
       >
         <span className="flex skew-x-12 items-center gap-1 text-xs font-black">
           {mod}
@@ -73,7 +74,7 @@ function ModPick({ mod, onMod, label }: { mod: PlanMod; onMod: (mod: PlanMod) =>
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.12 }}
-            className="absolute left-0 top-full z-10 mt-1.5 flex flex-col gap-1 border border-line bg-ink p-1.5 shadow-[3px_3px_0_0_var(--color-rose-deep)]"
+            className="absolute left-0 top-full z-10 mt-1.5 flex flex-col gap-1 border border-line bg-ink p-1.5 shadow-[3px_3px_0_0_var(--rose-deep)]"
           >
             {PLAN_MODS.map((m) => (
               <button
@@ -85,8 +86,8 @@ function ModPick({ mod, onMod, label }: { mod: PlanMod; onMod: (mod: PlanMod) =>
                   onMod(m);
                   setOpen(false);
                 }}
-                className={cn("flex h-7 w-16 -skew-x-12 items-center justify-center border text-xs font-black transition-colors", m === mod ? "text-ink" : "hover:bg-[color-mix(in_srgb,var(--c)_22%,transparent)]")}
-                style={{ borderColor: COLOR[m], color: m === mod ? undefined : COLOR[m], background: m === mod ? COLOR[m] : undefined, ...v({ "--c": COLOR[m] }) }}
+                className={cn("flex h-7 w-16 -skew-x-12 items-center justify-center border text-xs font-black transition-colors", m === mod ? "" : "hover:bg-[color-mix(in_srgb,var(--c)_22%,transparent)]")}
+                style={{ borderColor: COLOR[m], color: m === mod ? modOn(COLOR[m]) : modHi(COLOR[m]), background: m === mod ? COLOR[m] : undefined, ...v({ "--c": COLOR[m] }) }}
               >
                 <span className="skew-x-12">{m}</span>
               </button>
@@ -108,7 +109,7 @@ function SrInput({ value, onChange, label }: { value: number | null; onChange: (
     setDraft({ value: n, text: fmt(n) });
     onChange(n);
   };
-  const btn = "grid w-8 place-items-center text-ash transition-colors hover:bg-white/[0.06] hover:text-paper disabled:opacity-30";
+  const btn = "grid w-8 place-items-center text-ash transition-colors hover:bg-field hover:text-paper disabled:opacity-30";
   return (
     <div className="flex h-9 -skew-x-12 border border-line transition-colors focus-within:border-gold" role="group" aria-label={label}>
       {edit && (
@@ -117,7 +118,7 @@ function SrInput({ value, onChange, label }: { value: number | null; onChange: (
         </button>
       )}
       <span className={cn("flex w-[4.75rem] items-center justify-center gap-1 bg-ink/60", edit && "border-x border-line")}>
-        <Star className="size-3 shrink-0 skew-x-12 fill-current text-gold" />
+        <Star className="size-3 shrink-0 skew-x-12 fill-current text-gold-hi" />
         <input
           value={text}
           readOnly={!edit}
@@ -167,15 +168,15 @@ function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "
   }, [open]);
 
   return (
-    <motion.span ref={box} layout initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }} transition={{ type: "spring", stiffness: 520, damping: 34 }} className={cn("relative inline-flex", open && "z-30")}>
+    <motion.span ref={box} layout initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }} transition={{ type: "spring", stiffness: 520, damping: 34 }} className={cn("relative inline-flex max-w-full", open && "z-30")}>
       <button
         type="button"
         onClick={(e) => { setPopupLeft(Math.min(0, window.innerWidth - e.currentTarget.getBoundingClientRect().left - 304)); setOpen((o) => !o); }}
         aria-expanded={open}
-        className={cn("relative flex min-h-16 w-40 -skew-x-6 flex-col items-start justify-start gap-0.5 border px-3 py-1.5 text-left transition-shadow", open && "shadow-[3px_3px_0_0_var(--color-rose-deep)]")}
-        style={{ borderColor: c, background: `color-mix(in srgb, ${c} ${open ? 26 : 12}%, transparent)` }}
+        className={cn("relative flex min-h-16 w-40 max-w-full -skew-x-6 flex-col items-start justify-start gap-0.5 border px-3 py-1.5 text-left transition-shadow", open && "shadow-[3px_3px_0_0_var(--rose-deep)]")}
+        style={{ borderColor: c, background: `color-mix(in srgb, ${c} ${open ? 26 : 14}%, var(--field))` }}
       >
-        <span className="skew-x-6 text-xs font-black" style={{ color: c }}>
+        <span className="skew-x-6 text-xs font-black" style={{ color: modHi(c) }}>
           {mod}
         </span>
         <span className="flex w-full skew-x-6 flex-col text-[0.72rem] font-semibold leading-snug text-paper/85">{names.length ? names.map((name, i) => <span key={i} className="break-words">{name}</span>) : <span className="text-ash/50">—</span>}</span>
@@ -190,14 +191,14 @@ function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "
             style={{ left: popupLeft }}
             role="dialog"
             aria-label={title}
-            className="absolute top-full z-30 mt-2 w-72 origin-top-left border border-line bg-coal shadow-[5px_5px_0_0_var(--color-rose-deep)]"
+            className="absolute top-full z-30 mt-2 w-72 origin-top-left border border-line bg-coal shadow-[5px_5px_0_0_var(--rose-deep)]"
           >
             <span className="absolute inset-x-0 top-0 h-0.5" style={{ background: c }} aria-hidden />
             <div className="flex items-center gap-2 border-b border-line bg-ink/60 px-3 py-2">
               {edit && onMod && mod !== "FM" ? (
                 <ModPick mod={mod} onMod={onMod} label={t.admin.fp.mods} />
               ) : (
-                <span className="-skew-x-12 border px-1.5 text-xs font-black" style={{ borderColor: c, color: c }}>
+                <span className="-skew-x-12 border px-1.5 text-xs font-black" style={{ borderColor: c, color: modHi(c) }}>
                   <span className="inline-block skew-x-12">{mod}</span>
                 </span>
               )}
@@ -248,7 +249,7 @@ function CatRow({ c, onChange, onRemove, prev }: { c: PlanCat; onChange: (c: Pla
   const setMap = (id: string, subcategoryIds: string[]) => onChange({ ...c, maps: c.maps.map((m) => (m.id === id ? { ...m, note: "", subcategoryIds } : m)) });
   const add = (mod: PlanMod) => onChange({ ...c, maps: sortMaps([...c.maps, { id: newId(), mod, note: "" }]) });
   return (
-    <Reorder.Item value={c} dragListener={false} dragControls={drag} whileDrag={{ scale: 1.01, boxShadow: "6px 6px 0 0 var(--color-rose-deep)", zIndex: 10 }} className={cn(rowCls, "relative focus-within:z-30")}>
+    <Reorder.Item value={c} dragListener={false} dragControls={drag} whileDrag={{ scale: 1.01, boxShadow: "6px 6px 0 0 var(--rose-deep)", zIndex: 10 }} className={cn(rowCls, "relative focus-within:z-30")}>
       {edit ? (
         <button type="button" onPointerDown={(e) => drag.start(e)} aria-label={t.admin.fp.drag} title={t.admin.fp.drag} className="-mx-1 grid h-8 w-6 cursor-grab touch-none place-items-center text-ash transition-colors hover:text-paper active:cursor-grabbing">
           <GripVertical className="size-4" />
@@ -273,8 +274,8 @@ function CatRow({ c, onChange, onRemove, prev }: { c: PlanCat; onChange: (c: Pla
                 key={m}
                 type="button"
                 onClick={() => add(m)}
-                className="h-7 -skew-x-12 border border-line px-1.5 text-[0.62rem] font-black text-ash transition-colors hover:border-[var(--m)] hover:bg-[var(--m)] hover:text-ink"
-                style={v({ "--m": COLOR[m] })}
+                className="h-7 -skew-x-12 border border-line px-1.5 text-[0.62rem] font-black text-ash transition-colors hover:border-[var(--m)] hover:bg-[var(--m)] hover:text-[var(--mo)]"
+                style={v({ "--m": COLOR[m], "--mo": modOn(COLOR[m]) })}
               >
                 <span className="inline-block skew-x-12">+{m}</span>
               </button>
@@ -299,7 +300,7 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
     <section className="relative border border-line bg-coal">
       <span className="absolute inset-x-0 top-0 h-0.5 bg-rose" aria-hidden />
       <header className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-line px-4 py-3 sm:px-5">
-        <span className="heading-slam -skew-x-12 bg-rose px-2.5 py-1 text-xl leading-none text-white shadow-[3px_3px_0_0_var(--color-rose-deep)]">
+        <span className="heading-slam -skew-x-12 bg-rose px-2.5 py-1 text-xl leading-none text-white shadow-[3px_3px_0_0_var(--rose-deep)]">
           <span className="inline-block skew-x-12">BO{s.bestOf}</span>
         </span>
         <h2 className="heading-slam min-w-0 flex-1 text-2xl sm:text-3xl">{t.rounds[r.name] ?? r.name}</h2>

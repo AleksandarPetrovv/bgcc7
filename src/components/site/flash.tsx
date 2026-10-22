@@ -45,12 +45,12 @@ export function Flash() {
           className="fixed inset-x-4 bottom-[max(1.5rem,env(safe-area-inset-bottom))] z-[60] mx-auto max-w-md"
           role="status"
         >
-          <div className="relative overflow-hidden border-2 border-balkan bg-coal p-5 pr-12 shadow-[6px_6px_0_0_var(--color-balkan-deep)]">
-            <span className="anim-twinkle absolute right-10 top-3 text-sm text-balkan" aria-hidden>
+          <div className="relative overflow-hidden border-2 border-balkan bg-coal p-5 pr-12 shadow-[6px_6px_0_0_var(--balkan-deep)]">
+            <span className="anim-twinkle absolute right-10 top-3 text-sm text-balkan-hi" aria-hidden>
               ✦
             </span>
             <div className="flex items-start gap-4">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-balkan/15 text-balkan">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-balkan/15 text-balkan-hi">
                 <Hourglass className="anim-bob size-5" />
               </span>
               <div className="min-w-0">

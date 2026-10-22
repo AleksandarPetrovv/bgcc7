@@ -7,6 +7,7 @@ import { Container, PageTitle, SlantButton, StageTabs } from "@/components/site/
 import { useDict } from "@/components/site/lang";
 import { MODS, fmtLen, type Stage } from "@/lib/data";
 import { osuMap } from "@/lib/links";
+import { modHi, modOn } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: string }) {
@@ -56,9 +57,9 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
       <motion.div key={stage.slug} className="space-y-2.5" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
         {stage.pools.map((p, pi) => {
           const skill = !!p.color;
-          const mod = { label: MODS[p.category]?.label ?? p.category, color: p.color ?? MODS[p.category]?.color ?? "var(--color-rose)" };
+          const mod = { label: MODS[p.category]?.label ?? p.category, color: p.color ?? MODS[p.category]?.color ?? "var(--rose)" };
           const isOpen = !closed[p.category];
-          const light = p.category === "Tiebreaker";
+          const light = modOn(mod.color) === "var(--paper)";
           return (
             <section key={p.category} style={{ "--i": pi, "--s": "0.09s" } as React.CSSProperties}>
               <button
@@ -67,10 +68,10 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                 aria-expanded={isOpen}
               >
                 <span className="in-pop flex w-8 items-center justify-center" style={{ background: mod.color }}>
-                  <Play className={cn("size-4 fill-current transition-transform", isOpen && "rotate-90", light ? "text-ink" : "text-white")} />
+                  <Play className={cn("size-4 fill-current transition-transform", isOpen && "rotate-90", light ? "text-paper" : "text-white")} />
                 </span>
                 <span
-                  className={cn("in-grow flex flex-1 items-center justify-between px-3 py-1.5 font-black uppercase [--d:0.08s]", light ? "text-ink" : "text-white")}
+                  className={cn("in-grow flex flex-1 items-center justify-between px-3 py-1.5 font-black uppercase [--d:0.08s]", light ? "text-paper" : "text-white")}
                   style={{ background: mod.color }}
                 >
                   {mod.label}
@@ -89,18 +90,18 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                 <div className="mt-2 space-y-2 sm:pl-10">
                   {p.maps.map((m, k) => {
                     const mc = skill ? mod.color : (MODS[m.mod]?.color ?? mod.color);
-                    const ml = skill ? light : m.mod === "Tiebreaker";
+                    const ml = modOn(mc) === "var(--paper)";
                     return (
                     <motion.div
                       initial={{ opacity: 0, x: -14 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.45, delay: 0.05 + k * 0.04, ease: [0.16, 1, 0.3, 1] }}
                       key={m.slot} className="lift group relative flex h-20 items-stretch overflow-hidden border border-transparent bg-coal hover:border-line 2xl:h-24"
-                      style={{ "--lift": mc, "--i": pi + k, "--s": "0.05s" } as React.CSSProperties}>
+                      style={{ "--lift": modHi(mc), "--i": pi + k, "--s": "0.05s" } as React.CSSProperties}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-30 transition duration-500 group-hover:scale-105 group-hover:opacity-45 [--d:0.15s]" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-transparent" />
-                      <span className="in-pop heading-slam relative mr-2 flex w-16 shrink-0 items-center justify-center text-lg sm:mr-0 sm:w-24 sm:text-2xl [--d:0.3s]" style={{ color: mc }}>
+                      <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-45 saturate-[1.15] transition duration-500 group-hover:scale-105 group-hover:opacity-60 [--d:0.15s]" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-coal via-coal/85 to-coal/5" />
+                      <span className="in-pop heading-slam relative mr-2 flex w-16 shrink-0 items-center justify-center text-lg sm:mr-0 sm:w-24 sm:text-2xl [--d:0.3s]" style={{ color: modHi(mc) }}>
                         {m.slot}
                       </span>
                       <div className="relative flex min-w-0 flex-1 flex-col justify-center">
@@ -109,7 +110,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                             {m.title}
                           </a>
                           {skill && m.mod !== "Tiebreaker" && MODS[m.mod] && (
-                            <span className="shrink-0 -skew-x-12 border px-2 py-0.5 text-xs font-black leading-4 sm:text-sm" style={{ borderColor: MODS[m.mod].color, color: MODS[m.mod].color }}>
+                            <span className="shrink-0 -skew-x-12 border px-2 py-0.5 text-xs font-black leading-4 sm:text-sm" style={{ borderColor: modHi(MODS[m.mod].color), color: modHi(MODS[m.mod].color) }}>
                               <span className="inline-block skew-x-12">{MODS[m.mod].short}</span>
                             </span>
                           )}
@@ -118,7 +119,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                           <span className="font-bold text-paper/90">[{m.version}]</span> by {m.creator}
                         </span>
                         <span className="num mt-0.5 flex items-center gap-2 text-xs text-ash lg:hidden">
-                          <span className="flex items-center gap-0.5 text-gold">
+                          <span className="flex items-center gap-0.5 text-gold-hi">
                             <Star className="size-3 fill-current" /> {m.sr.toFixed(2)}
                           </span>
                           <span>{Math.round(m.bpm)}bpm</span>
@@ -126,7 +127,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                         </span>
                       </div>
                       <div className="in-right num relative hidden shrink-0 items-center pr-6 text-base lg:grid lg:grid-cols-[4.25rem_5.25rem_3rem_3.5rem_3.5rem_3.5rem] xl:gap-x-4 xl:pr-10 xl:text-lg 2xl:gap-x-8 [--d:0.35s]">
-                        <span className="flex items-center justify-end gap-1 text-gold">
+                        <span className="flex items-center justify-end gap-1 text-gold-hi">
                           <Star className="size-4 fill-current" /> {m.sr.toFixed(2)}
                         </span>
                         <span className="text-right">
@@ -150,11 +151,11 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                           href={`osu://b/${m.id}`}
                           title={t.mappool.direct}
                           aria-label={`${m.slot} ${t.mappool.direct}`}
-                          className={cn("group/b flex flex-1 items-center justify-center pl-3 transition-[filter] hover:brightness-110", ml ? "text-ink" : "text-white")}
+                          className={cn("group/b flex flex-1 items-center justify-center pl-3 transition-[filter] hover:brightness-110", ml ? "text-paper" : "text-white")}
                           style={{ background: mc }}
                         >
-                          <span className={cn("heading-slam flex items-center gap-2 text-[0.95rem]", ml ? "[text-shadow:0_1px_2px_rgb(255_255_255/0.35)]" : "[text-shadow:0_1px_3px_rgb(0_0_0/0.45)]")}>
-                            <ArrowDownToLine className="size-4 drop-shadow-[0_1px_2px_rgb(0_0_0/0.35)] transition-transform group-hover/b:translate-y-0.5" strokeWidth={3} />
+                          <span className={cn("heading-slam flex items-center gap-2 text-[0.95rem]", ml ? "[text-shadow:0_1px_2px_color-mix(in_srgb,var(--white)_35%,transparent)]" : "[text-shadow:0_1px_3px_color-mix(in_srgb,var(--black)_45%,transparent)]")}>
+                            <ArrowDownToLine className="size-4 transition-transform group-hover/b:translate-y-0.5" strokeWidth={3} />
                             <span className="hidden sm:inline">direct</span>
                           </span>
                         </a>
@@ -164,10 +165,10 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                           rel="noreferrer"
                           title={t.mappool.page}
                           aria-label={`${m.slot} ${t.mappool.page}`}
-                          className="group/b flex flex-1 items-center justify-center bg-ink/90 pl-1.5 transition-colors hover:bg-ink"
-                          style={{ color: mc }}
+                          className="group/b flex flex-1 items-center justify-center bg-field/90 pl-1.5 transition-colors hover:bg-field"
+                          style={{ color: modHi(mc) }}
                         >
-                          <span className="heading-slam flex items-center gap-2 text-[0.95rem] [text-shadow:0_1px_3px_rgb(0_0_0/0.6)]">
+                          <span className="heading-slam flex items-center gap-2 text-[0.95rem]">
                             <ArrowUpRight className="size-4 transition-transform group-hover/b:-translate-y-0.5 group-hover/b:translate-x-0.5" strokeWidth={3} />
                             <span className="hidden sm:inline">osu!</span>
                           </span>
@@ -222,18 +223,18 @@ function StageStrip({ stage, info }: { stage: Stage; info: { firstTo: number; ba
           <span className="num">{info.bans}</span> {t.mappool.bans(info.bans)}
         </>
       ),
-      accent: "var(--color-balkan)",
+      accent: "var(--balkan)",
     },
-    { label: t.mappool.maps, val: Math.round(total), accent: "var(--color-rose)" },
+    { label: t.mappool.maps, val: Math.round(total), accent: "var(--rose)" },
     {
       label: t.mappool.avgSr,
       val: (
         <span className="flex items-center gap-1.5">
-          <Star className="size-5 fill-current text-gold sm:size-6" />
+          <Star className="size-5 fill-current text-gold-hi sm:size-6" />
           {sr.toFixed(2)}
         </span>
       ),
-      accent: "var(--color-gold)",
+      accent: "var(--gold)",
     },
   ];
 

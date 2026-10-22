@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown } from "lucide-react";
 import { InView } from "@/components/site/in-view";
 import { useDict } from "@/components/site/lang";
+import { modHi, modOn } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 type Mod = { key: string; short: string; color: string; count: number };
@@ -47,7 +48,7 @@ export function SheetView({ stageId, version, mods, children }: { stageId: numbe
     };
   }, [stageId, router]);
 
-  const chips = [{ key: "all", short: t.admin.allMods, color: "var(--color-paper)", count: mods.reduce((n, m) => n + m.count, 0) }, ...mods];
+  const chips = [{ key: "all", short: t.admin.allMods, color: "var(--paper)", count: mods.reduce((n, m) => n + m.count, 0) }, ...mods];
 
   return (
     <Ctx.Provider value={{ mod }}>
@@ -63,7 +64,7 @@ export function SheetView({ stageId, version, mods, children }: { stageId: numbe
                 aria-selected={on}
                 onClick={() => setMod(c.key)}
                 className="group relative flex h-10 -skew-x-12 items-center border px-4 transition-[border-color,color,transform,translate,scale,rotate] duration-200 hover:-translate-y-0.5"
-                style={{ borderColor: on ? c.color : "var(--color-line)", color: on ? "var(--color-ink)" : c.color }}
+                style={{ borderColor: on ? c.color : "var(--line)", color: on ? modOn(c.color) : modHi(c.color) }}
               >
                 {on && (
                   <motion.span

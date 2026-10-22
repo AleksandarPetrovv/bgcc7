@@ -15,16 +15,16 @@ export function SeedingChart({ players, cut }: { players: QualPlayer[]; cut: num
           <XAxis dataKey="name" angle={-55} textAnchor="end" interval={0} tick={{ fill: HEX.ash, fontSize: 10, fontWeight: 700 }} axisLine={{ stroke: HEX.line }} tickLine={false} />
           <YAxis tick={{ fill: HEX.ash, fontSize: 11 }} axisLine={false} tickLine={false} />
           <Tooltip
-            cursor={{ fill: "rgba(255,255,255,0.04)" }}
+            cursor={{ fill: "color-mix(in srgb, var(--rose) 10%, transparent)" }}
             contentStyle={{ background: HEX.coal, border: `1px solid ${HEX.line}`, borderRadius: 0, fontWeight: 700, color: HEX.paper }}
             labelStyle={{ color: HEX.paper, marginBottom: 2 }}
             itemStyle={{ color: HEX.paper }}
             formatter={(v) => [Number(v).toFixed(2), t.qual.percentile]}
           />
-          <ReferenceLine x={data[11]?.name} stroke={HEX.rose} strokeDasharray="4 4" label={{ value: t.qual.top12, fill: HEX.rose, fontSize: 11, fontWeight: 800, position: "insideTopRight" }} />
+          <ReferenceLine x={data[11]?.name} stroke={HEX.rose} strokeDasharray="4 4" label={{ value: t.qual.top12, fill: HEX.roseHi, fontSize: 11, fontWeight: 800, position: "insideTopRight" }} />
           <Bar dataKey="z" radius={0}>
             {data.map((d) => (
-              <Cell key={d.name} fill={d.seed <= 3 ? HEX.rose : d.seed <= 12 ? HEX.balkan : HEX.line} />
+              <Cell key={d.name} fill={d.seed <= 3 ? HEX.rose : d.seed <= 12 ? "var(--balkan-deep)" : HEX.ash} fillOpacity={d.seed <= 12 ? 1 : 0.45} />
             ))}
           </Bar>
         </BarChart>

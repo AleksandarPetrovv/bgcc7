@@ -5,7 +5,7 @@ import type { QualMap, QualPlayer } from "@/lib/data";
 import { useDict } from "./lang";
 import { HEX } from "@/lib/theme";
 
-const COLOR: Record<string, string> = { NM: HEX.azure, HD: HEX.hd, HR: HEX.rose, DT: HEX.dt, FM: HEX.balkan, TB: HEX.paper, AIM: HEX.azure, SPD: HEX.dt, RDG: HEX.balkan, FGC: HEX.hd, STM: HEX.rose };
+const COLOR: Record<string, string> = { NM: HEX.azure, HD: HEX.hd, HR: HEX.hr, DT: HEX.dt, FM: "var(--balkan-deep)", TB: HEX.paper, AIM: HEX.azure, SPD: HEX.dt, RDG: "var(--balkan-deep)", FGC: HEX.hd, STM: HEX.hr };
 
 export function MapDifficultyChart({ qualifiers }: { qualifiers: { maps: QualMap[]; players: QualPlayer[] } }) {
   const t = useDict();
@@ -23,7 +23,7 @@ export function MapDifficultyChart({ qualifiers }: { qualifiers: { maps: QualMap
           <XAxis dataKey="slot" tick={{ fill: HEX.paper, fontSize: 13, fontWeight: 800 }} axisLine={{ stroke: HEX.line }} tickLine={false} />
           <YAxis domain={[0, top]} tickCount={top / 100_000 + 1} tickFormatter={(v) => `${Math.round(v / 1000)}k`} tick={{ fill: HEX.ash, fontSize: 11 }} axisLine={false} tickLine={false} />
           <Tooltip
-            cursor={{ fill: "rgba(255,255,255,0.04)" }}
+            cursor={{ fill: "color-mix(in srgb, var(--rose) 10%, transparent)" }}
             contentStyle={{ background: HEX.coal, border: `1px solid ${HEX.line}`, borderRadius: 0, fontWeight: 700, color: HEX.paper }}
             labelStyle={{ color: HEX.paper, marginBottom: 2 }}
             itemStyle={{ color: HEX.paper }}

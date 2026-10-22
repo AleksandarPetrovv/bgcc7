@@ -29,7 +29,7 @@ function Team({ s, flip }: { s: Side; flip?: boolean }) {
   return (
     <div className={cn("flex min-w-0 items-center gap-3", flip && "flex-row-reverse text-right")}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {s.image ? <img src={s.image} alt="" className={cn("size-12 shrink-0 border-b-[3px] object-cover sm:size-14", flip ? "border-azure" : "border-rose")} /> : <span className="size-12 shrink-0 bg-slate sm:size-14" />}
+      {s.image ? <img src={s.image} alt="" className={cn("size-12 shrink-0 border-b-[3px] object-cover sm:size-14", flip ? "border-azure" : "border-crimson")} /> : <span className="size-12 shrink-0 bg-slate sm:size-14" />}
       <span className="line-clamp-2 min-w-0 break-words font-black leading-tight sm:text-lg">{s.name}</span>
     </div>
   );
@@ -59,7 +59,7 @@ function Picker({ open, onClose, week, title, onSend }: { open: boolean; onClose
           max={week.max}
           step={300}
           onChange={(e) => setVal(e.target.value)}
-          className="min-h-11 w-full min-w-0 border border-line bg-ink px-3 text-base text-paper outline-none [color-scheme:dark] focus:border-rose"
+          className="min-h-11 w-full min-w-0 border border-line bg-ink px-3 text-base text-paper outline-none [color-scheme:light] focus:border-rose"
         />
         {err && <p className="text-sm font-bold text-rose-hi">{err}</p>}
         <div className="flex flex-wrap gap-3">
@@ -95,7 +95,7 @@ function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
           <li key={p.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-sm">
             <span className={cn("num", p.status === "rejected" || p.status === "cancelled" ? "text-ash line-through" : "text-paper")}>{w.full(p.at)}</span>
             <span className="text-xs text-ash">{team(p.teamId)}</span>
-            <span className={cn("ml-auto text-[0.68rem] font-black uppercase tracking-wide", p.status === "accepted" ? "text-balkan" : p.status === "pending" ? "text-gold" : "text-rose-hi/80")}>{label(p)}</span>
+            <span className={cn("ml-auto text-[0.68rem] font-black uppercase tracking-wide", p.status === "accepted" ? "text-balkan-hi" : p.status === "pending" ? "text-gold-hi" : "text-rose-hi/80")}>{label(p)}</span>
           </li>
         ))}
       </ol>
@@ -146,7 +146,7 @@ export function SchedCard({ m, round, me, opp, week, open }: { m: SchedMatch; ro
       <div className="flex items-center gap-3 border-b border-line bg-ink/60 px-4 py-2.5 sm:px-5">
         <span className="text-xs font-black uppercase tracking-[0.14em] text-rose-hi">{round}</span>
         {agreed && (
-          <span className="ml-auto inline-flex items-center gap-1 text-[0.68rem] font-black uppercase tracking-wide text-balkan">
+          <span className="ml-auto inline-flex items-center gap-1 text-[0.68rem] font-black uppercase tracking-wide text-balkan-hi">
             <Check className="size-3.5" strokeWidth={3} /> {t.sched.agreed}
           </span>
         )}
@@ -222,7 +222,7 @@ export function SchedCard({ m, round, me, opp, week, open }: { m: SchedMatch; ro
         <Picker key={String(pick)} open={pick} onClose={() => setPick(false)} week={week} title={theirs ? t.sched.counter : agreed ? t.sched.reschedule : t.sched.propose} onSend={send} />
       )}
       <Modal open={warn} onClose={() => setWarn(false)} tone="gold">
-        <AlertTriangle className="size-7 text-gold" />
+        <AlertTriangle className="size-7 text-gold-hi" />
         <h3 className="heading-slam mt-2 pr-6 text-2xl">{t.sched.warnTitle}</h3>
         <p className="mt-2 text-sm text-paper/85">{t.sched.warnText}</p>
         <div className="mt-5 flex flex-wrap gap-3">
@@ -241,7 +241,7 @@ export function SchedCard({ m, round, me, opp, week, open }: { m: SchedMatch; ro
         </div>
       </Modal>
       <Modal open={wd} onClose={() => !pending && setWd(false)} tone="gold">
-        <AlertTriangle className="size-7 text-gold" />
+        <AlertTriangle className="size-7 text-gold-hi" />
         <h3 className="heading-slam mt-2 pr-6 text-2xl">{t.sched.withdrawTitle}</h3>
         <p className="mt-2 text-sm text-paper/85">{t.sched.withdrawText}</p>
         <div className="mt-5 flex flex-wrap gap-3">
