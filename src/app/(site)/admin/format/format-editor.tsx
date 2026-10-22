@@ -76,7 +76,8 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
                 role="tab"
                 aria-selected={on}
                 onClick={() => setTab(k)}
-                className={cn("relative flex h-11 -skew-x-12 items-center border px-4 transition-colors duration-200", on ? "border-rose text-white" : "border-line text-ash hover:border-paper/40 hover:text-paper")}
+                style={{ "--i": k, "--s": "0.06s", "--d": "0.1s" } as React.CSSProperties}
+                className={cn("in-left relative flex h-11 -skew-x-12 items-center border px-4 transition-colors duration-200", on ? "border-rose text-white" : "border-line text-ash hover:border-paper/40 hover:text-paper")}
               >
                 {on && <motion.span layoutId="format-tab" transition={{ type: "spring", stiffness: 500, damping: 38 }} className="absolute inset-0 bg-rose shadow-[3px_3px_0_0_var(--rose-deep)]" />}
                 <span className="relative flex skew-x-12 items-center gap-2 text-sm font-display font-bold">
@@ -88,13 +89,17 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
           })}
         </div>
 
+        <div className="in-up [--d:0.35s]">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div key={plan.rounds[tab].slug} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
             <RoundCard r={plan.rounds[tab]} prev={plan.rounds.slice(0, tab)} onChange={(x) => setRound(tab, x)} />
           </motion.div>
         </AnimatePresence>
+        </div>
 
-        <SubcategoryEditor groups={plan.subcategories} onChange={(subcategories) => change((p) => ({ ...p, subcategories }))} />
+        <div className="in-up [--d:0.5s]">
+          <SubcategoryEditor groups={plan.subcategories} onChange={(subcategories) => change((p) => ({ ...p, subcategories }))} />
+        </div>
 
         {edit && (
           <div className="fixed inset-x-4 bottom-4 z-40 flex justify-end gap-3 sm:inset-x-auto sm:right-6">

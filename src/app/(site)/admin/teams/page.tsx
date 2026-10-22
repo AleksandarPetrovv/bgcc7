@@ -1,6 +1,5 @@
 import { Crown } from "lucide-react";
 import { notFound } from "next/navigation";
-import { InView } from "@/components/site/in-view";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
 import { ActionForm, inputCls, Panel, Field } from "@/components/admin/form";
@@ -87,7 +86,7 @@ export default async function AdminTeams() {
                           <span
                             className={cn(
                               "heading-slam grid h-7 w-9 -skew-x-12 place-items-center text-base leading-none",
-                              tier === 1 ? "bg-gold text-paper shadow-[2px_2px_0_0_var(--gold-deep)]" : "bg-silver text-paper shadow-[2px_2px_0_0_var(--silver-deep)]",
+                              tier === 1 ? "bg-gold text-on-fill shadow-[2px_2px_0_0_var(--gold-deep)]" : "bg-silver text-on-fill shadow-[2px_2px_0_0_var(--silver-deep)]",
                             )}
                           >
                             <span className="skew-x-12">{tier === 1 ? "A" : "B"}</span>
@@ -140,12 +139,12 @@ export default async function AdminTeams() {
       {teams.length === 0 && <p className="border border-line bg-coal p-4 text-sm text-ash">{t.admin.noTeams}</p>}
       <div className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
         {teams.map((team, n) => (
-          <InView as="section" self key={team.id} className="in-flip border border-line bg-coal" style={{ "--i": n < 8 ? n % 2 : 0, "--s": "0.12s", "--d": "0.3s" } as React.CSSProperties}>
+          <section key={team.id} className="in-up border border-line bg-coal" style={{ "--i": Math.min(n, 16), "--s": "0.07s", "--d": "0.2s" } as React.CSSProperties}>
             <div className="flex items-center gap-3 border-b border-line px-4 py-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {team.image && <img src={team.image} alt="" className="in-spin size-9 object-cover [--d:0.45s]" />}
-              <span className="in-slam num text-xl text-balkan-hi [--d:0.55s]">#{team.seed}</span>
-              <span className="in-wipe heading-slam min-w-0 truncate text-xl sm:text-2xl [--d:0.55s]">{team.name}</span>
+              {team.image && <img src={team.image} alt="" className="size-9 object-cover" />}
+              <span className="num text-xl text-balkan-hi">#{team.seed}</span>
+              <span className="heading-slam min-w-0 truncate text-xl sm:text-2xl">{team.name}</span>
               {suiji && avg(team.players.map((p) => p.userId)) !== null && (
                 <span className="num ml-auto shrink-0 text-xs text-ash">
                   {t.admin.avgBws} {avg(team.players.map((p) => p.userId))}
@@ -192,8 +191,8 @@ export default async function AdminTeams() {
               </ActionForm>
 
               <ul className="divide-y divide-line border border-line">
-                {team.players.map((p, k) => (
-                  <li key={p.userId} style={{ "--i": k, "--s": "0.08s", "--d": "0.7s" } as React.CSSProperties} className="in-left flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
+                {team.players.map((p) => (
+                  <li key={p.userId} className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.avatar} alt="" className="size-7" />
                     <span className="font-display font-bold">{p.username}</span>
@@ -224,7 +223,7 @@ export default async function AdminTeams() {
                 <ActionForm action={deleteTeam.bind(null, team.id)} submit={t.admin.deleteTeam} ghost confirm={t.admin.confirmDeleteTeam} />
               </div>
             </div>
-          </InView>
+          </section>
         ))}
       </div>
     </>
