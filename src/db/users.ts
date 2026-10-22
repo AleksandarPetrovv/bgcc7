@@ -1,9 +1,10 @@
 import "server-only";
 import { eq, ilike, or, sql } from "drizzle-orm";
-import { db, db6, db7 } from "./index";
+import { db, dbOf } from "./index";
 import { lobbies, matches, refApps, userNames, users } from "./schema";
 import type { OsuUserFull } from "@/lib/osu-api";
 import { tourneyBadges } from "@/lib/bws";
+import { EDITIONS } from "@/lib/format";
 
 export async function saveOsuUser(u: OsuUserFull) {
   const row = {
@@ -29,7 +30,7 @@ export async function carryRename(osuId: number, name: string) {
   if (!old || old.username === name) return;
   const was = old.username.toLowerCase();
   const swap = (list: string | null) => list && list.split(",").map((x) => (x.trim().toLowerCase() === was ? name : x.trim())).join(", ");
-  for (const d of [db6, db7]) {
+  for (const d of EDITIONS.map(dbOf)) {
     for (const t of [matches, lobbies]) await d.update(t).set({ referee: name }).where(sql`lower(trim(${t.referee})) = ${was}`);
     const rows = await d.select({ id: matches.id, streamer: matches.streamer, commentators: matches.commentators }).from(matches).where(or(ilike(matches.streamer, `%${old.username}%`), ilike(matches.commentators, `%${old.username}%`)));
     for (const r of rows) await d.update(matches).set({ streamer: swap(r.streamer), commentators: swap(r.commentators) }).where(eq(matches.id, r.id));

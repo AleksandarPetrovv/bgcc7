@@ -21,6 +21,7 @@ import { splitAlive } from "@/lib/alive";
 import { getLobbies, type Lobby } from "@/db/lobbies";
 import { getPublicStaff } from "@/db/admin";
 import { cn } from "@/lib/utils";
+import { modOn } from "@/lib/theme";
 import { getSettings } from "@/db/settings";
 import { getViewer, getVisibility } from "@/lib/authz";
 import { duePhase } from "@/lib/phase-prompt";
@@ -33,6 +34,7 @@ import { MeTag } from "@/components/site/me";
 import { slotColor } from "@/lib/format-plan";
 import { getEdition, getFormat } from "@/db/edition";
 import { ShrinkWrap } from "@/components/site/shrink-wrap";
+import { isBGCC6 } from "@/db";
 
 const INK: Record<string, number> = { "6": 0.15, "7": 0.22 };
 
@@ -47,12 +49,12 @@ function HeroLockup({ num }: { num: string }) {
         ))}
       </div>
       <span className="anim-slam relative ml-[0.04em] mb-[-0.06em] text-[1.45em] italic leading-[0.74] tracking-[-0.06em]" style={{ animationDelay: "0.35s", marginRight: `${INK[num] ?? 0.2}em` }}>
-        <span className="anim-echo absolute left-[0.05em] top-[0.035em] pr-[0.3em] text-transparent [-webkit-text-stroke:2px_rgba(244,243,238,0.35)]" aria-hidden>
+        <span className="anim-echo absolute left-[0.05em] top-[0.035em] pr-[0.3em] text-transparent [-webkit-text-stroke:2px_color-mix(in_srgb,var(--rose-deep)_45%,transparent)]" aria-hidden>
           {num}
         </span>
         <span className="relative -mr-[0.3em] pr-[0.3em] text-rose">{num}</span>
         <span
-          className="anim-shine pointer-events-none absolute -left-[0.3em] -top-[0.3em] p-[0.3em] pr-[0.7em] bg-[linear-gradient(105deg,transparent_42%,rgba(255,255,255,0.55)_50%,transparent_58%)] bg-[length:300%_100%] bg-clip-text text-transparent"
+          className="anim-shine pointer-events-none absolute -left-[0.3em] -top-[0.3em] p-[0.3em] pr-[0.7em] bg-[linear-gradient(105deg,transparent_42%,color-mix(in_srgb,var(--white)_55%,transparent)_50%,transparent_58%)] bg-[length:300%_100%] bg-clip-text text-transparent"
           aria-hidden
         >
           {num}
@@ -119,24 +121,26 @@ function ModChips({ stage }: { stage: Stage }) {
 
 const SHORT: Record<string, string> = { Qualifiers: "QUALS", "Round of 32": "RO32", "Round of 16": "RO16", Quarterfinals: "QF", Semifinals: "SF", Finals: "F", "Grand Finals": "GF" };
 const short = (title: string) => SHORT[title] ?? (title.match(/\b[A-Z0-9]/g)?.join("") || title);
-const STACK_COLORS: Record<string, string> = { QUALS: "var(--color-mod-tb)", RO32: "var(--color-mod-tb)", RO16: "var(--color-mod-nm)", QF: "var(--color-mod-hd)", SF: "var(--color-mod-fm)", F: "var(--color-mod-dt)", GF: "var(--color-mod-hr)" };
+const STACK_COLORS: Record<string, string> = { QUALS: "var(--mod-tb)", RO32: "var(--mod-tb)", RO16: "var(--mod-nm)", QF: "var(--mod-hd)", SF: "var(--mod-fm)", F: "var(--mod-dt)", GF: "var(--mod-hr)" };
 
 function PoolStack({ stages }: { stages: PoolStage[] }) {
   return (
     <div className="flex h-full items-center gap-1.5 px-5" aria-hidden>
-      {stages.map((st, i) => (
+      {stages.map((st, i) => {
+        const bg = STACK_COLORS[short(st.title)] ?? "var(--mod-tb)";
+        return (
         <span
           key={st.slug}
           className={cn(
             "anim-rise grid h-11 flex-1 -skew-x-12 place-items-center transition-colors sm:h-14",
-            "text-ink",
             st.released ? "opacity-85 group-hover:opacity-100" : "opacity-45",
           )}
-          style={{ animationDelay: `${0.3 + i * 0.05}s`, background: STACK_COLORS[short(st.title)] ?? "var(--color-mod-tb)" }}
+          style={{ animationDelay: `${0.3 + i * 0.05}s`, background: bg, color: modOn(bg) }}
         >
           <span className="heading-slam skew-x-12 text-base sm:text-2xl">{short(st.title)}</span>
         </span>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -148,7 +152,7 @@ function Champion({ t, team, other }: { t: Dict; team: Team; other?: Team }) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={team.image} alt="" className="size-24 shrink-0 object-cover ring-2 ring-gold/60 ring-offset-4 ring-offset-coal" />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-gold">
+          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-gold-hi">
             <Crown className="size-4" /> {t.home.champion}
           </div>
           <div className="heading-slam mt-1 break-words text-4xl">
@@ -163,7 +167,7 @@ function Champion({ t, team, other }: { t: Dict; team: Team; other?: Team }) {
           ))}
         </div>
       </div>
-      <Sparkle className="right-5 top-4 size-4 text-gold" />
+      <Sparkle className="right-5 top-4 size-4 text-gold-hi" />
       <Sparkle className="right-12 top-10 size-2 text-paper/60" delay={0.9} />
     </Reveal>
   );
@@ -226,7 +230,7 @@ function FormatBadge({ tags, teamSize }: { tags: readonly string[]; teamSize: nu
         ))}
       </span>
       <Sparkle className="right-6 top-5 size-4 text-rose-hi" />
-      <Sparkle className="right-12 top-12 size-2 text-balkan" delay={1.1} />
+      <Sparkle className="right-12 top-12 size-2 text-balkan-hi" delay={1.1} />
     </div>
   );
 }
@@ -301,11 +305,11 @@ export default async function Home() {
   const see = (s: keyof typeof vis.sections) => vis.sections[s];
   const visiblePools = pools.filter((s) => s.pools.length && s.released);
   const phase = settings.phase;
-  const due = viewer?.roles.includes("host") ? duePhase(settings.timeline, phase, getEdition() === "bgcc7") : null;
+  const due = viewer?.roles.includes("host") ? duePhase(settings.timeline, phase, !isBGCC6()) : null;
   const prompt = due && settings.phasePrompts[String(viewer!.osuId)] !== due ? due : null;
   const signup = phase === "registration" || phase === "screening";
   const playing = phase === "seeding" || phase === "playoffs";
-  const big = "px-6 py-3 text-base sm:px-8 sm:py-4 sm:text-xl shadow-[4px_4px_0_0_var(--color-rose-deep)]";
+  const big = "px-6 py-3 text-base sm:px-8 sm:py-4 sm:text-xl shadow-[4px_4px_0_0_var(--rose-deep)]";
   const qualPool = phase === "qualifiers" ? visiblePools.find((s) => s.slug === "qualifiers") : undefined;
   const byId = new Map(matches.map((m) => [m.id, m]));
   const gf1 = byId.get("GF-M1");
@@ -387,10 +391,10 @@ export default async function Home() {
       {prompt && <PhasePrompt current={phase} next={prompt} />}
       <HeroGate className="grain relative overflow-hidden border-b border-line">
         <div className="pointer-events-none absolute inset-y-0 right-0 w-[70%] overflow-hidden [mask-image:linear-gradient(to_left,black,transparent)]" aria-hidden>
-          <div className="anim-drift h-full w-[calc(100%+120px)] bg-[repeating-linear-gradient(115deg,transparent_0_52.4px,rgba(255,255,255,0.03)_52.4px_54.4px)]" />
+          <div className="anim-drift h-full w-[calc(100%+120px)] bg-[repeating-linear-gradient(115deg,transparent_0_52.4px,color-mix(in_srgb,var(--white)_30%,transparent)_52.4px_54.4px)]" />
         </div>
         <div
-          className="anim-page pointer-events-none absolute right-[2%] top-1/2 -translate-y-1/2 font-display text-[clamp(20rem,42vw,40rem)] font-black italic leading-[0.8] text-white/[0.03]"
+          className="anim-page pointer-events-none absolute right-[2%] top-1/2 -translate-y-1/2 font-display text-[clamp(20rem,42vw,40rem)] font-black italic leading-[0.8] text-rose-deep/[0.06]"
           style={{ animationDuration: "1.6s" }}
           aria-hidden
         >

@@ -11,6 +11,7 @@ import { roundName } from "@/lib/i18n/dict";
 import { can } from "@/lib/roles";
 import { setDraft, setQualify, setRounds } from "./actions";
 import { PickemsToggle } from "./pickems-toggle";
+import { isBGCC6 } from "@/db";
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
@@ -25,7 +26,7 @@ export default async function AdminSettings() {
       <PageTitle mark="gears">{t.admin.menu.settings}</PageTitle>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 xl:items-start">
         <div className="space-y-6">
-          {getFormat().edition === "bgcc6" && (
+          {isBGCC6() && (
           <Panel title={t.admin.set.qualify} help={t.admin.set.qualifyHelp} i={1}>
             <ActionForm key={s.qualifyCount} action={setQualify} className="space-y-4">
               <label className={labelCls}>
@@ -56,7 +57,7 @@ export default async function AdminSettings() {
                         <input type="radio" name="banOrder" value={o} defaultChecked={s.banOrder === o} className="peer sr-only" />
                         <span className="flex min-h-10 -skew-x-12 items-center gap-0.5 border border-line px-3 transition-colors duration-200 group-hover:border-paper/40 peer-checked:border-rose peer-checked:bg-rose/15 peer-focus-visible:ring-2 peer-focus-visible:ring-rose">
                           {o.split("").map((c, i) => (
-                            <span key={i} className={`num skew-x-12 text-lg font-black uppercase ${c === "a" ? "text-rose-hi" : "text-azure-hi"}`}>
+                            <span key={i} className={`num skew-x-12 text-lg font-black uppercase ${c === "a" ? "text-crimson-hi" : "text-azure-hi"}`}>
                               {c}
                             </span>
                           ))}
@@ -86,7 +87,7 @@ export default async function AdminSettings() {
             </ActionForm>
           </Panel>
 
-          {getFormat().edition === "bgcc6" && (
+          {isBGCC6() && (
           <Panel title={t.admin.set.rounds} help={t.admin.set.roundsHelp} i={2}>
             <ActionForm key={rounds.map((r) => r.firstTo).join()} action={setRounds} className="space-y-4">
               <div className="divide-y divide-line border border-line">
