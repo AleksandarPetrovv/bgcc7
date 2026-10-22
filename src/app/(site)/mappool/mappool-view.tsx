@@ -75,7 +75,6 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                   style={{ background: mod.color }}
                 >
                   {mod.label}
-                  <span className="in-pop num text-lg opacity-80 [--d:0.4s]">{p.maps.length}</span>
                 </span>
               </button>
               <AnimatePresence initial={false}>
@@ -96,15 +95,16 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                       initial={{ opacity: 0, x: -14 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.45, delay: 0.05 + k * 0.04, ease: [0.16, 1, 0.3, 1] }}
-                      key={m.slot} className="lift group relative flex h-20 items-stretch overflow-hidden border border-line bg-coal hover:border-rose/50 2xl:h-24"
+                      key={m.slot} className="lift group relative flex items-stretch overflow-hidden border border-line bg-coal hover:border-rose/50"
                       style={{ "--lift": modHi(mc), "--i": pi + k, "--s": "0.05s" } as React.CSSProperties}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-45 saturate-[1.15] transition duration-500 group-hover:scale-105 group-hover:opacity-60 [--d:0.15s]" />
                       <div className="absolute inset-0 bg-gradient-to-r from-coal via-coal/85 to-coal/5" />
-                      <span className="in-pop heading-slam relative mr-2 flex w-16 shrink-0 items-center justify-center text-lg sm:mr-0 sm:w-24 sm:text-2xl [--d:0.3s]" style={{ color: modHi(mc) }}>
+                      <div className="relative grid min-w-0 flex-1 grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 gap-y-3 p-3 sm:gap-x-5 sm:p-4 xl:flex xl:gap-6">
+                      <span className="in-pop heading-slam shrink-0 text-lg sm:text-2xl [--d:0.3s]" style={{ color: modHi(mc) }}>
                         {m.slot}
                       </span>
-                      <div className="relative flex min-w-0 flex-1 flex-col justify-center">
+                      <div className="flex min-w-0 flex-1 flex-col justify-center">
                         <span className="flex min-w-0 items-center gap-2">
                           <a href={osuMap(m.id)} target="_blank" rel="noreferrer" className="truncate text-base font-display font-black transition-colors hover:text-[var(--lift)] sm:text-lg 2xl:text-xl">
                             {m.title}
@@ -118,33 +118,8 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                         <span className="truncate text-xs text-ash sm:text-sm">
                           <span className="font-bold text-paper/90">[{m.version}]</span> by {m.creator}
                         </span>
-                        <span className="num mt-0.5 flex items-center gap-2 text-xs text-ash lg:hidden">
-                          <span className="flex items-center gap-0.5 text-gold-hi">
-                            <Star className="size-3 fill-current" /> {m.sr.toFixed(2)}
-                          </span>
-                          <span>{Math.round(m.bpm)}bpm</span>
-                          <span>{fmtLen(m.length)}</span>
-                        </span>
                       </div>
-                      <div className="in-right num relative hidden shrink-0 items-center pr-6 text-base lg:grid lg:grid-cols-[4.25rem_5.25rem_3rem_3.5rem_3.5rem_3.5rem] xl:gap-x-4 xl:pr-10 xl:text-lg 2xl:gap-x-8 [--d:0.35s]">
-                        <span className="flex items-center justify-end gap-1 text-gold-hi">
-                          <Star className="size-4 fill-current" /> {m.sr.toFixed(2)}
-                        </span>
-                        <span className="text-right">
-                          {Math.round(m.bpm)} <span className="text-sm text-ash">bpm</span>
-                        </span>
-                        <span className="text-right">{fmtLen(m.length)}</span>
-                        {(
-                          [
-                            ["CS", m.cs],
-                            ["AR", m.ar],
-                            ["OD", m.od],
-                          ] as const
-                        ).map(([k, val]) => (
-                          <span key={k} className="text-right text-paper/80">
-                            <span className="text-xs text-ash">{k}</span> {val}
-                          </span>
-                        ))}
+                      <MapStats map={m} />
                       </div>
                       <div className="in-right relative flex w-14 shrink-0 flex-col sm:w-36 [clip-path:polygon(14px_0,100%_0,100%_100%,0_100%)] [--d:0.45s]">
                         <a
@@ -186,6 +161,26 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
         })}
       </motion.div>
     </Container>
+  );
+}
+
+function MapStats({ map }: { map: Stage["pools"][number]["maps"][number] }) {
+  const stats = [["BPM", Math.round(map.bpm)], ["Length", fmtLen(map.length)], ["CS", map.cs], ["AR", map.ar], ["OD", map.od]] as const;
+  return (
+    <dl className="num col-span-2 grid grid-cols-3 items-center gap-x-3 gap-y-2 border-t border-line bg-coal pt-2.5 text-center text-paper sm:grid-cols-6 sm:gap-x-4 xl:w-[27rem] xl:shrink-0 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0 2xl:w-[31rem]">
+      <div>
+        <dt className="sr-only">SR</dt>
+        <dd className="flex items-center justify-center gap-1 text-sm font-black text-gold-hi xl:text-lg">
+          <Star className="size-3.5 shrink-0 fill-current" />{map.sr.toFixed(2)}
+        </dd>
+      </div>
+      {stats.map(([label, value]) => (
+        <div key={label} className="flex min-w-0 flex-col gap-1">
+          <dt className="text-[0.6rem] font-bold text-paper/80 sm:text-[0.65rem]">{label}</dt>
+          <dd className="whitespace-nowrap text-xs font-black sm:text-sm xl:text-base">{value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
