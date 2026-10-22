@@ -14,12 +14,12 @@ import { cn } from "@/lib/utils";
 import { clearCache, saveMatch } from "./actions";
 import { osuMp } from "@/lib/links";
 
-const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
+const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 const group = "relative border border-line bg-coal/60 p-3.5 pt-5";
 
 function Legend({ children }: { children: React.ReactNode }) {
   return (
-    <span className="absolute -top-2.5 left-3 -skew-x-12 border border-line bg-ink px-2 py-0.5 text-[0.62rem] font-black uppercase tracking-[0.14em] text-paper/80">
+    <span className="absolute -top-2.5 left-3 -skew-x-12 border border-line bg-ink px-2 py-0.5 text-[0.62rem] font-display font-bold text-paper/80">
       <span className="inline-block skew-x-12">{children}</span>
     </span>
   );
@@ -36,7 +36,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
     const lost = !!m.winner && !won;
     return cn(
       "min-w-0 truncate text-sm sm:text-base",
-      won ? "font-black text-paper" : lost ? "font-bold text-ash" : "font-bold text-paper/90",
+      won ? "font-display font-black text-paper" : lost ? "font-display font-bold text-ash" : "font-display font-bold text-paper/90",
       !(n === 1 ? m.team1Id : m.team2Id) && "italic text-ash",
     );
   };
@@ -70,10 +70,10 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
       <summary className="relative flex cursor-pointer list-none items-center gap-3 py-3 pl-4 pr-3 [&::-webkit-details-marker]:hidden">
         <span className={cn("absolute inset-y-0 left-0 w-1", tone)} aria-hidden />
         <span className="hidden w-24 shrink-0 flex-col gap-1 md:flex">
-          <span className="num text-[0.65rem] font-bold text-ash">{m.id}</span>
+          <span className="num text-[0.65rem] font-display font-bold text-ash">{m.id}</span>
           <span
             className={cn(
-              "w-fit -skew-x-12 px-1.5 py-0.5 text-[0.6rem] font-black uppercase tracking-wider",
+              "w-fit -skew-x-12 px-1.5 py-0.5 text-[0.6rem] font-display font-bold",
               status === "done"
                 ? "bg-balkan/15 text-balkan-hi"
                 : status === "live"
@@ -98,7 +98,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
           <span className="num flex items-center gap-1.5 pl-3.5 text-[0.7rem] text-ash">
             <CalendarClock className="size-3" />
             {m.startsAt ? fmtSofia(m.startsAt, locale) : t.common.tbd}
-            <span className="ml-auto font-black uppercase">{t.admin.mStatus[status]}</span>
+            <span className="ml-auto font-display font-bold">{t.admin.mStatus[status]}</span>
           </span>
         </span>
 
@@ -109,7 +109,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
           </span>
           <span className="flex items-center gap-1.5">
             {score(1)}
-            <span className="text-[0.6rem] font-black uppercase text-ash">vs</span>
+            <span className="text-[0.6rem] font-display font-bold text-ash">vs</span>
             {score(2)}
           </span>
           <span className="flex min-w-0 items-center gap-2">
@@ -186,7 +186,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
                 </label>
               </div>
               {f.feed[m.id] && (
-                <label className="mt-3 flex cursor-pointer items-center gap-2.5 text-xs font-bold uppercase tracking-wide text-paper/85">
+                <label className="mt-3 flex cursor-pointer items-center gap-2.5 text-xs font-display font-bold text-paper/85">
                   <input type="checkbox" name="manual" defaultChecked={m.manual} className="size-4 accent-rose" />
                   {t.admin.lockTeams}
                 </label>
@@ -244,7 +244,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-dashed border-line pt-4">
             <Link
               href={`/admin/matches/${matchSlug(f, m.id)}`}
-              className="lift-sm inline-flex min-h-10 -skew-x-12 items-center bg-balkan px-4 text-xs font-black uppercase tracking-wide text-paper hover:bg-paper hover:text-ink"
+              className="lift-sm inline-flex min-h-10 -skew-x-12 items-center bg-balkan px-4 text-xs font-display font-bold text-paper hover:bg-paper hover:text-ink"
             >
               <span className="skew-x-12">{t.admin.ms.open}</span>
             </Link>

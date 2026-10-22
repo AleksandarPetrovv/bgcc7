@@ -32,13 +32,13 @@ export function ScreeningRow({ p, signedAt, i }: { p: RegRow; signedAt: string; 
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {p.country && <img src={flagUrl(p.country)} alt={p.country} className="h-2.5" />}
-            <a href={osuUser(p.osuId)} target="_blank" rel="noreferrer" className="truncate font-black hover:text-rose-hi">
+            <a href={osuUser(p.osuId)} target="_blank" rel="noreferrer" className="truncate font-display font-black hover:text-rose-hi">
               {p.username}
             </a>
             <span className="in-slam inline-flex [--d:0.6s]">
               <Tag tone={TAG[p.status]}>{t.status[p.status]}</Tag>
             </span>
-            {p.seeded && <span className="text-[0.6rem] font-black uppercase text-ash">{t.admin.test}</span>}
+            {p.seeded && <span className="text-[0.6rem] font-display font-bold text-ash">{t.admin.test}</span>}
           </div>
           <div className="in-wipe num text-sm text-paper/70 [--d:0.55s]">
             {stats.join(" · ")} <span className="text-xs text-ash">· {t.admin.signedAt} {signedAt}</span>
@@ -66,7 +66,7 @@ export function ScreeningRow({ p, signedAt, i }: { p: RegRow; signedAt: string; 
             <Undo2 className="size-4" /> {t.admin.reset}
           </Btn>
         )}
-        {state && !pending && !state.ok && <span className="text-xs font-bold uppercase tracking-wide text-rose-hi">{state.error === "note" ? t.admin.denyNote : t.admin.error}</span>}
+        {state && !pending && !state.ok && <span className="text-xs font-display font-bold text-rose-hi">{state.error === "note" ? t.admin.denyNote : t.admin.error}</span>}
       </form>
     </InView>
   );

@@ -60,7 +60,7 @@ function Pop({ action, title, slot, color, submit, onClose, at, closing }: Omit<
         <span className="heading-slam -skew-x-12 border px-2 py-0.5 text-xl leading-none" style={{ borderColor: modHi(color), color: modHi(color) }}>
           <span className="inline-block skew-x-12">{slot}</span>
         </span>
-        <span className="min-w-0 flex-1 text-sm font-bold text-paper">{title}</span>
+        <span className="min-w-0 flex-1 text-sm font-display font-bold text-paper">{title}</span>
         <button type="button" onClick={onClose} aria-label={t.admin.close} className="grid size-8 place-items-center text-ash transition-colors hover:text-paper">
           <X className="size-4" />
         </button>
@@ -71,7 +71,7 @@ function Pop({ action, title, slot, color, submit, onClose, at, closing }: Omit<
           {pending ? t.admin.saving : submit}
         </Btn>
       </form>
-      {err && <p className="-mt-1.5 px-4 pb-3 text-xs font-bold uppercase tracking-wide text-rose-hi">{err}</p>}
+      {err && <p className="-mt-1.5 px-4 pb-3 text-xs font-display font-bold text-rose-hi">{err}</p>}
     </div>
   );
 }

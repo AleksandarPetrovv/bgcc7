@@ -23,7 +23,7 @@ import { PoolMode } from "../pool-mode";
 import Link from "next/link";
 import { osuMap } from "@/lib/links";
 
-const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
+const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 
 export default async function AdminMappools({ searchParams }: PageProps<"/admin/mappools">) {
   const [t, lang, viewer, stages, sp] = await Promise.all([getDict(), getLang(), getViewer(), getPoolStages(), searchParams]);
@@ -92,7 +92,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
               ].map((s) => (
                 <div key={s.k} className="-skew-x-12 border border-line bg-ink/50 px-4 py-2.5">
                   <div className="skew-x-12">
-                    <div className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-ash">{s.k}</div>
+                    <div className="text-[0.62rem] font-display font-bold text-ash">{s.k}</div>
                     <div className="num text-2xl text-paper">{s.v}</div>
                   </div>
                 </div>
@@ -114,7 +114,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
             download
             className="in-left lift-sm mb-6 flex w-fit -skew-x-12 items-center border border-balkan/60 px-4 py-2.5 text-balkan-hi transition-colors hover:bg-balkan hover:text-paper [--d:0.2s]"
           >
-            <span className="flex skew-x-12 items-center gap-2 text-xs font-black uppercase">
+            <span className="flex skew-x-12 items-center gap-2 text-xs font-display font-bold">
               <Download className="size-4" /> {t.admin.packDownload}
             </span>
           </a>
@@ -125,7 +125,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
         <p className="flex flex-wrap items-center gap-3 border border-dashed border-line bg-coal p-4 text-sm text-ash">
           {t.admin.noLayout}
           {host && (
-            <Link href={`/admin/mappools/create?stage=${stage.slug}`} className="font-black uppercase text-rose-hi hover:text-paper">
+            <Link href={`/admin/mappools/create?stage=${stage.slug}`} className="font-display font-bold text-rose-hi hover:text-paper">
               {t.admin.poolCreate} →
             </Link>
           )}
@@ -145,7 +145,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
               style={{ "--i": pi < 5 ? pi : 0, "--s": "0.1s", "--d": "0.45s" } as React.CSSProperties}
             >
               <span className="sr in-grow absolute inset-x-0 top-0 h-0.5 [--d:0.6s]" style={{ background: accent }} aria-hidden />
-              <h2 className="flex items-center gap-3 border-b border-line px-4 py-2 text-sm font-black uppercase" style={{ color: modHi(accent) }}>
+              <h2 className="flex items-center gap-3 border-b border-line px-4 py-2 text-sm font-display font-bold" style={{ color: modHi(accent) }}>
                 <span className="sr in-wipe inline-block [--d:0.6s]">{title}</span>
                 {total > 0 && (
                   <span className="num text-xs text-ash">
@@ -157,7 +157,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                 {items.map(({ mod, slot, out, note, label: tagLabel }, i) => {
                   const color = skill && !out ? accent : MODS[mod].color;
                   const chip = skill && mod !== "Tiebreaker" ? (
-                    <span className="-skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-black" style={{ borderColor: modHi(MODS[mod].color), color: modHi(MODS[mod].color) }}>
+                    <span className="-skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-display font-black" style={{ borderColor: modHi(MODS[mod].color), color: modHi(MODS[mod].color) }}>
                       <span className="inline-block skew-x-12">{MODS[mod].short}</span>
                     </span>
                   ) : null;
@@ -179,7 +179,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                           {edit ? (
                             <SlotInput action={setSlotMap.bind(null, stage.id, mod, slot)} />
                           ) : (
-                            <span className="text-xs font-black uppercase tracking-wider text-ash">{t.admin.emptySlot}</span>
+                            <span className="text-xs font-display font-bold text-ash">{t.admin.emptySlot}</span>
                           )}
                           {tag}
                         </div>
@@ -202,13 +202,13 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                           href={osuMap(m.id)}
                           target="_blank"
                           rel="noreferrer"
-                          className="block truncate font-bold decoration-rose underline-offset-4 transition-colors hover:text-rose-hi hover:underline"
+                          className="block truncate font-display font-bold decoration-rose underline-offset-4 transition-colors hover:text-rose-hi hover:underline"
                         >
                           {m.title} <span className="text-ash">[{m.version}]</span>
                         </a>
-                        {out && <div className="text-xs font-black uppercase text-rose-hi">{t.admin.outsideLayout}</div>}
+                        {out && <div className="text-xs font-display font-bold text-rose-hi">{t.admin.outsideLayout}</div>}
                         {tag}
-                        {checks.get(m.id)?.dmca && <div className="text-xs font-black uppercase text-rose-hi">{t.admin.mapDmca}</div>}
+                        {checks.get(m.id)?.dmca && <div className="text-xs font-display font-bold text-rose-hi">{t.admin.mapDmca}</div>}
                         <div className="num flex flex-wrap gap-x-3 text-sm text-paper/70">
                           <span className="flex items-center gap-1 text-gold-hi">
                             <Star className="size-3.5 fill-current" /> {m.sr.toFixed(2)}

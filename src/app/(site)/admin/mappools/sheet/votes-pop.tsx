@@ -66,7 +66,7 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
         onFocus={open}
         onClick={() => (at ? close() : open())}
         aria-expanded={!!at}
-        className="num block cursor-help border-b border-dashed border-ash/60 text-[0.68rem] font-bold uppercase text-ash transition-colors hover:border-paper hover:text-paper"
+        className="num block cursor-help border-b border-dashed border-ash/60 text-[0.68rem] font-display font-bold uppercase text-ash transition-colors hover:border-paper hover:text-paper"
       >
         {label}
       </button>
@@ -84,9 +84,9 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
             <span className={at.up ? "absolute inset-x-0 -bottom-3 h-3" : "absolute inset-x-0 -top-3 h-3"} aria-hidden />
             <div className="vote-pop border border-line bg-coal shadow-[5px_5px_0_0_var(--rose-deep)]">
               <div className="flex items-center justify-between gap-3 border-b border-line bg-ink/60 px-3 py-2">
-                <span className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-ash">{t.admin.whoVoted}</span>
+                <span className="text-[0.68rem] font-display font-bold text-ash">{t.admin.whoVoted}</span>
                 {avg !== null && (
-                  <span className="num text-sm font-black" style={{ color: scoreText(avg) }}>
+                  <span className="num text-sm font-display font-black" style={{ color: scoreText(avg) }}>
                     {avg.toFixed(1)}
                     <span className="text-[0.65rem] text-ash">/10</span>
                   </span>
@@ -108,9 +108,9 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
                     )}
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-2">
-                        <span className="min-w-0 flex-1 truncate text-sm font-bold">{v.username}</span>
+                        <span className="min-w-0 flex-1 truncate text-sm font-display font-bold">{v.username}</span>
                         <span
-                          className="num grid min-w-12 shrink-0 -skew-x-12 place-items-center px-1.5 py-0.5 text-xs font-black text-paper"
+                          className="num grid min-w-12 shrink-0 -skew-x-12 place-items-center px-1.5 py-0.5 text-xs font-display font-black text-paper"
                           style={{ background: scoreColor(v.score) }}
                         >
                           <span className="skew-x-12">
@@ -135,7 +135,7 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
                     ) : (
                       <span className="size-8 shrink-0 rounded-full bg-slate" />
                     )}
-                    <span className="min-w-0 flex-1 truncate text-sm font-bold">{p.username}</span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-display font-bold">{p.username}</span>
                     <Hourglass className="size-3.5 text-ash" />
                   </li>
                 ))}

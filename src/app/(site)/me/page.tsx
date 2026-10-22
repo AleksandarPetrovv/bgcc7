@@ -98,7 +98,7 @@ export default async function Me() {
         </div>
         <div className="flex shrink-0 flex-col items-end gap-2">
           <span className="hidden -skew-x-12 sm:inline-flex border border-line bg-ink px-3 py-1">
-            <span className="skew-x-12 text-xs font-black uppercase tracking-[0.14em] text-paper/80">{t.timeline[phaseKey[phase]]}</span>
+            <span className="skew-x-12 text-xs font-display font-bold text-paper/80">{t.timeline[phaseKey[phase]]}</span>
           </span>
           {reg && signupPhase && (
             <Tag tone={reg.status === "approved" ? "balkan" : reg.status === "denied" ? "rose" : "paper"} className="text-xs">
@@ -126,7 +126,7 @@ export default async function Me() {
           <li
             key={e.key}
             className={cn(
-              "relative flex items-baseline gap-3 py-1.5 pl-3 text-sm uppercase",
+              "relative flex items-baseline gap-3 py-1.5 pl-3 font-display font-bold text-sm",
               states[i] === "now" ? "bg-slate font-black text-paper" : states[i] === "done" ? "text-ash" : "text-paper/80",
             )}
           >
@@ -230,7 +230,7 @@ export default async function Me() {
               </div>
               <ul className="flex flex-wrap gap-2">
                 {lobby.players.map((p) => (
-                  <li key={p.osuId} className={cn("flex items-center gap-2 border px-2.5 py-1.5 text-sm font-bold", p.osuId === me ? "border-balkan/60 bg-balkan/10 text-balkan-hi" : "border-line bg-ink")}>
+                  <li key={p.osuId} className={cn("flex items-center gap-2 border px-2.5 py-1.5 text-sm font-display font-bold", p.osuId === me ? "border-balkan/60 bg-balkan/10 text-balkan-hi" : "border-line bg-ink")}>
                     <Avatar src={p.avatarUrl} className="size-6" />
                     <PlayerLink id={p.osuId} name={p.username} />
                   </li>
@@ -246,7 +246,7 @@ export default async function Me() {
                   </SlantButton>
                 )}
                 {mpIds(lobby.mpLinks).map((id) => (
-                  <a key={id} href={osuMatch(id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-black uppercase text-ash hover:text-paper">
+                  <a key={id} href={osuMatch(id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-display font-bold text-ash hover:text-paper">
                     {t.me.mpLink} <ExternalLink className="size-3.5" />
                   </a>
                 ))}
@@ -317,7 +317,7 @@ export default async function Me() {
   const champion = !!lastGf && usWon(lastGf) && !upcomingMatch;
   const path = champion ? "champion" : lostIn && !upcomingMatch ? "out" : (upcomingMatch?.bracket ?? played.at(-1)?.bracket ?? "winners");
   const pathTag = (
-    <span className={cn("text-xs font-black uppercase tracking-wide", path === "out" ? "text-rose-hi" : path === "champion" ? "text-gold-hi" : "text-balkan-hi")}>{t.me.path[path]}</span>
+    <span className={cn("text-xs font-display font-bold", path === "out" ? "text-rose-hi" : path === "champion" ? "text-gold-hi" : "text-balkan-hi")}>{t.me.path[path]}</span>
   );
 
   const boards = await Promise.all(
@@ -389,8 +389,8 @@ export default async function Me() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {other && <img src={other.image} alt="" className="size-11 shrink-0 object-cover" />}
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-base font-black">{other?.name}</div>
-                  <div className="truncate text-[0.65rem] font-black uppercase tracking-wide text-ash">{roundName(t, m.round)}</div>
+                  <div className="truncate text-base font-display font-black">{other?.name}</div>
+                  <div className="truncate text-[0.65rem] font-display font-bold text-ash">{roundName(t, m.round)}</div>
                 </div>
                 {costOf.get(m.id) && (
                   <div className="shrink-0 text-right leading-none">
@@ -451,9 +451,9 @@ export default async function Me() {
       <Card title={t.me.next} i={1} className="lg:col-span-2" right={pathTag} flush>
         <div className="px-4 sm:px-5">
           <div className="flex items-center gap-3">
-            <span className="text-xs font-black uppercase tracking-[0.14em] text-rose-hi">{roundName(t, m.round)}</span>
+            <span className="text-xs font-display font-bold text-rose-hi">{roundName(t, m.round)}</span>
             {live && (
-              <a href={TWITCH_URL} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-black uppercase text-rose-hi">
+              <a href={TWITCH_URL} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-display font-bold text-rose-hi">
                 <span className="size-2 animate-pulse rounded-full bg-rose" /> {t.home.live}
               </a>
             )}

@@ -100,7 +100,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
         <div className="grid grid-cols-3 gap-px border border-line bg-line sm:grid-cols-5">
           {points.map(([k, v], i) => (
             <div key={k} className="in-flip bg-coal p-2.5 last:col-span-2 sm:p-3 sm:last:col-span-1" style={{ "--i": i, "--s": "0.08s", "--d": "0.15s" } as React.CSSProperties}>
-              <div className="min-h-[2lh] text-[0.6rem] font-black uppercase leading-tight text-ash sm:text-[0.65rem]">{k}</div>
+              <div className="min-h-[2lh] text-[0.6rem] font-display font-bold leading-tight text-ash sm:text-[0.65rem]">{k}</div>
               <div className="in-pop num origin-left text-2xl sm:text-3xl text-balkan-hi [--d:0.45s]">
                 {v}
                 <span className="text-base text-ash"> {t.common.pts}</span>
@@ -110,14 +110,14 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
         </div>
         <div className="in-right flex flex-wrap items-center gap-4 border border-line bg-coal p-4 [--d:0.3s]">
           <div>
-            <div className="text-[0.65rem] font-black uppercase text-rose-hi">{t.pickems.yourPicks}</div>
+            <div className="text-[0.65rem] font-display font-bold text-rose-hi">{t.pickems.yourPicks}</div>
             <div className="in-pop num origin-left text-3xl [--d:0.55s]">
               {made} / {total}
             </div>
           </div>
           <div className="ml-auto flex flex-col items-end gap-1">
             {!open ? null : !dirty && made > 0 && osuId ? (
-              <Flash className="flex items-center gap-1.5 text-sm font-black uppercase text-balkan-hi">
+              <Flash className="flex items-center gap-1.5 text-sm font-display font-bold text-balkan-hi">
                 <Check className="size-4" /> {t.common.saved}
               </Flash>
             ) : (
@@ -152,7 +152,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
               )}
             >
               <span className={cn("in-pop num text-2xl leading-none [--d:0.2s]", MEDAL[i] ?? "text-ash")}>#{i + 1}</span>
-              <span className="flex min-w-0 items-center gap-3 font-bold">
+              <span className="flex min-w-0 items-center gap-3 font-display font-bold">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {e.avatarUrl && <img src={e.avatarUrl} alt="" className="size-8 shrink-0" />}
                 <a href={osuUser(e.osuId)} target="_blank" rel="noreferrer" className="truncate hover:text-rose-hi">
@@ -170,7 +170,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
                 <Link
                   href={pickemsHref(e.username)}
                   onClick={() => window.scrollTo({ top: 0 })}
-                  className="whitespace-nowrap text-xs font-black uppercase leading-none text-rose-hi hover:text-paper"
+                  className="whitespace-nowrap text-xs font-display font-bold leading-none text-rose-hi hover:text-paper"
                 >
                   {t.pickems.viewBracket}
                 </Link>

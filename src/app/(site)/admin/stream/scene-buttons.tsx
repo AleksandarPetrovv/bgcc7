@@ -35,7 +35,7 @@ export function SceneButtons({ id, initial }: { id: string; initial: Scene | nul
             onClick={() => !on && pick(s)}
             aria-pressed={on}
             className={cn(
-              "inline-flex min-h-9 -skew-x-12 items-center border px-3 text-xs font-black uppercase tracking-wide transition-colors",
+              "inline-flex min-h-9 -skew-x-12 items-center border px-3 text-xs font-display font-bold transition-colors",
               on ? (s === null ? "border-balkan bg-balkan text-paper" : "border-rose bg-rose text-white") : "border-line text-ash hover:border-paper hover:text-paper",
             )}
           >
@@ -43,7 +43,7 @@ export function SceneButtons({ id, initial }: { id: string; initial: Scene | nul
           </button>
         );
       })}
-      {err && <span className="self-center text-xs font-black uppercase tracking-wide text-rose-hi">{t.admin.stream.failed}</span>}
+      {err && <span className="self-center text-xs font-display font-bold text-rose-hi">{t.admin.stream.failed}</span>}
     </div>
   );
 }

@@ -308,7 +308,7 @@ export function DraftRoom({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
-        className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs font-black uppercase tracking-[0.15em] text-ash"
+        className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs font-display font-bold text-ash"
       >
         <span>{title}</span>
         <span className="size-1 rotate-45 bg-line" aria-hidden />
@@ -354,7 +354,7 @@ export function DraftRoom({
               title={t.draft.whoWonHint}
               className="group inline-flex min-h-8 -skew-x-12 items-center border border-dashed border-gold-deep/60 bg-gold/10 px-3 text-gold-hi transition-colors hover:border-gold-deep hover:bg-gold/25"
             >
-              <span className="flex skew-x-12 items-center gap-1.5 text-[0.7rem] font-black uppercase tracking-wide">
+              <span className="flex skew-x-12 items-center gap-1.5 text-[0.7rem] font-display font-bold">
                 <Crown className="size-3.5" />
                 {t.draft.whoWonSlot(unscored.slot)}
               </span>
@@ -415,7 +415,7 @@ export function DraftRoom({
               style={{ borderColor: TEAM[me].c }}
             >
               <div className="mx-auto flex max-w-page items-center gap-3 lg:px-6">
-                <button type="button" onClick={() => setSel(null)} className="min-h-12 px-3 text-sm font-black uppercase tracking-wide text-ash hover:text-paper">
+                <button type="button" onClick={() => setSel(null)} className="min-h-12 px-3 text-sm font-display font-bold text-ash hover:text-paper">
                   {t.draft.cancel}
                 </button>
                 <motion.button
@@ -449,7 +449,7 @@ export function DraftRoom({
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="fixed left-1/2 top-20 z-50 inline-flex -translate-x-1/2 items-center gap-2 border border-rose bg-field px-3 py-2 shadow-[3px_3px_0_0_var(--rose-deep)] text-xs font-black uppercase tracking-wide text-rose-hi lg:top-24"
+              className="fixed left-1/2 top-20 z-50 inline-flex -translate-x-1/2 items-center gap-2 border border-rose bg-field px-3 py-2 shadow-[3px_3px_0_0_var(--rose-deep)] text-xs font-display font-bold text-rose-hi lg:top-24"
               role="status"
             >
               {offline ? (

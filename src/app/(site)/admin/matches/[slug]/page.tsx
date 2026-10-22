@@ -33,7 +33,7 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <Link href="/admin/matches" className="in-left mb-4 inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wide text-ash hover:text-paper">
+      <Link href="/admin/matches" className="in-left mb-4 inline-flex items-center gap-1.5 text-xs font-display font-bold text-ash hover:text-paper">
         <ArrowLeft className="size-3.5" /> {t.admin.ms.back}
       </Link>
       <PageTitle mark="bars" right={sb && <span className="num text-3xl text-paper">{sb.score.join(" - ")}</span>}>
@@ -75,9 +75,9 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
                     return (
                       <div key={k} className={cn("border-l-[3px] bg-ink p-3", k === 0 ? "border-l-crimson" : "border-l-azure")}>
                         <div className="mb-2 flex items-center gap-2">
-                          <span className={cn("text-xs font-black uppercase tracking-wide", k === 0 ? "text-crimson-hi" : "text-azure-hi")}>{team?.name ?? t.common.tbd}</span>
+                          <span className={cn("text-xs font-display font-black", k === 0 ? "text-crimson-hi" : "text-azure-hi")}>{team?.name ?? t.common.tbd}</span>
                           {missing > 0 && (
-                            <span className="ml-auto inline-flex items-center gap-1 bg-rose/15 px-1.5 py-0.5 text-[0.65rem] font-black uppercase text-rose-hi">
+                            <span className="ml-auto inline-flex items-center gap-1 bg-rose/15 px-1.5 py-0.5 text-[0.65rem] font-display font-bold text-rose-hi">
                               <TriangleAlert className="size-3" /> {t.admin.ms.missing(missing)}
                             </span>
                           )}
@@ -89,9 +89,9 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
                                 <summary className="flex cursor-pointer list-none items-center gap-2 px-2 py-1.5 text-sm">
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img src={p.avatar} alt="" className="size-6 shrink-0" />
-                                  <span className="min-w-0 flex-1 truncate font-bold">{p.name}</span>
-                                  {p.edited && <span className="text-[0.6rem] font-black uppercase text-gold-hi">{t.admin.ms.edited}</span>}
-                                  {p.mods.length > 0 && <span className="text-[0.65rem] font-black uppercase text-ash">{p.mods.join("")}</span>}
+                                  <span className="min-w-0 flex-1 truncate font-display font-bold">{p.name}</span>
+                                  {p.edited && <span className="text-[0.6rem] font-display font-bold text-gold-hi">{t.admin.ms.edited}</span>}
+                                  {p.mods.length > 0 && <span className="text-[0.65rem] font-display font-black uppercase text-ash">{p.mods.join("")}</span>}
                                   <span className="num hidden w-14 text-right text-ash min-[400px]:block">{(p.acc * 100).toFixed(2)}%</span>
                                   <span className="num w-20 text-right">{fmtNum(p.score)}</span>
                                 </summary>
@@ -122,8 +122,8 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
                                 <summary className="flex cursor-pointer list-none items-center gap-2 px-2 py-1.5 text-sm">
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img src={p.avatar} alt="" className="size-6 shrink-0 opacity-60" />
-                                  <span className="min-w-0 flex-1 truncate font-bold text-paper/70">{p.username}</span>
-                                  <span className="text-[0.6rem] font-black uppercase text-rose-hi">{t.admin.ms.noScore}</span>
+                                  <span className="min-w-0 flex-1 truncate font-display font-bold text-paper/70">{p.username}</span>
+                                  <span className="text-[0.6rem] font-display font-bold text-rose-hi">{t.admin.ms.noScore}</span>
                                   <span className="num hidden w-14 text-right text-ash min-[400px]:block">0.00%</span>
                                   <span className="num w-20 text-right text-ash">0</span>
                                 </summary>
@@ -153,10 +153,10 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
                 </div>
                 {gone.length > 0 && (
                   <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
-                    <span className="font-black uppercase tracking-wide text-ash">{t.admin.ms.removed}</span>
+                    <span className="font-display font-bold text-ash">{t.admin.ms.removed}</span>
                     {gone.map((e) => (
                       <span key={e.osuId} className="flex items-center gap-2 border border-line px-2 py-1">
-                        <span className="font-bold">{nameOf(e.osuId)}</span>
+                        <span className="font-display font-bold">{nameOf(e.osuId)}</span>
                         <ActionForm action={undoScore.bind(null, id, m.gameId, e.osuId)} submit={t.admin.ms.restore} ghost />
                       </span>
                     ))}

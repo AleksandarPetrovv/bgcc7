@@ -15,7 +15,7 @@ import { Dropdown } from "@/components/admin/dropdown";
 import { osuMp } from "@/lib/links";
 import { isBGCC6 } from "@/db";
 
-const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
+const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 
 function LobbyFields({ t, l }: { t: Dict; l?: Lobby }) {
   return (
@@ -94,7 +94,7 @@ export default async function AdminLobbies() {
                     <li key={p.osuId} style={{ "--i": k, "--s": "0.05s", "--d": "0.7s" } as React.CSSProperties} className="sr in-left flex flex-wrap items-center gap-3 px-3 py-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       {p.avatarUrl && <img src={p.avatarUrl} alt="" className="sr in-pop size-7 [--d:0.8s]" />}
-                      <span className="min-w-0 truncate font-bold">{p.username}</span>
+                      <span className="min-w-0 truncate font-display font-bold">{p.username}</span>
                       <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto">
                         {lobbies.length > 1 && (
                           <ActionForm action={placePlayer} submit={t.admin.move} ghost className="flex flex-1 items-center gap-2 sm:flex-none">

@@ -39,7 +39,7 @@ export default async function UserBracket({ params }: { params: Promise<{ user: 
 
   return (
     <Container>
-      <Link href="/pickems" className="mb-4 inline-flex items-center gap-1.5 text-xs font-black uppercase text-ash hover:text-paper">
+      <Link href="/pickems" className="mb-4 inline-flex items-center gap-1.5 text-xs font-display font-bold text-ash hover:text-paper">
         <ArrowLeft className="size-4" /> {t.pickems.back}
       </Link>
       <PageTitle mark="tick"

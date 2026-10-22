@@ -9,7 +9,7 @@ export function StaffFilter({ options, value, label, all }: { options: DropOptio
   const [pending, startTransition] = useTransition();
   return (
     <div className="mb-6 grid max-w-sm gap-2">
-      <span className="text-xs font-black uppercase tracking-wide text-ash">{label}</span>
+      <span className="text-xs font-display font-bold text-ash">{label}</span>
       <Dropdown
         options={[{ value: "", label: all }, ...options]}
         value={value}

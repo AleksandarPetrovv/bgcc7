@@ -69,7 +69,7 @@ function RollNumber({ value, side, win, lose }: { value: number | null; side: Si
           }}
           exit={spinning ? { y: 30, opacity: 0 } : { opacity: 0 }}
           transition={spinning ? { duration: 0.08 } : { type: "spring", stiffness: 520, damping: 18 }}
-          className={cn("num text-7xl font-black tabular-nums sm:text-8xl", shown == null ? "text-rose-hi" : spinning ? "text-paper/70 blur-[1px]" : TEAM[side].text)}
+          className={cn("num text-7xl font-display font-black tabular-nums sm:text-8xl", shown == null ? "text-rose-hi" : spinning ? "text-paper/70 blur-[1px]" : TEAM[side].text)}
           style={done && win ? { textShadow: `0 0 36px ${TEAM[side].c}` } : undefined}
         >
           {shown ?? "?"}
@@ -146,7 +146,7 @@ export function AdminBar({
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mb-5 flex flex-wrap items-center gap-2 border border-dashed border-line bg-coal/80 px-3 py-2 text-xs font-black uppercase tracking-wide"
+      className="mb-5 flex flex-wrap items-center gap-2 border border-dashed border-line bg-coal/80 px-3 py-2 text-xs font-display font-bold"
     >
       <div className="flex flex-1 gap-1">
         {([1, 2] as const).map((s) => (
@@ -155,7 +155,7 @@ export function AdminBar({
             type="button"
             onClick={() => onActing(s)}
             aria-pressed={acting === s}
-            className={cn("relative min-h-8 -skew-x-12 px-3 text-xs font-black uppercase tracking-wide transition-colors", acting === s ? "text-white" : "text-ash hover:text-paper")}
+            className={cn("relative min-h-8 -skew-x-12 px-3 text-xs font-display font-bold transition-colors", acting === s ? "text-white" : "text-ash hover:text-paper")}
           >
             {acting === s && <motion.span layoutId="dr-acting" className={cn("absolute inset-0", TEAM[s].bg)} transition={{ type: "spring", stiffness: 500, damping: 36 }} />}
             <span className="relative inline-block max-w-32 skew-x-12 truncate">{names[s - 1]}</span>
@@ -165,7 +165,7 @@ export function AdminBar({
       <button
         type="button"
         onClick={onHelp}
-        className="lift-sm inline-flex min-h-8 -skew-x-12 items-center bg-gold px-4 text-xs font-black uppercase tracking-wide text-paper shadow-[3px_3px_0_0_var(--gold-deep)] transition-colors [--lift:var(--gold)] hover:bg-paper hover:text-ink"
+        className="lift-sm inline-flex min-h-8 -skew-x-12 items-center bg-gold px-4 text-xs font-display font-bold text-paper shadow-[3px_3px_0_0_var(--gold-deep)] transition-colors [--lift:var(--gold)] hover:bg-paper hover:text-ink"
       >
         <span className="inline-flex skew-x-12 items-center gap-1.5">
           <CircleHelp className="size-3.5" strokeWidth={3} /> {t.lobby.help}
@@ -181,7 +181,7 @@ export function AdminBar({
             type="button"
             disabled={pending || !u}
             onClick={() => adminAct(fn)}
-            className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-line px-3 text-xs font-black uppercase tracking-wide text-paper transition-colors [--lift:var(--rose)] hover:border-rose disabled:opacity-50"
+            className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-line px-3 text-xs font-display font-bold text-paper transition-colors [--lift:var(--rose)] hover:border-rose disabled:opacity-50"
           >
             <span className="inline-flex skew-x-12 items-center gap-1.5">
               <Icon className="size-3.5" /> {k === "undo" ? t.draft.undo : t.draft.redo}
@@ -193,7 +193,7 @@ export function AdminBar({
           type="button"
           disabled={pending}
           onClick={onReset}
-          className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-rose px-3 text-xs font-black uppercase tracking-wide text-rose-hi transition-colors [--lift:var(--rose)] hover:bg-rose/10 disabled:opacity-50"
+          className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-rose px-3 text-xs font-display font-bold text-rose-hi transition-colors [--lift:var(--rose)] hover:bg-rose/10 disabled:opacity-50"
         >
           <span className="inline-flex skew-x-12 items-center gap-1.5">
             <RotateCcw className="size-3.5" /> {t.draft.reset}
@@ -256,7 +256,7 @@ export function TeamsHeader({ teams, turn, me, score }: { teams: [TeamInfo, Team
                     className="mt-2 inline-flex -skew-x-12 items-center bg-white px-2 py-0.5 shadow-[3px_3px_0_0_color-mix(in_srgb,var(--black)_35%,transparent)]"
                     style={{ color: TEAM[s].deep }}
                   >
-                    <span className="inline-flex skew-x-12 items-center gap-1 text-[0.6rem] font-black uppercase tracking-[0.25em] sm:text-[0.65rem]">
+                    <span className="inline-flex skew-x-12 items-center gap-1 text-[0.6rem] font-display font-bold sm:text-[0.65rem]">
                       <span className="anim-twinkle" aria-hidden>
                         ✦
                       </span>
@@ -292,7 +292,7 @@ export function TeamsHeader({ teams, turn, me, score }: { teams: [TeamInfo, Team
                 animate={{ y: 0, opacity: 1, scale: 1 }}
                 exit={{ y: 30, opacity: 0 }}
                 transition={{ type: "spring", stiffness: 420, damping: 18 }}
-                className="num text-4xl font-black tabular-nums sm:text-7xl"
+                className="num text-4xl font-display font-black tabular-nums sm:text-7xl"
                 style={{ color: TEAM[s].hi, textShadow: `0 0 28px ${tint(TEAM[s].c, 40)}` }}
               >
                 {score[s - 1]}
@@ -375,7 +375,7 @@ export function Rolls({
                     }}
                     aria-hidden
                   />
-                  <span className={cn("relative max-w-full truncate text-xs font-black uppercase tracking-[0.15em]", TEAM[s].text)}>{names[s - 1]}</span>
+                  <span className={cn("relative max-w-full truncate text-xs font-display font-black", TEAM[s].text)}>{names[s - 1]}</span>
                   <RollNumber value={val} side={s} win={winner === s} lose={winner != null && winner !== s} />
                   <div className="relative flex h-11 items-center">
                     {canRoll ? (
@@ -385,7 +385,7 @@ export function Rolls({
                         onClick={onRoll}
                         whileHover={{ scale: 1.06 }}
                         whileTap={{ scale: 0.9, rotate: -6 }}
-                        className="lift-sm inline-flex min-h-11 -skew-x-12 items-center px-6 font-black uppercase tracking-wide text-white disabled:opacity-60"
+                        className="lift-sm inline-flex min-h-11 -skew-x-12 items-center px-6 font-display font-bold text-white disabled:opacity-60"
                         style={{
                           background: TEAM[s].c,
                           ["--lift" as string]: TEAM[s].deep,
@@ -396,11 +396,11 @@ export function Rolls({
                         </span>
                       </motion.button>
                     ) : (val == null && !hold) || turn.kind === "tie" ? (
-                      <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-ash">
+                      <span className="inline-flex items-center gap-2 text-xs font-display font-bold text-ash">
                         {t.draft.waiting} <Waiting />
                       </span>
                     ) : winner === s ? (
-                      <motion.span initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-xs font-black uppercase tracking-wide text-gold-hi">
+                      <motion.span initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-xs font-display font-bold text-gold-hi">
                         {t.draft.wins(names[s - 1])}
                       </motion.span>
                     ) : null}
@@ -455,7 +455,7 @@ export function Sequence({ d, turn }: { d: DraftView; turn: Turn }) {
                 {now && <span className="dr-glow absolute inset-0" style={{ background: tint(TEAM[x.team].c, 20) }} aria-hidden />}
                 <span
                   className={cn(
-                    "relative skew-x-12 text-[0.6rem] font-black uppercase tracking-wider",
+                    "relative skew-x-12 text-[0.6rem] font-display font-bold",
                     x.step && !x.step.skip && x.kind === "pick" ? "text-white/80" : TEAM[x.team].text,
                   )}
                 >
@@ -463,7 +463,7 @@ export function Sequence({ d, turn }: { d: DraftView; turn: Turn }) {
                 </span>
                 <span
                   className={cn(
-                    "num relative skew-x-12 text-base font-black leading-tight",
+                    "num relative skew-x-12 text-base font-display font-black leading-tight",
                     x.step?.skip ? "text-ash" : x.step ? (x.kind === "ban" ? "text-paper/60 line-through" : "text-white") : "text-ash/60",
                   )}
                 >

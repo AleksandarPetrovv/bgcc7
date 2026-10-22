@@ -51,7 +51,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
                 ] as [string, React.ReactNode][]
               ).map(([k, v], i) => (
                 <div key={k} className="in-up" style={{ "--i": i, "--s": "0.1s", "--d": "0.7s" } as React.CSSProperties}>
-                  <div className="text-[0.65rem] font-black uppercase tracking-[0.14em] text-rose-hi">{k}</div>
+                  <div className="text-[0.65rem] font-display font-bold text-rose-hi">{k}</div>
                   <div className="num text-3xl">{v}</div>
                 </div>
               ))}
@@ -70,7 +70,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={p.avatar} alt="" className="size-24 object-cover" />
               <div className="flex-1 p-3">
-                <div className="flex items-center gap-2 font-black">
+                <div className="flex items-center gap-2 font-display font-black">
                   <a href={osuUser(p.userId)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">
                     {p.username}
                   </a>

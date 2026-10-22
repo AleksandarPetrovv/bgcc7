@@ -314,8 +314,8 @@
 @keyframes k-pop { 0% { opacity: 0; transform: scale(0.6); } 70% { opacity: 1; transform: scale(1.06); } }
 @keyframes k-flip { from { opacity: 0; transform: perspective(700px) rotateX(-75deg); } }
 @keyframes k-spin { from { opacity: 0; transform: scale(0.4) rotate(-120deg); } }
-@keyframes k-wipe { from { clip-path: inset(0 100% 0 0); } }
-@keyframes k-wipe-r { from { clip-path: inset(0 0 0 100%); } }
+@keyframes k-wipe { from { clip-path: inset(-0.3em 100% -0.3em -0.3em); } to { clip-path: inset(-0.3em); } }
+@keyframes k-wipe-r { from { clip-path: inset(-0.3em -0.3em -0.3em 100%); } to { clip-path: inset(-0.3em); } }
 @keyframes k-grow { from { transform: scaleX(0); } }
 @keyframes k-draw { from { stroke-dashoffset: 1; } }
 @keyframes k-word { from { opacity: 0; transform: translate3d(0, 0.5em, 0) rotate(5deg); } }

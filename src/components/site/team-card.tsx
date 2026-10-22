@@ -18,7 +18,7 @@ export function Roster({ team }: { team: Team }) {
             <img src={p.avatar} alt="" className="size-6 rounded-full object-cover ring-1 ring-rose/40 ring-offset-1 ring-offset-coal" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={flagUrl(p.country)} alt="" className="h-2.5" />
-            <span className="font-bold">{p.username}</span>
+            <span className="font-display font-bold">{p.username}</span>
             <MeTag p={p.userId} />
             {p.isCaptain && <Crown className="size-3.5 text-gold-hi" />}
             <span className="num ml-auto text-ash">#{fmtNum(p.rank)}</span>
@@ -47,8 +47,8 @@ export function TeamCard({ team }: { team: Team }) {
               </span>
             </div>
             <div className="min-w-0 flex-1 px-3.5 pb-3 pt-2">
-              <div className="in-left truncate text-lg font-black sm:text-xl leading-tight [--d:0.3s]">{team.name}</div>
-              <dl className="in-up mt-1.5 flex gap-5 text-[0.65rem] font-bold uppercase text-ash [--d:0.45s]">
+              <div className="in-left truncate text-lg font-display font-black sm:text-xl leading-tight [--d:0.3s]">{team.name}</div>
+              <dl className="in-up mt-1.5 flex gap-5 text-[0.65rem] font-display font-bold text-ash [--d:0.45s]">
                 <div>
                   <dt>{t.common.avgRank}</dt>
                   <dd className="num text-xl leading-none text-paper">#{fmtNum(team.avgRank)}</dd>

@@ -130,7 +130,7 @@ function StageTable({ p }: { p: FolkProps }) {
   const rows = stageRows(p);
   return (
     <div>
-      <div className={cn("hidden gap-4 border-b border-paper/10 pb-2.5 text-[0.65rem] font-black uppercase tracking-[0.14em] text-ash md:grid", COLS)}>
+      <div className={cn("hidden gap-4 border-b border-paper/10 pb-2.5 text-[0.65rem] font-display font-bold text-ash md:grid", COLS)}>
         <span>{p.t.info.stageCol}</span>
         <span>{p.t.info.datesCol}</span>
         <span>SR</span>
@@ -148,7 +148,7 @@ function StageTable({ p }: { p: FolkProps }) {
           </span>
           <span className="col-span-2 flex flex-wrap gap-1.5 md:col-span-1">
             {r.mods.map(([mod, n]) => (
-              <span key={mod} className="num -skew-x-12 border px-1.5 py-0.5 text-xs font-black leading-none" style={{ background: MOD_HEX[mod], borderColor: mod === "TB" ? "var(--line)" : MOD_HEX[mod], color: mod === "TB" || mod === "HD" ? "var(--paper)" : "var(--white)" }}>
+              <span key={mod} className="num -skew-x-12 border px-1.5 py-0.5 text-xs font-display font-black leading-none" style={{ background: MOD_HEX[mod], borderColor: mod === "TB" ? "var(--line)" : MOD_HEX[mod], color: mod === "TB" || mod === "HD" ? "var(--paper)" : "var(--white)" }}>
                 <span className="inline-block skew-x-12">
                   {n} {mod}
                 </span>
@@ -181,7 +181,7 @@ function Hosts({ p, compact }: { p: FolkProps; compact?: boolean }) {
               <span className={cn("absolute inset-x-0 top-0 h-1", i === 0 ? "bg-rose" : "bg-balkan")} aria-hidden />
             </span>
             <span className="mt-4 block truncate font-display text-[clamp(1.4rem,2vw,2.4rem)] font-black leading-none tracking-[-0.03em] text-paper transition-colors group-hover:text-rose-hi">{h.username}</span>
-            <span className="mt-2 block text-xs font-black uppercase tracking-[0.16em] text-ash">{p.t.info.hostRoles[Math.min(i, 1)]}</span>
+            <span className="mt-2 block text-xs font-display font-bold text-ash">{p.t.info.hostRoles[Math.min(i, 1)]}</span>
           </a>
         ))}
       </div>
@@ -198,7 +198,7 @@ function Prize({ p, i, small }: { p: FolkProps; i: number; small?: boolean }) {
         <div className={cn("font-display font-black leading-none", PLACE[i], small ? "text-2xl" : "text-5xl sm:mt-2 sm:text-6xl")}>
           <E p={p} path={`info.prizeRows.${i}.place`} value={row.place} fill={false} />
         </div>
-        <div className={cn(i === 0 ? "font-black text-paper" : "font-semibold text-paper/85", small ? "mt-1 text-sm" : "mt-5 text-lg leading-snug")}>
+        <div className={cn(i === 0 ? "font-display font-black text-paper" : "font-display font-semibold text-paper/85", small ? "mt-1 text-sm" : "mt-5 text-lg leading-snug")}>
           <E p={p} path={`info.prizeRows.${i}.reward`} value={row.reward} fill={false} />
         </div>
         {!small && row.extra && (
@@ -308,7 +308,7 @@ function Facts({ p }: { p: FolkProps }) {
         const v = p.raw(`info.facts.${i}.1`, v0);
         return (
           <div key={i} className="border-b border-dashed border-paper/10 py-4">
-            <dt className="flex items-center gap-2.5 text-[0.65rem] font-black uppercase tracking-[0.16em] text-ash">
+            <dt className="flex items-center gap-2.5 text-[0.65rem] font-display font-bold text-ash">
               <Stitch />
               <Editable path={`info.facts.${i}.0`} raw={k} on={p.on}>
                 {k}

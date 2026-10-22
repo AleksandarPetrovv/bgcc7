@@ -45,7 +45,7 @@ function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
           href={s.url ?? undefined}
           target="_blank"
           rel="noreferrer"
-          className="in-wipe min-w-0 flex-1 truncate font-black transition-colors hover:text-rose-hi"
+          className="in-wipe min-w-0 flex-1 truncate font-display font-black transition-colors hover:text-rose-hi"
           style={{ "--i": i, "--s": "0.08s", "--d": "0.75s" } as React.CSSProperties}
         >
           {s.name}
@@ -114,7 +114,7 @@ export function SponsorList({ sponsors }: { sponsors: Sponsor[] }) {
       </Reorder.Group>
       <p className="mt-2 text-xs text-ash">
         {t.admin.dragHint}
-        {saved && !pending && <Flash className="ml-2 font-bold uppercase tracking-wide text-balkan-hi">{t.admin.saved}</Flash>}
+        {saved && !pending && <Flash className="ml-2 font-display font-bold text-balkan-hi">{t.admin.saved}</Flash>}
       </p>
     </div>
   );

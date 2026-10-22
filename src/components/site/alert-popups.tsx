@@ -46,7 +46,7 @@ function AlertCard({ alert, onSnooze }: { alert: Alert; onSnooze: (alert: Alert)
   const [pending, start] = useTransition();
   const [failed, setFailed] = useState(false);
   const red = alert.level === "red";
-  const button = cn("inline-flex min-h-10 -skew-x-12 items-center justify-center gap-2 px-4 py-2 text-sm font-black text-paper transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-paper disabled:opacity-60", red ? "bg-rose text-white hover:bg-paper hover:text-ink" : "bg-gold hover:bg-paper hover:text-ink");
+  const button = cn("inline-flex min-h-10 -skew-x-12 items-center justify-center gap-2 px-4 py-2 text-sm font-display font-black text-paper transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-paper disabled:opacity-60", red ? "bg-rose text-white hover:bg-paper hover:text-ink" : "bg-gold hover:bg-paper hover:text-ink");
 
   const retry = () => {
     if (!alert.match || pending) return;
@@ -71,7 +71,7 @@ function AlertCard({ alert, onSnooze }: { alert: Alert; onSnooze: (alert: Alert)
         <X className="size-4" aria-hidden />
       </button>
       <h2 id={titleId} className={cn("heading-slam pr-7 text-xl leading-tight", red ? "text-rose-hi" : "text-gold-hi")}>{text.title}</h2>
-      {alert.match && <p className="mt-2 break-words text-sm font-black text-paper">{alert.match.label}</p>}
+      {alert.match && <p className="mt-2 break-words text-sm font-display font-black text-paper">{alert.match.label}</p>}
       <p className="mt-3 text-sm leading-relaxed text-paper/85">{text.means}</p>
       <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-paper/85 marker:font-black marker:text-paper">
         {text.steps.map((step) => <li key={step} className="pl-1">{step}</li>)}
@@ -87,14 +87,14 @@ function AlertCard({ alert, onSnooze }: { alert: Alert; onSnooze: (alert: Alert)
             <button type="button" onClick={retry} disabled={pending || !alert.match} className={button} aria-busy={pending}>
               <span className="inline-flex skew-x-12 items-center gap-2">{pending && <LoaderCircle className="size-4 motion-safe:animate-spin" aria-hidden />}{pending ? t.retrying : t.retry}</span>
             </button>
-            {alert.href && <Link href={alert.href} className="min-h-10 content-center text-sm font-bold text-paper underline decoration-ash underline-offset-4 hover:decoration-paper focus-visible:outline-2 focus-visible:outline-paper">{t.openMatchAdmin}</Link>}
+            {alert.href && <Link href={alert.href} className="min-h-10 content-center text-sm font-display font-bold text-paper underline decoration-ash underline-offset-4 hover:decoration-paper focus-visible:outline-2 focus-visible:outline-paper">{t.openMatchAdmin}</Link>}
           </>
         ) : alert.href && <Link href={alert.href} className={button}><span className="skew-x-12">{text.button}</span></Link>}
       </div>
       {failed && <p role="alert" className="mt-3 text-sm font-bold text-rose-hi">{t.retryFailed}</p>}
       {alert.detail && (
         <details className="mt-3 border-t border-line pt-2">
-          <summary className="w-fit cursor-pointer py-1 text-xs font-bold text-ash hover:text-paper focus-visible:outline-2 focus-visible:outline-paper">{t.details}</summary>
+          <summary className="w-fit cursor-pointer py-1 text-xs font-display font-bold text-ash hover:text-paper focus-visible:outline-2 focus-visible:outline-paper">{t.details}</summary>
           <pre className="mt-2 max-h-32 overflow-auto whitespace-pre-wrap break-all font-mono text-xs leading-relaxed text-paper/75">{alert.detail}</pre>
         </details>
       )}
@@ -170,7 +170,7 @@ export function AlertPopups() {
     <aside aria-label={t.label} aria-live="polite" aria-relevant="additions" className="pointer-events-none fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[90] sm:left-auto sm:right-6 sm:w-[26rem]">
       <div className="pointer-events-auto flex max-h-[calc(100dvh-6rem)] flex-col gap-3 overflow-y-auto overscroll-contain p-2 [scrollbar-color:var(--ash)_var(--coal)]">
         {(expanded ? visible : visible.slice(0, 3)).map((alert) => <AlertCard key={alert.id} alert={alert} onSnooze={snooze} />)}
-        {visible.length > 3 && <button type="button" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)} className="min-h-10 shrink-0 border border-line bg-coal px-3 text-sm font-bold text-paper hover:border-gold focus-visible:outline-2 focus-visible:outline-paper">{expanded ? t.less : t.more(visible.length - 3)}</button>}
+        {visible.length > 3 && <button type="button" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)} className="min-h-10 shrink-0 border border-line bg-coal px-3 text-sm font-display font-bold text-paper hover:border-gold focus-visible:outline-2 focus-visible:outline-paper">{expanded ? t.less : t.more(visible.length - 3)}</button>}
       </div>
     </aside>
   );

@@ -61,7 +61,7 @@ export default async function Lobbies() {
                 <article key={l.id} style={dv(base)} className={cn("in-up lift group flex border bg-coal", mine ? "border-balkan [--lift:var(--balkan)]" : "border-line hover:border-rose/60")}>
                   <div style={dv(base + 0.1)} className={cn("in-drop flex w-24 shrink-0 flex-col items-center justify-center py-4 text-white sm:w-28", mine ? "bg-balkan text-paper" : "bg-rose")}>
                     <span className="in-pop num text-4xl leading-none" style={dv(base + 0.25)}>{fmtSofiaTime(l.startsAt)}</span>
-                    <span className="mt-1 text-[0.65rem] font-black uppercase tracking-[0.14em]">{tzLabel(l.startsAt)}</span>
+                    <span className="mt-1 text-[0.65rem] font-display font-bold">{tzLabel(l.startsAt)}</span>
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 border-l-2 border-dashed border-ink px-4 py-3">
                     <div className="flex items-baseline justify-between gap-3">
@@ -79,7 +79,7 @@ export default async function Lobbies() {
                       ))}
                     </div>
                     <div className="flex items-end justify-between gap-3">
-                      <div className="text-xs font-bold uppercase text-ash">
+                      <div className="text-xs font-display font-bold text-ash">
                         {mine && <span className="mr-2 text-balkan-hi">{t.qual.yours}</span>}
                         {l.referee && t.qual.refereeBy(l.referee)}
                       </div>

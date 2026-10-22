@@ -9,7 +9,7 @@ import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
 export const v = (o: Record<string, string | number>) => o as React.CSSProperties;
-export const label = "text-[0.65rem] font-black uppercase tracking-[0.14em] text-ash";
+export const label = "text-[0.65rem] font-display font-bold text-ash";
 
 export function Card({ title, children, className, i = 0, right, flush }: { title: string; children: React.ReactNode; className?: string; i?: number; right?: React.ReactNode; flush?: boolean }) {
   return (
@@ -67,8 +67,8 @@ export function TeamCard({ t, team, me, record, i }: { t: Dict; team: Team; me: 
             <Avatar src={p.avatar} className="size-8 sm:size-9" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={flagUrl(p.country)} alt="" className="h-3" />
-            <PlayerLink id={p.userId} name={p.username} className={cn("min-w-0 truncate font-black", p.userId === me && "text-balkan-hi")} />
-            {p.userId === me && <span className="text-[0.6rem] font-black uppercase text-ash">{t.me.you}</span>}
+            <PlayerLink id={p.userId} name={p.username} className={cn("min-w-0 truncate font-display font-black", p.userId === me && "text-balkan-hi")} />
+            {p.userId === me && <span className="text-[0.6rem] font-display font-bold text-ash">{t.me.you}</span>}
             {p.isCaptain && <Crown className="size-3.5 shrink-0 text-gold-hi" aria-label={t.common.captain} />}
             <span className="num ml-auto text-sm text-paper/80">#{fmtNum(p.rank)}</span>
             <span className="num hidden w-16 text-right text-sm text-ash sm:block">{fmtNum(Math.round(p.pp))}pp</span>
@@ -76,7 +76,7 @@ export function TeamCard({ t, team, me, record, i }: { t: Dict; team: Team; me: 
         ))}
       </ul>
       <div className="border-t border-line px-4 py-3 sm:px-5">
-        <Link href={teamHref(team)} className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wide text-ash transition-colors hover:text-paper">
+        <Link href={teamHref(team)} className="inline-flex items-center gap-1.5 text-xs font-display font-bold text-ash transition-colors hover:text-paper">
           {t.me.teamPage} <ArrowRight className="size-3.5" />
         </Link>
       </div>
@@ -113,7 +113,7 @@ export function Info({ icon: Icon, k, n }: { icon: typeof Flag; k: string; n: st
       <Icon className="size-4 shrink-0 text-rose-hi" />
       <div className="min-w-0">
         <div className={label}>{k}</div>
-        <div className="truncate text-sm font-black">{n}</div>
+        <div className="truncate text-sm font-display font-black">{n}</div>
       </div>
     </div>
   );

@@ -42,13 +42,13 @@ export default async function Register() {
                 {i < done ? <Check className="size-5" /> : i + 1}
               </span>
               <div className="in-left" style={{ "--d": "0.3s" } as React.CSSProperties}>
-                <div className="font-black uppercase">{s.t}</div>
+                <div className="font-display font-bold">{s.t}</div>
                 <p className="text-sm text-ash">{f(s.d)}</p>
               </div>
             </li>
           ))}
           <li className="in-up !mt-10 border border-rose/40 bg-rose/10 p-4 text-sm" style={{ "--d": "0.75s" } as React.CSSProperties}>
-            <div className="mb-1 font-black uppercase text-rose-hi">{t.register.whoTitle}</div>
+            <div className="mb-1 font-display font-bold text-rose-hi">{t.register.whoTitle}</div>
             {t.register.whoText}
           </li>
         </ol>

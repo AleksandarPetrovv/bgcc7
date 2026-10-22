@@ -42,7 +42,7 @@ export default async function AdminPhase() {
                 <label
                   key={p}
                   style={{ "--i": i, "--s": "0.07s", "--d": "0.5s" } as React.CSSProperties}
-                  className="in-pop flex min-h-14 -skew-x-6 cursor-pointer items-center gap-2.5 whitespace-nowrap border border-line px-4 text-sm font-black uppercase transition-colors hover:border-paper/40 has-[:checked]:border-rose has-[:checked]:bg-rose/10 has-[:checked]:shadow-[4px_4px_0_0_var(--rose-deep)]"
+                  className="in-pop flex min-h-14 -skew-x-6 cursor-pointer items-center gap-2.5 whitespace-nowrap border border-line px-4 text-sm font-display font-bold transition-colors hover:border-paper/40 has-[:checked]:border-rose has-[:checked]:bg-rose/10 has-[:checked]:shadow-[4px_4px_0_0_var(--rose-deep)]"
                 >
                   <span className="flex skew-x-6 items-center gap-2.5">
                     <input type="radio" name="phase" value={p} defaultChecked={p === s.phase} className={check} />
@@ -58,7 +58,7 @@ export default async function AdminPhase() {
           <ActionForm key={s.phase} action={setSections} className="space-y-4">
             <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
               {sections.map((k, i) => (
-                <label key={k} style={{ "--i": i, "--s": "0.035s", "--d": "0.55s" } as React.CSSProperties} className="in-left flex min-h-10 cursor-pointer items-center gap-2.5 border-b border-line text-sm font-bold uppercase tracking-wide">
+                <label key={k} style={{ "--i": i, "--s": "0.035s", "--d": "0.55s" } as React.CSSProperties} className="in-left flex min-h-10 cursor-pointer items-center gap-2.5 border-b border-line text-sm font-display font-bold">
                   <input type="checkbox" name={k} defaultChecked={s.sections[k]} className={check} />
                   {t.admin.sections[k]}
                 </label>
@@ -71,7 +71,7 @@ export default async function AdminPhase() {
           <ActionForm action={setDates} className="space-y-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {dates.map(([name, label, value], i) => (
-                <label key={name} style={{ "--i": i, "--s": "0.07s", "--d": "0.6s" } as React.CSSProperties} className="in-up flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors">
+                <label key={name} style={{ "--i": i, "--s": "0.07s", "--d": "0.6s" } as React.CSSProperties} className="in-up flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors">
                   {label}
                   <Field type="datetime-local" name={name} defaultValue={toSofiaInput(value)} className={dateCls} />
                 </label>
@@ -85,7 +85,7 @@ export default async function AdminPhase() {
             <div className="divide-y divide-line border border-line">
               {TIMELINE_KEYS.map((k, i) => (
                 <div key={k} style={{ "--i": i, "--s": "0.06s", "--d": "0.7s" } as React.CSSProperties} className="in-left grid grid-cols-1 items-center gap-2 px-3 py-2 sm:grid-cols-[1fr_auto_auto] sm:gap-3">
-                  <span className="flex items-center gap-2 text-sm font-black uppercase">
+                  <span className="flex items-center gap-2 text-sm font-display font-bold">
                     {t.timeline[k]}
                     {states[i] === "now" && (
                       <span className="in-slam inline-flex [--d:1.1s]">

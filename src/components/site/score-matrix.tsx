@@ -64,7 +64,7 @@ export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]
       <div className="overflow-x-auto border border-line" onScroll={close}>
         <table className="w-full min-w-[1100px] border-collapse text-sm">
           <thead>
-            <tr className="bg-slate text-left text-[0.7rem] font-black uppercase tracking-wide text-ash">
+            <tr className="bg-slate text-left text-[0.7rem] font-display font-bold text-ash">
               <th className="sticky left-0 z-10 bg-slate px-3 py-3">{t.qual.cols[0]}</th>
               <th className="sticky left-14 z-10 bg-slate px-3 py-3">{t.qual.cols[1]}</th>
               <th className="px-3 py-3 text-right">{t.qual.cols[2]}</th>
@@ -85,7 +85,7 @@ export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]
                     <span className={cn("num inline-block min-w-9 px-1.5 text-center text-base", seed <= 3 ? `${MEDAL_BG[seed - 1]} text-paper` : "bg-slate text-paper")}>#{seed}</span>
                   </td>
                   <td {...meP(p.id)} className="me-hl sticky left-14 z-10 bg-ink px-3 py-2">
-                    <span className="flex items-center gap-2 whitespace-nowrap font-bold">
+                    <span className="flex items-center gap-2 whitespace-nowrap font-display font-bold">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={p.avatar} alt="" className="size-7" />
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -154,10 +154,10 @@ function ScoreCard({ at, map, perf, player, onClose }: NonNullable<Open> & { onC
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={map.cover} alt="" className="absolute inset-0 size-full object-cover opacity-50" />
         <div className="relative flex h-full flex-col justify-end bg-gradient-to-t from-ink to-transparent px-3 pb-1.5">
-          <span className="text-[0.65rem] font-black uppercase text-rose-hi">
+          <span className="text-[0.65rem] font-display font-bold text-rose-hi">
             {map.slot} · {player.username}
           </span>
-          <span className="truncate text-sm font-black">{map.title}</span>
+          <span className="truncate text-sm font-display font-black">{map.title}</span>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-px bg-line text-sm">
@@ -170,12 +170,12 @@ function ScoreCard({ at, map, perf, player, onClose }: NonNullable<Open> & { onC
           [t.qual.detail[5], perf.rank, "text-paper"],
         ].map(([k, v, c]) => (
           <div key={k} className="flex items-center justify-between gap-2 bg-coal px-3 py-2">
-            <span className="text-[0.65rem] font-black uppercase text-ash">{k}</span>
+            <span className="text-[0.65rem] font-display font-bold text-ash">{k}</span>
             <span className={cn("num whitespace-nowrap text-base", c)}>{v}</span>
           </div>
         ))}
       </div>
-      <div className="px-3 py-1.5 text-[0.65rem] font-bold uppercase text-ash">{perf.manual ? <span className="text-gold-hi">{t.qual.manual}</span> : perf.matchName}</div>
+      <div className="px-3 py-1.5 text-[0.65rem] font-display font-bold text-ash">{perf.manual ? <span className="text-gold-hi">{t.qual.manual}</span> : perf.matchName}</div>
     </div>
     </div>
   );

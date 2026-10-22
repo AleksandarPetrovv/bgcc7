@@ -99,22 +99,22 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                     {label}
                   </span>
                   {sk && s.mod !== "Tiebreaker" && (
-                    <span className="-skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-black" style={{ borderColor: modHi(MODS[s.mod].color), color: modHi(MODS[s.mod].color) }}>
+                    <span className="-skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-display font-black" style={{ borderColor: modHi(MODS[s.mod].color), color: modHi(MODS[s.mod].color) }}>
                       <span className="inline-block skew-x-12">{MODS[s.mod].short}</span>
                     </span>
                   )}
                   {sk && (
                     <span className="flex min-w-0 flex-col leading-tight">
-                      <span className="text-xs font-black uppercase tracking-[0.12em] text-paper">{sk.group.name}</span>
+                      <span className="text-xs font-display font-bold text-paper">{sk.group.name}</span>
                       {sk.note && <span className="truncate text-xs font-semibold text-ash">{sk.note.split(/\s*\n\s*/).join(" · ")}</span>}
                     </span>
                   )}
                   {s.picked ? (
-                    <span className="sr in-pop flex items-center gap-1.5 text-xs font-black uppercase text-balkan-hi [--d:0.7s]">
+                    <span className="sr in-pop flex items-center gap-1.5 text-xs font-display font-bold text-balkan-hi [--d:0.7s]">
                       <Check className="size-3.5" strokeWidth={3} /> {t.admin.slotPicked}
                     </span>
                   ) : s.tie ? (
-                    <span className="sr in-pop flex -skew-x-12 items-center border border-rose/70 bg-rose/15 px-2.5 py-1 text-xs font-black uppercase text-rose-hi [--d:0.7s]">
+                    <span className="sr in-pop flex -skew-x-12 items-center border border-rose/70 bg-rose/15 px-2.5 py-1 text-xs font-display font-bold text-rose-hi [--d:0.7s]">
                       <span className="flex skew-x-12 items-center gap-1.5">
                         <Scale className="size-3.5" /> {host ? t.admin.tieHost : t.admin.tie}
                       </span>
@@ -122,7 +122,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                   ) : s.waitingOn.length ? (
                     <span className="sr in-drop flex min-w-0 items-center gap-1.5 text-xs text-ash [--d:0.7s]">
                       <Hourglass className="size-3.5 shrink-0" />
-                      <span className="font-black uppercase">{t.admin.waitingOn}</span>
+                      <span className="font-display font-bold">{t.admin.waitingOn}</span>
                       <span className="truncate">{s.waitingOn.join(", ")}</span>
                     </span>
                   ) : null}
@@ -154,7 +154,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                       {(green || lead) && <span className={cn("absolute inset-y-0 left-0 w-1", green ? "bg-balkan" : "bg-rose")} aria-hidden />}
                       <span
                         className={cn(
-                          "grid size-8 shrink-0 -skew-x-12 place-items-center border text-sm font-black",
+                          "grid size-8 shrink-0 -skew-x-12 place-items-center border text-sm font-display font-black",
                           m.picked
                             ? "border-balkan bg-balkan text-paper"
                             : tiedWin
@@ -174,7 +174,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                           href={osuMap(m.beatmapId)}
                           target="_blank"
                           rel="noreferrer"
-                          className="block truncate font-bold decoration-rose underline-offset-4 transition-colors hover:text-rose-hi hover:underline"
+                          className="block truncate font-display font-bold decoration-rose underline-offset-4 transition-colors hover:text-rose-hi hover:underline"
                         >
                           {m.title} <span className="text-ash">[{m.version}]</span>
                         </a>

@@ -53,7 +53,7 @@ export default async function Players() {
         <div className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           {p.country && <img src={flagUrl(p.country)} alt="" className="h-3 shrink-0" />}
-          <span className="in-wipe truncate text-[1.05rem] font-black transition-colors group-hover:text-balkan-hi" style={v({ "--d": "0.25s" })}>
+          <span className="in-wipe truncate text-[1.05rem] font-display font-black transition-colors group-hover:text-balkan-hi" style={v({ "--d": "0.25s" })}>
             {p.username}
           </span>
           <MeTag p={p.osuId} />

@@ -32,7 +32,7 @@ function Team({ team, side }: { team: TeamLite; side: 1 | 2 }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={team.image} alt="" className={cn("size-8 shrink-0 -skew-x-6 border-2 object-cover", side === 1 ? "border-crimson" : "border-azure")} />
       )}
-      <span className={cn("truncate text-sm font-black uppercase", !team && "text-ash")}>{team?.name ?? t.common.tbd}</span>
+      <span className={cn("truncate text-sm font-display font-black", !team && "text-ash")}>{team?.name ?? t.common.tbd}</span>
     </span>
   );
 }
@@ -76,7 +76,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
         )}
       </AnimatePresence>
       <div className="grid grid-cols-1 items-center gap-x-4 gap-y-2 px-3 py-3 pl-5 md:grid-cols-[12rem_minmax(0,1fr)_8rem]">
-        <div className="flex min-w-0 items-center gap-2 text-xs font-black uppercase tracking-wide">
+        <div className="flex min-w-0 items-center gap-2 text-xs font-display font-bold">
           <span className="text-rose-hi">{r.round}</span>
           <span className="num text-ash">{r.when ?? t.common.tbd}</span>
         </div>
@@ -94,7 +94,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.7 }}
                 className={cn(
-                  "inline-flex items-center gap-1.5 px-2 py-1 text-[0.65rem] font-black uppercase tracking-wider",
+                  "inline-flex items-center gap-1.5 px-2 py-1 text-[0.65rem] font-display font-bold",
                   r.draft.open ? "bg-balkan/15 text-balkan-hi" : "bg-slate text-ash",
                 )}
               >
@@ -119,7 +119,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
             href={`/matches/${r.slug}`}
             target="_blank"
             rel="noopener"
-            className="lift-sm sheen group ml-auto inline-flex min-h-9 -skew-x-12 items-center bg-paper px-3 text-xs font-black uppercase tracking-wide text-ink [--lift:var(--balkan)] hover:bg-rose-deep"
+            className="lift-sm sheen group ml-auto inline-flex min-h-9 -skew-x-12 items-center bg-paper px-3 text-xs font-display font-bold text-ink [--lift:var(--balkan)] hover:bg-rose-deep"
           >
             <span className="inline-flex skew-x-12 items-center gap-1.5">
               {t.admin.dr.view}
@@ -127,10 +127,10 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
             </span>
           </Link>
         ) : !ready ? (
-          <span className="text-xs font-bold uppercase tracking-wide text-ash">{t.admin.dr.noTeams}</span>
+          <span className="text-xs font-display font-bold text-ash">{t.admin.dr.noTeams}</span>
         ) : (
           <>
-            <span className="flex items-center gap-2 text-[0.65rem] font-black uppercase tracking-[0.1em] text-ash">
+            <span className="flex items-center gap-2 text-[0.65rem] font-display font-bold text-ash">
               {t.admin.dr.pool}
               <Dropdown
                 value={pool}
@@ -181,7 +181,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
                 </motion.span>
               )}
             </AnimatePresence>
-            {fail && !pending && <span className="text-xs font-bold uppercase text-rose-hi">{t.admin.error}</span>}
+            {fail && !pending && <span className="text-xs font-display font-bold text-rose-hi">{t.admin.error}</span>}
             <AnimatePresence>
               {r.draft && (
                 <motion.span key="view" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="ml-auto">
@@ -189,7 +189,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
                     href={`/matches/${r.slug}`}
                     target="_blank"
                     rel="noopener"
-                    className="lift-sm sheen group inline-flex min-h-9 -skew-x-12 items-center bg-paper px-3 text-xs font-black uppercase tracking-wide text-ink [--lift:var(--balkan)] hover:bg-rose-deep"
+                    className="lift-sm sheen group inline-flex min-h-9 -skew-x-12 items-center bg-paper px-3 text-xs font-display font-bold text-ink [--lift:var(--balkan)] hover:bg-rose-deep"
                   >
                     <span className="inline-flex skew-x-12 items-center gap-1.5">
                       {t.admin.dr.view}
@@ -216,7 +216,7 @@ export function DraftAdmin({ rows, pools, control }: { rows: DraftRow[]; pools: 
     return () => clearInterval(id);
   }, [live, control, router]);
 
-  if (!rows.length) return <p className="border border-dashed border-line px-4 py-8 text-center text-sm font-bold uppercase tracking-wide text-ash">{t.admin.dr.none}</p>;
+  if (!rows.length) return <p className="border border-dashed border-line px-4 py-8 text-center text-sm font-display font-bold text-ash">{t.admin.dr.none}</p>;
   return (
     <ul className="space-y-2.5">
       {rows.map((r, i) => (

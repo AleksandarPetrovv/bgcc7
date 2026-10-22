@@ -82,23 +82,23 @@ export function VotePicker({ id, mine, mineNote, onDraft }: { id: number; mine: 
               className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
             />
           </div>
-          <div className="mt-1 flex justify-between px-1 text-[0.6rem] font-black uppercase tracking-[0.12em] text-ash">
+          <div className="mt-1 flex justify-between px-1 text-[0.6rem] font-display font-bold text-ash">
             <span>{t.admin.rateBad}</span>
             <span>{t.admin.rateGreat}</span>
           </div>
         </div>
         <span className={cn("heading-slam w-12 shrink-0 text-right text-2xl leading-none", draft === null ? "text-ash" : "text-paper")}>
           {draft === null ? (
-            <span className="font-sans text-[0.65rem] font-bold text-ash">?/10</span>
+            <span className="text-[0.65rem] font-display font-bold text-ash">?/10</span>
           ) : (
             <>
               {draft}
-              <span className="font-sans text-[0.65rem] font-bold text-ash">/10</span>
+              <span className="text-[0.65rem] font-display font-bold text-ash">/10</span>
             </>
           )}
         </span>
         {saved.n !== null && !dirty ? (
-          <span className="flex min-h-10 w-24 shrink-0 -skew-x-12 items-center justify-center border border-balkan/60 text-xs font-black uppercase text-balkan-hi">
+          <span className="flex min-h-10 w-24 shrink-0 -skew-x-12 items-center justify-center border border-balkan/60 text-xs font-display font-bold text-balkan-hi">
             <span className="flex skew-x-12 items-center gap-1.5">
               <Check className="size-3.5" strokeWidth={3} /> {t.admin.voted}
             </span>

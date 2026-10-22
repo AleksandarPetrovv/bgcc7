@@ -67,7 +67,7 @@ export function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onP
                 aria-checked={on}
                 onClick={() => setChoice(c)}
                 className={cn(
-                  "group relative flex -skew-x-6 cursor-pointer select-none flex-col items-center gap-2 border-2 px-3 py-6 font-black uppercase transition-[transform,color,border-color,translate,scale,rotate] duration-200 active:scale-95",
+                  "group relative flex -skew-x-6 cursor-pointer select-none flex-col items-center gap-2 border-2 px-3 py-6 font-display font-bold transition-[transform,color,border-color,translate,scale,rotate] duration-200 active:scale-95",
                   on ? "text-white" : "border-line text-ash hover:-translate-y-1 hover:text-paper",
                 )}
                 style={on ? { borderColor: col.c } : undefined}
@@ -145,7 +145,7 @@ export function TimerDock({
       >
         <div className="flex skew-x-12 items-center gap-4">
           <span className="flex min-w-0 flex-1 flex-col">
-            <span className="flex items-center gap-1.5 text-[0.65rem] font-black uppercase tracking-[0.2em]" style={{ color: hi }}>
+            <span className="flex items-center gap-1.5 text-[0.65rem] font-display font-bold" style={{ color: hi }}>
               {pause && <Pause className="size-3.5" />}
               <span className="truncate">{label}</span>
             </span>
@@ -157,7 +157,7 @@ export function TimerDock({
             </span>
           </span>
           <span
-            className="num shrink-0 text-5xl font-black tabular-nums leading-none sm:text-6xl"
+            className="num shrink-0 text-5xl font-display font-black tabular-nums leading-none sm:text-6xl"
             style={{ color: low || pause ? hi : "var(--paper)", textShadow: `0 0 24px ${tint(c, 40)}` }}
           >
             {clockText(left)}
@@ -218,7 +218,7 @@ export function WinnerPopup({
         <div className="relative text-center">
           <Crown className="mx-auto size-9 fill-current text-gold-hi" />
           <h3 className="heading-slam mt-2 text-4xl sm:text-5xl">{t.draft.whoWon}</h3>
-          <p className="mt-1 truncate text-sm font-bold text-ash">
+          <p className="mt-1 truncate text-sm font-display font-bold text-ash">
             <span style={{ color: modHi(color) }}>{slot}</span> · {map.title}
           </p>
           <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
@@ -241,8 +241,8 @@ export function WinnerPopup({
               >
                 <span className="pointer-events-none absolute -right-4 -top-4 size-16 rotate-45 bg-white/10 transition-transform duration-300 group-hover:scale-150" aria-hidden />
                 <span className={cn("relative flex max-w-full flex-col items-center gap-1", "skew-x-6")}>
-                  <span className="text-[0.65rem] font-black uppercase tracking-[0.25em] text-white/70">{s === 1 ? t.draft.red : t.draft.blue}</span>
-                  <span className="line-clamp-2 max-w-full break-words text-sm font-black uppercase leading-tight sm:text-base">{teams[s - 1]}</span>
+                  <span className="text-[0.65rem] font-display font-bold text-white/70">{s === 1 ? t.draft.red : t.draft.blue}</span>
+                  <span className="line-clamp-2 max-w-full break-words text-sm font-display font-black leading-tight sm:text-base">{teams[s - 1]}</span>
                   {busy === s && <Waiting />}
                 </span>
               </motion.button>
@@ -253,14 +253,14 @@ export function WinnerPopup({
               type="button"
               disabled={busy != null}
               onClick={() => { if (!saving.current) onScores(); }}
-              className="mt-5 inline-flex min-h-9 -skew-x-12 items-center border border-paper/40 px-4 text-xs font-black uppercase tracking-wide text-paper transition-colors hover:border-paper disabled:opacity-50"
+              className="mt-5 inline-flex min-h-9 -skew-x-12 items-center border border-paper/40 px-4 text-xs font-display font-bold text-paper transition-colors hover:border-paper disabled:opacity-50"
             >
               <span className="inline-flex skew-x-12 items-center gap-1.5">
                 <ListOrdered className="size-3.5" /> {t.draft.fullScores}
               </span>
             </button>
           )}
-          <button type="button" disabled={busy != null} onClick={() => { if (!saving.current) onClose(); }} className="mt-5 block w-full text-xs font-black uppercase tracking-wide text-ash hover:text-paper disabled:opacity-50">
+          <button type="button" disabled={busy != null} onClick={() => { if (!saving.current) onClose(); }} className="mt-5 block w-full text-xs font-display font-bold text-ash hover:text-paper disabled:opacity-50">
             {t.draft.later}
           </button>
         </div>
@@ -310,7 +310,7 @@ export function ScoresPopup({ slug, slot, names, onClose }: { slug: string; slot
         ) : (
           <div className="border border-line bg-coal px-6 py-10 text-center text-sm font-bold text-ash">{data === "none" ? t.draft.noScores : <Waiting />}</div>
         )}
-        <button type="button" onClick={onClose} className="mt-3 block w-full text-xs font-black uppercase tracking-wide text-ash hover:text-paper">
+        <button type="button" onClick={onClose} className="mt-3 block w-full text-xs font-display font-bold text-ash hover:text-paper">
           {t.draft.close}
         </button>
       </motion.div>
@@ -348,7 +348,7 @@ export function ResetPopup({ lobby, busy, onCancel, onReset }: { lobby: boolean;
               whileHover={{ x: 4 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => onReset(true)}
-              className="flex min-h-12 -skew-x-6 items-center bg-rose px-5 text-left font-black uppercase tracking-wide text-white shadow-[5px_5px_0_0_var(--rose-deep)] disabled:opacity-60"
+              className="flex min-h-12 -skew-x-6 items-center bg-rose px-5 text-left font-display font-bold text-white shadow-[5px_5px_0_0_var(--rose-deep)] disabled:opacity-60"
             >
               <span className="inline-flex skew-x-6 items-center gap-2">
                 <DoorClosed className="size-4" /> {t.draft.resetClose}
@@ -362,7 +362,7 @@ export function ResetPopup({ lobby, busy, onCancel, onReset }: { lobby: boolean;
             whileTap={{ scale: 0.97 }}
             onClick={() => onReset(false)}
             className={cn(
-              "flex min-h-12 -skew-x-6 items-center px-5 text-left font-black uppercase tracking-wide disabled:opacity-60",
+              "flex min-h-12 -skew-x-6 items-center px-5 text-left font-display font-bold disabled:opacity-60",
               lobby ? "border border-rose text-rose-hi hover:bg-rose/10" : "bg-rose text-white shadow-[5px_5px_0_0_var(--rose-deep)]",
             )}
           >
@@ -370,7 +370,7 @@ export function ResetPopup({ lobby, busy, onCancel, onReset }: { lobby: boolean;
               <RotateCcw className="size-4" /> {lobby ? t.draft.resetKeep : t.draft.reset}
             </span>
           </motion.button>
-          <button type="button" onClick={onCancel} className="mt-1 text-xs font-black uppercase tracking-wide text-ash hover:text-paper">
+          <button type="button" onClick={onCancel} className="mt-1 text-xs font-display font-bold text-ash hover:text-paper">
             {t.draft.cancel}
           </button>
         </div>
@@ -393,7 +393,7 @@ export function CopyId({ id }: { id: number }) {
       .catch(() => {});
   };
   return (
-    <span className="num mt-1 flex items-center gap-1.5 text-sm font-bold text-paper/75">
+    <span className="num mt-1 flex items-center gap-1.5 text-sm font-display font-bold text-paper/75">
       ID <span className="select-all text-paper">{id}</span>
       <span
         role="button"

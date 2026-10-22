@@ -48,7 +48,7 @@ function Rich({ text }: { text: string }) {
     <>
       {text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
         part.startsWith("**") ? (
-          <span key={i} className="font-bold text-paper">
+          <span key={i} className="font-display font-bold text-paper">
             {part.slice(2, -2)}
           </span>
         ) : (
@@ -98,7 +98,7 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
           <Avatar src={r.avatarUrl} className="size-7 ring-offset-1" />
         </span>
         <p className="min-w-0 flex-1 break-words text-sm leading-snug text-paper/70">
-          <span className="font-black text-paper">{r.username ?? `#${r.osuId}`}</span>{" "}
+          <span className="font-display font-black text-paper">{r.username ?? `#${r.osuId}`}</span>{" "}
           <Rich text={describe(r.action, r.payload, ctx, helpers)} />
         </p>
         <span className={cn("in-pop size-1.5 shrink-0 rotate-45 [--d:0.5s]", DOT[g])} title={t.admin.logGroups[g]} aria-hidden />
@@ -124,7 +124,7 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
     <div className="space-y-6">
       {[...days.entries()].map(([day, list]) => (
         <section key={day}>
-          <h3 className="mb-2 flex items-center gap-3 text-xs font-black uppercase tracking-[0.14em] text-ash">
+          <h3 className="mb-2 flex items-center gap-3 text-xs font-display font-bold text-ash">
             <span className="in-wipe [--d:0.15s]">{list.label}</span>
             <span className="in-grow h-px flex-1 border-t border-dashed border-line [--d:0.25s]" aria-hidden />
           </h3>
@@ -138,9 +138,9 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
                     <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-2.5 hover:bg-slate focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-rose [&::-webkit-details-marker]:hidden">
                       <Avatar src={r.avatarUrl} className="size-7 shrink-0 ring-offset-1" />
                       <span className="min-w-0 flex-1 break-words text-sm leading-snug text-paper/70">
-                        <span className="font-black text-paper">{r.username ?? `#${r.osuId}`}</span>{" "}
+                        <span className="font-display font-black text-paper">{r.username ?? `#${r.osuId}`}</span>{" "}
                         <Rich text={groupText(entry)} />
-                        <span className="num ml-1.5 font-black text-rose-hi">×{entry.rows.length}</span>
+                        <span className="num ml-1.5 font-display font-black text-rose-hi">×{entry.rows.length}</span>
                       </span>
                       <time className="num w-12 shrink-0 text-right text-sm text-ash" dateTime={r.at.toISOString()}>{fmtSofiaTime(r.at)}</time>
                       <ChevronDown className="size-4 shrink-0 text-rose group-open/audit:rotate-180" aria-hidden />

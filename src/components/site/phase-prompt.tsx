@@ -33,7 +33,7 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
       <DialogContent showCloseButton={false} className="mdlg overflow-hidden rounded-none border-2 border-rose bg-coal p-0 shadow-[6px_6px_0_0_var(--rose-deep)] ring-0 sm:max-w-lg">
         <div className="relative overflow-hidden border-b border-line px-5 pb-6 pt-5 sm:px-7">
           <div className="anim-drift pointer-events-none absolute inset-0 w-[calc(100%+120px)] bg-[repeating-linear-gradient(115deg,transparent_0_40px,color-mix(in_srgb,var(--rose)_7%,transparent)_40px_42px)]" aria-hidden />
-          <div className="in-left relative flex items-center gap-2.5 text-xs font-black uppercase text-rose-hi" style={v({ "--d": "0.15s" })}>
+          <div className="in-left relative flex items-center gap-2.5 text-xs font-display font-bold text-rose-hi" style={v({ "--d": "0.15s" })}>
             <Glyph kind="spark" className="size-3" /> {t.admin.prompt.kicker}
           </div>
           <DialogTitle className="in-wipe heading-slam relative mt-3 text-3xl leading-none sm:text-4xl" style={v({ "--d": "0.25s" })}>
@@ -51,13 +51,13 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
                     i === to ? "animate-pulse bg-rose" : i === from ? "bg-paper/70" : i < from ? "bg-paper/25" : "bg-slate",
                   )}
                 />
-                <span className={cn("hidden w-full truncate text-center text-[0.6rem] font-black uppercase sm:block", i === to ? "text-rose-hi" : i === from ? "text-paper" : "text-ash")}>
+                <span className={cn("hidden w-full truncate text-center text-[0.6rem] font-display font-bold sm:block", i === to ? "text-rose-hi" : i === from ? "text-paper" : "text-ash")}>
                   {t.admin.phases[p]}
                 </span>
               </li>
             ))}
           </ol>
-          <div className="in-up relative mt-2 flex items-center gap-2 text-xs font-black uppercase sm:hidden" style={v({ "--d": "0.8s" })}>
+          <div className="in-up relative mt-2 flex items-center gap-2 text-xs font-display font-bold sm:hidden" style={v({ "--d": "0.8s" })}>
             <span className="text-paper">{t.admin.phases[current]}</span>
             <ArrowRight className="size-3.5 text-ash" />
             <span className="text-rose-hi">{name}</span>
@@ -67,7 +67,7 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
           <button
             type="button"
             onClick={() => run(() => acceptPhase(next))}
-            className="in-pop lift-sm sheen inline-flex -skew-x-12 items-center justify-center bg-rose px-5 py-3 text-sm font-black uppercase text-white shadow-[3px_3px_0_0_var(--rose-deep)] hover:bg-rose-hi"
+            className="in-pop lift-sm sheen inline-flex -skew-x-12 items-center justify-center bg-rose px-5 py-3 text-sm font-display font-bold text-white shadow-[3px_3px_0_0_var(--rose-deep)] hover:bg-rose-hi"
             style={v({ "--d": "0.7s" })}
           >
             <span className="inline-flex skew-x-12 items-center gap-2">
@@ -77,7 +77,7 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
           <Link
             href="/admin/phase"
             onClick={() => setOpen(false)}
-            className="in-pop lift-sm inline-flex -skew-x-12 items-center justify-center border border-line px-5 py-3 text-sm font-black uppercase text-paper [--lift:var(--rose)] hover:border-rose"
+            className="in-pop lift-sm inline-flex -skew-x-12 items-center justify-center border border-line px-5 py-3 text-sm font-display font-bold text-paper [--lift:var(--rose)] hover:border-rose"
             style={v({ "--d": "0.78s" })}
           >
             <span className="inline-flex skew-x-12 items-center gap-2">
@@ -87,7 +87,7 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
           <button
             type="button"
             onClick={() => run(() => dismissPhase(next))}
-            className="in-pop inline-flex items-center justify-center gap-1.5 px-3 py-3 text-sm font-black uppercase text-ash transition-colors hover:text-paper sm:ml-auto"
+            className="in-pop inline-flex items-center justify-center gap-1.5 px-3 py-3 text-sm font-display font-bold text-ash transition-colors hover:text-paper sm:ml-auto"
             style={v({ "--d": "0.86s" })}
           >
             <X className="size-4" /> {t.admin.prompt.no}

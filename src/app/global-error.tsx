@@ -19,14 +19,14 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
     <html lang={lang}>
       <body className="flex min-h-screen items-center bg-ink text-paper">
         <main className="mx-auto w-full max-w-page px-4 sm:px-6 lg:px-10 2xl:px-14">
-          <div className="num text-[clamp(5rem,16vw,10rem)] font-black leading-[0.85] text-rose">500</div>
-          <h1 className="mt-4 text-[clamp(2rem,6vw,3.5rem)] font-black uppercase leading-none">{t.error.title}</h1>
+          <div className="num text-[clamp(5rem,16vw,10rem)] font-display font-black leading-[0.85] text-rose">500</div>
+          <h1 className="mt-4 text-[clamp(2rem,6vw,3.5rem)] font-display font-bold leading-none">{t.error.title}</h1>
           <p className="mt-3 max-w-[46ch] text-pretty text-lg text-paper/70">{t.error.text}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <button type="button" onClick={reset} className="-skew-x-12 bg-paper px-5 py-2.5 font-black uppercase text-ink">
+            <button type="button" onClick={reset} className="-skew-x-12 bg-paper px-5 py-2.5 font-display font-bold text-ink">
               <span className="inline-block skew-x-12">{t.error.retry}</span>
             </button>
-            <Link href="/" className="-skew-x-12 border border-paper/40 px-5 py-2.5 font-black uppercase">
+            <Link href="/" className="-skew-x-12 border border-paper/40 px-5 py-2.5 font-display font-bold">
               <span className="inline-block skew-x-12">{t.notFound.home}</span>
             </Link>
           </div>

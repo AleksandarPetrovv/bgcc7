@@ -19,7 +19,7 @@ function Pill({ id, active }: { id: string; active: boolean }) {
 
 const item = (active: boolean, extra?: string) =>
   cn(
-    "group relative inline-flex min-h-9 shrink-0 items-center gap-2 px-3.5 text-xs font-black uppercase tracking-wide transition-colors duration-200",
+    "group relative inline-flex min-h-9 shrink-0 items-center gap-2 px-3.5 text-xs font-display font-bold transition-colors duration-200",
     active ? "text-white" : "text-ash hover:text-paper",
     extra,
   );

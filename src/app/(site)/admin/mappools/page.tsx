@@ -57,7 +57,7 @@ export default async function MappoolsHub() {
               </span>
               <span className="relative">
                 <span className="heading-slam block text-4xl sm:text-5xl">{title}</span>
-                <span className={hot ? "mt-2 block text-sm font-black uppercase tracking-wide text-rose-hi" : "mt-2 block text-sm font-bold uppercase tracking-wide text-ash"}>
+                <span className={hot ? "mt-2 block text-sm font-display font-bold text-rose-hi" : "mt-2 block text-sm font-display font-bold text-ash"}>
                   {sub}
                 </span>
               </span>

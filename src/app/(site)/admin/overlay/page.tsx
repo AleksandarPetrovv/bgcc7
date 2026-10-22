@@ -48,14 +48,14 @@ export default async function Overlay({ searchParams }: { searchParams: Promise<
         <Panel title={o.link} i={i++}>
           <div className="grid gap-4">
             <CopyLink url={url} />
-            <a href="/overlay/demo" target="_blank" rel="noopener noreferrer" className="lift-sm inline-flex w-fit -skew-x-12 border border-line px-4 py-2 text-sm font-black uppercase tracking-wide text-paper hover:border-rose">
+            <a href="/overlay/demo" target="_blank" rel="noopener noreferrer" className="lift-sm inline-flex w-fit -skew-x-12 border border-line px-4 py-2 text-sm font-display font-bold text-paper hover:border-rose">
               <span className="inline-flex skew-x-12 items-center gap-2"><ExternalLink className="size-4" />{o.test}</span>
             </a>
           </div>
         </Panel>
         <Panel title={o.helper} i={i++}>
           <div className="flex flex-wrap items-center gap-4">
-            <span className="flex items-center gap-2.5 text-sm font-black uppercase tracking-wide">
+            <span className="flex items-center gap-2.5 text-sm font-display font-bold">
               <span className={cn("size-2.5 rotate-45", online ? "bg-balkan" : app ? "bg-gold" : "bg-line")} aria-hidden />
               <span className={online ? "text-paper" : "text-ash"}>{online ? r.online : app ? r.offline : r.none}</span>
             </span>

@@ -36,11 +36,11 @@ export function BestScore({ score, acc, combo, miss, mods, rank, map }: Props) {
           <img src={map.cover} alt="" className="absolute inset-0 size-full object-cover opacity-50" />
           <div className="relative flex h-full flex-col justify-end bg-gradient-to-t from-ink to-transparent px-3 pb-1.5">
             {map.slot && (
-              <span className="text-[0.65rem] font-black uppercase" style={{ color }}>
+              <span className="text-[0.65rem] font-display font-bold" style={{ color }}>
                 {map.slot}
               </span>
             )}
-            <span className="truncate text-sm font-black">
+            <span className="truncate text-sm font-display font-black">
               {map.title} <span className="font-bold text-paper/60">[{map.version}]</span>
             </span>
           </div>
@@ -55,7 +55,7 @@ export function BestScore({ score, acc, combo, miss, mods, rank, map }: Props) {
             [t.qual.detail[5], rank || "—", "text-paper"],
           ].map(([k, v, c]) => (
             <div key={k} className="flex items-center justify-between gap-2 bg-coal px-3 py-2">
-              <span className="text-[0.65rem] font-black uppercase text-ash">{k}</span>
+              <span className="text-[0.65rem] font-display font-bold text-ash">{k}</span>
               <span className={`num whitespace-nowrap text-base ${c}`}>{v}</span>
             </div>
           ))}

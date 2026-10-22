@@ -98,7 +98,7 @@ export default async function InfoPage() {
               <div className={`in-grow h-1.5 ${PRIZE_BAR[i]}`} style={v({ "--i": i, "--s": "0.13s", "--d": "0.45s" })} />
               <div className="p-4">
                 <div className="in-pop heading-slam origin-left text-4xl" style={v({ "--i": i, "--s": "0.13s", "--d": "0.4s" })}>{E(`info.prizeRows.${i}.place`, p.place, false)}</div>
-                <div className="mt-2 font-bold">{E(`info.prizeRows.${i}.reward`, p.reward, false)}</div>
+                <div className="mt-2 font-display font-bold">{E(`info.prizeRows.${i}.reward`, p.reward, false)}</div>
                 <div className="text-sm text-ash">{E(`info.prizeRows.${i}.extra`, p.extra, false)}</div>
               </div>
             </div>
@@ -109,7 +109,7 @@ export default async function InfoPage() {
         <InView className="overflow-hidden border border-line">
           {t.info.formatRows.map((r, i) => (
             <div key={r.stage} className={`in-left grid grid-cols-[1.2fr_1.5fr_1fr] items-center gap-3 px-4 py-3 ${i % 2 ? "bg-slate/60" : ""}`} style={v({ "--i": i, "--s": "0.09s" })}>
-              <span className="font-black uppercase">{E(`info.formatRows.${i}.stage`, r.stage, false)}</span>
+              <span className="font-display font-bold">{E(`info.formatRows.${i}.stage`, r.stage, false)}</span>
               <span className="text-paper/80">{E(`info.formatRows.${i}.format`, r.format)}</span>
               <span className="in-wipe num text-right text-lg text-rose-hi" style={v({ "--i": i, "--s": "0.09s", "--d": "0.3s" })}>{E(`info.formatRows.${i}.when`, r.when)}</span>
             </div>

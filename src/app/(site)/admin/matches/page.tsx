@@ -34,7 +34,7 @@ export default async function AdminMatches() {
                 const list = rows.filter((m) => m.stageSlug === s.slug && m.round === round);
                 return (
                   <div key={round}>
-                    <h3 className="mb-2.5 flex items-center gap-3 text-[0.7rem] font-black uppercase tracking-[0.16em] text-rose-hi">
+                    <h3 className="mb-2.5 flex items-center gap-3 text-[0.7rem] font-display font-bold text-rose-hi">
                       {t.rounds[round] ?? round}
                       <span className="num text-ash">
                         {list.filter((m) => m.winner).length}/{list.length}

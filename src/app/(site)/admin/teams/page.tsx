@@ -23,7 +23,7 @@ import { avatarPath } from "@/lib/avatar";
 import { isBGCC6 } from "@/db";
 
 const bwsGrid = "grid grid-cols-[2rem_minmax(0,1fr)_3rem_5rem] items-center gap-x-3 px-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_6rem_10rem_6rem]";
-const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
+const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 
 export default async function AdminTeams() {
   const [t, viewer, teams, results, regs, settings, f, locked] = await Promise.all([getDict(), getViewer(), getTeams(), getQualResults(), getRegistrations(), getSettings(), getFormat(), getBwsLock()]);
@@ -56,14 +56,14 @@ export default async function AdminTeams() {
 
       {suiji && (
         <Panel title={t.admin.bwsRanking} className="mb-6">
-          <p className={cn("mb-3 text-xs font-black uppercase tracking-wide", locked ? "text-balkan-hi" : "text-ash")}>
+          <p className={cn("mb-3 text-xs font-display font-bold", locked ? "text-balkan-hi" : "text-ash")}>
             {locked ? t.admin.bwsLocked(fmtSofia(locked, "en-GB")) : t.admin.bwsLive}
           </p>
           {ranked.length === 0 ? (
             <p className="text-sm text-ash">{t.admin.noRegs}</p>
           ) : (
             <div className="border border-line">
-              <div className={cn(bwsGrid, "border-b border-line bg-ink/60 py-2 text-[0.62rem] font-black uppercase tracking-[0.14em] text-ash")}>
+              <div className={cn(bwsGrid, "border-b border-line bg-ink/60 py-2 text-[0.62rem] font-display font-bold text-ash")}>
                 <span className="text-right">#</span>
                 <span>{t.admin.player}</span>
                 <span className="text-center">{t.admin.tierCol}</span>
@@ -80,7 +80,7 @@ export default async function AdminTeams() {
                       <span className="flex min-w-0 items-center gap-2.5">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={p.avatarUrl ?? avatarPath(p.osuId)} alt="" className="size-7 shrink-0" />
-                        <span className="truncate font-bold">{p.username}</span>
+                        <span className="truncate font-display font-bold">{p.username}</span>
                       </span>
                       <span className="flex justify-center">
                         {tier ? (
@@ -109,7 +109,7 @@ export default async function AdminTeams() {
                           className={cn(inputCls, "num w-14 text-center", p.badgeOverride !== null && "[&_input]:text-gold-hi")}
                         />
                       </ActionForm>
-                      <span className="num text-center font-bold text-paper">{p.bws === null ? "–" : fmtNum(p.bws)}</span>
+                      <span className="num text-center font-display font-bold text-paper">{p.bws === null ? "–" : fmtNum(p.bws)}</span>
                     </li>
                   );
                 })}
@@ -122,7 +122,7 @@ export default async function AdminTeams() {
       <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
         {suiji ? (
           <Panel title={t.admin.draw} help={t.admin.drawHelp}>
-            {teams.length !== f.teams && <p className="mb-3 text-xs font-bold uppercase tracking-wide text-rose-hi">{t.admin.teamsNeeded(teams.length, f.teams)}</p>}
+            {teams.length !== f.teams && <p className="mb-3 text-xs font-display font-bold text-rose-hi">{t.admin.teamsNeeded(teams.length, f.teams)}</p>}
             <ActionForm action={seedTeams} submit={t.admin.draw} confirm={t.admin.confirmDraw} />
           </Panel>
         ) : (
@@ -170,7 +170,7 @@ export default async function AdminTeams() {
                 </label>
                 {team.players.length > 0 && (
                   <fieldset>
-                    <legend className="mb-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash">{t.common.captain}</legend>
+                    <legend className="mb-1.5 text-[0.68rem] font-display font-bold text-ash">{t.common.captain}</legend>
                     <div className={cn("grid grid-cols-1 gap-2", suiji ? "sm:grid-cols-2" : "sm:grid-cols-3")}>
                       {team.players.map((p) => (
                         <label
@@ -181,7 +181,7 @@ export default async function AdminTeams() {
                           <span className="flex min-w-0 flex-1 skew-x-12 items-center gap-2">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={p.avatar} alt="" className="size-7 shrink-0 grayscale transition group-has-[:checked]:grayscale-0" />
-                            <span className="min-w-0 flex-1 truncate text-sm font-black">{p.username}</span>
+                            <span className="min-w-0 flex-1 truncate text-sm font-display font-black">{p.username}</span>
                             <Crown className="size-4 shrink-0 scale-50 fill-current text-gold-hi opacity-0 transition-[opacity,transform,translate,scale,rotate] duration-300 group-has-[:checked]:scale-100 group-has-[:checked]:opacity-100" />
                           </span>
                         </label>
@@ -196,7 +196,7 @@ export default async function AdminTeams() {
                   <li key={p.userId} style={{ "--i": k, "--s": "0.08s", "--d": "0.7s" } as React.CSSProperties} className="in-left flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.avatar} alt="" className="size-7" />
-                    <span className="font-bold">{p.username}</span>
+                    <span className="font-display font-bold">{p.username}</span>
                     {seedOf.has(p.userId) && <span className="num text-xs text-ash">{tag}{seedOf.get(p.userId)}</span>}
                     {p.rank > 0 && <span className="num text-xs text-ash">#{fmtNum(p.rank)}</span>}
                     <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto">
