@@ -52,7 +52,7 @@ export const getAllTeams = cache(() =>
       return {
         id: t.id,
         name: t.name,
-        image: optImg(t.image || players[0]?.avatar || ""),
+        image: t.image && /s-ul\.eu\//.test(t.image) ? `/api/img?u=${encodeURIComponent(t.image)}&f=${encodeURIComponent(players[0]?.avatar ?? "")}` : optImg(t.image || players[0]?.avatar || ""),
         rawImage: t.image || players[0]?.avatar || "",
         players,
         avgRank: ranked.length ? Math.round(ranked.reduce((n, p) => n + p.rank, 0) / ranked.length) : 0,
