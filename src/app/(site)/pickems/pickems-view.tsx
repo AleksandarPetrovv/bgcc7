@@ -148,7 +148,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
               style={{ "--i": Math.min(i, 15), "--s": "0.05s" } as React.CSSProperties}
               className={cn(
                 "in-left grid min-h-14 bg-coal grid-cols-[48px_1fr_auto] items-center gap-x-4 px-4 sm:grid-cols-[64px_1fr_110px_70px_160px]",
-                e.osuId === osuId && "bg-[color-mix(in_oklab,var(--balkan)_22%,var(--white))] shadow-[inset_3px_0_0_0_var(--balkan)]",
+                e.osuId === osuId && "bg-[color-mix(in_oklab,var(--balkan)_22%,var(--coal))] shadow-[inset_3px_0_0_0_var(--balkan)]",
               )}
             >
               <span className={cn("in-pop num text-2xl leading-none [--d:0.2s]", MEDAL[i] ?? "text-ash")}>#{i + 1}</span>

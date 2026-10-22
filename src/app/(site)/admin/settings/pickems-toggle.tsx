@@ -12,7 +12,7 @@ export function PickemsToggle({ open }: { open: boolean }) {
   const [on, setOn] = useState(open);
   const [state, action, pending] = useActionState(setPickems, null);
   const opts = [
-    { v: true, label: t.admin.set.open, Icon: LockOpen, active: "bg-balkan text-paper shadow-[5px_5px_0_0_var(--balkan-deep)]", hover: "hover:border-balkan hover:text-balkan-hi" },
+    { v: true, label: t.admin.set.open, Icon: LockOpen, active: "bg-balkan text-on-fill shadow-[5px_5px_0_0_var(--balkan-deep)]", hover: "hover:border-balkan hover:text-balkan-hi" },
     { v: false, label: t.admin.set.closed, Icon: Lock, active: "bg-rose text-white shadow-[5px_5px_0_0_var(--rose-deep)]", hover: "hover:border-rose hover:text-rose-hi" },
   ];
   return (

@@ -109,7 +109,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
           </span>
           <span className="flex items-center gap-1.5">
             {score(1)}
-            <span className="text-[0.6rem] font-display font-bold text-ash">vs</span>
+            <span className="text-[0.6rem] font-display font-bold text-ash">VS</span>
             {score(2)}
           </span>
           <span className="flex min-w-0 items-center gap-2">
@@ -244,7 +244,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-dashed border-line pt-4">
             <Link
               href={`/admin/matches/${matchSlug(f, m.id)}`}
-              className="lift-sm inline-flex min-h-10 -skew-x-12 items-center bg-balkan px-4 text-xs font-display font-bold text-paper hover:bg-paper hover:text-ink"
+              className="lift-sm inline-flex min-h-10 -skew-x-12 items-center bg-balkan px-4 text-xs font-display font-bold text-on-fill hover:bg-paper hover:text-ink"
             >
               <span className="skew-x-12">{t.admin.ms.open}</span>
             </Link>

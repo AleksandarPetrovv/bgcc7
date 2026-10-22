@@ -25,7 +25,7 @@ export default async function Seeding() {
         <div className="order-first space-y-2 lg:order-none">
           {teams.map((team, i) => (
             <Link key={team.id} {...meT(team.id)} href={teamHref(team)} style={{ "--i": i, "--s": "0.07s", "--d": "0.25s" } as React.CSSProperties} className="me-hl in-right grid grid-cols-[40px_40px_1fr_auto] items-center text-sm sm:grid-cols-[56px_48px_1fr_auto] sm:text-base border border-line bg-coal transition-colors hover:border-balkan">
-              <span className={cn("in-pop num flex h-full items-center justify-center text-xl sm:text-2xl", team.seed <= 4 ? "bg-balkan text-paper" : "bg-slate text-paper")}>{team.seed}</span>
+              <span className={cn("in-pop num flex h-full items-center justify-center text-xl sm:text-2xl", team.seed <= 4 ? "bg-balkan text-on-fill" : "bg-slate text-paper")}>{team.seed}</span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={team.image} alt="" className="size-10 object-cover sm:size-12" />
               <span className="flex min-w-0 items-center px-3 font-display font-black">

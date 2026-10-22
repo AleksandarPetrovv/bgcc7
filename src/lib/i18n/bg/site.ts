@@ -28,6 +28,9 @@ export const site: typeof en = {
     openMenu: "Отвори менюто",
     homeLabel: "BGCC7 начало",
     edition: "Издание",
+    theme: "Тема",
+    light: "Светла тема",
+    dark: "Тъмна тема",
     main: "Основна",
     section: "Раздел",
   },
@@ -47,8 +50,8 @@ export const site: typeof en = {
     sponsors: "Спонсори",
   },
   common: {
-    meYou: "ти",
-    meTeam: "твоят отбор",
+    meYou: "Ти",
+    meTeam: "Твоят отбор",
     eet: "EET / EEST",
     tbd: "Предстои",
     wins: (n: number) => `${n}П`,
@@ -85,7 +88,7 @@ export const site: typeof en = {
     play: "Плейофи",
     done: "Край",
   },
-  status: { approved: "одобрен", pending: "чака", denied: "отказан" },
+  status: { approved: "Одобрен", pending: "Чака", denied: "Отказан" },
   footer: { language: "Език" },
   rounds: {
     "Round 1 (Quarter-Finals)": "Четвъртфинали",
@@ -168,7 +171,7 @@ export const site: typeof en = {
     record: (w: number, l: number) => `${w}П · ${l}З`,
     bestOn: "Най-добра игра",
     avgRank: "Среден ранг",
-    you: "ти",
+    you: "Ти",
   },
   home: {
     badge: "bulgarian community cup",

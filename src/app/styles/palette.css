@@ -1,7 +1,8 @@
 /* the only place colors are defined. site, overlays and the ref app all read these.
    the helper imports this file directly; after editing, run `pnpm palette` to sync its window color.
    "-hi" = the shade used for text and small marks on the canvas (needs contrast with ink). */
-:root {
+:root,
+.light {
   color-scheme: light;
 
   /* surfaces: light blush, cards and raised parts get lighter */
@@ -19,6 +20,8 @@
   /* pure light / dark (text on strong fills, shines, shadows, scrims) */
   --white: #ffffff;
   --black: #2b2326;
+  /* dark text on light fills (gold, ginkgo, light mods); stays dark in dark mode */
+  --on-fill: #2b2326;
 
   /* main: pink */
   --rose: #c4577f;
@@ -67,4 +70,42 @@
   --mod-dt-hi: #6241aa;
   --mod-fm-hi: #4f6b18;
   --mod-tb-hi: #4a3f2c;
+}
+
+/* dark mode: html.dark (cookie "theme"), overlays force .light. only what differs from light */
+:root.dark {
+  color-scheme: dark;
+
+  --ink: #18131a;
+  --well: #141016;
+  --coal: #1f1921;
+  --slate: #272028;
+  --field: #221c24;
+  --line: #3e3340;
+
+  --paper: #f2e9ec;
+  --ash: #a3949a;
+
+  --black: #0b080c;
+
+  --rose-hi: #ec8db1;
+  --rose-deep: #8a3258;
+
+  --balkan-hi: #b3d35b;
+  --balkan-deep: #5a7420;
+
+  --crimson-hi: #ff6f7c;
+  --azure-hi: #7ea8ff;
+
+  --gold-hi: #f2cd5c;
+  --gold-shadow: #7a5c08;
+  --silver-deep: #8d96a6;
+  --bronze-hi: #e3a874;
+
+  --mod-nm-hi: #84a9f2;
+  --mod-hd-hi: #e9bb35;
+  --mod-hr-hi: #ff737e;
+  --mod-dt-hi: #b99cff;
+  --mod-fm-hi: #a9cc55;
+  --mod-tb-hi: #e8decc;
 }

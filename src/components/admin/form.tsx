@@ -14,7 +14,7 @@ export const checkLabelCls = "flex min-h-10 cursor-pointer items-center gap-2.5 
 
 const TONES = {
   rose: "bg-rose text-white hover:bg-rose-hi",
-  balkan: "bg-balkan text-paper hover:bg-paper hover:text-ink [--lift:var(--balkan-deep)]",
+  balkan: "bg-balkan text-on-fill hover:bg-paper hover:text-ink [--lift:var(--balkan-deep)]",
   outline: "border border-line text-paper hover:border-rose [--lift:var(--rose)]",
   danger: "border border-rose text-rose-hi hover:bg-rose/10 [--lift:var(--rose)]",
 };

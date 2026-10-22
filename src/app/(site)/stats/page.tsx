@@ -17,7 +17,7 @@ import { InView } from "@/components/site/in-view";
 import { MeTag, meP } from "@/components/site/me";
 import { MEDAL, modHi } from "@/lib/theme";
 
-const TONES = ["bg-rose text-white", "bg-balkan text-paper", "border border-line bg-coal", "border border-line bg-coal"];
+const TONES = ["bg-rose text-white", "bg-balkan text-on-fill", "border border-line bg-coal", "border border-line bg-coal"];
 
 export default async function Stats({ searchParams }: { searchParams: Promise<{ stage?: string }> }) {
   await requireSection("stats");

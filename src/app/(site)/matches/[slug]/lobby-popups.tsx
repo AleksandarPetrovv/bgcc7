@@ -31,7 +31,7 @@ export function IconBtn({ children, className, ...p }: React.ButtonHTMLAttribute
 export function Btn({ onClick, disabled, tone = "line", wide, children }: { onClick: () => void; disabled?: boolean; tone?: "line" | "go" | "warn" | "bad"; wide?: boolean; children: React.ReactNode }) {
   const cls = {
     line: "border-line text-paper hover:border-paper",
-    go: "border-balkan bg-balkan text-paper hover:bg-paper hover:text-ink hover:border-paper",
+    go: "border-balkan bg-balkan text-on-fill hover:bg-paper hover:text-ink hover:border-paper",
     warn: "border-gold text-gold-hi hover:bg-gold/10",
     bad: "border-rose text-rose-hi hover:bg-rose/10",
   }[tone];
@@ -77,7 +77,7 @@ export function HelperMissing({ onClose }: { onClose: () => void }) {
             href="/download/helper"
             whileHover={{ x: 4 }}
             whileTap={{ scale: 0.97 }}
-            className="flex min-h-12 -skew-x-6 items-center bg-gold px-5 font-display font-bold text-paper shadow-[5px_5px_0_0_var(--gold-deep)]"
+            className="flex min-h-12 -skew-x-6 items-center bg-gold px-5 font-display font-bold text-on-fill shadow-[5px_5px_0_0_var(--gold-deep)]"
           >
             <span className="inline-flex skew-x-6 items-center gap-2">
               <Download className="size-4" strokeWidth={3} /> {t.lobby.helperDownload}
@@ -129,7 +129,7 @@ export function StreamOrder({ onClose }: { onClose: () => void }) {
         <ol className="mt-4 space-y-2.5">
           {t.lobby.streamSteps.map((s, i) => (
             <li key={i} className="flex items-start gap-3">
-              <span className="num inline-flex size-6 shrink-0 -skew-x-12 items-center justify-center bg-gold text-xs font-display font-black text-paper">
+              <span className="num inline-flex size-6 shrink-0 -skew-x-12 items-center justify-center bg-gold text-xs font-display font-black text-on-fill">
                 <span className="skew-x-12">{i + 1}</span>
               </span>
               <span className="text-sm font-bold leading-relaxed text-paper/85">{s}</span>
@@ -141,7 +141,7 @@ export function StreamOrder({ onClose }: { onClose: () => void }) {
           onClick={onClose}
           whileHover={{ x: 4 }}
           whileTap={{ scale: 0.97 }}
-          className="mt-6 flex min-h-12 w-full -skew-x-6 items-center bg-gold px-5 font-display font-bold text-paper shadow-[5px_5px_0_0_var(--gold-deep)]"
+          className="mt-6 flex min-h-12 w-full -skew-x-6 items-center bg-gold px-5 font-display font-bold text-on-fill shadow-[5px_5px_0_0_var(--gold-deep)]"
         >
           <span className="inline-flex skew-x-6 items-center gap-2">
             <Check className="size-4" strokeWidth={3} /> {t.lobby.gotIt}
@@ -289,7 +289,7 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
                   }}
                   className={cn(
                     "num min-h-9 min-w-12 -skew-x-12 border px-2.5 text-sm font-display font-black transition-colors",
-                    !custom && secs === s ? "border-balkan bg-balkan text-paper" : "border-line text-paper hover:border-paper",
+                    !custom && secs === s ? "border-balkan bg-balkan text-on-fill" : "border-line text-paper hover:border-paper",
                   )}
                 >
                   <span className="inline-block skew-x-12">{s ? `${s}s` : t.lobby.now}</span>

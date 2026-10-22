@@ -38,7 +38,7 @@ export default async function Register() {
         <ol className="space-y-5">
           {t.register.steps.map((s, i) => (
             <li key={s.t} className="flex gap-4" style={{ "--i": i, "--s": "0.12s", "--d": "0.2s" } as React.CSSProperties}>
-              <span className={cn("in-pop num flex size-11 shrink-0 items-center justify-center text-2xl", i < done ? "bg-balkan text-paper" : "border border-line text-ash")}>
+              <span className={cn("in-pop num flex size-11 shrink-0 items-center justify-center text-2xl", i < done ? "bg-balkan text-on-fill" : "border border-line text-ash")}>
                 {i < done ? <Check className="size-5" /> : i + 1}
               </span>
               <div className="in-left" style={{ "--d": "0.3s" } as React.CSSProperties}>

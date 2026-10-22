@@ -160,7 +160,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                 <span
                   className={cn(
                     "inline-flex -skew-x-12 items-center whitespace-nowrap border px-1.5 text-[0.6rem] font-display font-bold leading-4",
-                    s.ready === "ready" ? "border-balkan bg-balkan text-paper" : s.ready === "nomap" ? "border-rose text-rose-hi" : "border-line text-ash",
+                    s.ready === "ready" ? "border-balkan bg-balkan text-on-fill" : s.ready === "nomap" ? "border-rose text-rose-hi" : "border-line text-ash",
                   )}
                 >
                   <span className="inline-flex skew-x-12 items-center gap-1">
@@ -386,7 +386,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                     type="button"
                     disabled={pending || offline}
                     onClick={fixAll}
-                    className="ml-auto inline-flex h-8 -skew-x-12 items-center border border-gold bg-gold px-3 text-xs font-display font-bold text-paper transition-colors hover:bg-paper hover:text-ink disabled:opacity-50"
+                    className="ml-auto inline-flex h-8 -skew-x-12 items-center border border-gold bg-gold px-3 text-xs font-display font-bold text-on-fill transition-colors hover:bg-paper hover:text-ink disabled:opacity-50"
                   >
                     <span className="skew-x-12">{t.lobby.fixAll}</span>
                   </button>

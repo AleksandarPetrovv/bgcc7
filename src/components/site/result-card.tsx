@@ -16,7 +16,7 @@ function Row({ m, slot }: { m: Match; slot: 1 | 2 }) {
   const won = m.winner === slot;
   const lost = m.winner !== null && !won;
   return (
-    <span {...meT(side.id)} className={cn("relative flex items-center gap-3 px-4 py-2.5", won && "bg-[color-mix(in_oklab,var(--balkan)_14%,var(--white))]", lost && "opacity-45")}>
+    <span {...meT(side.id)} className={cn("relative flex items-center gap-3 px-4 py-2.5", won && "bg-[color-mix(in_oklab,var(--balkan)_14%,var(--coal))]", lost && "opacity-45")}>
       {won && <span className="absolute inset-y-1.5 left-0 w-0.5 bg-balkan" aria-hidden />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {team && <img src={team.image} alt="" className="size-9 shrink-0 object-cover" />}

@@ -56,7 +56,7 @@ export function Editable({ path, raw, on, block, children }: { path: string; raw
         className="w-full min-w-[12rem] resize-y border border-gold bg-ink px-3 py-2 text-[0.95rem] font-normal normal-case leading-relaxed tracking-normal text-paper outline-none"
       />
       <span className="flex items-center gap-2 text-xs font-display font-bold">
-        <button type="button" disabled={pending} onClick={save} className="-skew-x-12 bg-gold px-3 py-1 text-paper disabled:opacity-50">
+        <button type="button" disabled={pending} onClick={save} className="-skew-x-12 bg-gold px-3 py-1 text-on-fill disabled:opacity-50">
           <span className="inline-block skew-x-12">{pending ? "Saving…" : "Save"}</span>
         </button>
         <button type="button" disabled={pending} onClick={() => setEditing(false)} className="-skew-x-12 border border-line px-3 py-1 text-ash hover:text-paper">

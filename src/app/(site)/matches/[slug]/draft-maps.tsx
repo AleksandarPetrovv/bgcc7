@@ -42,7 +42,7 @@ export function MapGrid({
       {pools.map((p, pi) => {
         const skill = !!p.color;
         const mod = { label: MODS[p.category]?.label ?? p.category, color: p.color ?? MODS[p.category]?.color ?? "var(--rose)" };
-        const light = modOn(mod.color) === "var(--paper)";
+        const light = modOn(mod.color) === "var(--on-fill)";
         return (
           <div key={p.category}>
             <motion.div

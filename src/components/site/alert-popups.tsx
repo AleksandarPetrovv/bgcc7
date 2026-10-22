@@ -46,7 +46,7 @@ function AlertCard({ alert, onSnooze }: { alert: Alert; onSnooze: (alert: Alert)
   const [pending, start] = useTransition();
   const [failed, setFailed] = useState(false);
   const red = alert.level === "red";
-  const button = cn("inline-flex min-h-10 -skew-x-12 items-center justify-center gap-2 px-4 py-2 text-sm font-display font-black text-paper transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-paper disabled:opacity-60", red ? "bg-rose text-white hover:bg-paper hover:text-ink" : "bg-gold hover:bg-paper hover:text-ink");
+  const button = cn("inline-flex min-h-10 -skew-x-12 items-center justify-center gap-2 px-4 py-2 text-sm font-display font-black transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-paper disabled:opacity-60", red ? "bg-rose text-white hover:bg-paper hover:text-ink" : "bg-gold text-on-fill hover:bg-paper hover:text-ink");
 
   const retry = () => {
     if (!alert.match || pending) return;
