@@ -110,6 +110,20 @@ export async function pauseDraft(matchId: string) {
   });
 }
 
+export async function holdDraft(matchId: string) {
+  return guard("matches", "draft.pause", async () => {
+    if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
+    await settle(matchId);
+    const [d] = await db.select().from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
+    if (!d) return { ok: false, error: "notFound" };
+    await db
+      .update(drafts)
+      .set({ pausedAt: d.pausedAt ?? new Date(), pauseUntil: null, ...bump })
+      .where(eq(drafts.matchId, matchId));
+    return done(matchId, { matchId });
+  });
+}
+
 export async function resumeDraft(matchId: string) {
   return guard("matches", "draft.resume", async () => {
     if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };

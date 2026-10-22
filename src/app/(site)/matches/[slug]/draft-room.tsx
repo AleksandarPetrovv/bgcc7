@@ -378,6 +378,7 @@ export function DraftRoom({
             <TimerDock
               key="pause"
               pause
+              forever={!d.pauseUntil}
               left={pauseLeft}
               total={d.pauseUntil && d.pausedAt ? new Date(d.pauseUntil).getTime() - new Date(d.pausedAt).getTime() : 1}
               color={TEAM[1]}

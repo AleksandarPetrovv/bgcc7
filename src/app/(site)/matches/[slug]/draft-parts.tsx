@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Ban, CircleHelp, Crown, Dices, Lock, Redo2, RotateCcw, Swords, TimerOff, Undo2 } from "lucide-react";
+import { Ban, CircleHelp, Crown, Dices, Lock, Pause, Play, Redo2, RotateCcw, Swords, TimerOff, Undo2 } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import { EASE } from "@/components/site/motion";
 import { plan, type DraftStep, type DraftUndo, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { GOLD, TEAM, tint } from "@/lib/theme";
-import { redoDraft, undoDraft } from "@/app/(site)/admin/draft/actions";
+import { holdDraft, redoDraft, resumeDraft, undoDraft } from "@/app/(site)/admin/draft/actions";
 import { Waiting } from "./draft-popups";
 
 export type TeamInfo = {
@@ -165,10 +165,22 @@ export function AdminBar({
       <button
         type="button"
         onClick={onHelp}
-        className="lift-sm inline-flex min-h-8 -skew-x-12 items-center bg-gold px-4 text-xs font-display font-bold text-paper shadow-[3px_3px_0_0_var(--gold-deep)] transition-colors [--lift:var(--gold)] hover:bg-paper hover:text-ink"
+        className="lift-sm inline-flex min-h-8 -skew-x-12 items-center bg-gold px-4 text-xs font-display font-bold text-on-fill shadow-[3px_3px_0_0_var(--gold-deep)] transition-colors [--lift:var(--gold)] hover:bg-paper hover:text-ink"
       >
         <span className="inline-flex skew-x-12 items-center gap-1.5">
           <CircleHelp className="size-3.5" strokeWidth={3} /> {t.lobby.help}
+        </span>
+      </button>
+      <button
+        type="button"
+        disabled={pending}
+        aria-pressed={!!d.pausedAt}
+        onClick={() => adminAct(() => (d.pausedAt ? resumeDraft(matchId) : holdDraft(matchId)))}
+        className="lift-sm inline-flex min-h-8 -skew-x-12 items-center bg-rose px-4 text-xs font-display font-bold text-white shadow-[3px_3px_0_0_var(--rose-deep)] transition-colors [--lift:var(--rose)] hover:bg-paper hover:text-ink disabled:opacity-50"
+      >
+        <span className="inline-flex skew-x-12 items-center gap-1.5">
+          {d.pausedAt ? <Play className="size-3.5 fill-current" strokeWidth={3} /> : <Pause className="size-3.5 fill-current" strokeWidth={3} />}
+          {d.pausedAt ? t.draft.unhold : t.draft.hold}
         </span>
       </button>
       <span className="flex flex-1 justify-end gap-2">
@@ -211,106 +223,82 @@ export function AdminBar({
 
 export function TeamsHeader({ teams, turn, me, score }: { teams: [TeamInfo, TeamInfo]; turn: Turn; me: Side | null; score: number[] | null }) {
   const t = useDict();
-  const scored = !!score;
-  return (
-    <div className="relative flex items-stretch">
-      {([1, 2] as const).map((s) => {
-        const on = "team" in turn && turn.team === s;
-        const tm = teams[s - 1];
-        const box = (
-          <motion.div
-            key={`box${s}`}
-            layout
-            initial={{ opacity: 0, x: s === 1 ? -90 : 90 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: EASE, delay: 0.05, layout: { type: "spring", stiffness: 260, damping: 30 } }}
-            className={cn("relative min-w-0 flex-1 overflow-hidden", s === 1 ? "order-1" : "order-5")}
-          >
-            <div
-              className={cn(
-                "relative flex h-full items-center gap-3 px-3 py-4 transition-[filter,opacity] duration-500 sm:gap-4 sm:px-5 sm:py-6",
-                s === 2 && "flex-row-reverse text-right",
-              )}
-              style={{
-                // stays opaque to the edge: white names can run the full width and a transparent tail would drop them onto pink
-                background: `linear-gradient(${s === 1 ? "100deg" : "260deg"}, ${TEAM[s].c} 0%, ${TEAM[s].deep} 100%)`,
-                clipPath: s === 1 ? "polygon(0 0, 100% 0, calc(100% - 22px) 100%, 0 100%)" : "polygon(22px 0, 100% 0, 100% 100%, 0 100%)",
-                filter: "team" in turn && !on ? "saturate(0.4)" : undefined,
-              }}
-            >
-              {tm.image && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={tm.image}
-                  alt=""
-                  className={cn("size-11 shrink-0 -skew-x-6 border-2 border-white/80 object-cover shadow-[4px_4px_0_0_color-mix(in_srgb,var(--black)_35%,transparent)] sm:size-16", scored && "hidden sm:block")}
-                />
-              )}
-              <div className={cn("flex min-w-0 flex-col", s === 2 ? "items-end" : "items-start")}>
-                <div className="heading-slam w-full truncate text-base leading-none text-white sm:text-2xl lg:text-3xl">{tm.name}</div>
-                {me === s && (
-                  <motion.span
-                    initial={{ scale: 0, rotate: -20 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 16, delay: 0.7 }}
-                    className="mt-2 inline-flex -skew-x-12 items-center bg-white px-2 py-0.5 shadow-[3px_3px_0_0_color-mix(in_srgb,var(--black)_35%,transparent)]"
-                    style={{ color: TEAM[s].deep }}
-                  >
-                    <span className="inline-flex skew-x-12 items-center gap-1 text-[0.6rem] font-display font-bold sm:text-[0.65rem]">
-                      <span className="anim-twinkle" aria-hidden>
-                        ✦
-                      </span>
-                      {t.draft.you}
-                    </span>
-                  </motion.span>
-                )}
-              </div>
-              <span
-                className={cn(
-                  "dr-beads pointer-events-none absolute inset-x-3 bottom-1.5 h-2 transition-opacity duration-500",
-                  s === 2 && "dr-beads-l",
-                  on ? "dr-beads-on text-white/80" : "text-white/25",
-                )}
-                aria-hidden
-              />
-            </div>
-          </motion.div>
-        );
-        const scoreEl = score && (
-          <motion.div
-            key={`score${s}`}
-            layout
-            initial={{ opacity: 0, scale: 0.3 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: "spring", stiffness: 380, damping: 20, delay: 0.25 }}
-            className={cn("flex min-w-10 items-center justify-center px-1 sm:min-w-20 sm:px-3", s === 1 ? "order-2" : "order-4")}
-          >
-            <AnimatePresence mode="popLayout">
-              <motion.span
-                key={score[s - 1]}
-                initial={{ y: -30, opacity: 0, scale: 1.6 }}
-                animate={{ y: 0, opacity: 1, scale: 1 }}
-                exit={{ y: 30, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 420, damping: 18 }}
-                className="num text-4xl font-display font-black tabular-nums sm:text-7xl"
-                style={{ color: TEAM[s].hi, textShadow: `0 0 28px ${tint(TEAM[s].c, 40)}` }}
-              >
-                {score[s - 1]}
-              </motion.span>
-            </AnimatePresence>
-          </motion.div>
-        );
-        return [box, scoreEl];
-      })}
+  const side = (s: Side) => {
+    const on = "team" in turn && turn.team === s;
+    const idle = "team" in turn && !on;
+    const tm = teams[s - 1];
+    return (
       <motion.div
-        layout
+        initial={{ opacity: 0, x: s === 1 ? -60 : 60 }}
+        animate={{ opacity: idle ? 0.55 : 1, x: 0 }}
+        transition={{ duration: 0.8, ease: EASE, delay: 0.05, opacity: { duration: 0.5 } }}
+        className={cn("flex min-w-0 items-center gap-3 sm:gap-5", s === 2 && "flex-row-reverse text-right")}
+      >
+        {tm.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={tm.image} alt="" className="size-12 shrink-0 -skew-x-6 border-2 object-cover sm:size-20" style={{ borderColor: TEAM[s].c, boxShadow: `5px 5px 0 0 ${TEAM[s].deep}` }} />
+        ) : (
+          <span className="size-12 shrink-0 -skew-x-6 border-2 bg-slate sm:size-20" style={{ borderColor: TEAM[s].c, boxShadow: `5px 5px 0 0 ${TEAM[s].deep}` }} />
+        )}
+        <div className={cn("flex min-w-0 flex-1 flex-col gap-2", s === 2 && "items-end")}>
+          <div className="heading-slam w-full truncate text-lg leading-none text-paper sm:text-3xl">{tm.name}</div>
+          <div className={cn("flex w-full items-center gap-2", s === 2 && "flex-row-reverse")}>
+            {me === s && (
+              <motion.span
+                initial={{ scale: 0, rotate: -20 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 16, delay: 0.7 }}
+                className="inline-flex shrink-0 -skew-x-12 items-center px-2 py-0.5 text-white"
+                style={{ background: TEAM[s].c }}
+              >
+                <span className="inline-flex skew-x-12 items-center gap-1 text-[0.6rem] font-display font-bold sm:text-[0.65rem]">
+                  <span className="anim-twinkle" aria-hidden>
+                    ✦
+                  </span>
+                  {t.draft.you}
+                </span>
+              </motion.span>
+            )}
+            <span className={cn("dr-beads h-2 min-w-0 flex-1 transition-opacity duration-500", s === 2 && "dr-beads-l", on && "dr-beads-on")} style={{ color: on ? TEAM[s].hi : "var(--line)" }} aria-hidden />
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+  const num = (s: Side) =>
+    score && (
+      <AnimatePresence mode="popLayout">
+        <motion.span
+          key={score[s - 1]}
+          initial={{ y: -30, opacity: 0, scale: 1.6 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 30, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 420, damping: 18 }}
+          className="num w-[1.2em] text-center text-4xl font-display font-black tabular-nums sm:text-6xl"
+          style={{ color: TEAM[s].hi, textShadow: `0 0 28px ${tint(TEAM[s].c, 40)}` }}
+        >
+          {score[s - 1]}
+        </motion.span>
+      </AnimatePresence>
+    );
+  return (
+    <div className="relative grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 overflow-hidden border border-line bg-coal px-3 py-4 sm:gap-8 sm:px-6 sm:py-6">
+      <span className="pointer-events-none absolute inset-y-0 left-0 w-1/2" style={{ background: `radial-gradient(120% 160% at 0% 50%, ${tint(TEAM[1].c, 16)}, transparent 65%)` }} aria-hidden />
+      <span className="pointer-events-none absolute inset-y-0 right-0 w-1/2" style={{ background: `radial-gradient(120% 160% at 100% 50%, ${tint(TEAM[2].c, 16)}, transparent 65%)` }} aria-hidden />
+      <span className="absolute inset-y-0 left-0 w-1" style={{ background: TEAM[1].c }} aria-hidden />
+      <span className="absolute inset-y-0 right-0 w-1" style={{ background: TEAM[2].c }} aria-hidden />
+      {side(1)}
+      <motion.div
         initial={{ scale: 3, opacity: 0, rotate: -20 }}
         animate={{ scale: 1, opacity: 1, rotate: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 16, delay: 0.45 }}
-        className={cn("relative z-10 order-3 flex flex-col items-center justify-center px-1", !scored && "-mx-3 sm:-mx-4")}
+        className="relative flex items-center justify-center gap-2 sm:gap-4"
       >
-        <span className={cn("heading-slam text-paper drop-shadow-[3px_3px_0_var(--ink)]", scored ? "text-xl sm:text-4xl" : "text-3xl sm:text-6xl")}>VS</span>
+        {num(1)}
+        <span className={cn("heading-slam text-ash", score ? "text-lg sm:text-2xl" : "text-2xl sm:text-5xl")}>VS</span>
+        {num(2)}
       </motion.div>
+      {side(2)}
     </div>
   );
 }
