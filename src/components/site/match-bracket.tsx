@@ -49,7 +49,7 @@ function Line({ m, slot, live, slim }: { m: Match; slot: 1 | 2; live?: [number, 
     <div {...meT(team.id)} className={cn("relative flex min-h-0 flex-1 items-center gap-1.5 pl-2 pr-2.5", won && "bg-[color-mix(in_oklab,var(--balkan)_14%,var(--white))]", leads && "bg-rose/10", lost && "opacity-45")}>
       {(won || leads) && <span className={cn("absolute inset-y-1 left-0 w-0.5", won ? "bg-balkan" : "bg-rose/60")} aria-hidden />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {!slim && <img src={team.image} alt="" className="in-pop size-5 shrink-0 object-cover" style={v({ "--d": "0.45s" })} />}
+      {!slim && <img src={team.image} alt="" className="in-pop size-4 shrink-0 object-cover" style={v({ "--d": "0.45s" })} />}
       <span title={team.name} className={cn("in-wipe min-w-0 flex-1 truncate text-[0.8rem] font-display font-bold", won && "font-display font-black text-paper", leads && "font-display font-black text-rose-hi")} style={v({ "--d": "0.5s" })}>
         {team.name}
       </span>
