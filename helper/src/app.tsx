@@ -67,12 +67,12 @@ function Toggle({ on, className, children, ...rest }: React.ButtonHTMLAttributes
 const Err = ({ text, id }: { text: string; id?: string }) => (text ? <div id={id} role="alert" className="min-h-[18px] text-[12.5px] font-extrabold text-rose-hi">{text}</div> : null);
 const Help = ({ text, role }: { text: string; role?: string }) => (text ? <p role={role} className="text-[12.5px] leading-normal text-ash">{text}</p> : null);
 const Chip = ({ text }: { text: string }) => (
-  <span className="anim-pop -skew-x-12 border-l-[3px] border-rose bg-slate px-2 py-[3px]">
+  <span className="-skew-x-12 border-l-[3px] border-rose bg-slate px-2 py-[3px]">
     <span className="inline-block skew-x-12 font-display text-xs font-black">{text}</span>
   </span>
 );
-const Stat = ({ k, i, children }: { k: string; i?: number; children: React.ReactNode }) => (
-  <div className={cn("relative flex flex-col gap-1.5 border border-line bg-coal px-3.5 py-3", i !== undefined && "in")} style={i !== undefined ? stagger(i) : undefined}>
+const Stat = ({ k, children }: { k: string; children: React.ReactNode }) => (
+  <div className="relative flex flex-col gap-1.5 border border-line bg-coal px-3.5 py-3">
     <span className="font-display text-[10px] font-bold text-ash">{k}</span>
     {children}
   </div>
@@ -277,6 +277,12 @@ export function App() {
 
   const screenCls = (id: Screen) =>
     cn("screen thin-scroll absolute inset-0 flex flex-col gap-4 overflow-y-auto p-[22px] *:shrink-0", screen === id && "on", screen !== id && ORDER.indexOf(id) < ORDER.indexOf(screen) && "off-left");
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
+  const setTheme = (on: boolean) => {
+    document.documentElement.classList.toggle("dark", on);
+    localStorage.setItem("theme", on ? "dark" : "light");
+    setDark(on);
+  };
   const screenKey = (id: Screen) => (screen === id ? `${id}-${visits}` : id);
 
   return (
@@ -323,6 +329,24 @@ export function App() {
             <span className="inline-block skew-x-12 font-display text-[11px] font-bold text-white">Helper</span>
           </span>
         </section>
+
+        <div className="flex shrink-0 justify-center pt-3">
+          <div className="flex h-7 -skew-x-12 border border-line" role="group" aria-label="Theme">
+            {[false, true].map((on) => (
+              <button
+                key={String(on)}
+                type="button"
+                aria-pressed={dark === on}
+                aria-label={on ? "Dark mode" : "Light mode"}
+                title={on ? "Dark mode" : "Light mode"}
+                onClick={() => setTheme(on)}
+                className={cn("grid w-9 place-items-center transition-colors", dark === on ? "bg-paper text-ink" : "text-ash hover:text-paper")}
+              >
+                {on ? <svg viewBox="0 0 24 24" className="size-[13px] skew-x-12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinejoin="round"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11Z" /></svg> : <svg viewBox="0 0 24 24" className="size-[13px] skew-x-12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <main className="relative min-h-0 flex-1">
           <section key={screenKey("s-login")} className={screenCls("s-login")} inert={screen !== "s-login"}>
@@ -399,7 +423,7 @@ export function App() {
             </div>
             )}
             <div className="grid grid-cols-1 gap-2">
-              <Stat k="Site" i={1}>
+              <Stat k="Site">
                 <Value dot={siteDot} text={siteText} />
               </Stat>
             </div>
@@ -408,15 +432,15 @@ export function App() {
               <section className="flex min-w-0 flex-col gap-3 pt-1">
                 <div className="sec">Referee</div>
                 <div className="grid grid-cols-2 gap-2">
-                  <Stat k="osu! IRC" i={2}>
+                  <Stat k="osu! IRC">
                     <Value dot={ircDot} text={s.irc === "online" && s.lobbies.length ? "In lobby" : ircText} />
                   </Stat>
-                  <Stat k="Lobbies" i={3}>
+                  <Stat k="Lobbies">
                     <div className="flex flex-wrap gap-1.5">
                       {s.lobbies.length ? s.lobbies.map((l) => <Chip key={l} text={l.replace("#mp_", "#")} />) : <span className="font-display text-[12.5px] font-bold text-ash">No lobbies</span>}
                     </div>
                   </Stat>
-                  <Stat k="Commands sent" i={4}>
+                  <Stat k="Commands sent">
                     <span className="num text-[30px] leading-[0.9]">{s.sent}</span>
                   </Stat>
                 </div>
