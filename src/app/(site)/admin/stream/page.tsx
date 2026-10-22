@@ -35,7 +35,7 @@ export default async function Stream() {
                 <span className="flex min-w-0 items-center gap-2 text-lg font-display font-black">
                   <span className="h-5 w-1 shrink-0 bg-crimson" aria-hidden />
                   <span className="truncate">{m.team1.name}</span>
-                  <span className="font-display text-[0.62rem] uppercase text-ash">vs</span>
+                  <span className="font-display text-[0.62rem] text-ash">VS</span>
                   <span className="truncate">{m.team2.name}</span>
                   <span className="h-5 w-1 shrink-0 bg-azure" aria-hidden />
                 </span>

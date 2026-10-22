@@ -75,7 +75,7 @@ const en: Deep<Dict> = {
       { stage: "Quarterfinals", format: "Best of %bo.quarterfinals% · 1 ban", when: "" },
       { stage: "Semifinals", format: "Best of %bo.semifinals% · 2 bans", when: "" },
       { stage: "Finals", format: "Best of %bo.finals% · 2 bans", when: "" },
-      { stage: "Grand finals", format: "Best of %bo.grand-finals% · 2 bans", when: "" },
+      { stage: "Grand Finals", format: "Best of %bo.grand-finals% · 2 bans", when: "" },
     ],
     facts: [
       ["Format", "3v3 Team VS · ScoreV2"],
