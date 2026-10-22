@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import type { Lang } from "./dict";
-import { dictFor } from "./dict7";
+import { dictFor } from "./dict";
 import { getEdition } from "@/db/edition";
 
 export async function getLang(): Promise<Lang> {
