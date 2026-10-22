@@ -159,6 +159,8 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
   const glintRef = useRef<HTMLSpanElement>(null);
   const placed = useRef(false);
   const [clicked, setClicked] = useState<{ base: string; from: string } | null>(null);
+  // a nav click only highlights early until the route changes; otherwise returning to `from` (e.g. via the logo) revives it
+  if (clicked && clicked.from !== path) setClicked(null);
   const target = clicked && clicked.from === path ? clicked.base : null;
   const on = (base: string) => (target ? target === base : isActive(path, base));
   const activeBase = nav.find((n) => on(n.base))?.base ?? "";
@@ -187,9 +189,10 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
     };
     place(true);
     const again = () => place(true);
-    if (document.fonts && document.fonts.status !== "loaded") document.fonts.ready.then(again);
-    window.addEventListener("resize", again);
-    return () => window.removeEventListener("resize", again);
+    // links resize when a late font (e.g. cyrillic) swaps in
+    const ro = new ResizeObserver(again);
+    navRef.current?.querySelectorAll("a").forEach((a) => ro.observe(a));
+    return () => ro.disconnect();
   }, [activeBase]);
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-field/90 backdrop-blur-md">
