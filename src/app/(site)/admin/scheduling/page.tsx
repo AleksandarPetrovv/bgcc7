@@ -51,7 +51,7 @@ export default async function AdminScheduling() {
                           <span className="min-w-0 font-black">
                             {name(m.team1Id)} <span className="text-ash">vs</span> {name(m.team2Id)}
                           </span>
-                          <span className={cn("ml-auto text-[0.68rem] font-black uppercase tracking-wide", state === "agreed" ? "text-balkan" : state === "staff" ? "text-rose-hi" : state === "proposed" ? "text-gold" : "text-ash")}>{s.admin.state[state]}</span>
+                          <span className={cn("ml-auto text-[0.68rem] font-black uppercase tracking-wide", state === "agreed" ? "text-balkan-hi" : state === "staff" ? "text-rose-hi" : state === "proposed" ? "text-gold-hi" : "text-ash")}>{s.admin.state[state]}</span>
                         </div>
                         <p className="num mt-1 text-sm text-paper/85">
                           {m.startsAt ? fmtSofia(m.startsAt, locale) : pend ? `${fmtSofia(new Date(pend.at), locale)} · ${name(pend.teamId)}` : "—"}

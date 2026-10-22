@@ -24,8 +24,8 @@ export type FolkProps = {
   hosts?: { osuId: number; username: string; avatarUrl: string | null; roles: string[] }[];
 };
 
-const MOD_HEX: Record<string, string> = { NM: "var(--color-mod-nm)", HD: "var(--color-mod-hd)", HR: "var(--color-mod-hr)", DT: "var(--color-mod-dt)", TB: "var(--color-mod-tb)" };
-const PLACE = ["text-gold", "text-silver", "text-bronze"];
+const MOD_HEX: Record<string, string> = { NM: "var(--mod-nm)", HD: "var(--mod-hd)", HR: "var(--mod-hr)", DT: "var(--mod-dt)", TB: "var(--mod-tb)" };
+const PLACE = ["text-gold-hi", "text-silver-deep", "text-bronze-hi"];
 
 const STAR = Array.from({ length: 16 }, (_, i) => {
   const a = (i * Math.PI) / 8 - Math.PI / 2;
@@ -37,7 +37,7 @@ function FolkStar({ className, points = 1 }: { className?: string; points?: numb
   return (
     <svg viewBox="0 0 100 100" className={className} aria-hidden>
       <polygon points={STAR} className="fill-current" />
-      <polygon points={STAR} fill="#151714" transform="translate(50 50) scale(0.42) translate(-50 -50)" />
+      <polygon points={STAR} fill="var(--well)" transform="translate(50 50) scale(0.42) translate(-50 -50)" />
       {Array.from({ length: points }, (_, i) => (
         <circle key={i} cx={50 + (i - (points - 1) / 2) * 7} cy={50} r={3.2} className="fill-current" />
       ))}
@@ -47,7 +47,7 @@ function FolkStar({ className, points = 1 }: { className?: string; points?: numb
 
 function Sheet({ children }: { children: React.ReactNode }) {
   return (
-    <div className="folk-panel grid grid-cols-1 gap-x-12 bg-[radial-gradient(ellipse_at_90%_0%,rgb(15_160_106/0.08),transparent_45%),radial-gradient(ellipse_at_0%_100%,rgb(224_36_47/0.07),transparent_40%)] px-6 pt-1 sm:px-10 lg:grid-cols-12 lg:px-14">
+    <div className="folk-panel grid grid-cols-1 gap-x-12 bg-[radial-gradient(ellipse_at_90%_0%,color-mix(in_srgb,var(--balkan)_8%,transparent),transparent_45%),radial-gradient(ellipse_at_0%_100%,color-mix(in_srgb,var(--rose)_7%,transparent),transparent_40%)] px-6 pt-1 sm:px-10 lg:grid-cols-12 lg:px-14">
       <Flag />
       <div className="folk-dots pointer-events-none absolute inset-0 -z-10 opacity-50" aria-hidden />
       {children}
@@ -142,13 +142,13 @@ function StageTable({ p }: { p: FolkProps }) {
         <div key={r.slug} className={cn("grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 border-b border-dashed border-paper/10 py-3.5 last:border-b-0 last:pb-0", COLS)}>
           <span className="heading-slam text-lg leading-none md:text-xl">{r.name}</span>
           <span className="num text-right text-sm text-paper/70 md:text-left md:text-base">{r.when || "TBA"}</span>
-          <span className={cn("num flex items-center gap-1 text-base md:text-lg", r.sr ? "text-gold" : "text-ash")}>
+          <span className={cn("num flex items-center gap-1 text-base md:text-lg", r.sr ? "text-gold-hi" : "text-ash")}>
             <Star className="size-3.5 fill-current" />
             {r.sr ?? "TBA"}
           </span>
           <span className="col-span-2 flex flex-wrap gap-1.5 md:col-span-1">
             {r.mods.map(([mod, n]) => (
-              <span key={mod} className="num -skew-x-12 border px-1.5 py-0.5 text-xs font-black leading-none" style={{ borderColor: MOD_HEX[mod], color: MOD_HEX[mod] }}>
+              <span key={mod} className="num -skew-x-12 border px-1.5 py-0.5 text-xs font-black leading-none" style={{ background: MOD_HEX[mod], borderColor: mod === "TB" ? "var(--line)" : MOD_HEX[mod], color: mod === "TB" || mod === "HD" ? "var(--paper)" : "var(--white)" }}>
                 <span className="inline-block skew-x-12">
                   {n} {mod}
                 </span>
@@ -177,7 +177,7 @@ function Hosts({ p, compact }: { p: FolkProps; compact?: boolean }) {
             <span className="relative aspect-square overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={h.avatarUrl ?? ""} alt="" className="absolute inset-0 size-full object-cover grayscale-[.3] transition duration-500 group-hover:scale-[1.03] group-hover:grayscale-0" />
-              <span className="absolute inset-0 bg-gradient-to-t from-[#151714]/80 via-transparent to-transparent" aria-hidden />
+              <span className="absolute inset-0 bg-gradient-to-t from-well/45 via-transparent to-transparent" aria-hidden />
               <span className={cn("absolute inset-x-0 top-0 h-1", i === 0 ? "bg-rose" : "bg-balkan")} aria-hidden />
             </span>
             <span className="mt-4 block truncate font-display text-[clamp(1.4rem,2vw,2.4rem)] font-black leading-none tracking-[-0.03em] text-paper transition-colors group-hover:text-rose-hi">{h.username}</span>
@@ -235,7 +235,7 @@ export function InfoFolk(p: FolkProps) {
           <Headline>
             <E p={p} path="info.heroWord" value={t.info.heroWord} fill={false} />
           </Headline>
-          <p className="mt-6 max-w-[58ch] text-pretty text-base leading-relaxed text-paper/80 sm:text-lg">
+          <p className="mt-6 text-base leading-relaxed text-paper/80 sm:text-lg">
             <Editable path="info.intro" raw={intro} on={p.on}>
               <Words text={p.f(intro)} d={0.2} s={0.012} />
             </Editable>
@@ -263,7 +263,7 @@ export function InfoFolk(p: FolkProps) {
           </Title>
           <Ledger path="info.regItems" items={t.info.regItems} p={p} />
         </Tile>
-        <Art src="/info/tiles/ink/stripes.png" className="hidden lg:col-span-2 lg:block" />
+        <Art src="/info/tiles/ink/checker-wire.png" className="hidden lg:col-span-2 lg:block" />
         <Tile className="lg:col-span-5">
           <Title>
             <E p={p} path="info.qualTitle" value={t.info.qualTitle} />

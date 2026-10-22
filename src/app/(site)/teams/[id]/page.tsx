@@ -29,7 +29,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
     <>
       <section className="relative overflow-hidden border-b border-line">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={team.image} alt="" className="absolute inset-0 size-full scale-110 object-cover opacity-25 blur-2xl" />
+        <img src={team.image} alt="" className="absolute inset-0 size-full scale-110 object-cover opacity-25 mix-blend-multiply blur-2xl" />
         <div className="relative mx-auto flex max-w-page flex-wrap items-end gap-8 px-4 py-12 sm:px-6 lg:px-10 lg:py-16 2xl:px-14">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={team.image} alt="" className="in-spin size-40 border-4 border-paper object-cover" style={{ "--d": "0.1s" } as React.CSSProperties} />
@@ -74,7 +74,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
                   <a href={osuUser(p.userId)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">
                     {p.username}
                   </a>
-                  {p.isCaptain && <Crown className="size-4 text-gold" aria-label={t.common.captain} />}
+                  {p.isCaptain && <Crown className="size-4 text-gold-hi" aria-label={t.common.captain} />}
                 </div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={flagUrl(p.country)} alt="" className="mt-1 h-3" />

@@ -18,7 +18,7 @@ type Props = {
   opensAt: string;
 };
 
-const TONE = { pending: "text-paper", approved: "text-balkan", denied: "text-rose-hi" };
+const TONE = { pending: "text-paper", approved: "text-balkan-hi", denied: "text-rose-hi" };
 
 export function RegisterForm({ user, status, state, opensAt }: Props) {
   const t = useDict();

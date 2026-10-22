@@ -8,7 +8,7 @@ export function Rich({ text, plain }: { text: string; plain?: boolean }) {
         p.startsWith("[[") ? (
           <strong key={i} className={plain ? "font-black text-paper" : "font-bold text-rose-hi"}>{p.slice(2, -2)}</strong>
         ) : p.startsWith("{{") ? (
-          <strong key={i} className={plain ? "font-black text-paper" : "font-bold text-balkan"}>{p.slice(2, -2)}</strong>
+          <strong key={i} className={plain ? "font-black text-paper" : "font-bold text-balkan-hi"}>{p.slice(2, -2)}</strong>
         ) : (
           <Fragment key={i}>{p}</Fragment>
         ),
@@ -35,7 +35,7 @@ export function Words({ text, d = 0, s = 0.04, className }: { text: string; d?: 
         p.startsWith("[[") ? (
           <strong key={k} className="font-bold text-rose-hi">{split(p.slice(2, -2))}</strong>
         ) : p.startsWith("{{") ? (
-          <strong key={k} className="font-bold text-balkan">{split(p.slice(2, -2))}</strong>
+          <strong key={k} className="font-bold text-balkan-hi">{split(p.slice(2, -2))}</strong>
         ) : (
           <Fragment key={k}>{split(p)}</Fragment>
         ),

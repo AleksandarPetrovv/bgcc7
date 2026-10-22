@@ -14,7 +14,7 @@ import type { MapResult, PlayerLine, Scoreboard } from "@/lib/scoreboard";
 import { cn } from "@/lib/utils";
 import { matchCosts, MEDAL } from "@/lib/match-cost";
 import { MeTag, meP } from "./me";
-import { TEAM as TEAMS } from "@/lib/theme";
+import { modHi, TEAM as TEAMS } from "@/lib/theme";
 import { osuMatch } from "@/lib/links";
 
 const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
@@ -40,7 +40,7 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
               <span className="text-sm">{fmtNum(p.score)}</span>
               <span className="text-[0.7rem] text-ash">{pct(p.acc)}</span>
             </div>
-            {p.edited && <div className="text-[0.6rem] font-bold uppercase text-gold">{t.match.edited}</div>}
+            {p.edited && <div className="text-[0.6rem] font-bold uppercase text-gold-hi">{t.match.edited}</div>}
           </div>
         </li>
       ))}
@@ -50,7 +50,7 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
 
 export function MapCard({ m, i }: { m: MapResult; i: number }) {
   const t = useDict();
-  const color = m.slot ? slotColor(m.slot) : m.mod ? MODS[m.mod]?.color : undefined;
+  const color = modHi(m.slot ? slotColor(m.slot) : m.mod ? MODS[m.mod]?.color : undefined);
   const sum = m.team1 + m.team2;
   const share = sum ? (m.team1 / sum) * 100 : 50;
   return (
@@ -69,7 +69,7 @@ export function MapCard({ m, i }: { m: MapResult; i: number }) {
         />
       )}
       <header className="relative flex items-start gap-3 px-3.5 pt-3">
-        <span className="in-slam heading-slam shrink-0 text-2xl leading-none" style={{ color: color ?? "var(--color-ash)", ...v({ "--d": "0.22s" }) }}>
+        <span className="in-slam heading-slam shrink-0 text-2xl leading-none" style={{ color: color ?? "var(--ash)", ...v({ "--d": "0.22s" }) }}>
           {m.slot ?? "—"}
         </span>
         <div className="min-w-0 flex-1 pt-0.5">
@@ -82,7 +82,7 @@ export function MapCard({ m, i }: { m: MapResult; i: number }) {
         </div>
         {!m.note && (
           <span className="in-pop num shrink-0 text-lg leading-none" style={v({ "--d": "0.5s" })}>
-            <span className={m.winner === 1 ? "text-rose-hi" : "text-ash"}>{m.running[0]}</span>
+            <span className={m.winner === 1 ? "text-crimson-hi" : "text-ash"}>{m.running[0]}</span>
             <span className="px-1 text-ash/40">/</span>
             <span className={m.winner === 2 ? "text-azure-hi" : "text-ash"}>{m.running[1]}</span>
           </span>
@@ -91,7 +91,7 @@ export function MapCard({ m, i }: { m: MapResult; i: number }) {
       {!m.note && (
         <div className="relative px-3.5 pb-3.5 pt-3">
           <div className="flex items-end justify-between gap-3">
-            <span className={cn("in-left num text-xl leading-none", m.winner === 1 ? "text-rose-hi" : "text-ash")} style={v({ "--d": "0.3s" })}>
+            <span className={cn("in-left num text-xl leading-none", m.winner === 1 ? "text-crimson-hi" : "text-ash")} style={v({ "--d": "0.3s" })}>
               {fmtNum(m.team1)}
             </span>
             {sum > 0 && (
@@ -104,7 +104,7 @@ export function MapCard({ m, i }: { m: MapResult; i: number }) {
             </span>
           </div>
           <div className="mt-2 flex h-1 gap-0.5">
-            <span className={cn("in-grow h-full bg-rose", m.winner !== 1 && "opacity-40")} style={{ width: `${share}%`, ...v({ "--d": "0.35s" }) }} />
+            <span className={cn("in-grow h-full bg-crimson", m.winner !== 1 && "opacity-40")} style={{ width: `${share}%`, ...v({ "--d": "0.35s" }) }} />
             <span className={cn("in-grow h-full flex-1 bg-azure", m.winner !== 2 && "opacity-40")} style={{ transformOrigin: "100% 50%", ...v({ "--d": "0.35s" }) }} />
           </div>
           <div className="mt-3.5 grid grid-cols-2 gap-x-4">
@@ -254,7 +254,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
                   style={v({ "--d": "0.12s" })}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {team && <img src={team.image} alt="" className={cn("size-8 shrink-0 border-b-[3px] object-cover sm:size-12", i ? "border-azure" : "border-rose")} />}
+                  {team && <img src={team.image} alt="" className={cn("size-8 shrink-0 border-b-[3px] object-cover sm:size-12", i ? "border-azure" : "border-crimson")} />}
                   <span className={cn("line-clamp-2 min-w-0 break-words text-xs font-black leading-tight sm:text-lg", match.winner && match.winner !== i + 1 && "text-ash")}>
                     {names[i]}
                   </span>
@@ -311,7 +311,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
 
 export function DetailsChip() {
   return (
-    <span className="relative inline-flex h-5 w-[30px] -skew-x-12 items-center justify-center overflow-hidden border border-rose bg-rose text-white shadow-[2px_2px_0_0_var(--color-rose-deep)] transition-[background-color,transform,box-shadow,translate,scale,rotate] duration-200 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 group-hover:bg-rose-hi group-hover:shadow-[4px_4px_0_0_var(--color-rose-deep)]">
+    <span className="relative inline-flex h-5 w-[30px] -skew-x-12 items-center justify-center overflow-hidden border border-rose bg-rose text-white shadow-[2px_2px_0_0_var(--rose-deep)] transition-[background-color,transform,box-shadow,translate,scale,rotate] duration-200 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 group-hover:bg-rose-hi group-hover:shadow-[4px_4px_0_0_var(--rose-deep)]">
       <Eye className="size-[15px] skew-x-12" strokeWidth={2} aria-hidden />
       <span className="eye-sheen pointer-events-none absolute -inset-y-0.5 -left-3 w-1.5 bg-white/60" aria-hidden />
     </span>
@@ -322,7 +322,7 @@ function LoadingVeil({ out }: { out: boolean }) {
   const t = useDict();
   return createPortal(
     <div
-      className={cn("fixed inset-0 z-[60] flex animate-in items-center justify-center bg-black/75 fade-in-0 transition-opacity duration-700 ease-out", out && "pointer-events-none opacity-0")}
+      className={cn("fixed inset-0 z-[60] flex animate-in items-center justify-center bg-rose-deep/30 backdrop-blur-sm fade-in-0 transition-opacity duration-700 ease-out", out && "pointer-events-none opacity-0")}
       role="status"
       aria-live="polite"
     >
@@ -332,7 +332,7 @@ function LoadingVeil({ out }: { out: boolean }) {
             <span key={i} className="mdlg-bar w-2 -skew-x-12 bg-rose" style={{ animationDelay: `${i * 0.09}s` }} />
           ))}
         </div>
-        <span className="text-xs font-black uppercase tracking-[0.2em] text-paper/80">{t.match.loading}</span>
+        <span className="text-xs font-black uppercase tracking-[0.2em] text-paper">{t.match.loading}</span>
       </div>
     </div>,
     document.body,

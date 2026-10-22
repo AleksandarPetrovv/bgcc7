@@ -24,7 +24,7 @@ const item = (active: boolean, extra?: string) =>
     extra,
   );
 
-const hoverBg = "absolute inset-0 -skew-x-12 bg-white/0 transition-colors duration-200 group-hover:bg-white/[0.05]";
+const hoverBg = "absolute inset-0 -skew-x-12 bg-white/0 transition-colors duration-200 group-hover:bg-white/40";
 
 export function Tabs({
   options,

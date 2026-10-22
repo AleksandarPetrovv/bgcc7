@@ -69,7 +69,7 @@ function RollNumber({ value, side, win, lose }: { value: number | null; side: Si
           }}
           exit={spinning ? { y: 30, opacity: 0 } : { opacity: 0 }}
           transition={spinning ? { duration: 0.08 } : { type: "spring", stiffness: 520, damping: 18 }}
-          className={cn("num text-7xl font-black tabular-nums sm:text-8xl", shown == null ? "text-line" : spinning ? "text-paper/70 blur-[1px]" : TEAM[side].text)}
+          className={cn("num text-7xl font-black tabular-nums sm:text-8xl", shown == null ? "text-rose-hi" : spinning ? "text-paper/70 blur-[1px]" : TEAM[side].text)}
           style={done && win ? { textShadow: `0 0 36px ${TEAM[side].c}` } : undefined}
         >
           {shown ?? "?"}
@@ -106,7 +106,7 @@ function RollNumber({ value, side, win, lose }: { value: number | null; side: Si
                 damping: 14,
                 delay: 0.1,
               }}
-              className="absolute -top-1 right-3 text-gold sm:right-8"
+              className="absolute -top-1 right-3 text-gold-hi sm:right-8"
               aria-hidden
             >
               <Crown className="size-9 fill-current" />
@@ -165,7 +165,7 @@ export function AdminBar({
       <button
         type="button"
         onClick={onHelp}
-        className="lift-sm inline-flex min-h-8 -skew-x-12 items-center bg-gold px-4 text-xs font-black uppercase tracking-wide text-ink shadow-[3px_3px_0_0_rgb(0_0_0/0.5)] transition-colors [--lift:var(--color-gold)] hover:bg-paper"
+        className="lift-sm inline-flex min-h-8 -skew-x-12 items-center bg-gold px-4 text-xs font-black uppercase tracking-wide text-paper shadow-[3px_3px_0_0_var(--gold-deep)] transition-colors [--lift:var(--gold)] hover:bg-paper hover:text-ink"
       >
         <span className="inline-flex skew-x-12 items-center gap-1.5">
           <CircleHelp className="size-3.5" strokeWidth={3} /> {t.lobby.help}
@@ -181,7 +181,7 @@ export function AdminBar({
             type="button"
             disabled={pending || !u}
             onClick={() => adminAct(fn)}
-            className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-line px-3 text-xs font-black uppercase tracking-wide text-paper transition-colors [--lift:var(--color-rose)] hover:border-rose disabled:opacity-50"
+            className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-line px-3 text-xs font-black uppercase tracking-wide text-paper transition-colors [--lift:var(--rose)] hover:border-rose disabled:opacity-50"
           >
             <span className="inline-flex skew-x-12 items-center gap-1.5">
               <Icon className="size-3.5" /> {k === "undo" ? t.draft.undo : t.draft.redo}
@@ -193,7 +193,7 @@ export function AdminBar({
           type="button"
           disabled={pending}
           onClick={onReset}
-          className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-rose px-3 text-xs font-black uppercase tracking-wide text-rose-hi transition-colors [--lift:var(--color-rose)] hover:bg-rose/10 disabled:opacity-50"
+          className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-rose px-3 text-xs font-black uppercase tracking-wide text-rose-hi transition-colors [--lift:var(--rose)] hover:bg-rose/10 disabled:opacity-50"
         >
           <span className="inline-flex skew-x-12 items-center gap-1.5">
             <RotateCcw className="size-3.5" /> {t.draft.reset}
@@ -232,9 +232,10 @@ export function TeamsHeader({ teams, turn, me, score }: { teams: [TeamInfo, Team
                 s === 2 && "flex-row-reverse text-right",
               )}
               style={{
-                background: `linear-gradient(${s === 1 ? "100deg" : "260deg"}, ${TEAM[s].c} 0%, ${TEAM[s].deep} 55%, transparent 100%)`,
+                // stays opaque to the edge: white names can run the full width and a transparent tail would drop them onto pink
+                background: `linear-gradient(${s === 1 ? "100deg" : "260deg"}, ${TEAM[s].c} 0%, ${TEAM[s].deep} 100%)`,
                 clipPath: s === 1 ? "polygon(0 0, 100% 0, calc(100% - 22px) 100%, 0 100%)" : "polygon(22px 0, 100% 0, 100% 100%, 0 100%)",
-                filter: "team" in turn && !on ? "saturate(0.55) brightness(0.8)" : undefined,
+                filter: "team" in turn && !on ? "saturate(0.4)" : undefined,
               }}
             >
               {tm.image && (
@@ -242,7 +243,7 @@ export function TeamsHeader({ teams, turn, me, score }: { teams: [TeamInfo, Team
                 <img
                   src={tm.image}
                   alt=""
-                  className={cn("size-11 shrink-0 -skew-x-6 border-2 border-white/80 object-cover shadow-[4px_4px_0_0_rgba(0,0,0,0.35)] sm:size-16", scored && "hidden sm:block")}
+                  className={cn("size-11 shrink-0 -skew-x-6 border-2 border-white/80 object-cover shadow-[4px_4px_0_0_color-mix(in_srgb,var(--black)_35%,transparent)] sm:size-16", scored && "hidden sm:block")}
                 />
               )}
               <div className={cn("flex min-w-0 flex-col", s === 2 ? "items-end" : "items-start")}>
@@ -252,7 +253,7 @@ export function TeamsHeader({ teams, turn, me, score }: { teams: [TeamInfo, Team
                     initial={{ scale: 0, rotate: -20 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: "spring", stiffness: 500, damping: 16, delay: 0.7 }}
-                    className="mt-2 inline-flex -skew-x-12 items-center bg-white px-2 py-0.5 shadow-[3px_3px_0_0_rgba(0,0,0,0.35)]"
+                    className="mt-2 inline-flex -skew-x-12 items-center bg-white px-2 py-0.5 shadow-[3px_3px_0_0_color-mix(in_srgb,var(--black)_35%,transparent)]"
                     style={{ color: TEAM[s].deep }}
                   >
                     <span className="inline-flex skew-x-12 items-center gap-1 text-[0.6rem] font-black uppercase tracking-[0.25em] sm:text-[0.65rem]">
@@ -308,7 +309,7 @@ export function TeamsHeader({ teams, turn, me, score }: { teams: [TeamInfo, Team
         transition={{ type: "spring", stiffness: 300, damping: 16, delay: 0.45 }}
         className={cn("relative z-10 order-3 flex flex-col items-center justify-center px-1", !scored && "-mx-3 sm:-mx-4")}
       >
-        <span className={cn("heading-slam text-paper drop-shadow-[3px_3px_0_var(--color-ink)]", scored ? "text-xl sm:text-4xl" : "text-3xl sm:text-6xl")}>VS</span>
+        <span className={cn("heading-slam text-paper drop-shadow-[3px_3px_0_var(--ink)]", scored ? "text-xl sm:text-4xl" : "text-3xl sm:text-6xl")}>VS</span>
       </motion.div>
     </div>
   );
@@ -364,13 +365,13 @@ export function Rolls({
                   }}
                   className="relative flex flex-col items-center overflow-hidden border-2 bg-coal px-3 pb-4 pt-3"
                   style={{
-                    borderColor: winner === s ? TEAM[s].c : "var(--color-line)",
+                    borderColor: winner === s ? TEAM[s].c : "var(--line)",
                   }}
                 >
                   <span
                     className="dr-glow pointer-events-none absolute inset-0 opacity-0"
                     style={{
-                      background: canRoll ? `radial-gradient(circle at 50% 60%, ${TEAM[s].c}33, transparent 70%)` : undefined,
+                      background: canRoll ? `radial-gradient(circle at 50% 60%, ${tint(TEAM[s].c, 20)}, transparent 70%)` : undefined,
                     }}
                     aria-hidden
                   />
@@ -399,7 +400,7 @@ export function Rolls({
                         {t.draft.waiting} <Waiting />
                       </span>
                     ) : winner === s ? (
-                      <motion.span initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-xs font-black uppercase tracking-wide text-gold">
+                      <motion.span initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-xs font-black uppercase tracking-wide text-gold-hi">
                         {t.draft.wins(names[s - 1])}
                       </motion.span>
                     ) : null}
@@ -447,7 +448,7 @@ export function Sequence({ d, turn }: { d: DraftView; turn: Turn }) {
                 )}
                 style={{
                   borderColor: TEAM[x.team].c,
-                  background: x.step ? (x.kind === "ban" || x.step.skip ? "var(--color-coal)" : TEAM[x.team].c) : now ? tint(TEAM[x.team].c, 13) : "transparent",
+                  background: x.step ? (x.kind === "ban" || x.step.skip ? "var(--coal)" : TEAM[x.team].c) : now ? tint(TEAM[x.team].c, 13) : "transparent",
                 }}
                 title={x.step?.skip ? t.draft.skipped : undefined}
               >
@@ -463,7 +464,7 @@ export function Sequence({ d, turn }: { d: DraftView; turn: Turn }) {
                 <span
                   className={cn(
                     "num relative skew-x-12 text-base font-black leading-tight",
-                    x.step?.skip ? "text-ash" : x.step ? (x.kind === "ban" ? "text-paper/60 line-through" : "text-white") : "text-ash/50",
+                    x.step?.skip ? "text-ash" : x.step ? (x.kind === "ban" ? "text-paper/60 line-through" : "text-white") : "text-ash/60",
                   )}
                 >
                   {x.step?.skip ? <TimerOff className="my-0.5 inline size-4" /> : (x.step?.slot ?? "?")}

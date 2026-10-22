@@ -20,7 +20,7 @@ export function Roster({ team }: { team: Team }) {
             <img src={flagUrl(p.country)} alt="" className="h-2.5" />
             <span className="font-bold">{p.username}</span>
             <MeTag p={p.userId} />
-            {p.isCaptain && <Crown className="size-3.5 text-gold" />}
+            {p.isCaptain && <Crown className="size-3.5 text-gold-hi" />}
             <span className="num ml-auto text-ash">#{fmtNum(p.rank)}</span>
           </li>
         ))}
@@ -37,7 +37,7 @@ export function TeamCard({ team }: { team: Team }) {
         delay={0}
         closeDelay={0}
         render={
-          <Link href={teamHref(team)} {...meT(team.id)} className="me-ring lift group relative flex overflow-hidden border sm:block border-line bg-coal outline-offset-4 [--lift:var(--color-balkan)] hover:border-balkan">
+          <Link href={teamHref(team)} {...meT(team.id)} className="me-ring lift group relative flex overflow-hidden border sm:block border-line bg-coal outline-offset-4 [--lift:var(--balkan)] hover:border-balkan">
             <MeTag t={team.id} corner />
             <div className="relative w-24 shrink-0 overflow-hidden bg-ink sm:h-32 sm:w-auto">
               {/* eslint-disable-next-line @next/next/no-img-element */}

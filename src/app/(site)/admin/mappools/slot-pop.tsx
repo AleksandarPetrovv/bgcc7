@@ -6,6 +6,7 @@ import { Pencil, Plus, X } from "lucide-react";
 import { Btn, Field, inputCls } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
 import type { ActionResult } from "@/lib/roles";
+import { modHi } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 type Action = (prev: ActionResult, fd: FormData) => Promise<ActionResult>;
@@ -49,14 +50,14 @@ function Pop({ action, title, slot, color, submit, onClose, at, closing }: Omit<
       role="dialog"
       aria-label={`${title} ${slot}`}
       className={cn(
-        "fixed z-[80] w-[min(26rem,calc(100vw-1.5rem))] overflow-hidden border border-line bg-coal shadow-[5px_5px_0_0_var(--color-rose-deep)]",
+        "fixed z-[80] w-[min(26rem,calc(100vw-1.5rem))] overflow-hidden border border-line bg-coal shadow-[5px_5px_0_0_var(--rose-deep)]",
         closing ? "slot-pop-out" : "vote-pop",
       )}
       style={at}
     >
       <span className="absolute inset-x-0 top-0 h-0.5" style={{ background: color }} aria-hidden />
       <div className="flex items-center gap-3 border-b border-line bg-ink/60 px-4 py-3">
-        <span className="heading-slam -skew-x-12 border px-2 py-0.5 text-xl leading-none" style={{ borderColor: color, color }}>
+        <span className="heading-slam -skew-x-12 border px-2 py-0.5 text-xl leading-none" style={{ borderColor: modHi(color), color: modHi(color) }}>
           <span className="inline-block skew-x-12">{slot}</span>
         </span>
         <span className="min-w-0 flex-1 text-sm font-bold text-paper">{title}</span>

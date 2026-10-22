@@ -12,8 +12,8 @@ export function PickemsToggle({ open }: { open: boolean }) {
   const [on, setOn] = useState(open);
   const [state, action, pending] = useActionState(setPickems, null);
   const opts = [
-    { v: true, label: t.admin.set.open, Icon: LockOpen, active: "bg-balkan text-ink shadow-[5px_5px_0_0_var(--color-balkan-deep)]", hover: "hover:border-balkan hover:text-balkan" },
-    { v: false, label: t.admin.set.closed, Icon: Lock, active: "bg-rose text-white shadow-[5px_5px_0_0_var(--color-rose-deep)]", hover: "hover:border-rose hover:text-rose-hi" },
+    { v: true, label: t.admin.set.open, Icon: LockOpen, active: "bg-balkan text-paper shadow-[5px_5px_0_0_var(--balkan-deep)]", hover: "hover:border-balkan hover:text-balkan-hi" },
+    { v: false, label: t.admin.set.closed, Icon: Lock, active: "bg-rose text-white shadow-[5px_5px_0_0_var(--rose-deep)]", hover: "hover:border-rose hover:text-rose-hi" },
   ];
   return (
     <form action={action} className={cn("grid grid-cols-2 gap-3 sm:gap-4", pending && "opacity-70")}>
@@ -34,7 +34,7 @@ export function PickemsToggle({ open }: { open: boolean }) {
             )}
           >
             <span className="flex skew-x-6 items-center gap-2.5">
-              <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-full transition-colors sm:size-9", sel ? "bg-black/15" : "bg-slate")}>
+              <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-full transition-colors sm:size-9", sel ? "bg-white/20" : "bg-slate")}>
                 <Icon className={cn("size-4", sel && "anim-bob")} />
               </span>
               <span className="heading-slam text-lg sm:text-2xl">{label}</span>

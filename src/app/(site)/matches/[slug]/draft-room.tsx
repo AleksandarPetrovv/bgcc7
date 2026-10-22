@@ -257,7 +257,7 @@ export function DraftRoom({
               : turn.team === me
                 ? t.draft.yours(turn.kind)
                 : t.draft.turn(name(turn.team), turn.kind);
-  const headColor = "team" in turn ? TEAM[turn.team].hi : "var(--color-paper)";
+  const headColor = "team" in turn ? TEAM[turn.team].hi : "var(--paper)";
 
   const unscored = admin ? picked.find((s) => !s.winner) : undefined;
 
@@ -352,7 +352,7 @@ export function DraftRoom({
               type="button"
               onClick={() => setAsk(unscored.slot)}
               title={t.draft.whoWonHint}
-              className="group inline-flex min-h-8 -skew-x-12 items-center border border-dashed border-gold/60 px-3 text-gold/80 transition-colors hover:border-gold hover:text-gold"
+              className="group inline-flex min-h-8 -skew-x-12 items-center border border-dashed border-gold-deep/60 bg-gold/10 px-3 text-gold-hi transition-colors hover:border-gold-deep hover:bg-gold/25"
             >
               <span className="flex skew-x-12 items-center gap-1.5 text-[0.7rem] font-black uppercase tracking-wide">
                 <Crown className="size-3.5" />
@@ -449,7 +449,7 @@ export function DraftRoom({
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="fixed left-1/2 top-20 z-50 inline-flex -translate-x-1/2 items-center gap-2 border border-rose bg-ink px-3 py-2 text-xs font-black uppercase tracking-wide text-rose-hi lg:top-24"
+              className="fixed left-1/2 top-20 z-50 inline-flex -translate-x-1/2 items-center gap-2 border border-rose bg-field px-3 py-2 shadow-[3px_3px_0_0_var(--rose-deep)] text-xs font-black uppercase tracking-wide text-rose-hi lg:top-24"
               role="status"
             >
               {offline ? (

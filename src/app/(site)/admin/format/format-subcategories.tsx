@@ -14,7 +14,7 @@ function SubRow({ item, group, onName, onRemove }: { item: SubItem; group: strin
   const edit = useContext(Edit);
   const drag = useDragControls();
   return (
-    <Reorder.Item value={item} dragListener={false} dragControls={drag} whileDrag={{ scale: 1.02, boxShadow: "4px 4px 0 0 var(--color-rose-deep)", zIndex: 10 }} className="relative flex items-center border border-line bg-ink">
+    <Reorder.Item value={item} dragListener={false} dragControls={drag} whileDrag={{ scale: 1.02, boxShadow: "4px 4px 0 0 var(--rose-deep)", zIndex: 10 }} className="relative flex items-center border border-line bg-ink">
       <input value={item.name} readOnly={!edit} maxLength={80} aria-label={`${group}: ${t.admin.fp.subcategory}`} onChange={(e) => onName(e.target.value)} className="min-w-0 flex-1 bg-transparent px-2 py-2 text-xs font-semibold outline-none focus:text-rose-hi" />
       {edit && (
         <>

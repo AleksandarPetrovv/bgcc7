@@ -37,7 +37,7 @@ export function DiscordPrompt({ open: ctl, onClose }: { open?: boolean; onClose?
     <Modal open={open} onClose={close} tone="balkan">
       {step.k === "ok" ? (
         <div className="flex flex-col items-center gap-4 py-4 text-center">
-          <CheckCircle2 className="size-10 text-balkan" />
+          <CheckCircle2 className="size-10 text-balkan-hi" />
           <p className="text-sm font-bold text-paper">{d.ok(step.name)}</p>
           <SlantButton tone="balkan" onClick={close} className="px-6 py-2.5">
             {d.done}

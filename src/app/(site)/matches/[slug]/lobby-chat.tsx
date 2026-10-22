@@ -81,15 +81,15 @@ function ChatSession({
             const bancho = m.from === "BanchoBot";
             const side = m.side === 1 ? "red" : m.side === 2 ? "blue" : sides.get(m.from.toLowerCase());
             return (
-              <p key={m.key} data-chat-key={m.key} className={cn("break-words py-0.5 leading-snug", m.ref && !bancho && "-mx-3 border-l-2 border-balkan bg-balkan/10 px-3")}>
-                <span className="num mr-2 text-xs text-ash/70">{new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
-                <span className={cn("font-black", bancho ? "text-gold" : m.ref ? "text-balkan" : side === "red" ? "text-rose-hi" : side === "blue" ? "text-azure-hi" : "text-paper")}>{m.from.replace(/_/g, " ")}</span>
+              <p key={m.key} data-chat-key={m.key} className={cn("break-words py-0.5 leading-snug", m.ref && !bancho && "-mx-3 border-l-2 border-balkan-deep bg-balkan/20 px-3")}>
+                <span className="num mr-2 text-xs text-ash">{new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                <span className={cn("font-black", bancho ? "text-gold-hi" : m.ref ? "text-balkan-hi" : side === "red" ? "text-crimson-hi" : side === "blue" ? "text-azure-hi" : "text-paper")}>{m.from.replace(/_/g, " ")}</span>
                 <span className={cn("ml-2", bancho ? "text-paper/70" : "text-paper")}>{m.text}</span>
               </p>
             );
           })
         ) : (
-          <p className="py-6 text-center text-xs font-bold uppercase tracking-wide text-ash/60">{t.lobby.quiet}</p>
+          <p className="py-6 text-center text-xs font-bold uppercase tracking-wide text-ash">{t.lobby.quiet}</p>
         )}
       </div>
       {(fail === "noslot" || fail === "nouser" || fail === "blocked") && (
@@ -97,7 +97,7 @@ function ChatSession({
       )}
       {canSay && (
       <form onSubmit={send} className="flex gap-2 border-t border-line px-3 py-2">
-        <span className={cn("flex min-w-0 flex-1 -skew-x-12 border border-line bg-ink focus-within:border-paper", fail && "border-rose focus-within:border-rose")}>
+        <span className={cn("flex min-w-0 flex-1 -skew-x-12 border border-line bg-field focus-within:border-paper", fail && "border-rose focus-within:border-rose")}>
         <input
           ref={inputRef}
           value={text}
@@ -109,13 +109,13 @@ function ChatSession({
           autoComplete="off"
           disabled={disabled}
           placeholder={readOnly ? t.lobby.sayPlayer : t.lobby.say}
-          className="adm-bare min-w-0 flex-1 skew-x-12 border-0 bg-transparent px-4 py-2 text-[0.95rem] outline-none"
+          className="adm-bare min-w-0 flex-1 skew-x-12 border-0 bg-transparent px-4 py-2 text-[0.95rem] outline-none placeholder:text-ash"
         />
         </span>
         <button
           type="submit"
           disabled={disabled || busy || !!left || !text.trim()}
-          className="inline-flex min-h-8 min-w-20 -skew-x-12 items-center justify-center border border-balkan bg-balkan px-3 text-xs font-black uppercase tracking-wide text-ink transition-colors hover:bg-paper disabled:opacity-50"
+          className="inline-flex min-h-8 min-w-20 -skew-x-12 items-center justify-center border border-balkan bg-balkan px-3 text-xs font-black uppercase tracking-wide text-paper transition-colors hover:bg-paper hover:text-ink disabled:opacity-50"
         >
           <span className="inline-flex skew-x-12 items-center gap-1.5">{left ? <span className="num">{left}s</span> : <><Send className="size-3.5" /> {t.lobby.send}</>}</span>
         </button>

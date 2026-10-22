@@ -15,7 +15,7 @@ export function ReleaseToggle({ stageId, released, className }: { stageId: numbe
     <label
       className={cn(
         "flex h-10 w-fit -skew-x-12 cursor-pointer items-center border px-3.5 transition-[color,background-color,border-color,box-shadow,opacity] duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose",
-        on ? "border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--color-rose-deep)]" : "border-line bg-ink/40 text-ash hover:border-paper/40 hover:text-paper",
+        on ? "border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--rose-deep)]" : "border-line bg-ink/40 text-ash hover:border-paper/40 hover:text-paper",
         pending && "opacity-60",
         className,
       )}
