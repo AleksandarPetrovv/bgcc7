@@ -208,7 +208,9 @@ export async function GET(req: Request) {
 
   const startedAt = Date.now();
   const stageSlug = url.searchParams.get("stage");
-  const stage = stageSlug ? (await getPoolStages()).find((s) => s.slug === stageSlug) : undefined;
+  const stages = await getPoolStages();
+  // no ?stage: the first released pool, so the demo shows the real format
+  const stage = stageSlug ? stages.find((s) => s.slug === stageSlug) : stages.find((s) => s.released);
   const real = stage ? await poolFeed(stage) : null;
   const schedule = await scheduleFeed();
   return sse(
@@ -216,8 +218,12 @@ export async function GET(req: Request) {
     async () => {
       const feed = { ...demo(pin, startedAt), schedule };
       if (!real?.pool.length) return feed;
-      const current = feed.current ? (real.pool.find((m) => m.slot === feed.current!.slot) ?? real.pool[0]) : null;
-      return { ...feed, match: { ...feed.match, round: stage!.title, firstTo: stage!.firstTo ?? feed.match.firstTo }, pool: real.pool, groups: real.groups, current, live: feed.live && current ? { ...feed.live, mapId: current.id } : feed.live };
+      const at = (slot: string) => real.pool[Math.min(Math.max(0, POOL.findIndex((m) => m.slot === slot)), real.pool.length - 1)];
+      const steps = feed.steps.map((x) => ({ ...x, slot: at(x.slot).slot }));
+      const current = feed.current ? at(feed.current.slot) : null;
+      const firstTo = stage!.firstTo ?? feed.match.firstTo;
+      const score: [number, number] = feed.match.winner ? [firstTo, 2] : feed.match.score;
+      return { ...feed, match: { ...feed.match, round: stage!.title, firstTo, score }, pool: real.pool, groups: real.groups, steps, current, live: feed.live && current ? { ...feed.live, mapId: current.id } : feed.live };
     },
     100,
     () => () => {},
