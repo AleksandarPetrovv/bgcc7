@@ -2,7 +2,8 @@ import "server-only";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { onDraft } from "@/db/drafts";
 
-export function sse(req: Request, read: () => Promise<unknown>, every = 3000, subscribe: (fn: () => void) => () => void = onDraft) {
+// gap: min ms between reads, so bursts of change events coalesce into one read
+export function sse(req: Request, read: () => Promise<unknown>, every = 3000, subscribe: (fn: () => void) => () => void = onDraft, gap = 250) {
   const enc = new TextEncoder();
   let closed = false;
   let last = "";
@@ -29,16 +30,31 @@ export function sse(req: Request, read: () => Promise<unknown>, every = 3000, su
         }
       };
       let busy = false;
+      let again = false;
+      let lastRead = 0;
       const push = async () => {
-        if (busy || closed) return;
+        if (closed) return;
+        // a change during a read is queued, not dropped, so the newest state always goes out
+        if (busy) {
+          again = true;
+          return;
+        }
         busy = true;
         try {
-          const json = JSON.stringify((await read()) ?? null);
-          if (json !== last) {
-            last = json;
-            send(`data: ${json}\n\n`);
-          }
-        } catch {
+          do {
+            again = false;
+            const wait = lastRead + gap - Date.now();
+            if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+            if (closed) break;
+            lastRead = Date.now();
+            try {
+              const json = JSON.stringify((await read()) ?? null);
+              if (json !== last) {
+                last = json;
+                send(`data: ${json}\n\n`);
+              }
+            } catch {}
+          } while (again && !closed);
         } finally {
           busy = false;
         }

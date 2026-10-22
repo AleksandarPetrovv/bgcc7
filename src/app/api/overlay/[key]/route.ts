@@ -16,8 +16,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ key: str
   const key = decodeURIComponent((await params).key).toLowerCase();
   if (!(await resolveOverlay(key)).found) return Response.json({ error: "notfound" }, { status: 404 });
 
+  // live packets arrive ~10/s per streamer, only this overlay's own match should wake it
+  let shown: string | null = null;
   const subscribe = (fn: () => void) => {
-    const offs = [onDraft(() => fn()), onLobby(() => fn()), onLive(() => fn())];
+    const offs = [onDraft(() => fn()), onLobby(() => fn()), onLive((id) => (shown === null || id === shown) && fn())];
     return () => offs.forEach((off) => off());
   };
 
@@ -28,6 +30,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ key: str
       let matchId: string | null = null;
       try {
         matchId = (await resolveOverlay(key)).matchId;
+        shown = matchId;
         const feed = matchId ? await buildFeed(matchId) : null;
         clear(id);
         return feed;
