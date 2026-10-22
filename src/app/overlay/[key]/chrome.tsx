@@ -160,9 +160,9 @@ export function Versus({ size = 72 }: { size?: number }) {
   return (
     <span className="relative shrink-0 font-display font-black italic leading-none text-paper" style={{ fontSize: size }}>
       <span className="absolute left-[0.06em] top-[0.05em] text-transparent [-webkit-text-stroke:2px_color-mix(in_srgb,var(--rose-deep)_45%,transparent)]" aria-hidden>
-        vs
+        VS
       </span>
-      <span className="relative">vs</span>
+      <span className="relative">VS</span>
     </span>
   );
 }

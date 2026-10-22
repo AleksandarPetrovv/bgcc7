@@ -56,7 +56,7 @@ function Row({ m, current, i }: { m: FeedMatch; current: boolean; i: number }) {
                 </span>
               ))
             ) : (
-              <span className="text-[18px] italic text-ash">vs</span>
+              <span className="text-[18px] italic text-ash">VS</span>
             )}
           </span>
         </div>
@@ -167,11 +167,11 @@ export function BracketScene({ feed }: { feed: OverlayFeed }) {
       </div>
       <div className="absolute inset-x-[72px] bottom-[50px] top-[230px] grid grid-cols-[minmax(0,1fr)_250px] gap-8">
         <div className="flex min-w-0 flex-col gap-6">
-          <Lane title="Winners bracket" rounds={winners} feed={feed} height={430} />
-          <Lane title="Losers bracket" rounds={losers} feed={feed} height={300} />
+          <Lane title="Winners Bracket" rounds={winners} feed={feed} height={430} />
+          <Lane title="Losers Bracket" rounds={losers} feed={feed} height={300} />
         </div>
         <section className="flex flex-col justify-center gap-3">
-          <span className={cn(LABEL, "text-gold-hi")}>Grand finals</span>
+          <span className={cn(LABEL, "text-gold-hi")}>Grand Finals</span>
           {grand.map((m) => (
             <Mini key={m.id} m={m} current={m.id === feed.match.id} />
           ))}
