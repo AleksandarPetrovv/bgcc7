@@ -19,7 +19,7 @@ export function EditionView({ className }: { className?: string }) {
       window.location.assign(`/${path.split("/")[1] ?? ""}`);
     });
   return (
-    <div className={cn("flex h-8 shrink-0 -skew-x-12 border border-line text-[0.75rem] font-black lg:h-9 lg:text-[0.8rem]", pending && "opacity-60", className)} role="group" aria-label={t.nav.edition}>
+    <div className={cn("flex h-8 shrink-0 -skew-x-12 border border-line text-[0.75rem] font-display font-black lg:h-9 lg:text-[0.8rem]", pending && "opacity-60", className)} role="group" aria-label={t.nav.edition}>
       {EDITIONS.map((e) => (
         <button
           key={e}
@@ -27,7 +27,7 @@ export function EditionView({ className }: { className?: string }) {
           aria-pressed={e === edition}
           disabled={pending}
           onClick={() => e !== edition && pick(e)}
-          className={cn("px-2.5 uppercase tracking-wide transition-colors sm:px-3", e === edition ? "bg-paper text-ink" : "text-ash hover:text-paper")}
+          className={cn("px-2.5 uppercase transition-colors sm:px-3", e === edition ? "bg-paper text-ink" : "text-ash hover:text-paper")}
         >
           <span className="inline-block skew-x-12">
             <span className="hidden sm:inline">bgcc</span>

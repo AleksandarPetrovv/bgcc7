@@ -40,7 +40,7 @@ export function Btn({ onClick, disabled, tone = "line", wide, children }: { onCl
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={cn("inline-flex min-h-8 min-w-0 -skew-x-12 items-center border px-3 text-xs font-black uppercase tracking-wide transition-colors disabled:opacity-50", wide && "justify-center px-1.5", cls)}
+      className={cn("inline-flex min-h-8 min-w-0 -skew-x-12 items-center border px-3 text-xs font-display font-bold transition-colors disabled:opacity-50", wide && "justify-center px-1.5", cls)}
     >
       <span className="inline-flex min-w-0 skew-x-12 items-center gap-1.5 whitespace-nowrap [&>svg]:shrink-0">{children}</span>
     </button>
@@ -77,7 +77,7 @@ export function HelperMissing({ onClose }: { onClose: () => void }) {
             href="/download/helper"
             whileHover={{ x: 4 }}
             whileTap={{ scale: 0.97 }}
-            className="flex min-h-12 -skew-x-6 items-center bg-gold px-5 font-black uppercase tracking-wide text-paper shadow-[5px_5px_0_0_var(--gold-deep)]"
+            className="flex min-h-12 -skew-x-6 items-center bg-gold px-5 font-display font-bold text-paper shadow-[5px_5px_0_0_var(--gold-deep)]"
           >
             <span className="inline-flex skew-x-6 items-center gap-2">
               <Download className="size-4" strokeWidth={3} /> {t.lobby.helperDownload}
@@ -89,7 +89,7 @@ export function HelperMissing({ onClose }: { onClose: () => void }) {
             rel="noreferrer"
             whileHover={{ x: 4 }}
             whileTap={{ scale: 0.97 }}
-            className="flex min-h-12 -skew-x-6 items-center border border-gold px-5 font-black uppercase tracking-wide text-gold-hi hover:bg-gold/10"
+            className="flex min-h-12 -skew-x-6 items-center border border-gold px-5 font-display font-bold text-gold-hi hover:bg-gold/10"
           >
             <span className="inline-flex skew-x-6 items-center gap-2">
               <ExternalLink className="size-4" /> {t.lobby.helperPage}
@@ -125,11 +125,11 @@ export function StreamOrder({ onClose }: { onClose: () => void }) {
         </button>
         <TriangleAlert className="size-8 text-gold-hi" />
         <h3 className="heading-slam mt-2 text-3xl">{t.lobby.makeFailed}</h3>
-        <p className="mt-1 text-sm font-black uppercase tracking-wide text-gold-hi">{t.lobby.streamTitle}</p>
+        <p className="mt-1 text-sm font-display font-bold text-gold-hi">{t.lobby.streamTitle}</p>
         <ol className="mt-4 space-y-2.5">
           {t.lobby.streamSteps.map((s, i) => (
             <li key={i} className="flex items-start gap-3">
-              <span className="num inline-flex size-6 shrink-0 -skew-x-12 items-center justify-center bg-gold text-xs font-black text-paper">
+              <span className="num inline-flex size-6 shrink-0 -skew-x-12 items-center justify-center bg-gold text-xs font-display font-black text-paper">
                 <span className="skew-x-12">{i + 1}</span>
               </span>
               <span className="text-sm font-bold leading-relaxed text-paper/85">{s}</span>
@@ -141,7 +141,7 @@ export function StreamOrder({ onClose }: { onClose: () => void }) {
           onClick={onClose}
           whileHover={{ x: 4 }}
           whileTap={{ scale: 0.97 }}
-          className="mt-6 flex min-h-12 w-full -skew-x-6 items-center bg-gold px-5 font-black uppercase tracking-wide text-paper shadow-[5px_5px_0_0_var(--gold-deep)]"
+          className="mt-6 flex min-h-12 w-full -skew-x-6 items-center bg-gold px-5 font-display font-bold text-paper shadow-[5px_5px_0_0_var(--gold-deep)]"
         >
           <span className="inline-flex skew-x-6 items-center gap-2">
             <Check className="size-4" strokeWidth={3} /> {t.lobby.gotIt}
@@ -186,7 +186,7 @@ export function LobbyHelp({ onClose }: { onClose: () => void }) {
           <div className="mb-5 flex gap-3 border border-gold/60 bg-gold/10 px-4 py-3">
             <TriangleAlert className="mt-0.5 size-4 shrink-0 text-gold-hi" />
             <p className="text-sm leading-relaxed text-paper/90">
-              <span className="font-black uppercase tracking-wide text-gold-hi">{t.lobby.streamTitle}</span> {t.lobby.streamBody}
+              <span className="font-display font-bold text-gold-hi">{t.lobby.streamTitle}</span> {t.lobby.streamBody}
             </p>
           </div>
           <ul className="space-y-4">
@@ -199,7 +199,7 @@ export function LobbyHelp({ onClose }: { onClose: () => void }) {
                 className="grid gap-2 sm:grid-cols-[9.5rem_minmax(0,1fr)] sm:gap-4"
               >
                 <span className="self-start">
-                  <span className="inline-flex -skew-x-12 border px-2.5 py-1 text-xs font-black uppercase tracking-wide" style={{ borderColor: HELP_C[i], color: HELP_C[i] }}>
+                  <span className="inline-flex -skew-x-12 border px-2.5 py-1 text-xs font-display font-bold" style={{ borderColor: HELP_C[i], color: HELP_C[i] }}>
                     <span className="skew-x-12">{h.k}</span>
                   </span>
                 </span>
@@ -219,7 +219,7 @@ export function LobbyHelp({ onClose }: { onClose: () => void }) {
             ))}
           </ul>
           <div className="mt-7 border-t border-dashed border-line pt-5">
-            <div className="text-[0.7rem] font-black uppercase tracking-widest text-ash">{t.lobby.helpExtra}</div>
+            <div className="text-[0.7rem] font-display font-bold text-ash">{t.lobby.helpExtra}</div>
             <ul className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
               {t.lobby.helpCmds.map(([cmd, what]) => (
                 <li key={cmd} className="flex flex-col gap-0.5">
@@ -265,7 +265,7 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
         {copy[1] && <p className="mt-1 text-sm font-bold text-paper/70">{copy[1]}</p>}
         {kind === "start" && warn.length > 0 && (
           <div className="mt-4 border border-gold/50 bg-gold/10 px-3 py-2">
-            <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wide text-gold-hi">
+            <div className="flex items-center gap-1.5 text-xs font-display font-bold text-gold-hi">
               <TriangleAlert className="size-3.5" /> {t.lobby.notAllReady}
             </div>
             <ul className="mt-1 space-y-0.5 text-sm font-bold text-paper/85">
@@ -277,7 +277,7 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
         )}
         {kind === "start" && (
           <div className="mt-5">
-            <div className="text-[0.65rem] font-black uppercase tracking-widest text-ash">{t.lobby.startIn}</div>
+            <div className="text-[0.65rem] font-display font-bold text-ash">{t.lobby.startIn}</div>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {[0, 5, 10, 15, 30].map((s) => (
                 <button
@@ -288,7 +288,7 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
                     setCustom("");
                   }}
                   className={cn(
-                    "num min-h-9 min-w-12 -skew-x-12 border px-2.5 text-sm font-black transition-colors",
+                    "num min-h-9 min-w-12 -skew-x-12 border px-2.5 text-sm font-display font-black transition-colors",
                     !custom && secs === s ? "border-balkan bg-balkan text-paper" : "border-line text-paper hover:border-paper",
                   )}
                 >
@@ -311,7 +311,7 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
             whileHover={{ x: 4 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => onGo(pickSecs)}
-            className={cn("flex min-h-12 -skew-x-6 items-center px-5 text-left font-black uppercase tracking-wide", kind === "close" ? "text-white" : "text-paper")}
+            className={cn("flex min-h-12 -skew-x-6 items-center px-5 text-left font-display font-bold", kind === "close" ? "text-white" : "text-paper")}
             style={{ background: tone.c, boxShadow: `5px 5px 0 0 ${tone.deep}` }}
           >
             <span className="inline-flex skew-x-6 items-center gap-2">
@@ -319,7 +319,7 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
               {kind === "start" && <span className="num normal-case">{pickSecs ? `· ${pickSecs}s` : `· ${t.lobby.now}`}</span>}
             </span>
           </motion.button>
-          <button type="button" onClick={onCancel} className="mt-1 text-xs font-black uppercase tracking-wide text-ash hover:text-paper">
+          <button type="button" onClick={onCancel} className="mt-1 text-xs font-display font-bold text-ash hover:text-paper">
             {t.draft.cancel}
           </button>
         </div>

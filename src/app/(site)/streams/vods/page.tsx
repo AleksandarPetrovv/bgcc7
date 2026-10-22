@@ -37,8 +37,8 @@ export default async function Vods() {
                   <Play className="size-12 fill-paper text-paper" />
                 </span>
               </div>
-              <div className="mt-2 text-xs font-black uppercase text-rose-hi">{roundName(t, m.round)}</div>
-              <div className="truncate font-black">
+              <div className="mt-2 text-xs font-display font-bold text-rose-hi">{roundName(t, m.round)}</div>
+              <div className="truncate font-display font-black">
                 {a?.name}
                 <MeTag t={a?.id} /> {m.team1.score ?? 0}–{m.team2.score ?? 0} {b?.name}
                 <MeTag t={b?.id} />

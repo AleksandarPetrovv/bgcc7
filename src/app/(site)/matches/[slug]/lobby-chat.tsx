@@ -83,17 +83,17 @@ function ChatSession({
             return (
               <p key={m.key} data-chat-key={m.key} className={cn("break-words py-0.5 leading-snug", m.ref && !bancho && "-mx-3 border-l-2 border-balkan-deep bg-balkan/20 px-3")}>
                 <span className="num mr-2 text-xs text-ash">{new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
-                <span className={cn("font-black", bancho ? "text-gold-hi" : m.ref ? "text-balkan-hi" : side === "red" ? "text-crimson-hi" : side === "blue" ? "text-azure-hi" : "text-paper")}>{m.from.replace(/_/g, " ")}</span>
+                <span className={cn("font-display font-black", bancho ? "text-gold-hi" : m.ref ? "text-balkan-hi" : side === "red" ? "text-crimson-hi" : side === "blue" ? "text-azure-hi" : "text-paper")}>{m.from.replace(/_/g, " ")}</span>
                 <span className={cn("ml-2", bancho ? "text-paper/70" : "text-paper")}>{m.text}</span>
               </p>
             );
           })
         ) : (
-          <p className="py-6 text-center text-xs font-bold uppercase tracking-wide text-ash">{t.lobby.quiet}</p>
+          <p className="py-6 text-center text-xs font-display font-bold text-ash">{t.lobby.quiet}</p>
         )}
       </div>
       {(fail === "noslot" || fail === "nouser" || fail === "blocked") && (
-        <p className="border-t border-line bg-rose/10 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-rose-hi">{fail === "noslot" ? t.lobby.noSlot : fail === "nouser" ? t.lobby.noUser : t.lobby.blocked}</p>
+        <p className="border-t border-line bg-rose/10 px-3 py-1.5 text-xs font-display font-bold text-rose-hi">{fail === "noslot" ? t.lobby.noSlot : fail === "nouser" ? t.lobby.noUser : t.lobby.blocked}</p>
       )}
       {canSay && (
       <form onSubmit={send} className="flex gap-2 border-t border-line px-3 py-2">
@@ -115,7 +115,7 @@ function ChatSession({
         <button
           type="submit"
           disabled={disabled || busy || !!left || !text.trim()}
-          className="inline-flex min-h-8 min-w-20 -skew-x-12 items-center justify-center border border-balkan bg-balkan px-3 text-xs font-black uppercase tracking-wide text-paper transition-colors hover:bg-paper hover:text-ink disabled:opacity-50"
+          className="inline-flex min-h-8 min-w-20 -skew-x-12 items-center justify-center border border-balkan bg-balkan px-3 text-xs font-display font-bold text-paper transition-colors hover:bg-paper hover:text-ink disabled:opacity-50"
         >
           <span className="inline-flex skew-x-12 items-center gap-1.5">{left ? <span className="num">{left}s</span> : <><Send className="size-3.5" /> {t.lobby.send}</>}</span>
         </button>

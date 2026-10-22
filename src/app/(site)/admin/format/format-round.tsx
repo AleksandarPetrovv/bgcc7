@@ -60,7 +60,7 @@ function ModPick({ mod, onMod, label }: { mod: PlanMod; onMod: (mod: PlanMod) =>
         className="flex h-7 -skew-x-12 items-center border px-2.5 transition-colors hover:bg-field"
         style={{ borderColor: modHi(COLOR[mod]), color: modHi(COLOR[mod]) }}
       >
-        <span className="flex skew-x-12 items-center gap-1 text-xs font-black">
+        <span className="flex skew-x-12 items-center gap-1 text-xs font-display font-black">
           {mod}
           <ChevronDown className={cn("size-3 transition-transform duration-200", open && "rotate-180")} strokeWidth={3} />
         </span>
@@ -86,7 +86,7 @@ function ModPick({ mod, onMod, label }: { mod: PlanMod; onMod: (mod: PlanMod) =>
                   onMod(m);
                   setOpen(false);
                 }}
-                className={cn("flex h-7 w-16 -skew-x-12 items-center justify-center border text-xs font-black transition-colors", m === mod ? "" : "hover:bg-[color-mix(in_srgb,var(--c)_22%,transparent)]")}
+                className={cn("flex h-7 w-16 -skew-x-12 items-center justify-center border text-xs font-display font-black transition-colors", m === mod ? "" : "hover:bg-[color-mix(in_srgb,var(--c)_22%,transparent)]")}
                 style={{ borderColor: COLOR[m], color: m === mod ? modOn(COLOR[m]) : modHi(COLOR[m]), background: m === mod ? COLOR[m] : undefined, ...v({ "--c": COLOR[m] }) }}
               >
                 <span className="skew-x-12">{m}</span>
@@ -176,10 +176,10 @@ function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "
         className={cn("relative flex min-h-16 w-40 max-w-full -skew-x-6 flex-col items-start justify-start gap-0.5 border px-3 py-1.5 text-left transition-shadow", open && "shadow-[3px_3px_0_0_var(--rose-deep)]")}
         style={{ borderColor: c, background: `color-mix(in srgb, ${c} ${open ? 26 : 14}%, var(--field))` }}
       >
-        <span className="skew-x-6 text-xs font-black" style={{ color: modHi(c) }}>
+        <span className="skew-x-6 text-xs font-display font-black" style={{ color: modHi(c) }}>
           {mod}
         </span>
-        <span className="flex w-full skew-x-6 flex-col text-[0.72rem] font-semibold leading-snug text-paper/85">{names.length ? names.map((name, i) => <span key={i} className="break-words">{name}</span>) : <span className="text-ash/50">—</span>}</span>
+        <span className="flex w-full skew-x-6 flex-col text-[0.72rem] font-display font-semibold leading-snug text-paper/85">{names.length ? names.map((name, i) => <span key={i} className="break-words">{name}</span>) : <span className="text-ash/50">—</span>}</span>
       </button>
       <AnimatePresence>
         {open && (
@@ -198,7 +198,7 @@ function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "
               {edit && onMod && mod !== "FM" ? (
                 <ModPick mod={mod} onMod={onMod} label={t.admin.fp.mods} />
               ) : (
-                <span className="-skew-x-12 border px-1.5 text-xs font-black" style={{ borderColor: c, color: modHi(c) }}>
+                <span className="-skew-x-12 border px-1.5 text-xs font-display font-black" style={{ borderColor: c, color: modHi(c) }}>
                   <span className="inline-block skew-x-12">{mod}</span>
                 </span>
               )}
@@ -215,7 +215,7 @@ function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "
                 const matches = group.items.filter((item) => `${group.name} ${item.name}`.toLowerCase().includes(query.trim().toLowerCase()));
                 if (!matches.length) return null;
                 return <fieldset key={group.id} className="mb-3 last:mb-0">
-                  <legend className="mb-1 text-[0.65rem] font-black uppercase tracking-wide text-ash">{group.name}</legend>
+                  <legend className="mb-1 text-[0.65rem] font-display font-bold text-ash">{group.name}</legend>
                   {matches.map((item) => <label key={item.id} className="flex cursor-pointer items-center gap-2 py-1.5 text-sm text-paper hover:text-rose-hi">
                     <input type="checkbox" checked={ids.includes(item.id)} disabled={!edit} onChange={(e) => onSelect(e.target.checked ? [...ids, item.id] : ids.filter((id) => id !== item.id))} className="size-4 shrink-0 accent-rose" />
                     {item.name}
@@ -227,7 +227,7 @@ function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "
             {edit && ids.length > 0 && <button type="button" onClick={() => onSelect([])} className="w-full border-t border-line px-3 py-2 text-left text-xs text-ash hover:text-paper">{t.admin.fp.clearSelection}</button>}
             {edit && onRemove && (
               <div className="flex justify-end border-t border-line px-2 py-1.5">
-                <button type="button" onClick={onRemove} className="flex items-center gap-1.5 px-2 py-1 text-[0.65rem] font-black uppercase tracking-wide text-ash transition-colors hover:text-rose-hi">
+                <button type="button" onClick={onRemove} className="flex items-center gap-1.5 px-2 py-1 text-[0.65rem] font-display font-bold text-ash transition-colors hover:text-rose-hi">
                   <Trash2 className="size-3.5" /> {t.admin.fp.removeMap}
                 </button>
               </div>
@@ -240,7 +240,7 @@ function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "
 }
 
 const rowCls = "flex flex-wrap items-center gap-x-3 gap-y-2 border border-line bg-ink/40 p-2.5";
-const nameCls = "w-32 min-w-0 bg-transparent text-sm font-black uppercase tracking-wide outline-none focus:text-rose-hi sm:w-40";
+const nameCls = "w-32 min-w-0 bg-transparent text-sm font-display font-black outline-none focus:text-rose-hi sm:w-40";
 
 function CatRow({ c, onChange, onRemove, prev }: { c: PlanCat; onChange: (c: PlanCat) => void; onRemove: () => void; prev: PlanRound[] }) {
   const t = useDict();
@@ -274,7 +274,7 @@ function CatRow({ c, onChange, onRemove, prev }: { c: PlanCat; onChange: (c: Pla
                 key={m}
                 type="button"
                 onClick={() => add(m)}
-                className="h-7 -skew-x-12 border border-line px-1.5 text-[0.62rem] font-black text-ash transition-colors hover:border-[var(--m)] hover:bg-[var(--m)] hover:text-[var(--mo)]"
+                className="h-7 -skew-x-12 border border-line px-1.5 text-[0.62rem] font-display font-black text-ash transition-colors hover:border-[var(--m)] hover:bg-[var(--m)] hover:text-[var(--mo)]"
                 style={v({ "--m": COLOR[m], "--mo": modOn(COLOR[m]) })}
               >
                 <span className="inline-block skew-x-12">+{m}</span>
@@ -304,15 +304,15 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
           <span className="inline-block skew-x-12">BO{s.bestOf}</span>
         </span>
         <h2 className="heading-slam min-w-0 flex-1 text-2xl sm:text-3xl">{t.rounds[r.name] ?? r.name}</h2>
-        <div className="flex items-center gap-2 text-[0.65rem] font-black uppercase tracking-[0.12em] text-ash">
+        <div className="flex items-center gap-2 text-[0.65rem] font-display font-bold text-ash">
           {t.admin.fp.firstTo}
           <Stepper value={r.firstTo} min={1} max={15} onChange={(n) => onChange({ ...r, firstTo: n })} label={t.admin.fp.firstTo} />
         </div>
-        <div className="flex items-center gap-2 text-[0.65rem] font-black uppercase tracking-[0.12em] text-ash">
+        <div className="flex items-center gap-2 text-[0.65rem] font-display font-bold text-ash">
           {t.admin.fp.bans}
           <Stepper value={r.bans} min={0} max={6} onChange={(n) => onChange({ ...r, bans: n })} label={t.admin.fp.bans} />
         </div>
-        <div className="flex items-center gap-2 text-[0.65rem] font-black uppercase tracking-[0.12em] text-ash">
+        <div className="flex items-center gap-2 text-[0.65rem] font-display font-bold text-ash">
           {t.admin.fp.targetSr}
           <SrInput value={r.sr ?? null} onChange={(sr) => onChange({ ...r, sr })} label={t.admin.fp.targetSr} />
         </div>
@@ -330,7 +330,7 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
           ] as const
         ).map(([k, val]) => (
           <div key={k} className="flex flex-col gap-0.5 bg-coal px-4 py-2.5">
-            <span className="text-[0.62rem] font-black uppercase tracking-[0.12em] text-ash">{k}</span>
+            <span className="text-[0.62rem] font-display font-bold text-ash">{k}</span>
             <span className="num text-xl leading-none text-paper">{val}</span>
           </div>
         ))}
@@ -354,7 +354,7 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
           <button
             type="button"
             onClick={() => onChange({ ...r, cats: [...r.cats, { id: newId(), name: t.admin.fp.newCat, maps: [] }] })}
-            className="flex h-10 w-full -skew-x-6 items-center justify-center gap-2 border border-dashed border-line text-xs font-black uppercase tracking-wide text-ash transition-colors hover:border-rose hover:text-rose-hi"
+            className="flex h-10 w-full -skew-x-6 items-center justify-center gap-2 border border-dashed border-line text-xs font-display font-bold text-ash transition-colors hover:border-rose hover:text-rose-hi"
           >
             <span className="flex skew-x-6 items-center gap-2">
               <Plus className="size-3.5" strokeWidth={3} /> {t.admin.fp.addCat}

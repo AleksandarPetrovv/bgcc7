@@ -30,7 +30,7 @@ function Team({ s, flip }: { s: Side; flip?: boolean }) {
     <div className={cn("flex min-w-0 items-center gap-3", flip && "flex-row-reverse text-right")}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {s.image ? <img src={s.image} alt="" className={cn("size-12 shrink-0 border-b-[3px] object-cover sm:size-14", flip ? "border-azure" : "border-crimson")} /> : <span className="size-12 shrink-0 bg-slate sm:size-14" />}
-      <span className="line-clamp-2 min-w-0 break-words font-black leading-tight sm:text-lg">{s.name}</span>
+      <span className="line-clamp-2 min-w-0 break-words font-display font-black leading-tight sm:text-lg">{s.name}</span>
     </div>
   );
 }
@@ -43,7 +43,7 @@ function Picker({ open, onClose, week, title, onSend }: { open: boolean; onClose
   return (
     <Modal open={open} onClose={() => !pending && onClose()}>
       <h3 className="heading-slam pr-6 text-2xl">{title}</h3>
-      <p className="mt-1 text-xs font-black uppercase tracking-wide text-ash">{t.sched.window}</p>
+      <p className="mt-1 text-xs font-display font-bold text-ash">{t.sched.window}</p>
       <form
         className="mt-5 grid gap-4"
         onSubmit={(e) => {
@@ -87,7 +87,7 @@ function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
   if (!list.length) return null;
   return (
     <details className="group border-t border-line">
-      <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-[0.7rem] font-black uppercase tracking-[0.16em] text-ash hover:text-paper sm:px-5">
+      <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-[0.7rem] font-display font-bold text-ash hover:text-paper sm:px-5">
         {t.sched.history} <span className="num">{list.length}</span>
       </summary>
       <ol className="grid gap-1.5 px-4 pb-4 sm:px-5">
@@ -95,7 +95,7 @@ function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
           <li key={p.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-sm">
             <span className={cn("num", p.status === "rejected" || p.status === "cancelled" ? "text-ash line-through" : "text-paper")}>{w.full(p.at)}</span>
             <span className="text-xs text-ash">{team(p.teamId)}</span>
-            <span className={cn("ml-auto text-[0.68rem] font-black uppercase tracking-wide", p.status === "accepted" ? "text-balkan-hi" : p.status === "pending" ? "text-gold-hi" : "text-rose-hi/80")}>{label(p)}</span>
+            <span className={cn("ml-auto text-[0.68rem] font-display font-bold", p.status === "accepted" ? "text-balkan-hi" : p.status === "pending" ? "text-gold-hi" : "text-rose-hi/80")}>{label(p)}</span>
           </li>
         ))}
       </ol>
@@ -144,9 +144,9 @@ export function SchedCard({ m, round, me, opp, week, open }: { m: SchedMatch; ro
   return (
     <article className="in-up overflow-hidden border border-line bg-coal">
       <div className="flex items-center gap-3 border-b border-line bg-ink/60 px-4 py-2.5 sm:px-5">
-        <span className="text-xs font-black uppercase tracking-[0.14em] text-rose-hi">{round}</span>
+        <span className="text-xs font-display font-bold text-rose-hi">{round}</span>
         {agreed && (
-          <span className="ml-auto inline-flex items-center gap-1 text-[0.68rem] font-black uppercase tracking-wide text-balkan-hi">
+          <span className="ml-auto inline-flex items-center gap-1 text-[0.68rem] font-display font-bold text-balkan-hi">
             <Check className="size-3.5" strokeWidth={3} /> {t.sched.agreed}
           </span>
         )}
@@ -165,10 +165,10 @@ export function SchedCard({ m, round, me, opp, week, open }: { m: SchedMatch; ro
         ) : !open ? (
           <p className="mt-4 text-sm font-bold text-ash">{t.sched.locked}</p>
         ) : agreed ? (
-          <p className="mt-2 text-xs uppercase tracking-wide text-ash/80">{t.sched.closes(w.short(week.deadline))}</p>
+          <p className="mt-2 text-xs font-display font-bold text-ash/80">{t.sched.closes(w.short(week.deadline))}</p>
         ) : (
           <div className="relative mx-auto mt-5 max-w-xs pb-2">
-            <p className="text-[0.7rem] font-black uppercase tracking-[0.16em] text-rose-hi">{t.sched.closesIn}</p>
+            <p className="text-[0.7rem] font-display font-bold text-rose-hi">{t.sched.closesIn}</p>
             <Countdown to={week.deadline} />
             <p className="mt-1 text-sm text-paper/80">{w.full(week.deadline)}</p>
           </div>
@@ -176,7 +176,7 @@ export function SchedCard({ m, round, me, opp, week, open }: { m: SchedMatch; ro
 
         {week && open && pend && (
           <div className={cn("mx-auto mt-5 max-w-md border px-4 py-3", theirs ? "border-gold bg-gold/10" : "border-line")}>
-            <p className="text-xs font-black uppercase tracking-wide text-ash">{theirs ? t.sched.proposed(opp.name) : t.sched.waitingOn(opp.name)}</p>
+            <p className="text-xs font-display font-bold text-ash">{theirs ? t.sched.proposed(opp.name) : t.sched.waitingOn(opp.name)}</p>
             <p className="num mt-1 text-2xl text-paper">{w.full(pend.at)}</p>
           </div>
         )}

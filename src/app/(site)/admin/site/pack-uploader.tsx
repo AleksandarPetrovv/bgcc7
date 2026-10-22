@@ -158,7 +158,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
         {pack ? (
           <>
             <span className="min-w-0 flex-1">
-              <span className="font-bold">{t.admin.packCurrent}</span>{" "}
+              <span className="font-display font-bold">{t.admin.packCurrent}</span>{" "}
               <span className="num text-ash">
                 {mb(pack.size)}
                 {pack.at &&
@@ -210,7 +210,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
           <motion.span animate={over ? { y: -4, scale: 1.1 } : { y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 400, damping: 20 }}>
             <UploadCloud className={cn("size-8 transition-colors", over ? "text-rose-hi" : "text-ash group-hover:text-paper")} />
           </motion.span>
-          <span className="text-sm font-bold uppercase tracking-wide">{pack ? t.admin.packReplace(name(stage)) : t.admin.packDrop(name(stage))}</span>
+          <span className="text-sm font-display font-bold">{pack ? t.admin.packReplace(name(stage)) : t.admin.packDrop(name(stage))}</span>
           <span className="text-xs text-ash">{t.admin.packHint}</span>
           <AnimatePresence>
             {progress !== null && (
@@ -269,7 +269,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className={cn("text-xs font-bold uppercase tracking-wide", msg.ok ? "text-balkan-hi" : "text-rose-hi")}
+            className={cn("text-xs font-display font-bold", msg.ok ? "text-balkan-hi" : "text-rose-hi")}
           >
             {msg.text}
           </motion.p>

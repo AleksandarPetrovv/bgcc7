@@ -20,7 +20,7 @@ export function PoolMode({ t, on, stage, edit }: { t: Dict; on: "sheet" | "edit"
             on === k ? "border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--rose-deep)]" : "border-line bg-ink/40 text-ash hover:border-paper/40 hover:text-paper",
           )}
         >
-          <span className="flex skew-x-12 items-center gap-2 text-xs font-black uppercase">
+          <span className="flex skew-x-12 items-center gap-2 text-xs font-display font-bold">
             <Icon className="size-3.5" />
             {label}
           </span>

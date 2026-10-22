@@ -20,7 +20,7 @@ function Row({ m, slot }: { m: Match; slot: 1 | 2 }) {
       {won && <span className="absolute inset-y-1.5 left-0 w-0.5 bg-balkan" aria-hidden />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {team && <img src={team.image} alt="" className="size-9 shrink-0 object-cover" />}
-      <span className={cn("min-w-0 flex-1 truncate text-[0.95rem] font-bold", won && "font-black text-paper")}>{team?.name ?? side.name}</span>
+      <span className={cn("min-w-0 flex-1 truncate text-[0.95rem] font-display font-bold", won && "font-display font-black text-paper")}>{team?.name ?? side.name}</span>
       <MeTag t={side.id} />
       <span className={cn("num w-7 shrink-0 text-right text-2xl leading-none", won ? "text-balkan-hi" : "text-paper/80")}>{side.score ?? 0}</span>
     </span>
@@ -32,7 +32,7 @@ export function ResultCard({ m }: { m: Match }) {
   const lang = useLang();
   const body = (
     <>
-      <span className="flex items-center gap-2 border-b border-line bg-ink/70 px-4 py-2 text-xs font-black uppercase">
+      <span className="flex items-center gap-2 border-b border-line bg-ink/70 px-4 py-2 text-xs font-display font-bold">
         <span className="truncate text-rose-hi">{roundName(t, m.round)}</span>
         <span className="num ml-auto shrink-0 text-[0.8rem] font-normal normal-case text-paper/70">{m.datetime && fmtSofia(new Date(m.datetime), lang === "bg" ? "bg-BG" : "en-GB")}</span>
         {m.links.length > 0 && (

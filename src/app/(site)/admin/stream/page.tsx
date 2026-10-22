@@ -32,10 +32,10 @@ export default async function Stream() {
           <Panel key={m.id} title={t.rounds[m.round] ?? m.round} i={i + 1} className={m.mine ? "border-2 border-gold shadow-[6px_6px_0_0_var(--gold-deep)]" : undefined}>
             <div className="grid gap-4">
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-                <span className="flex min-w-0 items-center gap-2 text-lg font-black">
+                <span className="flex min-w-0 items-center gap-2 text-lg font-display font-black">
                   <span className="h-5 w-1 shrink-0 bg-crimson" aria-hidden />
                   <span className="truncate">{m.team1.name}</span>
-                  <span className="text-[0.62rem] uppercase text-ash">vs</span>
+                  <span className="font-display text-[0.62rem] uppercase text-ash">vs</span>
                   <span className="truncate">{m.team2.name}</span>
                   <span className="h-5 w-1 shrink-0 bg-azure" aria-hidden />
                 </span>
@@ -43,13 +43,13 @@ export default async function Stream() {
                   <CalendarClock className="size-3.5 text-ash" />
                   {m.datetime ? fmtSofia(new Date(m.datetime), lang === "bg" ? "bg-BG" : "en-GB") : t.common.tbd}
                 </span>
-                <span className={m.mine ? "flex items-center gap-1.5 text-xs font-black uppercase text-gold-hi" : "flex items-center gap-1.5 text-xs text-ash"}>
+                <span className={m.mine ? "flex items-center gap-1.5 text-xs font-display font-bold text-gold-hi" : "flex items-center gap-1.5 text-xs text-ash"}>
                   <Radio className="size-3.5" />
                   {m.mine ? s.you : (m.streamer ?? t.common.tbd)}
                 </span>
               </div>
               <OverlayPreview slug={m.slug} title={s.preview} label={s.liveScores} offline={s.noLiveScores} clientsLabel={s.clients} delayLabel={s.delay} initialAt={getLive(m.id)?.at ?? null} initialClients={getLive(m.id)?.clients.length ?? 0} />
-              {getReject(m.id) && <p className="text-xs font-black uppercase tracking-wide text-rose-hi">{s.reject[getReject(m.id)!]}</p>}
+              {getReject(m.id) && <p className="text-xs font-display font-bold text-rose-hi">{s.reject[getReject(m.id)!]}</p>}
               <SceneButtons id={m.id} initial={m.scene} />
               <CopyLink url={`${base}/overlay/${m.slug}`} />
             </div>

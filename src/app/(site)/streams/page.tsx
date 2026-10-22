@@ -59,11 +59,11 @@ export default async function Streams() {
               const b = teamById(m.team2.id);
               return (
                 <div key={m.id} {...meT(a?.id)} className="in-right border border-line bg-coal p-3" style={{ "--i": Math.min(i, 8), "--s": "0.08s", "--d": "0.35s" } as React.CSSProperties}>
-                  <div className="flex items-center justify-between text-xs font-black uppercase">
+                  <div className="flex items-center justify-between text-xs font-display font-bold">
                     <span className="text-rose-hi">{roundName(t, m.round)}</span>
                     <span className="num text-sm text-paper">{fmtSofia(new Date(m.datetime!), lang === "bg" ? "bg-BG" : "en-GB")}</span>
                   </div>
-                  <div className="mt-1 truncate font-black">
+                  <div className="mt-1 truncate font-display font-black">
                     {a?.name}
                     <MeTag t={a?.id} /> <span className="text-rose-hi">{t.common.vs}</span> {b?.name}
                     <MeTag t={b?.id} />
@@ -104,13 +104,13 @@ function Offline({ t, next }: { t: Dict; next: { round: string; at: string; a?: 
         </div>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-coal via-coal/70 to-coal/30" aria-hidden />
-      <span className="relative flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-ash">
+      <span className="relative flex items-center gap-2 text-xs font-display font-bold text-ash">
         <span className="size-2 rotate-45 bg-ash" aria-hidden /> {t.streams.offline}
       </span>
       {next ? (
         <div className="relative">
-          <div className="text-xs font-black uppercase tracking-[0.14em] text-paper/70">{t.streams.nextUp}</div>
-          <div className="mt-1 text-sm font-black uppercase text-rose-hi">{next.round}</div>
+          <div className="text-xs font-display font-bold text-paper/70">{t.streams.nextUp}</div>
+          <div className="mt-1 text-sm font-display font-bold text-rose-hi">{next.round}</div>
           <div className="heading-slam mt-2 flex flex-wrap items-baseline gap-x-3 text-[clamp(1.5rem,4vw,3rem)] leading-none">
             <span>{next.a?.name}</span>
             <span className="text-rose-hi">{t.common.vs}</span>

@@ -16,7 +16,7 @@ export function LobbyButton({ lobbyId, mine, full, hasBooking }: { lobbyId: numb
       if (!res.ok) setError(t.qual.errors[res.error] ?? t.qual.errors.error);
     });
 
-  if (full && !mine) return <span className="text-xs font-black uppercase text-ash">{t.qual.full}</span>;
+  if (full && !mine) return <span className="text-xs font-display font-bold text-ash">{t.qual.full}</span>;
   return (
     <span className="flex flex-col items-end gap-1">
       <button
@@ -24,7 +24,7 @@ export function LobbyButton({ lobbyId, mine, full, hasBooking }: { lobbyId: numb
         disabled={pending}
         onClick={() => run(() => (mine ? leaveLobby() : bookLobby(lobbyId)))}
         className={cn(
-          "min-h-9 px-3 text-xs font-black uppercase tracking-wide transition disabled:opacity-50",
+          "min-h-9 px-3 text-xs font-display font-bold transition disabled:opacity-50",
           mine ? "border border-line text-ash hover:border-rose hover:text-paper" : "bg-balkan text-paper hover:bg-paper hover:text-ink",
         )}
       >

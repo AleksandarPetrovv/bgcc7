@@ -15,7 +15,7 @@ import { clearPlayer, deleteScore, importAll, importOne, setScore, updateScore }
 import { Dropdown } from "@/components/admin/dropdown";
 import { isBGCC6 } from "@/db";
 
-const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
+const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 
 export default async function AdminQualifiers() {
   const [t, viewer, lobbies, results, rows, settings] = await Promise.all([getDict(), getViewer(), getLobbies(), getQualResults(), getQualScoreRows(), getSettings()]);
@@ -34,7 +34,7 @@ export default async function AdminQualifiers() {
           <ul className="mb-4 divide-y divide-line border border-line">
             {lobbies.map((l, k) => (
               <li key={l.id} style={{ "--i": k, "--s": "0.06s", "--d": "0.55s" } as React.CSSProperties} className="in-left flex flex-wrap items-center gap-3 px-3 py-2">
-                <span className="font-bold">{l.name}</span>
+                <span className="font-display font-bold">{l.name}</span>
                 <span className="num text-xs text-ash">{mpIds(l.mpLinks).join(", ") || t.admin.noMp}</span>
                 {mpIds(l.mpLinks).length > 0 && <ActionForm action={importOne.bind(null, l.id)} submit={t.admin.import} ghost className="ml-auto" />}
               </li>
@@ -84,7 +84,7 @@ export default async function AdminQualifiers() {
                 <span className={cn("in-slam num w-10 text-center text-lg [--d:0.6s]", i < settings.qualifyCount ? "text-balkan-hi" : "text-ash")}>#{i + 1}</span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.avatar} alt="" className="size-7" />
-                <span className="min-w-0 truncate font-bold">{p.username}</span>
+                <span className="min-w-0 truncate font-display font-bold">{p.username}</span>
                 <span className="in-wipe-r num ml-auto text-balkan-hi [--d:0.7s]">{p.zSum.toFixed(2)}</span>
                 <span className="num hidden w-28 text-right text-sm text-ash sm:block">{t.admin.mapsPlayed(Object.keys(p.perf).length, results.maps.length)}</span>
                 <ChevronDown className="size-4 shrink-0 text-ash transition-transform duration-300 group-open:rotate-180 group-hover:text-paper" aria-hidden />
@@ -93,11 +93,11 @@ export default async function AdminQualifiers() {
                 <ul className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-3">
                   {own.map((r) => (
                     <li key={r.id} className="flex items-center gap-2 border border-line bg-ink/50 p-2">
-                      <span className="w-10 shrink-0 text-sm font-black">{slotOf.get(r.beatmapId) ?? "?"}</span>
+                      <span className="w-10 shrink-0 text-sm font-display font-black">{slotOf.get(r.beatmapId) ?? "?"}</span>
                       <ActionForm key={`${r.id}-${r.score}-${r.acc}-${r.mods}`} action={updateScore.bind(null, r.id)} submit="✓" ghost className="flex min-w-0 flex-1 items-center gap-1.5">
                         <Field name="score" inputMode="numeric" required defaultValue={r.score} aria-label={t.admin.scoreLabel} className={cn(inputCls, "adm-tight num w-0 flex-[3]")} />
                         <Field name="acc" inputMode="decimal" required defaultValue={r.acc.toFixed(2)} aria-label={t.admin.accLabel} className={cn(inputCls, "adm-tight num w-0 flex-[2]")} />
-                        <Field name="mods" defaultValue={r.mods ?? ""} placeholder="NF" aria-label={t.admin.mod} className={cn(inputCls, "adm-tight w-0 flex-[2] uppercase")} />
+                        <Field name="mods" defaultValue={r.mods ?? ""} placeholder="NF" aria-label={t.admin.mod} className={cn(inputCls, "adm-tight font-display w-0 flex-[2] uppercase")} />
                       </ActionForm>
                       <ActionForm action={deleteScore.bind(null, r.id)} submit="×" ghost />
                     </li>

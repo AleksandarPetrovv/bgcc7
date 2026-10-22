@@ -50,7 +50,7 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
         {s.avatarUrl && <img src={s.avatarUrl} alt="" className="in-spin size-9 [--d:0.5s]" />}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {s.country && <img src={flagUrl(s.country)} alt="" className="h-2.5" />}
-        <span className="in-wipe min-w-0 truncate font-black [--d:0.6s]">{s.username}</span>
+        <span className="in-wipe min-w-0 truncate font-display font-black [--d:0.6s]">{s.username}</span>
         <span className="num hidden text-xs text-ash sm:inline">#{s.osuId}</span>
       </div>
       {s.clash && (
@@ -84,9 +84,9 @@ function PermPicker({ initial }: { initial: string[] }) {
     });
   return (
     <fieldset>
-      <legend className="mb-1.5 flex items-center gap-2 text-xs font-bold uppercase text-ash">
+      <legend className="mb-1.5 flex items-center gap-2 text-xs font-display font-bold text-ash">
         {t.admin.permission}
-        {on.size === 0 && <span className="font-black text-rose-hi">· {t.admin.noPerm}</span>}
+        {on.size === 0 && <span className="font-display font-black text-rose-hi">· {t.admin.noPerm}</span>}
       </legend>
       <div className="flex flex-wrap gap-2">
         {ROLES.map((r, k) => {
@@ -106,7 +106,7 @@ function PermPicker({ initial }: { initial: string[] }) {
               )}
             >
               <input type="checkbox" name="permRoles" value={r} checked={checked} disabled={blocked} onChange={() => toggle(r)} className="sr-only" />
-              <span className="flex skew-x-12 items-center gap-2 text-xs font-black uppercase">
+              <span className="flex skew-x-12 items-center gap-2 text-xs font-display font-bold">
                 <span className={cn("grid size-4 place-items-center border transition-colors", checked ? "border-white bg-white text-rose" : "border-current")}>
                   {checked ? <Check className="size-3" strokeWidth={3.5} /> : blocked && <Lock className="size-2.5" />}
                 </span>
@@ -141,7 +141,7 @@ export function StaffList({ rows }: { rows: StaffRow[] }) {
     <div>
       <p className="mb-2 text-xs text-ash">
         {t.admin.dragHint}
-        {saved && !pending && <Flash className="ml-2 font-bold uppercase tracking-wide text-balkan-hi">{t.admin.saved}</Flash>}
+        {saved && !pending && <Flash className="ml-2 font-display font-bold text-balkan-hi">{t.admin.saved}</Flash>}
       </p>
       <Reorder.Group
         axis="y"

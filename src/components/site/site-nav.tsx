@@ -99,7 +99,7 @@ function MatchLink({ slug, path, big, onClick, clock }: { slug: string; path: st
         onClick={onClick}
         aria-current={on ? "page" : undefined}
         className={cn(
-          "group relative inline-flex -skew-x-12 items-center overflow-hidden font-black uppercase tracking-wide text-white",
+          "group relative inline-flex -skew-x-12 items-center overflow-hidden font-display font-bold text-white",
           big ? "match-cta heading-slam min-h-12 w-full px-6 text-2xl" : "lift-sm h-9 border border-rose px-3.5 text-[0.8rem] [--lift:var(--rose-deep)]",
           on ? "bg-rose-deep" : "bg-rose",
         )}
@@ -122,7 +122,7 @@ function LivePill({ big }: { big?: boolean }) {
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center gap-1 bg-rose px-1.5 py-0.5 font-black uppercase leading-none tracking-wide text-white",
+        "inline-flex shrink-0 items-center gap-1 bg-rose px-1.5 py-0.5 font-display font-bold leading-none text-white",
         big ? "ml-2 text-xs" : "pointer-events-none absolute bottom-2.5 left-1/2 -translate-x-1/2 text-[0.55rem]",
       )}
     >
@@ -213,7 +213,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
                   }}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "group relative flex items-center whitespace-nowrap px-2.5 text-[0.78rem] font-black uppercase tracking-wide transition-colors 2xl:px-3.5",
+                    "group relative flex items-center whitespace-nowrap px-2.5 text-[0.78rem] font-display font-bold transition-colors 2xl:px-3.5",
                     active ? "text-paper" : "text-paper/70 hover:text-paper",
                   )}
                 >
@@ -231,7 +231,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
           {register && (
           <Link
             href="/register"
-            className="lift-sm sheen hidden h-9 -skew-x-12 items-center bg-paper px-4 text-[0.8rem] font-black uppercase tracking-wide text-ink [--lift:var(--rose)] hover:bg-rose-deep sm:inline-flex"
+            className="lift-sm sheen hidden h-9 -skew-x-12 items-center bg-paper px-4 text-[0.8rem] font-display font-bold text-ink [--lift:var(--rose)] hover:bg-rose-deep sm:inline-flex"
           >
             <span className="inline-block skew-x-12">{t.nav.register}</span>
           </Link>
@@ -242,7 +242,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
               href="/admin"
               aria-current={isActive(path, "/admin") ? "page" : undefined}
               className={cn(
-                "lift-sm hidden h-9 -skew-x-12 items-center border px-3.5 text-[0.8rem] font-black uppercase tracking-wide [--lift:var(--rose)] xl:inline-flex",
+                "lift-sm hidden h-9 -skew-x-12 items-center border px-3.5 text-[0.8rem] font-display font-bold [--lift:var(--rose)] xl:inline-flex",
                 isActive(path, "/admin") ? "border-rose bg-rose text-white" : "border-line text-ash hover:border-rose hover:text-paper",
               )}
             >
@@ -260,7 +260,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
                 className="flex h-full skew-x-12 items-center gap-2.5 pr-3 transition-colors hover:text-rose-hi">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {user.image && <img src={user.image} alt="" className="size-7 object-cover" />}
-                <span className="max-w-32 truncate text-[0.8rem] font-black leading-none">{user.name}</span>
+                <span className="max-w-32 truncate text-[0.8rem] font-display font-black leading-none">{user.name}</span>
                 {meDot && <Dot className="-ml-1" />}
               </Link>
               <button
@@ -279,7 +279,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
               type="button"
               disabled={pending}
               onClick={() => start(() => login(path))}
-              className="lift-sm hidden h-9 -skew-x-12 items-center whitespace-nowrap border border-line px-3.5 text-[0.8rem] font-black text-paper [--lift:var(--rose)] hover:border-rose disabled:opacity-60 md:inline-flex"
+              className="lift-sm hidden h-9 -skew-x-12 items-center whitespace-nowrap border border-line px-3.5 text-[0.8rem] font-display font-black text-paper [--lift:var(--rose)] hover:border-rose disabled:opacity-60 md:inline-flex"
             >
               <span className="inline-block skew-x-12">{t.nav.login}</span>
             </button>
@@ -338,14 +338,14 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
                     <Link href="/me" onClick={() => setOpen(false)} className="flex min-w-0 flex-1 items-center gap-3 hover:text-rose-hi">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       {user.image && <img src={user.image} alt="" className="size-9 object-cover" />}
-                      <span className="min-w-0 flex-1 truncate text-sm font-black">{user.name}</span>
+                      <span className="min-w-0 flex-1 truncate text-sm font-display font-black">{user.name}</span>
                       {meDot && <Dot />}
                     </Link>
                     <button
                       type="button"
                       disabled={pending}
                       onClick={() => start(() => logout())}
-                      className="flex min-h-11 items-center gap-2 border border-line px-3 text-[0.8rem] font-black uppercase text-ash transition hover:text-paper disabled:opacity-60"
+                      className="flex min-h-11 items-center gap-2 border border-line px-3 text-[0.8rem] font-display font-bold text-ash transition hover:text-paper disabled:opacity-60"
                     >
                       <LogOut className="size-4" /> {t.nav.logout}
                     </button>
@@ -355,7 +355,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
                     type="button"
                     disabled={pending}
                     onClick={() => start(() => login(path))}
-                    className="flex min-h-11 w-full items-center justify-center border border-line text-sm font-black uppercase text-paper transition hover:border-rose disabled:opacity-60"
+                    className="flex min-h-11 w-full items-center justify-center border border-line text-sm font-display font-bold text-paper transition hover:border-rose disabled:opacity-60"
                   >
                     {t.nav.login}
                   </button>

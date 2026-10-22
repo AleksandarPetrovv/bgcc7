@@ -74,7 +74,7 @@ export function SheetView({ stageId, version, mods, children }: { stageId: numbe
                     style={{ background: c.color }}
                   />
                 )}
-                <span className="relative flex skew-x-12 items-center gap-2 text-sm font-black uppercase">
+                <span className="relative flex skew-x-12 items-center gap-2 text-sm font-display font-bold">
                   {c.short}
                   <span className={cn("num text-xs", on ? "opacity-70" : "text-ash")}>{c.count}</span>
                 </span>

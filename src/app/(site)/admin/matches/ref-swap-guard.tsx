@@ -10,7 +10,7 @@ import { useDict } from "@/components/site/lang";
 function Name({ n }: { n: string }) {
   return (
     <span className="inline-flex min-w-0 max-w-full -skew-x-12 border border-line bg-slate px-3 py-1.5">
-      <span className="skew-x-12 truncate text-base font-black">{n}</span>
+      <span className="skew-x-12 truncate text-base font-display font-black">{n}</span>
     </span>
   );
 }
@@ -92,7 +92,7 @@ export function RefSwapGuard({ live, lobby, from }: { live: boolean; lobby: bool
                     <Name n={to || t.common.tbd} />
                   </div>
                   <p className="mt-4 text-sm text-paper/75">{r.text(to || t.common.tbd, from || t.common.tbd)}</p>
-                  {lobby && <p className="mt-1.5 text-sm font-bold text-gold-hi">{r.lobby}</p>}
+                  {lobby && <p className="mt-1.5 text-sm font-display font-bold text-gold-hi">{r.lobby}</p>}
                   <div className="mt-6 flex flex-wrap gap-3">
                     <Btn type="button" onClick={go}>
                       {r.yes}
