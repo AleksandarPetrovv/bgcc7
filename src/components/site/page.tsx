@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { Sparkle, TriTick } from "./graphics";
+import { Sparkle, Glyph } from "./graphics";
 import { Tabs } from "./tabs";
 import { useBelowFold } from "./motion";
 import { useDict } from "./lang";
@@ -72,7 +72,7 @@ function Glints() {
     <span className="relative mb-[0.08em] inline-block h-[0.85em] w-[1em] self-end text-paper" aria-hidden>
       <Sparkle className="left-0 top-[0.05em] size-[0.55em] text-rose-hi" enter={0.3} />
       <Sparkle className="bottom-0 right-0 size-[0.36em]" enter={0.45} delay={0.6} />
-      <Sparkle className="right-[0.05em] top-0 size-[0.2em] text-balkan" enter={0.58} delay={1.1} />
+      <Sparkle className="right-[0.05em] top-0 size-[0.2em] text-balkan-hi" enter={0.58} delay={1.1} />
     </span>
   );
 }
@@ -292,7 +292,7 @@ export function SectionHeading({ children }: { children: React.ReactNode }) {
     return (
       <h2 ref={ref} className={cls}>
         <span>
-          <TriTick />
+          <Glyph kind="leaf" className="size-[0.8em]" />
         </span>
         <span className="min-w-0 break-words">{children}</span>
         <span className="h-px flex-1 border-t border-dashed border-line" aria-hidden />
@@ -307,7 +307,7 @@ export function SectionHeading({ children }: { children: React.ReactNode }) {
       viewport={{ once: true, amount: "some" }}
     >
       <motion.span variants={{ hidden: { opacity: 0, x: -12 }, show: { opacity: 1, x: 0 } }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
-        <TriTick />
+        <Glyph kind="leaf" className="size-[0.8em]" />
       </motion.span>
       <motion.span className="min-w-0 break-words" variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }} transition={{ duration: 0.6, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}>
         {children}
@@ -334,7 +334,7 @@ export function SubHeading({ children, className }: { children: React.ReactNode;
 export function Tag({ children, tone = "rose", className }: { children: React.ReactNode; tone?: "rose" | "balkan" | "ink" | "paper"; className?: string }) {
   const t = {
     rose: "bg-rose text-white",
-    balkan: "bg-balkan text-ink",
+    balkan: "bg-balkan text-paper",
     ink: "bg-ink text-paper",
     paper: "bg-paper text-ink",
   }[tone];
@@ -362,9 +362,9 @@ export function SlantButton({
 }) {
   const t = {
     rose: "bg-rose text-white hover:bg-rose-hi",
-    balkan: "bg-balkan text-ink hover:bg-paper [--lift:var(--color-balkan-deep)]",
-    paper: "bg-paper text-ink hover:bg-white [--lift:var(--color-rose)]",
-    outline: "border border-line text-paper hover:border-rose [--lift:var(--color-rose)]",
+    balkan: "bg-balkan text-paper hover:bg-paper hover:text-ink [--lift:var(--balkan-deep)]",
+    paper: "bg-paper text-ink hover:bg-rose-deep [--lift:var(--rose)]",
+    outline: "border border-line text-paper hover:border-rose [--lift:var(--rose)]",
   }[tone];
   const cls = cn("lift-sm sheen inline-flex -skew-x-12 items-center px-4 py-2 text-sm font-black uppercase tracking-wide", t, className);
   const inner = <span className="inline-flex skew-x-12 items-center gap-2">{children}</span>;

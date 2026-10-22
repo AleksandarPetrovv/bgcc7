@@ -154,7 +154,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
       )}
 
       <div className="flex flex-wrap items-center gap-3 border border-line bg-ink/50 px-4 py-3 text-sm">
-        <FileArchive className={cn("size-5 shrink-0", pack ? "text-balkan" : "text-ash")} />
+        <FileArchive className={cn("size-5 shrink-0", pack ? "text-balkan-hi" : "text-ash")} />
         {pack ? (
           <>
             <span className="min-w-0 flex-1">
@@ -171,7 +171,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
                 download
                 aria-label={t.admin.packDownload}
                 title={t.admin.packDownload}
-                className="lift-sm grid size-10 shrink-0 -skew-x-12 place-items-center border border-balkan/60 text-balkan transition-colors hover:bg-balkan hover:text-white"
+                className="lift-sm grid size-10 shrink-0 -skew-x-12 place-items-center border border-balkan/60 text-balkan-hi transition-colors hover:bg-balkan hover:text-paper"
               >
                 <Download className="size-4 skew-x-12" />
               </a>
@@ -225,7 +225,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
       {simple && (
         <div className="grid gap-3 sm:grid-cols-2">
           {lead}
-          <Btn type="button" tone="rose" onClick={generate} disabled={generating || progress !== null} className="h-10 w-full shadow-[3px_3px_0_0_var(--color-rose-deep)]">
+          <Btn type="button" tone="rose" onClick={generate} disabled={generating || progress !== null} className="h-10 w-full shadow-[3px_3px_0_0_var(--rose-deep)]">
             <PackagePlus className="size-3.5" /> {t.admin.packGenerate}
           </Btn>
         </div>
@@ -269,7 +269,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className={cn("text-xs font-bold uppercase tracking-wide", msg.ok ? "text-balkan" : "text-rose-hi")}
+            className={cn("text-xs font-bold uppercase tracking-wide", msg.ok ? "text-balkan-hi" : "text-rose-hi")}
           >
             {msg.text}
           </motion.p>

@@ -29,7 +29,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
   const wireColor = (id: string) => {
     if (!clean[id]) return { stroke: HEX.line, opacity: 1 };
     const w = real(id);
-    return w == null ? { stroke: HEX.paper, opacity: 0.3 } : w === clean[id] ? { stroke: HEX.balkan, opacity: 0.6 } : { stroke: HEX.rose, opacity: 0.55 };
+    return w == null ? { stroke: HEX.paper, opacity: 0.3 } : w === clean[id] ? { stroke: "var(--balkan-deep)", opacity: 1 } : { stroke: HEX.rose, opacity: 0.8 };
   };
   const wire = (a: string, b: string) => {
     const [ca, ya] = POS[a];
@@ -46,25 +46,25 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
           {Object.entries(WIN).map(([a, b]) => (
             <path key={a} d={wire(a, b)} pathLength={1} className="in-draw" style={{ "--d": `${0.55 + POS[a][0] * 0.14}s` } as React.CSSProperties} fill="none" stroke={wireColor(a).stroke} strokeOpacity={wireColor(a).opacity} strokeWidth={2} />
           ))}
-          {resetLive && <path d={`M${x(gfCol) + W / 2} ${POS["GF-M1"][1] + H} V${POS["GF-M2"][1]}`} style={{ stroke: "var(--color-gold)" }} strokeWidth={2} strokeDasharray="3 3" />}
+          {resetLive && <path d={`M${x(gfCol) + W / 2} ${POS["GF-M1"][1] + H} V${POS["GF-M2"][1]}`} style={{ stroke: "var(--gold)" }} strokeWidth={2} strokeDasharray="3 3" />}
         </svg>
 
         {HEADERS.map((h) => (
           <div
             key={h.t}
-            className={cn("in-drop absolute truncate whitespace-nowrap text-center text-xs font-black uppercase tracking-[0.14em]", h.gold ? "text-gold" : "text-ash")}
+            className={cn("in-drop absolute truncate whitespace-nowrap text-center text-xs font-black uppercase tracking-[0.14em]", h.gold ? "text-gold-hi" : "text-ash")}
             style={{ left: x(h.c), top: h.y, width: W, "--i": h.c, "--s": "0.14s", "--d": "0.1s" } as React.CSSProperties}
           >
             {t.rounds[h.t] ?? h.t}
           </div>
         ))}
-        <div className="in-wipe heading-slam absolute text-2xl text-gold" style={{ left: x(0), top: LB - 90, "--d": "0.4s" } as React.CSSProperties}>
+        <div className="in-wipe heading-slam absolute text-2xl text-gold-hi" style={{ left: x(0), top: LB - 90, "--d": "0.4s" } as React.CSSProperties}>
           <span className="text-rose-hi">{t.schedule.lower}</span>
         </div>
 
         {champ && (
           <div key={champ.id} className="anim-rise absolute border border-gold/40 bg-coal" style={{ left: x(gfCol), top: POS["GF-M2"][1] + H + 30, width: W }}>
-            <div className="flex items-center gap-1.5 bg-gold px-2.5 py-1 text-[0.7rem] font-black uppercase tracking-[0.14em] text-ink">
+            <div className="flex items-center gap-1.5 bg-gold px-2.5 py-1 text-[0.7rem] font-black uppercase tracking-[0.14em] text-paper">
               <Crown className="size-3.5" /> {t.pickems.champion}
             </div>
             <div className="flex items-center gap-3 p-2.5">
@@ -84,7 +84,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
                   <img src={flagUrl(p.country)} alt="" className="h-2.5 shrink-0" />
                   <span className="truncate font-bold">{p.username}</span>
                   <MeTag p={p.userId} />
-                  {p.isCaptain && <Crown className="size-3.5 shrink-0 -translate-y-px text-gold" aria-label={t.common.captain} />}
+                  {p.isCaptain && <Crown className="size-3.5 shrink-0 -translate-y-px text-gold-hi" aria-label={t.common.captain} />}
                   <span className="num ml-auto text-ash">#{fmtNum(p.rank)}</span>
                 </li>
               ))}
@@ -99,7 +99,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
           return (
             <div
               key={id}
-              className={cn("in-left absolute flex flex-col divide-y divide-line border bg-coal", isGf ? "border-gold/25" : "border-line")}
+              className={cn("in-left absolute flex flex-col divide-y divide-line border bg-coal", isGf ? "border-gold/70" : "border-line")}
               style={{ left: x(c), top: y, width: W, height: H, "--i": c, "--s": "0.14s", "--d": `${0.15 + (y % 400) / 2500}s` } as React.CSSProperties}
             >
               {pair.map((tid, i) => {
@@ -118,7 +118,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
                     {...meT(team?.id)}
                     className={cn(
                       "flex min-h-0 flex-1 items-center gap-2 px-2 text-left text-[0.82rem] transition-colors",
-                      right ? "bg-balkan/20 font-black text-balkan" : miss ? "bg-rose/15 font-black text-rose-hi" : picked ? "bg-white/[0.06] font-black text-paper" : "font-bold enabled:hover:bg-slate",
+                      right ? "bg-[color-mix(in_oklab,var(--balkan)_14%,var(--white))] font-black text-balkan-hi" : miss ? "bg-rose/15 font-black text-rose-hi" : picked ? "bg-white/55 font-black text-paper" : "font-bold enabled:hover:bg-slate",
                       lost && "text-ash",
                       !team && "cursor-default italic text-ash",
                     )}

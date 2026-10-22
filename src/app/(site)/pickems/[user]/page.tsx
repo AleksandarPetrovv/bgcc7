@@ -45,7 +45,7 @@ export default async function UserBracket({ params }: { params: Promise<{ user: 
       <PageTitle mark="tick"
         right={
           entry.picks && (
-            <span className="in-pop num inline-block text-2xl text-balkan [--d:0.4s]">
+            <span className="in-pop num inline-block text-2xl text-balkan-hi [--d:0.4s]">
               {entry.points} {t.common.pts}
             </span>
           )

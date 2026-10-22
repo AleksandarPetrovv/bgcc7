@@ -48,7 +48,7 @@ export function AdminNav({ items }: { items: { href: string; label: string }[] }
             title={i.label}
             className={cn(
               "group relative flex min-w-0 flex-1 items-center justify-center gap-3 whitespace-nowrap py-2 lg:flex-none lg:justify-start lg:whitespace-normal lg:px-2.5 text-[0.8rem] font-black uppercase tracking-wide transition-colors duration-200",
-              active ? "text-white" : key === "refapp" ? "text-balkan hover:text-paper" : "text-ash hover:text-paper",
+              active ? "text-white" : key === "refapp" ? "text-balkan-hi hover:text-paper" : "text-ash hover:text-paper",
               key === "refapp" && !active && "lg:mb-2 lg:border lg:border-dashed lg:border-balkan/50",
             )}
           >
@@ -69,7 +69,7 @@ export function AdminNav({ items }: { items: { href: string; label: string }[] }
             <span className="relative hidden min-w-0 flex-1 leading-tight transition-transform duration-300 group-hover:translate-x-0.5 lg:block">{i.label}</span>
             {active ? (
               <span className="relative hidden size-4 lg:block" aria-hidden>
-                <Sparkle className="inset-0 size-3.5 text-white" />
+                <Sparkle className="inset-0 size-3.5 text-rose" />
               </span>
             ) : (
               <ChevronRight className="relative hidden size-3.5 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-70 lg:block" aria-hidden />

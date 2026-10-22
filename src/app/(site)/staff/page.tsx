@@ -20,7 +20,7 @@ export default async function Staff() {
 
   return (
     <Container>
-      <PageTitle mark="dots" right={<span className="num text-2xl text-balkan">{list.length}</span>}>
+      <PageTitle mark="dots" right={<span className="num text-2xl text-balkan-hi">{list.length}</span>}>
         {t.staff.title}
       </PageTitle>
 
@@ -71,7 +71,7 @@ export default async function Staff() {
             <div className="flex-1">
               <ul className="flex flex-wrap gap-1.5">
                 {open.map((r) => (
-                  <li key={r} className="border border-balkan/60 px-2 py-1 text-[0.65rem] font-black uppercase leading-none tracking-wide text-balkan">
+                  <li key={r} className="border border-balkan/60 px-2 py-1 text-[0.65rem] font-black uppercase leading-none tracking-wide text-balkan-hi">
                     {t.admin.roles[r] ?? r}
                   </li>
                 ))}

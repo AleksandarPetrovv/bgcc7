@@ -74,7 +74,7 @@ export function RefSwapGuard({ live, lobby, from }: { live: boolean; lobby: bool
                   exit={{ y: 20, opacity: 0 }}
                   transition={{ type: "spring", stiffness: 340, damping: 26 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="relative w-full max-w-md overflow-hidden border-2 border-rose bg-coal p-6 shadow-[6px_6px_0_0_var(--color-rose-deep)]"
+                  className="relative w-full max-w-md overflow-hidden border-2 border-rose bg-coal p-6 shadow-[6px_6px_0_0_var(--rose-deep)]"
                   role="alertdialog"
                   aria-modal="true"
                 >
@@ -92,7 +92,7 @@ export function RefSwapGuard({ live, lobby, from }: { live: boolean; lobby: bool
                     <Name n={to || t.common.tbd} />
                   </div>
                   <p className="mt-4 text-sm text-paper/75">{r.text(to || t.common.tbd, from || t.common.tbd)}</p>
-                  {lobby && <p className="mt-1.5 text-sm font-bold text-gold">{r.lobby}</p>}
+                  {lobby && <p className="mt-1.5 text-sm font-bold text-gold-hi">{r.lobby}</p>}
                   <div className="mt-6 flex flex-wrap gap-3">
                     <Btn type="button" onClick={go}>
                       {r.yes}

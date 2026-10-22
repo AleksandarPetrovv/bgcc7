@@ -8,7 +8,7 @@ import { MODS, fmtLen, type Beatmap } from "@/lib/data";
 import { pickable, type DraftStep, type Side } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { slotColor } from "@/lib/format-plan";
-import { TEAM } from "@/lib/theme";
+import { modHi, modOn, TEAM } from "@/lib/theme";
 import { CopyId } from "./draft-popups";
 
 export type Pool = { category: string; color?: string; maps: Beatmap[] }[];
@@ -41,8 +41,8 @@ export function MapGrid({
     <section className="mt-8 space-y-6">
       {pools.map((p, pi) => {
         const skill = !!p.color;
-        const mod = { label: MODS[p.category]?.label ?? p.category, color: p.color ?? MODS[p.category]?.color };
-        const light = p.category === "Tiebreaker";
+        const mod = { label: MODS[p.category]?.label ?? p.category, color: p.color ?? MODS[p.category]?.color ?? "var(--rose)" };
+        const light = modOn(mod.color) === "var(--paper)";
         return (
           <div key={p.category}>
             <motion.div
@@ -53,7 +53,7 @@ export function MapGrid({
                 ease: EASE,
                 delay: 0.3 + pi * 0.06,
               }}
-              className={cn("mb-2 inline-flex -skew-x-12 items-center gap-2 px-3 py-1 text-sm font-black uppercase", light ? "text-ink" : "text-white")}
+              className={cn("mb-2 inline-flex -skew-x-12 items-center gap-2 px-3 py-1 text-sm font-black uppercase", light ? "text-paper" : "text-white")}
               style={{ background: mod.color }}
             >
               <span className="skew-x-12">{mod.label}</span>
@@ -104,10 +104,10 @@ export function MapGrid({
                         admin ? "h-28" : "h-24",
                         tb && "border-dashed",
                         tap && "cursor-pointer",
-                        grey && "brightness-[0.5] grayscale-[0.85] transition-[filter] duration-700",
+                        grey && "opacity-60 grayscale-[0.85] transition-[filter,opacity] duration-700",
                       )}
                       style={{
-                        borderColor: (chosen || u) && !tbu ? col.c : tb ? "var(--color-line)" : "transparent",
+                        borderColor: (chosen || u) && !tbu ? col.c : tb ? "var(--line)" : "transparent",
                         boxShadow: chosen ? `5px 5px 0 0 ${col.deep}` : u?.kind === "pick" && !tbu ? `inset 6px 0 0 0 ${col.c}` : undefined,
                       }}
                     >
@@ -137,7 +137,7 @@ export function MapGrid({
                           "heading-slam relative flex w-[5.5rem] shrink-0 items-center justify-center pl-2 pr-1 text-lg sm:w-28 sm:text-2xl",
                           grey && "opacity-40",
                         )}
-                        style={{ color: skill ? mod.color : slotColor(m.slot) }}
+                        style={{ color: modHi(skill ? mod.color : slotColor(m.slot)) }}
                       >
                         {m.slot}
                       </span>
@@ -145,14 +145,14 @@ export function MapGrid({
                         <span className="flex min-w-0 items-center gap-2">
                           <span className="truncate text-sm font-black sm:text-base">{m.title}</span>
                           {skill && !tb && MODS[m.mod] && (
-                            <span className="shrink-0 -skew-x-12 border px-1.5 text-xs font-black leading-5" style={{ borderColor: MODS[m.mod].color, color: MODS[m.mod].color }}>
+                            <span className="shrink-0 -skew-x-12 border px-1.5 text-xs font-black leading-5" style={{ borderColor: modHi(MODS[m.mod].color), color: modHi(MODS[m.mod].color) }}>
                               <span className="inline-block skew-x-12">{MODS[m.mod].short}</span>
                             </span>
                           )}
                         </span>
                         <span className="truncate text-xs text-paper/70">[{m.version}]</span>
                         <span className="num mt-1 flex items-center gap-2.5 text-xs text-ash">
-                          <span className="flex items-center gap-0.5 text-gold">
+                          <span className="flex items-center gap-0.5 text-gold-hi">
                             <Star className="size-3 fill-current" /> {m.sr.toFixed(2)}
                           </span>
                           <span>{Math.round(m.bpm)}bpm</span>
@@ -194,7 +194,7 @@ export function MapGrid({
                             style={{
                               borderColor: col.c,
                               color: col.hi,
-                              background: "rgba(13,15,14,0.8)",
+                              background: "color-mix(in srgb, var(--ink) 80%, transparent)",
                             }}
                           >
                             <span className="block text-base tracking-wider sm:text-lg">
@@ -227,7 +227,7 @@ export function MapGrid({
                         aria-label={admin ? t.draft.mapSettings : t.draft.fullScores}
                         className="group absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
                       >
-                        <span className="relative inline-flex h-8 w-12 -skew-x-12 items-center justify-center border border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--color-rose-deep)] transition-[background-color,translate,box-shadow] duration-200 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 group-hover:bg-rose-hi group-hover:shadow-[5px_5px_0_0_var(--color-rose-deep)]">
+                        <span className="relative inline-flex h-8 w-12 -skew-x-12 items-center justify-center border border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--rose-deep)] transition-[background-color,translate,box-shadow] duration-200 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 group-hover:bg-rose-hi group-hover:shadow-[5px_5px_0_0_var(--rose-deep)]">
                           {admin ? <Settings className="size-[18px] skew-x-12" /> : <Eye className="size-[18px] skew-x-12" />}
                         </span>
                       </motion.button>

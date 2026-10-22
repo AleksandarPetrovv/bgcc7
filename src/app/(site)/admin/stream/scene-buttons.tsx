@@ -36,7 +36,7 @@ export function SceneButtons({ id, initial }: { id: string; initial: Scene | nul
             aria-pressed={on}
             className={cn(
               "inline-flex min-h-9 -skew-x-12 items-center border px-3 text-xs font-black uppercase tracking-wide transition-colors",
-              on ? (s === null ? "border-balkan bg-balkan text-ink" : "border-rose bg-rose text-white") : "border-line text-ash hover:border-paper hover:text-paper",
+              on ? (s === null ? "border-balkan bg-balkan text-paper" : "border-rose bg-rose text-white") : "border-line text-ash hover:border-paper hover:text-paper",
             )}
           >
             <span className="skew-x-12">{t.admin.stream.scenes[s ?? "auto"]}</span>

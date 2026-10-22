@@ -18,6 +18,9 @@ export function Confetti({ duration = 2500, onDone }: { duration?: number; onDon
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // canvas can't read css vars, so resolve them once
+    const root = getComputedStyle(document.documentElement);
+    const colors = COLORS.map((c) => root.getPropertyValue(c.slice(4, -1)).trim());
     const size = () => {
       canvas.width = window.innerWidth * dpr;
       canvas.height = window.innerHeight * dpr;
@@ -51,7 +54,7 @@ export function Confetti({ duration = 2500, onDone }: { duration?: number; onDon
         h: (3 + Math.random() * 5) * dpr,
         r: Math.random() * Math.PI,
         vr: (Math.random() - 0.5) * 0.6,
-        c: COLORS[Math.floor(Math.random() * COLORS.length)],
+        c: colors[Math.floor(Math.random() * colors.length)],
         flip: Math.random() * Math.PI,
         wob: 0.5 + Math.random() * 2,
       };
