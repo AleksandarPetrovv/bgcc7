@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { Sparkle, Glyph } from "./graphics";
+import { Sparkle } from "./graphics";
 import { Tabs } from "./tabs";
 import { useBelowFold } from "./motion";
 import { useDict } from "./lang";
@@ -171,7 +171,7 @@ function Note({ className, delay, beamed }: { className: string; delay: number; 
   );
 }
 
-function Notes() {
+export function Notes() {
   return (
     <span className="mb-[0.16em] flex items-end gap-[0.04em] self-end" aria-hidden>
       <Note className="size-[0.4em] fill-paper" delay={0.25} beamed />
@@ -285,14 +285,15 @@ export function Wide({ children, className }: { children: React.ReactNode; class
   return <div className={className}>{children}</div>;
 }
 
-export function SectionHeading({ children }: { children: React.ReactNode }) {
+export function SectionHeading({ children, mark = "glints" }: { children: React.ReactNode; mark?: Mark }) {
+  const M = MARKS[mark];
   const [ref, below] = useBelowFold<HTMLHeadingElement>();
   const cls = "heading-slam mb-5 mt-14 flex items-center gap-3 text-[clamp(1.6rem,7.5vw,2.25rem)] first:mt-0";
   if (below)
     return (
       <h2 ref={ref} className={cls}>
         <span>
-          <Glyph kind="leaf" className="size-[0.8em]" />
+          <M />
         </span>
         <span className="min-w-0 break-words">{children}</span>
         <span className="h-px flex-1 border-t border-dashed border-line" aria-hidden />
@@ -307,7 +308,7 @@ export function SectionHeading({ children }: { children: React.ReactNode }) {
       viewport={{ once: true, amount: "some" }}
     >
       <motion.span variants={{ hidden: { opacity: 0, x: -12 }, show: { opacity: 1, x: 0 } }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
-        <Glyph kind="leaf" className="size-[0.8em]" />
+        <M />
       </motion.span>
       <motion.span className="min-w-0 break-words" variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }} transition={{ duration: 0.6, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}>
         {children}

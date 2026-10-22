@@ -12,12 +12,6 @@ export function Wordmark({ className, size = "md" }: { className?: string; size?
 }
 
 const GLYPHS = {
-  leaf: (
-    <>
-      <path d="M12 15C6 15 1.5 10.5 2 3.5 5.5 5.5 9 5 11.3 2.5L12 8l.7-5.5C15 5 18.5 5.5 22 3.5 22.5 10.5 18 15 12 15Z" fill={HEX.balkan} />
-      <path d="M12 14v8" stroke={HEX.paper} strokeWidth={2.4} strokeLinecap="round" />
-    </>
-  ),
   flag: (
     <>
       <path d="M5 2v21" stroke={HEX.paper} strokeWidth={2.6} />
@@ -28,12 +22,6 @@ const GLYPHS = {
     <>
       <polygon points="12,2 21,7 21,17 12,22 3,17 3,7" fill="none" stroke={HEX.paper} strokeWidth={2.6} />
       <circle cx={12} cy={12} r={3.2} fill={HEX.rose} />
-    </>
-  ),
-  plus: (
-    <>
-      <path d="M12 2v20M2 12h20" stroke={HEX.balkan} strokeWidth={5} />
-      <rect x={9.5} y={9.5} width={5} height={5} fill={HEX.rose} />
     </>
   ),
   ring: (
