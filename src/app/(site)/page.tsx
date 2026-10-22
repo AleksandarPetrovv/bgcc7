@@ -391,7 +391,7 @@ export default async function Home() {
       {prompt && <PhasePrompt current={phase} next={prompt} />}
       <HeroGate className="grain relative overflow-hidden border-b border-line">
         <div className="pointer-events-none absolute inset-y-0 right-0 w-[70%] overflow-hidden [mask-image:linear-gradient(to_left,black,transparent)]" aria-hidden>
-          <div className="anim-drift h-full w-[calc(100%+120px)] bg-[repeating-linear-gradient(115deg,transparent_0_52.4px,color-mix(in_srgb,var(--white)_30%,transparent)_52.4px_54.4px)]" />
+          <div className="anim-drift h-full w-[calc(100%+120px)] dark:opacity-25 bg-[repeating-linear-gradient(115deg,transparent_0_52.4px,color-mix(in_srgb,var(--white)_30%,transparent)_52.4px_54.4px)]" />
         </div>
         <div
           className="anim-page pointer-events-none absolute right-[2%] top-1/2 -translate-y-1/2 font-display text-[clamp(20rem,42vw,40rem)] font-black italic leading-[0.8] text-rose-deep/[0.06]"
@@ -400,7 +400,7 @@ export default async function Home() {
         >
           {getEdition().slice(4)}
         </div>
-        <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] gap-8 px-4 pb-10 pt-8 sm:gap-10 sm:px-6 sm:pb-12 sm:pt-10 lg:flex lg:items-end lg:justify-center lg:gap-[clamp(4rem,5vw,7rem)] lg:px-10 lg:pb-16 lg:pt-16 2xl:gap-20 2xl:px-14 2xl:pb-24 2xl:pt-24">
+        <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] gap-8 px-4 pb-10 pt-8 sm:gap-10 sm:px-6 sm:pb-12 sm:pt-10 lg:flex lg:items-center lg:justify-center lg:gap-[clamp(4rem,5vw,7rem)] lg:px-10 lg:pb-16 lg:pt-16 2xl:gap-20 2xl:px-14 2xl:pb-24 2xl:pt-24">
           <div className="min-w-0 lg:shrink-0">
             <HeroLockup num={getEdition().slice(4)} />
           </div>

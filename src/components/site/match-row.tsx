@@ -89,7 +89,6 @@ export function MatchRow({ match, live }: { match: Match; live?: [number, number
         live !== undefined ? "border-rose/70" : "border-line",
       )}
     >
-      <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/4 -skew-x-12 bg-linear-to-r from-transparent via-white/45 to-transparent transition-transform duration-1000 ease-out group-hover/row:translate-x-[650%] motion-reduce:hidden" aria-hidden />
       <div className="pointer-events-none absolute inset-0 -z-10 flex" aria-hidden>
         {teams.map((team, i) => (
           <div key={i} className="relative w-1/2 overflow-hidden">
