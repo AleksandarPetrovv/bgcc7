@@ -171,7 +171,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
                 download
                 aria-label={t.admin.packDownload}
                 title={t.admin.packDownload}
-                className="lift-sm grid size-10 shrink-0 -skew-x-12 place-items-center border border-balkan/60 text-balkan-hi transition-colors hover:bg-balkan hover:text-paper"
+                className="lift-sm grid size-10 shrink-0 -skew-x-12 place-items-center border border-balkan/60 text-balkan-hi transition-colors hover:bg-balkan hover:text-on-fill"
               >
                 <Download className="size-4 skew-x-12" />
               </a>

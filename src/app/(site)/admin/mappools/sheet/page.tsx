@@ -156,7 +156,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                         className={cn(
                           "grid size-8 shrink-0 -skew-x-12 place-items-center border text-sm font-display font-black",
                           m.picked
-                            ? "border-balkan bg-balkan text-paper"
+                            ? "border-balkan bg-balkan text-on-fill"
                             : tiedWin
                               ? "border-paper/25 bg-paper/10 text-paper/60"
                               : lead

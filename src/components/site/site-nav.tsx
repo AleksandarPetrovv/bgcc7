@@ -4,11 +4,12 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState, useTransition }
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { LogOut, Menu, Swords } from "lucide-react";
+import { LogOut, Menu, Pause, Swords } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Sparkle, Wordmark } from "./graphics";
 import { useDict } from "./lang";
 import { EditionView } from "./edition-view-bgcc6";
+import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
 import { login, logout } from "@/app/(site)/pickems/actions";
 import type { NavItem } from "@/lib/sections";
@@ -110,7 +111,14 @@ function MatchLink({ slug, path, big, onClick, clock }: { slug: string; path: st
         <span className={cn("relative inline-flex skew-x-12 items-center", big ? "gap-2" : "gap-1.5")}>
           <Swords className={big ? "size-5" : "size-3.5"} strokeWidth={2.6} />
           {t.nav.match}
-          {!on && clock.end != null && <Countdown clock={clock} />}
+          {!on &&
+            (clock.pause ? (
+              <span className="ml-0.5 inline-flex items-center gap-1 text-white/85">
+                <Pause className="size-3 fill-current" /> {t.draft.paused}
+              </span>
+            ) : (
+              clock.end != null && <Countdown clock={clock} />
+            ))}
         </span>
       </Link>
     </motion.span>
@@ -190,6 +198,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
           <Wordmark size="md" className="text-paper" />
         </Link>
         <EditionView className="ml-1 sm:ml-0" />
+        <ThemeToggle />
 
         <nav ref={navRef} className="relative ml-auto hidden h-full items-stretch xl:flex" aria-label={t.nav.main}>
           <span ref={shadowRef} className={cn(bar, "bottom-0")} aria-hidden>
