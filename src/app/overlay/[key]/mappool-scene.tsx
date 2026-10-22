@@ -28,7 +28,7 @@ function Tag({ text, color, dark }: { text: string; color: string; dark?: boolea
       animate={{ scale: 1, opacity: 1, rotate: 0 }}
       transition={{ type: "spring", stiffness: 520, damping: 20 }}
     >
-      <span className={cn("skew-x-12 text-[13px] font-display font-bold", dark ? "text-paper" : "text-white")}>{text}</span>
+      <span className={cn("skew-x-12 text-[13px] font-display font-bold", dark ? "text-on-fill" : "text-white")}>{text}</span>
     </motion.span>
   );
 }
@@ -46,6 +46,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
   const cardH = Math.min(122, Math.floor((640 - (rows - 1) * 12) / rows));
   const modColor = (slot: string) => Object.values(MODS).find((m) => slot.toUpperCase().replace(/\d+$/, "") === m.short)?.color;
   const nowSlot = feed.current ? norm(feed.current.slot) : null;
+  const skill = !!feed.groups?.length;
 
   return (
     <div className="absolute inset-0 overflow-hidden text-paper">
@@ -91,6 +92,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
               const pick = step?.kind === "pick";
               const now = !ban && nowSlot === norm(map.slot);
               const done = ban || (pick && !now);
+              const mk = groupFor(map);
               const team = step ? TEAM[step.team - 1] : null;
               const won = pick && step.winner ? step.winner : null;
               const stamp = step && team && !now ? { word: ban ? "Banned" : won ? "Won" : "Picked", side: won ? TEAM[won - 1] : team, name: feed.teams[(won ?? step.team) - 1].name } : null;
@@ -168,6 +170,11 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
                       </span>
                       <span className="ml-auto flex items-center gap-1.5">
                         {now && <Tag text="Now" color="var(--gold)" dark />}
+                        {skill && mk && mk !== "Tiebreaker" && (
+                          <span className="-skew-x-12 border px-1.5 text-[13px] font-display font-black leading-5" style={{ borderColor: modHi(MODS[mk].color), color: modHi(MODS[mk].color) }}>
+                            <span className="inline-block skew-x-12">{MODS[mk].short}</span>
+                          </span>
+                        )}
                         <span className="num text-[16px] font-black text-gold-hi">{map.sr.toFixed(2)}★</span>
                       </span>
                     </div>
