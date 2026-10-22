@@ -110,8 +110,8 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
                       <span className="flex items-center gap-2">
                         <span className="min-w-0 flex-1 truncate text-sm font-display font-bold">{v.username}</span>
                         <span
-                          className="num grid min-w-12 shrink-0 -skew-x-12 place-items-center px-1.5 py-0.5 text-xs font-display font-black text-paper"
-                          style={{ background: scoreColor(v.score) }}
+                          className="num grid min-w-12 shrink-0 -skew-x-12 place-items-center border px-1.5 py-0.5 text-xs font-display font-black"
+                          style={{ background: `color-mix(in srgb, ${scoreColor(v.score)} 16%, transparent)`, borderColor: scoreColor(v.score), color: scoreText(v.score) }}
                         >
                           <span className="skew-x-12">
                             {v.score}
