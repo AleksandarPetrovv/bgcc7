@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "motion/react";
-import { TriTick } from "@/components/site/graphics";
+import { Glyph } from "@/components/site/graphics";
 import { MODS } from "@/lib/data";
+import { modHi, modOn } from "@/lib/theme";
 import type { FeedMap, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
 import { Backdrop, editionNum, LABEL, Lockup, ScoreNum, TEAM, TeamPlate } from "./chrome";
@@ -27,7 +28,7 @@ function Tag({ text, color, dark }: { text: string; color: string; dark?: boolea
       animate={{ scale: 1, opacity: 1, rotate: 0 }}
       transition={{ type: "spring", stiffness: 520, damping: 20 }}
     >
-      <span className={cn("skew-x-12 text-[13px] font-black uppercase tracking-[0.05em]", dark ? "text-ink" : "text-white")}>{text}</span>
+      <span className={cn("skew-x-12 text-[13px] font-black uppercase tracking-[0.05em]", dark ? "text-paper" : "text-white")}>{text}</span>
     </motion.span>
   );
 }
@@ -48,7 +49,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
 
   return (
     <div className="absolute inset-0 overflow-hidden text-paper">
-      <Backdrop num={editionNum(feed)} tint="var(--color-rose)" />
+      <Backdrop num={editionNum(feed)} tint="var(--rose)" />
 
       <header className="absolute inset-x-[72px] top-[44px] grid grid-cols-[1fr_auto_1fr] items-center gap-8">
         <TeamPlate team={feed.teams[0]} side={0} className="max-w-[640px] justify-self-start" />
@@ -67,7 +68,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
 
       <div className="absolute inset-x-[72px] top-[205px] flex items-end justify-between border-b border-line pb-4">
         <div className="flex items-center gap-5">
-          <TriTick className="h-[24px] w-[46px]" />
+          <Glyph kind="target" className="size-[28px]" />
           <h1 className="font-display text-[48px] font-black italic uppercase leading-none">Mappool</h1>
           <span className={LABEL}>{feed.match.round}</span>
         </div>
@@ -79,7 +80,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
           <section key={g.key} className="flex min-w-0 flex-col gap-3" style={{ gridColumn: `span ${spans[gi]}` }}>
             <h2 className="flex items-center gap-3 pb-1">
               <span className="inline-flex -skew-x-12 px-3 py-0.5" style={{ background: g.color }}>
-                <span className="skew-x-12 text-[18px] font-black text-ink">{g.short}</span>
+                <span className="skew-x-12 text-[18px] font-black" style={{ color: modOn(g.color) }}>{g.short}</span>
               </span>
               <span className={LABEL}>{g.label || g.maps.length}</span>
             </h2>
@@ -102,13 +103,13 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
                   className={cn("relative overflow-hidden border-2 bg-coal transition-[border-color,box-shadow] duration-500", now && "border-[3px]")}
                   style={{
                     height: cardH,
-                    borderColor: now ? "var(--color-gold)" : "var(--color-line)",
-                    boxShadow: now ? "0 0 0 3px rgba(232,197,71,0.35), 6px 6px 0 0 var(--color-gold-deep)" : "4px 4px 0 0 rgba(0,0,0,0.5)",
+                    borderColor: now ? "var(--gold)" : "var(--line)",
+                    boxShadow: now ? "0 0 0 3px color-mix(in srgb, var(--gold) 35%, transparent), 6px 6px 0 0 var(--gold-deep)" : "4px 4px 0 0 color-mix(in srgb, var(--rose-deep) 42%, transparent)",
                   }}
                 >
                   <div className={cn("absolute inset-0 transition-[filter,opacity] duration-500", done && "opacity-15 grayscale")} aria-hidden>
                     {map.cover && <div className="absolute -inset-3 bg-cover bg-center opacity-45 blur-[3px]" style={{ backgroundImage: `url(${JSON.stringify(map.cover)})` }} />}
-                    <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(13,15,14,0.95)_30%,rgba(13,15,14,0.55))]" />
+                    <div className="absolute inset-0 bg-[linear-gradient(90deg,color-mix(in_srgb,var(--ink)_95%,transparent)_30%,color-mix(in_srgb,var(--ink)_55%,transparent))]" />
                   </div>
                   <span className={cn("absolute inset-y-0 left-0 w-[6px]", done && "opacity-25 grayscale")} style={{ background: g.color }} aria-hidden />
                   {pick && team && !now && (
@@ -162,12 +163,12 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
                   )}
                   <div className={cn("relative flex h-full flex-col justify-center gap-1 pl-5 pr-3 transition-opacity duration-500", done && "opacity-25 grayscale")}>
                     <div className="flex items-center gap-2">
-                      <span className="font-display text-[30px] font-black italic leading-none" style={{ color: modColor(map.slot) ?? g.color }}>
+                      <span className="font-display text-[30px] font-black italic leading-none" style={{ color: modHi(modColor(map.slot) ?? g.color) }}>
                         {map.slot}
                       </span>
                       <span className="ml-auto flex items-center gap-1.5">
-                        {now && <Tag text="Now" color="var(--color-gold)" dark />}
-                        <span className="num text-[16px] font-black text-gold">{map.sr.toFixed(2)}★</span>
+                        {now && <Tag text="Now" color="var(--gold)" dark />}
+                        <span className="num text-[16px] font-black text-gold-hi">{map.sr.toFixed(2)}★</span>
                       </span>
                     </div>
                     <h3 className="truncate text-[19px] font-black leading-tight">{map.title}</h3>

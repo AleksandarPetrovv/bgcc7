@@ -2,7 +2,8 @@
 
 import { memo, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { MODS } from "@/lib/data";
+import { slotColor } from "@/lib/format-plan";
+import { modOn } from "@/lib/theme";
 import type { LiveClient, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
 import { editionNum, FlagBar, Img, LABEL, Lockup, TEAM } from "./chrome";
@@ -71,9 +72,9 @@ function Points({ score, firstTo, side }: { score: number; firstTo: number; side
 
 // four 4:3 tourney clients in a 2x2 block, team 1 on the left. "stream layout.ps1" sizes and places
 // the client windows to match, so one display capture of the manager area lines up 1:1.
-const TOP = 170;
-const CW = 528;
-const CH = 396;
+const TOP = 128;
+const CW = 576;
+const CH = 432;
 const LEFT = (1920 - 2 * CW) / 2;
 const BOTTOM = TOP + 2 * CH;
 const BOXES = [
@@ -90,9 +91,9 @@ function GameplayDivider({ length, horizontal = false }: { length: number; horiz
       style={{ left: LEFT + CW, top: TOP + CH, height: length, transform: `translate(-50%, -50%)${horizontal ? " rotate(90deg)" : ""}` }}
       aria-hidden
     >
-      <span className="absolute inset-y-0 left-0 w-[2px] bg-azure" />
-      <span className="absolute inset-y-0 right-0 w-[2px] bg-rose" />
-      <span className="absolute inset-y-0 left-[2px] w-[4px] bg-gold-hi" style={{ boxShadow: "0 0 14px var(--color-gold)" }} />
+      <span className="absolute inset-y-0 left-0 w-[2px] bg-ink" />
+      <span className="absolute inset-y-0 right-0 w-[2px] bg-ink" />
+      <span className="absolute inset-y-0 left-[2px] w-[4px] bg-rose" style={{ boxShadow: "0 0 10px color-mix(in srgb, var(--rose) 55%, transparent)" }} />
     </span>
   );
 }
@@ -101,15 +102,15 @@ function Player({ c, p, side, reduced }: { c?: LiveClient; p?: OverlayFeed["team
   const t = TEAM[side];
   const right = side === 1;
   return (
-    <div className={cn("flex h-full flex-col justify-center gap-4 px-9 transition-opacity duration-300", right ? "items-start" : "items-end text-right", c?.failed && "opacity-45")}>
-      <div className={cn("flex min-w-0 max-w-full items-center gap-4", !right && "flex-row-reverse")}>
+    <div className={cn("flex h-full flex-col items-center justify-center gap-4 text-center transition-opacity duration-300", right ? "pl-8 pr-4" : "pl-4 pr-8", c?.failed && "opacity-45")}>
+      <div className="flex min-w-0 max-w-full flex-col items-center gap-3">
         {p?.avatar && (
           <span className="inline-flex shrink-0 -skew-x-12 overflow-hidden border-[3px] bg-ink" style={{ borderColor: t.c, boxShadow: `6px 6px 0 0 ${t.deep}` }}>
-            <Img src={p.avatar} className="size-[84px] shrink-0 skew-x-12 scale-[1.25] object-cover" />
+            <Img src={p.avatar} className="size-[76px] shrink-0 skew-x-12 scale-[1.25] object-cover" />
           </span>
         )}
-        <div className={cn("flex min-w-0 flex-col", !right && "items-end")}>
-          <span className="max-w-[280px] truncate font-display text-[32px] font-black leading-tight">{c?.name ?? p?.name ?? ""}</span>
+        <div className="flex min-w-0 max-w-full flex-col items-center">
+          <span className="max-w-[320px] truncate font-display text-[30px] font-black leading-tight">{c?.name ?? p?.name ?? ""}</span>
           <span className="num text-[18px] font-black" style={{ color: t.hi }}>
             {p?.rank ? `#${p.rank.toLocaleString("en-US")}` : ""}
           </span>
@@ -148,7 +149,7 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
   const diff = live ? live.totals[0] - live.totals[1] : 0;
   const lead = Math.max(-1, Math.min(1, diff / 300_000));
   const share = total > 0 ? 0.5 + 0.48 * Math.sign(lead) * Math.abs(lead) ** 0.6 : 0.5;
-  const mod = current ? Object.values(MODS).find((m) => current.slot.toUpperCase().startsWith(m.short)) : undefined;
+  const slotC = current ? slotColor(current.slot.toUpperCase()) : "var(--paper)";
   const [setup, setSetup] = useState(false);
   useEffect(() => {
     const id = window.setTimeout(() => setSetup(new URLSearchParams(window.location.search).has("setup")), 0);
@@ -183,9 +184,9 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
       {BOXES.map((b, i) => (
         <div key={i} className="absolute" style={{ left: b.x, top: b.y, width: CW, height: CH }}>
           {setup && (
-            <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40 font-display font-black" style={{ color: TEAM[b.side].hi }}>
+            <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 font-display font-black text-white" style={{ background: `color-mix(in srgb, ${TEAM[b.side].deep} 70%, transparent)` }}>
               <span className="text-[48px] leading-none">{b.side === 0 ? "Red" : "Blue"} {b.n}</span>
-              <span className="num text-[22px] text-paper/80">
+              <span className="num text-[22px] text-white/85">
                 {b.x}, {b.y} · {CW}×{CH}
               </span>
             </span>
@@ -232,15 +233,15 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
               </div>
             );
           })}
-          <div className="col-start-2 row-start-1 flex flex-col items-center gap-2">
+          <div className="col-start-2 row-start-1 flex flex-col items-center gap-1.5">
             {live ? (
               <>
                 <div className="flex w-full items-center justify-between gap-3">
                   {[0, 1].map((i) => (
                     <span
                       key={i}
-                      className={cn("num font-display text-[50px] font-black leading-none transition-[color,text-shadow] duration-300", i === 1 && "text-right")}
-                      style={{ color: (i === 0 ? diff > 0 : diff < 0) ? TEAM[i].hi : "var(--color-paper)", textShadow: (i === 0 ? diff > 0 : diff < 0) ? `0 0 22px ${TEAM[i].c}` : "none" }}
+                      className={cn("num font-display text-[42px] font-black leading-none transition-colors duration-300", i === 1 && "text-right")}
+                      style={{ color: (i === 0 ? diff > 0 : diff < 0) ? TEAM[i].hi : "var(--paper)" }}
                     >
                       <Count value={live.totals[i]} reduced={reduced} />
                     </span>
@@ -248,15 +249,15 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
                 </div>
                 <div className="relative h-[16px] w-full -skew-x-12">
                   <div className="absolute inset-0 overflow-hidden bg-azure">
-                    <span className="absolute inset-y-0 left-0 bg-rose transition-[width] duration-300 ease-out" style={{ width: `${share * 100}%` }} />
+                    <span className="absolute inset-y-0 left-0 bg-crimson transition-[width] duration-300 ease-out" style={{ width: `${share * 100}%` }} />
                     <span className="absolute inset-y-0 left-1/2 w-[5px] -translate-x-1/2 bg-ink" />
                   </div>
                   <span
-                    className="absolute -inset-y-[7px] w-[6px] -translate-x-1/2 bg-gold-hi transition-[left] duration-300 ease-out"
-                    style={{ left: `${share * 100}%`, boxShadow: "0 0 10px var(--color-gold), 0 0 22px var(--color-gold)" }}
+                    className="absolute -inset-y-[7px] w-[6px] -translate-x-1/2 bg-gold transition-[left] duration-300 ease-out"
+                    style={{ left: `${share * 100}%`, boxShadow: "0 0 0 2px var(--paper)" }}
                   />
                 </div>
-                <span className="num text-[22px] font-black" style={{ color: diff > 0 ? TEAM[0].hi : diff < 0 ? TEAM[1].hi : "var(--color-ash)" }}>
+                <span className="num text-[20px] font-black leading-none" style={{ color: diff > 0 ? TEAM[0].hi : diff < 0 ? TEAM[1].hi : "var(--ash)" }}>
                   <Count value={Math.abs(diff)} reduced={reduced} />
                 </span>
               </>
@@ -289,8 +290,8 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
         >
           {current ? (
             <>
-              <span className="inline-flex -skew-x-12 px-3 py-1" style={{ background: mod?.color ?? "var(--color-paper)", boxShadow: "4px 4px 0 0 rgba(0,0,0,0.6)" }}>
-                <span className="skew-x-12 font-display text-[34px] font-black italic leading-none text-ink">{current.slot}</span>
+              <span className="inline-flex -skew-x-12 px-3 py-1" style={{ background: slotC, boxShadow: "4px 4px 0 0 color-mix(in srgb, var(--rose-deep) 42%, transparent)" }}>
+                <span className="skew-x-12 font-display text-[34px] font-black italic leading-none" style={{ color: modOn(slotC) }}>{current.slot}</span>
               </span>
               <div className="min-w-0 flex-1">
                 <h3 className="truncate text-[24px] font-black leading-tight">{current.title}</h3>
@@ -309,7 +310,7 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
                 ].map(([k, v]) => (
                   <div key={k} className="inline-flex -skew-x-12 border border-line bg-coal px-2 py-1">
                     <div className="flex skew-x-12 items-baseline gap-1.5">
-                      <dt className={cn("text-[10px] font-black uppercase tracking-[0.05em]", k === "★" ? "text-gold" : "text-ash")}>{k}</dt>
+                      <dt className={cn("text-[10px] font-black uppercase tracking-[0.05em]", k === "★" ? "text-gold-hi" : "text-ash")}>{k}</dt>
                       <dd className="num text-[17px] font-black">{v}</dd>
                     </div>
                   </div>
