@@ -48,7 +48,7 @@ export const DEFAULT_SETTINGS: Settings = {
   banSecs: 90,
   pickSecs: 120,
   timeoutSecs: 180,
-  edition: "bgcc6",
+  edition: "bgcc7",
 };
 
 function withReg(stored: { key: string; from?: string | null; to?: string | null }[], opens: Date | null, closes: Date | null): TimelineRow[] {
@@ -92,7 +92,7 @@ export const getSettings = cache(() =>
 );
 
 export async function saveSettings(patch: Partial<Settings>) {
-  // edition is the site switch (admin/edition); only write the given fields so a failed read can't overwrite the row with defaults
+  // edition is the site switch (admin/edition-bgcc6); only write the given fields so a failed read can't overwrite the row with defaults
   const set = { ...patch, edition: undefined, updatedAt: new Date() };
   await db
     .insert(settings)

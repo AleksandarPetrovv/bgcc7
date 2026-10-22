@@ -1,3 +1,5 @@
+import { NAV_BGCC6, ROUTES_BGCC6 } from "./sections-bgcc6";
+
 export const SECTIONS = [
   "info",
   "register",
@@ -49,9 +51,7 @@ const ROUTES: [string, Section][] = [
   ["/register", "register"],
   ["/teams/players", "players"],
   ["/teams", "teams"],
-  ["/qualifiers/scores", "qualScores"],
-  ["/qualifiers/seeding", "seeding"],
-  ["/qualifiers", "lobbies"],
+  ...ROUTES_BGCC6,
   ["/mappool", "mappool"],
   ["/matches", "schedule"],
   ["/pickems", "pickems"],
@@ -65,19 +65,13 @@ export const sectionOf = (path: string) => ROUTES.find(([p]) => path === p || pa
 
 export type NavKey = "home" | "me" | "info" | "qualifiers" | "teams" | "players" | "schedule" | "scheduling" | "mappool" | "pickems" | "stats" | "streams" | "staff";
 
-const NAV: { key: NavKey; base: string; items: { href: string; section: Section | null; key?: NavKey }[] }[] = [
+export type NavGroup = { key: NavKey; base: string; items: { href: string; section: Section | null; key?: NavKey }[] };
+
+const NAV: NavGroup[] = [
   { key: "home", base: "/", items: [{ href: "/", section: null }] },
   { key: "me", base: "/me", items: [{ href: "/me", section: null }] },
   { key: "info", base: "/info", items: [{ href: "/info", section: "info" }] },
-  {
-    key: "qualifiers",
-    base: "/qualifiers",
-    items: [
-      { href: "/qualifiers", section: "lobbies" },
-      { href: "/qualifiers/scores", section: "qualScores" },
-      { href: "/qualifiers/seeding", section: "seeding" },
-    ],
-  },
+  ...NAV_BGCC6,
   {
     key: "teams",
     base: "/teams",

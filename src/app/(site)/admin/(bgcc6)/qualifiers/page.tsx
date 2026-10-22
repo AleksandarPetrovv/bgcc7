@@ -1,6 +1,5 @@
 import { ChevronDown } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getFormat } from "@/db/edition";
 import { InView } from "@/components/site/in-view";
 import { Words } from "@/components/site/rich";
 import { PageTitle, SubHeading } from "@/components/site/page";
@@ -14,12 +13,13 @@ import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { clearPlayer, deleteScore, importAll, importOne, setScore, updateScore } from "./actions";
 import { Dropdown } from "@/components/admin/dropdown";
+import { isBGCC6 } from "@/db";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
 export default async function AdminQualifiers() {
   const [t, viewer, lobbies, results, rows, settings] = await Promise.all([getDict(), getViewer(), getLobbies(), getQualResults(), getQualScoreRows(), getSettings()]);
-  if (!can(viewer?.roles, "qualifiers") || getFormat().edition !== "bgcc6") notFound();
+  if (!can(viewer?.roles, "qualifiers") || !isBGCC6()) notFound();
   const slotOf = new Map(results.maps.map((m) => [m.id, m.slot]));
 
   return (
@@ -81,11 +81,11 @@ export default async function AdminQualifiers() {
           return (
             <details key={p.id} style={{ "--i": Math.min(i, 24), "--s": "0.03s", "--d": "0.45s" } as React.CSSProperties} className={cn("group in-left-far border border-line bg-coal", i >= settings.qualifyCount && "opacity-60")}>
               <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-2">
-                <span className={cn("in-slam num w-10 text-center text-lg [--d:0.6s]", i < settings.qualifyCount ? "text-balkan" : "text-ash")}>#{i + 1}</span>
+                <span className={cn("in-slam num w-10 text-center text-lg [--d:0.6s]", i < settings.qualifyCount ? "text-balkan-hi" : "text-ash")}>#{i + 1}</span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.avatar} alt="" className="size-7" />
                 <span className="min-w-0 truncate font-bold">{p.username}</span>
-                <span className="in-wipe-r num ml-auto text-balkan [--d:0.7s]">{p.zSum.toFixed(2)}</span>
+                <span className="in-wipe-r num ml-auto text-balkan-hi [--d:0.7s]">{p.zSum.toFixed(2)}</span>
                 <span className="num hidden w-28 text-right text-sm text-ash sm:block">{t.admin.mapsPlayed(Object.keys(p.perf).length, results.maps.length)}</span>
                 <ChevronDown className="size-4 shrink-0 text-ash transition-transform duration-300 group-open:rotate-180 group-hover:text-paper" aria-hidden />
               </summary>

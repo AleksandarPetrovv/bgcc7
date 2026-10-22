@@ -6,8 +6,9 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { LogOut, Menu, Swords } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Sparkle, SpeedMark, Wordmark } from "./graphics";
-import { EditionView, useDict } from "./lang";
+import { Sparkle, Wordmark } from "./graphics";
+import { useDict } from "./lang";
+import { EditionView } from "./edition-view-bgcc6";
 import { cn } from "@/lib/utils";
 import { login, logout } from "@/app/(site)/pickems/actions";
 import type { NavItem } from "@/lib/sections";
@@ -75,7 +76,7 @@ function Countdown({ clock }: { clock: Clock }) {
   const s = Math.ceil(left / 1000);
   const low = !clock.pause && s <= 10;
   return (
-    <span className={cn("num ml-0.5 tabular-nums", clock.pause ? "text-gold-hi" : low ? "text-white" : "text-white/85")}>
+    <span className={cn("num ml-0.5 tabular-nums", clock.pause ? "text-white/70" : low ? "text-white" : "text-white/85")}>
       {Math.floor(s / 60)}:{String(s % 60).padStart(2, "0")}
     </span>
   );
@@ -99,7 +100,7 @@ function MatchLink({ slug, path, big, onClick, clock }: { slug: string; path: st
         aria-current={on ? "page" : undefined}
         className={cn(
           "group relative inline-flex -skew-x-12 items-center overflow-hidden font-black uppercase tracking-wide text-white",
-          big ? "match-cta heading-slam min-h-12 w-full px-6 text-2xl" : "lift-sm h-9 border border-rose px-3.5 text-[0.8rem] [--lift:var(--color-rose-deep)]",
+          big ? "match-cta heading-slam min-h-12 w-full px-6 text-2xl" : "lift-sm h-9 border border-rose px-3.5 text-[0.8rem] [--lift:var(--rose-deep)]",
           on ? "bg-rose-deep" : "bg-rose",
         )}
       >
@@ -132,7 +133,7 @@ function LivePill({ big }: { big?: boolean }) {
 }
 
 function Dot({ className }: { className?: string }) {
-  return <span className={cn("size-2 shrink-0 rounded-full bg-rose shadow-[0_0_0_2px_var(--color-ink)]", className)} aria-hidden />;
+  return <span className={cn("size-2 shrink-0 rounded-full bg-rose shadow-[0_0_0_2px_var(--ink)]", className)} aria-hidden />;
 }
 
 export function SiteNav({ user, nav: base, register, live, captain, match: initialMatch, sched }: Props) {
@@ -183,13 +184,12 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
     return () => window.removeEventListener("resize", again);
   }, [activeBase]);
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-ink/85 backdrop-blur-md">
-      <div className="flex h-16 items-center gap-6 pr-4 lg:h-20 lg:pr-6">
-        <Link href="/" className="group flex h-full items-center gap-1 pl-0" aria-label={t.nav.homeLabel}>
-          <SpeedMark className="h-8 w-24 transition-transform duration-300 group-hover:translate-x-1 lg:h-10 lg:w-28" />
+    <header className="sticky top-0 z-40 border-b border-line bg-field/90 backdrop-blur-md">
+      <div className="flex h-16 items-center gap-2 pr-4 sm:gap-6 lg:h-20 lg:pr-6">
+        <Link href="/" className="group flex h-full items-center gap-1 pl-4 lg:pl-6" aria-label={t.nav.homeLabel}>
           <Wordmark size="md" className="text-paper" />
         </Link>
-        <EditionView className="-ml-2 sm:ml-0" />
+        <EditionView className="ml-1 sm:ml-0" />
 
         <nav ref={navRef} className="relative ml-auto hidden h-full items-stretch xl:flex" aria-label={t.nav.main}>
           <span ref={shadowRef} className={cn(bar, "bottom-0")} aria-hidden>
@@ -214,10 +214,10 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "group relative flex items-center whitespace-nowrap px-2.5 text-[0.78rem] font-black uppercase tracking-wide transition-colors 2xl:px-3.5",
-                    active ? "text-paper" : "text-paper/60 hover:text-paper",
+                    active ? "text-paper" : "text-paper/70 hover:text-paper",
                   )}
                 >
-                  {!active && <span className="absolute inset-x-0.5 inset-y-4 -skew-x-12 scale-90 bg-white/0 transition duration-200 group-hover:scale-100 group-hover:bg-white/[0.05]" aria-hidden />}
+                  {!active && <span className="absolute inset-x-0.5 inset-y-4 -skew-x-12 scale-90 bg-white/0 transition duration-200 group-hover:scale-100 group-hover:bg-white/40" aria-hidden />}
                   <span className={cn("relative transition-transform duration-200 group-hover:-translate-y-px", n.hidden && "opacity-40")}>{t.nav[n.key]}</span>
                   {live.includes(n.key) && <LivePill />}
                   {dots.includes(n.key) && <Dot className="absolute right-1 top-5" />}
@@ -231,7 +231,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
           {register && (
           <Link
             href="/register"
-            className="lift-sm sheen hidden h-9 -skew-x-12 items-center bg-paper px-4 text-[0.8rem] font-black uppercase tracking-wide text-ink [--lift:var(--color-rose)] hover:bg-white sm:inline-flex"
+            className="lift-sm sheen hidden h-9 -skew-x-12 items-center bg-paper px-4 text-[0.8rem] font-black uppercase tracking-wide text-ink [--lift:var(--rose)] hover:bg-rose-deep sm:inline-flex"
           >
             <span className="inline-block skew-x-12">{t.nav.register}</span>
           </Link>
@@ -242,7 +242,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
               href="/admin"
               aria-current={isActive(path, "/admin") ? "page" : undefined}
               className={cn(
-                "lift-sm hidden h-9 -skew-x-12 items-center border px-3.5 text-[0.8rem] font-black uppercase tracking-wide [--lift:var(--color-rose)] xl:inline-flex",
+                "lift-sm hidden h-9 -skew-x-12 items-center border px-3.5 text-[0.8rem] font-black uppercase tracking-wide [--lift:var(--rose)] xl:inline-flex",
                 isActive(path, "/admin") ? "border-rose bg-rose text-white" : "border-line text-ash hover:border-rose hover:text-paper",
               )}
             >
@@ -279,7 +279,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
               type="button"
               disabled={pending}
               onClick={() => start(() => login(path))}
-              className="lift-sm hidden h-9 -skew-x-12 items-center whitespace-nowrap border border-line px-3.5 text-[0.8rem] font-black text-paper [--lift:var(--color-rose)] hover:border-rose disabled:opacity-60 md:inline-flex"
+              className="lift-sm hidden h-9 -skew-x-12 items-center whitespace-nowrap border border-line px-3.5 text-[0.8rem] font-black text-paper [--lift:var(--rose)] hover:border-rose disabled:opacity-60 md:inline-flex"
             >
               <span className="inline-block skew-x-12">{t.nav.login}</span>
             </button>

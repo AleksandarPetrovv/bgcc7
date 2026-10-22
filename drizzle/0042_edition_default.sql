@@ -1,0 +1,1 @@
+ALTER TABLE "settings" ALTER COLUMN "edition" SET DEFAULT 'bgcc7';
