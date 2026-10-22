@@ -55,7 +55,7 @@ function Line({ m, slot, live, slim }: { m: Match; slot: 1 | 2; live?: [number, 
       </span>
       <MeTag t={team.id} className="-mx-1" />
       {score !== null && (
-        <span className={cn("in-slam num ml-2 shrink-0 text-right text-xl leading-none", won ? "text-balkan-hi" : leads || tie ? "text-rose-hi" : "text-paper/80")} style={v({ "--d": "0.65s" })}>
+        <span className={cn("in-slam num ml-2 shrink-0 text-right text-base leading-none", won ? "text-balkan-hi" : leads || tie ? "text-rose-hi" : "text-paper/80")} style={v({ "--d": "0.65s" })}>
           {score}
         </span>
       )}
@@ -98,10 +98,9 @@ function LiveDot() {
 
 export function MatchBracket({ live = {} }: { live?: Record<string, [number, number] | null> }) {
   const t = useDict();
-  const lang = useLang();
   const router = useRouter();
   const { matches, format } = useTournament();
-  const { G, H, P, minW, LOW, POS, top, WIN, DROPS, HEADERS, gfCol, upRows, lowRows, mark } = bracketLayout(format);
+  const { G, H, P, minW, LOW, POS, top, WIN, DROPS, HEADERS, gfCol, lowRows } = bracketLayout(format);
   const [hover, setHover] = useState<string | null>(null);
   const [end, setEnd] = useState(false);
   const anyLive = Object.keys(live).length > 0;
@@ -138,7 +137,6 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
     const y = y1 - y0 <= room ? base + (y0 + y1) / 2 - head - room / 2 : base + y0 - head - 8;
     window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
   };
-  const locale = lang === "bg" ? "bg-BG" : "en-GB";
 
   const linked = new Set<string>();
   if (hover) for (const [a, b] of DROPS) if (a === hover || b === hover) linked.add(a).add(b);
@@ -172,7 +170,6 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
     </div>
   );
 
-  const up = (w: string) => w.toLocaleUpperCase(locale);
 
   return (
     <div className="relative">
@@ -180,12 +177,6 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
       <div className="mx-auto mt-4" style={fit.outer}>
       <div ref={inner} className={cn("relative", scale === 1 && "mx-auto")} style={fit.inner}>
         <svg className="pointer-events-none absolute inset-0 overflow-visible" width={width} height={height} aria-hidden>
-          <text x={col(mark)} y={TOP + (upRows - 1) * P + H - 6} className="in-trace heading-slam" fontSize={118} fill="none" stroke="color-mix(in srgb, var(--paper) 8%, transparent)" strokeWidth={1.5}>
-            {up(t.schedule.upperWord)}
-          </text>
-          <text x={width} y={LOW + (lowRows - 1) * P + H - 4} textAnchor="end" className="in-trace heading-slam" fontSize={118} fill="none" stroke="color-mix(in srgb, var(--rose) 13%, transparent)" strokeWidth={1.5} style={v({ "--d": "0.4s" })}>
-            {up(t.schedule.lowerWord)}
-          </text>
           {Object.entries(WIN).map(([a, b]) => {
             const done = !!byId.get(a)?.winner;
             return (
@@ -259,7 +250,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
               slim={W < 200}
               onEnter={() => setHover(id)}
               onLeave={() => setHover(null)}
-              className={cn("in-left-far absolute", gf ? "border-gold/70" : "border-line hover:border-paper/30", linked.has(id) && "border-rose/80")}
+              className={cn("in-left-far absolute", gf ? "border-gold/70" : "border-line hover:border-paper/30", linked.has(id) && "z-10 border-rose shadow-[0_0_14px_-3px_var(--rose)]")}
               style={{ left: col(c), top: top(id), width: W, height: H, ...v({ "--i": c, "--s": "0.14s", "--d": `${(POS[id][2] === "u" ? 0.2 : 0.5) + POS[id][1] / 2500}s` }) }}
             />
           );
