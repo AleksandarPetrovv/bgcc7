@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { TriTick } from "@/components/site/graphics";
+import { Glyph } from "@/components/site/graphics";
 import type { FeedMatch, OverlayFeed } from "@/lib/overlay-types";
 import { TZ, tzLabel } from "@/lib/time";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,7 @@ const time = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", m
 function Heading({ text }: { text: string }) {
   return (
     <div className="flex items-center gap-4">
-      <TriTick className="h-[22px] w-[42px]" />
+      <Glyph kind="play" className="size-[24px]" />
       <h2 className="text-[22px] font-black uppercase tracking-[0.05em] text-paper">{text}</h2>
     </div>
   );
@@ -29,11 +29,11 @@ function Row({ m, current, i }: { m: FeedMatch; current: boolean; i: number }) {
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.45, delay: 0.1 + i * 0.06, ease: EASE }}
       className="flex h-[78px] -skew-x-12 items-stretch border bg-coal/95"
-      style={{ borderColor: current ? "var(--color-gold)" : "var(--color-line)", boxShadow: current ? "6px 6px 0 0 var(--color-gold-deep)" : "5px 5px 0 0 rgba(0,0,0,0.5)" }}
+      style={{ borderColor: current ? "var(--gold)" : "var(--line)", boxShadow: current ? "6px 6px 0 0 var(--gold-deep)" : "5px 5px 0 0 color-mix(in srgb, var(--rose-deep) 42%, transparent)" }}
     >
       <div className={cn("flex w-[170px] shrink-0 flex-col items-center justify-center", done ? "bg-slate" : "bg-rose")}>
-        <span className="skew-x-12 text-[15px] font-black uppercase tracking-[0.05em] text-white/80">{at ? day.format(at) : "TBD"}</span>
-        <span className="num skew-x-12 font-display text-[26px] font-black leading-none text-white">{at ? time.format(at) : "--:--"}</span>
+        <span className={cn("skew-x-12 text-[15px] font-black uppercase tracking-[0.05em]", done ? "text-ash" : "text-white/85")}>{at ? day.format(at) : "TBD"}</span>
+        <span className={cn("num skew-x-12 font-display text-[26px] font-black leading-none", done ? "text-paper" : "text-white")}>{at ? time.format(at) : "--:--"}</span>
       </div>
       <div className="flex min-w-0 flex-1 skew-x-12 flex-col justify-center gap-1 px-6">
         <span className={LABEL}>{m.round}</span>
@@ -45,7 +45,7 @@ function Row({ m, current, i }: { m: FeedMatch; current: boolean; i: number }) {
                 <span className="h-6 w-1.5 shrink-0" style={{ background: TEAM[s].c }} />
                 <span className={cn("min-w-0 truncate", lost && "text-paper/40")}>{m.teams[s]}</span>
                 {done && (
-                  <span className="num font-display" style={{ color: lost ? "var(--color-ash)" : TEAM[s].hi }}>
+                  <span className="num font-display" style={{ color: lost ? "var(--ash)" : TEAM[s].hi }}>
                     {m.score[s] ?? 0}
                   </span>
                 )}
@@ -66,7 +66,7 @@ export function ScheduleScene({ feed }: { feed: OverlayFeed }) {
   const labels = [...new Set([...next, ...done].flatMap((m) => m.startsAt ? [tzLabel(new Date(m.startsAt))] : []))];
   return (
     <div className="absolute inset-0 overflow-hidden text-paper">
-      <Backdrop num={editionNum(feed)} tint="var(--color-rose)" />
+      <Backdrop num={editionNum(feed)} tint="var(--rose)" />
       <TopBar feed={feed} />
       <div className="absolute left-[72px] top-[150px] flex items-end gap-6">
         <Echo text="Schedule" className="text-[92px]" />
@@ -97,7 +97,7 @@ function Mini({ m, current }: { m: FeedMatch; current: boolean }) {
   return (
     <div
       className="w-full border bg-coal/95"
-      style={{ borderColor: current ? "var(--color-gold)" : "var(--color-line)", boxShadow: current ? "0 0 0 2px rgba(232,197,71,0.35)" : "3px 3px 0 0 rgba(0,0,0,0.5)" }}
+      style={{ borderColor: current ? "var(--gold)" : "var(--line)", boxShadow: current ? "0 0 0 2px color-mix(in srgb, var(--gold) 35%, transparent)" : "3px 3px 0 0 color-mix(in srgb, var(--rose-deep) 42%, transparent)" }}
     >
       {[0, 1].map((s) => {
         const won = done && m.winner === s + 1;
@@ -106,7 +106,7 @@ function Mini({ m, current }: { m: FeedMatch; current: boolean }) {
           <div key={s} className={cn("flex h-[22px] items-center gap-2 pr-2", s === 0 && "border-b border-line")}>
             <span className="h-full w-[4px] shrink-0" style={{ background: won ? TEAM[s].c : "transparent" }} />
             <span className={cn("min-w-0 flex-1 truncate text-[14px] font-black", tbd ? "text-ash/60" : done && !won ? "text-paper/45" : "text-paper")}>{m.teams[s]}</span>
-            {done && <span className={cn("num text-[14px] font-black", won ? "text-gold" : "text-ash")}>{m.score[s] ?? 0}</span>}
+            {done && <span className={cn("num text-[14px] font-black", won ? "text-gold-hi" : "text-ash")}>{m.score[s] ?? 0}</span>}
           </div>
         );
       })}
@@ -153,7 +153,7 @@ export function BracketScene({ feed }: { feed: OverlayFeed }) {
   const grand = all.filter((m) => m.bracket === "grand");
   return (
     <div className="absolute inset-0 overflow-hidden text-paper">
-      <Backdrop num={editionNum(feed)} tint="var(--color-balkan)" />
+      <Backdrop num={editionNum(feed)} tint="var(--white)" />
       <TopBar feed={feed} />
       <div className="absolute left-[72px] top-[130px]">
         <Echo text="Bracket" className="text-[64px]" />
@@ -164,7 +164,7 @@ export function BracketScene({ feed }: { feed: OverlayFeed }) {
           <Lane title="Losers bracket" rounds={losers} feed={feed} height={300} />
         </div>
         <section className="flex flex-col justify-center gap-3">
-          <span className={cn(LABEL, "text-gold")}>Grand finals</span>
+          <span className={cn(LABEL, "text-gold-hi")}>Grand finals</span>
           {grand.map((m) => (
             <Mini key={m.id} m={m} current={m.id === feed.match.id} />
           ))}
