@@ -66,7 +66,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
 
         {champ && (
           <div key={champ.id} className="anim-rise absolute border border-gold/40 bg-coal" style={{ left: x(gfCol), top: POS["GF-M2"][1] + H + 30, width: W }}>
-            <div className="flex items-center gap-1.5 bg-gold px-2.5 py-1 text-[0.7rem] font-display font-bold text-paper">
+            <div className="flex items-center gap-1.5 bg-gold px-2.5 py-1 text-[0.7rem] font-display font-bold text-on-fill">
               <Crown className="size-3.5" /> {t.pickems.champion}
             </div>
             <div className="flex items-center gap-3 p-2.5">
@@ -120,7 +120,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
                     {...meT(team?.id)}
                     className={cn(
                       "flex min-h-0 flex-1 items-center gap-2 px-2 text-left text-[0.82rem] transition-colors",
-                      right ? "bg-[color-mix(in_oklab,var(--balkan)_14%,var(--white))] font-display font-black text-balkan-hi" : miss ? "bg-rose/15 font-display font-black text-rose-hi" : picked ? "bg-white/55 font-display font-black text-paper" : "font-display font-bold enabled:hover:bg-slate",
+                      right ? "bg-[color-mix(in_oklab,var(--balkan)_14%,var(--coal))] font-display font-black text-balkan-hi" : miss ? "bg-rose/15 font-display font-black text-rose-hi" : picked ? "bg-coal/55 font-display font-black text-paper" : "font-display font-bold enabled:hover:bg-slate",
                       lost && "text-ash",
                       !team && "cursor-default italic text-ash",
                     )}

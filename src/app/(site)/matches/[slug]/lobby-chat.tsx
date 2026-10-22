@@ -115,7 +115,7 @@ function ChatSession({
         <button
           type="submit"
           disabled={disabled || busy || !!left || !text.trim()}
-          className="inline-flex min-h-8 min-w-20 -skew-x-12 items-center justify-center border border-balkan bg-balkan px-3 text-xs font-display font-bold text-paper transition-colors hover:bg-paper hover:text-ink disabled:opacity-50"
+          className="inline-flex min-h-8 min-w-20 -skew-x-12 items-center justify-center border border-balkan bg-balkan px-3 text-xs font-display font-bold text-on-fill transition-colors hover:bg-paper hover:text-ink disabled:opacity-50"
         >
           <span className="inline-flex skew-x-12 items-center gap-1.5">{left ? <span className="num">{left}s</span> : <><Send className="size-3.5" /> {t.lobby.send}</>}</span>
         </button>

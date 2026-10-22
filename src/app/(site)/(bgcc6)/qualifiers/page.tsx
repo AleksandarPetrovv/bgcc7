@@ -59,7 +59,7 @@ export default async function Lobbies() {
               const dv = (d: number) => ({ "--d": `${d}s` }) as React.CSSProperties;
               return (
                 <article key={l.id} style={dv(base)} className={cn("in-up lift group flex border bg-coal", mine ? "border-balkan [--lift:var(--balkan)]" : "border-line hover:border-rose/60")}>
-                  <div style={dv(base + 0.1)} className={cn("in-drop flex w-24 shrink-0 flex-col items-center justify-center py-4 text-white sm:w-28", mine ? "bg-balkan text-paper" : "bg-rose")}>
+                  <div style={dv(base + 0.1)} className={cn("in-drop flex w-24 shrink-0 flex-col items-center justify-center py-4 text-white sm:w-28", mine ? "bg-balkan text-on-fill" : "bg-rose")}>
                     <span className="in-pop num text-4xl leading-none" style={dv(base + 0.25)}>{fmtSofiaTime(l.startsAt)}</span>
                     <span className="mt-1 text-[0.65rem] font-display font-bold">{tzLabel(l.startsAt)}</span>
                   </div>

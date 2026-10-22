@@ -335,7 +335,7 @@ export function SubHeading({ children, className }: { children: React.ReactNode;
 export function Tag({ children, tone = "rose", className }: { children: React.ReactNode; tone?: "rose" | "balkan" | "ink" | "paper"; className?: string }) {
   const t = {
     rose: "bg-rose text-white",
-    balkan: "bg-balkan text-paper",
+    balkan: "bg-balkan text-on-fill",
     ink: "bg-ink text-paper",
     paper: "bg-paper text-ink",
   }[tone];
@@ -363,7 +363,7 @@ export function SlantButton({
 }) {
   const t = {
     rose: "bg-rose text-white hover:bg-rose-hi",
-    balkan: "bg-balkan text-paper hover:bg-paper hover:text-ink [--lift:var(--balkan-deep)]",
+    balkan: "bg-balkan text-on-fill hover:bg-paper hover:text-ink [--lift:var(--balkan-deep)]",
     paper: "bg-paper text-ink hover:bg-rose-deep [--lift:var(--rose)]",
     outline: "border border-line text-paper hover:border-rose [--lift:var(--rose)]",
   }[tone];

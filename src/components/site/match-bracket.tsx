@@ -46,7 +46,7 @@ function Line({ m, slot, live, slim }: { m: Match; slot: 1 | 2; live?: [number, 
   const leads = !!live && !tie && live[slot - 1] > live[2 - slot];
   const score = live ? live[slot - 1] : m.winner !== null ? (side.score ?? 0) : null;
   return (
-    <div {...meT(team.id)} className={cn("relative flex min-h-0 flex-1 items-center gap-1.5 pl-2 pr-2.5", won && "bg-[color-mix(in_oklab,var(--balkan)_14%,var(--white))]", leads && "bg-rose/10", lost && "opacity-45")}>
+    <div {...meT(team.id)} className={cn("relative flex min-h-0 flex-1 items-center gap-1.5 pl-2 pr-2.5", won && "bg-[color-mix(in_oklab,var(--balkan)_14%,var(--coal))]", leads && "bg-rose/10", lost && "opacity-45")}>
       {(won || leads) && <span className={cn("absolute inset-y-1 left-0 w-0.5", won ? "bg-balkan" : "bg-rose/60")} aria-hidden />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {!slim && <img src={team.image} alt="" className="in-pop size-4 shrink-0 object-cover" style={v({ "--d": "0.45s" })} />}
