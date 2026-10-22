@@ -4,10 +4,13 @@
   "version": "1.0.0",
   "identifier": "net.bgcc.ref",
   "build": {
-    "frontendDist": "../ui"
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "npm run ui",
+    "beforeBuildCommand": "npm run ui:build"
   },
   "app": {
-    "withGlobalTauri": true,
+    "withGlobalTauri": false,
     "windows": [
       {
         "label": "main",
