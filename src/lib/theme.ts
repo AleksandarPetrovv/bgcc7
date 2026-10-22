@@ -1,42 +1,47 @@
 export const HEX = {
-  paper: "#f4f3ee",
-  ash: "#8a908b",
-  ink: "#0d0f0e",
-  coal: "#161917",
-  line: "#2b302d",
-  rose: "#e0242f",
-  roseHi: "#f24a54",
-  balkan: "#0fa06a",
-  azure: "#3b82f6",
-  gold: "#e8c547",
-  nm: "#3b82f6",
-  hd: "#f5b820",
-  hr: "#e0242f",
-  dt: "#a78bfa",
-  fm: "#0fa06a",
+  paper: "var(--paper)",
+  ash: "var(--ash)",
+  ink: "var(--ink)",
+  coal: "var(--coal)",
+  line: "var(--line)",
+  rose: "var(--rose)",
+  roseHi: "var(--rose-hi)",
+  balkan: "var(--balkan)",
+  azure: "var(--azure)",
+  gold: "var(--gold)",
+  nm: "var(--mod-nm)",
+  hd: "var(--mod-hd)",
+  hr: "var(--mod-hr)",
+  dt: "var(--mod-dt)",
+  fm: "var(--mod-fm)",
 } as const;
 
 export const tint =(color: string, pct: number) => `color-mix(in srgb, ${color} ${pct}%, transparent)`;
 
 export const TEAM = {
-  1: { c: "var(--color-rose)", deep: "var(--color-rose-deep)", hi: "var(--color-rose-hi)", text: "text-rose-hi", bg: "bg-rose", border: "border-rose" },
-  2: { c: "var(--color-azure)", deep: "var(--color-azure-deep)", hi: "var(--color-azure-hi)", text: "text-azure-hi", bg: "bg-azure", border: "border-azure" },
+  1: { c: "var(--crimson)", deep: "var(--crimson-deep)", hi: "var(--crimson-hi)", text: "text-crimson-hi", bg: "bg-crimson", border: "border-crimson" },
+  2: { c: "var(--azure)", deep: "var(--azure-deep)", hi: "var(--azure-hi)", text: "text-azure-hi", bg: "bg-azure", border: "border-azure" },
 } as const;
 
 export const LOBBY_TEAM = { red: TEAM[1].c, blue: TEAM[2].c } as const;
 
-export const MEDAL = ["text-gold", "text-silver", "text-bronze"];
+export const MEDAL = ["text-gold-hi", "text-silver-deep", "text-bronze-hi"];
 export const MEDAL_BG = ["bg-gold", "bg-silver", "bg-bronze"];
 
-export const GOLD ={ c: "var(--color-gold)", deep: "var(--color-gold-deep)", hi: "var(--color-gold-hi)" } as const;
+export const GOLD ={ c: "var(--gold)", deep: "var(--gold-deep)", hi: "var(--gold-hi)" } as const;
 
 export const MOD_COLOR: Record<string, string> = {
-  NM: "var(--color-mod-nm)",
-  HD: "var(--color-mod-hd)",
-  HR: "var(--color-mod-hr)",
-  DT: "var(--color-mod-dt)",
-  NC: "var(--color-mod-dt)",
-  FM: "var(--color-mod-fm)",
-  TB: "var(--color-mod-tb)",
-  NF: "var(--color-paper)",
+  NM: "var(--mod-nm)",
+  HD: "var(--mod-hd)",
+  HR: "var(--mod-hr)",
+  DT: "var(--mod-dt)",
+  NC: "var(--mod-dt)",
+  FM: "var(--mod-fm)",
+  TB: "var(--mod-tb)",
+  NF: "var(--paper)",
 };
+
+// mod colors are fills; modHi (raw palette var, theme vars only exist when a utility uses them) gives the text shade on the canvas, modOn the text color on a mod fill
+export const modHi = <T extends string | undefined>(c: T) => c?.replace(/--(?:color-)?(mod-[a-z]+)\)$/, "--$1-hi)") as T;
+export const modOn = (c?: string) =>
+  c?.includes("paper") ? "var(--ink)" : /mod-(hd|tb)\)|gold|balkan|silver/.test(c ?? "") ? "var(--paper)" : "var(--white)";

@@ -38,12 +38,12 @@ export type Beatmap = {
 };
 
 export const MODS: Record<string, { label: string; short: string; color: string }> = {
-  NoMod: { label: "No Mod", short: "NM", color: "var(--color-mod-nm)" },
-  Hidden: { label: "Hidden", short: "HD", color: "var(--color-mod-hd)" },
-  HardRock: { label: "Hard Rock", short: "HR", color: "var(--color-mod-hr)" },
-  DoubleTime: { label: "Double Time", short: "DT", color: "var(--color-mod-dt)" },
-  FreeMod: { label: "Free Mod", short: "FM", color: "var(--color-mod-fm)" },
-  Tiebreaker: { label: "Tiebreaker", short: "TB", color: "var(--color-mod-tb)" },
+  NoMod: { label: "No Mod", short: "NM", color: "var(--mod-nm)" },
+  Hidden: { label: "Hidden", short: "HD", color: "var(--mod-hd)" },
+  HardRock: { label: "Hard Rock", short: "HR", color: "var(--mod-hr)" },
+  DoubleTime: { label: "Double Time", short: "DT", color: "var(--mod-dt)" },
+  FreeMod: { label: "Free Mod", short: "FM", color: "var(--mod-fm)" },
+  Tiebreaker: { label: "Tiebreaker", short: "TB", color: "var(--mod-tb)" },
 };
 
 export type Pack = { size: number; at: string | null };
