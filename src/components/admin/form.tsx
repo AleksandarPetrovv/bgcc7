@@ -2,7 +2,7 @@
 
 import { useActionState, useTransition } from "react";
 import { Flash } from "./flash";
-import { Glyph } from "@/components/site/graphics";
+import { Sparkle } from "@/components/site/graphics";
 import { useDict } from "@/components/site/lang";
 import type { ActionResult } from "@/lib/roles";
 import { cn } from "@/lib/utils";
@@ -90,8 +90,8 @@ export function Panel({ title, help, children, className, i = 0 }: { title: stri
     <section className={cn("in-up border border-line bg-coal", className)} style={{ "--i": i, "--s": "0.1s", "--d": "0.1s" } as React.CSSProperties}>
       <div className="border-b border-line px-4 py-3 sm:px-5">
         <h2 className="heading-slam flex items-center gap-3 text-xl sm:text-2xl">
-          <span className="in-left-far inline-flex [--d:0.25s]">
-            <Glyph kind="plus" className="size-3.5" />
+          <span className="in-left-far relative inline-flex size-3.5 shrink-0 [--d:0.25s]">
+            <Sparkle className={cn("inset-0 size-full", ["text-rose-hi", "text-balkan-hi", "text-paper/60"][i % 3])} delay={i * 0.2} />
           </span>
           <span className="in-wipe min-w-0 break-words [--d:0.3s]">{title}</span>
         </h2>

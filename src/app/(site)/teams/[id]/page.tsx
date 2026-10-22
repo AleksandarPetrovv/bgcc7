@@ -90,7 +90,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
         </div>
 
         <div className="mt-14 xl:mt-0">
-        <SectionHeading>{t.teams.matches}</SectionHeading>
+        <SectionHeading mark="chevrons">{t.teams.matches}</SectionHeading>
         <div className="space-y-4">{matches.length ? matches.map((m) => <MatchRow key={m.id} match={m} />) : <p className="text-sm text-ash">{t.teams.noMatches}</p>}</div>
         </div>
       </Container>
