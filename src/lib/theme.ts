@@ -44,4 +44,4 @@ export const MOD_COLOR: Record<string, string> = {
 // mod colors are fills; modHi (raw palette var, theme vars only exist when a utility uses them) gives the text shade on the canvas, modOn the text color on a mod fill
 export const modHi = <T extends string | undefined>(c: T) => c?.replace(/--(?:color-)?(mod-[a-z]+)\)$/, "--$1-hi)") as T;
 export const modOn = (c?: string) =>
-  c?.includes("paper") ? "var(--ink)" : /mod-(hd|tb)\)|gold|balkan|silver/.test(c ?? "") ? "var(--on-fill)" : "var(--white)";
+  c?.includes("paper") ? "var(--ink)" : /mod-hd\)|gold|balkan|silver/.test(c ?? "") ? "var(--on-fill)" : "var(--white)";
