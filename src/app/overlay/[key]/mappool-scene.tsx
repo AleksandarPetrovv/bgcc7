@@ -28,7 +28,7 @@ function Tag({ text, color, dark }: { text: string; color: string; dark?: boolea
       animate={{ scale: 1, opacity: 1, rotate: 0 }}
       transition={{ type: "spring", stiffness: 520, damping: 20 }}
     >
-      <span className={cn("skew-x-12 text-[13px] font-black uppercase tracking-[0.05em]", dark ? "text-paper" : "text-white")}>{text}</span>
+      <span className={cn("skew-x-12 text-[13px] font-display font-bold", dark ? "text-paper" : "text-white")}>{text}</span>
     </motion.span>
   );
 }
@@ -36,10 +36,10 @@ function Tag({ text, color, dark }: { text: string; color: string; dark?: boolea
 export function MappoolScene({ feed }: { feed: OverlayFeed }) {
   const bySlot = new Map(feed.pool.map((m) => [norm(m.slot), m]));
   const groups: { key: string; short: string; label: string; color: string; maps: FeedMap[] }[] = feed.groups?.length
-    ? feed.groups.map((g) => ({ key: g.name, short: g.name, label: "", color: g.color, maps: g.slots.flatMap((x) => bySlot.get(norm(x)) ?? []) })).filter((g) => g.maps.length)
+    ? feed.groups.map((g) => ({ key: g.name, short: g.name.charAt(0).toUpperCase() + g.name.slice(1).toLowerCase(), label: "", color: g.color, maps: g.slots.flatMap((x) => bySlot.get(norm(x)) ?? []) })).filter((g) => g.maps.length)
     : GROUPS.map((key) => ({ key, ...MODS[key], maps: feed.pool.filter((m) => groupFor(m) === key) })).filter((g) => g.maps.length);
   const steps = new Map(feed.steps.map((s) => [norm(s.slot), s]));
-  let rows = 3;
+  let rows = 4;
   while (rows < 12 && groups.reduce((n, g) => n + Math.ceil(g.maps.length / rows), 0) > 6) rows++;
   rows = Math.min(rows, Math.max(1, ...groups.map((g) => g.maps.length)));
   const spans = groups.map((g) => Math.max(1, Math.ceil(g.maps.length / rows)));
@@ -68,7 +68,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
 
       <div className="absolute inset-x-[72px] top-[205px] flex items-end justify-between border-b border-line pb-4">
         <div className="flex items-center gap-5">
-          <Glyph kind="target" className="size-[28px]" />
+          <Glyph kind="leaf" className="size-[28px]" />
           <h1 className="font-display text-[48px] font-black italic uppercase leading-none">Mappool</h1>
           <span className={LABEL}>{feed.match.round}</span>
         </div>
@@ -82,7 +82,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
               <span className="inline-flex -skew-x-12 px-3 py-0.5" style={{ background: g.color }}>
                 <span className="skew-x-12 text-[18px] font-black" style={{ color: modOn(g.color) }}>{g.short}</span>
               </span>
-              <span className={LABEL}>{g.label || g.maps.length}</span>
+              {g.label && <span className={LABEL}>{g.label}</span>}
             </h2>
             <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${spans[gi]}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${rows}, ${cardH}px)`, gridAutoFlow: "column" }}>
             {g.maps.map((map, mi) => {
@@ -138,7 +138,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
                         <span className="font-display text-[26px] font-black italic uppercase leading-none" style={{ color: stamp.side.hi }}>
                           {stamp.word}
                         </span>
-                        <span className="max-w-[200px] truncate text-[13px] font-black uppercase tracking-[0.05em] text-paper/80">{stamp.name}</span>
+                        <span className="max-w-[200px] truncate text-[13px] font-display font-bold text-paper/80">{stamp.name}</span>
                       </span>
                     </motion.div>
                   )}

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Glyph } from "@/components/site/graphics";
 import type { FeedTeam, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +21,7 @@ export function Img({ src, className, style }: { src: string; className?: string
 
 export const SLAB = "color-mix(in srgb, var(--rose-deep) 42%, transparent)";
 
-export const LABEL = "text-[15px] font-black uppercase tracking-[0.08em] text-ash";
+export const LABEL = "text-[15px] font-display font-bold text-ash";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function Lockup({ num, size, className, animate, invert }: { num: string; size: number; className?: string; animate?: boolean; invert?: boolean }) {
@@ -115,7 +114,7 @@ export function Backdrop({ num, tint }: { num: string; tint?: string }) {
       <div className="absolute inset-y-0 right-0 w-[75%] overflow-hidden [mask-image:linear-gradient(to_left,black,transparent)]">
         <div className="anim-drift h-full w-[calc(100%+120px)] bg-[repeating-linear-gradient(115deg,transparent_0_52.4px,color-mix(in_srgb,var(--rose)_6%,transparent)_52.4px_54.4px)]" />
       </div>
-      <div className="absolute right-[-60px] top-1/2 -translate-y-1/2 font-display text-[980px] font-black italic leading-[0.8] text-rose/[0.07]">{num}</div>
+      <div className="absolute right-[-160px] top-1/2 -translate-y-1/2 font-display text-[1500px] font-black italic leading-[0.8] text-rose/[0.07] blur-[14px]">{num}</div>
       <FlagBar className="absolute inset-x-0 bottom-0" />
     </div>
   );
@@ -130,13 +129,12 @@ export function TopBar({ feed, invert }: { feed: OverlayFeed; invert?: boolean }
       transition={{ duration: 0.6, ease: EASE }}
     >
       <div className="flex items-center gap-5">
-        <Glyph kind="bolt" className="size-[26px]" />
         <Lockup num={editionNum(feed)} size={38} invert={invert} />
       </div>
       <div className="flex items-center gap-4">
-        <span className="text-[17px] font-black uppercase tracking-[0.08em] text-ash">First to {feed.match.firstTo}</span>
+        <span className="text-[17px] font-display font-bold text-ash">First to {feed.match.firstTo}</span>
         <span className="inline-flex -skew-x-12 border border-line bg-coal/90 px-6 py-2.5 shadow-[5px_5px_0_0_color-mix(in_srgb,var(--rose-deep)_42%,transparent)]">
-          <span className="skew-x-12 text-[20px] font-black uppercase tracking-[0.06em] text-paper">{feed.match.round}</span>
+          <span className="skew-x-12 text-[20px] font-display font-bold text-paper">{feed.match.round}</span>
         </span>
       </div>
     </motion.header>
