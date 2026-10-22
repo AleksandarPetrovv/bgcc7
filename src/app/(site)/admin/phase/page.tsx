@@ -10,13 +10,14 @@ import { toSofiaInput } from "@/lib/time";
 import { phaseStates } from "@/lib/dates";
 import { setDates, setPhase, setSections, setTimeline } from "./actions";
 import { getFormat } from "@/db/edition";
+import { isBGCC6 } from "@/db";
 
 const check = "size-4 shrink-0 accent-rose";
 
 export default async function AdminPhase() {
   const [t, s, viewer] = await Promise.all([getDict(), getSettings(), getViewer()]);
   if (!can(viewer?.roles, "phase")) notFound();
-  const suiji = getFormat().edition === "bgcc7";
+  const suiji = !isBGCC6();
   const off = getFormat().sectionsOff;
   const phases = PHASES.filter((p) => !suiji || p !== "qualifiers");
   const sections = SECTIONS.filter((k) => !off.includes(k));
@@ -41,7 +42,7 @@ export default async function AdminPhase() {
                 <label
                   key={p}
                   style={{ "--i": i, "--s": "0.07s", "--d": "0.5s" } as React.CSSProperties}
-                  className="in-pop flex min-h-14 -skew-x-6 cursor-pointer items-center gap-2.5 whitespace-nowrap border border-line px-4 text-sm font-black uppercase transition-colors hover:border-paper/40 has-[:checked]:border-rose has-[:checked]:bg-rose/10 has-[:checked]:shadow-[4px_4px_0_0_var(--color-rose-deep)]"
+                  className="in-pop flex min-h-14 -skew-x-6 cursor-pointer items-center gap-2.5 whitespace-nowrap border border-line px-4 text-sm font-black uppercase transition-colors hover:border-paper/40 has-[:checked]:border-rose has-[:checked]:bg-rose/10 has-[:checked]:shadow-[4px_4px_0_0_var(--rose-deep)]"
                 >
                   <span className="flex skew-x-6 items-center gap-2.5">
                     <input type="radio" name="phase" value={p} defaultChecked={p === s.phase} className={check} />

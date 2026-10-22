@@ -5,7 +5,7 @@ import { getDict } from "@/lib/i18n/server";
 import { DISCORD_URL } from "@/lib/links";
 import { getFill } from "@/db/copy";
 import { getViewer, requireSection } from "@/lib/authz";
-import { currentEdition } from "@/db";
+import { isBGCC6 } from "@/db";
 import { getInfoCopy } from "@/db/info-copy";
 import { getLang } from "@/lib/i18n/server";
 import { Editable } from "./editable";
@@ -41,7 +41,7 @@ const PRIZE_BAR = ["bg-gold", "bg-silver", "bg-bronze"];
 export default async function InfoPage() {
   await requireSection("info");
   const [t, f, copy, lang, viewer] = await Promise.all([getDict(), getFill(), getInfoCopy(), getLang(), getViewer()]);
-  const on = currentEdition() === "bgcc7" && !!viewer?.roles.includes("host");
+  const on = !isBGCC6() && !!viewer?.roles.includes("host");
   const ed: Ed = (path, fallback) => ({ path, raw: copy[`${lang}:${path}`] ?? fallback });
   const E = (path: string, value: string, fill = true) => {
     const e = ed(path, value);
@@ -52,7 +52,7 @@ export default async function InfoPage() {
     );
   };
   const intro = ed("info.intro", t.info.intro);
-  if (currentEdition() === "bgcc7") {
+  if (!isBGCC6()) {
     const [plan, matches, hosts, weeks] = await Promise.all([getPlan(), getMatches(), getHosts(), stageWeeks()]);
     return (
       <Container plain>

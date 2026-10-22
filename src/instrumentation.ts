@@ -4,7 +4,7 @@ export async function register() {
   const sql = postgres(process.env.DATABASE_URL, { max: 1 });
   try {
     const [row] = await sql<{ edition: string }[]>`select edition from public.settings where id = 1`;
-    (globalThis as { bgccEdition?: string }).bgccEdition = row?.edition === "bgcc7" ? "bgcc7" : "bgcc6";
+    (globalThis as { bgccEdition?: string }).bgccEdition = row?.edition === "bgcc6" ? "bgcc6" : "bgcc7";
   } catch {
   } finally {
     await sql.end().catch(() => {});
