@@ -39,7 +39,7 @@ const L = (from: string): Src => ({ from, take: "L" });
 const id = (r: string, m: number) => `${r}-M${m}`;
 const range = (n: number) => Array.from({ length: n }, (_, i) => i + 1);
 
-const BGCC6: Format = {
+const formatBGCC6: Format = {
   edition: "bgcc6",
   name: "BGCC6",
   year: 2027,
@@ -113,7 +113,7 @@ const BGCC6: Format = {
   },
 };
 
-function bgcc7(): Format {
+function buildFormat(): Format {
   const feed: Record<string, [Src, Src]> = {};
   for (const k of range(4)) feed[id("WB-R2", k)] = [W(id("WB-R1", 2 * k - 1)), W(id("WB-R1", 2 * k))];
   for (const k of range(2)) feed[id("WB-R3", k)] = [W(id("WB-R2", 2 * k - 1)), W(id("WB-R2", 2 * k))];
@@ -211,7 +211,8 @@ function bgcc7(): Format {
   };
 }
 
-export const FORMATS: Record<Edition, Format> = { bgcc6: BGCC6, bgcc7: bgcc7() };
+export const FORMAT = buildFormat();
+export const FORMATS: Record<Edition, Format> = { bgcc6: formatBGCC6, bgcc7: FORMAT };
 
 export const roundOf = (matchId: string) => (matchId.startsWith("GF") ? "GF" : matchId.replace(/-M\d+$/, ""));
 

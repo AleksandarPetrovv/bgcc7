@@ -6,7 +6,7 @@ import { InView } from "@/components/site/in-view";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { Container, PageTitle, SectionHeading, SlantButton, Tag, Wide } from "@/components/site/page";
-import { useDict } from "@/components/site/lang";
+import { useDict, useIsBGCC6 } from "@/components/site/lang";
 import { PickemsBracket } from "@/components/site/pickems-bracket";
 import { resolve, seedingOf, type Picks } from "@/lib/pickems";
 import { useTournament } from "@/components/site/tournament";
@@ -26,7 +26,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
   const t = useDict();
   const { matches, format: f } = useTournament();
   const seeding = seedingOf(matches);
-  const DRAFT = f.edition === "bgcc6" ? "bgcc7-pickems" : "bgcc7-suiji-pickems";
+  const DRAFT = useIsBGCC6() ? "bgcc7-pickems" : "bgcc7-suiji-pickems";
   const [picks, setPicks] = useState<Picks>(saved ?? {});
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState(false);
@@ -101,7 +101,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
           {points.map(([k, v], i) => (
             <div key={k} className="in-flip bg-coal p-2.5 last:col-span-2 sm:p-3 sm:last:col-span-1" style={{ "--i": i, "--s": "0.08s", "--d": "0.15s" } as React.CSSProperties}>
               <div className="min-h-[2lh] text-[0.6rem] font-black uppercase leading-tight text-ash sm:text-[0.65rem]">{k}</div>
-              <div className="in-pop num origin-left text-2xl sm:text-3xl text-balkan [--d:0.45s]">
+              <div className="in-pop num origin-left text-2xl sm:text-3xl text-balkan-hi [--d:0.45s]">
                 {v}
                 <span className="text-base text-ash"> {t.common.pts}</span>
               </div>
@@ -117,7 +117,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
           </div>
           <div className="ml-auto flex flex-col items-end gap-1">
             {!open ? null : !dirty && made > 0 && osuId ? (
-              <Flash className="flex items-center gap-1.5 text-sm font-black uppercase text-balkan">
+              <Flash className="flex items-center gap-1.5 text-sm font-black uppercase text-balkan-hi">
                 <Check className="size-4" /> {t.common.saved}
               </Flash>
             ) : (
@@ -148,7 +148,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
               style={{ "--i": Math.min(i, 15), "--s": "0.05s" } as React.CSSProperties}
               className={cn(
                 "in-left grid min-h-14 bg-coal grid-cols-[48px_1fr_auto] items-center gap-x-4 px-4 sm:grid-cols-[64px_1fr_110px_70px_160px]",
-                e.osuId === osuId && "bg-balkan/10 shadow-[inset_3px_0_0_0_var(--color-balkan)]",
+                e.osuId === osuId && "bg-[color-mix(in_oklab,var(--balkan)_22%,var(--white))] shadow-[inset_3px_0_0_0_var(--balkan)]",
               )}
             >
               <span className={cn("in-pop num text-2xl leading-none [--d:0.2s]", MEDAL[i] ?? "text-ash")}>#{i + 1}</span>
@@ -160,7 +160,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
                 </a>
                 <MeTag p={e.osuId} />
               </span>
-              <span className="num text-right text-2xl leading-none text-balkan">
+              <span className="num text-right text-2xl leading-none text-balkan-hi">
                 {e.points} <span className="text-base text-ash">{t.common.pts}</span>
               </span>
               <span className="num hidden items-center justify-end gap-1 text-lg leading-none text-paper/70 sm:flex">

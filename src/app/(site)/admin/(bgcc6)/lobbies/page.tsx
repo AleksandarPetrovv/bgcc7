@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { getFormat } from "@/db/edition";
 import { InView } from "@/components/site/in-view";
 import { PageTitle } from "@/components/site/page";
 import { ActionForm, dateCls, inputCls, Panel, Field } from "@/components/admin/form";
@@ -14,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { createLobby, deleteLobby, placePlayer, unbook, updateLobby } from "./actions";
 import { Dropdown } from "@/components/admin/dropdown";
 import { osuMp } from "@/lib/links";
+import { isBGCC6 } from "@/db";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
 
@@ -48,7 +48,7 @@ function LobbyFields({ t, l }: { t: Dict; l?: Lobby }) {
 
 export default async function AdminLobbies() {
   const [t, lang, viewer, lobbies, regs] = await Promise.all([getDict(), getLang(), getViewer(), getLobbies(), getRegistrations()]);
-  if (!can(viewer?.roles, "lobbies") || getFormat().edition !== "bgcc6") notFound();
+  if (!can(viewer?.roles, "lobbies") || !isBGCC6()) notFound();
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const booked = new Set(lobbies.flatMap((l) => l.players.map((p) => p.osuId)));
   const approved = regs.filter((r) => r.status === "approved");
@@ -79,7 +79,7 @@ export default async function AdminLobbies() {
               <span className="sr in-drop num text-sm text-ash [--d:0.55s]">
                 {fmtSofiaDay(l.startsAt, locale)} · {fmtSofiaTime(l.startsAt)}
               </span>
-              <span className={cn("sr in-slam num ml-auto text-lg [--d:0.6s]", l.players.length >= l.capacity ? "text-rose-hi" : "text-balkan")}>
+              <span className={cn("sr in-slam num ml-auto text-lg [--d:0.6s]", l.players.length >= l.capacity ? "text-rose-hi" : "text-balkan-hi")}>
                 {l.players.length}/{l.capacity}
               </span>
             </div>

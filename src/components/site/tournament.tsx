@@ -2,11 +2,11 @@
 
 import { createContext, useContext, useMemo } from "react";
 import type { Match, Team } from "@/lib/data";
-import { FORMATS, type Edition, type Format } from "@/lib/format";
+import { FORMAT, FORMATS, type Edition, type Format } from "@/lib/format";
 
 type Ctx = { teams: Team[]; matches: Match[]; format: Format; teamById: (id: string) => Team | undefined; matchById: (id: string) => Match | undefined };
 
-const TournamentContext = createContext<Ctx>({ teams: [], matches: [], format: FORMATS.bgcc6, teamById: () => undefined, matchById: () => undefined });
+const TournamentContext = createContext<Ctx>({ teams: [], matches: [], format: FORMAT, teamById: () => undefined, matchById: () => undefined });
 
 export function TournamentProvider({ teams, matches, edition, children }: { teams: Team[]; matches: Match[]; edition: Edition; children: React.ReactNode }) {
   const value = useMemo(() => {

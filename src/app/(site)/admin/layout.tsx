@@ -1,23 +1,19 @@
 import { notFound } from "next/navigation";
 import { AdminNav } from "./admin-nav";
-import { TriTick } from "@/components/site/graphics";
+import { Glyph } from "@/components/site/graphics";
 import { Tag } from "@/components/site/page";
 import { auth } from "@/auth";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can, hasAdmin } from "@/lib/roles";
-import { getEdition } from "@/db/edition";
 import { siteEdition } from "@/db";
-import { EditionSwitch } from "./edition/edition-switch";
-import { MENU } from "./menu";
-
-const QUALS = ["/admin/lobbies", "/admin/qualifiers"];
+import { EditionSwitch } from "./edition-bgcc6/edition-switch";
+import { adminMenu } from "./menu";
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const [viewer, session, t] = await Promise.all([getViewer(), auth(), getDict()]);
   if (!viewer || !hasAdmin(viewer.roles)) notFound();
-  const edition = getEdition();
-  const items = MENU.filter((m) => m.perm.some((p) => can(viewer.roles, p)) && (edition === "bgcc6" || !QUALS.includes(m.href))).map((m) => ({ href: m.href, label: t.admin.menu[m.href.split("/")[2] ?? "overview"] }));
+  const items = adminMenu().filter((m) => m.perm.some((p) => can(viewer.roles, p))).map((m) => ({ href: m.href, label: t.admin.menu[m.href.split("/")[2] ?? "overview"] }));
   const name = session?.user?.name;
   const avatar = session?.user?.image;
   return (
@@ -28,13 +24,13 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
             <span className="anim-twinkle absolute right-5 top-4 text-lg text-rose-hi" aria-hidden>
               ✦
             </span>
-            <span className="anim-twinkle absolute right-11 top-10 text-xs text-balkan [animation-delay:0.8s]" aria-hidden>
+            <span className="anim-twinkle absolute right-11 top-10 text-xs text-balkan-hi [animation-delay:0.8s]" aria-hidden>
               ✦
             </span>
             <span className="anim-twinkle absolute right-7 top-14 text-[0.6rem] text-paper/60 [animation-delay:1.6s]" aria-hidden>
               ✦
             </span>
-            <TriTick className="h-3 w-[22px]" />
+            <Glyph kind="hex" className="size-3.5" />
             <div className="mt-4 flex items-center gap-3">
               {avatar && (
                 // eslint-disable-next-line @next/next/no-img-element

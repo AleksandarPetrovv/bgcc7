@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
-import { EDITION_COOKIE, db6, setCurrentEdition } from "@/db";
+import { EDITION_COOKIE, dbBGCC6, setCurrentEdition } from "@/db";
 import { settings } from "@/db/schema";
 import { getViewer, log } from "@/lib/authz";
 import { isEdition } from "@/lib/format";
@@ -16,7 +16,7 @@ async function host() {
 export async function switchEdition(edition: string) {
   const by = await host();
   if (!by || !isEdition(edition)) return { ok: false };
-  await db6.update(settings).set({ edition }).where(eq(settings.id, 1));
+  await dbBGCC6.update(settings).set({ edition }).where(eq(settings.id, 1));
   setCurrentEdition(edition);
   (await cookies()).delete(EDITION_COOKIE);
   await log(by, "edition.switch", { edition });

@@ -26,7 +26,7 @@ export function EditionSwitch({ edition }: { edition: Edition }) {
 
   return (
     <div className="relative border-t border-dashed border-line p-3 lg:p-4">
-      <div className="mb-2.5 flex items-center gap-2 text-[0.65rem] font-black uppercase tracking-[0.16em]" style={{ color: GOLD }}>
+      <div className="mb-2.5 flex items-center gap-2 text-[0.65rem] font-black uppercase tracking-[0.16em] text-gold-hi">
         <span className="size-1.5 rotate-45" style={{ background: GOLD }} aria-hidden />
         {t.admin.edition}
         {pending && <Loader2 className="ml-auto size-3.5 animate-spin" />}
@@ -42,13 +42,13 @@ export function EditionSwitch({ edition }: { edition: Edition }) {
               aria-checked={on}
               disabled={pending}
               onClick={() => !on && run(() => switchEdition(e), t.admin.confirmEdition(e.toUpperCase()))}
-              className={cn("relative font-black uppercase tracking-wide transition-colors duration-200", on ? "text-ink" : "text-ash hover:text-paper")}
+              className={cn("relative font-black uppercase tracking-wide transition-colors duration-200", on ? "text-paper" : "text-ash hover:text-paper")}
             >
               {on && (
                 <motion.span
                   layoutId="edition-pill"
                   transition={{ type: "spring", stiffness: 520, damping: 40 }}
-                  className="absolute inset-0 shadow-[3px_3px_0_0_var(--color-gold-deep)]"
+                  className="absolute inset-0 shadow-[3px_3px_0_0_var(--gold-deep)]"
                   style={{ background: GOLD }}
                   aria-hidden
                 />

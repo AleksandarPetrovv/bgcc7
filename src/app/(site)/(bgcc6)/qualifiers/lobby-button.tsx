@@ -25,7 +25,7 @@ export function LobbyButton({ lobbyId, mine, full, hasBooking }: { lobbyId: numb
         onClick={() => run(() => (mine ? leaveLobby() : bookLobby(lobbyId)))}
         className={cn(
           "min-h-9 px-3 text-xs font-black uppercase tracking-wide transition disabled:opacity-50",
-          mine ? "border border-line text-ash hover:border-rose hover:text-paper" : "bg-balkan text-ink hover:bg-paper",
+          mine ? "border border-line text-ash hover:border-rose hover:text-paper" : "bg-balkan text-paper hover:bg-paper hover:text-ink",
         )}
       >
         {pending ? "…" : mine ? t.qual.leave : hasBooking ? t.qual.switchHere : t.qual.book}
