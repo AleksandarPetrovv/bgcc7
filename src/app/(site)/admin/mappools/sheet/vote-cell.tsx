@@ -42,7 +42,7 @@ export function VoteCell({ id, viewer, mine, mineNote, canVote, own, picked, won
       {canVote &&
         !picked &&
         (own ? (
-          <span className="text-xs font-black uppercase text-ash">{t.admin.yourSuggestion}</span>
+          <span className="text-xs font-display font-bold text-ash">{t.admin.yourSuggestion}</span>
         ) : (
           <VotePicker id={id} mine={mine} mineNote={mineNote} onDraft={(n, saved) => setDraft({ n, saved })} />
         ))}
@@ -66,11 +66,11 @@ export function VoteCell({ id, viewer, mine, mineNote, canVote, own, picked, won
           )}
           <span className={cn("heading-slam skew-x-12 text-[1.7rem] leading-none tabular-nums", avg === null ? "text-ash" : "text-paper")}>
             {avg === null ? (
-              <span className="font-sans text-[0.65rem] font-bold text-ash">?/10</span>
+              <span className="text-[0.65rem] font-display font-bold text-ash">?/10</span>
             ) : (
               <>
                 {avg.toFixed(1)}
-                <span className="font-sans text-[0.65rem] font-bold text-ash">/10</span>
+                <span className="text-[0.65rem] font-display font-bold text-ash">/10</span>
               </>
             )}
           </span>
@@ -78,7 +78,7 @@ export function VoteCell({ id, viewer, mine, mineNote, canVote, own, picked, won
         </span>
         <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap">
           {preview ? (
-            <span className="text-[0.68rem] font-bold uppercase text-ash">{t.admin.withYours}</span>
+            <span className="text-[0.68rem] font-display font-bold text-ash">{t.admin.withYours}</span>
           ) : (
             <VotesPop label={t.admin.votesIn(votes.length)} votes={votes} waiting={waiting} avg={avg} />
           )}

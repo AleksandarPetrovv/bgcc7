@@ -30,7 +30,7 @@ export function BlueprintForm({ action, mods, initial, tb }: { action: Action; m
                   <div className="heading-slam text-2xl leading-none" style={{ color: modHi(c) }}>
                     {MODS[m].short}
                   </div>
-                  <div className="mt-1 text-[0.65rem] font-black uppercase tracking-[0.12em] text-ash">{MODS[m].label}</div>
+                  <div className="mt-1 text-[0.65rem] font-display font-black uppercase text-ash">{MODS[m].label}</div>
                 </div>
                 <div className="flex h-10 shrink-0 -skew-x-12">
                   <button
@@ -51,7 +51,7 @@ export function BlueprintForm({ action, mods, initial, tb }: { action: Action; m
                       value={counts[m]}
                       onChange={(e) => set(m, Number(e.target.value))}
                       aria-label={MODS[m].label}
-                      className="adm-bare num h-full w-full skew-x-12 appearance-none border-0 bg-transparent p-0 text-center text-2xl font-black leading-none text-paper outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="adm-bare num h-full w-full skew-x-12 appearance-none border-0 bg-transparent p-0 text-center text-2xl font-display font-black leading-none text-paper outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                   </span>
                   <button
@@ -67,10 +67,10 @@ export function BlueprintForm({ action, mods, initial, tb }: { action: Action; m
               </div>
               <div className="flex min-h-9 flex-wrap gap-1 border-t border-line bg-ink/40 px-5 py-2">
                 {counts[m] === 0 ? (
-                  <span className="text-[0.65rem] font-bold uppercase text-ash">{t.admin.noSlots}</span>
+                  <span className="text-[0.65rem] font-display font-bold text-ash">{t.admin.noSlots}</span>
                 ) : (
                   Array.from({ length: counts[m] }, (_, i) => (
-                    <span key={i} className="num -skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-black" style={{ borderColor: modHi(c), color: modHi(c) }}>
+                    <span key={i} className="num -skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-display font-black" style={{ borderColor: modHi(c), color: modHi(c) }}>
                       <span className="inline-block skew-x-12">{label(m, i)}</span>
                     </span>
                   ))
@@ -86,7 +86,7 @@ export function BlueprintForm({ action, mods, initial, tb }: { action: Action; m
               <div className="heading-slam text-2xl leading-none" style={{ color: modHi(MODS.Tiebreaker.color) }}>
                 TB
               </div>
-              <div className="mt-1 text-[0.65rem] font-black uppercase tracking-[0.12em] text-ash">{t.admin.tbFixed}</div>
+              <div className="mt-1 text-[0.65rem] font-display font-bold text-ash">{t.admin.tbFixed}</div>
             </div>
             <Lock className="size-4 text-ash" />
           </div>

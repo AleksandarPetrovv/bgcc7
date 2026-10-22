@@ -178,7 +178,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -10, opacity: 0 }}
               transition={{ duration: 0.22, ease: EASE }}
-              className={cn("min-w-0 flex-1 truncate font-bold", sel ? "text-paper" : "text-ash")}
+              className={cn("min-w-0 flex-1 truncate font-display font-bold", sel ? "text-paper" : "text-ash")}
             >
               {sel?.label ?? placeholder ?? "—"}
             </motion.span>
@@ -271,7 +271,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
                         onClick={() => choose(o.value)}
                         className={cn(
                           "relative flex min-h-9 w-full items-center gap-2 px-3 text-left text-sm transition-colors",
-                          on ? "text-white font-bold" : lit ? "text-paper" : "text-paper/75",
+                          on ? "text-white font-display font-bold" : lit ? "text-paper" : "text-paper/75",
                         )}
                       >
                         {lit && (
@@ -289,7 +289,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
                         {!lit && on && <span className="absolute inset-0 bg-rose/80" aria-hidden />}
                         {o.color && <span className="relative size-2 shrink-0 rotate-45" style={{ background: o.color }} aria-hidden />}
                         {o.avatar !== undefined && <OptionAvatar src={o.avatar} />}
-                        <span className="relative min-w-0 flex-1 truncate font-bold">{o.label}</span>
+                        <span className="relative min-w-0 flex-1 truncate font-display font-bold">{o.label}</span>
                         {o.hint && <span className="num relative shrink-0 text-xs opacity-60">{o.hint}</span>}
                         {on && (
                           <motion.span initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} className="relative shrink-0">

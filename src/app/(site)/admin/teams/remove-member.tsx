@@ -32,7 +32,7 @@ export function RemoveMember({ osuId, captain, mates }: { osuId: number; captain
       <Btn type="button" tone="outline" small disabled={pending} onClick={() => (captain && mates.length ? setOpen(true) : run())}>
         {pending ? t.admin.saving : t.admin.remove}
       </Btn>
-      {fail && !pending && <span className="text-xs font-bold uppercase text-rose-hi">{t.admin.error}</span>}
+      {fail && !pending && <span className="text-xs font-display font-bold text-rose-hi">{t.admin.error}</span>}
       {typeof document !== "undefined" &&
         createPortal(
           <AnimatePresence>
@@ -74,7 +74,7 @@ export function RemoveMember({ osuId, captain, mates }: { osuId: number; captain
                         <span className="flex skew-x-6 items-center gap-3">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={m.avatar} alt="" className="size-8" />
-                          <span className="font-black">{m.name}</span>
+                          <span className="font-display font-black">{m.name}</span>
                         </span>
                         <Crown className="ml-auto size-4 skew-x-6 text-ash transition-colors group-hover:text-gold-hi" />
                       </motion.button>

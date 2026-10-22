@@ -47,7 +47,7 @@ export function PickemsToggle({ open }: { open: boolean }) {
           </button>
         );
       })}
-      {state && !pending && !state.ok && <span className="col-span-2 text-xs font-bold uppercase text-rose-hi">{t.admin.error}</span>}
+      {state && !pending && !state.ok && <span className="col-span-2 text-xs font-display font-bold text-rose-hi">{t.admin.error}</span>}
     </form>
   );
 }

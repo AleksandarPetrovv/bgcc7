@@ -38,7 +38,7 @@ export default async function Condensed() {
           const v = raw(`info.facts.${i}.1`, v0);
           return (
             <div key={i} className="in-flip bg-coal p-5 xl:px-8 xl:py-10" style={{ "--i": i, "--s": "0.07s", "--d": "0.15s" } as React.CSSProperties}>
-              <div className="in-wipe text-[0.65rem] font-black uppercase tracking-[0.14em] text-rose-hi" style={{ "--i": i, "--s": "0.07s", "--d": "0.35s" } as React.CSSProperties}>
+              <div className="in-wipe text-[0.65rem] font-display font-bold text-rose-hi" style={{ "--i": i, "--s": "0.07s", "--d": "0.35s" } as React.CSSProperties}>
                 <Editable path={`info.facts.${i}.0`} raw={k} on={on}>
                   {k}
                 </Editable>

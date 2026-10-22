@@ -73,9 +73,9 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
         {highlights.map((h, i) => (
           <div key={h.k} className={cn("in-launch relative overflow-hidden p-5", TONES[i])} style={{ "--i": i, "--s": "0.16s", "--d": "0.2s" } as React.CSSProperties}>
             <span className="in-sweep pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent opacity-0" style={{ "--d": "1.05s" } as React.CSSProperties} aria-hidden />
-            <div className="in-wipe text-[0.65rem] font-black uppercase tracking-[0.14em] opacity-80" style={{ "--d": "0.75s" } as React.CSSProperties}>{h.k}</div>
+            <div className="in-wipe text-[0.65rem] font-display font-bold opacity-80" style={{ "--d": "0.75s" } as React.CSSProperties}>{h.k}</div>
             <CountUp to={h.n} decimals={h.dec} suffix={h.suf} delay={0.8 + i * 0.16} className="num mt-1 block text-5xl leading-none" />
-            <div className="in-up mt-2 text-sm font-bold" style={{ "--d": "0.95s" } as React.CSSProperties}>{h.who}</div>
+            <div className="in-up mt-2 text-sm font-display font-bold" style={{ "--d": "0.95s" } as React.CSSProperties}>{h.who}</div>
             {h.map && (
               <div className="truncate text-xs opacity-80">
                 {h.map.slot} · {h.map.title}
@@ -108,7 +108,7 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
                 {top.map((p, i) => (
                   <li key={p.id} {...meP(p.id)} className="me-hl flex items-center gap-2 px-3 py-1.5 text-sm">
                     <span className={cn("num w-5", MEDAL[i])}>{i + 1}</span>
-                    <a href={osuUser(p.id)} target="_blank" rel="noreferrer" className="font-bold hover:text-rose-hi">{p.username}</a>
+                    <a href={osuUser(p.id)} target="_blank" rel="noreferrer" className="font-display font-bold hover:text-rose-hi">{p.username}</a>
                     <MeTag p={p.id} />
                     <span className="num ml-auto text-base">{fmtNum(p.perf[m.id].score)}</span>
                   </li>

@@ -17,7 +17,7 @@ export function CopyLink({ url, className }: { url: string; className?: string }
       title={t.admin.overlay.copy}
     >
       <span className="num min-w-0 skew-x-12 truncate text-sm text-paper">{url}</span>
-      <span className="ml-auto flex shrink-0 skew-x-12 items-center gap-1.5 text-xs font-black uppercase tracking-wide text-ash group-hover:text-paper">
+      <span className="ml-auto flex shrink-0 skew-x-12 items-center gap-1.5 text-xs font-display font-bold text-ash group-hover:text-paper">
         {copied ? <Check className="size-3.5 text-balkan-hi" /> : <Copy className="size-3.5" />}
         {copied ? t.admin.overlay.copied : t.admin.overlay.copy}
       </span>

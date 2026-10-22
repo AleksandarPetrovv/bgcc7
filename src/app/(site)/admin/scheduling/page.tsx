@@ -47,11 +47,11 @@ export default async function AdminScheduling() {
                     return (
                       <div key={m.id} className="border border-line bg-ink/40 p-3 sm:p-4">
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                          <span className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-rose-hi">{t.rounds[m.round] ?? m.round}</span>
-                          <span className="min-w-0 font-black">
+                          <span className="text-[0.68rem] font-display font-bold text-rose-hi">{t.rounds[m.round] ?? m.round}</span>
+                          <span className="min-w-0 font-display font-black">
                             {name(m.team1Id)} <span className="text-ash">vs</span> {name(m.team2Id)}
                           </span>
-                          <span className={cn("ml-auto text-[0.68rem] font-black uppercase tracking-wide", state === "agreed" ? "text-balkan-hi" : state === "staff" ? "text-rose-hi" : state === "proposed" ? "text-gold-hi" : "text-ash")}>{s.admin.state[state]}</span>
+                          <span className={cn("ml-auto text-[0.68rem] font-display font-bold", state === "agreed" ? "text-balkan-hi" : state === "staff" ? "text-rose-hi" : state === "proposed" ? "text-gold-hi" : "text-ash")}>{s.admin.state[state]}</span>
                         </div>
                         <p className="num mt-1 text-sm text-paper/85">
                           {m.startsAt ? fmtSofia(m.startsAt, locale) : pend ? `${fmtSofia(new Date(pend.at), locale)} · ${name(pend.teamId)}` : "—"}
@@ -62,7 +62,7 @@ export default async function AdminScheduling() {
                               <li key={p.id} className="flex flex-wrap gap-x-2">
                                 <span className="num">{fmtSofia(new Date(p.at), locale)}</span>
                                 <span>{name(p.teamId)}</span>
-                                <span className="font-black uppercase">{p.status === "staff" ? s.st.set : p.staff || (p.status === "cancelled" && p.answeredBy == null) ? s.st.staff : p.status === "rejected" ? s.st.rejected(name(p.teamId === m.team1Id ? m.team2Id : m.team1Id)) : p.status === "cancelled" ? s.st.cancelled(name(teamOf(p.answeredBy))) : s.st[p.status]}</span>
+                                <span className="font-display font-bold">{p.status === "staff" ? s.st.set : p.staff || (p.status === "cancelled" && p.answeredBy == null) ? s.st.staff : p.status === "rejected" ? s.st.rejected(name(p.teamId === m.team1Id ? m.team2Id : m.team1Id)) : p.status === "cancelled" ? s.st.cancelled(name(teamOf(p.answeredBy))) : s.st[p.status]}</span>
                               </li>
                             ))}
                           </ol>

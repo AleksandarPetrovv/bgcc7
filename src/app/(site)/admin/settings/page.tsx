@@ -50,14 +50,14 @@ export default async function AdminSettings() {
                   <Field type="number" name="bans" min={0} max={4} defaultValue={s.bans} className={`${inputCls} num w-24 text-lg`} />
                 </label>
                 <fieldset className="flex flex-col gap-1.5">
-                  <legend className="mb-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash">{t.admin.set.order}</legend>
+                  <legend className="mb-1.5 text-[0.68rem] font-display font-bold text-ash">{t.admin.set.order}</legend>
                   <div className="flex gap-2">
                     {(["abab", "abba"] as const).map((o) => (
                       <label key={o} className="group relative cursor-pointer">
                         <input type="radio" name="banOrder" value={o} defaultChecked={s.banOrder === o} className="peer sr-only" />
                         <span className="flex min-h-10 -skew-x-12 items-center gap-0.5 border border-line px-3 transition-colors duration-200 group-hover:border-paper/40 peer-checked:border-rose peer-checked:bg-rose/15 peer-focus-visible:ring-2 peer-focus-visible:ring-rose">
                           {o.split("").map((c, i) => (
-                            <span key={i} className={`num skew-x-12 text-lg font-black uppercase ${c === "a" ? "text-crimson-hi" : "text-azure-hi"}`}>
+                            <span key={i} className={`num skew-x-12 text-lg font-display font-black uppercase ${c === "a" ? "text-crimson-hi" : "text-azure-hi"}`}>
                               {c}
                             </span>
                           ))}
@@ -100,11 +100,11 @@ export default async function AdminSettings() {
                       className="in-left grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
                     >
                       <span className="min-w-0">
-                        <span className="block text-sm font-black uppercase">{roundName(t, st.title)}</span>
+                        <span className="block text-sm font-display font-bold">{roundName(t, st.title)}</span>
                         <span className="block truncate text-xs text-ash">{usedBy(st.slug).join(" · ") || "—"}</span>
                       </span>
-                      <span className="hidden text-xs font-bold uppercase text-ash sm:block">{t.admin.set.bestOf(ft * 2 - 1)}</span>
-                      <span className="flex items-center gap-2 text-xs font-bold uppercase text-ash">
+                      <span className="hidden text-xs font-display font-bold text-ash sm:block">{t.admin.set.bestOf(ft * 2 - 1)}</span>
+                      <span className="flex items-center gap-2 text-xs font-display font-bold text-ash">
                         {t.admin.set.firstTo}
                         <Field type="number" name={`ft.${st.id}`} min={1} max={20} defaultValue={ft} className={`${inputCls} num w-20 text-center text-lg`} />
                       </span>

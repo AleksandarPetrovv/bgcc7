@@ -19,7 +19,7 @@ export default async function Seeding() {
       <PageTitle mark="chevrons" right={<Tag tone="rose" className="text-xs">{t.qual.seedingTag}</Tag>}>{t.qual.seedingTitle}</PageTitle>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr_1fr]">
         <div className="in-up border border-line bg-coal p-3 sm:p-5" style={{ "--d": "0.15s" } as React.CSSProperties}>
-          <div className="mb-3 text-xs font-black uppercase tracking-[0.14em] text-ash">{f(t.qual.chartLabel)}</div>
+          <div className="mb-3 text-xs font-display font-bold text-ash">{f(t.qual.chartLabel)}</div>
           <SeedingChart players={qualifiers.players} cut={settings.qualifyCount} />
         </div>
         <div className="order-first space-y-2 lg:order-none">
@@ -28,7 +28,7 @@ export default async function Seeding() {
               <span className={cn("in-pop num flex h-full items-center justify-center text-xl sm:text-2xl", team.seed <= 4 ? "bg-balkan text-paper" : "bg-slate text-paper")}>{team.seed}</span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={team.image} alt="" className="size-10 object-cover sm:size-12" />
-              <span className="flex min-w-0 items-center px-3 font-black">
+              <span className="flex min-w-0 items-center px-3 font-display font-black">
                 <span className="truncate">{team.name}</span>
                 <MeTag t={team.id} />
               </span>

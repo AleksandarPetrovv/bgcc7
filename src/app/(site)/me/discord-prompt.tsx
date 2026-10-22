@@ -78,7 +78,7 @@ export function DiscordPrompt({ open: ctl, onClose }: { open?: boolean; onClose?
             </SlantButton>
           </form>
           <div className="mt-6 flex flex-col items-center gap-2.5 border-t border-dashed border-line pt-5 text-center">
-            <p className="text-xs font-black uppercase tracking-wide text-paper">{d.need}</p>
+            <p className="text-xs font-display font-bold text-paper">{d.need}</p>
             <SlantButton tone="balkan" href={DISCORD_URL}>
               {t.common.discord}
             </SlantButton>
@@ -100,7 +100,7 @@ export function DiscordLine({ name }: { name: string | null }) {
       await unlinkDiscord().catch(() => null);
       router.refresh();
     });
-  const btn = "text-xs font-black uppercase tracking-wide text-ash hover:text-paper disabled:opacity-50";
+  const btn = "text-xs font-display font-bold text-ash hover:text-paper disabled:opacity-50";
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ash">
       {name ? <span>{d.linked(name)}</span> : null}

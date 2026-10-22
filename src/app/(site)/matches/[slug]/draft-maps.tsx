@@ -53,7 +53,7 @@ export function MapGrid({
                 ease: EASE,
                 delay: 0.3 + pi * 0.06,
               }}
-              className={cn("mb-2 inline-flex -skew-x-12 items-center gap-2 px-3 py-1 text-sm font-black uppercase", light ? "text-paper" : "text-white")}
+              className={cn("mb-2 inline-flex -skew-x-12 items-center gap-2 px-3 py-1 text-sm font-display font-bold", light ? "text-paper" : "text-white")}
               style={{ background: mod.color }}
             >
               <span className="skew-x-12">{mod.label}</span>
@@ -143,9 +143,9 @@ export function MapGrid({
                       </span>
                       <span className={cn("relative flex min-w-0 flex-1 flex-col justify-center pl-1 pr-3", grey && "opacity-40")}>
                         <span className="flex min-w-0 items-center gap-2">
-                          <span className="truncate text-sm font-black sm:text-base">{m.title}</span>
+                          <span className="truncate text-sm font-display font-black sm:text-base">{m.title}</span>
                           {skill && !tb && MODS[m.mod] && (
-                            <span className="shrink-0 -skew-x-12 border px-1.5 text-xs font-black leading-5" style={{ borderColor: modHi(MODS[m.mod].color), color: modHi(MODS[m.mod].color) }}>
+                            <span className="shrink-0 -skew-x-12 border px-1.5 text-xs font-display font-black leading-5" style={{ borderColor: modHi(MODS[m.mod].color), color: modHi(MODS[m.mod].color) }}>
                               <span className="inline-block skew-x-12">{MODS[m.mod].short}</span>
                             </span>
                           )}
@@ -164,7 +164,7 @@ export function MapGrid({
                         <motion.span
                           initial={{ scaleX: 0 }}
                           animate={{ scaleX: 1 }}
-                          className="absolute inset-x-0 bottom-0 flex h-5 origin-left items-center gap-1 pl-3 text-[0.6rem] font-black uppercase tracking-wider text-white"
+                          className="absolute inset-x-0 bottom-0 flex h-5 origin-left items-center gap-1 pl-3 text-[0.6rem] font-display font-bold text-white"
                           style={{ background: TEAM[u.winner].c }}
                         >
                           <Crown className="size-3 fill-current" /> {t.draft.won(name(u.winner))}
@@ -190,7 +190,7 @@ export function MapGrid({
                               stiffness: 420,
                               damping: 17,
                             }}
-                            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 border-[3px] px-2 py-0.5 text-center font-black uppercase leading-none"
+                            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 border-[3px] px-2 py-0.5 text-center font-display font-bold leading-none"
                             style={{
                               borderColor: col.c,
                               color: col.hi,

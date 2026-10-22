@@ -41,8 +41,8 @@ export function RegisterForm({ user, status, state, opensAt }: Props) {
   return (
     <div className="self-start border border-line bg-coal">
       <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3">
-        <span className="text-sm font-black uppercase tracking-wide">{t.register.entry}</span>
-        <span className={cn("text-xs font-black uppercase tracking-[0.14em]", status ? TONE[status] : "text-ash")}>
+        <span className="text-sm font-display font-bold">{t.register.entry}</span>
+        <span className={cn("text-xs font-display font-bold", status ? TONE[status] : "text-ash")}>
           {status ? t.register.statusText[status] : t.register.notSigned}
         </span>
       </div>
@@ -52,9 +52,9 @@ export function RegisterForm({ user, status, state, opensAt }: Props) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {user.image && <img src={user.image} alt="" className="size-16 shrink-0" />}
             <div className="min-w-0">
-              <div className="truncate text-2xl font-black">{user.name}</div>
+              <div className="truncate text-2xl font-display font-black">{user.name}</div>
               {status && (
-                <div className={cn("mt-1 flex items-center gap-1.5 text-sm font-black uppercase", TONE[status])}>
+                <div className={cn("mt-1 flex items-center gap-1.5 text-sm font-display font-bold", TONE[status])}>
                   <Check className="size-4" /> {t.register.signedUp}
                 </div>
               )}
@@ -62,7 +62,7 @@ export function RegisterForm({ user, status, state, opensAt }: Props) {
           </div>
         ) : (
           <div>
-            <div className="font-black uppercase">{t.register.loginFirst}</div>
+            <div className="font-display font-bold">{t.register.loginFirst}</div>
             <p className="mt-1 text-sm text-ash">{t.register.loginText}</p>
           </div>
         )}

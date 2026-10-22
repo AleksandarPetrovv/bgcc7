@@ -34,7 +34,7 @@ export function ReleaseToggle({ stageId, released, className }: { stageId: numbe
           });
         }}
       />
-      <span className="flex skew-x-12 items-center gap-2 text-xs font-black uppercase">
+      <span className="flex skew-x-12 items-center gap-2 text-xs font-display font-bold">
         <span className={cn("grid size-4 place-items-center border transition-colors", on ? "border-white bg-white text-rose" : "border-current")}>
           {on && <Check className="size-3" strokeWidth={3.5} />}
         </span>

@@ -9,8 +9,8 @@ import { cn } from "@/lib/utils";
 
 export const inputCls = "min-w-0";
 export const dateCls = "w-full min-w-0 [&::-webkit-date-and-time-value]:text-left";
-export const labelCls = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
-export const checkLabelCls = "flex min-h-10 cursor-pointer items-center gap-2.5 text-sm font-bold uppercase tracking-wide";
+export const labelCls = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
+export const checkLabelCls = "flex min-h-10 cursor-pointer items-center gap-2.5 text-sm font-display font-bold";
 
 const TONES = {
   rose: "bg-rose text-white hover:bg-rose-hi",
@@ -26,7 +26,7 @@ export function Btn({ tone = "rose", small, className, children, ...props }: Btn
     <button
       {...props}
       className={cn(
-        "lift-sm sheen inline-flex -skew-x-12 items-center justify-center font-black uppercase tracking-wide disabled:pointer-events-none disabled:opacity-50",
+        "lift-sm sheen inline-flex -skew-x-12 items-center justify-center font-display font-bold disabled:pointer-events-none disabled:opacity-50",
         small ? "min-h-10 px-3.5 text-xs" : "min-h-10 px-4 text-sm",
         TONES[tone],
         className,
@@ -74,9 +74,9 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
         {msg &&
           !pending &&
           (state?.ok ? (
-            <Flash className="text-xs font-bold uppercase tracking-wide text-balkan-hi">{msg}</Flash>
+            <Flash className="text-xs font-display font-bold text-balkan-hi">{msg}</Flash>
           ) : (
-            <span role="status" className="text-xs font-bold uppercase tracking-wide text-rose-hi">
+            <span role="status" className="text-xs font-display font-bold text-rose-hi">
               {msg}
             </span>
           ))}

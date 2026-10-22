@@ -31,11 +31,11 @@ export default async function Scores() {
           <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             {played.map((l) => (
               <li key={l.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 border border-line bg-coal px-3 py-2 text-sm">
-                <span className="font-black">{l.name}</span>
+                <span className="font-display font-black">{l.name}</span>
                 <span className="num text-ash">{fmtSofia(l.startsAt, lang === "bg" ? "bg-BG" : "en-GB")}</span>
                 <span className="ml-auto flex gap-3">
                   {mpIds(l.mpLinks).map((id, i, all) => (
-                    <a key={id} href={osuMatch(id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-bold text-ash hover:text-paper">
+                    <a key={id} href={osuMatch(id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-display font-bold text-ash hover:text-paper">
                       {all.length > 1 ? `#${i + 1}` : "mp"} <ExternalLink className="size-3.5" />
                     </a>
                   ))}

@@ -23,7 +23,7 @@ export function SubNav({ items }: { items: { href: string; label: string; hidden
               href={i.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "relative flex min-h-11 shrink-0 items-center px-2 text-[0.8rem] font-black uppercase tracking-wide transition-colors",
+                "relative flex min-h-11 shrink-0 items-center px-2 text-[0.8rem] font-display font-bold transition-colors",
                 active ? "text-paper" : "text-ash hover:text-paper",
                 i.hidden && "opacity-40",
               )}
@@ -324,7 +324,7 @@ export function SectionHeading({ children }: { children: React.ReactNode }) {
 
 export function SubHeading({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <h2 className={cn("mb-3 flex items-center gap-2.5 text-sm font-black uppercase tracking-wide text-paper", className)}>
+    <h2 className={cn("mb-3 flex items-center gap-2.5 text-sm font-display font-bold text-paper", className)}>
       {children}
       <span className="h-px flex-1 border-t border-dashed border-line" aria-hidden />
     </h2>
@@ -338,7 +338,7 @@ export function Tag({ children, tone = "rose", className }: { children: React.Re
     ink: "bg-ink text-paper",
     paper: "bg-paper text-ink",
   }[tone];
-  return <span className={cn("inline-block px-1.5 py-0.5 text-[0.6rem] font-black uppercase leading-none tracking-wide", t, className)}>{children}</span>;
+  return <span className={cn("inline-block px-1.5 py-0.5 text-[0.6rem] font-display font-bold leading-none", t, className)}>{children}</span>;
 }
 
 export function SlantButton({
@@ -366,7 +366,7 @@ export function SlantButton({
     paper: "bg-paper text-ink hover:bg-rose-deep [--lift:var(--rose)]",
     outline: "border border-line text-paper hover:border-rose [--lift:var(--rose)]",
   }[tone];
-  const cls = cn("lift-sm sheen inline-flex -skew-x-12 items-center px-4 py-2 text-sm font-black uppercase tracking-wide", t, className);
+  const cls = cn("lift-sm sheen inline-flex -skew-x-12 items-center px-4 py-2 text-sm font-display font-bold", t, className);
   const inner = <span className="inline-flex skew-x-12 items-center gap-2">{children}</span>;
   if (href && download)
     return (

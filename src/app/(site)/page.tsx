@@ -84,7 +84,7 @@ function EntryCard({
       </div>
       <span className="relative flex items-center justify-between gap-3 bg-ink px-4 py-3 text-paper">
         <span className="min-w-0">
-          <span className="block text-base font-black uppercase leading-tight">{title}</span>
+          <span className="block text-base font-display font-bold leading-tight">{title}</span>
           <span className="block truncate text-sm text-paper/75">{sub}</span>
         </span>
         <ArrowUpRight className="size-5 shrink-0 text-paper/70 transition duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:rotate-12 group-hover:text-rose-hi" />
@@ -97,7 +97,7 @@ function SignupCount({ n, label }: { n: number; label: string }) {
   return (
     <div className="flex h-full items-end gap-3 px-5 pb-4" aria-hidden>
       <CountUp to={n} className="num text-7xl leading-[0.8] text-paper" />
-      <span className="pb-1 text-sm font-bold uppercase text-ash">{label}</span>
+      <span className="pb-1 text-sm font-display font-bold text-ash">{label}</span>
     </div>
   );
 }
@@ -152,7 +152,7 @@ function Champion({ t, team, other }: { t: Dict; team: Team; other?: Team }) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={team.image} alt="" className="size-24 shrink-0 object-cover ring-2 ring-gold/60 ring-offset-4 ring-offset-coal" />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-gold-hi">
+          <div className="flex items-center gap-2 text-xs font-display font-bold text-gold-hi">
             <Crown className="size-4" /> {t.home.champion}
           </div>
           <div className="heading-slam mt-1 break-words text-4xl">
@@ -224,7 +224,7 @@ function FormatBadge({ tags, teamSize }: { tags: readonly string[]; teamSize: nu
       <span className="heading-slam text-7xl leading-none text-paper transition-transform duration-500 group-hover:-rotate-3 group-hover:scale-105">
         {teamSize}<span className="text-rose">v</span>{teamSize}
       </span>
-      <span className="flex flex-col gap-1 text-[0.65rem] font-black uppercase tracking-[0.14em] text-ash">
+      <span className="flex flex-col gap-1 text-[0.65rem] font-display font-bold text-ash">
         {tags.map((x) => (
           <span key={x}>{x}</span>
         ))}
@@ -261,7 +261,7 @@ function Timeline({ t, timeline, locale, states }: { t: Dict; timeline: Timeline
           <li
             key={e.key}
             className={cn(
-              "in-left relative flex items-baseline gap-4 py-2 pl-8 pr-3 text-[0.95rem] uppercase transition-colors",
+              "in-left relative flex items-baseline gap-4 py-2 pl-8 pr-3 font-display font-bold text-[0.95rem] transition-colors",
               current ? "bg-slate font-black text-paper" : done ? "text-ash" : "text-paper/80 hover:text-paper",
             )}
             style={{ "--d": "0.3s", "--i": i, "--s": "0.08s" } as React.CSSProperties}
@@ -406,7 +406,7 @@ export default async function Home() {
           </div>
 
           <ShrinkWrap className="flex min-w-0 flex-col justify-end lg:max-w-[36rem] 2xl:max-w-[40rem]">
-            <h1 className="text-balance text-[clamp(1.8rem,3.2vw,2.9rem)] font-black leading-[1.05] tracking-tight">
+            <h1 className="text-balance text-[clamp(1.8rem,3.2vw,2.9rem)] font-display font-black leading-[1.05] tracking-tight">
               <Words text={f(phase === "finished" ? t.home.headlineDone : t.home.headline)} d={0.35} s={0.055} />
             </h1>
             <p className="mt-4 max-w-[48ch] text-pretty text-base text-paper/70 sm:mt-5 sm:text-lg">
@@ -416,7 +416,7 @@ export default async function Home() {
               {phase === "registration" && see("register") && regState === "open" ? (
                 <span className="in-pop inline-flex">
                   {mine && mine.status !== "denied" ? (
-                    <span className="inline-flex -skew-x-12 cursor-default items-center border border-line bg-slate px-6 py-3 text-base font-black sm:px-8 sm:py-4 sm:text-xl uppercase tracking-wide text-ash" aria-disabled>
+                    <span className="inline-flex -skew-x-12 cursor-default items-center border border-line bg-slate px-6 py-3 text-base font-display font-bold sm:px-8 sm:py-4 sm:text-xl text-ash" aria-disabled>
                       <span className="inline-flex skew-x-12 items-center gap-2">
                         <Check className="size-5" /> {mine.status === "approved" ? t.me.signedUp : t.me.signedUpPending}
                       </span>
@@ -466,7 +466,7 @@ export default async function Home() {
           <Timeline t={t} timeline={settings.timeline} locale={locale} states={phaseStates(settings.timeline, phase)} />
           {regCloses && (
             <Reveal className="relative mt-8 overflow-hidden border border-line bg-coal p-4" delay={0.2}>
-              <div className="text-[0.7rem] font-black uppercase tracking-[0.14em] text-ash">{t.home.closesIn}</div>
+              <div className="text-[0.7rem] font-display font-bold text-ash">{t.home.closesIn}</div>
               <Countdown to={regCloses} from={settings.regOpensAt?.toISOString()} />
             </Reveal>
           )}
@@ -487,7 +487,7 @@ export default async function Home() {
         <section className="mx-auto max-w-page px-4 pt-14 sm:px-6 sm:pt-20 lg:px-10 2xl:px-14">
           <Reveal className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3">
             <h2 className="heading-slam text-3xl sm:text-4xl">{t.home.previously}</h2>
-            <Link href="/matches" className="group inline-flex items-center gap-1.5 text-sm font-black uppercase text-ash transition-colors hover:text-paper">
+            <Link href="/matches" className="group inline-flex items-center gap-1.5 text-sm font-display font-bold text-ash transition-colors hover:text-paper">
               {t.home.fullSchedule} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </Reveal>

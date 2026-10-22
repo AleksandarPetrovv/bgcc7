@@ -32,7 +32,7 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={p.avatar} alt="" loading="lazy" decoding="async" className="size-8 shrink-0" />
           <div className="min-w-0 flex-1 leading-tight">
-            <div className={cn("flex min-w-0 items-center text-[0.8rem] font-bold", flip && "flex-row-reverse")}>
+            <div className={cn("flex min-w-0 items-center text-[0.8rem] font-display font-bold", flip && "flex-row-reverse")}>
               <span className="truncate">{p.name}</span>
               <MeTag p={p.id} />
             </div>
@@ -40,7 +40,7 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
               <span className="text-sm">{fmtNum(p.score)}</span>
               <span className="text-[0.7rem] text-ash">{pct(p.acc)}</span>
             </div>
-            {p.edited && <div className="text-[0.6rem] font-bold uppercase text-gold-hi">{t.match.edited}</div>}
+            {p.edited && <div className="text-[0.6rem] font-display font-bold text-gold-hi">{t.match.edited}</div>}
           </div>
         </li>
       ))}
@@ -73,11 +73,11 @@ export function MapCard({ m, i }: { m: MapResult; i: number }) {
           {m.slot ?? "—"}
         </span>
         <div className="min-w-0 flex-1 pt-0.5">
-          <div className="truncate text-sm font-bold leading-tight">{m.title}</div>
+          <div className="truncate text-sm font-display font-bold leading-tight">{m.title}</div>
           <div className="truncate text-xs text-ash">
             {m.version}
             {m.mods.length > 0 && <span className="ml-1.5">+{m.mods.join("")}</span>}
-            {m.note && <span className="ml-1.5 font-bold uppercase text-rose-hi">{t.match.notes[m.note]}</span>}
+            {m.note && <span className="ml-1.5 font-display font-bold text-rose-hi">{t.match.notes[m.note]}</span>}
           </div>
         </div>
         {!m.note && (
@@ -124,13 +124,13 @@ export function Costs({ data, names, finished }: { data: Scoreboard; names: (str
   const place = new Map(rows.map((r, i) => [r.id, i]));
   return (
     <section className="in-up pt-3" style={v({ "--d": "0.35s" })}>
-      <h3 className="in-wipe mb-3 text-sm font-black uppercase" style={v({ "--d": "0.45s" })}>
+      <h3 className="in-wipe mb-3 text-sm font-display font-bold" style={v({ "--d": "0.45s" })}>
         {t.match.cost}
       </h3>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {([1, 2] as const).map((k) => (
           <div key={k} className={cn("border border-l-[3px] border-line bg-coal", TEAM[k - 1])}>
-            <div className={cn("border-b border-line px-3 py-2 text-xs font-black uppercase", TEAM_TEXT[k - 1])}>{names[k - 1]}</div>
+            <div className={cn("border-b border-line px-3 py-2 text-xs font-display font-black", TEAM_TEXT[k - 1])}>{names[k - 1]}</div>
             <ul>
               {rows
                 .filter((r) => r.team === k)
@@ -144,7 +144,7 @@ export function Costs({ data, names, finished }: { data: Scoreboard; names: (str
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={r.avatar} alt="" loading="lazy" decoding="async" className="size-8 shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <div className="flex min-w-0 items-center font-bold">
+                      <div className="flex min-w-0 items-center font-display font-bold">
                         <span className="truncate">{r.name}</span>
                         <MeTag p={r.id} />
                       </div>
@@ -173,7 +173,7 @@ function Board({ match, data, names }: { match: Match; data: Scoreboard; names: 
       {played.map((m, i) => (
         <div key={`${m.lobby}-${i}`}>
           {data.lobbies.length > 1 && (i === 0 || played[i - 1].lobby !== m.lobby) && (
-            <div className="mb-3 mt-1 flex items-center gap-3 text-xs font-black uppercase text-ash">
+            <div className="mb-3 mt-1 flex items-center gap-3 text-xs font-display font-bold text-ash">
               {t.match.lobby(m.lobby + 1)}
               <span className="h-px flex-1 border-t border-dashed border-line" />
             </div>
@@ -243,7 +243,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
         </DialogTrigger>
         <DialogContent className="mdlg max-h-[88dvh] grid-cols-[minmax(0,1fr)] content-start gap-0 overflow-y-auto [-webkit-overflow-scrolling:touch] [touch-action:pan-y] rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
           <div className="sticky top-0 z-10 min-w-0 border-b border-line bg-ink px-3 py-3 sm:px-5 sm:py-4">
-            <DialogTitle className="in-wipe pr-8 text-xs font-black uppercase text-rose-hi" style={v({ "--d": "0.1s" })}>
+            <DialogTitle className="in-wipe pr-8 text-xs font-display font-bold text-rose-hi" style={v({ "--d": "0.1s" })}>
               {roundName(t, match.round)}
             </DialogTitle>
             <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-4">
@@ -255,7 +255,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {team && <img src={team.image} alt="" className={cn("size-8 shrink-0 border-b-[3px] object-cover sm:size-12", i ? "border-azure" : "border-crimson")} />}
-                  <span className={cn("line-clamp-2 min-w-0 break-words text-xs font-black leading-tight sm:text-lg", match.winner && match.winner !== i + 1 && "text-ash")}>
+                  <span className={cn("line-clamp-2 min-w-0 break-words text-xs font-display font-black leading-tight sm:text-lg", match.winner && match.winner !== i + 1 && "text-ash")}>
                     {names[i]}
                   </span>
                 </div>
@@ -274,7 +274,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
                     href={osuMatch(id)}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 border border-line px-2 py-1 text-[0.7rem] font-black uppercase text-ash transition hover:border-paper/40 hover:text-paper"
+                    className="inline-flex items-center gap-1.5 border border-line px-2 py-1 text-[0.7rem] font-display font-bold text-ash transition hover:border-paper/40 hover:text-paper"
                   >
                     {match.links.length > 1 ? t.match.lobby(i + 1) : "osu! mp"} <ExternalLink className="size-3" />
                   </a>
@@ -284,7 +284,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
           </div>
           {data === null ? (
             <div className="space-y-4 p-3 sm:p-5" aria-busy>
-              <p className="text-center text-xs font-black uppercase text-ash">{t.match.loading}</p>
+              <p className="text-center text-xs font-display font-bold text-ash">{t.match.loading}</p>
               {[0, 1, 2].map((k) => (
                 <div key={k} className="in-up relative h-40 overflow-hidden border border-line bg-coal" style={v({ "--i": k, "--s": "0.1s" })}>
                   <span className="mdlg-shine absolute inset-0" style={{ animationDelay: `${k * 0.15}s` }} />
@@ -332,7 +332,7 @@ function LoadingVeil({ out }: { out: boolean }) {
             <span key={i} className="mdlg-bar w-2 -skew-x-12 bg-rose" style={{ animationDelay: `${i * 0.09}s` }} />
           ))}
         </div>
-        <span className="text-xs font-black uppercase tracking-[0.2em] text-paper">{t.match.loading}</span>
+        <span className="text-xs font-display font-bold text-paper">{t.match.loading}</span>
       </div>
     </div>,
     document.body,

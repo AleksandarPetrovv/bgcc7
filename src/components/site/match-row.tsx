@@ -41,12 +41,12 @@ function Side({ id, flip, lost }: { id: string; flip?: boolean; lost?: boolean }
             <img src={team.image} alt="" className={cn("in-pop size-14 border-b-[3px] object-cover sm:size-20", flip ? "border-azure" : "border-crimson", lost && "opacity-50")} style={d("0.25s")} />
           </Link>
           <span className="flex max-w-full min-w-0 flex-col items-center gap-1.5">
-            <Link href={teamHref(team)} className={cn("line-clamp-2 min-w-0 max-w-full break-words text-sm font-black leading-tight hover:text-rose-hi sm:text-lg", lost && "text-ash")}>
+            <Link href={teamHref(team)} className={cn("line-clamp-2 min-w-0 max-w-full break-words text-sm font-display font-black leading-tight hover:text-rose-hi sm:text-lg", lost && "text-ash")}>
               {team.name}
             </Link>
             <MeTag t={team.id} className="text-[0.55rem] sm:text-[0.65rem]" />
           </span>
-          <span className="in-up hidden gap-3 text-[0.6rem] font-bold uppercase text-ash sm:flex" style={d("0.5s")}>
+          <span className="in-up hidden gap-3 text-[0.6rem] font-display font-bold text-ash sm:flex" style={d("0.5s")}>
             <span>
               {t.common.seed} <span className="num text-sm text-paper">{team.seed}</span>
             </span>
@@ -58,7 +58,7 @@ function Side({ id, flip, lost }: { id: string; flip?: boolean; lost?: boolean }
       ) : (
         <>
           <span className="size-14 border-b-[3px] border-line bg-slate sm:size-20" />
-          <span className="text-sm font-black uppercase text-ash">{t.common.tbd}</span>
+          <span className="text-sm font-display font-bold text-ash">{t.common.tbd}</span>
         </>
       )}
     </div>
@@ -68,7 +68,7 @@ function Side({ id, flip, lost }: { id: string; flip?: boolean; lost?: boolean }
 export function LiveTag({ className }: { className?: string }) {
   const t = useDict();
   return (
-    <span className={cn("inline-flex items-center gap-1 bg-rose px-1.5 py-0.5 text-[0.6rem] font-black uppercase leading-none tracking-[0.14em] text-white", className)}>
+    <span className={cn("inline-flex items-center gap-1 bg-rose px-1.5 py-0.5 text-[0.6rem] font-display font-bold leading-none text-white", className)}>
       <span className="size-1.5 animate-pulse rounded-full bg-white" aria-hidden />
       {t.home.live}
     </span>
