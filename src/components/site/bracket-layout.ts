@@ -1,8 +1,11 @@
 import { winTargets, type Format } from "@/lib/format";
 
-export function pickLayout(f: Format) {
+export function pickLayout(f: Format, w?: number) {
   const { upRows, gfRow, gfCol, lowRows } = f.layout;
-  const { w: W, g: G, h: H, pitch } = f.layout.pick;
+  const { h: H, pitch } = f.layout.pick;
+  // same column gap as /matches; width fills the page like there when given
+  const G = f.layout.box.g;
+  const W = w ?? f.layout.pick.w;
   const x = (c: number) => c * (W + G);
   const LB = upRows * pitch + 120;
   const GF1 = gfRow * pitch + H / 2 - H - 10;
