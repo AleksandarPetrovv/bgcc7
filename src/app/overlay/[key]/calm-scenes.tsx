@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Confetti } from "@/components/site/confetti";
-import { Sparkle, TriTick } from "@/components/site/graphics";
+import { Sparkle, Glyph } from "@/components/site/graphics";
 import type { FeedTeam, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
-import { Backdrop, Echo, editionNum, Img, LABEL, Lockup, PlayerCard, ScoreNum, TEAM, TeamPlate, TopBar, Versus } from "./chrome";
+import { Backdrop, Echo, editionNum, Img, LABEL, Lockup, PlayerCard, ScoreNum, SLAB, TEAM, TeamPlate, TopBar, Versus } from "./chrome";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -38,7 +38,7 @@ function Countdown({ startsAt, at }: { startsAt: string | null; at: number }) {
         <div key={i} className="flex items-start gap-5">
           {i > 0 && <span className="mt-[80px] size-4 rotate-45 bg-rose" aria-hidden />}
           <div className="flex flex-col items-center gap-3">
-            <span className="inline-flex -skew-x-12 border border-line bg-coal/90 px-9 py-4 shadow-[8px_8px_0_0_rgba(0,0,0,0.55)]">
+            <span className="inline-flex -skew-x-12 border border-line bg-coal/90 px-9 py-4 shadow-[8px_8px_0_0_color-mix(in_srgb,var(--rose-deep)_42%,transparent)]">
               <span className="num relative flex h-[136px] skew-x-12 items-center px-1 font-display text-[112px] [clip-path:inset(0_-30%)] font-black leading-none tabular-nums text-paper">
                 {String(p)
                   .padStart(2, "0")
@@ -101,9 +101,9 @@ function Soon({ feed }: { feed: OverlayFeed }) {
           <Lockup num={editionNum(feed)} size={150} animate />
         </motion.div>
         <div className="mt-12 flex items-center gap-4">
-          <TriTick className="h-[22px] w-[42px]" />
-          <span className="text-[26px] font-black uppercase tracking-[0.05em] text-balkan">Starting soon</span>
-          <TriTick className="h-[22px] w-[42px]" />
+          <Glyph kind="asterisk" className="size-[22px]" />
+          <span className="text-[26px] font-black uppercase tracking-[0.05em] text-balkan-hi">Starting soon</span>
+          <Glyph kind="asterisk" className="size-[22px]" />
         </div>
         <div className="mt-10">
           <Countdown key={`${feed.match.id}:${feed.match.startsAt}`} startsAt={feed.match.startsAt} at={feed.at} />
@@ -114,7 +114,7 @@ function Soon({ feed }: { feed: OverlayFeed }) {
       </div>
       {[
         { at: "left-[1390px] top-[110px]", s: "size-10 text-rose-hi", d: 0, r: [0, 18, 0], y: [0, -14, 0], x: [0, 6, 0], t: 4.2 },
-        { at: "left-[1450px] top-[190px]", s: "size-5 text-balkan", d: 0.8, r: [0, -24, 0], y: [0, 10, 0], x: [0, -8, 0], t: 3.4 },
+        { at: "left-[1450px] top-[190px]", s: "size-5 text-balkan-hi", d: 0.8, r: [0, -24, 0], y: [0, 10, 0], x: [0, -8, 0], t: 3.4 },
         { at: "left-[470px] top-[230px]", s: "size-3 text-paper/60", d: 1.6, r: [0, 30, 0], y: [0, -8, 0], x: [0, 5, 0], t: 3.8 },
       ].map((f, i) => (
         <motion.div key={i} className={cn("pointer-events-none absolute", f.at)} animate={{ y: f.y, x: f.x, rotate: f.r }} transition={{ duration: f.t, repeat: Infinity, ease: "easeInOut", delay: f.d }}>
@@ -183,16 +183,15 @@ function Roll({ value, state, side }: { value: number | null; state: "wait" | "w
   return (
     <div className={cn("flex items-center gap-5 transition-opacity duration-500", side === 1 && "flex-row-reverse", state === "lost" && !spinning && "opacity-45")}>
       <span
-        className="inline-flex -skew-x-12 items-center gap-4 border-[3px] bg-ink/90 px-6 py-2 transition-[border-color,box-shadow] duration-500"
-        style={{ borderColor: won ? "var(--color-gold)" : c.c, boxShadow: `7px 7px 0 0 ${won ? "var(--color-gold-deep)" : c.deep}` }}
+        className="inline-flex -skew-x-12 items-center gap-4 border-[3px] px-6 py-2 transition-[border-color,box-shadow,background-color] duration-500"
+        style={{ borderColor: won ? "var(--gold-deep)" : c.c, background: won ? "var(--gold)" : "color-mix(in srgb, var(--coal) 92%, transparent)", boxShadow: `7px 7px 0 0 ${won ? "var(--gold-deep)" : c.deep}` }}
       >
-        <span className="skew-x-12 text-[16px] font-black uppercase tracking-[0.06em] text-ash">Roll</span>
+        <span className={cn("skew-x-12 text-[16px] font-black uppercase tracking-[0.06em]", won ? "text-paper/75" : "text-ash")}>Roll</span>
         <span className="relative flex h-[64px] min-w-[96px] skew-x-12 items-center justify-center">
           <AnimatePresence initial={false} mode="popLayout">
             <motion.span
               key={spinning ? `s${shown}` : `f${shown}`}
-              className={cn("num font-display text-[56px] font-black leading-none", shown == null ? "text-ash/50" : spinning ? "text-paper/70 blur-[1px]" : won ? "text-gold-hi" : "text-paper")}
-              style={won ? { textShadow: "0 0 30px var(--color-gold)" } : undefined}
+              className={cn("num font-display text-[56px] font-black leading-none", shown == null ? "text-ash/50" : spinning ? "text-paper/70 blur-[1px]" : "text-paper")}
               initial={spinning ? { y: -24, opacity: 0 } : { scale: 2.2, opacity: 0, rotate: -8 }}
               animate={shown == null ? { y: 0, scale: 1, rotate: 0, opacity: [0.35, 0.8, 0.35] } : { y: 0, scale: 1, rotate: 0, opacity: 1 }}
               exit={spinning ? { y: 24, opacity: 0 } : { opacity: 0 }}
@@ -218,29 +217,39 @@ function TeamSide({ team, side, roll }: { team: FeedTeam; side: 0 | 1; roll?: Re
       className={cn("absolute top-[170px] bottom-[100px] w-[820px]", right ? "right-[110px]" : "left-[110px]")}
     >
       <div
-        className="absolute inset-0 -skew-x-12 border-y-[6px] bg-coal/90"
-        style={{ borderColor: c.c, background: `linear-gradient(${right ? 270 : 90}deg, color-mix(in srgb, ${c.c} 28%, transparent), var(--color-coal) 65%)`, boxShadow: `12px 12px 0 0 rgba(0,0,0,0.5)` }}
-      />
-      <div className={cn("relative flex h-full flex-col justify-center gap-10 px-[100px]", right && "items-end text-right")}>
-        <div className={cn("flex items-center gap-8", right && "flex-row-reverse")}>
+        className="absolute inset-0 -skew-x-12 overflow-hidden border-y-[6px]"
+        style={{
+          borderColor: c.c,
+          background: `radial-gradient(70% 55% at ${right ? "85%" : "15%"} 18%, color-mix(in srgb, ${c.c} 16%, transparent), transparent 70%), radial-gradient(60% 50% at ${right ? "20%" : "80%"} 92%, color-mix(in srgb, ${c.c} 9%, transparent), transparent 70%), var(--coal)`,
+          boxShadow: `12px 12px 0 0 ${SLAB}`,
+        }}
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `radial-gradient(color-mix(in srgb, ${c.c} 22%, transparent) 1.6px, transparent 2.4px) 0 0 / 26px 26px`,
+            maskImage: `linear-gradient(${right ? 225 : 135}deg, black, transparent 55%)`,
+          }}
+        />
+      </div>
+      {/* content shares the panel skew and each block unskews around its own center, so every row sits centered on its own slice of the trapezoid */}
+      <div className="relative flex h-full -skew-x-12 flex-col items-center justify-center gap-14 px-[110px] text-center">
+        <div className="flex flex-col items-center gap-5">
           {team.image.trim() && (
-            <span className="inline-flex shrink-0 -skew-x-12 overflow-hidden border-[3px] bg-ink" style={{ borderColor: c.c, boxShadow: `8px 8px 0 0 ${c.deep}` }}>
-              <Img src={team.image} className="size-[120px] shrink-0 skew-x-12 scale-[1.25] object-cover" />
-            </span>
+            <div className="skew-x-12">
+              <span className="inline-flex shrink-0 -skew-x-12 overflow-hidden border-[3px] bg-ink" style={{ borderColor: c.c, boxShadow: `8px 8px 0 0 ${c.deep}` }}>
+                <Img src={team.image} className="size-[110px] shrink-0 skew-x-12 scale-[1.25] object-cover" />
+              </span>
+            </div>
           )}
-          <div>
-            <span className="text-[18px] font-black uppercase tracking-[0.05em]" style={{ color: c.hi }}>
-              {right ? "Blue" : "Red"}
-            </span>
-            <h2 className="max-w-[560px] font-display text-[64px] font-black leading-[0.95]">{team.name}</h2>
-          </div>
+          <h2 className="max-w-[600px] skew-x-12 font-display text-[60px] font-black leading-[0.95]">{team.name}</h2>
         </div>
-        <div className={cn("flex flex-wrap gap-8", right && "justify-end")}>
+        <div className="flex skew-x-12 flex-wrap justify-center gap-10">
           {team.players.map((p, i) => (
             <PlayerCard key={p.id} p={p} color={c.c} deep={c.deep} size={140} delay={0.45 + i * 0.1} />
           ))}
         </div>
-        {roll}
+        {roll && <div className="skew-x-12">{roll}</div>}
       </div>
     </motion.section>
   );
@@ -288,22 +297,22 @@ function Winner({ feed }: { feed: OverlayFeed }) {
     <>
       <motion.div
         className="absolute inset-y-[-40px] left-[-200px] w-[1350px] -skew-x-12"
-        style={{ background: `linear-gradient(90deg, ${c.deep}, ${c.c})`, boxShadow: "16px 0 0 0 rgba(0,0,0,0.45)" }}
+        style={{ background: `linear-gradient(90deg, ${c.deep}, ${c.c})`, boxShadow: `16px 0 0 0 color-mix(in srgb, ${c.deep} 45%, transparent)` }}
         initial={{ x: -1400 }}
         animate={{ x: 0 }}
         transition={{ duration: 0.9, ease: EASE }}
         aria-hidden
       />
-      <TopBar feed={feed} />
+      <TopBar feed={feed} invert />
       <Confetti duration={4500} />
-      <div className="absolute left-[72px] top-[200px] flex flex-col gap-8">
+      <div className="absolute left-[72px] top-[200px] flex flex-col gap-8 text-white">
         <div className="flex items-center gap-5">
-          <TriTick className="h-[26px] w-[48px]" />
-          <span className="text-[28px] font-black uppercase tracking-[0.05em] text-gold-hi">Winner</span>
+          <Glyph kind="crown" className="size-[30px]" />
+          <span className="text-[28px] font-black uppercase tracking-[0.05em] text-gold">Winner</span>
         </div>
         <div className="flex items-center gap-10">
           {team.image.trim() && (
-            <span className="inline-flex shrink-0 -skew-x-12 overflow-hidden border-4 border-gold bg-ink shadow-[10px_10px_0_0_var(--color-gold-deep)]">
+            <span className="inline-flex shrink-0 -skew-x-12 overflow-hidden border-4 border-gold bg-ink shadow-[10px_10px_0_0_var(--gold-deep)]">
               <Img src={team.image} className="size-[150px] shrink-0 skew-x-12 scale-[1.25] object-cover" />
             </span>
           )}
@@ -318,7 +327,7 @@ function Winner({ feed }: { feed: OverlayFeed }) {
         </div>
         <div className="flex flex-wrap gap-6">
           {team.players.map((p, i) => (
-            <PlayerCard key={p.id} p={p} color="var(--color-gold)" deep="var(--color-gold-deep)" size={130} delay={1 + i * 0.12} />
+            <PlayerCard key={p.id} p={p} color="var(--gold)" deep="var(--gold-deep)" fg="var(--paper)" size={130} delay={1 + i * 0.12} />
           ))}
         </div>
       </div>
@@ -329,16 +338,16 @@ function Winner({ feed }: { feed: OverlayFeed }) {
         transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.8 }}
       >
         <span className="num flex items-center gap-8 font-display text-[190px] font-black leading-none">
-          <span style={{ color: w === 1 ? "var(--color-gold)" : "var(--color-ash)" }}>{a}</span>
-          <span className="size-6 rotate-45 bg-gold" aria-hidden />
-          <span style={{ color: w === 2 ? "var(--color-gold)" : "var(--color-ash)" }}>{b}</span>
+          <span style={{ color: w === 1 ? c.hi : "var(--ash)" }}>{a}</span>
+          <span className="size-6 rotate-45" style={{ background: c.c }} aria-hidden />
+          <span style={{ color: w === 2 ? c.hi : "var(--ash)" }}>{b}</span>
         </span>
         <span className={LABEL}>
           {feed.teams[0].name} · {feed.teams[1].name}
         </span>
       </motion.div>
-      <Sparkle className="right-[560px] top-[250px] size-12 text-gold-hi" />
-      <Sparkle className="right-[180px] top-[640px] size-7 text-gold" delay={0.6} />
+      <Sparkle className="right-[560px] top-[250px] size-12 text-rose" />
+      <Sparkle className="right-[180px] top-[640px] size-7 text-balkan-hi" delay={0.6} />
       <Sparkle className="right-[700px] top-[700px] size-4 text-paper/70" delay={1.2} />
     </>
   );
@@ -367,7 +376,7 @@ function Break({ feed, end }: { feed: OverlayFeed; end?: boolean }) {
             <motion.div className="flex flex-col items-center" animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
               <Echo text="Be right" className="text-[180px]" />
               <motion.span animate={{ rotate: [0, -1.5, 0, 1.5, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
-                <Echo text="back" className="text-[180px]" color="var(--color-rose)" />
+                <Echo text="back" className="text-[180px]" color="var(--rose)" />
               </motion.span>
             </motion.div>
           )}
@@ -390,7 +399,7 @@ function Break({ feed, end }: { feed: OverlayFeed; end?: boolean }) {
 export function CalmScene({ feed }: { feed: OverlayFeed }) {
   const s = feed.scene;
   if (s !== "soon" && s !== "intro" && s !== "winner" && s !== "brb" && s !== "end") return null;
-  const tint = s === "winner" && feed.match.winner ? TEAM[feed.match.winner - 1].c : s === "soon" || s === "end" ? "var(--color-balkan)" : "var(--color-rose)";
+  const tint = s === "winner" && feed.match.winner ? TEAM[feed.match.winner - 1].c : s === "soon" || s === "end" ? "var(--white)" : "var(--rose)";
   return (
     <div className="absolute inset-0 overflow-hidden text-paper">
       <Backdrop num={editionNum(feed)} tint={tint} />

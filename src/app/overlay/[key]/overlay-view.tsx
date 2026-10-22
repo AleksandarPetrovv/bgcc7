@@ -101,9 +101,9 @@ function OverlaySubscription({ url }: { url: string }) {
 }
 
 const SWEEP = [
-  { c: "var(--color-paper)", d: 0 },
-  { c: "var(--color-balkan)", d: 0.07 },
-  { c: "var(--color-rose)", d: 0.14 },
+  { c: "var(--white)", d: 0 },
+  { c: "var(--balkan)", d: 0.07 },
+  { c: "var(--rose)", d: 0.14 },
 ];
 
 function Wipe() {
@@ -113,7 +113,7 @@ function Wipe() {
         <motion.span
           key={i}
           className="absolute inset-y-[-10%] left-0 w-[2600px] -skew-x-12"
-          style={{ background: s.c, boxShadow: "-24px 0 0 0 rgba(0,0,0,0.35)" }}
+          style={{ background: s.c, boxShadow: "-24px 0 0 0 color-mix(in srgb, var(--black) 35%, transparent)" }}
           initial={{ x: -2900 }}
           animate={{ x: 2300 }}
           transition={{ duration: 1.05, delay: s.d, ease: [0.76, 0, 0.24, 1] }}
@@ -137,7 +137,7 @@ function Fit({ children }: { children: React.ReactNode }) {
   }, []);
   return (
     <div className={`fixed inset-0 flex items-center justify-center overflow-hidden ${boxed ? "bg-ink" : ""}`}>
-      <div className="shrink-0" style={{ transform: `scale(${scale})` }}>
+      <div className="shrink-0" style={{ zoom: scale }}>
         {children}
       </div>
     </div>
