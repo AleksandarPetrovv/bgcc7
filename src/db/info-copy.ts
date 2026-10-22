@@ -1,12 +1,12 @@
 import "server-only";
 import { cache } from "react";
 import { eq, sql } from "drizzle-orm";
-import { currentEdition, db } from "./index";
+import { db, isBGCC6 } from "./index";
 import { settings } from "./schema";
 
 // host edits to the info page text, keyed "<lang>:<dict path>"; bgcc7 only
 export const getInfoCopy = cache(async (): Promise<Record<string, string>> => {
-  if (currentEdition() !== "bgcc7") return {};
+  if (isBGCC6()) return {};
   const [row] = await db.select({ copy: settings.copy }).from(settings).where(eq(settings.id, 1)).limit(1).catch(() => []);
   return row?.copy ?? {};
 });

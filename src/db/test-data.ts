@@ -3,7 +3,7 @@ import { randomInt } from "node:crypto";
 import { and, arrayOverlaps, asc, eq, gte, inArray, lte, ne, notLike } from "drizzle-orm";
 import { TEST_MATCH } from "@/lib/format";
 import { fromSofiaInput } from "@/lib/time";
-import { db, db6 } from "./index";
+import { db, dbBGCC6, isBGCC6 } from "./index";
 import { drafts, maps, matchCache, matches, pickems, poolSuggestions, poolVotes, registrations, reschedules, scoreEdits, staff, stages, teamMembers, teams, users } from "./schema";
 import { advance } from "./bracket";
 import { drawSuiji, shuffle } from "./draw";
@@ -129,7 +129,7 @@ const WEEK_OF: Record<string, number> = { "round-of-16": 0, quarterfinals: 1, se
 
 export async function seedTestData() {
   const f = getFormat();
-  if (f.edition !== "bgcc7") return null;
+  if (isBGCC6()) return null;
   await clearTestData();
 
   const ranks = Array.from({ length: COUNT }, () => Math.round(Math.exp(Math.log(1500) + Math.random() * (Math.log(250_000) - Math.log(1500))))).sort((a, b) => a - b);
@@ -146,15 +146,15 @@ export async function seedTestData() {
     badges: i < 6 ? randomInt(0, 4) : 0,
     statsAt: new Date(),
   }));
-  await db6.insert(users).values(people).onConflictDoNothing();
+  await dbBGCC6.insert(users).values(people).onConflictDoNothing();
   await db.insert(registrations).values(
     people.map((p, i) => ({ osuId: p.osuId, status: i >= COUNT - 2 ? "denied" : i >= COUNT - 4 ? "pending" : "approved", note: i >= COUNT - 2 ? "test" : null, createdAt: new Date(Date.now() - (COUNT - i) * 3_600_000) })),
   );
 
   const plan = await getPlan();
   await syncStages(plan);
-  const src = await db6.select().from(maps).orderBy(asc(maps.id));
-  const poolers = await db6.select({ osuId: staff.osuId }).from(staff).where(arrayOverlaps(staff.permRoles, ["mappooler", "playtester"]));
+  const src = await dbBGCC6.select().from(maps).orderBy(asc(maps.id));
+  const poolers = await dbBGCC6.select({ osuId: staff.osuId }).from(staff).where(arrayOverlaps(staff.permRoles, ["mappooler", "playtester"]));
   const mine = await db.select().from(stages).orderBy(asc(stages.order));
   const layouts = Object.fromEntries(plan.rounds.map((r) => [r.slug, skillLayout(plan, r.slug)]));
   for (const [i, st] of mine.entries()) {
@@ -260,7 +260,7 @@ export async function seedTestData() {
 }
 
 export async function clearTestData() {
-  if (getFormat().edition !== "bgcc7") return null;
+  if (isBGCC6()) return null;
   const touched = [...new Set((await db.select({ id: maps.stageId }).from(maps).where(eq(maps.seeded, true))).map((m) => m.id))];
   await db.transaction(async (tx) => {
     await tx.delete(pickems);
@@ -277,6 +277,6 @@ export async function clearTestData() {
   });
   await saveSettings({ phase: "registration", sections: presetSections("registration"), pickemsOpen: false });
   const ids = Array.from({ length: COUNT }, (_, i) => FIRST + i);
-  await db6.delete(users).where(inArray(users.osuId, ids));
+  await dbBGCC6.delete(users).where(inArray(users.osuId, ids));
   return { cleared: true };
 }

@@ -13,15 +13,15 @@ import { splitAlive } from "@/lib/alive";
 import { Avatar } from "@/components/site/avatar";
 import { cn } from "@/lib/utils";
 import { MeTag, meP } from "@/components/site/me";
-import { getFormat } from "@/db/edition";
 import { rankBws } from "@/lib/bws";
+import { isBGCC6 } from "@/db";
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
 export default async function Players() {
   await requireSection("players");
   const [t, raw, settings, teams, matches] = await Promise.all([getDict(), getRegistrations(), getSettings(), getTeams(), getMatches()]);
-  const suiji = getFormat().edition === "bgcc7";
+  const suiji = !isBGCC6();
   const rows = suiji ? rankBws(raw) : raw.map((r) => ({ ...r, bws: null as number | null }));
   const { playoffs, players, out } = splitAlive(rows, teams, matches, settings.phase);
   const card = (p: (typeof rows)[number], i: number, out = false) => (
@@ -33,13 +33,13 @@ export default async function Players() {
       target="_blank"
       rel="noreferrer"
       className={cn(
-        "me-ring iv iv-self in-up lift group relative flex items-center gap-3.5 overflow-hidden border border-line bg-gradient-to-br from-coal to-ink/60 py-3 pl-3.5 pr-4 [--lift:var(--color-balkan)] hover:border-balkan/60",
+        "me-ring iv iv-self in-up lift group relative flex items-center gap-3.5 overflow-hidden border border-line bg-gradient-to-br from-coal to-ink/60 py-3 pl-3.5 pr-4 [--lift:var(--balkan)] hover:border-balkan/60",
         out && "opacity-45 grayscale transition-[opacity,filter] duration-300 hover:opacity-80 hover:grayscale-0",
       )}
     >
       {!out && (
         <span
-          className="heading-slam pointer-events-none absolute -bottom-3 right-2 select-none text-6xl leading-none text-transparent [-webkit-text-stroke:1px_rgba(244,243,238,0.07)] transition-colors duration-300 group-hover:[-webkit-text-stroke:1px_rgba(15,160,106,0.25)]"
+          className="heading-slam pointer-events-none absolute -bottom-3 right-2 select-none text-6xl leading-none text-transparent [-webkit-text-stroke:1px_color-mix(in_srgb,var(--paper)_7%,transparent)] transition-colors duration-300 group-hover:[-webkit-text-stroke:1px_color-mix(in_srgb,var(--balkan)_25%,transparent)]"
           aria-hidden
         >
           {String(i + 1).padStart(2, "0")}
@@ -53,7 +53,7 @@ export default async function Players() {
         <div className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           {p.country && <img src={flagUrl(p.country)} alt="" className="h-3 shrink-0" />}
-          <span className="in-wipe truncate text-[1.05rem] font-black transition-colors group-hover:text-balkan" style={v({ "--d": "0.25s" })}>
+          <span className="in-wipe truncate text-[1.05rem] font-black transition-colors group-hover:text-balkan-hi" style={v({ "--d": "0.25s" })}>
             {p.username}
           </span>
           <MeTag p={p.osuId} />
@@ -66,7 +66,7 @@ export default async function Players() {
         <div className="in-up num mt-1.5 flex items-center gap-2 whitespace-nowrap text-sm @max-[14rem]:text-xs" style={v({ "--d": "0.35s" })}>
           {suiji && p.bws !== null && (
             <>
-              <span className="text-gold">BWS {fmtNum(p.bws)}</span>
+              <span className="text-gold-hi">BWS {fmtNum(p.bws)}</span>
               <Rhombus className="size-1 text-line" />
             </>
           )}
@@ -74,7 +74,7 @@ export default async function Players() {
           {p.countryRank !== null && (
             <>
               <Rhombus className="size-1 text-line" />
-              <span className="text-balkan/90">
+              <span className="text-balkan-hi/90">
                 {p.country} #{p.countryRank}
               </span>
             </>
@@ -96,7 +96,7 @@ export default async function Players() {
         mark="people"
         right={
           <span className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5 text-balkan" title={t.common.players(players.length)}>
+            <span className="flex items-center gap-1.5 text-balkan-hi" title={t.common.players(players.length)}>
               <span className="num text-2xl">{players.length}</span>
               <User className="size-5" strokeWidth={2.75} />
             </span>

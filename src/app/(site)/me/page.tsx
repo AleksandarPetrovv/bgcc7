@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { matchCosts, MEDAL, MEDAL_BG } from "@/lib/match-cost";
 import { Card, Stat, PlayerLink, TeamCard, Side, Info, label, v } from "./cards";
 import { QualifierPlacement, QualifierScores } from "./qualifier-scores";
+import { isBGCC6 } from "@/db";
 
 type MyCost = { m: Match; cost: number; place: number; of: number };
 type Best = { p: PlayerLine; map: MapResult; match: Match };
@@ -87,7 +88,7 @@ export default async function Me() {
             <div className="num mt-1.5 flex flex-wrap gap-x-4 text-sm text-paper/70 sm:mt-2 sm:gap-x-5 sm:text-base">
               {reg.rank !== null && <span>#{fmtNum(reg.rank)}</span>}
               {reg.countryRank !== null && (
-                <span className="text-balkan">
+                <span className="text-balkan-hi">
                   {reg.country} #{reg.countryRank}
                 </span>
               )}
@@ -155,7 +156,7 @@ export default async function Me() {
     );
 
   const ff = getFormat();
-  const ranked = ff.edition === "bgcc7" ? rankBws(regs.filter((r) => r.status !== "denied")).filter((r) => r.bws !== null) : [];
+  const ranked = !isBGCC6() ? rankBws(regs.filter((r) => r.status !== "denied")).filter((r) => r.bws !== null) : [];
   const bwsAt = ranked.findIndex((r) => r.osuId === me);
   const myBws = bwsAt >= 0 ? ranked[bwsAt] : null;
   const bwsTier = bwsAt < 0 ? 0 : bwsAt < ff.teams ? 1 : bwsAt < ff.teams * ff.teamSize ? 2 : 0;
@@ -229,7 +230,7 @@ export default async function Me() {
               </div>
               <ul className="flex flex-wrap gap-2">
                 {lobby.players.map((p) => (
-                  <li key={p.osuId} className={cn("flex items-center gap-2 border px-2.5 py-1.5 text-sm font-bold", p.osuId === me ? "border-balkan/60 bg-balkan/10 text-balkan" : "border-line bg-ink")}>
+                  <li key={p.osuId} className={cn("flex items-center gap-2 border px-2.5 py-1.5 text-sm font-bold", p.osuId === me ? "border-balkan/60 bg-balkan/10 text-balkan-hi" : "border-line bg-ink")}>
                     <Avatar src={p.avatarUrl} className="size-6" />
                     <PlayerLink id={p.osuId} name={p.username} />
                   </li>
@@ -258,7 +259,7 @@ export default async function Me() {
               </p>
               <div className="flex flex-wrap gap-3">
                 {booking === "open" && (
-                  <SlantButton href="/qualifiers" tone="paper" className="px-8 py-4 text-xl shadow-[4px_4px_0_0_var(--color-rose-deep)]">
+                  <SlantButton href="/qualifiers" tone="paper" className="px-8 py-4 text-xl shadow-[4px_4px_0_0_var(--rose-deep)]">
                     {t.me.pickLobby} <ArrowRight className="size-5" />
                   </SlantButton>
                 )}
@@ -316,7 +317,7 @@ export default async function Me() {
   const champion = !!lastGf && usWon(lastGf) && !upcomingMatch;
   const path = champion ? "champion" : lostIn && !upcomingMatch ? "out" : (upcomingMatch?.bracket ?? played.at(-1)?.bracket ?? "winners");
   const pathTag = (
-    <span className={cn("text-xs font-black uppercase tracking-wide", path === "out" ? "text-rose-hi" : path === "champion" ? "text-gold" : "text-balkan")}>{t.me.path[path]}</span>
+    <span className={cn("text-xs font-black uppercase tracking-wide", path === "out" ? "text-rose-hi" : path === "champion" ? "text-gold-hi" : "text-balkan-hi")}>{t.me.path[path]}</span>
   );
 
   const boards = await Promise.all(
@@ -384,7 +385,7 @@ export default async function Me() {
                     aria-hidden
                   />
                 )}
-                <span className={cn("num w-4 text-center text-xl", won ? "text-balkan" : "text-rose-hi")}>{won ? t.me.won : t.me.lost}</span>
+                <span className={cn("num w-4 text-center text-xl", won ? "text-balkan-hi" : "text-rose-hi")}>{won ? t.me.won : t.me.lost}</span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {other && <img src={other.image} alt="" className="size-11 shrink-0 object-cover" />}
                 <div className="min-w-0 flex-1">
@@ -418,8 +419,8 @@ export default async function Me() {
       <>
         <Card title={t.me.finish} i={1} className={cn(place === 0 && "border-gold/40")}>
           <div className="flex items-center gap-4">
-            {place === 0 && <Crown className="size-12 text-gold" />}
-            <span className={cn("heading-slam text-6xl", place === 0 && "text-gold")}>
+            {place === 0 && <Crown className="size-12 text-gold-hi" />}
+            <span className={cn("heading-slam text-6xl", place === 0 && "text-gold-hi")}>
               {place >= 0 ? t.me.places[place] : lostIn ? t.me.outIn(roundName(t, lostIn.round)) : "—"}
             </span>
           </div>
@@ -459,7 +460,7 @@ export default async function Me() {
           </div>
           <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 py-5 sm:gap-5 sm:py-6">
             <Side team={team} />
-            <span className="mx-auto -skew-x-12 bg-rose px-2.5 py-1 shadow-[3px_3px_0_0_var(--color-rose-deep)] sm:px-4 sm:py-2">
+            <span className="mx-auto -skew-x-12 bg-rose px-2.5 py-1 shadow-[3px_3px_0_0_var(--rose-deep)] sm:px-4 sm:py-2">
               <span className="heading-slam block skew-x-12 text-base text-white sm:text-2xl">{t.common.vs}</span>
             </span>
             <Side team={other} flip fallback={sourceLabel(getFormat(), t, matches, m.id, us === 1 ? 2 : 1)} />

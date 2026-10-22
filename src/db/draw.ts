@@ -2,7 +2,7 @@ import "server-only";
 import { randomInt } from "node:crypto";
 import { eq, ne, notLike } from "drizzle-orm";
 import { isTestTeam, TEST_MATCH } from "@/lib/format";
-import { db } from "./index";
+import { db, isBGCC6 } from "./index";
 import { drafts, matchCache, matches, pickems, teamMembers, teams } from "./schema";
 import { getFormat } from "./edition";
 import { getRegistrations } from "./registrations";
@@ -21,7 +21,7 @@ export const newTeamId = () => `team_${crypto.randomUUID().slice(0, 8)}`;
 
 export async function seedBracket() {
   const f = getFormat();
-  if (f.edition !== "bgcc7") return null;
+  if (isBGCC6()) return null;
   const [regs, all, members] = await Promise.all([getRegistrations(), db.select().from(teams), db.select().from(teamMembers)]);
   const ts = all.filter((t) => !isTestTeam(t.id));
   if (ts.length !== f.teams) return null;
@@ -50,7 +50,7 @@ export async function seedBracket() {
 
 export async function drawSuiji() {
   const f = getFormat();
-  if (f.edition !== "bgcc7") return null;
+  if (isBGCC6()) return null;
   const regs = await getRegistrations();
   const ranked = rankBws(regs.filter((r) => r.status === "approved")).filter((p) => p.bws !== null);
   const n = f.teams;

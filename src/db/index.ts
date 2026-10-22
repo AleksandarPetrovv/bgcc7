@@ -7,21 +7,22 @@ import * as schema from "./schema";
 import type { Edition } from "@/lib/format";
 
 const url = process.env.DATABASE_URL ?? "postgres://unset@127.0.0.1:1/unset";
-const g = globalThis as unknown as { pg?: ReturnType<typeof postgres>; pg7?: ReturnType<typeof postgres>; bgccEdition?: Edition; bgccPin?: AsyncLocalStorage<Edition | "site"> };
-const client = g.pg ?? postgres(url, { max: 10 });
-const client7 = g.pg7 ?? postgres(url, { max: 6, connection: { search_path: "bgcc7,public" } });
+const g = globalThis as unknown as { pgBGCC6?: ReturnType<typeof postgres>; pg?: ReturnType<typeof postgres>; bgccEdition?: Edition; bgccPin?: AsyncLocalStorage<Edition | "site"> };
+// bgcc6 lives in the public schema, the current edition in the bgcc7 schema
+const clientBGCC6 = g.pgBGCC6 ?? postgres(url, { max: 10 });
+const client = g.pg ?? postgres(url, { max: 6, connection: { search_path: "bgcc7,public" } });
 if (process.env.NODE_ENV !== "production") {
+  g.pgBGCC6 = clientBGCC6;
   g.pg = client;
-  g.pg7 = client7;
 }
 
-export const db6 = drizzle(client, { schema });
-export const db7 = drizzle(client7, { schema });
+export const dbBGCC6 = drizzle(clientBGCC6, { schema });
+const base = drizzle(client, { schema });
 
 export const EDITION_COOKIE = "edition";
 const pin = (g.bgccPin ??= new AsyncLocalStorage<Edition | "site">());
 
-export const siteEdition = (): Edition => g.bgccEdition ?? "bgcc6";
+export const siteEdition = (): Edition => g.bgccEdition ?? "bgcc7";
 
 const viewEdition = (): Edition | null => {
   const store = workUnitAsyncStorage.getStore();
@@ -36,6 +37,9 @@ export const currentEdition = (): Edition => {
   return viewEdition() ?? siteEdition();
 };
 
+/** the one check for "is this request about bgcc6". every bgcc6-only branch goes through it, so dropping bgcc6 = delete this and fix what stops compiling */
+export const isBGCC6 = () => currentEdition() === "bgcc6";
+
 export const withEdition = <T>(ed: Edition | "site", fn: () => T): T => pin.run(ed, fn);
 export const setCurrentEdition = (e: Edition) => {
   g.bgccEdition = e;
@@ -43,13 +47,15 @@ export const setCurrentEdition = (e: Edition) => {
 
 export async function ensureEdition() {
   if (g.bgccEdition) return;
-  const rows = await client<{ edition: string }[]>`select edition from public.settings where id = 1`.catch(() => null);
-  if (rows) g.bgccEdition = rows[0]?.edition === "bgcc7" ? "bgcc7" : "bgcc6";
+  const rows = await clientBGCC6<{ edition: string }[]>`select edition from public.settings where id = 1`.catch(() => null);
+  if (rows) g.bgccEdition = rows[0]?.edition === "bgcc6" ? "bgcc6" : "bgcc7";
 }
 
-export const db: typeof db6 = new Proxy(db6, {
+export const dbOf = (e: Edition) => (e === "bgcc6" ? dbBGCC6 : base);
+
+export const db: typeof base = new Proxy(base, {
   get(_, k) {
-    const d = currentEdition() === "bgcc7" ? db7 : db6;
+    const d = dbOf(currentEdition());
     const v = Reflect.get(d, k, d);
     return typeof v === "function" ? v.bind(d) : v;
   },

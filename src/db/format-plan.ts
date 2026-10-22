@@ -1,10 +1,9 @@
 import "server-only";
 import { cache } from "react";
 import { eq } from "drizzle-orm";
-import { db } from "./index";
+import { db, isBGCC6 } from "./index";
 import { settings, stages } from "./schema";
 import { safe } from "./safe";
-import { getEdition } from "./edition";
 import { cleanPlan, DEFAULT_PLAN, skillLayout, type Plan } from "@/lib/format-plan";
 
 export const getPlan = cache(() =>
@@ -15,13 +14,13 @@ export const getPlan = cache(() =>
 );
 
 export const getSkillLayouts = cache(async () => {
-  if (getEdition() !== "bgcc7") return null;
+  if (isBGCC6()) return null;
   const plan = await getPlan();
   return Object.fromEntries(plan.rounds.map((r) => [r.slug, skillLayout(plan, r.slug)!]));
 });
 
 export async function syncStages(plan: Plan) {
-  if (getEdition() !== "bgcc7") return;
+  if (isBGCC6()) return;
   for (const r of plan.rounds) {
     const l = skillLayout(plan, r.slug);
     if (l) await db.update(stages).set({ blueprint: l.blueprint, firstTo: l.firstTo }).where(eq(stages.slug, r.slug));

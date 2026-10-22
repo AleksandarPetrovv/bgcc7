@@ -20,6 +20,7 @@ import { rankBws } from "@/lib/bws";
 import { Dropdown } from "@/components/admin/dropdown";
 import { RemoveMember } from "./remove-member";
 import { avatarPath } from "@/lib/avatar";
+import { isBGCC6 } from "@/db";
 
 const bwsGrid = "grid grid-cols-[2rem_minmax(0,1fr)_3rem_5rem] items-center gap-x-3 px-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_6rem_10rem_6rem]";
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-ash transition-colors";
@@ -27,7 +28,7 @@ const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-black uppercase
 export default async function AdminTeams() {
   const [t, viewer, teams, results, regs, settings, f, locked] = await Promise.all([getDict(), getViewer(), getTeams(), getQualResults(), getRegistrations(), getSettings(), getFormat(), getBwsLock()]);
   if (!can(viewer?.roles, "teams")) notFound();
-  const suiji = f.edition === "bgcc7";
+  const suiji = !isBGCC6();
   const need = f.teams * f.teamSize;
   const ranked = rankBws(regs.filter((r) => r.status === "approved"));
   const taken = new Set(teams.flatMap((x) => x.players.map((p) => p.userId)));
@@ -55,7 +56,7 @@ export default async function AdminTeams() {
 
       {suiji && (
         <Panel title={t.admin.bwsRanking} className="mb-6">
-          <p className={cn("mb-3 text-xs font-black uppercase tracking-wide", locked ? "text-balkan" : "text-ash")}>
+          <p className={cn("mb-3 text-xs font-black uppercase tracking-wide", locked ? "text-balkan-hi" : "text-ash")}>
             {locked ? t.admin.bwsLocked(fmtSofia(locked, "en-GB")) : t.admin.bwsLive}
           </p>
           {ranked.length === 0 ? (
@@ -86,7 +87,7 @@ export default async function AdminTeams() {
                           <span
                             className={cn(
                               "heading-slam grid h-7 w-9 -skew-x-12 place-items-center text-base leading-none",
-                              tier === 1 ? "bg-gold text-ink shadow-[2px_2px_0_0_var(--color-gold-deep)]" : "bg-silver text-ink shadow-[2px_2px_0_0_var(--color-silver-deep)]",
+                              tier === 1 ? "bg-gold text-paper shadow-[2px_2px_0_0_var(--gold-deep)]" : "bg-silver text-paper shadow-[2px_2px_0_0_var(--silver-deep)]",
                             )}
                           >
                             <span className="skew-x-12">{tier === 1 ? "A" : "B"}</span>
@@ -105,7 +106,7 @@ export default async function AdminTeams() {
                           defaultValue={p.badgeOverride ?? p.badges ?? 0}
                           aria-label={`${t.admin.badges} · ${p.username}`}
                           title={p.badgeOverride !== null ? t.admin.badgesEdited(p.badges ?? 0) : undefined}
-                          className={cn(inputCls, "num w-14 text-center", p.badgeOverride !== null && "[&_input]:text-gold")}
+                          className={cn(inputCls, "num w-14 text-center", p.badgeOverride !== null && "[&_input]:text-gold-hi")}
                         />
                       </ActionForm>
                       <span className="num text-center font-bold text-paper">{p.bws === null ? "–" : fmtNum(p.bws)}</span>
@@ -143,7 +144,7 @@ export default async function AdminTeams() {
             <div className="flex items-center gap-3 border-b border-line px-4 py-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {team.image && <img src={team.image} alt="" className="in-spin size-9 object-cover [--d:0.45s]" />}
-              <span className="in-slam num text-xl text-balkan [--d:0.55s]">#{team.seed}</span>
+              <span className="in-slam num text-xl text-balkan-hi [--d:0.55s]">#{team.seed}</span>
               <span className="in-wipe heading-slam min-w-0 truncate text-xl sm:text-2xl [--d:0.55s]">{team.name}</span>
               {suiji && avg(team.players.map((p) => p.userId)) !== null && (
                 <span className="num ml-auto shrink-0 text-xs text-ash">
@@ -174,14 +175,14 @@ export default async function AdminTeams() {
                       {team.players.map((p) => (
                         <label
                           key={p.userId}
-                          className="group relative flex h-12 min-w-0 -skew-x-12 cursor-pointer items-center border border-line bg-field px-2.5 text-ash transition-[border-color,background-color,box-shadow,color] duration-200 hover:border-paper/40 hover:text-paper has-[:checked]:border-gold has-[:checked]:bg-gold/10 has-[:checked]:text-paper has-[:checked]:shadow-[4px_4px_0_0_var(--color-gold-deep)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose"
+                          className="group relative flex h-12 min-w-0 -skew-x-12 cursor-pointer items-center border border-line bg-field px-2.5 text-ash transition-[border-color,background-color,box-shadow,color] duration-200 hover:border-paper/40 hover:text-paper has-[:checked]:border-gold has-[:checked]:bg-gold/10 has-[:checked]:text-paper has-[:checked]:shadow-[4px_4px_0_0_var(--gold-deep)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose"
                         >
                           <input type="radio" name="captain" value={p.userId} defaultChecked={p.isCaptain} className="peer sr-only" />
                           <span className="flex min-w-0 flex-1 skew-x-12 items-center gap-2">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={p.avatar} alt="" className="size-7 shrink-0 grayscale transition group-has-[:checked]:grayscale-0" />
                             <span className="min-w-0 flex-1 truncate text-sm font-black">{p.username}</span>
-                            <Crown className="size-4 shrink-0 scale-50 fill-current text-gold opacity-0 transition-[opacity,transform,translate,scale,rotate] duration-300 group-has-[:checked]:scale-100 group-has-[:checked]:opacity-100" />
+                            <Crown className="size-4 shrink-0 scale-50 fill-current text-gold-hi opacity-0 transition-[opacity,transform,translate,scale,rotate] duration-300 group-has-[:checked]:scale-100 group-has-[:checked]:opacity-100" />
                           </span>
                         </label>
                       ))}

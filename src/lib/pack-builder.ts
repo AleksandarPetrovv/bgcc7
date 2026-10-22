@@ -8,7 +8,7 @@ import type { ReadableStream as WebStream } from "node:stream/web";
 import { crc32 } from "node:zlib";
 import { revalidatePath } from "next/cache";
 import { asc, eq } from "drizzle-orm";
-import { currentEdition, db6, db7 } from "@/db";
+import { currentEdition, dbOf } from "@/db";
 import type { Edition } from "@/lib/format";
 import { maps as mapsTable, stages } from "@/db/schema";
 import { MOD_ORDER, slotOf } from "@/db/mappools";
@@ -163,7 +163,7 @@ async function zipStore(files: { name: string; file: string }[], dest: string) {
 
 async function build(slug: string, osuId: number, job: PackJob, ed: Edition) {
   const work = path.join(UPLOAD_DIR, "tmp", `${ed}-${slug.replace(/[^\w-]/g, "")}-${Date.now()}`);
-  const db = ed === "bgcc7" ? db7 : db6;
+  const db = dbOf(ed);
   try {
     const [stage] = await db.select().from(stages).where(eq(stages.slug, slug)).limit(1);
     if (!stage) throw new Error("notFound");

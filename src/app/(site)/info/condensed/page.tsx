@@ -2,7 +2,7 @@ import { Container, PageTitle } from "@/components/site/page";
 import { Words } from "@/components/site/rich";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { getFill } from "@/db/copy";
-import { currentEdition } from "@/db";
+import { isBGCC6 } from "@/db";
 import { getInfoCopy } from "@/db/info-copy";
 import { getViewer, requireSection } from "@/lib/authz";
 import { Editable } from "../editable";
@@ -14,10 +14,10 @@ import { getHosts } from "@/db/admin";
 export default async function Condensed() {
   await requireSection("info");
   const [t, f, copy, lang, viewer] = await Promise.all([getDict(), getFill(), getInfoCopy(), getLang(), getViewer()]);
-  const on = currentEdition() === "bgcc7" && !!viewer?.roles.includes("host");
+  const on = !isBGCC6() && !!viewer?.roles.includes("host");
   const raw = (path: string, fallback: string) => copy[`${lang}:${path}`] ?? fallback;
   const title = raw("info.condensed", t.info.condensed);
-  if (currentEdition() === "bgcc7") {
+  if (!isBGCC6()) {
     const [plan, matches, hosts] = await Promise.all([getPlan(), getMatches(), getHosts()]);
     return (
       <Container plain>

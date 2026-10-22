@@ -1,12 +1,12 @@
 import "server-only";
 import { cache } from "react";
-import { getFormat } from "./edition";
 import { getRegistrations } from "./registrations";
 import { getQualResults } from "./qualifiers";
 import { rankBws } from "@/lib/bws";
+import { isBGCC6 } from "./index";
 
 export const getPlayerSeeds = cache(async (): Promise<Map<number, number>> => {
-  if (getFormat().edition === "bgcc7") {
+  if (!isBGCC6()) {
     const ranked = rankBws((await getRegistrations()).filter((r) => r.status === "approved")).filter((p) => p.bws !== null);
     return new Map(ranked.map((p, i) => [p.osuId, i + 1]));
   }

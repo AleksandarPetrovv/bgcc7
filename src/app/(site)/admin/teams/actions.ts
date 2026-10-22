@@ -1,9 +1,8 @@
 "use server";
 
 import { and, asc, eq, isNotNull, ne, or } from "drizzle-orm";
-import { db } from "@/db";
+import { db, isBGCC6 } from "@/db";
 import { matches, teamMembers, teams, users } from "@/db/schema";
-import { getFormat } from "@/db/edition";
 import { newTeamId, seedBracket } from "@/db/draw";
 import { getQualResults } from "@/db/qualifiers";
 import { getSettings } from "@/db/settings";
@@ -15,7 +14,7 @@ const newId = newTeamId;
 
 export async function generateTeams() {
   return guard("teams", "teams.generate", async () => {
-    if ((await getFormat()).edition !== "bgcc6") return { ok: false, error: "invalid" };
+    if (!isBGCC6()) return { ok: false, error: "invalid" };
     const [{ players }, settings] = await Promise.all([getQualResults(), getSettings()]);
     const size = Math.floor(settings.qualifyCount / 3);
     const top = players.slice(0, size * 3);

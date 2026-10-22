@@ -1,18 +1,18 @@
 "use server";
 
 import { getSettings, saveSettings } from "@/db/settings";
-import { getEdition } from "@/db/edition";
 import { getTeams } from "@/db/tournament";
 import { getBwsLock, lockBws, unlockBws } from "@/db/registrations";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
 import { PHASES, presetSections, SECTIONS, TIMELINE_KEYS, type Phase } from "@/lib/sections";
 import { fromSofiaInput } from "@/lib/time";
+import { isBGCC6 } from "@/db";
 
 async function applyPhase(p: Phase) {
-  if (p === "qualifiers" && getEdition() === "bgcc7") return false;
+  if (p === "qualifiers" && !isBGCC6()) return false;
   await saveSettings({ phase: p, sections: presetSections(p), pickemsOpen: p !== "playoffs" && p !== "finished" });
-  if (getEdition() !== "bgcc7") return;
+  if (isBGCC6()) return;
   // only before the draw: afterwards the locked ranks are what seeds and tiers were built on
   if (p === "registration") {
     if (!(await getTeams()).length) await unlockBws();
