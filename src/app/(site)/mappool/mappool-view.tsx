@@ -167,7 +167,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
 function MapStats({ map }: { map: Stage["pools"][number]["maps"][number] }) {
   const stats = [["BPM", Math.round(map.bpm)], ["Length", fmtLen(map.length)], ["CS", map.cs], ["AR", map.ar], ["OD", map.od]] as const;
   return (
-    <dl className="num col-span-2 grid grid-cols-3 items-center gap-x-3 gap-y-2 border-t border-line bg-coal pt-2.5 text-center text-paper sm:grid-cols-6 sm:gap-x-4 xl:w-[27rem] xl:shrink-0 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0 2xl:w-[31rem]">
+    <dl className="num col-span-2 grid grid-cols-3 items-center gap-x-3 gap-y-2 border-t border-line pt-2.5 text-center text-paper [text-shadow:0_1px_2px_color-mix(in_srgb,var(--white)_85%,transparent)] sm:grid-cols-6 sm:gap-x-4 xl:w-[27rem] xl:shrink-0 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0 2xl:w-[31rem]">
       <div>
         <dt className="sr-only">SR</dt>
         <dd className="flex items-center justify-center gap-1 text-sm font-black text-gold-hi xl:text-lg">
