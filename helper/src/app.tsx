@@ -319,7 +319,7 @@ export function App() {
               <span className="num7-shine pointer-events-none absolute -left-[0.3em] -top-[0.3em] py-[0.3em] pl-[0.3em] pr-[0.7em] text-transparent" aria-hidden="true">7</span>
             </span>
           </div>
-          <span className="anim-pop relative mt-2.5 inline-flex bg-rose px-2.5 py-1 [animation-delay:0.8s]">
+          <span className="anim-pop relative mt-2.5 inline-flex -skew-x-12 bg-rose px-2.5 py-1 [animation-delay:0.8s]">
             <span className="inline-block skew-x-12 font-display text-[11px] font-bold text-white">Helper</span>
           </span>
         </section>
@@ -343,7 +343,7 @@ export function App() {
 
           <section key={screenKey("s-wait")} className={screenCls("s-wait")} inert={screen !== "s-wait"}>
             <div className="heading in" style={stagger(0)}>Confirm on the site</div>
-            <div className="anim-pop inline-flex self-start border border-rose bg-rose/10 px-[22px] py-2.5 shadow-[4px_4px_0_0_var(--rose-deep)]">
+            <div className="anim-pop inline-flex -skew-x-12 self-start border border-rose bg-rose/10 px-[22px] py-2.5 shadow-[4px_4px_0_0_var(--rose-deep)]">
               <span className="num inline-block skew-x-12 text-[40px] tracking-[0.2em]">{word}</span>
             </div>
             <div className="beads in" style={stagger(1)} aria-hidden="true" />

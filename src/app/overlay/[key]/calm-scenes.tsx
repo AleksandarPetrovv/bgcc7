@@ -181,7 +181,7 @@ function Roll({ value, state, side }: { value: number | null; state: "wait" | "w
               className={cn("num font-display text-[56px] font-black leading-none", shown == null ? "text-ash/50" : spinning ? "text-paper/70" : "text-paper")}
               initial={spinning ? { opacity: 0 } : { scale: 2.2, opacity: 0, rotate: -8 }}
               animate={shown == null ? { y: 0, scale: 1, rotate: 0, opacity: [0.35, 0.8, 0.35] } : { y: 0, scale: 1, rotate: 0, opacity: 1 }}
-              exit={{ opacity: 0 }}
+              exit={{ opacity: 0, transition: { duration: 0.12 } }}
               transition={shown == null ? { opacity: { duration: 1.6, repeat: Infinity } } : spinning ? { duration: 0.08 } : { type: "spring", stiffness: 520, damping: 18 }}
             >
               {shown ?? "?"}

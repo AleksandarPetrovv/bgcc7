@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Glyph } from "@/components/site/graphics";
+import { Notes } from "@/components/site/page";
 import { MODS } from "@/lib/data";
 import { modHi, modOn } from "@/lib/theme";
 import type { FeedMap, OverlayFeed } from "@/lib/overlay-types";
@@ -68,7 +68,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
 
       <div className="absolute inset-x-[72px] top-[205px] flex items-end justify-between border-b border-line pb-4">
         <div className="flex items-center gap-5">
-          <Glyph kind="leaf" className="size-[28px]" />
+          <span className="flex text-[72px] leading-none"><Notes /></span>
           <h1 className="font-display text-[48px] font-black italic uppercase leading-none">Mappool</h1>
           <span className={LABEL}>{feed.match.round}</span>
         </div>
