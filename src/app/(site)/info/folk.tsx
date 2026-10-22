@@ -148,7 +148,7 @@ function StageTable({ p }: { p: FolkProps }) {
           </span>
           <span className="col-span-2 flex flex-wrap gap-1.5 md:col-span-1">
             {r.mods.map(([mod, n]) => (
-              <span key={mod} className="num -skew-x-12 border px-1.5 py-0.5 text-xs font-display font-black leading-none" style={{ background: MOD_HEX[mod], borderColor: mod === "TB" ? "var(--line)" : MOD_HEX[mod], color: mod === "TB" || mod === "HD" ? "var(--on-fill)" : "var(--white)" }}>
+              <span key={mod} className="num -skew-x-12 border px-1.5 py-0.5 text-xs font-display font-black leading-none" style={{ background: MOD_HEX[mod], borderColor: MOD_HEX[mod], color: mod === "HD" ? "var(--on-fill)" : "var(--white)" }}>
                 <span className="inline-block skew-x-12">
                   {n} {mod}
                 </span>

@@ -68,10 +68,10 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                 aria-expanded={isOpen}
               >
                 <span className="in-pop flex w-8 items-center justify-center" style={{ background: mod.color }}>
-                  <Play className={cn("size-4 fill-current transition-transform", isOpen && "rotate-90", light ? "text-paper" : "text-white")} />
+                  <Play className={cn("size-4 fill-current transition-transform", isOpen && "rotate-90", light ? "text-on-fill" : "text-white")} />
                 </span>
                 <span
-                  className={cn("in-grow flex flex-1 items-center justify-between px-3 py-1.5 font-display font-bold [--d:0.08s]", light ? "text-paper" : "text-white")}
+                  className={cn("in-grow flex flex-1 items-center justify-between px-3 py-1.5 font-display font-bold [--d:0.08s]", light ? "text-on-fill" : "text-white")}
                   style={{ background: mod.color }}
                 >
                   {mod.label}
