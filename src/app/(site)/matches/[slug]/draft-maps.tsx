@@ -53,7 +53,7 @@ export function MapGrid({
                 ease: EASE,
                 delay: 0.3 + pi * 0.06,
               }}
-              className={cn("mb-2 inline-flex -skew-x-12 items-center gap-2 px-3 py-1 text-sm font-display font-bold", light ? "text-paper" : "text-white")}
+              className={cn("mb-2 inline-flex -skew-x-12 items-center gap-2 px-3 py-1 text-sm font-display font-bold", light ? "text-on-fill" : "text-white")}
               style={{ background: mod.color }}
             >
               <span className="skew-x-12">{mod.label}</span>
@@ -141,15 +141,13 @@ export function MapGrid({
                       >
                         {m.slot}
                       </span>
-                      <span className={cn("relative flex min-w-0 flex-1 flex-col justify-center pl-1 pr-3", grey && "opacity-40")}>
-                        <span className="flex min-w-0 items-center gap-2">
-                          <span className="truncate text-sm font-display font-black sm:text-base">{m.title}</span>
-                          {skill && !tb && MODS[m.mod] && (
-                            <span className="shrink-0 -skew-x-12 border px-1.5 text-xs font-display font-black leading-5" style={{ borderColor: modHi(MODS[m.mod].color), color: modHi(MODS[m.mod].color) }}>
-                              <span className="inline-block skew-x-12">{MODS[m.mod].short}</span>
-                            </span>
-                          )}
+                      {skill && !tb && MODS[m.mod] && (
+                        <span className={cn("absolute bottom-2 right-2.5 -skew-x-12 border bg-ink/70 px-1.5 text-xs font-display font-black leading-5", grey && "opacity-40")} style={{ borderColor: modHi(MODS[m.mod].color), color: modHi(MODS[m.mod].color) }}>
+                          <span className="inline-block skew-x-12">{MODS[m.mod].short}</span>
                         </span>
+                      )}
+                      <span className={cn("relative flex min-w-0 flex-1 flex-col justify-center pl-1", "pr-3", grey && "opacity-40")}>
+                        <span className="truncate text-sm font-display font-black sm:text-base">{m.title}</span>
                         <span className="truncate text-xs text-paper/70">[{m.version}]</span>
                         <span className="num mt-1 flex items-center gap-2.5 text-xs text-ash">
                           <span className="flex items-center gap-0.5 text-gold-hi">
