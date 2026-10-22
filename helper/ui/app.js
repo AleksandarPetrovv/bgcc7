@@ -15,18 +15,18 @@ const ERR = {
   nostream: "this account has no streaming role",
   noroles: "this account has no ref or streaming role",
 };
-const SITE = { off: ["offline", ""], connecting: ["connecting", "wait"], online: ["online", "ok"] };
-const IRC = { idle: ["standby", ""], connecting: ["connecting", "wait"], online: ["online", "ok"], badpass: ["wrong password", "bad"] };
+const SITE = { off: ["disconnected", "bad"], connecting: ["connecting", "wait"], online: ["connected", "ok"] };
+const IRC = { idle: ["not connected", ""], connecting: ["connecting", "wait"], online: ["connected", "ok"], badpass: ["wrong password", "bad"] };
 const STREAM = {
   off: ["off", "", "enable streaming to send live scores"],
-  waiting: ["waiting for the tourney client", "wait", "open osu!tourney; streamers do not need irc"],
-  sending: ["sending", "ok", "live scores are reaching the site"],
-  nomatch: ["no match assigned", "wait", "waiting for a match assignment on the site"],
-  noplayers: ["no players found", "bad", "no players are in the tourney client yet"],
+  waiting: ["awaiting client", "wait", "open osu!tourney; streamers do not need irc"],
+  sending: ["sending scores", "ok", "live scores are reaching the site"],
+  nomatch: ["awaiting match", "wait", "waiting for a match assignment on the site"],
+  noplayers: ["awaiting players", "wait", "no players are in the tourney client yet"],
   players: ["wrong players", "bad", "a player in the lobby isn't on either team of your match"],
-  swapped: ["teams on the wrong side", "bad", "team 1 must be red and team 2 blue in the lobby, ask the ref to swap them"],
-  map: ["map not in pool", "bad", "the map being played isn't in this match's pool"],
-  forbidden: ["streaming unavailable", "bad", "this account needs a streaming role on the site"],
+  swapped: ["teams reversed", "bad", "team 1 must be red and team 2 blue in the lobby, ask the ref to swap them"],
+  map: ["wrong map", "bad", "the map being played isn't in this match's pool"],
+  forbidden: ["access denied", "bad", "this account needs a streaming role on the site"],
   unpaired: ["account unlinked", "bad", "link your osu! account again to send scores"],
   error: ["streaming error", "bad", "check your internet and the activity log"],
 };
@@ -251,10 +251,10 @@ function render(s) {
   }
   show("s-run");
   const [st, sc] = SITE[s.site] ?? SITE.off;
-  const [it, ic] = IRC[s.irc] ?? IRC.idle;
+  const [it, ic] = s.irc === "idle" && s.site === "online" ? ["ready", "ok"] : IRC[s.irc] ?? IRC.idle;
   $("t-site").textContent = st;
   $("d-site").className = `dia ${sc}`;
-  $("t-irc").textContent = it;
+  $("t-irc").textContent = s.irc === "online" && s.lobbies.length ? "in lobby" : it;
   $("d-irc").className = `dia ${ic}`;
   $("sent").textContent = s.sent;
   $("me-name").textContent = s.name;
@@ -328,7 +328,7 @@ function render(s) {
             c.firstChild.textContent = l.replace("#mp_", "#");
             return c;
           })
-        : [Object.assign(document.createElement("span"), { className: "muted", textContent: "none open" })]),
+        : [Object.assign(document.createElement("span"), { className: "muted", textContent: "no lobbies" })]),
     );
   }
 }

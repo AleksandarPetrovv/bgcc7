@@ -4,15 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>bgcc7 helper</title>
+    <link rel="stylesheet" href="palette.css" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div class="app">
       <header class="bar" data-tauri-drag-region>
-        <svg class="tri" viewBox="0 0 30 16" aria-hidden="true">
-          <polygon points="4,0 10,0 6,16 0,16" fill="#f4f3ee" />
-          <polygon points="14,0 20,0 16,16 10,16" fill="#0fa06a" />
-          <polygon points="24,0 30,0 26,16 20,16" fill="#e0242f" />
+        <svg class="tri" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="6" y="6" width="12" height="12" rx="2" fill="none" stroke="var(--paper)" stroke-width="2.6" />
+          <circle cx="12" cy="12" r="2.6" fill="var(--rose)" />
+          <circle cx="19" cy="5" r="2.2" fill="var(--balkan)" />
         </svg>
         <span class="title" data-tauri-drag-region>bgcc7 helper</span>
         <div class="win">
@@ -26,7 +27,6 @@
       </header>
 
       <section class="hero grain" data-tauri-drag-region>
-        <div class="drift-wrap" aria-hidden="true"><div class="drift"></div></div>
         <div class="ghost" aria-hidden="true">7</div>
         <div class="lockup" data-tauri-drag-region>
           <div class="word"><span class="letter" style="animation-delay: 0.05s">b</span><span class="letter" style="animation-delay: 0.12s">g</span><span class="letter" style="animation-delay: 0.19s">c</span><span class="letter" style="animation-delay: 0.26s">c</span></div>
