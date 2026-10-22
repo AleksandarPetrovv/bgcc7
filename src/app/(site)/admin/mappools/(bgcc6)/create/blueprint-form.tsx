@@ -5,6 +5,7 @@ import { Lock, Minus, Plus } from "lucide-react";
 import { ActionForm } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
 import { MODS } from "@/lib/data";
+import { modHi, modOn } from "@/lib/theme";
 import type { ActionResult } from "@/lib/roles";
 
 type Action = (prev: ActionResult, fd: FormData) => Promise<ActionResult>;
@@ -26,7 +27,7 @@ export function BlueprintForm({ action, mods, initial, tb }: { action: Action; m
               <span className="absolute inset-y-0 left-0 w-1" style={{ background: c }} aria-hidden />
               <div className="flex items-center gap-3 py-3 pl-5 pr-3">
                 <div className="min-w-0 flex-1">
-                  <div className="heading-slam text-2xl leading-none" style={{ color: c }}>
+                  <div className="heading-slam text-2xl leading-none" style={{ color: modHi(c) }}>
                     {MODS[m].short}
                   </div>
                   <div className="mt-1 text-[0.65rem] font-black uppercase tracking-[0.12em] text-ash">{MODS[m].label}</div>
@@ -37,7 +38,7 @@ export function BlueprintForm({ action, mods, initial, tb }: { action: Action; m
                     onClick={() => set(m, counts[m] - 1)}
                     disabled={counts[m] === 0}
                     aria-label={`${MODS[m].short} −`}
-                    className="grid h-10 w-10 place-items-center border border-line text-ash transition-colors hover:border-paper/40 hover:bg-white/[0.06] hover:text-paper disabled:opacity-30"
+                    className="grid h-10 w-10 place-items-center border border-line text-ash transition-colors hover:border-paper/40 hover:bg-field hover:text-paper disabled:opacity-30"
                   >
                     <Minus className="size-4 skew-x-12" strokeWidth={3} />
                   </button>
@@ -57,8 +58,8 @@ export function BlueprintForm({ action, mods, initial, tb }: { action: Action; m
                     type="button"
                     onClick={() => set(m, counts[m] + 1)}
                     aria-label={`${MODS[m].short} +`}
-                    className="grid h-10 w-10 place-items-center border text-white transition-[filter] hover:brightness-110"
-                    style={{ background: c, borderColor: c }}
+                    className="grid h-10 w-10 place-items-center border transition-[filter] hover:brightness-110"
+                    style={{ background: c, borderColor: c, color: modOn(c) }}
                   >
                     <Plus className="size-4 skew-x-12" strokeWidth={3} />
                   </button>
@@ -69,7 +70,7 @@ export function BlueprintForm({ action, mods, initial, tb }: { action: Action; m
                   <span className="text-[0.65rem] font-bold uppercase text-ash">{t.admin.noSlots}</span>
                 ) : (
                   Array.from({ length: counts[m] }, (_, i) => (
-                    <span key={i} className="num -skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-black" style={{ borderColor: c, color: c }}>
+                    <span key={i} className="num -skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-black" style={{ borderColor: modHi(c), color: modHi(c) }}>
                       <span className="inline-block skew-x-12">{label(m, i)}</span>
                     </span>
                   ))
@@ -82,7 +83,7 @@ export function BlueprintForm({ action, mods, initial, tb }: { action: Action; m
           <div className="in-up relative flex items-center gap-3 overflow-hidden border border-dashed border-line bg-coal py-3 pl-5 pr-4 [--d:0.5s]">
             <span className="absolute inset-y-0 left-0 w-1" style={{ background: MODS.Tiebreaker.color }} aria-hidden />
             <div className="min-w-0 flex-1">
-              <div className="heading-slam text-2xl leading-none" style={{ color: MODS.Tiebreaker.color }}>
+              <div className="heading-slam text-2xl leading-none" style={{ color: modHi(MODS.Tiebreaker.color) }}>
                 TB
               </div>
               <div className="mt-1 text-[0.65rem] font-black uppercase tracking-[0.12em] text-ash">{t.admin.tbFixed}</div>
