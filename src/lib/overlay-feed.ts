@@ -4,7 +4,7 @@ import { currentEdition, db, siteEdition } from "@/db";
 import { matches } from "@/db/schema";
 import { getAllMatches, getAllTeams } from "@/db/tournament";
 import { matchIdFromSlug, matchSlug } from "@/lib/format";
-import { settle } from "@/db/drafts";
+import { getDraft, settle } from "@/db/drafts";
 import { getFormat } from "@/db/edition";
 import { getPoolStages, type PoolStage } from "@/db/mappools";
 import { getSkillLayouts } from "@/db/format-plan";
@@ -17,6 +17,15 @@ import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup, FeedMatch } f
 import { TEST_MATCH } from "@/lib/format";
 
 const BUILD = String(Date.now());
+
+// feeds rebuild several times a second; the draft timer check (which can write) only needs ~1/s
+const gs = globalThis as unknown as { bgccSettledAt?: Map<string, number> };
+function settleSometimes(matchId: string) {
+  const m = (gs.bgccSettledAt ??= new Map());
+  if (Date.now() - (m.get(matchId) ?? 0) < 1000) return getDraft(matchId);
+  m.set(matchId, Date.now());
+  return settle(matchId);
+}
 
 const ROLL_HOLD = 10_000;
 const gr = globalThis as unknown as { bgccRolledAt?: Map<string, { key: string; at: number }> };
@@ -62,7 +71,7 @@ export async function poolFeed(stage: PoolStage | undefined): Promise<{ pool: Fe
   }));
   const layout = (await getSkillLayouts())?.[stage.slug];
   if (!layout) return { pool };
-  const groups = bySkill(stage, layout).pools.map((p) => ({ name: p.category, color: (p as { color?: string }).color ?? "var(--color-paper)", slots: p.maps.map((m) => m.slot) }));
+  const groups = bySkill(stage, layout).pools.map((p) => ({ name: p.category, color: (p as { color?: string }).color ?? "var(--paper)", slots: p.maps.map((m) => m.slot) }));
   return { pool, groups };
 }
 
@@ -92,7 +101,7 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
   const [allMatches, allTeams, draft, stages, sceneRow] = await Promise.all([
     getAllMatches(),
     getAllTeams(),
-    settle(matchId),
+    settleSometimes(matchId),
     getPoolStages(),
     db.select({ scene: matches.scene }).from(matches).where(eq(matches.id, matchId)).limit(1),
   ]);
@@ -135,6 +144,7 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
   const live = getLive(matchId);
   const playing = currentEdition() === siteEdition() ? nowPlaying(matchId) : null;
   const inPlay = live ? live.ipcState === IPC_PLAYING : !!playing;
+  const mapId = live?.mapId || playing?.mapId || 0;
 
   const steps: FeedStep[] = (draft?.steps ?? [])
     .filter((s) => !s.skip)
@@ -145,11 +155,13 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
       winner: s.winner ?? null,
     }));
 
+  // hide the result of the map being played until play ends, but only if the last pick is that map
   if (inPlay) {
     const lastPick = [...steps].reverse().findIndex((s) => s.kind === "pick");
     if (lastPick !== -1) {
       const lastPickIndex = steps.length - 1 - lastPick;
-      steps[lastPickIndex] = { ...steps[lastPickIndex], winner: null };
+      const pickMap = pool.find((x) => x.slot === steps[lastPickIndex].slot)?.id;
+      if (!mapId || !pickMap || pickMap === mapId) steps[lastPickIndex] = { ...steps[lastPickIndex], winner: null };
     }
   }
 
@@ -162,7 +174,6 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
 
   const winner = inPlay ? null : m.winner ?? null;
 
-  const mapId = live?.mapId || playing?.mapId || 0;
   const lastPick = [...steps].reverse().find((s) => s.kind === "pick" && s.winner === null);
   const current =
     pool.find((x) => x.id === mapId) ?? (lastPick ? pool.find((x) => x.slot === lastPick.slot) : undefined) ?? null;
