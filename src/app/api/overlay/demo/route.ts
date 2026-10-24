@@ -65,9 +65,10 @@ const POOL = Array.from({ length: 13 }, (_, i) => {
   };
 });
 
-function demo(pin: Scene | null): OverlayFeed {
+function demo(pin: Scene | null, startedAt: number): OverlayFeed {
   const now = Date.now();
-  const t = (now / 1000) % 90;
+  const elapsed = Math.max(0, now - startedAt);
+  const t = (elapsed / 1000) % 90;
 
   let scene: Scene;
   let sceneAuto = true;
@@ -80,6 +81,18 @@ function demo(pin: Scene | null): OverlayFeed {
   if (pin !== null && isScene(pin)) {
     scene = pin;
     sceneAuto = false;
+    if (scene === "mappool") steps = getMapPoolSteps(20 + t % 20);
+    if (scene === "gameplay") {
+      steps = getAllSteps();
+      current = POOL[9];
+      live = getGameplayLive(40 + t % 35, now);
+      score = [1, 1];
+    }
+    if (scene === "winner") {
+      steps = getAllSteps();
+      score = [5, 2];
+      matchWinner = 1;
+    }
   } else if (t < 10) {
     scene = "soon";
   } else if (t < 20) {
@@ -90,18 +103,20 @@ function demo(pin: Scene | null): OverlayFeed {
   } else if (t < 75) {
     scene = "gameplay";
     steps = getAllSteps();
-    current = POOL[8]; // DT1
+    current = POOL[9];
     live = getGameplayLive(t, now);
     score = [1, 1];
   } else if (t < 85) {
     scene = "winner";
     steps = getAllSteps();
     matchWinner = 1;
+    score = [5, 2];
   } else {
     scene = "brb";
   }
 
-  const startsAt = new Date(now + 3600000).toISOString();
+  const cycleStart = startedAt + Math.floor(elapsed / 90000) * 90000;
+  const startsAt = new Date(cycleStart + 10000).toISOString();
 
   return {
     edition: "bgcc7",
@@ -215,7 +230,7 @@ function getGameplayLive(t: number, now: number): LiveScore {
 
   return {
     matchId: "DEMO",
-    mapId: 1000009,
+    mapId: 1000010,
     ipcState: isFrozen ? 4 : 3,
     clients,
     totals,
@@ -228,5 +243,6 @@ export async function GET(req: Request) {
   const sceneParam = url.searchParams.get("scene");
   const pin = isScene(sceneParam) ? sceneParam : null;
 
-  return sse(req, async () => demo(pin), 100, () => () => {});
+  const startedAt = Date.now();
+  return sse(req, async () => demo(pin, startedAt), 100, () => () => {});
 }
