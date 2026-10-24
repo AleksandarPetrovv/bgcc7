@@ -24,6 +24,13 @@ pub struct Status {
     pub irc: &'static str,
     pub lobbies: Vec<String>,
     pub sent: u64,
+    pub can_ref: bool,
+    pub can_stream: bool,
+    pub streaming: bool,
+    pub stream_state: String,
+    pub stream_match: Option<String>,
+    pub stream_clients: usize,
+    pub roles_ready: bool,
 }
 
 #[derive(Clone, Serialize)]
@@ -42,7 +49,7 @@ pub struct Shared {
 
 impl Shared {
     pub fn new(app: AppHandle, store: Store) -> Self {
-        let status = Status { site: "off", irc: "idle", ..Default::default() };
+        let status = Status { site: "off", irc: "idle", streaming: true, stream_state: "unpaired".into(), ..Default::default() };
         Self { app, store, status: Mutex::new(status), log: Mutex::new(VecDeque::new()) }
     }
 
@@ -76,6 +83,9 @@ impl Shared {
 }
 
 pub async fn check_irc(name: &str, pass: &str) -> Result<(), String> {
+    if name.chars().any(|c| c.is_whitespace() || c.is_control()) || pass.chars().any(char::is_control) {
+        return Err("badpass".into());
+    }
     let s = timeout(Duration::from_secs(10), TcpStream::connect(IRC)).await.map_err(|_| "noirc")?.map_err(|_| "noirc")?;
     let (r, mut w) = s.into_split();
     w.write_all(format!("PASS {pass}\r\nUSER {name} 0 * :{name}\r\nNICK {name}\r\n").as_bytes()).await.map_err(|_| "noirc")?;
@@ -128,7 +138,7 @@ pub async fn run(sh: Arc<Shared>, token: String, name: String, pass: String, mut
     let http = reqwest::Client::builder().user_agent("bgcc-ref/1.0").build().expect("http client");
     let mut wait = 2;
     loop {
-        if *stop.borrow() {
+        if *stop.borrow() || !sh.status().can_ref || !sh.status().linked {
             break;
         }
         sh.set(|s| s.site = "connecting");
@@ -136,16 +146,15 @@ pub async fn run(sh: Arc<Shared>, token: String, name: String, pass: String, mut
             r = http.get(format!("{SITE}/api/relay/stream")).bearer_auth(&token).send() => r,
             _ = stop.changed() => break,
         };
+        if *stop.borrow() { return; }
         match res {
             Ok(r) if r.status().as_u16() == 401 => {
-                let mut c = sh.store.load();
-                c.token = None;
-                sh.store.save(&c);
-                sh.set(|s| {
-                    s.linked = false;
-                    s.site = "off";
-                });
-                sh.note("warn", "the site unlinked this app, link it again");
+                crate::invalidate(&sh, &token);
+                return;
+            }
+            Ok(r) if r.status().as_u16() == 403 => {
+                sh.set(|s| { s.can_ref = false; s.site = "off"; s.irc = "idle"; s.lobbies.clear(); });
+                sh.note("warn", "this account has no ref role");
                 return;
             }
             Ok(r) if r.status().is_success() => {
@@ -154,12 +163,13 @@ pub async fn run(sh: Arc<Shared>, token: String, name: String, pass: String, mut
             }
             _ => {}
         }
+        if *stop.borrow() { return; }
         sh.set(|s| {
-            s.site = "off";
+            s.site = if s.linked && s.can_stream { "online" } else { "off" };
             s.irc = "idle";
             s.lobbies.clear();
         });
-        if *stop.borrow() {
+        if *stop.borrow() || !sh.status().can_ref || !sh.status().linked {
             break;
         }
         tokio::select! {
@@ -168,6 +178,7 @@ pub async fn run(sh: Arc<Shared>, token: String, name: String, pass: String, mut
         }
         wait = (wait * 2).min(30);
     }
+    if *stop.borrow() { return; }
     sh.set(|s| {
         s.site = "off";
         s.irc = "idle";
@@ -176,10 +187,12 @@ pub async fn run(sh: Arc<Shared>, token: String, name: String, pass: String, mut
 }
 
 async fn session(sh: &Arc<Shared>, http: &reqwest::Client, token: &str, name: &str, pass: &str, resp: reqwest::Response, stop: &mut watch::Receiver<bool>) {
+    if *stop.borrow() { return; }
     sh.set(|s| s.site = "online");
     sh.note("ok", "connected to the site");
     let (tx, rx) = mpsc::unbounded_channel::<Value>();
-    let poster = tokio::spawn(post_loop(http.clone(), token.to_string(), rx));
+    let (denied_tx, mut denied_rx) = watch::channel(false);
+    let poster = tokio::spawn(post_loop(sh.clone(), http.clone(), token.to_string(), rx, denied_tx));
     let mut irc: Option<Irc> = None;
     let mut stream = resp.bytes_stream();
     let mut buf: Vec<u8> = Vec::new();
@@ -187,8 +200,10 @@ async fn session(sh: &Arc<Shared>, http: &reqwest::Client, token: &str, name: &s
         let chunk = tokio::select! {
             c = stream.next() => c,
             _ = stop.changed() => None,
+            _ = denied_rx.changed() => None,
         };
         let Some(Ok(bytes)) = chunk else { break };
+        if *stop.borrow() { break; }
         buf.extend_from_slice(&bytes);
         while let Some(i) = buf.windows(2).position(|w| w == b"\n\n") {
             let ev: Vec<u8> = buf.drain(..i + 2).collect();
@@ -199,9 +214,17 @@ async fn session(sh: &Arc<Shared>, http: &reqwest::Client, token: &str, name: &s
                         if let Some(old) = irc.take() {
                             old.shut().await;
                         }
-                        irc = open(sh, name, &tx).await;
+                        irc = tokio::select! {
+                            result = open(sh, name, &tx, stop.clone()) => result,
+                            _ = stop.changed() => break 'outer,
+                        };
                     }
-                    Ok(Msg::Line { l }) => send(sh, irc.as_ref(), &l, name, pass).await,
+                    Ok(Msg::Line { l }) => {
+                        tokio::select! {
+                            _ = send(sh, irc.as_ref(), &l, name, pass) => {},
+                            _ = stop.changed() => break 'outer,
+                        }
+                    }
                     Ok(Msg::Close) => {
                         if let Some(old) = irc.take() {
                             old.shut().await;
@@ -233,12 +256,12 @@ async fn session(sh: &Arc<Shared>, http: &reqwest::Client, token: &str, name: &s
         old.shut().await;
     }
     poster.abort();
-    if !*stop.borrow() {
+    if !*stop.borrow() && sh.status().linked && sh.status().can_ref {
         sh.note("warn", "lost the site connection, retrying");
     }
 }
 
-async fn open(sh: &Arc<Shared>, name: &str, tx: &mpsc::UnboundedSender<Value>) -> Option<Irc> {
+async fn open(sh: &Arc<Shared>, name: &str, tx: &mpsc::UnboundedSender<Value>, stop: watch::Receiver<bool>) -> Option<Irc> {
     sh.set(|s| s.irc = "connecting");
     let s = match timeout(Duration::from_secs(10), TcpStream::connect(IRC)).await {
         Ok(Ok(s)) => s,
@@ -249,16 +272,18 @@ async fn open(sh: &Arc<Shared>, name: &str, tx: &mpsc::UnboundedSender<Value>) -
             return None;
         }
     };
+    if *stop.borrow() { return None; }
     let (r, w) = s.into_split();
     let w = Arc::new(AsyncMutex::new(w));
-    let reader = tokio::spawn(read_loop(sh.clone(), r, w.clone(), name.to_string(), tx.clone()));
+    let reader = tokio::spawn(read_loop(sh.clone(), r, w.clone(), name.to_string(), tx.clone(), stop));
     let _ = tx.send(json!({ "t": "opened" }));
     Some(Irc { w, reader })
 }
 
-async fn read_loop(sh: Arc<Shared>, r: tokio::net::tcp::OwnedReadHalf, w: Arc<AsyncMutex<OwnedWriteHalf>>, name: String, tx: mpsc::UnboundedSender<Value>) {
+async fn read_loop(sh: Arc<Shared>, r: tokio::net::tcp::OwnedReadHalf, w: Arc<AsyncMutex<OwnedWriteHalf>>, name: String, tx: mpsc::UnboundedSender<Value>, stop: watch::Receiver<bool>) {
     let mut lines = BufReader::new(r).lines();
     while let Ok(Some(l)) = lines.next_line().await {
+        if *stop.borrow() { return; }
         if let Some(rest) = l.strip_prefix("PING") {
             let _ = w.lock().await.write_all(format!("PONG{rest}\r\n").as_bytes()).await;
             continue;
@@ -268,6 +293,7 @@ async fn read_loop(sh: Arc<Shared>, r: tokio::net::tcp::OwnedReadHalf, w: Arc<As
             let _ = tx.send(json!({ "t": "line", "l": l }));
         }
     }
+    if *stop.borrow() { return; }
     let _ = tx.send(json!({ "t": "closed", "why": "irc closed" }));
     sh.set(|s| {
         s.irc = "idle";
@@ -280,7 +306,7 @@ fn track(sh: &Shared, l: &str, name: &str) {
     let low = l.to_ascii_lowercase();
     if l.contains(" 001 ") {
         sh.set(|s| s.irc = "online");
-        sh.note("ok", format!("logged into osu! irc as {name}"));
+        sh.note("ok", "logged into osu! irc");
     } else if l.contains(" 464 ") {
         sh.set(|s| s.irc = "badpass");
         sh.note("err", "osu! refused the irc password");
@@ -323,7 +349,7 @@ async fn send(sh: &Shared, irc: Option<&Irc>, line: &str, name: &str, pass: &str
     }
 }
 
-async fn post_loop(http: reqwest::Client, token: String, mut rx: mpsc::UnboundedReceiver<Value>) {
+async fn post_loop(sh: Arc<Shared>, http: reqwest::Client, token: String, mut rx: mpsc::UnboundedReceiver<Value>, denied: watch::Sender<bool>) {
     while let Some(first) = rx.recv().await {
         let mut ev = vec![first];
         while ev.len() < 300 {
@@ -332,6 +358,16 @@ async fn post_loop(http: reqwest::Client, token: String, mut rx: mpsc::Unbounded
                 Err(_) => break,
             }
         }
-        let _ = http.post(format!("{SITE}/api/relay/in")).bearer_auth(&token).json(&json!({ "ev": ev })).send().await;
+        let response = http.post(format!("{SITE}/api/relay/in")).bearer_auth(&token).json(&json!({ "ev": ev })).send().await;
+        match response.map(|r| r.status().as_u16()) {
+            Ok(401) => { crate::invalidate(&sh, &token); return; }
+            Ok(403) => {
+                sh.set(|s| s.can_ref = false);
+                sh.note("warn", "this account has no ref role");
+                let _ = denied.send(true);
+                return;
+            }
+            _ => {}
+        }
     }
 }
