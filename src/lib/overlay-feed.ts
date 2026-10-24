@@ -1,6 +1,6 @@
 import "server-only";
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
+import { currentEdition, db, siteEdition } from "@/db";
 import { matches } from "@/db/schema";
 import { getAllMatches, getAllTeams } from "@/db/tournament";
 import { matchIdFromSlug, matchSlug } from "@/lib/format";
@@ -92,7 +92,7 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
   const firstTo = draft?.firstTo ?? stage?.firstTo ?? f.firstTo;
 
   const live = getLive(matchId);
-  const playing = nowPlaying(matchId);
+  const playing = currentEdition() === siteEdition() ? nowPlaying(matchId) : null;
   const inPlay = live ? live.ipcState === IPC_PLAYING : !!playing;
 
   const steps: FeedStep[] = (draft?.steps ?? [])
