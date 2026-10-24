@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Download } from "lucide-react";
+import { Download, ExternalLink } from "lucide-react";
 import { PageTitle, SlantButton } from "@/components/site/page";
 import { ActionForm, Panel } from "@/components/admin/form";
 import { CopyLink } from "@/components/admin/copy-link";
@@ -46,7 +46,12 @@ export default async function Overlay({ searchParams }: { searchParams: Promise<
           </Panel>
         )}
         <Panel title={o.link} i={i++}>
-          <CopyLink url={url} />
+          <div className="grid gap-4">
+            <CopyLink url={url} />
+            <a href="/overlay/demo" target="_blank" rel="noopener noreferrer" className="lift-sm inline-flex w-fit -skew-x-12 border border-line px-4 py-2 text-sm font-black uppercase tracking-wide text-paper hover:border-rose">
+              <span className="inline-flex skew-x-12 items-center gap-2"><ExternalLink className="size-4" />{o.test}</span>
+            </a>
+          </div>
         </Panel>
         <Panel title={o.helper} i={i++}>
           <div className="flex flex-wrap items-center gap-4">
