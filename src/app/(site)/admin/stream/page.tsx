@@ -9,7 +9,7 @@ import { can } from "@/lib/roles";
 import { siteUrl } from "@/lib/links";
 import { fmtSofia } from "@/lib/time";
 import { streamMatches } from "@/db/stream";
-import { getLive } from "@/lib/live-scores";
+import { getLive, getReject } from "@/lib/live-scores";
 import { SceneButtons } from "./scene-buttons";
 import { OverlayPreview } from "./overlay-preview";
 
@@ -49,6 +49,7 @@ export default async function Stream() {
                 </span>
               </div>
               <OverlayPreview slug={m.slug} title={s.preview} label={s.liveScores} offline={s.noLiveScores} clientsLabel={s.clients} delayLabel={s.delay} initialAt={getLive(m.id)?.at ?? null} initialClients={getLive(m.id)?.clients.length ?? 0} />
+              {getReject(m.id) && <p className="text-xs font-black uppercase tracking-wide text-rose-hi">{s.reject[getReject(m.id)!]}</p>}
               <SceneButtons id={m.id} initial={m.scene} />
               <CopyLink url={`${base}/overlay/${m.slug}`} />
             </div>
