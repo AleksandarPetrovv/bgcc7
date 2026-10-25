@@ -92,10 +92,9 @@ export const getSettings = cache(() =>
 
 export async function saveSettings(patch: Partial<Settings>) {
   // edition is the site switch (admin/edition); only write the given fields so a failed read can't overwrite the row with defaults
-  const { edition: _, ...set } = { ...patch, updatedAt: new Date() };
-  const { edition: __, ...current } = await getSettings();
+  const set = { ...patch, edition: undefined, updatedAt: new Date() };
   await db
     .insert(settings)
-    .values({ id: 1, ...current, ...set })
+    .values({ id: 1, ...(await getSettings()), ...set })
     .onConflictDoUpdate({ target: settings.id, set });
 }
