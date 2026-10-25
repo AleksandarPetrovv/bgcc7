@@ -20,10 +20,15 @@ export async function onFinished(matchId: string, scores: ScoreLine[]) {
   const l = g.bgccIrc?.live.get(matchId);
   if (!l) return null;
   const d = await getDraft(matchId);
-  const pick = d?.steps.findLast((s) => s.kind === "pick" && !s.skip && !s.winner);
-  if (!d || !pick) return null;
-  const map = (await draftMaps(matchId, d.stageSlug)).find((m) => m.slot === pick.slot);
-  if (!map || (l.lobby.beatmapId && l.lobby.beatmapId !== map.id)) return null;
+  if (!d) return null;
+  const picks = d.steps.filter((s) => s.kind === "pick" && !s.skip);
+  const maps = await draftMaps(matchId, d.stageSlug);
+  const idOf = (slot: string) => maps.find((m) => m.slot === slot)?.id;
+  // the open pick, or a replay of the last decided one (its new result replaces the old)
+  const pick = [picks.findLast((s) => !s.winner), l.lobby.beatmapId ? picks.findLast((s) => !!s.winner) : undefined].find(
+    (s) => s && idOf(s.slot) && (!l.lobby.beatmapId || l.lobby.beatmapId === idOf(s.slot)),
+  );
+  if (!pick) return null;
   const sum = [0, 0];
   for (const s of scores) {
     const side = (s.userId && l.members.get(s.userId)) || (s.team === "Red" ? 1 : s.team === "Blue" ? 2 : null);
