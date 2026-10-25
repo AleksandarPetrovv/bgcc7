@@ -9,6 +9,7 @@ import { PHASES, presetSections, SECTIONS, TIMELINE_KEYS, type Phase } from "@/l
 import { fromSofiaInput } from "@/lib/time";
 
 async function applyPhase(p: Phase) {
+  if (p === "qualifiers" && getEdition() === "bgcc7") return false;
   await saveSettings({ phase: p, sections: presetSections(p), pickemsOpen: p !== "playoffs" && p !== "finished" });
   if (getEdition() !== "bgcc7") return;
   if (p === "registration") await unlockBws();
@@ -20,7 +21,7 @@ export async function setPhase(_: ActionResult, fd: FormData) {
     const phase = String(fd.get("phase"));
     if (!(PHASES as readonly string[]).includes(phase)) return { ok: false, error: "invalid" };
     const p = phase as Phase;
-    await applyPhase(p);
+    if ((await applyPhase(p)) === false) return { ok: false, error: "invalid" };
     return { phase: p };
   });
 }
@@ -63,7 +64,7 @@ export async function acceptPhase(phase: string) {
   return guard("phase", "phase.set", async () => {
     if (!(PHASES as readonly string[]).includes(phase)) return { ok: false, error: "invalid" };
     const p = phase as Phase;
-    await applyPhase(p);
+    if ((await applyPhase(p)) === false) return { ok: false, error: "invalid" };
     return { phase: p };
   });
 }
