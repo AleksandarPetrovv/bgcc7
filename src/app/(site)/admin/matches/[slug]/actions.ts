@@ -32,6 +32,8 @@ async function sync(matchId: string) {
     await tx.update(matches).set({ score1: a, score2: b, winner }).where(eq(matches.id, matchId));
     await advance(tx);
   });
+  // the board above was cached while the old winner was still set; drop it so later games still count
+  if (!winner) await forgetScoreboard(matchId);
 }
 
 async function rosterTeam(matchId: string, osuId: number) {
