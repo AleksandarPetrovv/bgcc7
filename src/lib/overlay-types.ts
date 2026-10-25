@@ -30,6 +30,8 @@ export type FeedTeam = { id: string; name: string; image: string; players: { id:
 
 export type FeedMap = { slot: string; mod: string; id: number; title: string; version: string; creator: string; sr: number; bpm: number; length: number; cs: number; ar: number; od: number; cover: string };
 
+export type FeedGroup = { name: string; color: string; slots: string[] };
+
 export type FeedStep = { team: 1 | 2; kind: "ban" | "pick"; slot: string; winner: 1 | 2 | null };
 
 export type OverlayFeed = {
@@ -48,6 +50,7 @@ export type OverlayFeed = {
   };
   teams: [FeedTeam, FeedTeam];
   pool: FeedMap[];
+  groups?: FeedGroup[];
   steps: FeedStep[];
   current: FeedMap | null;
   live: LiveScore | null;

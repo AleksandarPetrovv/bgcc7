@@ -9,11 +9,12 @@ import { OverlayView } from "./overlay-view";
 
 export const dynamic = "force-dynamic";
 
-export default async function Overlay({ params, searchParams }: { params: Promise<{ key: string }>; searchParams: Promise<{ scene?: string | string[] }> }) {
+export default async function Overlay({ params, searchParams }: { params: Promise<{ key: string }>; searchParams: Promise<{ scene?: string | string[]; stage?: string | string[] }> }) {
   const key = decodeURIComponent((await params).key).toLowerCase();
   if (key === "demo") {
     const scene = (await searchParams).scene;
-    return <OverlayView overlayKey="demo" scene={isScene(scene) ? scene : undefined} />;
+    const stage = (await searchParams).stage;
+    return <OverlayView overlayKey="demo" scene={isScene(scene) ? scene : undefined} stage={typeof stage === "string" ? stage : undefined} />;
   }
   const f = getFormat();
   const id = matchIdFromSlug(f, key);
