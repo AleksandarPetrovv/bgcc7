@@ -316,7 +316,7 @@ export default async function Home() {
   const ctaHref: Record<string, string> = { screening: "/teams/players", qualifiers: "/qualifiers", seeding: "/teams", playoffs: "/matches", finished: "/matches" };
   const ctaOk: Record<string, boolean> = { screening: see("players"), qualifiers: see("lobbies"), seeding: see("teams"), playoffs: see("schedule"), finished: see("schedule") };
   const regState = windowState(settings.regOpensAt, settings.regClosesAt);
-  const regCloses = phase === "registration" && see("register") && isFuture(settings.regClosesAt) ? settings.regClosesAt!.toISOString() : null;
+  const regCloses = phase === "registration" && see("register") && regState === "open" && isFuture(settings.regClosesAt) ? settings.regClosesAt!.toISOString() : null;
   const alive = splitAlive(regs, teams, matches, settings.phase);
   const players = alive.players;
   const mine = me ? regs.find((r) => r.osuId === me) : undefined;

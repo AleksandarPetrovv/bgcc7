@@ -40,7 +40,7 @@ export type WindowState = "soon" | "open" | "closed";
 export const windowState = (opens: Date | null, closes: Date | null): WindowState => {
   const now = Date.now();
   if (opens && now < opens.getTime()) return "soon";
-  if (closes && now > closes.getTime()) return "closed";
+  if (closes && now >= closes.getTime()) return "closed";
   return "open";
 };
 
