@@ -11,6 +11,7 @@ import { advance } from "@/db/bracket";
 import { lockMatch, staffOverride } from "@/db/schedule";
 import { canRunMatch } from "@/db/drafts";
 import { handOff } from "@/lib/bancho";
+import { matchStamp } from "@/lib/matches";
 
 const text = (fd: FormData, k: string, max = 120) => String(fd.get(k) ?? "").trim().slice(0, max) || null;
 const num = (fd: FormData, k: string) => {
@@ -66,6 +67,7 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     const gone = await db.transaction(async (tx) => {
       const cur = await lockMatch(tx, id);
       if (!cur) return true;
+      if (fd.get("stamp") !== matchStamp(cur)) return "stale" as const;
       const swapped = (!!cur.team1Id && cur.team1Id !== base.team1Id) || (!!cur.team2Id && cur.team2Id !== base.team2Id);
       const moved = (startsAt?.getTime() ?? null) !== (cur.startsAt?.getTime() ?? null);
       patch = { ...base, ...(moved ? { startsAt } : swapped ? { startsAt: null } : {}) };
@@ -75,6 +77,7 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
       await advance(tx);
       return false;
     });
+    if (gone === "stale") return { ok: false, error: "stale" };
     if (gone) return { ok: false, error: "notFound" };
     if (patch.referee !== m.referee) await handOff(id, patch.referee).catch((e) => console.error("[handoff]", e));
     return { id, ...patch };

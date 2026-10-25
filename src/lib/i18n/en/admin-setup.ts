@@ -174,6 +174,7 @@ export const adminSetup = {
   noPerm: "No admin access",
   notFound: "Couldn't find that osu! user.",
   lastHost: "Someone has to stay host.",
+  stale: "This match changed since you opened the page. Reload and try again.",
   confirmRemove: "Remove from staff?",
   pendingReview: "Waiting for screening",
   screeningHelp: "The real screening is done by the osu! account support team, not us. Download the list below and email it to tournaments@ppy.sh. Only deny players they flag, or someone who breaks a sign-up rule (like not having Bulgaria as their osu! country), and write the reason in the note.",

@@ -26,4 +26,4 @@ export const cleanRoles = (list: unknown[]): Role[] => {
   return roles.includes("host") ? roles.filter((r) => r === "host" || titleOnly(r)) : roles;
 };
 
-export type ActionResult = { ok: boolean; error?: "forbidden" | "notFound" | "invalid" | "note" | "lastHost" | "taken" | "oneEach" } | null;
+export type ActionResult = { ok: boolean; error?: "forbidden" | "notFound" | "invalid" | "note" | "lastHost" | "taken" | "oneEach" | "stale" } | null;
