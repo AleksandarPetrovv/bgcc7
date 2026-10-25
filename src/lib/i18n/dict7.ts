@@ -32,7 +32,7 @@ const en: Deep<Dict> = {
     procItems: [
       "Each team gets [[one warmup]] under 4 minutes",
       "Captains [[!roll]] at the start of the match. The higher roll chooses whether their team picks or bans first, and the other team gets the remaining choice",
-      "Picks and bans have a [[90 second]] timer set by the referee. A missed ban is lost, and a missed pick passes to the other team",
+      "Picks and bans have a [[90 second]] timer set by the referee. A missed ban or pick passes to the other team",
       "Double picks and double bans aren't allowed. Each team gets [[one timeout]] of up to 2 minutes per match, called between maps",
       "If someone disconnects in the first [[30 seconds]], the map is replayed once per match with the same two players. After that, the scores at the end of the map stand",
     ],
@@ -43,8 +43,8 @@ const en: Deep<Dict> = {
       "Everyone signs up [[solo]]. Teams of [[two]] are drawn at random, so there's no team to register",
       "All matches use [[Team VS]] and [[ScoreV2]]",
       "All times are in [[EET (UTC+2)]]",
-      "Matches are played between [[Saturday 12:00]] and [[Sunday 23:00 EET]] of their week",
-      "Reschedules must be requested before [[Thursday 23:59 EET]] of that week",
+      "Matches are played between [[Friday 18:00]] and [[Sunday 21:00 EET]] of their week",
+      "Reschedules must be requested before [[Wednesday 23:59 EET]] of that week",
       "Streamers, commentators and designers can also play. Referees and playtesters can only help out once they're knocked out, and every other staff role can't play at all",
     ],
     regItems: [
@@ -113,7 +113,7 @@ const bg: Deep<Dict> = {
     procItems: [
       "Всеки отбор има [[една загрявка]] до 4 минути",
       "Капитаните пишат [[!roll]] в началото на мача. По-високият рол избира дали отборът му пикова или банва първи, а другият отбор взима оставащия избор",
-      "Пиковете и бановете имат [[90 секунди]] таймер от рефера. Пропуснат бан се губи, а пропуснат пик минава към другия отбор",
+      "Пиковете и бановете имат [[90 секунди]] таймер от рефера. Пропуснат бан или пик минава към другия отбор",
       "Двойни пикове и двойни банове не са позволени. Всеки отбор има [[един таймаут]] до 2 минути на мач, взет между мапове",
       "Ако някой се disconnect-не в първите [[30 секунди]], мапът се изиграва отново веднъж на мач със същите двама играчи. След това резултатите в края на мапа остават",
     ],
@@ -124,8 +124,8 @@ const bg: Deep<Dict> = {
       "Всеки се записва [[сам]]. Отборите по [[двама]] се теглят на случаен принцип, така че няма отбор за записване",
       "Всички мачове са [[Team VS]] и [[ScoreV2]]",
       "Всички часове са по [[EET (UTC+2)]]",
-      "Мачовете се играят между [[събота 12:00]] и [[неделя 23:00 EET]] в съответната седмица",
-      "Смяна на часа се иска до [[четвъртък 23:59 EET]] същата седмица",
+      "Мачовете се играят между [[петък 18:00]] и [[неделя 21:00 EET]] в съответната седмица",
+      "Смяна на часа се иска до [[сряда 23:59 EET]] същата седмица",
       "Стриймърите, коментаторите и дизайнерите могат и да играят. Съдиите и тестерите могат да помагат само след като отпаднат, а всички други роли в екипа не могат да играят",
     ],
     regItems: [
