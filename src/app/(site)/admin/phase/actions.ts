@@ -2,6 +2,7 @@
 
 import { getSettings, saveSettings } from "@/db/settings";
 import { getEdition } from "@/db/edition";
+import { getTeams } from "@/db/tournament";
 import { getBwsLock, lockBws, unlockBws } from "@/db/registrations";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
@@ -12,7 +13,10 @@ async function applyPhase(p: Phase) {
   if (p === "qualifiers" && getEdition() === "bgcc7") return false;
   await saveSettings({ phase: p, sections: presetSections(p), pickemsOpen: p !== "playoffs" && p !== "finished" });
   if (getEdition() !== "bgcc7") return;
-  if (p === "registration") await unlockBws();
+  // only before the draw: afterwards the locked ranks are what seeds and tiers were built on
+  if (p === "registration") {
+    if (!(await getTeams()).length) await unlockBws();
+  }
   else if (!(await getBwsLock())) await lockBws();
 }
 
