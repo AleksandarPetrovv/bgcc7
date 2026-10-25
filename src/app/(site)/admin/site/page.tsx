@@ -7,7 +7,7 @@ import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
-import { addSponsor, wipeTestData } from "./actions";
+import { addSponsor } from "./actions";
 import { PackUploader } from "./pack-uploader";
 import { SponsorList } from "./sponsor-list";
 
@@ -33,11 +33,6 @@ export default async function AdminSite() {
           <SponsorList key={sponsors.map((s) => `${s.id}:${s.name}`).join()} sponsors={sponsors} />
         </Panel>
 
-        {viewer?.roles.includes("host") && (
-          <Panel title={t.admin.danger} help={t.admin.wipeHelp} className="border-rose/50 xl:col-span-2" i={3}>
-            <ActionForm action={wipeTestData} submit={t.admin.wipe} confirm={t.admin.confirmWipe} />
-          </Panel>
-        )}
       </div>
     </>
   );

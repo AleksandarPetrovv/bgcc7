@@ -3,16 +3,16 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import { Eraser, FlaskConical, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import { EDITIONS, type Edition } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { clearTest, seedTest, switchEdition } from "./actions";
+import { switchEdition } from "./actions";
 import { GOLD as GOLD_C, tint } from "@/lib/theme";
 
 const GOLD = GOLD_C.c;
 
-export function EditionSwitch({ edition, viewing }: { edition: Edition; viewing: Edition }) {
+export function EditionSwitch({ edition }: { edition: Edition }) {
   const t = useDict();
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -58,30 +58,6 @@ export function EditionSwitch({ edition, viewing }: { edition: Edition; viewing:
           );
         })}
       </div>
-      {viewing === "bgcc7" && (
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => run(seedTest, t.admin.confirmSeed)}
-            className="flex min-h-10 -skew-x-12 items-center justify-center border border-balkan/60 px-2 text-[0.7rem] font-black uppercase text-balkan transition-colors hover:bg-balkan hover:text-ink disabled:opacity-50"
-          >
-            <span className="flex skew-x-12 items-center gap-1.5">
-              <FlaskConical className="size-3.5" /> {t.admin.seedTest}
-            </span>
-          </button>
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => run(clearTest, t.admin.confirmClear)}
-            className="flex min-h-10 -skew-x-12 items-center justify-center border border-line px-2 text-[0.7rem] font-black uppercase text-ash transition-colors hover:border-rose hover:text-rose-hi disabled:opacity-50"
-          >
-            <span className="flex skew-x-12 items-center gap-1.5">
-              <Eraser className="size-3.5" /> {t.admin.clearTest}
-            </span>
-          </button>
-        </div>
-      )}
     </div>
   );
 }
