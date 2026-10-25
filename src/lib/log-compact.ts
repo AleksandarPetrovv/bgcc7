@@ -3,7 +3,7 @@ import { TZ } from "@/lib/time";
 
 type Category = "refereed" | "poolWork" | "ratings" | "screening" | "qualifierScores" | "matchScores";
 type Scope = { category: Category; context: string; key: string };
-export type CompactLogEntry = { kind: "row"; row: LogRow } | { kind: "group"; category: Category; context: string; latest: LogRow; rows: LogRow[] };
+export type CompactLogEntry = { kind: "row"; row: LogRow } | { kind: "group"; category: Category | "action"; context: string; latest: LogRow; rows: LogRow[] };
 
 const refereeActions = new Set([
   "lobby.make", "lobby.chat", "lobby.invite", "lobby.start", "lobby.abort", "lobby.close",
@@ -112,5 +112,35 @@ export function compactLog(rows: readonly LogRow[]): CompactLogEntry[] {
     else entries.push({ kind: "group", category: batch.scope.category, context: batch.scope.context, latest, rows: children });
   }
   const latest = (entry: CompactLogEntry) => entry.kind === "row" ? entry.row : entry.latest;
-  return entries.sort((a, b) => latest(b).at.getTime() - latest(a).at.getTime() || latest(b).id - latest(a).id);
+  entries.sort((a, b) => latest(b).at.getTime() - latest(a).at.getTime() || latest(b).id - latest(a).id);
+  return mergeRuns(entries);
+}
+
+function runKey(entry: CompactLogEntry) {
+  if (entry.kind === "group") return JSON.stringify([entry.latest.osuId, entry.category, entry.category === "action" ? entry.latest.action : "", entry.context]);
+  const s = scope(entry.row);
+  if (s) return JSON.stringify([entry.row.osuId, s.category, "", s.context]);
+  const p = payload(entry.row);
+  return JSON.stringify([entry.row.osuId, "action", entry.row.action, id(p.matchId) ?? id(p.id) ?? id(p.stageId) ?? id(p.teamId) ?? id(p.lobbyId) ?? ""]);
+}
+
+function mergeRuns(entries: CompactLogEntry[]): CompactLogEntry[] {
+  const out: { key: string; entry: CompactLogEntry }[] = [];
+  for (const entry of entries) {
+    if (entry.kind === "row" && entry.row.action === "edition.switch") {
+      out.push({ key: "", entry });
+      continue;
+    }
+    const key = runKey(entry);
+    const prev = out[out.length - 1];
+    if (!prev || !prev.key || prev.key !== key) {
+      out.push({ key, entry });
+      continue;
+    }
+    const rows = [...(prev.entry.kind === "row" ? [prev.entry.row] : prev.entry.rows), ...(entry.kind === "row" ? [entry.row] : entry.rows)];
+    const first = prev.entry;
+    const parsed = JSON.parse(key) as [number, Category | "action", string, string];
+    prev.entry = { kind: "group", category: first.kind === "group" ? first.category : parsed[1], context: first.kind === "group" ? first.context : parsed[3], latest: rows[0], rows };
+  }
+  return out.map((x) => x.entry);
 }
