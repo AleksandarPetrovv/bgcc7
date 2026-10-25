@@ -2,7 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { lobbyBookings, registrations } from "@/db/schema";
+import { lobbyBookings, registrations, teamMembers } from "@/db/schema";
 import { getBwsLock, isStatus } from "@/db/registrations";
 import { tourneyBadges } from "@/lib/bws";
 import { saveOsuUser } from "@/db/users";
@@ -10,12 +10,16 @@ import { guard } from "@/lib/admin-action";
 import { getUser } from "@/lib/osu-api";
 import type { ActionResult } from "@/lib/roles";
 
+// once teams are drawn a player is moved in admin/teams first, so seeds and rosters stay in sync
+const onTeam = async (osuId: number) => (await db.select({ id: teamMembers.osuId }).from(teamMembers).where(eq(teamMembers.osuId, osuId)).limit(1)).length > 0;
+
 export async function decide(osuId: number, _: ActionResult, fd: FormData) {
   return guard("screening", "screening.decide", async (by) => {
     const status = fd.get("status");
     if (!isStatus(status)) return { ok: false, error: "invalid" };
     const note = String(fd.get("note") ?? "").trim().slice(0, 300) || null;
     if (status === "denied" && !note) return { ok: false, error: "note" };
+    if (status !== "approved" && (await onTeam(osuId))) return { ok: false, error: "invalid" };
     await db
       .update(registrations)
       .set({ status, note, decidedBy: status === "pending" ? null : by, decidedAt: status === "pending" ? null : new Date() })
@@ -71,6 +75,7 @@ export async function addPlayer(_: ActionResult, fd: FormData) {
 
 export async function removeRegistration(osuId: number) {
   return guard("screening", "screening.remove", async () => {
+    if (await onTeam(osuId)) return { ok: false, error: "invalid" };
     await db.delete(registrations).where(eq(registrations.osuId, osuId));
     await db.delete(lobbyBookings).where(eq(lobbyBookings.osuId, osuId));
     return { osuId };
