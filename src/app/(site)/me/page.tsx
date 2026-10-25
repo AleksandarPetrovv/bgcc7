@@ -470,9 +470,11 @@ export default async function Me() {
           <Info icon={Mic} k={t.me.casters} n={m.commentators ?? t.common.tbd} />
         </div>
         <div className="grid grid-cols-2 gap-3 p-4 sm:flex sm:flex-wrap sm:items-center sm:p-5">
-          <SlantButton href={`/mappool/${m.stage}`} tone="paper" className="col-span-2 justify-center px-6 py-3 text-sm sm:text-base">
-            {t.me.pool} · {roundName(t, stage?.title ?? m.stage)} <ArrowRight className="size-4" />
-          </SlantButton>
+          {stage?.released && (
+            <SlantButton href={`/mappool/${m.stage}`} tone="paper" className="col-span-2 justify-center px-6 py-3 text-sm sm:text-base">
+              {t.me.pool} · {roundName(t, stage.title)} <ArrowRight className="size-4" />
+            </SlantButton>
+          )}
           <SlantButton href="/matches" tone="outline" className="justify-center px-4 py-2.5 sm:px-5 sm:py-3">
             {t.home.bracket}
           </SlantButton>
