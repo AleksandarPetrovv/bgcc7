@@ -7,7 +7,7 @@ import { safe } from "./safe";
 
 export type LogRow = { id: number; action: string; payload: unknown; at: Date; username: string | null; avatarUrl: string | null; osuId: number };
 
-export const getLog = (limit = 200) =>
+export const getLog = (limit = 200, osuId?: number) =>
   safe(
     () =>
       db
@@ -22,6 +22,7 @@ export const getLog = (limit = 200) =>
         })
         .from(adminLog)
         .leftJoin(users, eq(users.osuId, adminLog.osuId))
+        .where(osuId === undefined ? undefined : eq(adminLog.osuId, osuId))
         .orderBy(desc(adminLog.id))
         .limit(limit),
     [] as LogRow[],

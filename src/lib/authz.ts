@@ -3,7 +3,7 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { currentOsuId } from "@/auth";
-import { db } from "@/db";
+import { currentEdition, db } from "@/db";
 import { adminLog, staff } from "@/db/schema";
 import { safe } from "@/db/queries";
 import { getSettings } from "@/db/settings";
@@ -30,7 +30,7 @@ export async function requireRole(perm: Perm) {
 export async function log(osuId: number, action: string, payload?: unknown) {
   await db
     .insert(adminLog)
-    .values({ osuId, action, payload: payload ?? null })
+    .values({ osuId, action, payload: { ...(payload && typeof payload === "object" && !Array.isArray(payload) ? payload : payload == null ? {} : { value: payload }), _edition: currentEdition() } })
     .catch((e) => console.error("[admin log]", e));
 }
 
