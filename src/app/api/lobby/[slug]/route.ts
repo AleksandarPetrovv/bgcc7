@@ -78,16 +78,16 @@ export async function POST(req: Request, ctx: Ctx) {
         await simpleCmd(id, osuId, "aborttimer");
         break;
       case "kick":
-        await kickSlot(id, osuId, int(b?.slot));
+        if ((await kickSlot(id, osuId, int(b?.slot))) === "empty") return Response.json({ ok: false, error: "empty" }, { status: 409 });
         break;
       case "spare":
         await spareSlot(id, osuId, !!b?.open);
         break;
       case "team":
-        await teamSlot(id, osuId, int(b?.slot), b?.team === "red" ? "red" : "blue");
+        if ((await teamSlot(id, osuId, int(b?.slot), b?.team === "red" ? "red" : "blue")) === "empty") return Response.json({ ok: false, error: "empty" }, { status: 409 });
         break;
       case "move":
-        await moveSlot(id, osuId, int(b?.slot), int(b?.to));
+        if ((await moveSlot(id, osuId, int(b?.slot), int(b?.to))) === "empty") return Response.json({ ok: false, error: "empty" }, { status: 409 });
         break;
       default:
         return Response.json({ ok: false, error: "invalid" }, { status: 400 });
