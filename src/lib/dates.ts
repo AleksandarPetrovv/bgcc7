@@ -1,5 +1,5 @@
 import { playerCount, versus, type Format } from "./format";
-import { TZ, TZ_LABEL } from "./time";
+import { TZ, tzLabel } from "./time";
 
 export type TimelineRow = { key: string; from: string | null; to: string | null };
 
@@ -42,7 +42,7 @@ export function buildTokens(opts: {
   tokens.regOpen = fmtRange(locale, timeline.find((r) => r.key === "reg")?.from ?? null, null);
   if (regClosesAt) {
     tokens.regClose = regClosesAt.toLocaleDateString(locale, { timeZone: TZ, day: "numeric", month: "long" });
-    tokens.regCloseTime = `${regClosesAt.toLocaleString(locale, { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} ${TZ_LABEL}`;
+    tokens.regCloseTime = `${regClosesAt.toLocaleString(locale, { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} ${tzLabel(regClosesAt)}`;
   }
   tokens.qualify = String(qualifyCount);
   tokens.teams = String(n);

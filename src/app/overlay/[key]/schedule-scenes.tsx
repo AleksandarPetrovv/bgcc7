@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { TriTick } from "@/components/site/graphics";
 import type { FeedMatch, OverlayFeed } from "@/lib/overlay-types";
-import { TZ, TZ_LABEL } from "@/lib/time";
+import { TZ, tzLabel } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { Backdrop, Echo, editionNum, LABEL, TEAM, TopBar } from "./chrome";
 
@@ -63,13 +63,14 @@ export function ScheduleScene({ feed }: { feed: OverlayFeed }) {
   const t = (m: FeedMatch) => (m.startsAt ? Date.parse(m.startsAt) : Infinity);
   const next = all.filter((m) => m.winner === null && m.teams.some((n) => n !== "TBD")).sort((a, b) => t(a) - t(b)).slice(0, 6);
   const done = all.filter((m) => m.winner !== null).sort((a, b) => t(b) - t(a)).slice(0, 6);
+  const labels = [...new Set([...next, ...done].flatMap((m) => m.startsAt ? [tzLabel(new Date(m.startsAt))] : []))];
   return (
     <div className="absolute inset-0 overflow-hidden text-paper">
       <Backdrop num={editionNum(feed)} tint="var(--color-rose)" />
       <TopBar feed={feed} />
       <div className="absolute left-[72px] top-[150px] flex items-end gap-6">
         <Echo text="Schedule" className="text-[92px]" />
-        <span className={cn(LABEL, "mb-3")}>{TZ_LABEL}</span>
+        <span className={cn(LABEL, "mb-3")}>{labels.length ? labels.join(" / ") : tzLabel(new Date())}</span>
       </div>
       <div className={cn("absolute inset-x-[72px] top-[300px] grid gap-14", done.length ? "grid-cols-2" : "grid-cols-1")}>
         <section className="flex min-w-0 flex-col gap-4">

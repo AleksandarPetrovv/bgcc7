@@ -9,7 +9,7 @@ import { getSettings } from "@/db/settings";
 import { getFill } from "@/db/copy";
 import { getFormat } from "@/db/edition";
 import { requireSection } from "@/lib/authz";
-import { fmtSofia, windowState, TZ_LABEL } from "@/lib/time";
+import { fmtSofia, windowState, tzLabel } from "@/lib/time";
 
 export default async function Register() {
   await requireSection("register");
@@ -18,7 +18,7 @@ export default async function Register() {
   const user = osuId && session?.user?.name ? { name: session.user.name, image: session.user.image ?? null } : null;
   const status = osuId ? await getRegistration(osuId) : null;
   const state = windowState(settings.regOpensAt, settings.regClosesAt);
-  const fmt = (d: Date | null) => (d ? `${fmtSofia(d, lang === "bg" ? "bg-BG" : "en-GB")} ${TZ_LABEL}` : "");
+  const fmt = (d: Date | null) => (d ? `${fmtSofia(d, lang === "bg" ? "bg-BG" : "en-GB")} ${tzLabel(d)}` : "");
   const tag =
     state === "open" ? (
       <Tag tone="balkan" className="text-xs">{settings.regClosesAt ? t.register.openTag(fmt(settings.regClosesAt)) : t.register.accent}</Tag>

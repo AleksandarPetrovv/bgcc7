@@ -7,7 +7,7 @@ import type { Dict } from "@/lib/i18n/dict";
 import { describe, summarize, type LogCtx } from "@/lib/log-text";
 import { getFormat } from "@/db/edition";
 import { compactLog, type CompactLogEntry } from "@/lib/log-compact";
-import { fmtSofia, fmtSofiaDay, fmtSofiaTime, TZ, TZ_LABEL } from "@/lib/time";
+import { fmtSofia, fmtSofiaDay, fmtSofiaTime, TZ, tzLabel } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
 const categoryPrefixes: Record<string, string[]> = {
@@ -67,7 +67,7 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
     phase: (p: string) => t.admin.phases[p as keyof typeof t.admin.phases] ?? p,
     round: (s: string) => t.rounds[s] ?? s,
     role: (r: string) => t.admin.roles[r] ?? r,
-    date: (d: string) => `${fmtSofia(new Date(d), locale)} ${TZ_LABEL}`,
+    date: (d: string) => `${fmtSofia(new Date(d), locale)} ${tzLabel(new Date(d))}`,
     match: (id: string) => {
       const m = id.match(/^(GF|[WL]B-R\d+)-M(\d+)$/);
       const r = m && getFormat().rounds[m[1]];

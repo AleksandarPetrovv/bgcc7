@@ -6,6 +6,7 @@ import { settings } from "./schema";
 import { safe } from "./safe";
 import { DEFAULT_TIMELINE, PHASES, presetSections, TIMELINE_KEYS, type Phase, type Section } from "@/lib/sections";
 import { sofiaDate, type TimelineRow } from "@/lib/dates";
+import { fromSofiaInput } from "@/lib/time";
 import type { Edition } from "@/lib/format";
 
 export type Settings = {
@@ -33,10 +34,10 @@ export type BanOrder = "abab" | "abba";
 export const DEFAULT_SETTINGS: Settings = {
   phase: "registration",
   sections: presetSections("registration"),
-  regOpensAt: new Date("2027-11-02T00:00:00+02:00"),
-  regClosesAt: new Date("2027-11-22T23:59:00+02:00"),
-  bookingOpensAt: new Date("2027-11-23T00:00:00+02:00"),
-  bookingClosesAt: new Date("2027-11-27T23:59:00+02:00"),
+  regOpensAt: fromSofiaInput("2027-11-02T00:00"),
+  regClosesAt: fromSofiaInput("2027-11-22T23:59"),
+  bookingOpensAt: fromSofiaInput("2027-11-23T00:00"),
+  bookingClosesAt: fromSofiaInput("2027-11-27T23:59"),
   pickemsOpen: false,
   timeline: DEFAULT_TIMELINE,
   qualifyCount: 24,

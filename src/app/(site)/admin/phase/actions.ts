@@ -47,6 +47,7 @@ export async function setDates(_: ActionResult, fd: FormData) {
       bookingOpensAt: date("bookingOpensAt"),
       bookingClosesAt: date("bookingClosesAt"),
     };
+    if (Object.entries(patch).some(([k, d]) => String(fd.get(k) ?? "").trim() && !d)) return { ok: false, error: "invalid" };
     await saveSettings(patch);
     return patch;
   });

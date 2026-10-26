@@ -2,6 +2,7 @@ import "server-only";
 import { randomInt } from "node:crypto";
 import { and, arrayOverlaps, asc, eq, gte, inArray, lte, ne, notLike } from "drizzle-orm";
 import { TEST_MATCH } from "@/lib/format";
+import { fromSofiaInput } from "@/lib/time";
 import { db, db6 } from "./index";
 import { drafts, maps, matchCache, matches, pickems, poolSuggestions, poolVotes, registrations, reschedules, scoreEdits, staff, stages, teamMembers, teams, users } from "./schema";
 import { advance } from "./bracket";
@@ -122,7 +123,7 @@ const meta = (m: PoolMap) => ({
 
 const VOTE_NOTES = ["fits the slot well", "a bit too hard", "too easy for this round", "great pick", "plays fine", "meh", "love this one", "too long", "nice skillset check", "bit generic"];
 
-const day = (iso: string, h: number) => new Date(`${iso}T${String(h).padStart(2, "0")}:00:00+02:00`);
+const day = (iso: string, h: number) => fromSofiaInput(`${iso}T${String(h).padStart(2, "0")}:00`)!;
 const WEEKS = ["2027-12-04", "2027-12-11", "2027-12-18", "2027-12-25", "2028-01-08"];
 const WEEK_OF: Record<string, number> = { "round-of-16": 0, quarterfinals: 1, semifinals: 2, finals: 3, "grand-finals": 4 };
 
