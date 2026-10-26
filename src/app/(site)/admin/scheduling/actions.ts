@@ -48,8 +48,8 @@ export async function setTime(id: string, _: ActionResult, fd: FormData) {
     const out = await db.transaction(async (tx) => {
       const m = await lockMatch(tx, id);
       if (!m) return null;
-      if ((m.startsAt?.getTime() ?? null) === (at?.getTime() ?? null)) return { ...m, same: true };
       await staffOverride(tx, id, osuId);
+      if ((m.startsAt?.getTime() ?? null) === (at?.getTime() ?? null)) return { ...m, same: true };
       await tx.update(matches).set({ startsAt: at }).where(eq(matches.id, id));
       if (at && m.team1Id) await tx.insert(reschedules).values({ matchId: id, teamId: m.team1Id, requestedBy: osuId, proposedAt: at, status: "staff", decidedBy: osuId });
       return { ...m, same: false };
