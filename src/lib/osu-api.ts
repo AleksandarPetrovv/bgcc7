@@ -135,8 +135,16 @@ export async function getStarRating(id: number, mods: string[]) {
 
 export type MapCheck = { status: string; dmca: boolean };
 
-export async function getMapChecks(ids: number[]) {
+const checkCache = new Map<number, { at: number; v: MapCheck }>();
+
+export async function getMapChecks(all: number[]) {
   const out = new Map<number, MapCheck>();
+  const now = Date.now();
+  for (const id of all) {
+    const hit = checkCache.get(id);
+    if (hit && now - hit.at < 30 * 60_000) out.set(id, hit.v);
+  }
+  const ids = all.filter((id) => !out.has(id));
   for (let i = 0; i < ids.length; i += 50) {
     const q = ids
       .slice(i, i + 50)
@@ -144,7 +152,11 @@ export async function getMapChecks(ids: number[]) {
       .join("&");
     try {
       const r = await get<{ beatmaps: { id: number; status: string; beatmapset?: { availability?: { download_disabled: boolean } } }[] }>(`/beatmaps?${q}`);
-      for (const b of r.beatmaps) out.set(b.id, { status: b.status, dmca: !!b.beatmapset?.availability?.download_disabled });
+      for (const b of r.beatmaps) {
+        const v = { status: b.status, dmca: !!b.beatmapset?.availability?.download_disabled };
+        out.set(b.id, v);
+        checkCache.set(b.id, { at: now, v });
+      }
     } catch (e) {
       console.error("[map checks]", e);
     }
