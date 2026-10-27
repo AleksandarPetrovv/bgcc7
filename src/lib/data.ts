@@ -76,5 +76,6 @@ export const fmtNum = (n: number) => n.toLocaleString("en-US");
 export const teamHref = (t: { seed: number }) => `/teams/${t.seed}`;
 export const userPath = (name: string) => name.toLowerCase().replace(/ /g, "_");
 export const pickemsHref = (name: string) => `/pickems/${encodeURIComponent(userPath(name)).replace(/%5B/g, "[").replace(/%5D/g, "]")}`;
+export const cardCover = (url: string) => url.replace(/\/covers\/cover(@2x)?\.jpg/, "/covers/card@2x.jpg");
 export const fmtLen = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
 export const flagUrl = (cc: string) => `https://flagcdn.com/w40/${cc.toLowerCase()}.png`;
