@@ -194,7 +194,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                             {t.admin.suggestedBy} <span className="font-bold text-paper/80">{m.by}</span>
                           </span>
                         </div>
-                        <TagChips names={subcategoryNames(plan.subcategories, m.subcategoryIds)} label={t.admin.mapHas} color={color} filled className="mt-1.5" />
+                        <TagChips names={subcategoryNames(plan.subcategories, m.subcategoryIds)} color={color} filled className="mt-1.5" />
                       </div>
                       <div className="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
                         <VoteCell
