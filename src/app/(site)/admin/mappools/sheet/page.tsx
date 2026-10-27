@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { Check, Hourglass, Scale, Star, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, Check, Hourglass, Scale, Star, Trash2 } from "lucide-react";
 import { LinkTabs } from "@/components/site/tabs";
 import { PageTitle } from "@/components/site/page";
 import { ActionForm, IconAction } from "@/components/admin/form";
@@ -44,6 +45,10 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
   const name = (s: { title: string }) => t.rounds[s.title] ?? s.title;
   const skill = layouts?.[stage.slug];
   const info = new Map(skill?.groups.flatMap((g, gi) => g.slots.map((x, k) => [`${x.mod}-${x.slot}`, { group: g, label: x.label, ids: x.ids, at: gi * 100 + k }] as const)) ?? []);
+  const unset = (s: (typeof sheet.slots)[number]) => {
+    const win = s.items.find((x) => x.picked);
+    return !!win && stage.pools.find((p) => p.category === s.mod)?.maps.find((m) => m.order === s.slot)?.id !== win.beatmapId;
+  };
   const slots = skill ? [...sheet.slots].sort((a, b) => (info.get(`${a.mod}-${a.slot}`)?.at ?? 1e6) - (info.get(`${b.mod}-${b.slot}`)?.at ?? 1e6)) : sheet.slots;
 
   return (
@@ -69,6 +74,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
       {sheet.slots.length === 0 && <p className="in-up border border-dashed border-line bg-coal p-4 text-sm text-ash [--d:0.3s]">{t.admin.noLayout}</p>}
 
       <SheetView
+        key={stage.id}
         stageId={stage.id}
         version={version}
         mods={
@@ -105,16 +111,13 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                       <span className="inline-block skew-x-12">{MODS[s.mod].short}</span>
                     </span>
                   )}
-                  {sk && (
-                    <span className="flex min-w-0 flex-col gap-1 leading-tight">
-                      <span className="text-xs font-display font-bold text-paper">{sk.group.name}</span>
-                      <TagChips names={subcategoryNames(plan.subcategories, sk.ids)} label={t.admin.slotWants} color={color} />
-                    </span>
-                  )}
+                  {sk && <TagChips names={subcategoryNames(plan.subcategories, sk.ids)} color={color} />}
                   {s.picked ? (
-                    <span className="sr in-pop flex items-center gap-1.5 text-xs font-display font-bold text-balkan-hi [--d:0.3s]">
-                      <Check className="size-3.5" strokeWidth={3} /> {t.admin.slotPicked}
-                    </span>
+                    unset(s) && (
+                      <Link href={`/admin/mappools/edit?stage=${stage.slug}`} className="sr in-pop flex items-center gap-1.5 text-xs font-display font-bold text-gold-hi underline-offset-4 hover:underline [--d:0.3s]">
+                        {t.admin.pickedNotSet} <ArrowUpRight className="size-3.5" />
+                      </Link>
+                    )
                   ) : s.tie ? (
                     <span className="sr in-pop flex -skew-x-12 items-center border border-rose/70 bg-rose/15 px-2.5 py-1 text-xs font-display font-bold text-rose-hi [--d:0.3s]">
                       <span className="flex skew-x-12 items-center gap-1.5">
