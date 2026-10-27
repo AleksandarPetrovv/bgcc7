@@ -1,0 +1,2 @@
+ALTER TABLE "pool_suggestions" ADD COLUMN "subcategory_ids" text[] DEFAULT '{}'::text[] NOT NULL;--> statement-breakpoint
+ALTER TABLE "bgcc7"."pool_suggestions" ADD COLUMN "subcategory_ids" text[] DEFAULT '{}'::text[] NOT NULL;

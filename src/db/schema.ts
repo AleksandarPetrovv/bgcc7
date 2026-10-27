@@ -194,6 +194,7 @@ export const poolSuggestions = pgTable("pool_suggestions", {
   od: doublePrecision("od").notNull(),
   cs: doublePrecision("cs").notNull(),
   cover: text("cover").notNull(),
+  subcategoryIds: text("subcategory_ids").array().notNull().default(sql`'{}'::text[]`),
   picked: boolean("picked").notNull().default(false),
   seeded: boolean("seeded").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
