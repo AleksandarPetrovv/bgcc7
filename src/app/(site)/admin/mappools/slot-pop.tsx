@@ -52,7 +52,7 @@ function Pop({ action, title, slot, color, submit, tags, onClose, at, closing }:
       aria-label={`${title} ${slot}`}
       className={cn(
         "fixed z-[80] w-[min(26rem,calc(100vw-1.5rem))] overflow-hidden border border-line bg-coal shadow-[5px_5px_0_0_var(--rose-deep)]",
-        closing ? "slot-pop-out" : "vote-pop",
+        closing ? "slot-pop-out" : "slot-pop-in",
       )}
       style={at}
     >
@@ -68,7 +68,7 @@ function Pop({ action, title, slot, color, submit, tags, onClose, at, closing }:
       </div>
       <form action={formAction}>
         <div className="flex items-stretch gap-3 p-4">
-          <Field name="beatmap" required autoFocus placeholder={t.admin.pasteMap} aria-label={t.admin.beatmap} className={cn(inputCls, "min-w-0 flex-1 focus-within:!shadow-none")} />
+          <Field name="beatmap" required autoFocus placeholder={t.admin.pasteMap} aria-label={t.admin.beatmap} className={cn(inputCls, "min-w-0 flex-1 focus-within:!shadow-none")} inputClassName="pr-3" />
           <Btn type="submit" disabled={pending} className="h-10 min-h-0 shrink-0 px-5 shadow-none hover:shadow-none">
             {pending ? t.admin.saving : submit}
           </Btn>
@@ -77,17 +77,14 @@ function Pop({ action, title, slot, color, submit, tags, onClose, at, closing }:
           <fieldset className="max-h-56 overflow-y-auto overscroll-contain border-t border-line px-4 py-3">
             <legend className="sr-only">{t.admin.mapTagsPick}</legend>
             <p className="mb-2 text-xs font-display font-bold text-paper">{t.admin.mapTagsPick}</p>
-            {tags.groups.map((g) => (
-              <div key={g.id} className="mb-2 flex flex-wrap items-center gap-1.5 last:mb-0">
-                <span className="w-16 shrink-0 truncate text-[0.65rem] font-display font-bold text-ash">{g.name}</span>
-                {g.items.map((item) => (
-                  <label key={item.id} className="cursor-pointer border border-line px-2 py-1 text-xs font-display font-bold text-ash transition-colors hover:text-paper has-[:checked]:border-[var(--c)] has-[:checked]:bg-[color-mix(in_srgb,var(--c)_18%,transparent)] has-[:checked]:text-paper has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose" style={{ "--c": modHi(color) } as React.CSSProperties}>
-                    <input type="checkbox" name="tags" value={item.id} defaultChecked={tags.preset.includes(item.id)} className="sr-only" />
-                    {item.name}
-                  </label>
-                ))}
-              </div>
-            ))}
+            <div className="flex flex-wrap gap-1.5">
+              {tags.groups.flatMap((g) => g.items).map((item) => (
+                <label key={item.id} className="cursor-pointer border border-line px-2 py-1 text-xs font-display font-bold text-ash transition-colors hover:text-paper has-[:checked]:border-[var(--c)] has-[:checked]:bg-[color-mix(in_srgb,var(--c)_18%,transparent)] has-[:checked]:text-paper has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose" style={{ "--c": modHi(color) } as React.CSSProperties}>
+                  <input type="checkbox" name="tags" value={item.id} defaultChecked={tags.preset.includes(item.id)} className="sr-only" />
+                  {item.name}
+                </label>
+              ))}
+            </div>
           </fieldset>
         )}
       </form>
