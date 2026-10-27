@@ -136,8 +136,8 @@ export function SlotBox({
               <header
                 onClick={(e) => !empty && !(e.target as Element).closest("a,button,input,label,form") && toggle()}
                 className={cn(
-                  "relative flex flex-wrap items-center gap-x-4 gap-y-2 py-2.5 pl-4 pr-16 transition-[border-color,background-color] duration-200",
-                  !empty && "cursor-pointer hover:bg-paper/[0.03]",
+                  "relative flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 transition-[border-color,background-color] duration-200",
+                  !empty && "cursor-pointer pr-16 hover:bg-paper/[0.03]",
                   open && !empty ? "border-b border-line" : "border-b border-transparent",
                 )}
               >
