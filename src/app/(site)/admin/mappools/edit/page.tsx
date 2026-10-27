@@ -8,7 +8,8 @@ import { getPoolStages, MOD_ORDER, slotOf } from "@/db/mappools";
 import { getSkillLayouts } from "@/db/format-plan";
 import { getMapChecks } from "@/lib/osu-api";
 import { getViewer } from "@/lib/authz";
-import { fmtLen, MODS } from "@/lib/data";
+import { cardCover, fmtLen, MODS } from "@/lib/data";
+import { TagChips } from "../tag-chips";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { PackUploader } from "../../site/pack-uploader";
 import { can } from "@/lib/roles";
@@ -33,8 +34,8 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
   const host = can(viewer?.roles, "phase");
   const edit = can(viewer?.roles, "poolEdit");
   const name = (s: { title: string }) => t.rounds[s.title] ?? s.title;
-  const checks = await getMapChecks(stage.pools.flatMap((p) => p.maps.map((m) => m.id)));
-  const skill = (await getSkillLayouts())?.[stage.slug];
+  const [checks, layouts] = await Promise.all([getMapChecks(stage.pools.flatMap((p) => p.maps.map((m) => m.id))), getSkillLayouts()]);
+  const skill = layouts?.[stage.slug];
   const poolMaps = stage.pools.flatMap((p) => p.maps);
   const mapsOf = (mod: string) => stage.pools.find((p) => p.category === mod)?.maps ?? [];
   const countOf = (mod: string) => stage.blueprint[mod] ?? 0;
@@ -142,11 +143,11 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
               scrub
               key={key}
               className="sr in-up relative overflow-clip border border-line bg-coal"
-              style={{ "--i": pi < 5 ? pi : 0, "--s": "0.1s", "--d": "0.45s" } as React.CSSProperties}
+              style={{ "--i": pi < 5 ? pi : 0, "--s": "0.08s", "--d": "0.15s" } as React.CSSProperties}
             >
-              <span className="sr in-grow absolute inset-x-0 top-0 h-0.5 [--d:0.6s]" style={{ background: accent }} aria-hidden />
+              <span className="sr in-grow absolute inset-x-0 top-0 h-0.5 [--d:0.25s]" style={{ background: accent }} aria-hidden />
               <h2 className="flex items-center gap-3 border-b border-line px-4 py-2 text-sm font-display font-bold" style={{ color: modHi(accent) }}>
-                <span className="sr in-wipe inline-block [--d:0.6s]">{title}</span>
+                <span className="sr in-wipe inline-block [--d:0.25s]">{title}</span>
                 {total > 0 && (
                   <span className="num text-xs text-ash">
                     {filled}/{total}
@@ -163,19 +164,19 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                   ) : null;
                   const count = countOf(mod);
                   const m = mapsOf(mod).find((x) => x.order === slot);
-                  const tag = note ? <div className="mt-0.5 whitespace-pre-line text-xs font-semibold text-paper/55">{note}</div> : null;
+                  const tag = note ? <TagChips names={note.split("\n")} label={t.admin.slotWants} color={color} className="mt-1" /> : null;
                   if (!m)
                     return (
                       <SwapRow
                         key={`empty-${mod}-${slot}`}
-                        style={{ "--i": i, "--s": "0.05s", "--d": "0.7s" } as React.CSSProperties}
-                        className="sr in-left flex items-center gap-3 bg-[repeating-linear-gradient(135deg,transparent_0_10px,color-mix(in_srgb,var(--rose)_5%,transparent)_10px_20px)] px-3 py-2.5"
+                        style={{ "--i": i, "--s": "0.04s", "--d": "0.25s" } as React.CSSProperties}
+                        className="sr in-left flex flex-wrap items-center gap-3 bg-[repeating-linear-gradient(135deg,transparent_0_10px,color-mix(in_srgb,var(--rose)_5%,transparent)_10px_20px)] px-3 py-2.5"
                       >
                         <span className={cn("heading-slam shrink-0 text-xl opacity-60", skill ? "w-16" : "w-12")} style={{ color: modHi(color) }}>
                           {tagLabel ?? slotOf(mod, slot)}
                         </span>
                         {chip}
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0 flex-1 basis-60">
                           {edit ? (
                             <SlotInput action={setSlotMap.bind(null, stage.id, mod, slot)} />
                           ) : (
@@ -188,15 +189,15 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                   return (
                     <SwapRow
                       key={m.rowId}
-                      style={{ "--i": i, "--s": "0.05s", "--d": "0.7s" } as React.CSSProperties}
+                      style={{ "--i": i, "--s": "0.04s", "--d": "0.25s" } as React.CSSProperties}
                       className={cn("sr in-left flex flex-wrap items-center gap-3 px-3 py-2", out && "bg-rose/[0.06]")}
                     >
-                      <span className={cn("sr in-slam heading-slam text-xl [--d:0.8s]", skill ? "w-16" : "w-12")} style={{ color: modHi(color) }}>
+                      <span className={cn("sr in-slam heading-slam text-xl [--d:0.3s]", skill ? "w-16" : "w-12")} style={{ color: modHi(color) }}>
                         {m.slot}
                       </span>
                       {chip}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={m.cover} alt="" className="sr in-wipe hidden h-10 w-24 object-cover sm:block [--d:0.85s]" />
+                      <img src={cardCover(m.cover)} alt="" loading="lazy" decoding="async" className="sr in-wipe hidden h-10 w-24 object-cover sm:block [--d:0.35s]" />
                       <div className="min-w-0 flex-1">
                         <a
                           href={osuMap(m.id)}
