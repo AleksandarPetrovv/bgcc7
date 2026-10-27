@@ -8,11 +8,12 @@ import { useDict } from "@/components/site/lang";
 import type { ActionResult } from "@/lib/roles";
 import { modHi } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import type { SubcategoryGroup } from "@/lib/format-plan";
 
 type Action = (prev: ActionResult, fd: FormData) => Promise<ActionResult>;
-type Props = { action: Action; title: string; slot: string; color: string; submit: string; icon?: "plus" | "pencil" };
+type Props = { action: Action; title: string; slot: string; color: string; submit: string; icon?: "plus" | "pencil"; tags?: { groups: SubcategoryGroup[]; preset: string[] } };
 
-function Pop({ action, title, slot, color, submit, onClose, at, closing }: Omit<Props, "icon"> & { onClose: () => void; at: { top: number; left: number }; closing: boolean }) {
+function Pop({ action, title, slot, color, submit, tags, onClose, at, closing }: Omit<Props, "icon"> & { onClose: () => void; at: { top: number; left: number }; closing: boolean }) {
   const t = useDict();
   const box = useRef<HTMLDivElement>(null);
   const [state, formAction, pending] = useActionState(action, null);
@@ -65,11 +66,30 @@ function Pop({ action, title, slot, color, submit, onClose, at, closing }: Omit<
           <X className="size-4" />
         </button>
       </div>
-      <form action={formAction} className="flex items-stretch gap-3 p-4">
-        <Field name="beatmap" required autoFocus placeholder={t.admin.pasteMap} aria-label={t.admin.beatmap} className={cn(inputCls, "min-w-0 flex-1 focus-within:!shadow-none")} />
-        <Btn type="submit" disabled={pending} className="h-10 min-h-0 shrink-0 px-5 shadow-none hover:shadow-none">
-          {pending ? t.admin.saving : submit}
-        </Btn>
+      <form action={formAction}>
+        <div className="flex items-stretch gap-3 p-4">
+          <Field name="beatmap" required autoFocus placeholder={t.admin.pasteMap} aria-label={t.admin.beatmap} className={cn(inputCls, "min-w-0 flex-1 focus-within:!shadow-none")} />
+          <Btn type="submit" disabled={pending} className="h-10 min-h-0 shrink-0 px-5 shadow-none hover:shadow-none">
+            {pending ? t.admin.saving : submit}
+          </Btn>
+        </div>
+        {tags && (
+          <fieldset className="max-h-56 overflow-y-auto overscroll-contain border-t border-line px-4 py-3">
+            <legend className="sr-only">{t.admin.mapTagsPick}</legend>
+            <p className="mb-2 text-xs font-display font-bold text-paper">{t.admin.mapTagsPick}</p>
+            {tags.groups.map((g) => (
+              <div key={g.id} className="mb-2 flex flex-wrap items-center gap-1.5 last:mb-0">
+                <span className="w-16 shrink-0 truncate text-[0.65rem] font-display font-bold text-ash">{g.name}</span>
+                {g.items.map((item) => (
+                  <label key={item.id} className="cursor-pointer border border-line px-2 py-1 text-xs font-display font-bold text-ash transition-colors hover:text-paper has-[:checked]:border-[var(--c)] has-[:checked]:bg-[color-mix(in_srgb,var(--c)_18%,transparent)] has-[:checked]:text-paper has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose" style={{ "--c": modHi(color) } as React.CSSProperties}>
+                    <input type="checkbox" name="tags" value={item.id} defaultChecked={tags.preset.includes(item.id)} className="sr-only" />
+                    {item.name}
+                  </label>
+                ))}
+              </div>
+            ))}
+          </fieldset>
+        )}
       </form>
       {err && <p className="-mt-1.5 px-4 pb-3 text-xs font-display font-bold text-rose-hi">{err}</p>}
     </div>
@@ -97,11 +117,12 @@ export function SlotPop({ icon = "plus", ...props }: Props) {
     const r = btn.current?.getBoundingClientRect();
     if (!r) return;
     const w = Math.min(416, window.innerWidth - 24);
-    const below = r.bottom + 8 + 150 < window.innerHeight;
+    const h = props.tags ? 380 : 150;
+    const below = r.bottom + 8 + h < window.innerHeight;
     clearTimeout(timer.current);
     setClosing(false);
     setN((x) => x + 1);
-    setAt({ top: below ? r.bottom + 8 : Math.max(12, r.top - 8 - 150), left: Math.max(12, Math.min(window.innerWidth - w - 12, r.right - w)) });
+    setAt({ top: below ? r.bottom + 8 : Math.max(12, r.top - 8 - h), left: Math.max(12, Math.min(window.innerWidth - w - 12, r.right - w)) });
   };
 
   return (

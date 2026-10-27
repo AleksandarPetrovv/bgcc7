@@ -9,6 +9,7 @@ import { getViewer, log } from "@/lib/authz";
 import { MODS } from "@/lib/data";
 import { fetchMap, parseBeatmapId } from "@/lib/fetch-map";
 import { can, type ActionResult } from "@/lib/roles";
+import { getPlan } from "@/db/format-plan";
 
 async function settle(osuId: number, stageId: number, mod: string, slot: number, force = false, chosen?: number) {
   const res = await resolveSlot(stageId, mod, slot, force, chosen);
@@ -36,7 +37,9 @@ export async function suggestMap(stageId: number, mod: string, slot: number, _: 
     if (mine) return { ok: false, error: "oneEach" };
     const data = await fetchMap(beatmapId, mod);
     if (!data) return { ok: false, error: "notFound" };
-    await db.insert(poolSuggestions).values({ stageId, mod, slot, osuId, ...data });
+    const known = new Set((await getPlan()).subcategories.flatMap((g) => g.items.map((i) => i.id)));
+    const subcategoryIds = [...new Set(fd.getAll("tags").map(String))].filter((id) => known.has(id)).slice(0, 12);
+    await db.insert(poolSuggestions).values({ stageId, mod, slot, osuId, ...data, subcategoryIds });
     return { stageId, mod, slot: slot + 1, beatmapId, title: data.title, version: data.version };
   });
 }
