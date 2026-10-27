@@ -103,7 +103,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
               color={color}
               header={
                 <>
-                  <span className="sr in-slam heading-slam w-24 shrink-0 whitespace-nowrap text-2xl [--d:0.2s]" style={{ color: modHi(color) }}>
+                  <span className={cn("sr in-slam heading-slam shrink-0 whitespace-nowrap text-2xl [--d:0.2s]", s.mod !== "Tiebreaker" && "w-24")} style={{ color: modHi(color) }}>
                     {label}
                   </span>
                   {sk && s.mod !== "Tiebreaker" && (
