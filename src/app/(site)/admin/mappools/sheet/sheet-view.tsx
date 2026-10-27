@@ -124,7 +124,7 @@ export function SlotBox({
           transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
           className="overflow-clip"
         >
-          <div className="pb-4">
+          <div className="pb-7">
             <InView
               as="section"
               self
