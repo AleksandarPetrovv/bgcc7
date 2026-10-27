@@ -79,9 +79,9 @@ function Pop({ action, title, slot, color, submit, tags, onClose, at, closing }:
             <p className="mb-2 text-xs font-display font-bold text-paper">{t.admin.mapTagsPick}</p>
             <div className="flex flex-wrap gap-1.5">
               {tags.groups.flatMap((g) => g.items).map((item) => (
-                <label key={item.id} className="cursor-pointer border border-line px-2 py-1 text-xs font-display font-bold text-ash transition-colors hover:text-paper has-[:checked]:border-[var(--c)] has-[:checked]:bg-[color-mix(in_srgb,var(--c)_18%,transparent)] has-[:checked]:text-paper has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose" style={{ "--c": modHi(color) } as React.CSSProperties}>
+                <label key={item.id} className="-skew-x-12 cursor-pointer border border-line px-2 py-1 text-xs font-display font-bold text-ash transition-colors hover:text-paper has-[:checked]:border-[var(--c)] has-[:checked]:bg-[color-mix(in_srgb,var(--c)_18%,transparent)] has-[:checked]:text-paper has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose" style={{ "--c": modHi(color) } as React.CSSProperties}>
                   <input type="checkbox" name="tags" value={item.id} defaultChecked={tags.preset.includes(item.id)} className="sr-only" />
-                  {item.name}
+                  <span className="inline-block skew-x-12">{item.name}</span>
                 </label>
               ))}
             </div>
