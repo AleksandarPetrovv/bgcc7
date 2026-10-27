@@ -164,7 +164,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                   ) : null;
                   const count = countOf(mod);
                   const m = mapsOf(mod).find((x) => x.order === slot);
-                  const tag = note ? <TagChips names={note.split("\n")} label={t.admin.slotWants} color={color} className="mt-1" /> : null;
+                  const tag = note ? <TagChips names={note.split("\n")} color={color} className="mt-1" /> : null;
                   if (!m)
                     return (
                       <SwapRow
@@ -172,7 +172,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                         style={{ "--i": i, "--s": "0.04s", "--d": "0.25s" } as React.CSSProperties}
                         className="sr in-left flex flex-wrap items-center gap-3 bg-[repeating-linear-gradient(135deg,transparent_0_10px,color-mix(in_srgb,var(--rose)_5%,transparent)_10px_20px)] px-3 py-2.5"
                       >
-                        <span className={cn("heading-slam shrink-0 text-xl opacity-60", skill ? "w-16" : "w-12")} style={{ color: modHi(color) }}>
+                        <span className={cn("heading-slam shrink-0 whitespace-nowrap text-xl opacity-60", skill ? "w-20" : "w-12")} style={{ color: modHi(color) }}>
                           {tagLabel ?? slotOf(mod, slot)}
                         </span>
                         {chip}
@@ -192,7 +192,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                       style={{ "--i": i, "--s": "0.04s", "--d": "0.25s" } as React.CSSProperties}
                       className={cn("sr in-left flex flex-wrap items-center gap-3 px-3 py-2", out && "bg-rose/[0.06]")}
                     >
-                      <span className={cn("sr in-slam heading-slam text-xl [--d:0.3s]", skill ? "w-16" : "w-12")} style={{ color: modHi(color) }}>
+                      <span className={cn("sr in-slam heading-slam shrink-0 whitespace-nowrap text-xl [--d:0.3s]", skill ? "w-20" : "w-12")} style={{ color: modHi(color) }}>
                         {m.slot}
                       </span>
                       {chip}
