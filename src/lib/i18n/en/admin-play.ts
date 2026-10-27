@@ -156,7 +156,7 @@ export const adminPlay = {
   outsideLayout: "Outside the pool layout",
   clearSlot: "Clear slot",
   confirmClearSlot: "Take this map out of the slot?",
-  pasteMap: "Paste a beatmap link or id",
+  pasteMap: "Beatmap link or id",
   changeMap: "Swap the map in this slot",
   suggestForSlot: "Suggest a map for this slot",
   mapTagsPick: "What this map tests",
