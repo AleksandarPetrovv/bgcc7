@@ -152,9 +152,11 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
                       )}
                     </div>
                     <h3 className="truncate text-[19px] font-black leading-tight">{map.title}</h3>
-                    {cardH >= 96 && <p className="truncate pr-16 text-[14px] font-bold text-ash">[{map.version}]</p>}
+                    <div className="flex items-baseline gap-3 text-[14px] font-bold">
+                      {cardH >= 96 && <p className="min-w-0 truncate text-ash">[{map.version}]</p>}
+                      <span className="num ml-auto shrink-0 font-black text-gold-hi">{map.sr.toFixed(2)}★</span>
+                    </div>
                   </div>
-                  <span className={cn("num absolute bottom-2 right-3 text-[16px] font-black text-gold-hi transition-opacity duration-500", done && "opacity-25")}>{map.sr.toFixed(2)}★</span>
                 </motion.article>
               );
             })}
