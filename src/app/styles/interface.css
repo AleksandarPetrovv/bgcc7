@@ -200,10 +200,6 @@
 .mdlg-bar { height: 30%; animation: mdlg-bar 0.8s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .mdlg-bar { animation-duration: 2s; } }
 
-@keyframes eye-sheen { 0%, 60% { left: -12px; } 100% { left: 110%; } }
-.eye-sheen { animation: eye-sheen 2.8s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) { .eye-sheen { animation: none; opacity: 0; } }
-
 @keyframes btn-shine { 0%, 86% { background-position: 130% 0; } 100% { background-position: -30% 0; } }
 .btn-shine { background-image: linear-gradient(105deg, transparent 40%, color-mix(in srgb, var(--white) 50%, transparent) 50%, transparent 60%); background-size: 300% 100%; background-repeat: no-repeat; animation: btn-shine 5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 @media (prefers-reduced-motion: reduce) { .btn-shine { animation: none; background-image: none; } }
