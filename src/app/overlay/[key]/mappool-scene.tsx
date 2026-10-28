@@ -19,20 +19,6 @@ function groupFor(map: FeedMap) {
   return GROUPS.find((k) => MODS[k].short.toLowerCase() === prefix);
 }
 
-function Tag({ text, color, dark }: { text: string; color: string; dark?: boolean }) {
-  return (
-    <motion.span
-      className="inline-flex -skew-x-12 px-2 py-0.5"
-      style={{ background: color }}
-      initial={{ scale: 2.4, opacity: 0, rotate: -14 }}
-      animate={{ scale: 1, opacity: 1, rotate: 0 }}
-      transition={{ type: "spring", stiffness: 520, damping: 20 }}
-    >
-      <span className={cn("skew-x-12 text-[13px] font-display font-bold", dark ? "text-on-fill" : "text-white")}>{text}</span>
-    </motion.span>
-  );
-}
-
 export function MappoolScene({ feed }: { feed: OverlayFeed }) {
   const bySlot = new Map(feed.pool.map((m) => [norm(m.slot), m]));
   const groups: { key: string; short: string; label: string; color: string; maps: FeedMap[] }[] = feed.groups?.length
@@ -102,7 +88,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
                   initial={{ opacity: 0, y: 18 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: gi * 0.06 + mi * 0.04, ease: [0.16, 1, 0.3, 1] }}
-                  className={cn("relative overflow-hidden border-2 bg-coal transition-[border-color,box-shadow] duration-500", now && "border-[3px]")}
+                  className="relative overflow-hidden border-2 bg-coal transition-[border-color,box-shadow] duration-500"
                   style={{
                     height: cardH,
                     borderColor: now ? "var(--gold)" : "var(--line)",
@@ -113,7 +99,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
                     {map.cover && <div className="absolute -inset-3 bg-cover bg-center opacity-45 blur-[3px]" style={{ backgroundImage: `url(${JSON.stringify(map.cover)})` }} />}
                     <div className="absolute inset-0 bg-[linear-gradient(90deg,color-mix(in_srgb,var(--ink)_95%,transparent)_30%,color-mix(in_srgb,var(--ink)_55%,transparent))]" />
                   </div>
-                  <span className={cn("absolute inset-y-0 left-0 w-[6px]", done && "opacity-25 grayscale")} style={{ background: g.color }} aria-hidden />
+                  {!now && <span className={cn("absolute inset-y-0 left-0 w-[6px]", done && "opacity-25 grayscale")} style={{ background: g.color }} aria-hidden />}
                   {pick && team && !now && (
                     <motion.svg
                       className="pointer-events-none absolute inset-0 z-10 size-full"
@@ -144,7 +130,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
                       </span>
                     </motion.div>
                   )}
-                  {pick && team && (
+                  {pick && team && !now && (
                     <motion.span
                       key={`flash-${map.slot}`}
                       className="pointer-events-none absolute inset-0"
@@ -155,32 +141,21 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
                       aria-hidden
                     />
                   )}
-                  {now && (
-                    <motion.span
-                      className="pointer-events-none absolute inset-0 border-2 border-gold"
-                      animate={{ opacity: [0.2, 0.9, 0.2] }}
-                      transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-                      aria-hidden
-                    />
-                  )}
                   <div className={cn("relative flex h-full flex-col justify-center gap-1 pl-5 pr-3 transition-opacity duration-500", done && "opacity-25 grayscale")}>
                     <div className="flex items-center gap-2">
-                      <span className="font-display text-[30px] font-black italic leading-none" style={{ color: modHi(modColor(map.slot) ?? g.color) }}>
+                      <span className="-ml-[3px] font-display text-[30px] font-black italic leading-none" style={{ color: modHi(modColor(map.slot) ?? g.color) }}>
                         {map.slot}
                       </span>
-                      <span className="ml-auto flex items-center gap-1.5">
-                        {now && <Tag text="Now" color="var(--gold)" dark />}
-                        {skill && mk && mk !== "Tiebreaker" && (
-                          <span className="-skew-x-12 border px-1.5 text-[13px] font-display font-black leading-5" style={{ borderColor: modHi(MODS[mk].color), color: modHi(MODS[mk].color) }}>
-                            <span className="inline-block skew-x-12">{MODS[mk].short}</span>
-                          </span>
-                        )}
-                        <span className="num text-[16px] font-black text-gold-hi">{map.sr.toFixed(2)}★</span>
-                      </span>
+                      {skill && mk && mk !== "Tiebreaker" && (
+                        <span className="absolute right-2.5 top-2 -skew-x-12 border px-1.5 text-[13px] font-display font-black leading-5" style={{ borderColor: modHi(MODS[mk].color), color: modHi(MODS[mk].color) }}>
+                          <span className="inline-block skew-x-12">{MODS[mk].short}</span>
+                        </span>
+                      )}
                     </div>
                     <h3 className="truncate text-[19px] font-black leading-tight">{map.title}</h3>
-                    {cardH >= 96 && <p className="truncate text-[14px] font-bold text-ash">{map.version}</p>}
+                    {cardH >= 96 && <p className="truncate pr-16 text-[14px] font-bold text-ash">[{map.version}]</p>}
                   </div>
+                  <span className={cn("num absolute bottom-2 right-3 text-[16px] font-black text-gold-hi transition-opacity duration-500", done && "opacity-25")}>{map.sr.toFixed(2)}★</span>
                 </motion.article>
               );
             })}
