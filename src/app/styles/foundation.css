@@ -182,6 +182,11 @@
     letter-spacing: -0.01em;
     line-height: 1.05;
   }
+  /* unbounded has no italic: the faked slant pokes past the box and gets clipped by truncate / transform layers */
+  :where(.heading-slam, .anim-letter, .font-display.italic, .heading-slam .truncate, .italic .truncate) {
+    padding-inline-end: 0.16em;
+    margin-inline-end: -0.16em;
+  }
   .num {
     font-family: var(--font-display);
     font-weight: 700;
