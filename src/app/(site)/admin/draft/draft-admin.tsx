@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowUpRight, Lock, Pause, Play, RotateCcw, Undo2, X } from "lucide-react";
 import { Btn } from "@/components/admin/form";
 import { Dropdown } from "@/components/admin/dropdown";
+import { Modal } from "@/components/site/modal";
 import { useDict } from "@/components/site/lang";
 import { EASE } from "@/components/site/motion";
 import type { ActionResult } from "@/lib/roles";
@@ -43,6 +44,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
   const pool = r.draft?.stage ?? (picked && pools.some((p) => p.slug === picked) ? picked : pools.some((p) => p.slug === r.stage) ? r.stage : (pools[0]?.slug ?? ""));
   const [pending, start] = useTransition();
   const [fail, setFail] = useState(false);
+  const [ask, setAsk] = useState<{ text: string; label: React.ReactNode; go: () => void; danger?: boolean } | null>(null);
   const ready = !!r.teams[0] && !!r.teams[1];
   const open = !!r.draft?.open;
   const run = (fn: () => Promise<ActionResult>) =>
@@ -140,9 +142,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
                 options={pools.map((p) => ({ value: p.slug, label: p.title }))}
                 onChange={(next) => {
                   if (open && r.draft && r.draft.stage !== next) {
-                    if (!window.confirm(t.admin.dr.confirmPool)) return;
-                    setPool(next);
-                    run(() => openDraft(r.id, next));
+                    setAsk({ text: t.admin.dr.confirmPool, label: <><RotateCcw className="size-3.5" /> {t.admin.dr.reset}</>, go: () => { setPool(next); run(() => openDraft(r.id, next)); } });
                   } else setPool(next);
                 }}
               />
@@ -172,10 +172,10 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
                         <Pause className="size-3.5" /> {t.draft.timeout}
                       </Btn>
                     ))}
-                  <Btn type="button" tone="outline" small disabled={pending} onClick={() => window.confirm(t.admin.dr.confirmReset) && run(() => resetDraft(r.id))}>
+                  <Btn type="button" tone="outline" small disabled={pending} onClick={() => setAsk({ text: t.admin.dr.confirmReset, label: <><RotateCcw className="size-3.5" /> {t.admin.dr.reset}</>, go: () => run(() => resetDraft(r.id)) })}>
                     <RotateCcw className="size-3.5" /> {t.admin.dr.reset}
                   </Btn>
-                  <Btn type="button" tone="danger" small disabled={pending} onClick={() => window.confirm(t.admin.dr.confirmEnd) && run(() => endDraft(r.id))}>
+                  <Btn type="button" tone="danger" small disabled={pending} onClick={() => setAsk({ text: t.admin.dr.confirmEnd, label: <><X className="size-3.5" /> {t.admin.dr.end}</>, go: () => run(() => endDraft(r.id)), danger: true })}>
                     <X className="size-3.5" /> {t.admin.dr.end}
                   </Btn>
                 </motion.span>
@@ -202,6 +202,25 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
           </>
         )}
       </div>
+      <Modal open={!!ask} onClose={() => setAsk(null)}>
+        <p className="pr-6 text-sm font-bold text-paper">{ask?.text}</p>
+        <div className="mt-5 flex justify-end gap-2">
+          <Btn type="button" tone="outline" small onClick={() => setAsk(null)}>
+            {t.draft.cancel}
+          </Btn>
+          <Btn
+            type="button"
+            tone={ask?.danger ? "danger" : "rose"}
+            small
+            onClick={() => {
+              ask?.go();
+              setAsk(null);
+            }}
+          >
+            {ask?.label}
+          </Btn>
+        </div>
+      </Modal>
     </motion.li>
   );
 }
