@@ -321,7 +321,7 @@ function LoadingVeil({ out }: { out: boolean }) {
   const t = useDict();
   return createPortal(
     <div
-      className={cn("fixed inset-0 z-[60] flex animate-in items-center justify-center bg-rose-deep/30 backdrop-blur-sm fade-in-0 transition-opacity duration-700 ease-out", out && "pointer-events-none opacity-0")}
+      className={cn("fixed inset-0 z-[60] flex animate-in items-center justify-center bg-black/55 backdrop-blur-sm fade-in-0 transition-opacity duration-700 ease-out", out && "pointer-events-none opacity-0")}
       role="status"
       aria-live="polite"
     >
