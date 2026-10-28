@@ -124,7 +124,10 @@ function Mini({ m, current }: { m: FeedMatch; current: boolean }) {
 function Lane({ title, rounds, feed, height }: { title: string; rounds: [string, FeedMatch[]][]; feed: OverlayFeed; height: number }) {
   return (
     <section className="flex min-w-0 flex-col gap-2">
-      <span className={LABEL}>{title}</span>
+      <span className="flex items-center gap-2.5 text-[19px] font-display font-black text-paper">
+        <span className="h-[18px] w-[5px] -skew-x-12 bg-rose" aria-hidden />
+        {title}
+      </span>
       <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${rounds.length}, minmax(0, 1fr))`, height }}>
         {rounds.map(([round, ms], ri) => (
           <motion.div
