@@ -10,12 +10,13 @@ import { getFill } from "@/db/copy";
 import { getFormat } from "@/db/edition";
 import { requireSection } from "@/lib/authz";
 import { fmtSofia, windowState, tzLabel } from "@/lib/time";
+import { avatarPath } from "@/lib/avatar";
 
 export default async function Register() {
   await requireSection("register");
   const [t, lang, session, settings, f] = await Promise.all([getDict(), getLang(), auth(), getSettings(), getFill()]);
   const osuId = Number(session?.user?.id) || null;
-  const user = osuId && session?.user?.name ? { name: session.user.name, image: session.user.image ?? null } : null;
+  const user = osuId && session?.user?.name ? { name: session.user.name, image: avatarPath(osuId) } : null;
   const status = osuId ? await getRegistration(osuId) : null;
   const state = windowState(settings.regOpensAt, settings.regClosesAt);
   const fmt = (d: Date | null) => (d ? `${fmtSofia(d, lang === "bg" ? "bg-BG" : "en-GB")} ${tzLabel(d)}` : "");
