@@ -13,7 +13,8 @@ import { nowPlaying } from "@/lib/bancho";
 import { getLive, IPC_PLAYING } from "@/lib/live-scores";
 import { overlayUser, currentStreamMatch } from "@/db/stream";
 import { isScene, type Scene } from "@/lib/scenes";
-import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup, FeedMatch } from "./overlay-types";
+import { getCue, PLAY_LEAD } from "@/lib/overlay-cues";
+import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup, FeedMatch, LiveScore } from "./overlay-types";
 import { TEST_MATCH } from "@/lib/format";
 
 const BUILD = String(Date.now());
@@ -27,7 +28,13 @@ function settleSometimes(matchId: string) {
   return settle(matchId);
 }
 
-const ROLL_HOLD = 10_000;
+// after the roll winner chooses pick/ban the intro stays up this long, then the pool
+const CHOICE_HOLD = 20_000;
+// final scores stay on the gameplay scene this long after a map ends
+const RESULTS_HOLD = 20_000;
+const ABORT_HOLD = 5_000;
+const gl = globalThis as unknown as { bgccLastLive?: Map<string, LiveScore> };
+const lastLive = () => (gl.bgccLastLive ??= new Map());
 const gr = globalThis as unknown as { bgccRolledAt?: Map<string, { key: string; at: number }> };
 function rolledSince(matchId: string, key: string, fallback: number) {
   const m = (gr.bgccRolledAt ??= new Map());
@@ -178,11 +185,22 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
   const current =
     pool.find((x) => x.id === mapId) ?? (lastPick ? pool.find((x) => x.slot === lastPick.slot) : undefined) ?? null;
 
+  const now = Date.now();
   const rolled = draft?.roll1 != null && draft?.roll2 != null && draft.roll1 !== draft.roll2;
-  const rolledAt = rolled ? rolledSince(matchId, `${draft.roll1}:${draft.roll2}`, draft.choice || draft.steps.length ? 0 : Date.parse(draft.turnAt ?? "") || Date.now()) : null;
-  // stay on the intro so the roll reveal plays out, then move to the pool
-  const introDone = rolledAt !== null && Date.now() - rolledAt >= ROLL_HOLD;
-  const auto: Scene = winner !== null ? "winner" : inPlay ? "gameplay" : draft?.open ? (introDone ? "mappool" : "intro") : "soon";
+  const chosenAt = rolled && draft.choice ? rolledSince(matchId, `${draft.roll1}:${draft.roll2}:${draft.choice}`, draft.steps.length ? 0 : Date.parse(draft.turnAt ?? "") || now) : null;
+  if (rolled && !draft.choice) rolledSince(matchId, `${draft.roll1}:${draft.roll2}`, now);
+  // the intro waits for the roll winner's pick/ban choice, holds a bit, then the pool
+  const introDone = (chosenAt !== null && now - chosenAt >= CHOICE_HOLD) || !!draft?.steps.length;
+
+  const cue = currentEdition() === siteEdition() ? getCue(matchId) : null;
+  if (live && live.ipcState === IPC_PLAYING) lastLive().set(matchId, live);
+  const results = cue?.finishedAt != null && now - cue.finishedAt < RESULTS_HOLD;
+  const aborted = !!cue?.abortHold && cue.abortAt != null && now - cue.abortAt < ABORT_HOLD;
+  // !mp start N: the gameplay scene comes up PLAY_LEAD before the countdown ends
+  const countingIn = cue?.countdownEnd != null && now >= cue.countdownEnd - PLAY_LEAD && now < cue.countdownEnd + 30_000;
+  const held = results && !inPlay ? lastLive().get(matchId) : undefined;
+  const shownLive = held ? { ...held, at: now } : live;
+  const auto: Scene = inPlay || countingIn || results || aborted ? "gameplay" : winner !== null ? "winner" : draft?.open ? (introDone ? "mappool" : "intro") : "soon";
 
   const o = sceneRow[0]?.scene;
   const scene: Scene = isScene(o) ? o : auto;
@@ -210,7 +228,7 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
     rolls: [draft?.roll1 ?? null, draft?.roll2 ?? null],
     choice: draft?.choice === "pick" || draft?.choice === "ban" ? draft.choice : null,
     current,
-    live: stage?.released ? live : null,
+    live: stage?.released ? shownLive : null,
     scene,
     sceneAuto,
     at: Date.now(),

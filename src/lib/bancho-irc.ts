@@ -13,6 +13,7 @@ import type { DraftView } from "@/lib/draft";
 import { blocked } from "@/lib/chat-filter";
 import { onRelay, relayName, relayOnline, relaySocket } from "@/lib/relay";
 import { alertId, clearWhere, describeMatch, raise } from "@/lib/alerts";
+import { cueAbort, cueCountdown, cueFinish, cuePlay } from "@/lib/overlay-cues";
 
 import { closeLobby, onFinished, react, swapSlots } from "./bancho";
 
@@ -373,8 +374,13 @@ export function attach(l: Live) {
   };
   for (const ev of ["playerJoined", "playerLeft", "playerMoved", "playerChangedTeam", "host", "hostCleared", "matchStarted", "matchFinished", "matchAborted", "beatmapId", "beatmap", "mods", "freemod", "size", "allPlayersReady", "matchSettings"] as const) lb.on(ev as "matchStarted", up);
   for (const ev of ["playerJoined", "playerLeft", "playerMoved", "playerChangedTeam", "beatmapId", "mods", "allPlayersReady", "matchFinished", "matchAborted"] as const) lb.on(ev as "matchStarted", () => autoSync(l));
-  lb.on("matchStarted", () => void playStart.set(l.matchId, Date.now()));
+  lb.on("matchStarted", () => {
+    playStart.set(l.matchId, Date.now());
+    cuePlay(l.matchId);
+  });
   for (const ev of ["matchFinished", "matchAborted"] as const) lb.on(ev as "matchStarted", () => void playStart.delete(l.matchId));
+  lb.on("matchFinished", () => cueFinish(l.matchId));
+  lb.on("matchAborted", () => cueAbort(l.matchId));
   lb.channel.on("message", (msg) => {
     const own = msg.self && typed.delete(`${l.matchId}|${msg.message}`);
     const shown = msg.self && !own && NONCED.test(msg.message) ? msg.message.replace(/^(!mp \S+.*?) (?=[a-z0-9]*[a-z])[a-z0-9]{8,}$/, "$1") : msg.message;
@@ -391,6 +397,15 @@ export function attach(l: Live) {
     if (l.chat.length > 150) l.chat.splice(0, l.chat.length - 150);
     const cmd = msg.message.trim().match(/^!mp\s+(timer|aborttimer)\b\s*(\d+)?/i);
     if (cmd) void timerBy(l.matchId, msg.self, msg.user.ircUsername).then((ok) => (ok ? lobbyTimer(l.matchId, cmd[1].toLowerCase() === "timer" ? Math.min(Number(cmd[2] ?? 30), 3600) || 30 : null) : undefined)).catch((e) => console.error("[bancho] timer", e));
+    const play = msg.message.trim().match(/^!mp\s+(start|abort|aborttimer)\b\s*(\d+)?/i);
+    if (play)
+      void timerBy(l.matchId, msg.self, msg.user.ircUsername)
+        .then((ok) => {
+          if (!ok) return;
+          if (play[1].toLowerCase() !== "start") return cueAbort(l.matchId);
+          if (Number(play[2]) > 0) cueCountdown(l.matchId, Math.min(Number(play[2]), 3600));
+        })
+        .catch((e) => console.error("[bancho] start cue", e));
     up();
   });
   (lb as unknown as EventEmitter).on("matchFinished", (scores: BanchoLobbyPlayerScore[]) =>
