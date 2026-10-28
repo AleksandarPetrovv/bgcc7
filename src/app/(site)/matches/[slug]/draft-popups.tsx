@@ -39,7 +39,7 @@ export function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onP
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: { duration: 0.15 } }}
       exit={{ opacity: 0, transition: { duration: 0.15 } }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
     >
       <motion.div
         initial={POP.initial}
@@ -207,7 +207,7 @@ export function WinnerPopup({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.15 } }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
     >
       <motion.div
         initial={POP.initial}
@@ -293,7 +293,7 @@ export function ScoresPopup({ slug, slot, names, onClose }: { slug: string; slot
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
     >
       <motion.div
         initial={POP.initial}
@@ -328,7 +328,7 @@ export function ResetPopup({ lobby, busy, onCancel, onReset }: { lobby: boolean;
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
       onClick={onCancel}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
     >
       <motion.div
         initial={POP.initial}
