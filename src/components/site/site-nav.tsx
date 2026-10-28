@@ -105,9 +105,11 @@ function MatchLink({ slug, path, big, onClick, clock }: { slug: string; path: st
           on ? "bg-rose-deep" : "bg-rose",
         )}
       >
-        <svg className="pointer-events-none absolute inset-px size-[calc(100%-2px)] overflow-visible" aria-hidden>
-          <rect width="100%" height="100%" fill="none" stroke="white" strokeWidth={2} pathLength={100} strokeDasharray="16 84" className="match-run" />
-        </svg>
+        {!on && (
+          <svg className="pointer-events-none absolute inset-px size-[calc(100%-2px)] overflow-visible" aria-hidden>
+            <rect width="100%" height="100%" fill="none" stroke="white" strokeWidth={2} pathLength={100} strokeDasharray="16 84" className="match-run" />
+          </svg>
+        )}
         <span className={cn("relative inline-flex skew-x-12 items-center", big ? "gap-2" : "gap-1.5")}>
           <Swords className={big ? "size-5" : "size-3.5"} strokeWidth={2.6} />
           {t.nav.match}
@@ -262,18 +264,22 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
             </Link>
           )}
           {user ? (
-            <div className="hidden h-9 -skew-x-12 items-center border border-line pl-1 md:flex">
+            <div className="hidden h-9 -skew-x-12 items-center border border-line md:flex">
               <Link
                 href="/me"
                 title={t.nav.me}
                 onClick={(e) => {
                   if (!e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) setClicked({ base: "/me", from: path });
                 }}
-                className="flex h-full skew-x-12 items-center gap-2.5 pr-3 transition-colors hover:text-rose-hi">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                {user.image && <img src={user.image} alt="" className="size-7 object-cover" />}
-                <span className="max-w-32 truncate text-[0.8rem] font-display font-black leading-none">{user.name}</span>
-                {meDot && <Dot className="-ml-1" />}
+                className="flex h-full items-center gap-2.5 pr-3 transition-colors hover:text-rose-hi">
+                {user.image && (
+                  <span className="h-full w-10 shrink-0 overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={user.image} alt="" className="size-full skew-x-12 scale-x-125 object-cover" />
+                  </span>
+                )}
+                <span className={cn("max-w-32 skew-x-12 truncate text-[0.8rem] font-display font-black leading-none", !user.image && "pl-3")}>{user.name}</span>
+                {meDot && <Dot className="-ml-1 skew-x-12" />}
               </Link>
               <button
                 type="button"
