@@ -57,7 +57,6 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
         <div className="flex items-center gap-5">
           <span className="flex text-[72px] leading-none"><Notes /></span>
           <h1 className="font-display text-[48px] font-black italic uppercase leading-none">Mappool</h1>
-          <span className={LABEL}>{feed.match.round}</span>
         </div>
         <Lockup num={editionNum(feed)} size={30} />
       </div>
