@@ -38,7 +38,7 @@ function Countdown({ startsAt, at }: { startsAt: string | null; at: number }) {
         <div key={i} className="flex items-start gap-5">
           {i > 0 && <span className="mt-[80px] size-4 rotate-45 bg-rose" aria-hidden />}
           <div className="flex flex-col items-center gap-3">
-            <span className="inline-flex -skew-x-12 overflow-hidden border border-line bg-coal/90 px-9 py-4 shadow-[8px_8px_0_0_color-mix(in_srgb,var(--rose-deep)_42%,transparent)]">
+            <span className="inline-flex -skew-x-12 overflow-hidden border border-line bg-coal px-9 py-4 will-change-transform shadow-[8px_8px_0_0_color-mix(in_srgb,var(--rose-deep)_42%,transparent)]">
               <span className="num relative flex h-[136px] skew-x-12 items-center px-1 font-display text-[112px] font-black leading-none tabular-nums text-paper">
                 {String(p)
                   .padStart(2, "0")
@@ -341,7 +341,6 @@ function Winner({ feed }: { feed: OverlayFeed }) {
 }
 
 function Break({ feed, end }: { feed: OverlayFeed; end?: boolean }) {
-  const w = feed.match.winner;
   return (
     <>
       {!end && <TopBar feed={feed} />}
@@ -369,16 +368,11 @@ function Break({ feed, end }: { feed: OverlayFeed; end?: boolean }) {
           )}
         </motion.div>
       </div>
-      <div className="absolute inset-x-[72px] bottom-[120px]">
-        {end && w ? (
-          <div className="flex items-center justify-center gap-6">
-            <span className="text-[22px] font-display font-bold text-gold-hi">Winner</span>
-            <TeamPlate team={feed.teams[w - 1]} side={(w - 1) as 0 | 1} big />
-          </div>
-        ) : (
+      {!end && (
+        <div className="absolute inset-x-[72px] bottom-[120px]">
           <Matchup feed={feed} score />
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 }
