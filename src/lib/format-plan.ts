@@ -137,7 +137,7 @@ export const SKILLS: Record<string, { abbr: string; color: string }> = {
   reading: { abbr: "RDG", color: "var(--rose-light)" },
   tapping: { abbr: "TAP", color: "var(--mod-hr)" },
   gimmick: { abbr: "GMK", color: "var(--mod-fm)" },
-  "finger-control": { abbr: "FGC", color: "var(--mod-hd)" },
+  "finger-control": { abbr: "FGC", color: "var(--mod-fc)" },
   stamina: { abbr: "STM", color: "var(--mod-hr)" },
 };
 const TB_SKILL = { abbr: "TB", color: "var(--mod-tb)" };
