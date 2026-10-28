@@ -93,8 +93,12 @@ function OverlaySubscription({ url }: { url: string }) {
     };
   }, [target, shown, reducedMotion]);
 
+  // during the wipe the outgoing scene keeps its own last data, so it never redraws with the next scene's feed
+  const [held, setHeld] = useState<OverlayFeed | null>(null);
+  if (feed && target === shown && held !== feed) setHeld(feed);
   const scene = (shown?.slice(shown.lastIndexOf(":") + 1) ?? feed?.scene) as OverlayFeed["scene"];
-  const view = feed && shown ? { ...feed, scene } : null;
+  const base = target === shown ? feed : held ?? feed;
+  const view = base && shown ? { ...base, scene } : null;
 
   return (
     <Fit>
