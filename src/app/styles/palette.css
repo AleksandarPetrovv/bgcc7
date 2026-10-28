@@ -63,6 +63,7 @@
   --mod-dt: #8a5cf0;
   --mod-fm: #6c8a26;
   --mod-tb: #7d7479;
+  --mod-fc: #12938a;
   /* mod text on the canvas (>= 4.5:1 on ink and coal) */
   --mod-nm-hi: #2c549d;
   --mod-hd-hi: #6f5003;
@@ -70,6 +71,7 @@
   --mod-dt-hi: #6241aa;
   --mod-fm-hi: #4f6b18;
   --mod-tb-hi: #5e565b;
+  --mod-fc-hi: #0b5f59;
 }
 
 /* dark mode: html.dark (cookie "theme"), overlays force .light. only what differs from light */
@@ -108,4 +110,5 @@
   --mod-dt-hi: #b99cff;
   --mod-fm-hi: #a9cc55;
   --mod-tb-hi: #b5acb1;
+  --mod-fc-hi: #5ccfc3;
 }
