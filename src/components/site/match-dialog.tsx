@@ -311,9 +311,8 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
 
 export function DetailsChip() {
   return (
-    <span className="relative inline-flex h-5 w-[30px] -skew-x-12 items-center justify-center overflow-hidden border border-rose bg-rose text-white shadow-[2px_2px_0_0_var(--rose-deep)] transition-[background-color,transform,box-shadow,translate,scale,rotate] duration-200 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 group-hover:bg-rose-hi group-hover:shadow-[4px_4px_0_0_var(--rose-deep)]">
+    <span className="relative inline-flex h-5 w-[30px] -skew-x-12 items-center justify-center overflow-hidden bg-rose text-white shadow-[2px_2px_0_0_var(--rose-deep)] transition-[background-color,transform,box-shadow,translate,scale,rotate] duration-200 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 group-hover:bg-rose-hi group-hover:shadow-[4px_4px_0_0_var(--rose-deep)]">
       <Eye className="size-[15px] skew-x-12" strokeWidth={2} aria-hidden />
-      <span className="eye-sheen pointer-events-none absolute -inset-y-0.5 -left-3 w-1.5 bg-white/60" aria-hidden />
     </span>
   );
 }
