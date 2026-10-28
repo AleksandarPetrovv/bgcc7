@@ -102,12 +102,16 @@ function GameplayDivider({ length, horizontal = false }: { length: number; horiz
   );
 }
 
+// name + rank until the first note is hit, then the stats slide in and stay until the scene changes
 function Player({ c, p, side, reduced }: { c?: LiveClient; p?: OverlayFeed["teams"][number]["players"][number]; side: 0 | 1; reduced: boolean }) {
   const t = TEAM[side];
   const right = side === 1;
+  const [started, setStarted] = useState(false);
+  if (!started && c && (c.score > 0 || c.combo > 0)) setStarted(true);
+  const move = { duration: reduced ? 0 : 0.6, ease: [0.16, 1, 0.3, 1] as const };
   return (
     <div className={cn("flex h-full flex-col items-center justify-center gap-4 text-center transition-opacity duration-300", right ? "pl-8 pr-4" : "pl-4 pr-8", c?.failed && "opacity-45")}>
-      <div className="flex min-w-0 max-w-full flex-col items-center gap-3">
+      <motion.div layout="position" transition={move} className="flex min-w-0 max-w-full flex-col items-center gap-3">
         {p?.avatar && (
           <span className="inline-flex shrink-0 -skew-x-12 overflow-hidden border-[3px] bg-ink" style={{ borderColor: t.c, boxShadow: `6px 6px 0 0 ${t.deep}` }}>
             <Img src={p.avatar} className="size-[76px] shrink-0 skew-x-12 scale-[1.25] object-cover" />
@@ -119,9 +123,9 @@ function Player({ c, p, side, reduced }: { c?: LiveClient; p?: OverlayFeed["team
             {p?.rank ? `#${p.rank.toLocaleString("en-US")}` : ""}
           </span>
         </div>
-      </div>
-      {c && (
-        <>
+      </motion.div>
+      {c && started && (
+        <motion.div className="flex flex-col items-center gap-4" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ ...move, delay: reduced ? 0 : 0.1 }}>
           <span className="num font-display text-[54px] font-black leading-none" style={{ color: t.hi }}>
             <Count value={c.score} reduced={reduced} />
           </span>
@@ -138,7 +142,7 @@ function Player({ c, p, side, reduced }: { c?: LiveClient; p?: OverlayFeed["team
               </span>
             ))}
           </div>
-        </>
+        </motion.div>
       )}
     </div>
   );
