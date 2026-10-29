@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { InView } from "@/components/site/in-view";
@@ -133,19 +134,26 @@ export function SlotBox({
             >
               <span className="sr in-grow absolute inset-x-0 top-0 h-0.5 [--d:0.55s]" style={{ background: color }} aria-hidden />
               <header
-                role={empty ? undefined : "button"}
-                tabIndex={empty ? undefined : 0}
-                aria-expanded={empty ? undefined : open}
-                title={empty ? undefined : open ? t.admin.collapse : t.admin.expand}
                 onClick={(e) => !empty && !(e.target as Element).closest("a,button,input,label,form") && toggle()}
-                onKeyDown={(e) => !empty && e.target === e.currentTarget && (e.key === "Enter" || e.key === " ") && (e.preventDefault(), toggle())}
                 className={cn(
-                  "flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 transition-[border-color,background-color] duration-200",
-                  !empty && "cursor-pointer hover:bg-paper/[0.03] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-rose",
+                  "relative flex flex-wrap items-center gap-x-4 gap-y-2 py-2.5 pl-4 pr-16 transition-[border-color,background-color] duration-200",
+                  !empty && "cursor-pointer hover:bg-paper/[0.03]",
                   open && !empty ? "border-b border-line" : "border-b border-transparent",
                 )}
               >
                 {header}
+                {!empty && (
+                  <button
+                    type="button"
+                    onClick={toggle}
+                    aria-expanded={open}
+                    aria-label={open ? t.admin.collapse : t.admin.expand}
+                    title={open ? t.admin.collapse : t.admin.expand}
+                    className="absolute right-4 top-1/2 grid size-10 -translate-y-1/2 -skew-x-12 place-items-center border border-line text-ash transition-colors hover:border-paper/40 hover:text-paper"
+                  >
+                    <ChevronDown className={cn("size-4 skew-x-12 transition-transform duration-300", !open && "-rotate-90")} />
+                  </button>
+                )}
               </header>
               {!empty && (
                 <div className={cn("grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]", open ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
