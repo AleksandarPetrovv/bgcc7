@@ -7,6 +7,7 @@ import { Btn } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
 import { DEFAULT_PLAN, roundStats, type Plan, type PlanRound } from "@/lib/format-plan";
 import { cn } from "@/lib/utils";
+import { Cascade } from "@/components/site/cascade";
 import { resetPlan, savePlan } from "./actions";
 import { Catalog, Edit } from "./format-context";
 import { RoundCard } from "./format-round";
@@ -89,15 +90,17 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
           })}
         </div>
 
-        <div className="in-up [--d:0.35s]">
+        <div>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div key={plan.rounds[tab].slug} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
-            <RoundCard r={plan.rounds[tab]} prev={plan.rounds.slice(0, tab)} onChange={(x) => setRound(tab, x)} />
+            <Cascade step={0.03} className="[--d:0.25s]">
+              <RoundCard r={plan.rounds[tab]} prev={plan.rounds.slice(0, tab)} onChange={(x) => setRound(tab, x)} />
+            </Cascade>
           </motion.div>
         </AnimatePresence>
         </div>
 
-        <div className="in-up [--d:0.5s]">
+        <div>
           <SubcategoryEditor groups={plan.subcategories} onChange={(subcategories) => change((p) => ({ ...p, subcategories }))} />
         </div>
 

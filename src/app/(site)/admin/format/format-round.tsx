@@ -7,7 +7,7 @@ import { useDict } from "@/components/site/lang";
 import { selectedSubcategories, subcategoryNames, newId, PLAN_MODS, roundStats, sortMaps, type PlanCat, type PlanMod, type PlanRound } from "@/lib/format-plan";
 import { cn } from "@/lib/utils";
 import { modHi, modOn } from "@/lib/theme";
-import { Catalog, Edit } from "./format-context";
+import { Catalog, Edit, Intro, useFresh, useIntroWindow } from "./format-context";
 
 const COLOR: Record<PlanMod | "FM", string> = {
   NM: "var(--mod-nm)",
@@ -155,6 +155,7 @@ function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "
   const [query, setQuery] = useState("");
   const [popupLeft, setPopupLeft] = useState(0);
   const names = subcategoryNames(groups, ids);
+  const fresh = useFresh();
   useEffect(() => {
     if (!open) return;
     const down = (e: PointerEvent) => e.target instanceof Node && !box.current?.contains(e.target) && setOpen(false);
@@ -168,7 +169,7 @@ function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "
   }, [open]);
 
   return (
-    <motion.span ref={box} layout initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }} transition={{ type: "spring", stiffness: 520, damping: 34 }} className={cn("relative inline-flex max-w-full", open && "z-30")}>
+    <motion.span ref={box} layout data-cascade={fresh || undefined} initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }} transition={{ type: "spring", stiffness: 520, damping: 34 }} className={cn("relative inline-flex max-w-full", fresh && "in-pop", open && "z-30")}>
       <button
         type="button"
         onClick={(e) => { setPopupLeft(Math.min(0, window.innerWidth - e.currentTarget.getBoundingClientRect().left - 304)); setOpen((o) => !o); }}
@@ -246,10 +247,11 @@ function CatRow({ c, onChange, onRemove, prev }: { c: PlanCat; onChange: (c: Pla
   const t = useDict();
   const edit = useContext(Edit);
   const drag = useDragControls();
+  const fresh = useFresh();
   const setMap = (id: string, subcategoryIds: string[]) => onChange({ ...c, maps: c.maps.map((m) => (m.id === id ? { ...m, note: "", subcategoryIds } : m)) });
   const add = (mod: PlanMod) => onChange({ ...c, maps: sortMaps([...c.maps, { id: newId(), mod, note: "" }]) });
   return (
-    <Reorder.Item value={c} dragListener={false} dragControls={drag} whileDrag={{ scale: 1.01, boxShadow: "6px 6px 0 0 var(--rose-deep)", zIndex: 10 }} className={cn(rowCls, "relative focus-within:z-30")}>
+    <Reorder.Item value={c} dragListener={false} dragControls={drag} whileDrag={{ scale: 1.01, boxShadow: "6px 6px 0 0 var(--rose-deep)", zIndex: 10 }} data-cascade={fresh || undefined} className={cn(rowCls, "relative focus-within:z-30", fresh && "in-left")}>
       {edit ? (
         <button type="button" onPointerDown={(e) => drag.start(e)} aria-label={t.admin.fp.drag} title={t.admin.fp.drag} className="-mx-1 grid h-8 w-6 cursor-grab touch-none place-items-center text-ash transition-colors hover:text-paper active:cursor-grabbing">
           <GripVertical className="size-4" />
@@ -257,8 +259,8 @@ function CatRow({ c, onChange, onRemove, prev }: { c: PlanCat; onChange: (c: Pla
       ) : (
         <span className="-mx-1 w-6" />
       )}
-      <input value={c.name} readOnly={!edit} maxLength={30} onChange={(e) => onChange({ ...c, name: e.target.value })} aria-label={t.admin.fp.category} className={nameCls} />
-      <span className="num w-6 text-center text-sm text-ash">{c.maps.length}</span>
+      <input value={c.name} readOnly={!edit} maxLength={30} onChange={(e) => onChange({ ...c, name: e.target.value })} aria-label={t.admin.fp.category} data-cascade={fresh || undefined} className={cn(nameCls, fresh && "in-wipe")} />
+      <span data-cascade={fresh || undefined} className={cn("num w-6 text-center text-sm text-ash", fresh && "in-drop")}>{c.maps.length}</span>
       <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
         <AnimatePresence initial={false} mode="popLayout">
           {sortMaps(c.maps).map((m) => (
@@ -268,7 +270,7 @@ function CatRow({ c, onChange, onRemove, prev }: { c: PlanCat; onChange: (c: Pla
       </div>
       {edit && (
         <>
-          <div className="flex flex-wrap gap-1">
+          <div data-cascade={fresh || undefined} className={cn("flex flex-wrap gap-1", fresh && "in-right")}>
             {PLAN_MODS.map((m) => (
               <button
                 key={m}
@@ -295,24 +297,28 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
   const edit = useContext(Edit);
   const s = roundStats(r);
   const setCat = (k: number, c: PlanCat) => onChange({ ...r, cats: r.cats.map((x, j) => (j === k ? c : x)) });
+  const intro = useIntroWindow();
 
   return (
+    <Intro.Provider value={intro}>
     <section className="relative border border-line bg-coal">
       <span className="absolute inset-x-0 top-0 h-0.5 bg-rose" aria-hidden />
       <header className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-line px-4 py-3 sm:px-5">
-        <span className="heading-slam -skew-x-12 bg-rose px-2.5 py-1 text-xl leading-none text-white shadow-[3px_3px_0_0_var(--rose-deep)]">
-          <span className="inline-block skew-x-12">BO{s.bestOf}</span>
+        <span data-cascade className="in-pop">
+          <span className="heading-slam inline-block -skew-x-12 bg-rose px-2.5 py-1 text-xl leading-none text-white shadow-[3px_3px_0_0_var(--rose-deep)]">
+            <span className="inline-block skew-x-12">BO{s.bestOf}</span>
+          </span>
         </span>
-        <h2 className="heading-slam min-w-0 flex-1 text-2xl sm:text-3xl">{t.rounds[r.name] ?? r.name}</h2>
-        <div className="flex items-center gap-2 text-[0.65rem] font-display font-bold text-ash">
+        <h2 data-cascade className="in-wipe heading-slam min-w-0 flex-1 text-2xl sm:text-3xl">{t.rounds[r.name] ?? r.name}</h2>
+        <div data-cascade className="in-drop flex items-center gap-2 text-[0.65rem] font-display font-bold text-ash">
           {t.admin.fp.firstTo}
           <Stepper value={r.firstTo} min={1} max={15} onChange={(n) => onChange({ ...r, firstTo: n })} label={t.admin.fp.firstTo} />
         </div>
-        <div className="flex items-center gap-2 text-[0.65rem] font-display font-bold text-ash">
+        <div data-cascade className="in-drop flex items-center gap-2 text-[0.65rem] font-display font-bold text-ash">
           {t.admin.fp.bans}
           <Stepper value={r.bans} min={0} max={6} onChange={(n) => onChange({ ...r, bans: n })} label={t.admin.fp.bans} />
         </div>
-        <div className="flex items-center gap-2 text-[0.65rem] font-display font-bold text-ash">
+        <div data-cascade className="in-drop flex items-center gap-2 text-[0.65rem] font-display font-bold text-ash">
           {t.admin.fp.targetSr}
           <SrInput value={r.sr ?? null} onChange={(sr) => onChange({ ...r, sr })} label={t.admin.fp.targetSr} />
         </div>
@@ -330,8 +336,8 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
           ] as const
         ).map(([k, val]) => (
           <div key={k} className="flex flex-col gap-0.5 bg-coal px-4 py-2.5">
-            <span className="text-[0.62rem] font-display font-bold text-ash">{k}</span>
-            <span className="num text-xl leading-none text-paper">{val}</span>
+            <span data-cascade className="in-wipe text-[0.62rem] font-display font-bold text-ash">{k}</span>
+            <span data-cascade className="in-up num text-xl leading-none text-paper">{val}</span>
           </div>
         ))}
       </div>
@@ -342,15 +348,16 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
             <CatRow key={c.id} c={c} prev={prev} onChange={(x) => setCat(k, x)} onRemove={() => onChange({ ...r, cats: r.cats.filter((_, j) => j !== k) })} />
           ))}
         </Reorder.Group>
-        <div className={rowCls}>
+        <div data-cascade className={cn(rowCls, "in-left")}>
           <span className="-mx-1 w-6" />
-          <span className={cn(nameCls, "text-paper")}>{t.admin.fp.tb}</span>
+          <span data-cascade className={cn(nameCls, "in-wipe text-paper")}>{t.admin.fp.tb}</span>
           <span className="w-6" />
           <div className="flex min-w-0 flex-1">
             <Tile mod="FM" ids={selectedSubcategories([...prev, r], "tb")} title={t.admin.fp.tb} onSelect={(tbSubcategoryIds) => onChange({ ...r, tbNote: "", tbSubcategoryIds })} />
           </div>
         </div>
         {edit && (
+          <div data-cascade className="in-up">
           <button
             type="button"
             onClick={() => onChange({ ...r, cats: [...r.cats, { id: newId(), name: t.admin.fp.newCat, maps: [] }] })}
@@ -360,9 +367,11 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
               <Plus className="size-3.5" strokeWidth={3} /> {t.admin.fp.addCat}
             </span>
           </button>
+          </div>
         )}
       </div>
     </section>
+    </Intro.Provider>
   );
 }
 
