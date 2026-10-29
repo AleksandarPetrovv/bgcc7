@@ -302,6 +302,13 @@
       "when": 1792661638227,
       "tag": "0042_edition_default",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1792748038227,
+      "tag": "0043_suggestion_tags",
+      "breakpoints": true
     }
   ]
 }
