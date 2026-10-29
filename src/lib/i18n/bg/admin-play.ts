@@ -158,7 +158,7 @@ export const adminPlay: typeof en = {
   outsideLayout: "Извън структурата на пула",
   clearSlot: "Изчисти слота",
   confirmClearSlot: "Да махнем ли мапа от слота?",
-  pasteMap: "Постави линк или id на мап",
+  pasteMap: "Линк или id на мап",
   changeMap: "Смени мапа в този слот",
   suggestForSlot: "Предложи мап за този слот",
   mapTagsPick: "Какво тества този мап",
