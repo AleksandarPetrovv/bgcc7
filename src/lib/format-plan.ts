@@ -153,7 +153,7 @@ export const slotColor = (slot: string) => {
   return Object.values(SKILLS).find((s) => s.abbr === p)?.color ?? MOD_COLOR[p] ?? "var(--paper)";
 };
 
-export type SkillSlot = { mod: string; slot: number; note: string; label: string };
+export type SkillSlot = { mod: string; slot: number; note: string; ids: string[]; label: string };
 export type SkillGroup = { id: string; name: string; abbr: string; color: string; slots: SkillSlot[] };
 export type SkillLayout = { groups: SkillGroup[]; blueprint: Record<string, number>; firstTo: number; bans: number };
 
@@ -162,7 +162,8 @@ export function skillLayout(plan: Plan, slug: string): SkillLayout | null {
   if (at < 0) return null;
   const r = plan.rounds[at];
   const rounds = plan.rounds.slice(0, at + 1);
-  const note = (catId: string, mapId?: string) => subcategoryNames(plan.subcategories, selectedSubcategories(rounds, catId, mapId)).join("\n");
+  const ids = (catId: string, mapId?: string) => selectedSubcategories(rounds, catId, mapId);
+  const note = (catId: string, mapId?: string) => subcategoryNames(plan.subcategories, ids(catId, mapId)).join("\n");
   const next: Record<string, number> = {};
   const groups: SkillGroup[] = r.cats.map((c) => {
     const sk = skillOf(c);
@@ -174,11 +175,11 @@ export function skillLayout(plan: Plan, slug: string): SkillLayout | null {
         const mod = LONG_MOD[m.mod];
         const slot = next[mod] ?? 0;
         next[mod] = slot + 1;
-        return { mod, slot, note: note(c.id, m.id), label: `${sk.abbr}${k + 1}` };
+        return { mod, slot, note: note(c.id, m.id), ids: ids(c.id, m.id), label: `${sk.abbr}${k + 1}` };
       }),
     };
   });
-  groups.push({ id: "tb", name: "Tiebreaker", ...TB_SKILL, slots: [{ mod: "Tiebreaker", slot: 0, note: note("tb"), label: "TB" }] });
+  groups.push({ id: "tb", name: "Tiebreaker", ...TB_SKILL, slots: [{ mod: "Tiebreaker", slot: 0, note: note("tb"), ids: ids("tb"), label: "TB" }] });
   return { groups, blueprint: { ...next, Tiebreaker: 1 }, firstTo: r.firstTo, bans: r.bans };
 }
 
