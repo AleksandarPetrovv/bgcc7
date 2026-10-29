@@ -14,10 +14,13 @@ export function Cascade({ className, step = 0.06, children }: { className?: stri
       .sort((a, b) => a.r.top - b.r.top || a.r.left - b.r.left)
       .forEach(({ el }, n) => {
         if (belowFold(el)) el.classList.add("no-intro");
-        else el.style.setProperty("--i", String(n));
+        else {
+          el.style.setProperty("--i", String(n));
+          el.style.setProperty("--s", `${step}s`);
+        }
         el.classList.add("in");
       });
-  }, []);
+  }, [step]);
   return (
     <div ref={ref} className={cn(className)} style={{ "--s": `${step}s` } as React.CSSProperties}>
       {children}
