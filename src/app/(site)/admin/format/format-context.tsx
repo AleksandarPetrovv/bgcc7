@@ -7,7 +7,7 @@ export const Edit = createContext(false);
 export const Catalog = createContext<SubcategoryGroup[]>([]);
 export const Intro = createContext(false);
 
-export function useIntroWindow(ms = 1600) {
+export function useIntroWindow(ms = 1000) {
   const [on, setOn] = useState(true);
   useEffect(() => {
     const t = setTimeout(() => setOn(false), ms);
