@@ -42,7 +42,9 @@ export function VoteCell({ id, viewer, mine, mineNote, canVote, own, picked, won
       {canVote &&
         !picked &&
         (own ? (
-          <span className="text-xs font-display font-bold text-ash">{t.admin.yourSuggestion}</span>
+          <span className="-skew-x-12 bg-rose px-2.5 py-1 text-xs font-display font-bold uppercase tracking-wider text-white shadow-[2px_2px_0_0_var(--rose-deep)]">
+            <span className="inline-block skew-x-12">{t.admin.yourSuggestion}</span>
+          </span>
         ) : (
           <VotePicker id={id} mine={mine} mineNote={mineNote} onDraft={(n, saved) => setDraft({ n, saved })} />
         ))}
@@ -66,7 +68,7 @@ export function VoteCell({ id, viewer, mine, mineNote, canVote, own, picked, won
           )}
           <span className={cn("heading-slam skew-x-12 text-[1.7rem] leading-none tabular-nums", avg === null ? "text-ash" : "text-paper")}>
             {avg === null ? (
-              <span className="text-[0.65rem] font-display font-bold text-ash">?/10</span>
+              "?"
             ) : (
               <>
                 {avg.toFixed(1)}
