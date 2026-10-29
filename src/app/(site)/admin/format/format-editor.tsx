@@ -93,7 +93,7 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
         <div>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div key={plan.rounds[tab].slug} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
-            <Cascade step={0.03} className="[--d:0.25s]">
+            <Cascade step={0.012} className="[--d:0.1s]">
               <RoundCard r={plan.rounds[tab]} prev={plan.rounds.slice(0, tab)} onChange={(x) => setRound(tab, x)} />
             </Cascade>
           </motion.div>
