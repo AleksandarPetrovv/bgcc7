@@ -109,7 +109,7 @@ export function SlotBox({
 }) {
   const t = useDict();
   const { mod: filter } = useContext(Ctx);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(!picked);
   const toggle = () => setOpen((o) => !o);
   const shown = filter === "all" || filter === mod;
 
