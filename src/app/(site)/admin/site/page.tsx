@@ -7,6 +7,7 @@ import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
+import { Cascade } from "@/components/site/cascade";
 import { addSponsor } from "./actions";
 import { PackUploader } from "./pack-uploader";
 import { SponsorList } from "./sponsor-list";
@@ -19,7 +20,7 @@ export default async function AdminSite() {
     <>
       <PageTitle>{t.admin.menu.site}</PageTitle>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+      <Cascade className="grid grid-cols-1 gap-6 xl:grid-cols-2" step={0.06}>
         <div className="space-y-6">
           <Panel title={t.admin.packs} help={t.admin.packsHelp}>
             <PackUploader stages={stages.map((s) => ({ slug: s.slug, title: s.title, pack: s.pack }))} locale={lang === "bg" ? "bg-BG" : "en-GB"} />
@@ -33,7 +34,7 @@ export default async function AdminSite() {
           <SponsorList key={sponsors.map((s) => `${s.id}:${s.name}`).join()} sponsors={sponsors} />
         </Panel>
 
-      </div>
+      </Cascade>
     </>
   );
 }

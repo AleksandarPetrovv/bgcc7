@@ -23,7 +23,8 @@ function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
       onDragEnd={onDrop}
       layout="position"
       whileDrag={{ scale: 1.02, boxShadow: "6px 6px 0 0 var(--rose-deep)", zIndex: 10 }}
-      className="relative border border-line bg-coal"
+      data-cascade
+      className="in-left relative border border-line bg-coal"
     >
       <div className="flex items-center gap-3 px-3 py-2.5">
         <button
@@ -35,18 +36,18 @@ function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
         >
           <GripVertical className="size-4" />
         </button>
-        <span className="in-drop num w-6 text-center text-lg text-ash" style={{ "--i": i, "--s": "0.08s", "--d": "0.6s" } as React.CSSProperties}>
+        <span data-cascade className="in-drop num w-6 text-center text-lg text-ash">
           {i + 1}
         </span>
-        <span className="in-spin inline-flex" style={{ "--i": i, "--s": "0.08s", "--d": "0.65s" } as React.CSSProperties}>
+        <span data-cascade className="in-spin inline-flex">
           <Avatar src={s.image} className="size-9" />
         </span>
         <a
           href={s.url ?? undefined}
           target="_blank"
           rel="noreferrer"
+          data-cascade
           className="in-wipe min-w-0 flex-1 truncate font-display font-black transition-colors hover:text-rose-hi"
-          style={{ "--i": i, "--s": "0.08s", "--d": "0.75s" } as React.CSSProperties}
         >
           {s.name}
         </a>
@@ -55,11 +56,14 @@ function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
           onClick={() => setEditing((v) => !v)}
           aria-label={t.admin.edit}
           title={t.admin.edit}
-          className={cn("p-2 transition-colors", editing ? "text-rose-hi" : "text-ash hover:text-paper")}
+          data-cascade
+          className={cn("in-pop p-2 transition-colors", editing ? "text-rose-hi" : "text-ash hover:text-paper")}
         >
           {editing ? <X className="size-4" /> : <Pencil className="size-4" />}
         </button>
-        <ActionForm action={deleteSponsor.bind(null, s.id)} submit={t.admin.remove} ghost confirm={t.admin.confirmDeleteSponsor} />
+        <span data-cascade className="in-right">
+          <ActionForm action={deleteSponsor.bind(null, s.id)} submit={t.admin.remove} ghost confirm={t.admin.confirmDeleteSponsor} />
+        </span>
       </div>
       <AnimatePresence initial={false}>
         {editing && (
