@@ -1,5 +1,5 @@
 import { MOD_COLOR } from "./theme";
-import { DEFAULT_CATALOG, DEFAULT_QF, DEFAULT_RO16 } from "./format-defaults";
+import { DEFAULT_CATALOG, DEFAULT_ROUNDS } from "./format-defaults";
 
 export const PLAN_MODS = ["NM", "HD", "HR", "DT"] as const;
 export type PlanMod = (typeof PLAN_MODS)[number];
@@ -36,38 +36,7 @@ export function subcategoryNames(groups: SubcategoryGroup[], ids: string[]): str
 
 export const newId = () => Math.random().toString(36).slice(2, 10);
 
-const cat = (name: string, mods: PlanMod[]): PlanCat => ({
-  id: name.toLowerCase().replace(/\s+/g, "-"),
-  name,
-  maps: mods.map((mod, i) => ({ id: `${mod}${i}`, mod, note: "" })),
-});
-
-const mid = () => [
-  cat("Aim", ["NM", "NM", "HR", "DT", "DT"]),
-  cat("Speed", ["DT", "DT"]),
-  cat("Reading", ["NM", "HD", "DT"]),
-  cat("Stamina", ["NM"]),
-  cat("Finger control", ["NM", "DT"]),
-];
-
-const late = () => [
-  cat("Aim", ["NM", "NM", "HR", "DT", "DT"]),
-  cat("Speed", ["DT", "DT", "DT"]),
-  cat("Reading", ["NM", "HD", "DT"]),
-  cat("Stamina", ["NM", "NM"]),
-  cat("Finger control", ["NM", "DT"]),
-];
-
-export const DEFAULT_PLAN: Plan = {
-  subcategories: DEFAULT_SUBCATEGORIES,
-  rounds: [
-    DEFAULT_RO16,
-    DEFAULT_QF,
-    { slug: "semifinals", name: "Semifinals", firstTo: 6, bans: 1, cats: mid(), tbNote: "" },
-    { slug: "finals", name: "Finals", firstTo: 7, bans: 1, cats: late(), tbNote: "" },
-    { slug: "grand-finals", name: "Grand Finals", firstTo: 7, bans: 1, cats: late(), tbNote: "" },
-  ],
-};
+export const DEFAULT_PLAN: Plan = { subcategories: DEFAULT_SUBCATEGORIES, rounds: DEFAULT_ROUNDS };
 
 const MOD_RANK = Object.fromEntries(PLAN_MODS.map((m, i) => [m, i])) as Record<PlanMod, number>;
 export const sortMaps = (maps: PlanMap[]) => [...maps].sort((a, b) => MOD_RANK[a.mod] - MOD_RANK[b.mod]);
