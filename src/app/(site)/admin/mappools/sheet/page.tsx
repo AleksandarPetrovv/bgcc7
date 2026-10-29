@@ -4,7 +4,9 @@ import { LinkTabs } from "@/components/site/tabs";
 import { PageTitle } from "@/components/site/page";
 import { ActionForm, IconAction } from "@/components/admin/form";
 import { getPoolStages, MOD_ORDER } from "@/db/mappools";
-import { getSkillLayouts } from "@/db/format-plan";
+import { getPlan, getSkillLayouts } from "@/db/format-plan";
+import { subcategoryNames } from "@/lib/format-plan";
+import { TagChips } from "../tag-chips";
 import { getSheet, sheetVersion } from "@/db/pool-sheet";
 import { getViewer } from "@/lib/authz";
 import { fmtLen, MODS } from "@/lib/data";
@@ -18,6 +20,7 @@ import { VoteCell } from "./vote-cell";
 import { SlotPop } from "../slot-pop";
 import { SheetView, SlotBox } from "./sheet-view";
 import { osuMap } from "@/lib/links";
+import { cardCover } from "@/lib/data";
 
 const places = (items: { picked: boolean; avg: number | null }[]) => {
   const out: number[] = [];
@@ -36,12 +39,11 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
   const host = can(viewer.roles, "phase");
   const edit = can(viewer.roles, "poolEdit");
   const vote = can(viewer.roles, "poolVote");
-  const sheets = await Promise.all(stages.map((s) => getSheet(s.id, viewer.osuId, s.blueprint)));
+  const [sheets, version, layouts, plan] = await Promise.all([Promise.all(stages.map((s) => getSheet(s.id, viewer.osuId, s.blueprint))), sheetVersion(stage.id), getSkillLayouts(), getPlan()]);
   const sheet = sheets[stages.indexOf(stage)];
-  const version = await sheetVersion(stage.id);
   const name = (s: { title: string }) => t.rounds[s.title] ?? s.title;
-  const skill = (await getSkillLayouts())?.[stage.slug];
-  const info = new Map(skill?.groups.flatMap((g, gi) => g.slots.map((x, k) => [`${x.mod}-${x.slot}`, { group: g, label: x.label, note: x.note, at: gi * 100 + k }] as const)) ?? []);
+  const skill = layouts?.[stage.slug];
+  const info = new Map(skill?.groups.flatMap((g, gi) => g.slots.map((x, k) => [`${x.mod}-${x.slot}`, { group: g, label: x.label, ids: x.ids, at: gi * 100 + k }] as const)) ?? []);
   const slots = skill ? [...sheet.slots].sort((a, b) => (info.get(`${a.mod}-${a.slot}`)?.at ?? 1e6) - (info.get(`${b.mod}-${b.slot}`)?.at ?? 1e6)) : sheet.slots;
 
   return (
@@ -95,7 +97,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
               color={color}
               header={
                 <>
-                  <span className="sr in-slam heading-slam text-2xl [--d:0.6s]" style={{ color: modHi(color) }}>
+                  <span className="sr in-slam heading-slam text-2xl [--d:0.2s]" style={{ color: modHi(color) }}>
                     {label}
                   </span>
                   {sk && s.mod !== "Tiebreaker" && (
@@ -104,23 +106,23 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                     </span>
                   )}
                   {sk && (
-                    <span className="flex min-w-0 flex-col leading-tight">
+                    <span className="flex min-w-0 flex-col gap-1 leading-tight">
                       <span className="text-xs font-display font-bold text-paper">{sk.group.name}</span>
-                      {sk.note && <span className="truncate text-xs font-semibold text-ash">{sk.note.split(/\s*\n\s*/).join(" · ")}</span>}
+                      <TagChips names={subcategoryNames(plan.subcategories, sk.ids)} label={t.admin.slotWants} color={color} />
                     </span>
                   )}
                   {s.picked ? (
-                    <span className="sr in-pop flex items-center gap-1.5 text-xs font-display font-bold text-balkan-hi [--d:0.7s]">
+                    <span className="sr in-pop flex items-center gap-1.5 text-xs font-display font-bold text-balkan-hi [--d:0.3s]">
                       <Check className="size-3.5" strokeWidth={3} /> {t.admin.slotPicked}
                     </span>
                   ) : s.tie ? (
-                    <span className="sr in-pop flex -skew-x-12 items-center border border-rose/70 bg-rose/15 px-2.5 py-1 text-xs font-display font-bold text-rose-hi [--d:0.7s]">
+                    <span className="sr in-pop flex -skew-x-12 items-center border border-rose/70 bg-rose/15 px-2.5 py-1 text-xs font-display font-bold text-rose-hi [--d:0.3s]">
                       <span className="flex skew-x-12 items-center gap-1.5">
                         <Scale className="size-3.5" /> {host ? t.admin.tieHost : t.admin.tie}
                       </span>
                     </span>
                   ) : s.waitingOn.length ? (
-                    <span className="sr in-drop flex min-w-0 items-center gap-1.5 text-xs text-ash [--d:0.7s]">
+                    <span className="sr in-drop flex min-w-0 items-center gap-1.5 text-xs text-ash [--d:0.3s]">
                       <Hourglass className="size-3.5 shrink-0" />
                       <span className="font-display font-bold">{t.admin.waitingOn}</span>
                       <span className="truncate">{s.waitingOn.join(", ")}</span>
@@ -131,7 +133,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                       <ActionForm action={pickNow.bind(null, stage.id, s.mod, s.slot)} submit={t.admin.pickNow} ghost confirm={t.admin.confirmPickNow} />
                     )}
                     {edit && !s.picked && !s.out && (
-                      <SlotPop action={suggestMap.bind(null, stage.id, s.mod, s.slot)} title={t.admin.suggestForSlot} slot={label} color={color} submit={t.admin.suggest} />
+                      <SlotPop action={suggestMap.bind(null, stage.id, s.mod, s.slot)} title={t.admin.suggestForSlot} slot={label} color={color} submit={t.admin.suggest} tags={sk ? { groups: plan.subcategories, preset: sk.ids } : undefined} />
                     )}
                   </span>
                 </>
@@ -148,7 +150,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                   return (
                     <li
                       key={m.id}
-                      style={{ "--i": i, "--s": "0.05s", "--d": "0.65s" } as React.CSSProperties}
+                      style={{ "--i": i, "--s": "0.04s", "--d": "0.25s" } as React.CSSProperties}
                       className={cn("sr in-left relative flex flex-wrap items-center gap-3 py-3.5 pl-4 pr-3", green && "bg-balkan/[0.07]")}
                     >
                       {(green || lead) && <span className={cn("absolute inset-y-0 left-0 w-1", green ? "bg-balkan" : "bg-rose")} aria-hidden />}
@@ -168,7 +170,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                         <span className="num skew-x-12">{m.picked ? <Check className="size-4" strokeWidth={3.5} /> : tiedWin ? "–" : `#${place}`}</span>
                       </span>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={m.cover} alt="" className="hidden h-12 w-28 shrink-0 object-cover sm:block" />
+                      <img src={cardCover(m.cover)} alt="" loading="lazy" decoding="async" className="hidden h-12 w-28 shrink-0 object-cover sm:block" />
                       <div className="min-w-0 flex-1 basis-56">
                         <a
                           href={osuMap(m.beatmapId)}
@@ -189,6 +191,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                             {t.admin.suggestedBy} <span className="font-bold text-paper/80">{m.by}</span>
                           </span>
                         </div>
+                        <TagChips names={subcategoryNames(plan.subcategories, m.subcategoryIds)} label={t.admin.mapHas} color={color} filled className="mt-1.5" />
                       </div>
                       <div className="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
                         <VoteCell
