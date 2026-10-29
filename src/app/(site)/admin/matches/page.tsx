@@ -9,6 +9,7 @@ import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { MatchCard } from "./match-card";
+import { Cascade } from "@/components/site/cascade";
 import { db } from "@/db";
 import { drafts, mpLobbies, staff, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -26,7 +27,7 @@ export default async function AdminMatches() {
         <Words text={t.admin.matchesHelp} d={0.15} s={0.012} />
       </p>
 
-      <div className="space-y-8">
+      <Cascade className="space-y-8" step={0.04}>
         {bracketStages.map((s, n) => (
           <Panel key={s.slug} i={n < 3 ? n + 1 : 0} title={`${t.rounds[s.title] ?? s.title} · ${t.admin.firstToShort(s.firstTo ?? getFormat().firstTo)}`}>
             <div className="space-y-6">
@@ -34,7 +35,7 @@ export default async function AdminMatches() {
                 const list = rows.filter((m) => m.stageSlug === s.slug && m.round === round);
                 return (
                   <div key={round}>
-                    <h3 className="mb-2.5 flex items-center gap-3 text-[0.7rem] font-display font-bold text-rose-hi">
+                    <h3 data-cascade className="in-wipe mb-2.5 flex items-center gap-3 text-[0.7rem] font-display font-bold text-rose-hi">
                       {t.rounds[round] ?? round}
                       <span className="num text-ash">
                         {list.filter((m) => m.winner).length}/{list.length}
@@ -42,8 +43,8 @@ export default async function AdminMatches() {
                       <span className="h-px flex-1 bg-line" aria-hidden />
                     </h3>
                     <div className="space-y-2">
-                      {list.map((m, k) => (
-                        <MatchCard key={m.id} m={m} k={k} t={t} locale={locale} teams={teams} refs={refs} pools={bracketStages.filter((x) => x.pools.length).map((x) => ({ slug: x.slug, title: t.rounds[x.title] ?? x.title }))} live={m.winner ? undefined : live.get(m.id)} />
+                      {list.map((m) => (
+                        <MatchCard key={m.id} m={m} t={t} locale={locale} teams={teams} refs={refs} pools={bracketStages.filter((x) => x.pools.length).map((x) => ({ slug: x.slug, title: t.rounds[x.title] ?? x.title }))} live={m.winner ? undefined : live.get(m.id)} />
                       ))}
                     </div>
                   </div>
@@ -52,7 +53,7 @@ export default async function AdminMatches() {
             </div>
           </Panel>
         ))}
-      </div>
+      </Cascade>
     </>
   );
 }
