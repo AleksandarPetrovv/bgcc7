@@ -10,10 +10,10 @@ export function TagChips({ names, label, color, filled, className }: { names: st
       {names.map((n) => (
         <span
           key={n}
-          className="border px-1.5 py-px text-[0.72rem] font-display font-bold leading-snug text-paper"
+          className="-skew-x-12 border px-1.5 py-px text-[0.72rem] font-display font-bold leading-snug text-paper"
           style={{ borderColor: filled ? c : `color-mix(in srgb, ${c} 55%, transparent)`, background: filled ? `color-mix(in srgb, ${c} 20%, transparent)` : undefined }}
         >
-          {n}
+          <span className="inline-block skew-x-12">{n}</span>
         </span>
       ))}
     </span>
