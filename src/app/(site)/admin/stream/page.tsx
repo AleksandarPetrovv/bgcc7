@@ -12,6 +12,7 @@ import { streamMatches } from "@/db/stream";
 import { getLive, getReject } from "@/lib/live-scores";
 import { SceneButtons } from "./scene-buttons";
 import { OverlayPreview } from "./overlay-preview";
+import { Cascade } from "@/components/site/cascade";
 
 export const dynamic = "force-dynamic";
 
@@ -26,36 +27,42 @@ export default async function Stream() {
   return (
     <>
       <PageTitle mark="chevrons">{t.admin.menu.stream}</PageTitle>
-      <div className="grid max-w-4xl gap-6">
+      <Cascade className="grid max-w-4xl gap-6" step={0.06}>
         {list.length === 0 && <p className="text-sm font-bold text-ash">{all ? s.noneAll : s.none}</p>}
         {list.map((m, i) => (
           <Panel key={m.id} title={t.rounds[m.round] ?? m.round} i={i + 1} className={m.mine ? "border-2 border-gold shadow-[6px_6px_0_0_var(--gold-deep)]" : undefined}>
             <div className="grid gap-4">
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-                <span className="flex min-w-0 items-center gap-2 text-lg font-display font-black">
+                <span data-cascade className="in-left flex min-w-0 items-center gap-2 text-lg font-display font-black">
                   <span className="h-5 w-1 shrink-0 bg-crimson" aria-hidden />
                   <span className="truncate">{m.team1.name}</span>
                   <span className="font-display text-[0.62rem] text-ash">VS</span>
                   <span className="truncate">{m.team2.name}</span>
                   <span className="h-5 w-1 shrink-0 bg-azure" aria-hidden />
                 </span>
-                <span className="num flex items-center gap-1.5 text-xs text-paper/85">
+                <span data-cascade className="in-up num flex items-center gap-1.5 text-xs text-paper/85">
                   <CalendarClock className="size-3.5 text-ash" />
                   {m.datetime ? fmtSofia(new Date(m.datetime), lang === "bg" ? "bg-BG" : "en-GB") : t.common.tbd}
                 </span>
-                <span className={m.mine ? "flex items-center gap-1.5 text-xs font-display font-bold text-gold-hi" : "flex items-center gap-1.5 text-xs text-ash"}>
+                <span data-cascade className={m.mine ? "in-right flex items-center gap-1.5 text-xs font-display font-bold text-gold-hi" : "in-right flex items-center gap-1.5 text-xs text-ash"}>
                   <Radio className="size-3.5" />
                   {m.mine ? s.you : (m.streamer ?? t.common.tbd)}
                 </span>
               </div>
+              <div data-cascade className="in-up">
               <OverlayPreview slug={m.slug} title={s.preview} label={s.liveScores} offline={s.noLiveScores} clientsLabel={s.clients} delayLabel={s.delay} initialAt={getLive(m.id)?.at ?? null} initialClients={getLive(m.id)?.clients.length ?? 0} />
-              {getReject(m.id) && <p className="text-xs font-display font-bold text-rose-hi">{s.reject[getReject(m.id)!]}</p>}
-              <SceneButtons id={m.id} initial={m.scene} />
-              <CopyLink url={`${base}/overlay/${m.slug}`} />
+              </div>
+              {getReject(m.id) && <p data-cascade className="in-wipe text-xs font-display font-bold text-rose-hi">{s.reject[getReject(m.id)!]}</p>}
+              <div data-cascade className="in-up">
+                <SceneButtons id={m.id} initial={m.scene} />
+              </div>
+              <div data-cascade className="in-up">
+                <CopyLink url={`${base}/overlay/${m.slug}`} />
+              </div>
             </div>
           </Panel>
         ))}
-      </div>
+      </Cascade>
     </>
   );
 }
