@@ -40,8 +40,19 @@ export function SubcategoryEditor({ groups, onChange }: { groups: SubcategoryGro
   };
   return <section className="relative border border-line bg-coal">
     <span className="absolute inset-x-0 top-0 h-0.5 bg-rose" aria-hidden />
-    <header className="border-b border-line px-4 py-3 sm:px-5"><h2 className="heading-slam text-2xl">{t.admin.fp.subcategories}</h2></header>
-    <div className="grid gap-5 p-4 sm:grid-cols-2 sm:p-5 xl:grid-cols-5">
+    <header className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 sm:px-5">
+      <h2 className="heading-slam min-w-0 flex-1 text-2xl">{t.admin.fp.subcategories}</h2>
+      {edit && groups.length < 16 && (
+        <button
+          type="button"
+          onClick={() => onChange([...groups, { id: newId(), name: t.admin.fp.newGroup, items: [] }])}
+          className="flex items-center gap-1.5 text-xs font-display font-bold text-ash transition-colors hover:text-rose-hi"
+        >
+          <Plus className="size-3.5" strokeWidth={3} /> {t.admin.fp.addGroup}
+        </button>
+      )}
+    </header>
+    <div className="grid gap-5 p-4 sm:grid-cols-2 sm:p-5 xl:grid-cols-4">
       {groups.map((group) => <div key={group.id} className="min-w-0">
         <h3 className="mb-3 flex items-center gap-1 border-b border-line pb-2 text-sm font-display font-bold text-rose-hi">
           <input value={group.name} readOnly={!edit} maxLength={60} aria-label={`${t.admin.fp.category}: ${group.name}`} onChange={(e) => update(group.id, { ...group, name: e.target.value })} className="w-full min-w-0 flex-1 bg-transparent font-display font-bold outline-none focus:text-paper" />
@@ -64,17 +75,6 @@ export function SubcategoryEditor({ groups, onChange }: { groups: SubcategoryGro
         </Reorder.Group>
         {edit && <button type="button" onClick={() => update(group.id, { ...group, items: [...group.items, { id: newId(), name: t.admin.fp.newSubcategory }] })} className="mt-2 flex w-full items-center justify-center gap-1 border border-dashed border-line px-2 py-2 text-xs font-display font-bold text-ash hover:border-rose hover:text-rose-hi"><Plus className="size-3.5" />{t.admin.fp.addSubcategory}</button>}
       </div>)}
-      {edit && groups.length < 16 && (
-        <button
-          type="button"
-          onClick={() => onChange([...groups, { id: newId(), name: t.admin.fp.newGroup, items: [] }])}
-          className="flex min-h-24 -skew-x-6 items-center justify-center gap-2 border border-dashed border-line text-xs font-display font-bold text-ash transition-colors hover:border-rose hover:text-rose-hi"
-        >
-          <span className="flex skew-x-6 items-center gap-2">
-            <Plus className="size-3.5" strokeWidth={3} /> {t.admin.fp.addGroup}
-          </span>
-        </button>
-      )}
     </div>
   </section>;
 }
