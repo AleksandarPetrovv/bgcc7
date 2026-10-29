@@ -140,6 +140,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
   return (
     <div className="space-y-4">
       {!simple && (
+        <div data-cascade className="in-left">
         <Tabs
           label={t.admin.packs}
           index={stages.findIndex((s) => s.slug === slug)}
@@ -151,13 +152,14 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
             </>
           ))}
         />
+        </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-3 border border-line bg-ink/50 px-4 py-3 text-sm">
-        <FileArchive className={cn("size-5 shrink-0", pack ? "text-balkan-hi" : "text-ash")} />
+      <div data-cascade={!simple || undefined} className={cn("flex flex-wrap items-center gap-3 border border-line bg-ink/50 px-4 py-3 text-sm", !simple && "in-up")}>
+        <FileArchive data-cascade={!simple || undefined} className={cn("size-5 shrink-0", !simple && "in-spin", pack ? "text-balkan-hi" : "text-ash")} />
         {pack ? (
           <>
-            <span className="min-w-0 flex-1">
+            <span data-cascade={!simple || undefined} className={cn("min-w-0 flex-1", !simple && "in-wipe")}>
               <span className="font-display font-bold">{t.admin.packCurrent}</span>{" "}
               <span className="num text-ash">
                 {mb(pack.size)}
@@ -202,8 +204,9 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
             const f = e.dataTransfer.files[0];
             if (f) upload(f);
           }}
+          data-cascade
           className={cn(
-            "group relative flex w-full flex-col items-center justify-center gap-2 overflow-hidden border-2 border-dashed px-4 py-8 text-center transition-colors",
+            "in-up group relative flex w-full flex-col items-center justify-center gap-2 overflow-hidden border-2 border-dashed px-4 py-8 text-center transition-colors",
             over ? "border-rose bg-rose/10" : "border-line hover:border-paper/40",
           )}
         >
@@ -230,7 +233,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
           </Btn>
         </div>
       )}
-      <div className={cn("flex flex-wrap items-center gap-3", simple ? (generating ? "" : "hidden") : "border border-line bg-ink/50 px-4 py-3")}>
+      <div data-cascade={!simple || undefined} className={cn("flex flex-wrap items-center gap-3", simple ? (generating ? "" : "hidden") : "in-up border border-line bg-ink/50 px-4 py-3")}>
         {!simple && (
           <Btn type="button" tone="outline" small onClick={generate} disabled={generating || progress !== null}>
             <PackagePlus className="size-3.5" /> {t.admin.packGenerate}
