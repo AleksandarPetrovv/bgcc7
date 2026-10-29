@@ -10,6 +10,7 @@ import { can } from "@/lib/roles";
 import { fmtSofia, toSofiaInput } from "@/lib/time";
 import { isOpen, weekOf, type Proposal } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
+import { Cascade } from "@/components/site/cascade";
 import { setTime, setWeek } from "./actions";
 
 const TONE: Record<string, { bar: string; chip: string }> = {
@@ -29,11 +30,10 @@ export default async function AdminScheduling() {
   const teamOf = (osuId: number | null) => (osuId == null ? null : (teams.find((x) => x.players.some((p) => p.userId === osuId))?.id ?? null));
   const hist = await historyOf(rows.map((m) => m.id)).catch(() => new Map<string, Proposal[]>());
   const list = stages.filter((x) => x.slug !== "qualifiers");
-  let k = 0;
   const Side = ({ id, side }: { id: string | null; side: 0 | 1 }) => {
     const team = teams.find((x) => x.id === id);
     return (
-      <span className={cn("flex min-w-0 items-center gap-2.5", side === 1 && "flex-row-reverse text-right")}>
+      <span data-cascade className={cn("flex min-w-0 items-center gap-2.5", side === 1 ? "in-right flex-row-reverse text-right" : "in-left")}>
         {team?.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={team.image} alt="" className={cn("size-9 shrink-0 border-b-[3px] object-cover", side ? "border-azure" : "border-crimson")} />
@@ -49,7 +49,7 @@ export default async function AdminScheduling() {
     <>
       <PageTitle>{t.admin.menu.scheduling}</PageTitle>
       <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">{s.admin.help}</p>
-      <div className="space-y-8">
+      <Cascade className="space-y-8" step={0.035}>
         {list.map((st, n) => {
           const wk = weekOf(weeks[st.slug]);
           const ms = rows.filter((m) => m.stageSlug === st.slug);
@@ -68,21 +68,23 @@ export default async function AdminScheduling() {
                     const pend = h.find((p) => p.status === "pending");
                     const state = !m.team1Id || !m.team2Id ? "waiting" : m.startsAt ? "agreed" : !isOpen(wk) ? "staff" : pend ? "proposed" : "tbd";
                     return (
-                      <div key={m.id} className="in-up relative border border-line bg-ink/40" style={{ "--i": Math.min(k++, 20), "--s": "0.06s", "--d": "0.3s" } as React.CSSProperties}>
+                      <div key={m.id} data-cascade className="in-up relative border border-line bg-ink/40">
                         <span className={cn("absolute inset-y-0 left-0 w-1", TONE[state].bar)} aria-hidden />
                         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 py-3 pl-5 pr-4">
                           <Side id={m.team1Id} side={0} />
-                          <span className="heading-slam text-lg text-ash">VS</span>
+                          <span data-cascade className="in-pop heading-slam text-lg text-ash">VS</span>
                           <Side id={m.team2Id} side={1} />
                         </div>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line py-2.5 pl-5 pr-4">
                           {m.round !== st.title && <span className="text-[0.68rem] font-display font-bold text-ash">{t.rounds[m.round] ?? m.round}</span>}
-                          <span className="num text-base font-display font-bold">
+                          <span data-cascade className="in-up num text-base font-display font-bold">
                             {m.startsAt ? fmtSofia(m.startsAt, locale) : pend ? fmtSofia(new Date(pend.at), locale) : "—"}
                             {!m.startsAt && pend && <span className="ml-2 text-xs text-ash">{name(pend.teamId)}</span>}
                           </span>
-                          <span className={cn("ml-auto inline-flex -skew-x-12 px-2.5 py-1 text-[0.68rem] font-display font-bold", TONE[state].chip)}>
-                            <span className="skew-x-12">{s.admin.state[state]}</span>
+                          <span data-cascade className="in-pop ml-auto">
+                            <span className={cn("inline-flex -skew-x-12 px-2.5 py-1 text-[0.68rem] font-display font-bold", TONE[state].chip)}>
+                              <span className="skew-x-12">{s.admin.state[state]}</span>
+                            </span>
                           </span>
                         </div>
                         {h.length > 0 && (
@@ -115,7 +117,7 @@ export default async function AdminScheduling() {
             </Panel>
           );
         })}
-      </div>
+      </Cascade>
     </>
   );
 }
