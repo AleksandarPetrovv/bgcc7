@@ -25,7 +25,7 @@ function Legend({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: MatchRow; k: number; t: Dict; locale: string; teams: { id: string; name: string }[]; refs: { referee: string[]; streamer: string[]; commentator: string[] }; pools: { slug: string; title: string }[]; live?: { lobby: boolean } }) {
+export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: MatchRow; t: Dict; locale: string; teams: { id: string; name: string }[]; refs: { referee: string[]; streamer: string[]; commentator: string[] }; pools: { slug: string; title: string }[]; live?: { lobby: boolean } }) {
   const f = getFormat();
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? t.common.tbd;
   const mp = m.mpLinks.split(",").filter(Boolean);
@@ -64,7 +64,7 @@ export function MatchCard({ m, k, t, locale, teams, refs, pools, live }: { m: Ma
 
   return (
     <details
-      style={{ "--i": Math.min(k, 8), "--s": "0.05s", "--d": "0.55s" } as React.CSSProperties}
+      data-cascade
       className="adm-match group in-left relative border border-line bg-ink transition-[border-color,box-shadow] duration-200 hover:border-paper/25 open:border-paper/30 open:shadow-[4px_4px_0_0_var(--rose-deep)]"
     >
       <summary className="relative flex cursor-pointer list-none items-center gap-3 py-3 pl-4 pr-3 [&::-webkit-details-marker]:hidden">
