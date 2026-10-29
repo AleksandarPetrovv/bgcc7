@@ -20,6 +20,7 @@ import { Dropdown } from "@/components/admin/dropdown";
 import { RemoveMember } from "./remove-member";
 import { avatarPath } from "@/lib/avatar";
 import { isBGCC6 } from "@/db";
+import { Cascade } from "@/components/site/cascade";
 
 const bwsGrid = "grid grid-cols-[2rem_minmax(0,1fr)_3rem_5rem] items-center gap-x-3 px-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_6rem_10rem_6rem]";
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
@@ -61,7 +62,7 @@ export default async function AdminTeams() {
           {ranked.length === 0 ? (
             <p className="text-sm text-ash">{t.admin.noRegs}</p>
           ) : (
-            <div className="border border-line">
+            <Cascade className="border border-line" step={0.03}>
               <div className={cn(bwsGrid, "border-b border-line bg-ink/60 py-2 text-[0.62rem] font-display font-bold text-ash")}>
                 <span className="text-right">#</span>
                 <span>{t.admin.player}</span>
@@ -74,7 +75,7 @@ export default async function AdminTeams() {
                 {ranked.map((p, i) => {
                   const tier = p.bws === null || i >= need ? 0 : i < f.teams ? 1 : 2;
                   return (
-                    <li key={p.osuId} className={cn(bwsGrid, "py-1.5 text-sm", tier === 0 && "opacity-45")}>
+                    <li key={p.osuId} data-cascade className={cn(bwsGrid, "in-left py-1.5 text-sm", tier === 0 && "opacity-45")}>
                       <span className={cn("num text-right text-base", tier ? "text-paper" : "text-ash")}>{p.bws === null ? "–" : i + 1}</span>
                       <span className="flex min-w-0 items-center gap-2.5">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -113,7 +114,7 @@ export default async function AdminTeams() {
                   );
                 })}
               </ol>
-            </div>
+            </Cascade>
           )}
         </Panel>
       )}
