@@ -9,6 +9,7 @@ import { useDict } from "@/components/site/lang";
 import { flagUrl } from "@/lib/data";
 import { ROLES, titleOnly, type Role } from "@/lib/roles";
 import { cn } from "@/lib/utils";
+import { Cascade } from "@/components/site/cascade";
 import { removeStaff, reorderStaff, updateStaff } from "./actions";
 
 export type StaffRow = {
@@ -31,7 +32,8 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
       onDragEnd={onDrop}
       layout="position"
       whileDrag={{ scale: 1.01, boxShadow: "6px 6px 0 0 var(--rose-deep)", zIndex: 10 }}
-      className="relative border border-line bg-coal"
+      data-cascade
+      className="in-up relative border border-line bg-coal"
     >
       <div className="flex items-center gap-3 border-b border-line px-3 py-3 sm:px-4">
         <button
@@ -39,22 +41,23 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
           onPointerDown={(e) => controls.start(e)}
           aria-label={t.admin.dragHint}
           title={t.admin.dragHint}
-          className="cursor-grab touch-none p-1 text-ash transition-colors hover:text-paper active:cursor-grabbing"
+          data-cascade
+          className="in-left cursor-grab touch-none p-1 text-ash transition-colors hover:text-paper active:cursor-grabbing"
         >
           <GripVertical className="size-4" />
         </button>
-        <span className="in-drop num w-6 text-center text-lg text-ash" style={{ "--i": Math.min(i, 8), "--s": "0.06s", "--d": "0.4s" } as React.CSSProperties}>
+        <span data-cascade className="in-drop num w-6 text-center text-lg text-ash">
           {i + 1}
         </span>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {s.avatarUrl && <img src={s.avatarUrl} alt="" className="in-spin size-9 [--d:0.5s]" />}
+        {s.avatarUrl && <img src={s.avatarUrl} alt="" data-cascade className="in-spin size-9" />}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {s.country && <img src={flagUrl(s.country)} alt="" className="h-2.5" />}
-        <span className="in-wipe min-w-0 truncate font-display font-black [--d:0.6s]">{s.username}</span>
-        <span className="num hidden text-xs text-ash sm:inline">#{s.osuId}</span>
+        {s.country && <img src={flagUrl(s.country)} alt="" data-cascade className="in-pop h-2.5" />}
+        <span data-cascade className="in-wipe min-w-0 truncate font-display font-black">{s.username}</span>
+        <span data-cascade className="in-right num hidden text-xs text-ash sm:inline">#{s.osuId}</span>
       </div>
       {s.clash && (
-        <p className="flex items-start gap-2 border-b border-line bg-rose/10 px-4 py-2.5 text-sm text-rose-hi">
+        <p data-cascade className="in-wipe flex items-start gap-2 border-b border-line bg-rose/10 px-4 py-2.5 text-sm text-rose-hi">
           <TriangleAlert className="mt-0.5 size-4 shrink-0" /> {t.admin.staffPlays}
         </p>
       )}
@@ -62,7 +65,9 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
         <ActionForm action={updateStaff.bind(null, s.osuId)} className="flex flex-1 flex-col gap-4">
           <PermPicker initial={s.permRoles} />
         </ActionForm>
-        <ActionForm action={removeStaff.bind(null, s.osuId)} submit={t.admin.remove} ghost confirm={t.admin.confirmRemove} />
+        <span data-cascade className="in-right">
+          <ActionForm action={removeStaff.bind(null, s.osuId)} submit={t.admin.remove} ghost confirm={t.admin.confirmRemove} />
+        </span>
       </div>
     </Reorder.Item>
   );
@@ -84,19 +89,19 @@ function PermPicker({ initial }: { initial: string[] }) {
     });
   return (
     <fieldset>
-      <legend className="mb-1.5 flex items-center gap-2 text-xs font-display font-bold text-ash">
+      <legend data-cascade className="in-wipe mb-1.5 flex items-center gap-2 text-xs font-display font-bold text-ash">
         {t.admin.permission}
         {on.size === 0 && <span className="font-display font-black text-rose-hi">· {t.admin.noPerm}</span>}
       </legend>
       <div className="flex flex-wrap gap-2">
-        {ROLES.map((r, k) => {
+        {ROLES.map((r) => {
           const Icon = PERM_ICON[r];
           const checked = on.has(r);
           const blocked = host && r !== "host" && !titleOnly(r);
           return (
             <label
               key={r}
-              style={{ "--i": k, "--s": "0.05s", "--d": "0.65s" } as React.CSSProperties}
+              data-cascade
               className={cn(
                 "in-pop group/perm flex h-10 -skew-x-12 items-center border px-3 transition-[color,background-color,border-color,box-shadow,opacity] duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose",
                 checked ? "border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--rose-deep)]" : "border-line bg-ink/40 text-ash",
@@ -143,6 +148,7 @@ export function StaffList({ rows }: { rows: StaffRow[] }) {
         {t.admin.dragHint}
         {saved && !pending && <Flash className="ml-2 font-display font-bold text-balkan-hi">{t.admin.saved}</Flash>}
       </p>
+      <Cascade step={0.025} className="[--d:0.35s]">
       <Reorder.Group
         axis="y"
         values={items}
@@ -156,6 +162,7 @@ export function StaffList({ rows }: { rows: StaffRow[] }) {
           <Row key={s.osuId} s={s} i={i} onDrop={commit} />
         ))}
       </Reorder.Group>
+      </Cascade>
     </div>
   );
 }
