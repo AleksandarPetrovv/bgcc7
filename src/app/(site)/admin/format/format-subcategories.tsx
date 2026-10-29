@@ -5,7 +5,9 @@ import { Reorder, useDragControls } from "motion/react";
 import { GripVertical, Plus, Trash2, X } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import { newId, type SubcategoryGroup } from "@/lib/format-plan";
-import { Edit } from "./format-context";
+import { Cascade } from "@/components/site/cascade";
+import { cn } from "@/lib/utils";
+import { Edit, Intro, useFresh, useIntroWindow } from "./format-context";
 
 type SubItem = SubcategoryGroup["items"][number];
 
@@ -13,8 +15,9 @@ function SubRow({ item, group, onName, onRemove }: { item: SubItem; group: strin
   const t = useDict();
   const edit = useContext(Edit);
   const drag = useDragControls();
+  const fresh = useFresh();
   return (
-    <Reorder.Item value={item} dragListener={false} dragControls={drag} whileDrag={{ scale: 1.02, boxShadow: "4px 4px 0 0 var(--rose-deep)", zIndex: 10 }} className="relative flex items-center border border-line bg-ink">
+    <Reorder.Item value={item} data-cascade={fresh || undefined} dragListener={false} dragControls={drag} whileDrag={{ scale: 1.02, boxShadow: "4px 4px 0 0 var(--rose-deep)", zIndex: 10 }} className={cn("relative flex items-center border border-line bg-ink", fresh && "in-left")}>
       <input value={item.name} readOnly={!edit} maxLength={80} aria-label={`${group}: ${t.admin.fp.subcategory}`} onChange={(e) => onName(e.target.value)} className="min-w-0 flex-1 bg-transparent px-2 py-2 text-xs font-display font-semibold outline-none focus:text-rose-hi" />
       {edit && (
         <>
@@ -38,15 +41,17 @@ export function SubcategoryEditor({ groups, onChange }: { groups: SubcategoryGro
     if (group.items.length && !window.confirm(t.admin.fp.confirmRemoveGroup(group.name))) return;
     onChange(groups.filter((g) => g.id !== group.id));
   };
-  return <section className="relative border border-line bg-coal">
+  const intro = useIntroWindow();
+  return <Intro.Provider value={intro}><Cascade step={0.03} className="[--d:0.45s]"><section className="relative border border-line bg-coal">
     <span className="absolute inset-x-0 top-0 h-0.5 bg-rose" aria-hidden />
     <header className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 sm:px-5">
-      <h2 className="heading-slam min-w-0 flex-1 text-2xl">{t.admin.fp.subcategories}</h2>
+      <h2 data-cascade className="in-wipe heading-slam min-w-0 flex-1 text-2xl">{t.admin.fp.subcategories}</h2>
       {edit && groups.length < 16 && (
         <button
           type="button"
+          data-cascade
           onClick={() => onChange([...groups, { id: newId(), name: t.admin.fp.newGroup, items: [] }])}
-          className="flex items-center gap-1.5 text-xs font-display font-bold text-ash transition-colors hover:text-rose-hi"
+          className="in-right flex items-center gap-1.5 text-xs font-display font-bold text-ash transition-colors hover:text-rose-hi"
         >
           <Plus className="size-3.5" strokeWidth={3} /> {t.admin.fp.addGroup}
         </button>
@@ -54,7 +59,7 @@ export function SubcategoryEditor({ groups, onChange }: { groups: SubcategoryGro
     </header>
     <div className="grid gap-5 p-4 sm:grid-cols-2 sm:p-5 xl:grid-cols-4">
       {groups.map((group) => <div key={group.id} className="min-w-0">
-        <h3 className="mb-3 flex items-center gap-1 border-b border-line pb-2 text-sm font-display font-bold text-rose-hi">
+        <h3 data-cascade className="in-up mb-3 flex items-center gap-1 border-b border-line pb-2 text-sm font-display font-bold text-rose-hi">
           <input value={group.name} readOnly={!edit} maxLength={60} aria-label={`${t.admin.fp.category}: ${group.name}`} onChange={(e) => update(group.id, { ...group, name: e.target.value })} className="w-full min-w-0 flex-1 bg-transparent font-display font-bold outline-none focus:text-paper" />
           {edit && (
             <button type="button" onClick={() => removeGroup(group)} aria-label={`${t.admin.fp.removeGroup}: ${group.name}`} title={t.admin.fp.removeGroup} className="grid size-7 shrink-0 place-items-center text-ash transition-colors hover:text-rose-hi">
@@ -73,9 +78,9 @@ export function SubcategoryEditor({ groups, onChange }: { groups: SubcategoryGro
             />
           ))}
         </Reorder.Group>
-        {edit && <button type="button" onClick={() => update(group.id, { ...group, items: [...group.items, { id: newId(), name: t.admin.fp.newSubcategory }] })} className="mt-2 flex w-full items-center justify-center gap-1 border border-dashed border-line px-2 py-2 text-xs font-display font-bold text-ash hover:border-rose hover:text-rose-hi"><Plus className="size-3.5" />{t.admin.fp.addSubcategory}</button>}
+        {edit && <button type="button" data-cascade onClick={() => update(group.id, { ...group, items: [...group.items, { id: newId(), name: t.admin.fp.newSubcategory }] })} className="in-up mt-2 flex w-full items-center justify-center gap-1 border border-dashed border-line px-2 py-2 text-xs font-display font-bold text-ash hover:border-rose hover:text-rose-hi"><Plus className="size-3.5" />{t.admin.fp.addSubcategory}</button>}
       </div>)}
     </div>
-  </section>;
+  </section></Cascade></Intro.Provider>;
 }
 
