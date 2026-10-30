@@ -43,6 +43,22 @@ const GLYPHS = {
       <circle cx={12} cy={15} r={2} fill={HEX.rose} />
     </>
   ),
+  people: (
+    <>
+      <g fill="none" stroke={HEX.rose} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <circle cx={6} cy={4} r={2} />
+        <path d="M5 10H4a2 2 0 00-2 2v1" />
+      </g>
+      <g fill="none" stroke={HEX.paper} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <circle cx={12} cy={11} r={3} />
+        <path d="M17 21v-1a2 2 0 00-2-2H9a2 2 0 00-2 2v1" />
+      </g>
+      <g fill="none" stroke={HEX.balkan} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <circle cx={18} cy={4} r={2} />
+        <path d="M19 10h1a2 2 0 012 2v1" />
+      </g>
+    </>
+  ),
   bolt: <polygon points="14,1 4,14 11,14 9,23 20,9 13,9" fill={HEX.rose} />,
   target: (
     <>
