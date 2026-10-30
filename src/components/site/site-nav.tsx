@@ -148,6 +148,7 @@ function Dot({ className }: { className?: string }) {
 
 export function SiteNav({ user, nav: base, register, live, captain, match: initialMatch, sched }: Props) {
   const nav = sched ? withSched(base) : base;
+  const desk: (Omit<NavItem, "key"> & { key: NavItem["key"] | "admin" })[] = user?.admin ? [...nav, { key: "admin", href: "/admin", base: "/admin", hidden: false }] : nav;
   const meDot = !!sched?.discord;
   const schedDot = !!sched?.dot;
   const dots = [...(sched?.dot ? ["scheduling"] : []), ...(meDot ? ["me"] : [])];
@@ -166,7 +167,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
   if (clicked && clicked.from !== path) setClicked(null);
   const target = clicked && clicked.from === path ? clicked.base : null;
   const on = (base: string) => (target ? target === base : isActive(path, base));
-  const activeBase = nav.find((n) => on(n.base))?.base ?? "";
+  const activeBase = desk.find((n) => on(n.base))?.base ?? "";
 
   useLayoutEffect(() => {
     const place = (animate: boolean) => {
@@ -218,7 +219,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
           <span ref={glintRef} className={cn(bar, "top-4 size-3.5 w-3.5 text-rose-hi")} aria-hidden>
             <Sparkle className="inset-0 size-full" />
           </span>
-          {nav.map((n, i) => {
+          {desk.map((n, i) => {
             const active = on(n.base);
             return (
               <Fragment key={n.href}>
@@ -254,18 +255,6 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
           </Link>
           )}
           <AnimatePresence>{match && <MatchLink key={match} slug={match} path={path} clock={clock} />}</AnimatePresence>
-          {user?.admin && (
-            <Link
-              href="/admin"
-              aria-current={isActive(path, "/admin") ? "page" : undefined}
-              className={cn(
-                "lift-sm hidden h-9 -skew-x-12 items-center border px-3.5 text-[0.8rem] font-display font-bold [--lift:var(--rose)] xl:inline-flex",
-                isActive(path, "/admin") ? "border-rose bg-rose text-white" : "border-line text-ash hover:border-rose hover:text-paper",
-              )}
-            >
-              <span className="inline-block skew-x-12">{t.nav.admin}</span>
-            </Link>
-          )}
           {user ? (
             <div className="hidden h-9 -skew-x-12 items-center border border-line md:flex">
               <Link
