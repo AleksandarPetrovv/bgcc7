@@ -11,7 +11,7 @@ import { fmtSofiaDay, fmtSofiaTime } from "@/lib/time";
 import type { Proposal } from "@/lib/schedule";
 import type { SchedMatch } from "@/db/schedule";
 import { cn } from "@/lib/utils";
-import { at } from "@/components/site/rich";
+import { at, Letters } from "@/components/site/rich";
 import { belowFold } from "@/components/site/in-view";
 import { accept, propose, withdraw } from "./actions";
 
@@ -27,12 +27,12 @@ function useWhen() {
   };
 }
 
-function Team({ s, flip }: { s: Side; flip?: boolean }) {
+function Team({ s, flip, d }: { s: Side; flip?: boolean; d: number }) {
   return (
     <div className={cn("flex min-w-0 items-center gap-3", flip && "flex-row-reverse text-right")}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {s.image ? <img src={s.image} alt="" className={cn("size-12 shrink-0 border-b-[3px] object-cover sm:size-14", flip ? "border-azure" : "border-crimson")} /> : <span className="size-12 shrink-0 bg-slate sm:size-14" />}
-      <span className="line-clamp-2 min-w-0 break-words font-display font-black leading-tight sm:text-lg">{s.name}</span>
+      <span className="line-clamp-2 min-w-0 break-words font-display font-black leading-tight sm:text-lg"><Letters text={s.name} d={d} s={0.02} /></span>
     </div>
   );
 }
@@ -159,14 +159,15 @@ export function SchedCard({ m, round, me, opp, week, open, n = 0 }: { m: SchedMa
       router.refresh();
     });
 
+  const L = n * 0.15;
   return (
     <article
       ref={ref}
       className={cn("in-up in-slow overflow-hidden border border-line bg-coal", settled && "no-intro")}
-      style={{ "--d": "0.2s", "--i": n, "--s": "0.22s", "--cd": `${0.2 + n * 0.22}s` } as React.CSSProperties}
+      style={{ "--d": "0s", "--i": n, "--s": "0.15s", "--cd": `${n * 0.15}s` } as React.CSSProperties}
     >
       <div style={at(0.15)} className="in-up in-slow flex items-center gap-3 border-b border-line bg-ink/60 px-4 py-2.5 sm:px-5">
-        <span className="text-xs font-display font-bold text-rose-hi">{round}</span>
+        <Letters text={round} d={L} className="text-xs font-display font-bold text-rose-hi" />
         {agreed && (
           <span className="ml-auto inline-flex items-center gap-1 text-[0.68rem] font-display font-bold text-balkan-hi">
             <Check className="size-3.5" strokeWidth={3} /> {t.sched.agreed}
@@ -175,28 +176,30 @@ export function SchedCard({ m, round, me, opp, week, open, n = 0 }: { m: SchedMa
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4 py-5 sm:gap-5 sm:px-5">
         <div style={at(0.3)} className="in-left-far in-slow min-w-0">
-          <Team s={me} />
+          <Team s={me} d={L} />
         </div>
         <span style={at(0.65)} className="in-slam heading-slam text-base text-ash">{t.common.vs}</span>
         <div style={at(0.3)} className="in-right-far in-slow min-w-0">
-          <Team s={opp} flip />
+          <Team s={opp} flip d={L} />
         </div>
       </div>
 
       <div className="border-t border-line px-4 py-5 text-center sm:px-5">
-        <p style={at(0.8)} className={cn("in-up in-slow num", agreed ? "text-3xl text-paper sm:text-4xl" : "text-4xl text-ash sm:text-5xl")}>{agreed ? w.full(agreed) : t.common.tbd}</p>
+        <p className={cn("num text-paper", agreed ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl")}><Letters text={agreed ? w.full(agreed) : t.common.tbd} d={L} s={0.02} /></p>
 
         {!week ? (
-          <p style={at(0.95)} className="in-up in-slow mt-4 text-sm text-ash">{t.sched.noWeek}</p>
+          <p className="mt-4 text-sm font-display font-bold text-ash"><Letters text={t.sched.noWeek} d={L} s={0.01} /></p>
         ) : !open ? (
-          <p style={at(0.95)} className="in-up in-slow mt-4 text-sm font-bold text-ash">{t.sched.locked}</p>
+          <p className="mt-4 text-sm font-display font-bold text-ash"><Letters text={t.sched.locked} d={L} s={0.01} /></p>
         ) : agreed ? (
-          <p style={at(0.95)} className="in-up in-slow mt-2 text-xs font-display font-bold text-ash/80">{t.sched.closes(w.short(week.deadline))}</p>
+          <p className="mt-2 text-xs font-display font-bold text-ash"><Letters text={t.sched.closes(w.short(week.deadline))} d={L} s={0.01} /></p>
         ) : (
-          <div style={at(0.95)} className="in-up in-slow relative mx-auto mt-5 max-w-xs pb-2">
-            <p className="text-[0.7rem] font-display font-bold text-rose-hi">{t.sched.closesIn}</p>
-            <Countdown to={week.deadline} />
-            <p className="mt-1 text-sm text-paper/80">({w.full(week.deadline)})</p>
+          <div className="relative mx-auto mt-5 max-w-sm pb-2">
+            <p className="text-xs font-display font-bold text-ash"><Letters text={t.sched.closesIn} d={L} s={0.015} /></p>
+            <div style={at(0.1)} className="in-up mt-1 flex justify-center">
+              <Countdown to={week.deadline} />
+            </div>
+            <p className="mt-1 text-xs font-display font-bold text-ash"><Letters text={w.full(week.deadline)} d={L} s={0.01} /></p>
           </div>
         )}
 

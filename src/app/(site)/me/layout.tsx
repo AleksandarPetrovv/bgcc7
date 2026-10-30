@@ -8,7 +8,7 @@ export default async function MeLayout({ children }: { children: React.ReactNode
   const sched = await schedNav(v?.osuId ?? null).catch(() => null);
   return (
     <>
-      <MeSubNav sched={!!sched} />
+      <MeSubNav />
       {children}
       {sched?.discord && <DiscordPrompt />}
     </>

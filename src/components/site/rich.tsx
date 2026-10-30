@@ -44,7 +44,7 @@ export function Words({ text, d = 0, s = 0.04, className }: { text: string; d?: 
   );
 }
 
-export const at = (d: number, i = 0, s = 0.09) => ({ "--d": `calc(var(--cd, 0s) + ${d}s)`, "--i": i, "--s": `${s}s` }) as React.CSSProperties;
+export const at = (d: number, i = 0, s = 0.09) => ({ "--d": `calc(var(--cd, 0s) + ${d * 0.5}s)`, "--i": i, "--s": `${s * 0.7}s` }) as React.CSSProperties;
 
 export function Letters({ text, d = 0, s = 0.035, plain, className }: { text: string; d?: number; s?: number; plain?: boolean; className?: string }) {
   let i = 0;
