@@ -6,13 +6,14 @@ import { lobbies, lobbyBookings, registrations } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
 import { fromSofiaInput } from "@/lib/time";
+import { mpIds, mpCsv } from "@/lib/mp-links";
 
 function parse(fd: FormData) {
   const name = String(fd.get("name") ?? "").trim().slice(0, 40);
   const startsAt = fromSofiaInput(String(fd.get("startsAt") ?? ""));
   const capacity = Math.round(Number(fd.get("capacity")));
   const referee = String(fd.get("referee") ?? "").trim().slice(0, 60) || null;
-  const mpLinks = (String(fd.get("mpLinks") ?? "").match(/\d{6,}/g) ?? []).join(",");
+  const mpLinks = mpCsv(mpIds(String(fd.get("mpLinks") ?? "")));
   if (!name || !startsAt || !Number.isInteger(capacity) || capacity < 1 || capacity > 32) return null;
   return { name, startsAt, capacity, referee, mpLinks };
 }

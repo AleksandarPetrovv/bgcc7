@@ -12,6 +12,7 @@ import { dayTime, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { clearCache, saveMatch } from "./actions";
 import { osuMp } from "@/lib/links";
+import { mpIds } from "@/lib/mp-links";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 const group = "relative border-t border-line pt-5";
@@ -27,7 +28,7 @@ function Legend({ children }: { children: React.ReactNode }) {
 export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: MatchRow; t: Dict; locale: string; teams: { id: string; name: string }[]; refs: { referee: string[]; streamer: string[]; commentator: string[] }; pools: { slug: string; title: string }[]; live?: { lobby: boolean } }) {
   const f = getFormat();
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? t.common.tbd;
-  const mp = m.mpLinks.split(",").filter(Boolean);
+  const mp = mpIds(m.mpLinks);
   const status = m.winner ? "done" : mp.length ? "live" : m.startsAt ? "soon" : "tbd";
   const tone = { done: "bg-balkan", live: "bg-crimson", soon: "bg-azure", tbd: "bg-line" }[status];
   const side = (n: 1 | 2) => {

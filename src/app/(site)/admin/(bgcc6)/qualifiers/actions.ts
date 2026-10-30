@@ -4,11 +4,11 @@ import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { lobbies, qualScores, users } from "@/db/schema";
 import { getQualifierMaps } from "@/db/mappools";
-import { mpIds } from "@/db/lobbies";
 import { saveOsuUser } from "@/db/users";
 import { guard } from "@/lib/admin-action";
 import { getMpMatch, getUser } from "@/lib/osu-api";
 import type { ActionResult } from "@/lib/roles";
+import { mpIds } from "@/lib/mp-links";
 
 type Row = typeof qualScores.$inferInsert;
 

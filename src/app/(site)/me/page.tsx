@@ -9,7 +9,7 @@ import { getDict, getLang } from "@/lib/i18n/server";
 import { roundName } from "@/lib/i18n/dict";
 import { getSettings } from "@/db/settings";
 import { getRegistrations } from "@/db/registrations";
-import { getLobbies, mpIds } from "@/db/lobbies";
+import { getLobbies } from "@/db/lobbies";
 import { getQualResults } from "@/db/qualifiers";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
@@ -38,6 +38,7 @@ import { QualifierPlacement, QualifierScores } from "./qualifier-scores";
 import { isBGCC6 } from "@/db";
 import { at } from "@/components/site/rich";
 import { localeOf } from "@/lib/i18n/locale";
+import { mpIds } from "@/lib/mp-links";
 
 
 export default async function Me() {

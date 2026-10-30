@@ -4,11 +4,12 @@ import { ScoreMatrix } from "@/components/site/score-matrix";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { requireSection } from "@/lib/authz";
 import { getQualResults } from "@/db/qualifiers";
-import { getLobbies, mpIds } from "@/db/lobbies";
+import { getLobbies } from "@/db/lobbies";
 import { getSettings } from "@/db/settings";
 import { fmtSofia } from "@/lib/time";
 import { osuMatch } from "@/lib/links";
 import { localeOf } from "@/lib/i18n/locale";
+import { mpIds } from "@/lib/mp-links";
 
 export default async function Scores() {
   await requireSection("qualScores");

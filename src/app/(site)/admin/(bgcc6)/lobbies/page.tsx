@@ -16,6 +16,7 @@ import { Dropdown } from "@/components/admin/dropdown";
 import { osuMp } from "@/lib/links";
 import { isBGCC6 } from "@/db";
 import { localeOf } from "@/lib/i18n/locale";
+import { mpIds } from "@/lib/mp-links";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 
@@ -41,7 +42,7 @@ function LobbyFields({ t, l }: { t: Dict; l?: Lobby }) {
       {l && (
         <label className={cn(label, "sm:col-span-2 lg:col-span-4")}>
           {t.admin.mpLinks}
-          <Field name="mpLinks" defaultValue={l.mpLinks.split(",").filter(Boolean).map((id) => osuMp(id)).join(", ")} className={inputCls} />
+          <Field name="mpLinks" defaultValue={mpIds(l.mpLinks).map((id) => osuMp(id)).join(", ")} className={inputCls} />
         </label>
       )}
     </div>

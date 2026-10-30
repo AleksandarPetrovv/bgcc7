@@ -4,12 +4,12 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "./index";
 import { drafts, matches, mpLobbies, sponsors, teamMembers, teams, users } from "./schema";
 import { safe } from "./safe";
-import { mpIds } from "./lobbies";
 import type { Match, Player, Sponsor, Team } from "@/lib/data";
 import { optImg } from "@/lib/img";
 import { isTestTeam, TEST_MATCH } from "@/lib/format";
 import { avatarCol } from "./avatar";
 import { avatarPath } from "@/lib/avatar";
+import { mpIds } from "@/lib/mp-links";
 
 export const getTeams = cache(async () => (await getAllTeams()).filter((t) => !isTestTeam(t.id)));
 

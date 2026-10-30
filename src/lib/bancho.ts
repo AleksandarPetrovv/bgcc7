@@ -1,6 +1,6 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { BanchoLobbyPlayerStates, BanchoLobbyTeamModes, BanchoLobbyWinConditions } from "bancho.js";
 import { db } from "@/db";
 import { matches, mpLobbies, staff, users } from "@/db/schema";
@@ -15,6 +15,8 @@ import { MOD_LOBBY } from "./mods";
 import { nameKey, ircName } from "@/lib/names";
 import { within } from "./utils";
 import { decideWinner } from "./result";
+import { staffIds } from "@/db/users";
+import { mpIds, mpCsv } from "@/lib/mp-links";
 
 export { CHAT_GAP, canLobby, ensureBot, lobbyOwner, onLobby, sayLocal, type ChatLine, type LobbySlot, type LobbyView } from "./bancho-irc";
 
@@ -112,7 +114,7 @@ export async function lobbyView(matchId: string, viewer?: number): Promise<Lobby
   const status: LobbyView["bot"] = !c ? "off" : c.client.isConnected() ? "online" : "connecting";
   const mine = viewer != null && (owner == null || owner === viewer);
   const [m] = await db.select({ links: matches.mpLinks }).from(matches).where(eq(matches.id, matchId)).limit(1);
-  const past = [...new Set((m?.links ?? "").split(",").map((x) => Number(x.trim().match(/(\d+)\/?$/)?.[1])).filter((n) => n > 0))].reverse().filter((mp) => !row?.open || mp !== row.mpId);
+  const past = mpIds(m?.links).map(Number).reverse().filter((mp) => !row?.open || mp !== row.mpId);
   const base: LobbyView = { bot: status, state: row ? (row.open ? "open" : "closed") : "none", mpId: row?.mpId ?? null, past, password: row?.password ?? "", size: 0, slots: [], mapId: null, mapName: null, mods: [], freemod: false, playing: false, chat: [], owner, ...(viewer != null ? { mine, helper: canLobby(viewer) } : {}) };
   const l = g.bgccIrc?.live.get(matchId);
   if (!l || !row?.open) return base;
@@ -195,15 +197,13 @@ export async function makeLobby(matchId: string, by: number) {
     .insert(mpLobbies)
     .values({ matchId, mpId: lb.id, password, owner: String(by), createdBy: by })
     .onConflictDoUpdate({ target: mpLobbies.matchId, set: { mpId: lb.id, password, owner: String(by), open: true, createdBy: by, createdAt: new Date(), closedAt: null } });
-  const ids = (match.mpLinks || "").split(",").filter(Boolean);
-  if (!ids.includes(String(lb.id))) await db.update(matches).set({ mpLinks: [...ids, String(lb.id)].join(",") }).where(eq(matches.id, matchId));
+  const ids = mpIds(match.mpLinks);
+  if (!ids.includes(String(lb.id))) await db.update(matches).set({ mpLinks: mpCsv([...ids, lb.id]) }).where(eq(matches.id, matchId));
   ping(matchId);
   await lb.setPassword(password);
   await lb.setSettings(BanchoLobbyTeamModes.TeamVs, BanchoLobbyWinConditions.ScoreV2, lobbySize(getFormat()));
   await lb.channel.sendMessage("!mp lock");
-  const refNames = (match.referee ?? "").split(/[,&/]| and /).map((x) => x.trim().toLowerCase()).filter(Boolean);
-  const known = refNames.length ? await db.select({ osuId: users.osuId }).from(users).where(inArray(sql`lower(${users.username})`, refNames)) : [];
-  await lb.addRef([...new Set([by, ...known.map((u) => u.osuId)])].map((id) => `#${id}`)).catch(() => {});
+  await lb.addRef([...new Set([by, ...(await staffIds(match.referee))])].map((id) => `#${id}`)).catch(() => {});
   for (const id of map.keys()) await lb.invitePlayer(`#${id}`).catch(() => {});
   void import("@/db/discord-bot").then((d) => d.later("invites", () => d.invitesSent(matchId)));
   await lb.updateSettings().catch(() => {});
@@ -305,8 +305,7 @@ const HANDOFF = 5 * 60_000;
 export async function handOff(matchId: string, referee: string | null) {
   const owner = await lobbyOwner(matchId);
   if (!owner) return;
-  const [ref] = referee ? await db.select({ osuId: users.osuId }).from(users).where(sql`lower(${users.username}) = ${referee.trim().toLowerCase()}`).limit(1) : [];
-  if (ref?.osuId === owner) return;
+  if ((await staffIds(referee)).includes(owner)) return;
   await db.update(mpLobbies).set({ open: false, closedAt: new Date() }).where(and(eq(mpLobbies.matchId, matchId), eq(mpLobbies.open, true)));
   const s = g.bgccIrc;
   const l = s?.live.get(matchId);

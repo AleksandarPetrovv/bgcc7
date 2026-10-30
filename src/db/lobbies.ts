@@ -31,5 +31,3 @@ export const getLobbies = () =>
     );
   }, [] as Lobby[]);
 
-
-export const mpIds = (links: string) => links.match(/\d{6,}/g) ?? [];

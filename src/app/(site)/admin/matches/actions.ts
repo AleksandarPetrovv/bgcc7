@@ -18,6 +18,7 @@ import { handOff } from "@/lib/bancho";
 import { matchStamp } from "@/lib/matches";
 import { later, postResult } from "@/db/discord-bot";
 import { isBracketStage } from "@/lib/format";
+import { mpIds, mpCsv } from "@/lib/mp-links";
 
 const text = (fd: FormData, k: string, max = 120) => String(fd.get(k) ?? "").trim().slice(0, max) || null;
 const num = (fd: FormData, k: string) => {
@@ -54,7 +55,7 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     // auto: a score that reached firstTo without being ahead is a typo, not a result
     if (w === "auto" && !decideWinner(score, firstTo) && Math.max(...score) >= firstTo) return { ok: false, error: "invalid" };
     const winner = w === "1" ? 1 : w === "2" ? 2 : w === "none" ? null : decideWinner(score, firstTo);
-    const mpLinks = [...new Set(fd.getAll("mpLinks").join(" ").match(/\d{6,}/g) ?? [])].join(",");
+    const mpLinks = mpCsv(mpIds(fd.getAll("mpLinks").join(" ")));
     const manual = fd.get("manual") === "on";
     const rawStartsAt = String(fd.get("startsAt") ?? "").trim();
     const startsAt = fromSofiaInput(rawStartsAt);

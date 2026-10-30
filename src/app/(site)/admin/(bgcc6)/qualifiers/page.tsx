@@ -4,7 +4,7 @@ import { InView } from "@/components/site/in-view";
 import { Words } from "@/components/site/rich";
 import { PageTitle, SubHeading } from "@/components/site/page";
 import { ActionForm, inputCls, Panel, Field } from "@/components/admin/form";
-import { getLobbies, mpIds } from "@/db/lobbies";
+import { getLobbies } from "@/db/lobbies";
 import { getQualResults, getQualScoreRows } from "@/db/qualifiers";
 import { getSettings } from "@/db/settings";
 import { getViewer } from "@/lib/authz";
@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { clearPlayer, deleteScore, importAll, importOne, setScore, updateScore } from "./actions";
 import { Dropdown } from "@/components/admin/dropdown";
 import { isBGCC6 } from "@/db";
+import { mpIds } from "@/lib/mp-links";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 
