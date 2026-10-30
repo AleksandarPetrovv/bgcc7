@@ -9,9 +9,10 @@ import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
 export const v = (o: Record<string, string | number>) => o as React.CSSProperties;
+const pct = (a?: number | null) => (a == null ? "—" : `${(a * 100).toFixed(2)}%`);
 export const label = "text-[0.65rem] font-display font-bold text-ash";
 
-export function Card({ title, children, className, i = 0, right, flush }: { title: string; children: React.ReactNode; className?: string; i?: number; right?: React.ReactNode; flush?: boolean }) {
+export function Card({ title, children, className, i = 0, right, flush, body }: { title: string; children: React.ReactNode; className?: string; i?: number; right?: React.ReactNode; flush?: boolean; body?: string }) {
   return (
     <section className={cn("in-up relative overflow-hidden border border-line bg-coal", className)} style={v({ "--i": i, "--s": "0.08s", "--d": "0.2s" })}>
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-4 pb-1 pt-4 sm:px-5">
@@ -19,7 +20,7 @@ export function Card({ title, children, className, i = 0, right, flush }: { titl
         <h2 className="heading-slam text-lg">{title}</h2>
         {right && <div className="ml-auto">{right}</div>}
       </div>
-      <div className={flush ? "pt-3" : "p-4 pt-3 sm:p-5 sm:pt-3"}>{children}</div>
+      <div className={cn(flush ? "pt-3" : "p-4 pt-3 sm:p-5 sm:pt-3", body)}>{children}</div>
     </section>
   );
 }
@@ -41,7 +42,9 @@ export function PlayerLink({ id, name, className }: { id: number; name: string; 
   );
 }
 
-export function TeamCard({ t, team, me, seeds, record, i, className }: { t: Dict; team: Team; me: number; seeds: Map<number, number>; record?: [number, number]; i?: number; className?: string }) {
+type PStat = { cost: number | null; acc: number | null };
+
+export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { t: Dict; team: Team; me: number; seeds: Map<number, number>; stats?: Map<number, PStat>; record?: [number, number]; i?: number; className?: string }) {
   const avg = Math.round(team.players.reduce((n, p) => n + p.rank, 0) / Math.max(1, team.players.length));
   return (
     <Card title={t.me.team} i={i} flush className={className}>
@@ -68,9 +71,8 @@ export function TeamCard({ t, team, me, seeds, record, i, className }: { t: Dict
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={flagUrl(p.country)} alt="" className="h-3" />
             <PlayerLink id={p.userId} name={p.username} className={cn("min-w-0 truncate font-display font-black", p.userId === me && "text-balkan-hi")} />
-            {p.userId === me && <span className="text-[0.6rem] font-display font-bold text-ash">{t.me.you}</span>}
             {p.isCaptain && <Crown className="size-3.5 shrink-0 text-gold-hi" aria-label={t.common.captain} />}
-            <span className="ml-auto flex shrink-0 gap-4 text-right">
+            <span className="ml-auto flex shrink-0 gap-3 text-right sm:gap-4">
               <span>
                 <span className={cn(label, "block")}>{t.me.globalRank}</span>
                 <span className="num text-sm text-paper/80">#{fmtNum(p.rank)}</span>
@@ -80,6 +82,18 @@ export function TeamCard({ t, team, me, seeds, record, i, className }: { t: Dict
                   <span className={cn(label, "block")}>{t.me.playerSeed}</span>
                   <span className="num text-sm text-paper/80">{seeds.get(p.userId)}</span>
                 </span>
+              )}
+              {stats && (
+                <>
+                  <span>
+                    <span className={cn(label, "block")}>{t.me.playerCost}</span>
+                    <span className="num text-sm text-paper/80">{stats.get(p.userId)?.cost?.toFixed(2) ?? "—"}</span>
+                  </span>
+                  <span>
+                    <span className={cn(label, "block")}>{t.me.playerAcc}</span>
+                    <span className="num text-sm text-paper/80">{pct(stats.get(p.userId)?.acc)}</span>
+                  </span>
+                </>
               )}
             </span>
           </li>

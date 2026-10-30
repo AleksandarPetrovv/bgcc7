@@ -172,6 +172,8 @@ export const site = {
     you: "You",
     globalRank: "Global",
     playerSeed: "Seed",
+    playerCost: "Avg cost",
+    playerAcc: "Avg acc",
     avgScore: "Average score",
     mapsWon: "Maps won",
     connections: "Your connections",

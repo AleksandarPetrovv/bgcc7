@@ -2,8 +2,6 @@ import { ArrowRight, CalendarClock, Crown, ExternalLink, Flag, Mic, Tv, Video } 
 import { Container, PageTitle, SlantButton, Tag } from "@/components/site/page";
 import { Avatar } from "@/components/site/avatar";
 import { Countdown } from "@/components/site/countdown";
-import { RecordText } from "@/components/site/record";
-import { BestScore } from "@/components/site/best-score";
 import { currentOsuId } from "@/auth";
 import { canSee } from "@/lib/authz";
 import { login } from "@/app/(site)/pickems/actions";
@@ -32,15 +30,12 @@ import { rankBws } from "@/lib/bws";
 import { sourceLabel, isLive } from "@/lib/matches";
 import { getFormat } from "@/db/edition";
 import { TWITCH_URL, osuMatch } from "@/lib/links";
-import type { MapResult, PlayerLine } from "@/lib/scoreboard";
 import { cn } from "@/lib/utils";
 import { matchCosts } from "@/lib/match-cost";
 import { Card, Stat, PlayerLink, TeamCard, Side, Info, label } from "./cards";
 import { QualifierPlacement, QualifierScores } from "./qualifier-scores";
 import { isBGCC6 } from "@/db";
 
-type MyCost = { m: Match; cost: number; place: number; of: number };
-type Best = { p: PlayerLine; map: MapResult; match: Match };
 
 export default async function Me() {
   const [t, lang, me] = await Promise.all([getDict(), getLang(), currentOsuId()]);
@@ -303,51 +298,20 @@ export default async function Me() {
   const boards = await Promise.all(
     played.map((m) => Promise.race([getScoreboard(m, teams, stages), new Promise<null>((r) => setTimeout(() => r(null), 5000))]).catch(() => null)),
   );
-  const plays: Best[] = boards.flatMap((b, k) =>
-    b ? b.maps.filter((x) => !x.note).flatMap((map) => [...map.players[0], ...map.players[1]].filter((p) => p.id === me && p.score > 0).map((p) => ({ p, map, match: played[k] }))) : [],
-  );
-  const mapsWon = plays.filter(({ p, map }) => map.winner === (map.players[0].includes(p) ? 1 : 2)).length;
-  const best = plays.reduce<Best | null>((a, b) => (!a || b.p.score > a.p.score ? b : a), null);
-  const costs: MyCost[] = played.flatMap((m, k) => {
-    const b = boards[k];
-    if (!b) return [];
-    const rows = matchCosts(b, true);
-    const at = rows.findIndex((r) => r.id === me);
-    return at < 0 ? [] : [{ m, cost: rows[at].cost, place: at + 1, of: rows.length }];
-  });
-  const avgCost = costs.length ? costs.reduce((n, c) => n + c.cost, 0) / costs.length : null;
-  const statsCard = (
-    <Card title={t.me.stats} i={3} className="self-stretch">
-      <div className="grid grid-cols-2 gap-x-4 gap-y-5">
-        <Stat k={t.me.mapsPlayed} n={String(plays.length)} />
-        <Stat k={t.me.totalScore} n={fmtNum(plays.reduce((n, x) => n + x.p.score, 0))} />
-        <Stat k={t.me.avgScore} n={plays.length ? fmtNum(Math.round(plays.reduce((n, x) => n + x.p.score, 0) / plays.length)) : "—"} />
-        <Stat k={t.me.mapsWon} n={plays.length ? `${mapsWon}/${plays.length}` : "—"} />
-        <Stat k={t.me.avgAcc} n={plays.length ? `${((plays.reduce((n, x) => n + x.p.acc, 0) / plays.length) * 100).toFixed(2)}%` : "—"} />
-        <Stat k={t.me.history} n={<RecordText t={t} w={record[0]} l={record[1]} />} />
-        <Stat k={t.me.avgCost} n={avgCost === null ? "—" : avgCost.toFixed(2)} />
-        <div className="border-l-2 border-rose pl-3">
-          <div className={label}>{t.me.bestScore}</div>
-          {best ? (
-            <BestScore
-              score={best.p.score}
-              acc={best.p.acc}
-              combo={best.p.combo}
-              miss={best.p.miss}
-              mods={best.p.mods}
-              rank={best.p.rank}
-              map={{ slot: best.map.slot, mod: best.map.mod, title: best.map.title, version: best.map.version, cover: best.map.cover }}
-            />
-          ) : (
-            <div className="num mt-1 text-2xl leading-none sm:text-3xl">—</div>
-          )}
-        </div>
-      </div>
-    </Card>
+  const avg = (xs: number[]) => (xs.length ? xs.reduce((n, x) => n + x, 0) / xs.length : null);
+  const costRows = boards.map((b) => (b ? matchCosts(b, true) : []));
+  const pStats = new Map(
+    team.players.map((p) => [
+      p.userId,
+      {
+        cost: avg(costRows.flatMap((rows) => rows.filter((r) => r.id === p.userId).map((r) => r.cost))),
+        acc: avg(boards.flatMap((b) => (b ? b.maps.filter((x) => !x.note).flatMap((map) => [...map.players[0], ...map.players[1]].filter((x) => x.id === p.userId && x.score > 0).map((x) => x.acc)) : []))),
+      },
+    ]),
   );
 
   const historyCard = (
-    <Card title={t.me.history} i={4} flush className="self-stretch">
+    <Card title={t.me.history} i={3} flush className="lg:absolute lg:inset-0 lg:flex lg:flex-col" body="lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
       {played.length === 0 ? (
         <p className="px-5 pb-5 text-sm text-ash">—</p>
       ) : (
@@ -360,12 +324,24 @@ export default async function Me() {
     </Card>
   );
 
+  const columns = (
+    <>
+      <div className="lg:relative lg:self-stretch">{historyCard}</div>
+      <div className="flex flex-col gap-5 2xl:gap-8">
+        <TeamCard t={t} team={team} me={me} seeds={seeds} stats={pStats} record={record} i={2} />
+        <Card title={t.me.connections} i={4}>
+          <Connections osu={{ id: me, name: team.players.find((p) => p.userId === me)?.username ?? String(me), avatar: avatarPath(me) }} discord={discord} />
+        </Card>
+      </div>
+    </>
+  );
+
   if (phase === "finished") {
     const lf = played.find((m) => m.id === getFormat().losersFinal && !usWon(m));
     const place = champion ? 0 : lostIn?.bracket === "grand" ? 1 : lf ? 2 : -1;
     return shell(
       <>
-        <Card title={t.me.finish} i={1} className={cn(place === 0 && "border-gold/40")}>
+        <Card title={t.me.finish} i={1} className={cn("lg:col-span-2", place === 0 && "border-gold/40")}>
           <div className="flex items-center gap-4">
             {place === 0 && <Crown className="size-12 text-gold-hi" />}
             <span className={cn("heading-slam text-6xl", place === 0 && "text-gold-hi")}>
@@ -373,11 +349,7 @@ export default async function Me() {
             </span>
           </div>
         </Card>
-        {statsCard}
-        <div className="flex flex-col gap-5">
-          <TeamCard t={t} team={team} me={me} seeds={seeds} record={record} i={2} />
-        </div>
-        {historyCard}
+        {columns}
       </>,
     );
   }
@@ -442,12 +414,7 @@ export default async function Me() {
   return shell(
     <>
       {nextCard}
-      <TeamCard t={t} team={team} me={me} seeds={seeds} record={record} i={2} className="self-stretch" />
-      {statsCard}
-      {historyCard}
-      <Card title={t.me.connections} i={5} className="self-stretch">
-        <Connections osu={{ id: me, name: team.players.find((p) => p.userId === me)?.username ?? String(me), avatar: avatarPath(me) }} discord={discord} />
-      </Card>
+      {columns}
       {placementCard}
     </>,
   );
