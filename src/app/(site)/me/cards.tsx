@@ -48,7 +48,7 @@ type PStat = { cost: number | null; acc: number | null };
 export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { t: Dict; team: Team; me: number; seeds: Map<number, number>; stats?: Map<number, PStat>; record?: [number, number]; i?: number; className?: string }) {
   const avg = Math.round(team.players.reduce((n, p) => n + p.rank, 0) / Math.max(1, team.players.length));
   return (
-    <Card title={t.me.team} i={i} flush className={className} icon={<People className="mb-0 self-center text-[1.4em]" />}>
+    <Card title={t.me.team} i={i} flush className={className} icon={<People className="mb-0 self-center text-[1.8em]" />}>
       <div className="relative mx-4 flex items-center gap-3 overflow-hidden border border-line bg-ink p-3 sm:mx-5 sm:gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={team.image} alt="" className="pointer-events-none absolute inset-0 size-full scale-110 object-cover opacity-15 blur-md" aria-hidden />
