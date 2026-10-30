@@ -2,24 +2,18 @@
 
 import { and, arrayContains, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { staff, users } from "@/db/schema";
+import { staff } from "@/db/schema";
+import { resolveOsuUser, saveOsuUser } from "@/db/users";
 import { guard } from "@/lib/admin-action";
-import { getUser } from "@/lib/osu-api";
 import { cleanRoles, type ActionResult } from "@/lib/roles";
 import { relayPerms } from "@/lib/relay-perms";
 import { relayKick } from "@/lib/relay";
 
 export async function addStaff(_: ActionResult, fd: FormData) {
   return guard("staff", "staff.add", async () => {
-    const q = String(fd.get("q") ?? "").trim();
-    if (!q || q.length > 32) return { ok: false, error: "invalid" };
-    const u = await getUser(q);
+    const u = await resolveOsuUser(fd.get("q"));
     if (!u) return { ok: false, error: "notFound" };
-    const row = { username: u.username, avatarUrl: u.avatar_url, country: u.country_code, updatedAt: new Date() };
-    await db
-      .insert(users)
-      .values({ osuId: u.id, ...row })
-      .onConflictDoUpdate({ target: users.osuId, set: row });
+    await saveOsuUser(u);
     await db.insert(staff).values({ osuId: u.id }).onConflictDoNothing();
     return { osuId: u.id, username: u.username };
   });

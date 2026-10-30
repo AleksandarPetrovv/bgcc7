@@ -23,6 +23,7 @@ import { isBGCC6 } from "@/db";
 import { Cascade } from "@/components/site/cascade";
 import { RuleDiamond } from "@/components/site/rule";
 import { localeOf } from "@/lib/i18n/locale";
+import { getPlayerSeeds } from "@/db/seeds";
 
 const bwsGrid = "grid grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_4rem] items-center gap-x-2 px-2 sm:gap-x-3 sm:px-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_6rem_10rem_6rem]";
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
@@ -34,7 +35,7 @@ export default async function AdminTeams() {
   const need = f.teams * f.teamSize;
   const ranked = rankBws(regs.filter((r) => r.status === "approved"));
   const taken = new Set(teams.flatMap((x) => x.players.map((p) => p.userId)));
-  const seedOf = suiji ? new Map(ranked.filter((p) => p.bws !== null).map((p, i) => [p.osuId, i + 1])) : new Map(results.players.map((p, i) => [p.id, i + 1]));
+  const seedOf = await getPlayerSeeds();
   const tag = suiji ? "B#" : "Q#";
   const pool = (
     suiji

@@ -11,7 +11,6 @@ import { requireSection } from "@/lib/authz";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { carryRename } from "@/db/users";
 import { ScrollTop } from "./scroll-top";
 
 // names not in our db would otherwise hit the osu api on every request
@@ -40,11 +39,8 @@ export default async function UserBracket({ params }: { params: Promise<{ user: 
   if (!u) {
     const o = await lookup(name);
     const [known] = o ? await db.select({ osuId: users.osuId, username: users.username }).from(users).where(eq(users.osuId, o.id)).limit(1) : [];
+    // a renamed player: follow osu!'s current name; the stored name catches up on their next sign-in or stats refresh
     if (o && known) {
-      if (known.username !== o.username) {
-        await carryRename(o.id, o.username);
-        await db.update(users).set({ username: o.username }).where(eq(users.osuId, o.id));
-      }
       if (userPath(o.username) !== name) redirect(pickemsHref(o.username));
       u = known;
     } else {

@@ -2,7 +2,7 @@ import "server-only";
 import { eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { db, dbOf } from "./index";
 import { lobbies, matches, refApps, userNames, users } from "./schema";
-import type { OsuUserFull } from "@/lib/osu-api";
+import { getUser, type OsuUserFull } from "@/lib/osu-api";
 import { tourneyBadges } from "@/lib/bws";
 import { EDITIONS } from "@/lib/format";
 import { ircName } from "@/lib/names";
@@ -16,17 +16,45 @@ export async function staffIds(field: string | null | undefined) {
   return rows.map((r) => r.osuId);
 }
 
-export async function saveOsuUser(u: OsuUserFull) {
+/** an osu! user from a profile link, id or name typed by staff; null when empty or not found */
+export async function resolveOsuUser(input: FormDataEntryValue | null) {
+  const s = String(input ?? "").trim().slice(0, 200);
+  const m = /osu\.ppy\.sh\/(?:users|u)\/([^/?#\s]+)/i.exec(s);
+  let q = m ? m[1] : s;
+  try {
+    q = decodeURIComponent(q);
+  } catch {}
+  return q && q.length <= 40 ? getUser(q) : null;
+}
+
+/** refetches users from osu! (5 at a time, osu! rate limits) and saves them; returns how many came back */
+export async function refreshUsers(ids: number[]) {
+  let updated = 0;
+  for (let i = 0; i < ids.length; i += 5) {
+    const batch = await Promise.all(ids.slice(i, i + 5).map((id) => getUser(id).catch(() => null)));
+    for (const u of batch) {
+      if (!u) continue;
+      await saveOsuUser(u);
+      updated++;
+    }
+  }
+  return updated;
+}
+
+type OsuUserIn = Pick<OsuUserFull, "id" | "username" | "avatar_url" | "country_code"> & Partial<Pick<OsuUserFull, "statistics" | "badges">>;
+
+/** the one writer of users rows; stats are only touched when the source carries them (the sign-in profile may not) */
+export async function saveOsuUser(u: OsuUserIn) {
+  const stats =
+    u.statistics === undefined
+      ? {}
+      : { rank: u.statistics?.global_rank ?? null, countryRank: u.statistics?.country_rank ?? null, pp: u.statistics?.pp ?? null, accuracy: u.statistics?.hit_accuracy ?? null, statsAt: new Date() };
   const row = {
     username: u.username,
     avatarUrl: u.avatar_url,
     country: u.country_code,
-    rank: u.statistics?.global_rank ?? null,
-    countryRank: u.statistics?.country_rank ?? null,
-    pp: u.statistics?.pp ?? null,
-    accuracy: u.statistics?.hit_accuracy ?? null,
+    ...stats,
     ...(u.badges ? { badges: tourneyBadges(u.badges) } : {}),
-    statsAt: new Date(),
     updatedAt: new Date(),
   };
   await carryRename(u.id, u.username);

@@ -1,8 +1,6 @@
 import NextAuth from "next-auth";
 import type { OAuthConfig } from "next-auth/providers";
-import { db } from "@/db";
-import { carryRename } from "@/db/users";
-import { userNames, users } from "@/db/schema";
+import { saveOsuUser } from "@/db/users";
 
 type OsuProfile = { id: number; username: string; avatar_url: string; country_code: string };
 
@@ -25,10 +23,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn({ profile }) {
       const p = profile as unknown as OsuProfile | undefined;
       if (!p?.id) return false;
-      const row = { username: p.username, avatarUrl: p.avatar_url, country: p.country_code, updatedAt: new Date() };
-      await carryRename(p.id, p.username);
-      await db.insert(users).values({ osuId: p.id, ...row }).onConflictDoUpdate({ target: users.osuId, set: row });
-      await db.insert(userNames).values({ osuId: p.id, username: p.username }).onConflictDoNothing();
+      await saveOsuUser(p);
       return true;
     },
     jwt({ token, account }) {

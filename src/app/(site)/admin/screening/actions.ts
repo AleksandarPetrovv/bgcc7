@@ -2,12 +2,10 @@
 
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { lobbyBookings, registrations, teamMembers } from "@/db/schema";
-import { getBwsLock, isStatus } from "@/db/registrations";
-import { tourneyBadges } from "@/lib/bws";
-import { saveOsuUser } from "@/db/users";
+import { registrations, teamMembers } from "@/db/schema";
+import { getBwsLock, isStatus, removeRegistration as dropRegistration, setRegistrationStatus, snapshotBws } from "@/db/registrations";
+import { refreshUsers, resolveOsuUser, saveOsuUser } from "@/db/users";
 import { guard } from "@/lib/admin-action";
-import { getUser } from "@/lib/osu-api";
 import type { ActionResult } from "@/lib/roles";
 
 // once teams are drawn a player is moved in admin/teams first, so seeds and rosters stay in sync
@@ -20,11 +18,7 @@ export async function decide(osuId: number, _: ActionResult, fd: FormData) {
     const note = String(fd.get("note") ?? "").trim().slice(0, 300) || null;
     if (status === "denied" && !note) return { ok: false, error: "note" };
     if (status !== "approved" && (await onTeam(osuId))) return { ok: false, error: "invalid" };
-    await db
-      .update(registrations)
-      .set({ status, note, decidedBy: status === "pending" ? null : by, decidedAt: status === "pending" ? null : new Date() })
-      .where(eq(registrations.osuId, osuId));
-    if (status !== "approved") await db.delete(lobbyBookings).where(eq(lobbyBookings.osuId, osuId));
+    await setRegistrationStatus(osuId, status, note, by);
     return { osuId, status, note };
   });
 }
@@ -43,32 +37,22 @@ export async function approveAllPending() {
 export async function refreshStats() {
   return guard("screening", "screening.refreshStats", async () => {
     const ids = (await db.select({ osuId: registrations.osuId }).from(registrations)).map((r) => r.osuId);
-    let updated = 0;
-    for (let i = 0; i < ids.length; i += 5) {
-      const batch = await Promise.all(ids.slice(i, i + 5).map((id) => getUser(id).catch(() => null)));
-      for (const u of batch) {
-        if (!u) continue;
-        await saveOsuUser(u);
-        updated++;
-      }
-    }
-    return { updated, total: ids.length };
+    return { updated: await refreshUsers(ids), total: ids.length };
   });
 }
 
 export async function addPlayer(_: ActionResult, fd: FormData) {
   return guard("screening", "screening.add", async (by) => {
-    const q = String(fd.get("q") ?? "").trim();
-    if (!q || q.length > 32) return { ok: false, error: "invalid" };
-    const u = await getUser(q);
+    const u = await resolveOsuUser(fd.get("q"));
     if (!u) return { ok: false, error: "notFound" };
     await saveOsuUser(u);
-    const lock = (await getBwsLock()) ? { rankLock: u.statistics?.global_rank ?? null, badgesLock: u.badges ? tourneyBadges(u.badges) : 0 } : {};
-    const set = { status: "approved", decidedBy: by, decidedAt: new Date(), ...lock };
+    const set = { status: "approved", decidedBy: by, decidedAt: new Date() };
     await db
       .insert(registrations)
       .values({ osuId: u.id, ...set })
       .onConflictDoUpdate({ target: registrations.osuId, set });
+    // added after the bws lock: freeze this player's rank like everyone else's
+    if (await getBwsLock()) await snapshotBws(u.id);
     return { osuId: u.id, username: u.username };
   });
 }
@@ -76,8 +60,7 @@ export async function addPlayer(_: ActionResult, fd: FormData) {
 export async function removeRegistration(osuId: number) {
   return guard("screening", "screening.remove", async () => {
     if (await onTeam(osuId)) return { ok: false, error: "invalid" };
-    await db.delete(registrations).where(eq(registrations.osuId, osuId));
-    await db.delete(lobbyBookings).where(eq(lobbyBookings.osuId, osuId));
+    await dropRegistration(osuId);
     return { osuId };
   });
 }

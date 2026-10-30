@@ -4,20 +4,12 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { sponsors } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
-import { getUser } from "@/lib/osu-api";
 import type { ActionResult } from "@/lib/roles";
 import { osuUser } from "@/lib/links";
-
-const osuQuery = (v: FormDataEntryValue | null) => {
-  const s = String(v ?? "").trim().slice(0, 200);
-  const m = /osu\.ppy\.sh\/(?:users|u)\/([^/?#\s]+)/i.exec(s);
-  return decodeURIComponent(m ? m[1] : s);
-};
+import { resolveOsuUser } from "@/db/users";
 
 async function sponsorFrom(fd: FormData) {
-  const q = osuQuery(fd.get("q"));
-  if (!q || q.length > 40) return null;
-  const u = await getUser(q);
+  const u = await resolveOsuUser(fd.get("q"));
   if (!u) return null;
   return { osuId: u.id, name: u.username, image: u.avatar_url, url: osuUser(u.id) };
 }

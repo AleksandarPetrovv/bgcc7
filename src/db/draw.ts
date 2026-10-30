@@ -5,8 +5,7 @@ import { isTestTeam, TEST_MATCH } from "@/lib/format";
 import { db, isBGCC6 } from "./index";
 import { drafts, matchCache, matches, pickems, teamMembers, teams } from "./schema";
 import { getFormat } from "./edition";
-import { getRegistrations } from "./registrations";
-import { rankBws } from "@/lib/bws";
+import { bwsRanking, getPlayerSeeds } from "./seeds";
 
 export const shuffle = <T>(a: T[]) => {
   const out = [...a];
@@ -22,14 +21,10 @@ export const newTeamId = () => `team_${crypto.randomUUID().slice(0, 8)}`;
 export async function seedBracket() {
   const f = getFormat();
   if (isBGCC6()) return null;
-  const [regs, all, members] = await Promise.all([getRegistrations(), db.select().from(teams), db.select().from(teamMembers)]);
+  const [all, members] = await Promise.all([db.select().from(teams), db.select().from(teamMembers)]);
   const ts = all.filter((t) => !isTestTeam(t.id));
   if (ts.length !== f.teams) return null;
-  const pos = new Map(
-    rankBws(regs.filter((r) => r.status === "approved"))
-      .filter((p) => p.bws !== null)
-      .map((p, i) => [p.osuId, i + 1]),
-  );
+  const pos = await getPlayerSeeds();
   const seeds = (teamId: string) => members.filter((m) => m.teamId === teamId).map((m) => pos.get(m.osuId) ?? 999);
   const order = ts
     .map((t) => {
@@ -51,8 +46,7 @@ export async function seedBracket() {
 export async function drawSuiji() {
   const f = getFormat();
   if (isBGCC6()) return null;
-  const regs = await getRegistrations();
-  const ranked = rankBws(regs.filter((r) => r.status === "approved")).filter((p) => p.bws !== null);
+  const ranked = await bwsRanking();
   const n = f.teams;
   if (ranked.length < n * f.teamSize) return null;
   const top = shuffle(ranked.slice(0, n));

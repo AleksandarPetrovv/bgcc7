@@ -1,11 +1,10 @@
 import "server-only";
 import { desc, eq, sql } from "drizzle-orm";
 import { db } from "./index";
-import { registrations, settings, users } from "./schema";
+import { lobbyBookings, registrations, settings, users } from "./schema";
 import { safe } from "./safe";
-import { saveOsuUser } from "./users";
+import { refreshUsers } from "./users";
 import { getSettings, saveSettings } from "./settings";
-import { getUser } from "@/lib/osu-api";
 import { avatarCol } from "./avatar";
 
 export const STATUSES = ["pending", "approved", "denied"] as const;
@@ -75,13 +74,28 @@ export const getRegistration = (osuId: number) =>
     return row ? (isStatus(row.status) ? row.status : "pending") : null;
   }, null as Status | null);
 
+/** copies the players' current rank and badges into their registration, so later osu! changes don't move seeds */
+/** a registration's status changes; anyone not approved also loses their qualifier lobby booking */
+export async function setRegistrationStatus(osuId: number, status: Status, note: string | null, by: number) {
+  await db
+    .update(registrations)
+    .set({ status, note, decidedBy: status === "pending" ? null : by, decidedAt: status === "pending" ? null : new Date() })
+    .where(eq(registrations.osuId, osuId));
+  if (status !== "approved") await db.delete(lobbyBookings).where(eq(lobbyBookings.osuId, osuId));
+}
+
+export async function removeRegistration(osuId: number) {
+  await db.delete(registrations).where(eq(registrations.osuId, osuId));
+  await db.delete(lobbyBookings).where(eq(lobbyBookings.osuId, osuId));
+}
+
+export const snapshotBws = (osuId?: number) =>
+  db.execute(sql`update registrations r set rank_lock = u.rank, badges_lock = u.badges from users u where u.osu_id = r.osu_id ${osuId == null ? sql`` : sql`and r.osu_id = ${osuId}`}`);
+
 export async function lockBws() {
   const ids = (await db.select({ osuId: registrations.osuId }).from(registrations)).map((r) => r.osuId);
-  for (let i = 0; i < ids.length; i += 5) {
-    const batch = await Promise.all(ids.slice(i, i + 5).map((id) => getUser(id).catch(() => null)));
-    for (const u of batch) if (u) await saveOsuUser(u);
-  }
-  await db.execute(sql`update registrations r set rank_lock = u.rank, badges_lock = u.badges from users u where u.osu_id = r.osu_id`);
+  await refreshUsers(ids);
+  await snapshotBws();
   await saveSettings(await getSettings());
   await db.update(settings).set({ bwsLockedAt: new Date() }).where(eq(settings.id, 1));
   return ids.length;
