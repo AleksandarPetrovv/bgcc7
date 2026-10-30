@@ -1,3 +1,4 @@
+import { decideWinner } from "@/lib/result";
 export type Side = 1 | 2;
 export type DraftStep = { team: Side; kind: "ban" | "pick"; slot: string; skip?: boolean; winner?: Side; auto?: boolean };
 
@@ -66,7 +67,7 @@ export function turnOf(d: DraftView, slots: string[]): Turn {
   if (bans < totalBans) return { kind: "ban", team: swap(banTeam(d.banOrder, bans, firstBan)), n: bans + 1 };
   const [s1, s2] = scoreOf(d);
   const played = d.steps.filter((s) => s.kind === "pick" && !s.skip);
-  if (d.firstTo && (s1 >= d.firstTo || s2 >= d.firstTo)) return { kind: "done" };
+  if (d.firstTo && decideWinner([s1, s2], d.firstTo)) return { kind: "done" };
   if (played.length && !played.at(-1)!.winner) return { kind: "wait" };
   if (tbDue(d)) return { kind: "wait" };
   if (!left) return { kind: "done" };

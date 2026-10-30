@@ -1,14 +1,14 @@
 import { currentEdition, db } from "./index";
 import "server-only";
 import { eq } from "drizzle-orm";
-import { getFormat } from "./edition";
 import { matchCache, scoreEdits } from "./schema";
-import { finishMatch } from "./bracket";
-import type { PoolStage } from "./mappools";
+import { settleResult } from "./match";
+import { firstToOf, type PoolStage } from "./mappools";
 import type { Match, Team } from "@/lib/data";
 import { buildScoreboard, playoffPools, SCOREBOARD_V, type ScoreEdit, type Scoreboard } from "@/lib/scoreboard";
 import { isLive } from "@/lib/matches";
 import { alertId, clear, describeMatch, failingFor, osuIdOf, raise } from "@/lib/alerts";
+import { decideWinner } from "@/lib/result";
 import { within } from "@/lib/utils";
 
 const LIVE_TTL = 30_000;
@@ -39,33 +39,17 @@ export async function forgetScoreboard(matchId: string) {
   await db.delete(matchCache).where(eq(matchCache.matchId, matchId));
 }
 
-/** saves the result once the match is decided; on failure the match stays unfinished and an alert asks to retry */
-export async function settleFinish(match: Pick<Match, "id" | "referee">, score: [number, number]) {
-  const id = alertId("finishFailed", match.id);
-  try {
-    await finishMatch(match.id, score);
-    clear(id);
-    void import("./discord-bot").then((d) => d.later("result", () => d.postResult(match.id)));
-    return true;
-  } catch (e) {
-    console.error("[match finish]", match.id, e);
-    const info = await describeMatch(match.id);
-    raise({ id, kind: "finishFailed", level: "red", match: info, href: `/admin/matches/${info.slug}`, detail: e instanceof Error ? e.message : String(e) }, { hosts: true, osuIds: [await osuIdOf(match.referee)] });
-    return false;
-  }
-}
-
 const STALE_AFTER = 2 * 60_000;
 
 export async function getScoreboard(match: Match, teams: Team[], stages: PoolStage[]): Promise<Scoreboard | null> {
   if (!match.links.length) return null;
   const links = match.links.join(",");
-  const firstTo = stages.find((s) => s.slug === match.stage)?.firstTo ?? getFormat().firstTo;
-  const decided = (score: [number, number]) => Math.max(...score) >= firstTo;
+  const firstTo = firstToOf(stages, match.stage);
+  const decided = (score: [number, number]) => decideWinner(score, firstTo) !== null;
   const saved = await stored(match.id, links);
   if (saved) {
     // a cached result whose finish never got saved: finish it now instead of serving it forever
-    if (!match.winner && decided(saved.score)) await settleFinish(match, saved.score);
+    if (!match.winner && decided(saved.score)) await settleResult(match, saved.score, firstTo);
     return saved;
   }
 
@@ -78,7 +62,7 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
     const data = await buildScoreboard(match, teams, playoffPools([...stages].sort((x, y) => +(y.slug === match.stage) - +(x.slug === match.stage))), await getEdits(match.id));
     clear(staleId);
     if (decided(data.score) || match.winner) {
-      if (!match.winner && !(await settleFinish(match, data.score))) {
+      if (!match.winner && !(await settleResult(match, data.score, firstTo))) {
         live.set(key, { at: Date.now(), data });
         return data;
       }

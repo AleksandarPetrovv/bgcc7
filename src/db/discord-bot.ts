@@ -1,6 +1,6 @@
 import "server-only";
 import { and, eq, inArray, isNotNull, like, not, sql } from "drizzle-orm";
-import { currentEdition, db, isBGCC6, withEdition } from "./index";
+import { currentEdition, db, detached, isBGCC6, withEdition } from "./index";
 import { discordState, discordTeams, drafts, stages, users } from "./schema";
 import { getMatchRows, getMatches, getTeams, type MatchRow } from "./tournament";
 import { getPoolStages } from "./mappools";
@@ -10,7 +10,7 @@ import { dicts, roundName } from "@/lib/i18n/dict";
 import { matchNum } from "@/lib/format";
 import { siteUrl } from "@/lib/links";
 import { matchCosts } from "@/lib/match-cost";
-import { fmtSofia } from "@/lib/time";
+import { when } from "@/lib/discord-text";
 import type { Match } from "@/lib/data";
 import type { Scoreboard } from "@/lib/scoreboard";
 import {
@@ -21,11 +21,8 @@ import {
 const ready = () => discordReady() && !isBGCC6();
 const log = (what: string) => (e: unknown) => console.error(`[discord] ${what}`, e);
 
-// runs a discord job detached from the request, in the edition it was started from
 export const later = (what: string, fn: () => Promise<unknown>) => {
-  if (!ready()) return;
-  const ed = currentEdition();
-  void withEdition(ed, fn).catch(log(what));
+  if (ready()) detached(`discord ${what}`, fn);
 };
 
 // ---- stored state ----
@@ -162,7 +159,6 @@ export async function cleanupDiscord() {
 
 const teamLinks = async () => new Map((await db.select().from(discordTeams)).map((r) => [r.teamId, r]));
 const ping = (roleId: string) => ({ roles: [roleId] });
-const when = (d: Date) => `${fmtSofia(d, "en-GB")} (BG time)`;
 
 export function matchLabel(id: string, round: string) {
   const num = matchNum(getFormat(), id);
@@ -336,4 +332,3 @@ export async function teamNote(texts: Record<string, string>) {
   }
 }
 
-export const fmtWhen = when;

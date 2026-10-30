@@ -1,9 +1,10 @@
 "use server";
 
-import { getPoolStages } from "@/db/mappools";
-import { forgetScoreboard, getScoreboard, settleFinish } from "@/db/scoreboards";
+import { firstToOf, getPoolStages } from "@/db/mappools";
+import { forgetScoreboard, getScoreboard } from "@/db/scoreboards";
+import { settleResult } from "@/db/match";
 import { getMatches, getTeams } from "@/db/tournament";
-import { getFormat } from "@/db/edition";
+import { decideWinner } from "@/lib/result";
 import { canRunMatch } from "@/db/drafts";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
@@ -17,9 +18,9 @@ export async function retryFinish(matchId: string): Promise<ActionResult> {
     if (!match) return { ok: false, error: "notFound" };
     if (match.winner) return { matchId };
     const sb = await getScoreboard(match, teams, stages);
-    const firstTo = stages.find((s) => s.slug === match.stage)?.firstTo ?? getFormat().firstTo;
-    if (!sb || Math.max(...sb.score) < firstTo) return { ok: false, error: "invalid" };
-    if (!(await settleFinish(match, sb.score))) return { ok: false };
+    const firstTo = firstToOf(stages, match.stage);
+    if (!sb || !decideWinner(sb.score, firstTo)) return { ok: false, error: "invalid" };
+    if (!(await settleResult(match, sb.score, firstTo))) return { ok: false };
     return { matchId };
   });
 }

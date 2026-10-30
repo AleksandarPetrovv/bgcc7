@@ -1,12 +1,10 @@
 "use server";
 
-import { getAllTeams } from "@/db/tournament";
-import { teamNote } from "@/db/discord-bot";
-import { after } from "next/server";
 import { and, eq, inArray } from "drizzle-orm";
-import { currentEdition, db, withEdition } from "@/db";
+import { db } from "@/db";
 import { matches, reschedules, stages } from "@/db/schema";
-import { lockMatch, notifyCaptain, fmtAt, staffOverride } from "@/db/schedule";
+import { lockMatch, staffOverride } from "@/db/schedule";
+import { announceMatchTime, setMatchTime } from "@/db/match";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
 import { fromSofiaInput } from "@/lib/time";
@@ -42,38 +40,22 @@ export async function setWeek(slug: string, _: ActionResult, fd: FormData) {
 }
 
 export async function setTime(id: string, _: ActionResult, fd: FormData) {
-  let notify: { teams: string[]; at: Date } | null = null;
-  const res = await guard("matches", "schedule.set", async (osuId) => {
+  return guard("matches", "schedule.set", async (osuId) => {
     const raw = String(fd.get("at") ?? "").trim();
     const at = raw ? fromSofiaInput(raw) : null;
     if (raw && !at) return { ok: false, error: "invalid" };
     const out = await db.transaction(async (tx) => {
       const m = await lockMatch(tx, id);
       if (!m) return null;
-      await staffOverride(tx, id, osuId);
-      if ((m.startsAt?.getTime() ?? null) === (at?.getTime() ?? null)) return { ...m, same: true };
-      await tx.update(matches).set({ startsAt: at }).where(eq(matches.id, id));
-      if (at && m.team1Id) await tx.insert(reschedules).values({ matchId: id, teamId: m.team1Id, requestedBy: osuId, proposedAt: at, status: "staff", decidedBy: osuId });
+      if ((m.startsAt?.getTime() ?? null) === (at?.getTime() ?? null)) {
+        await staffOverride(tx, id, osuId);
+        return { ...m, same: true };
+      }
+      await setMatchTime(tx, m, at, osuId);
       return { ...m, same: false };
     });
     if (!out) return { ok: false, error: "notFound" };
-    if (out.same) return { match: id, at: at?.toISOString() ?? null };
-    if (at) notify = { teams: [out.team1Id, out.team2Id].filter((x): x is string => !!x), at };
+    if (!out.same && at) announceMatchTime([out.team1Id, out.team2Id], at, { dm: true });
     return { match: id, at: at?.toISOString() ?? null };
   });
-  const n = notify as { teams: string[]; at: Date } | null;
-  if (res?.ok && n) {
-    const ed = currentEdition();
-    after(() =>
-      withEdition(ed, async () => {
-        await Promise.all(n.teams.map((team) => notifyCaptain(team, (link) => `Staff set your match to **${fmtAt(n.at)}**. ${link}`).catch(() => {})));
-        const [t1, t2] = n.teams;
-        if (!t1 || !t2) return;
-        const ts = await getAllTeams();
-        const name = (x: string) => ts.find((t) => t.id === x)?.name ?? x;
-        await teamNote({ [t1]: `Staff set your match against **${name(t2)}** to **${fmtAt(n.at)}**.`, [t2]: `Staff set your match against **${name(t1)}** to **${fmtAt(n.at)}**.` }).catch(() => {});
-      }),
-    );
-  }
-  return res;
 }

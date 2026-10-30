@@ -20,6 +20,7 @@ import { MatchDialog } from "@/components/site/match-dialog";
 import { AskPopup, ChoosePopup, Portal, ResetPopup, ScoresPopup, TimerDock, Waiting, WinnerPopup } from "./draft-popups";
 import { AdminBar, Rolls, Sequence, TeamsHeader, type TeamInfo } from "./draft-parts";
 import { MapGrid, type Pool } from "./draft-maps";
+import { decideWinner } from "@/lib/result";
 
 function isDraftResponse(value: unknown): value is DraftView {
   const object = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
@@ -188,7 +189,7 @@ export function DraftRoom({
 
   const picked = d.steps.filter((s) => s.kind === "pick" && !s.skip);
   const scored = picked.length > 0;
-  const score = [picked.filter((s) => s.winner === 1).length, picked.filter((s) => s.winner === 2).length];
+  const score = scoreOf(d);
 
   async function result(slot: string, winner: Side): Promise<boolean> {
     if (savingResult.current) return false;
@@ -251,8 +252,8 @@ export function DraftRoom({
         : turn.kind === "choose"
           ? t.draft.choosing(name(turn.team))
           : turn.kind === "done"
-            ? score[0] >= d.firstTo || score[1] >= d.firstTo
-              ? t.draft.matchWon(name(score[0] > score[1] ? 1 : 2))
+            ? d.firstTo && decideWinner(score, d.firstTo)
+              ? t.draft.matchWon(name(decideWinner(score, d.firstTo)!))
               : t.draft.done
             : turn.kind === "wait"
               ? d.playing

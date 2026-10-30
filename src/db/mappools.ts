@@ -9,13 +9,14 @@ import { skillSlot } from "@/lib/format-plan";
 import { type Beatmap, type Pack } from "@/lib/data";
 import { MOD_ORDER, MODS } from "@/lib/mods";
 import { isBracketStage } from "@/lib/format";
+import { getFormat } from "./edition";
 
 export type MapRow = typeof maps.$inferSelect;
 export type PoolStage = {
   id: number;
   slug: string;
   title: string;
-  firstTo: number | null;
+  firstTo: number;
   released: boolean;
   pack: Pack | null;
   blueprint: Record<string, number>;
@@ -38,7 +39,7 @@ export const getPoolStages = cache(() =>
       id: s.id,
       slug: s.slug,
       title: s.title,
-      firstTo: skills?.[s.slug]?.firstTo ?? s.firstTo,
+      firstTo: skills?.[s.slug]?.firstTo ?? s.firstTo ?? getFormat().firstTo,
       released: s.poolReleased,
       pack: s.packSize ? { size: s.packSize, at: s.packAt?.toISOString() ?? null } : null,
       blueprint: skills?.[s.slug]?.blueprint ?? s.blueprint ?? {},
@@ -67,6 +68,9 @@ export const getPoolStages = cache(() =>
     }));
   }, [] as PoolStage[]),
 );
+
+/** first to how many wins a match on this stage is played */
+export const firstToOf = (stages: PoolStage[], slug: string) => stages.find((s) => s.slug === slug)?.firstTo ?? getFormat().firstTo;
 
 export async function getQualifierMaps() {
   const q = (await getPoolStages()).find((s) => !isBracketStage(s.slug));

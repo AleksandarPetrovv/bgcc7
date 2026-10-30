@@ -6,7 +6,7 @@ import { getAllMatches, getAllTeams } from "@/db/tournament";
 import { matchIdFromSlug } from "@/lib/format";
 import { getDraft, settle } from "@/db/drafts";
 import { getFormat } from "@/db/edition";
-import { getPoolStages, type PoolStage } from "@/db/mappools";
+import { firstToOf, getPoolStages, type PoolStage } from "@/db/mappools";
 import { getSkillLayouts } from "@/db/format-plan";
 import { bySkill } from "@/lib/format-plan";
 import { nowPlaying } from "@/lib/bancho";
@@ -15,7 +15,7 @@ import { overlayUser, currentStreamMatch } from "@/db/stream";
 import { isScene, type Scene } from "@/lib/scenes";
 import { getCue, PLAY_LEAD } from "@/lib/overlay-cues";
 import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup, FeedMatch, FeedTurn, LiveScore } from "./overlay-types";
-import { tbDue, turnOf, type DraftView } from "@/lib/draft";
+import { scoreOf, tbDue, turnOf, type DraftView } from "@/lib/draft";
 import { TEST_MATCH } from "@/lib/format";
 import { canSee } from "@/lib/authz";
 
@@ -156,7 +156,7 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
   const stage = stages.find((s) => s.slug === stageSlug);
   const { pool, groups } = await poolFeed(stage);
 
-  const firstTo = draft?.firstTo ?? stage?.firstTo ?? f.firstTo;
+  const firstTo = draft?.firstTo ?? firstToOf(stages, stageSlug);
 
   const live = getLive(matchId);
   const playing = currentEdition() === siteEdition() ? nowPlaying(matchId) : null;
@@ -182,12 +182,7 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
     }
   }
 
-  const score: [number, number] = draft
-    ? [
-        steps.filter((s) => s.kind === "pick" && s.winner === 1).length,
-        steps.filter((s) => s.kind === "pick" && s.winner === 2).length,
-      ]
-    : [m.team1.score ?? 0, m.team2.score ?? 0];
+  const score: [number, number] = draft ? scoreOf(draft) : [m.team1.score ?? 0, m.team2.score ?? 0];
 
   const winner = inPlay ? null : m.winner ?? null;
 

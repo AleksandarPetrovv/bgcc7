@@ -1,14 +1,13 @@
 import "server-only";
 import { cache } from "react";
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { db, isBGCC6 } from "./index";
+import { db, isBGCC6, type Tx } from "./index";
 import { availability, matches, reschedules, stages, users } from "./schema";
 import { safe } from "./safe";
 import { getAllTeams, getMatchRows, getTeams, type MatchRow } from "./tournament";
 import { getSettings } from "./settings";
 import { siteUrl } from "@/lib/links";
 import { dm, discordReady } from "@/lib/discord";
-import { fmtSofia } from "@/lib/time";
 import { isOpen, weekOf, type Proposal, type SchedStatus } from "@/lib/schedule";
 import type { Team } from "@/lib/data";
 
@@ -128,7 +127,7 @@ export const schedNav = cache(async (osuId: number | null) => {
   return { show, dot, discord };
 });
 
-export async function lockMatch(tx: Parameters<Parameters<typeof db.transaction>[0]>[0], id: string) {
+export async function lockMatch(tx: Tx, id: string) {
   const [m] = await tx.select().from(matches).where(eq(matches.id, id)).for("update").limit(1);
   return m ?? null;
 }
@@ -136,7 +135,7 @@ export async function lockMatch(tx: Parameters<Parameters<typeof db.transaction>
 export const staffOverride = (tx: Pick<typeof db, "update">, matchId: string, by: number | null, only: ("pending" | "accepted")[] = ["pending", "accepted"]) =>
   tx.update(reschedules).set({ status: "cancelled", decidedBy: by }).where(and(eq(reschedules.matchId, matchId), inArray(reschedules.status, only)));
 
-export const pendingOf = (tx: Parameters<Parameters<typeof db.transaction>[0]>[0], id: string) =>
+export const pendingOf = (tx: Tx, id: string) =>
   tx.select().from(reschedules).where(and(eq(reschedules.matchId, id), eq(reschedules.status, "pending")));
 
 export async function notifyCaptain(teamId: string, text: (link: string) => string) {
@@ -149,4 +148,3 @@ export async function notifyCaptain(teamId: string, text: (link: string) => stri
   await dm(u.discordId, text(`<${siteUrl()}/scheduling>`)).catch((e) => console.error("[discord] dm", e));
 }
 
-export const fmtAt = (d: Date) => `${fmtSofia(d, "en-GB")} (BG time)`;

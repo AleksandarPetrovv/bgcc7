@@ -225,7 +225,7 @@ export async function GET(req: Request) {
       const at = (slot: string) => real.pool[Math.min(Math.max(0, POOL.findIndex((m) => m.slot === slot)), real.pool.length - 1)];
       const steps = feed.steps.map((x) => ({ ...x, slot: at(x.slot).slot }));
       const current = feed.current ? at(feed.current.slot) : null;
-      const firstTo = stage!.firstTo ?? feed.match.firstTo;
+      const firstTo = stage!.firstTo;
       const score: [number, number] = feed.match.winner ? [firstTo, 2] : feed.match.score;
       return { ...feed, match: { ...feed.match, round: stage!.title, firstTo, score }, pool: real.pool, groups: real.groups, steps, current, live: feed.live && current ? { ...feed.live, mapId: current.id } : feed.live };
     },

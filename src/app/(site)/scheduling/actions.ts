@@ -8,7 +8,8 @@ import { currentEdition, db, withEdition } from "@/db";
 import { availability, matches, reschedules } from "@/db/schema";
 import { getSettings } from "@/db/settings";
 import { getAllTeams } from "@/db/tournament";
-import { busyOf, fmtAt, lockMatch, myCaptainTeam, mySchedule, notifyCaptain, pendingOf, schedulable, stageWeeks, teamOf } from "@/db/schedule";
+import { when } from "@/lib/discord-text";
+import { busyOf, lockMatch, myCaptainTeam, mySchedule, notifyCaptain, pendingOf, schedulable, stageWeeks, teamOf } from "@/db/schedule";
 import { getViewer } from "@/lib/authz";
 import { siteUrl } from "@/lib/links";
 import { teamNote } from "@/db/discord-bot";
@@ -85,10 +86,10 @@ export async function propose(matchId: string, input: string, noteIn: string): P
     const [from, to] = [await teamName(team), await teamName(opp)];
     const verb = counter ? "countered with" : "proposed";
     return async () => {
-      await notifyCaptain(opp, (link) => `${from} ${verb} **${fmtAt(at!)}** for your match. Accept or counter: ${link}${quote(note)}`);
+      await notifyCaptain(opp, (link) => `${from} ${verb} **${when(at!)}** for your match. Accept or counter: ${link}${quote(note)}`);
       await teamNote({
-        [team]: `Your captain ${verb} **${fmtAt(at!)}** for your match against **${to}**. Waiting for their answer.${quote(note)}`,
-        [opp]: `**${from}** ${verb} **${fmtAt(at!)}** for your match. Your captain can accept or counter: <${siteUrl()}/scheduling>${quote(note)}`,
+        [team]: `Your captain ${verb} **${when(at!)}** for your match against **${to}**. Waiting for their answer.${quote(note)}`,
+        [opp]: `**${from}** ${verb} **${when(at!)}** for your match. Your captain can accept or counter: <${siteUrl()}/scheduling>${quote(note)}`,
       });
     };
   });
@@ -113,8 +114,8 @@ export async function accept(matchId: string, proposalId: number): Promise<Res> 
     });
     const [from, to] = [await teamName(team), await teamName(by)];
     return async () => {
-      await notifyCaptain(by, (link) => `${from} accepted **${fmtAt(at)}**. Your match is set. ${link}`);
-      await teamNote({ [team]: `Your match against **${to}** is set for **${fmtAt(at)}**.`, [by]: `Your match against **${from}** is set for **${fmtAt(at)}**.` });
+      await notifyCaptain(by, (link) => `${from} accepted **${when(at)}**. Your match is set. ${link}`);
+      await teamNote({ [team]: `Your match against **${to}** is set for **${when(at)}**.`, [by]: `Your match against **${from}** is set for **${when(at)}**.` });
     };
   });
 }

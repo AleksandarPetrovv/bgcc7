@@ -3,17 +3,20 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { getFormat } from "@/db/edition";
-import { matchCache, matches, stages, teams } from "@/db/schema";
+import { matches, stages, teams } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
 import { fromSofiaInput } from "@/lib/time";
 import { advance } from "@/db/bracket";
-import { lockMatch, staffOverride } from "@/db/schedule";
+import { lockMatch } from "@/db/schedule";
+import { announceMatchTime, setMatchTime } from "@/db/match";
+import { firstToOf, getPoolStages } from "@/db/mappools";
+import { forgetScoreboard } from "@/db/scoreboards";
+import { decideWinner } from "@/lib/result";
 import { canRunMatch } from "@/db/drafts";
 import { handOff } from "@/lib/bancho";
 import { matchStamp } from "@/lib/matches";
-import { fmtWhen, later, postResult, teamNote } from "@/db/discord-bot";
-import { getTeams } from "@/db/tournament";
+import { later, postResult } from "@/db/discord-bot";
 import { isBracketStage } from "@/lib/format";
 
 const text = (fd: FormData, k: string, max = 120) => String(fd.get(k) ?? "").trim().slice(0, max) || null;
@@ -45,10 +48,12 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     const pick = String(fd.get("poolSlug") ?? "");
     if (pick && (!slugs.has(pick) || !isBracketStage(pick))) return { ok: false, error: "invalid" };
     const poolSlug = pick && pick !== m.stageSlug ? pick : null;
-    const [stage] = await db.select({ firstTo: stages.firstTo }).from(stages).where(eq(stages.slug, poolSlug ?? m.stageSlug)).limit(1);
-    const firstTo = stage?.firstTo ?? getFormat().firstTo;
+    const firstTo = firstToOf(await getPoolStages(), poolSlug ?? m.stageSlug);
     const w = String(fd.get("winner") ?? "auto");
-    const winner = w === "1" ? 1 : w === "2" ? 2 : w === "none" ? null : (score1 ?? 0) >= firstTo ? 1 : (score2 ?? 0) >= firstTo ? 2 : null;
+    const score: [number, number] = [score1 ?? 0, score2 ?? 0];
+    // auto: a score that reached firstTo without being ahead is a typo, not a result
+    if (w === "auto" && !decideWinner(score, firstTo) && Math.max(...score) >= firstTo) return { ok: false, error: "invalid" };
+    const winner = w === "1" ? 1 : w === "2" ? 2 : w === "none" ? null : decideWinner(score, firstTo);
     const mpLinks = [...new Set(fd.getAll("mpLinks").join(" ").match(/\d{6,}/g) ?? [])].join(",");
     const manual = fd.get("manual") === "on";
     const rawStartsAt = String(fd.get("startsAt") ?? "").trim();
@@ -69,33 +74,29 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
       poolSlug,
     };
     let patch: typeof base & { startsAt?: Date | null } = base;
+    let cacheStale = false;
     const gone = await db.transaction(async (tx) => {
       const cur = await lockMatch(tx, id);
       if (!cur) return true;
       if (fd.get("stamp") !== matchStamp(cur)) return "stale" as const;
       const swapped = (!!cur.team1Id && cur.team1Id !== base.team1Id) || (!!cur.team2Id && cur.team2Id !== base.team2Id);
       const moved = (startsAt?.getTime() ?? null) !== (cur.startsAt?.getTime() ?? null);
-      patch = { ...base, ...(moved ? { startsAt } : swapped ? { startsAt: null } : {}) };
-      await tx.update(matches).set(patch).where(eq(matches.id, id));
-      if (moved || swapped) await staffOverride(tx, id, osuId);
-      if (mpLinks !== m.mpLinks || winner !== m.winner || poolSlug !== m.poolSlug) await tx.delete(matchCache).where(eq(matchCache.matchId, id));
+      await tx.update(matches).set(base).where(eq(matches.id, id));
+      // a staff time change, or a team swap that voids the agreed time
+      if (moved || swapped) {
+        patch = { ...base, startsAt: moved ? startsAt : null };
+        await setMatchTime(tx, { id, team1Id: base.team1Id }, patch.startsAt ?? null, osuId);
+      }
+      cacheStale = mpLinks !== m.mpLinks || winner !== m.winner || poolSlug !== m.poolSlug;
       await advance(tx);
       return false;
     });
     if (gone === "stale") return { ok: false, error: "stale" };
     if (gone) return { ok: false, error: "notFound" };
+    if (cacheStale) await forgetScoreboard(id);
     if (patch.referee !== m.referee) await handOff(id, patch.referee).catch((e) => console.error("[handoff]", e));
     if (winner && (winner !== m.winner || score1 !== m.score1 || score2 !== m.score2)) later("result", () => postResult(id));
-    const t1 = patch.team1Id;
-    const t2 = patch.team2Id;
-    if (patch.startsAt && t1 && t2 && patch.startsAt.getTime() !== m.startsAt?.getTime()) {
-      const at = patch.startsAt;
-      later("schedule", async () => {
-        const ts = await getTeams();
-        const name = (x: string) => ts.find((t) => t.id === x)?.name ?? x;
-        await teamNote({ [t1]: `Staff set your match against **${name(t2)}** to **${fmtWhen(at)}**.`, [t2]: `Staff set your match against **${name(t1)}** to **${fmtWhen(at)}**.` });
-      });
-    }
+    if (patch.startsAt && patch.startsAt.getTime() !== m.startsAt?.getTime()) announceMatchTime([patch.team1Id, patch.team2Id], patch.startsAt, { dm: false });
     return { id, ...patch };
   });
 }
@@ -103,7 +104,7 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
 export async function clearCache(id: string) {
   return guard("matches", "match.clearCache", async () => {
     if (!(await canRunMatch(id))) return { ok: false, error: "forbidden" };
-    await db.delete(matchCache).where(eq(matchCache.matchId, id));
+    await forgetScoreboard(id);
     return { id };
   });
 }

@@ -3,15 +3,14 @@
 import { db } from "@/db";
 import { and, eq } from "drizzle-orm";
 
-import { matches, scoreEdits } from "@/db/schema";
-import { advance } from "@/db/bracket";
-import { getPoolStages } from "@/db/mappools";
-import { getFormat } from "@/db/edition";
+import { scoreEdits } from "@/db/schema";
+import { firstToOf, getPoolStages } from "@/db/mappools";
+import { settleResult } from "@/db/match";
 import { forgetScoreboard, getScoreboard } from "@/db/scoreboards";
 import { getMatches, getTeams } from "@/db/tournament";
 import { guard } from "@/lib/admin-action";
 import { canRunMatch } from "@/db/drafts";
-import { later, postResult } from "@/db/discord-bot";
+import { decideWinner } from "@/lib/result";
 import type { ActionResult } from "@/lib/roles";
 
 const parseMods = (v: string) => (v.toUpperCase().replace(/[^A-Z]/g, "").match(/.{2}/g) ?? []).filter((m) => m !== "NM").join(",");
@@ -23,19 +22,10 @@ async function sync(matchId: string) {
   if (!match) return;
   const sb = await getScoreboard(match, teams, stages);
   if (!sb) return;
-  const firstTo = stages.find((s) => s.slug === match.stage)?.firstTo ?? getFormat().firstTo;
-  const [row] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
-  if (!row) return;
-  const [a, b] = sb.score;
-  const winner = a >= firstTo && a > b ? 1 : b >= firstTo && b > a ? 2 : null;
-  if (row.score1 === a && row.score2 === b && row.winner === winner) return;
-  await db.transaction(async (tx) => {
-    await tx.update(matches).set({ score1: a, score2: b, winner }).where(eq(matches.id, matchId));
-    await advance(tx);
-  });
+  const firstTo = firstToOf(stages, match.stage);
+  if (!(await settleResult(match, sb.score, firstTo))) throw new Error("saving the result failed");
   // the board above was cached while the old winner was still set; drop it so later games still count
-  if (!winner) await forgetScoreboard(matchId);
-  else later("result", () => postResult(matchId));
+  if (!decideWinner(sb.score, firstTo)) await forgetScoreboard(matchId);
 }
 
 async function rosterTeam(matchId: string, osuId: number) {

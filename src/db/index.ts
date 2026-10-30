@@ -41,6 +41,12 @@ export const currentEdition = (): Edition => {
 export const isBGCC6 = () => currentEdition() === "bgcc6";
 
 export const withEdition = <T>(ed: Edition | "site", fn: () => T): T => pin.run(ed, fn);
+
+/** runs a job after the request without waiting for it, in the edition it was started from; errors are logged */
+export const detached = (what: string, fn: () => Promise<unknown>) => {
+  const ed = currentEdition();
+  void withEdition(ed, fn).catch((e) => console.error(`[${what}]`, e));
+};
 export const setCurrentEdition = (e: Edition) => {
   g.bgccEdition = e;
 };
@@ -52,6 +58,7 @@ export async function ensureEdition() {
 }
 
 export const dbOf = (e: Edition) => (e === "bgcc6" ? dbBGCC6 : base);
+export type Tx = Parameters<Parameters<typeof base.transaction>[0]>[0];
 
 export const db: typeof base = new Proxy(base, {
   get(_, k) {

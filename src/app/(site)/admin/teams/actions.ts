@@ -1,6 +1,6 @@
 "use server";
 
-import { and, asc, eq, isNotNull, ne, or } from "drizzle-orm";
+import { and, asc, eq, ne, or } from "drizzle-orm";
 import { db, isBGCC6 } from "@/db";
 import { matches, teamMembers, teams, users } from "@/db/schema";
 import { newTeamId, seedBracket } from "@/db/draw";
@@ -9,6 +9,7 @@ import { getSettings } from "@/db/settings";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
 import { isTestTeam } from "@/lib/format";
+import { playedIds } from "@/db/bracket";
 
 const newId = newTeamId;
 
@@ -63,12 +64,8 @@ export async function updateTeam(id: string, _: ActionResult, fd: FormData) {
 export async function deleteTeam(id: string) {
   return guard("teams", "team.delete", async () => {
     // a team that already played keeps its slot, otherwise the bracket loses results it was built on
-    const [played] = await db
-      .select({ id: matches.id })
-      .from(matches)
-      .where(and(or(eq(matches.team1Id, id), eq(matches.team2Id, id)), or(isNotNull(matches.winner), isNotNull(matches.score1), isNotNull(matches.score2), ne(matches.mpLinks, ""))))
-      .limit(1);
-    if (played) return { ok: false, error: "invalid" };
+    const [mine, played] = await Promise.all([db.select({ id: matches.id }).from(matches).where(or(eq(matches.team1Id, id), eq(matches.team2Id, id))), playedIds()]);
+    if (mine.some((m) => played.has(m.id))) return { ok: false, error: "invalid" };
     const row = await db.transaction(async (tx) => {
       const [gone] = await tx.delete(teams).where(eq(teams.id, id)).returning({ name: teams.name });
       const left = (await tx.select({ id: teams.id }).from(teams).orderBy(asc(teams.seed), asc(teams.name))).filter((t) => !isTestTeam(t.id));

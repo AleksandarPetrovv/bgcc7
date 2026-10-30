@@ -14,6 +14,7 @@ import { CHAT_GAP, attach, canLobby, conn, ensureBot, g, lastSent, lobbyOwner, m
 import { MOD_LOBBY } from "./mods";
 import { nameKey, ircName } from "@/lib/names";
 import { within } from "./utils";
+import { decideWinner } from "./result";
 
 export { CHAT_GAP, canLobby, ensureBot, lobbyOwner, onLobby, sayLocal, type ChatLine, type LobbySlot, type LobbyView } from "./bancho-irc";
 
@@ -78,8 +79,8 @@ async function narrate(l: Live, n: DraftView | null) {
   if (same) {
     if (p.steps.some((s, i) => !s.winner && n.steps[i].winner)) {
       const [a, b] = scoreOf(n);
-      if (n.firstTo && (a >= n.firstTo || b >= n.firstTo)) {
-        const w = a > b ? 1 : 2;
+      const w = n.firstTo ? decideWinner([a, b], n.firstTo) : null;
+      if (w) {
         await say(`${name(w)} wins ${Math.max(a, b)} - ${Math.min(a, b)}, GG!`);
       } else {
         const t = turnOf(n, slots);
