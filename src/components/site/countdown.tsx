@@ -45,11 +45,11 @@ export function Countdown({ to, from }: { to: string; from?: string }) {
   const pct = now === null || start === null || end <= start ? null : Math.min(1, Math.max(0, (now - start) / (end - start)));
   return (
     <>
-    <time dateTime={to} className="num mt-1 block text-5xl text-paper">
+    <time dateTime={to} className="num mt-1 block whitespace-nowrap text-5xl text-paper">
       <Roll value={now === null ? "--" : String(d)} />
-      <span className="text-2xl text-ash">d</span> <Roll value={now === null ? "--" : pad(h)} />
-      <span className="text-2xl text-ash">h</span> <Roll value={now === null ? "--" : pad(m)} />
-      <span className="text-2xl text-ash">m</span>
+      <span className="text-3xl text-ash">d</span> <Roll value={now === null ? "--" : pad(h)} />
+      <span className="text-3xl text-ash">h</span> <Roll value={now === null ? "--" : pad(m)} />
+      <span className="text-3xl text-ash">m</span>
     </time>
     {pct !== null && (
       <span className="absolute inset-x-0 bottom-0 block h-1 bg-slate" aria-hidden>
