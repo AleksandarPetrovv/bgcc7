@@ -156,7 +156,7 @@ export const pages: typeof en = {
     highest: "Най-висок резултат",
     bestAcc: "Най-добра точност",
     topSeed: "Първи номер",
-    mostPoints: "Най-много точки",
+    topCost: "Най-висок match cost",
     stageTabs: "Етап",
     scoresSet: "Изиграни резултати",
     avgPerMap: "Среден резултат по мап",

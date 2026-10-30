@@ -154,7 +154,7 @@ export const pages = {
     highest: "Highest score",
     bestAcc: "Best accuracy",
     topSeed: "Top seed",
-    mostPoints: "Most points",
+    topCost: "Highest match cost",
     stageTabs: "Stage",
     scoresSet: "Scores set",
     avgPerMap: "Average score per map",

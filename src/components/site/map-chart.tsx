@@ -4,8 +4,7 @@ import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 
 import type { QualMap, QualPlayer } from "@/lib/data";
 import { useDict } from "./lang";
 import { HEX } from "@/lib/theme";
-
-const COLOR: Record<string, string> = { NM: HEX.azure, HD: HEX.hd, HR: HEX.hr, DT: HEX.dt, FM: "var(--balkan-deep)", TB: HEX.paper, AIM: HEX.azure, SPD: HEX.dt, RDG: "var(--balkan-deep)", FGC: HEX.hd, STM: HEX.hr };
+import { slotColor } from "@/lib/format-plan";
 
 export function MapDifficultyChart({ qualifiers }: { qualifiers: { maps: QualMap[]; players: QualPlayer[] } }) {
   const t = useDict();
@@ -19,8 +18,15 @@ export function MapDifficultyChart({ qualifiers }: { qualifiers: { maps: QualMap
   return (
     <div className="h-72">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
-          <XAxis dataKey="slot" tick={{ fill: HEX.paper, fontSize: 13, fontWeight: 800 }} axisLine={{ stroke: HEX.line }} tickLine={false} />
+        <BarChart data={data} barCategoryGap="25%" margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
+          <defs>
+            <linearGradient id="bar-sheen" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="white" stopOpacity={0.16} />
+              <stop offset="0.45" stopColor="white" stopOpacity={0.03} />
+              <stop offset="1" stopColor="black" stopOpacity={0.12} />
+            </linearGradient>
+          </defs>
+          <XAxis dataKey="slot" interval={0} tick={{ fill: HEX.paper, fontSize: data.length > 12 ? 10 : 13, fontWeight: 800 }} axisLine={{ stroke: HEX.line }} tickLine={false} />
           <YAxis domain={[0, top]} tickCount={top / 100_000 + 1} tickFormatter={(v) => `${Math.round(v / 1000)}k`} tick={{ fill: HEX.ash, fontSize: 11 }} axisLine={false} tickLine={false} />
           <Tooltip
             cursor={{ fill: "color-mix(in srgb, var(--rose) 10%, transparent)" }}
@@ -33,20 +39,20 @@ export function MapDifficultyChart({ qualifiers }: { qualifiers: { maps: QualMap
             dataKey="avg"
             radius={0}
             isAnimationActive={false}
-            shape={(props: { x?: number; y?: number; width?: number; height?: number; fill?: string; index?: number }) => (
-              <rect
-                x={props.x}
-                y={props.y}
-                width={props.width}
-                height={props.height}
-                fill={props.fill}
-                className="in-grow-y"
-                style={{ "--i": props.index ?? 0, "--s": "0.07s", "--d": "0.15s" } as React.CSSProperties}
-              />
-            )}
+            shape={(props: { x?: number; y?: number; width?: number; height?: number; fill?: string; index?: number }) => {
+              const { x = 0, y = 0, width: w = 0, height: h = 0 } = props;
+              const r = Math.min(6, w / 2, h);
+              const d = `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+              return (
+                <g className="in-grow-y transition-[filter] duration-200 hover:brightness-108" style={{ "--i": props.index ?? 0, "--s": "0.07s", "--d": "0.15s" } as React.CSSProperties}>
+                  <path d={d} fill={props.fill} />
+                  <path d={d} fill="url(#bar-sheen)" />
+                </g>
+              );
+            }}
           >
             {data.map((d) => (
-              <Cell key={d.slot} fill={COLOR[d.slot.replace(/\d+$/, "")] ?? COLOR[d.slot.slice(0, 2)] ?? HEX.paper} />
+              <Cell key={d.slot} fill={slotColor(d.slot)} />
             ))}
           </Bar>
         </BarChart>

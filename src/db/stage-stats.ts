@@ -2,8 +2,9 @@ import "server-only";
 import type { Match, QualMap, QualPlayer, Team } from "@/lib/data";
 import type { PoolStage } from "./mappools";
 import { getScoreboard } from "./scoreboards";
+import { matchCosts } from "@/lib/match-cost";
 
-export type StageStats = { maps: QualMap[]; players: QualPlayer[]; plays: number; matches: number };
+export type StageStats = { maps: QualMap[]; players: QualPlayer[]; plays: number; matches: number; topCost?: { username: string; cost: number } };
 
 export async function getStageStats(stage: PoolStage, matches: Match[], teams: Team[], stages: PoolStage[]): Promise<StageStats> {
   const maps: QualMap[] = stage.pools.flatMap((p) =>
@@ -18,8 +19,15 @@ export async function getStageStats(stage: PoolStage, matches: Match[], teams: T
   const byPlayer = new Map<number, QualPlayer & { accSum: number; scoreSum: number; n: number }>();
   let plays = 0;
   let played = 0;
+  const costs = new Map<number, { username: string; sum: number; n: number }>();
   for (const sb of boards) {
     if (!sb) continue;
+    for (const c of matchCosts(sb, true)) {
+      const cur = costs.get(c.id) ?? { username: c.name, sum: 0, n: 0 };
+      cur.sum += c.cost;
+      cur.n++;
+      costs.set(c.id, cur);
+    }
     let any = false;
     for (const map of sb.maps) {
       if (map.note || !inPool.has(map.beatmapId)) continue;
@@ -44,5 +52,6 @@ export async function getStageStats(stage: PoolStage, matches: Match[], teams: T
   const players: QualPlayer[] = [...byPlayer.values()]
     .map(({ accSum, scoreSum, n, ...p }) => ({ ...p, avgAcc: n ? accSum / n : 0, avgScore: n ? scoreSum / n : 0, zSum: scoreSum }))
     .sort((a, b) => b.zSum - a.zSum);
-  return { maps, players, plays, matches: played };
+  const topCost = [...costs.values()].map((c) => ({ username: c.username, cost: c.sum / c.n })).sort((a, b) => b.cost - a.cost)[0];
+  return { maps, players, plays, matches: played, topCost };
 }
