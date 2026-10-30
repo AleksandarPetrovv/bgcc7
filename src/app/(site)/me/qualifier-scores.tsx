@@ -39,9 +39,9 @@ export function QualifierScores({ t, maps, player }: { t: Dict; maps: QualMap[];
   );
 }
 
-export function QualifierPlacement({ t, placement, total, cut }: { t: Dict; placement: number; total: number; cut: number }) {
+export function QualifierPlacement({ t, placement, total, cut, i = 1 }: { t: Dict; placement: number; total: number; cut: number; i?: number }) {
   return (
-    <Card title={t.me.placement} i={1}>
+    <Card title={t.me.placement} i={i}>
       <div className="flex items-end gap-3">
         <span className="num text-6xl leading-[0.8] sm:text-7xl">#{placement + 1}</span>
         <span className="pb-1 text-sm text-ash">{t.me.ofN(total)}</span>

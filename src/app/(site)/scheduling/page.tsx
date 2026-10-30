@@ -26,12 +26,13 @@ export default async function Scheduling() {
     .sort((a, b) => (a.w?.deadline.getTime() ?? Infinity) - (b.w?.deadline.getTime() ?? Infinity));
   return (
     <Container plain>
-      <PageTitle mark="chevrons">{t.sched.title}</PageTitle>
+      <PageTitle mark="clock">{t.sched.title}</PageTitle>
       {rows.length ? (
         <div className="mx-auto grid max-w-3xl gap-6 pb-16">
-          {rows.map(({ m, w, open }) => (
+          {rows.map(({ m, w, open }, n) => (
             <SchedCard
               key={m.id}
+              n={n}
               m={m}
               round={roundName(t, m.round)}
               me={side(m.mine)}

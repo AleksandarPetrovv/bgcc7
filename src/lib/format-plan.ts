@@ -111,7 +111,7 @@ export const SKILLS: Record<string, { abbr: string; color: string }> = {
 };
 const TB_SKILL = { abbr: "TB", color: "var(--mod-tb)" };
 
-const skillOf = (c: { id: string; name: string }) =>
+export const skillOf = (c: { id: string; name: string }) =>
   SKILLS[c.id] ?? SKILLS[c.name.trim().toLowerCase().replace(/\s+/g, "-")] ?? { abbr: c.name.replace(/[^a-z]/gi, "").slice(0, 3).toUpperCase() || "MAP", color: "var(--paper)" };
 
 

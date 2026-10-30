@@ -7,6 +7,7 @@ import type { Dict } from "@/lib/i18n/dict";
 import { flagUrl, fmtNum, teamHref, type Team } from "@/lib/data";
 import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
+import { at } from "@/components/site/rich";
 
 export const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 const pct = (a?: number | null) => (a == null ? "—" : `${(a * 100).toFixed(2)}%`);
@@ -14,7 +15,7 @@ export const label = "text-[0.65rem] font-display font-bold text-ash";
 
 export function Card({ title, children, className, i = 0, right, flush, body, icon }: { title: string; children: React.ReactNode; className?: string; i?: number; right?: React.ReactNode; flush?: boolean; body?: string; icon?: React.ReactNode }) {
   return (
-    <section className={cn("in-up relative overflow-hidden border border-line bg-coal", className)} style={v({ "--i": i, "--s": "0.08s", "--d": "0.2s" })}>
+    <section className={cn("in-up in-slow relative overflow-hidden border border-line bg-coal", className)} style={v({ "--i": i, "--s": "0.16s", "--d": "0.2s", "--cd": `${0.2 + i * 0.16}s` })}>
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-4 pb-1 pt-4 sm:px-5">
         {icon ?? <Glyph kind="spark" className="size-3" />}
         <h2 className="heading-slam text-lg">{title}</h2>
@@ -45,10 +46,11 @@ export function PlayerLink({ id, name, className }: { id: number; name: string; 
 type PStat = { cost: number | null; acc: number | null };
 
 export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { t: Dict; team: Team; me: number; seeds: Map<number, number>; stats?: Map<number, PStat>; record?: [number, number]; i?: number; className?: string }) {
+  const wipe = v({ "--d": "calc(var(--cd, 0s) + 0.75s)" });
   const avg = Math.round(team.players.reduce((n, p) => n + p.rank, 0) / Math.max(1, team.players.length));
   return (
     <Card title={t.me.team} i={i} flush className={className} icon={<Glyph kind="people" className="size-4" />}>
-      <div className="relative mx-4 flex items-center gap-3 overflow-hidden border border-line bg-ink p-3 sm:mx-5 sm:gap-4">
+      <div className="in-up in-slow relative mx-4 flex items-center gap-3 overflow-hidden border border-line bg-ink p-3 sm:mx-5 sm:gap-4" style={at(0.2)}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={team.image} alt="" className="pointer-events-none absolute inset-0 size-full scale-110 object-cover opacity-15 blur-md" aria-hidden />
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -65,8 +67,8 @@ export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { 
         </div>
       </div>
       <ul className="mt-2 divide-y divide-line">
-        {team.players.map((p) => (
-          <li key={p.userId} className="flex items-center gap-2.5 px-4 py-2.5 sm:gap-3 sm:px-5">
+        {team.players.map((p, n) => (
+          <li key={p.userId} className="in-left in-slow flex items-center gap-2.5 px-4 py-2.5 sm:gap-3 sm:px-5" style={at(0.45, n, 0.12)}>
             <Avatar src={p.avatar} className="size-8 sm:size-9" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={flagUrl(p.country)} alt="" className="h-3" />
@@ -74,23 +76,23 @@ export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { 
             {p.isCaptain && <Crown className="size-3.5 shrink-0 text-gold-hi" aria-label={t.common.captain} />}
             <span className="ml-auto flex shrink-0 gap-3 text-right sm:gap-4">
               <span>
-                <span className={cn(label, "block")}>{t.me.globalRank}</span>
+                <span className={cn(label, "in-wipe block")} style={wipe}>{t.me.globalRank}</span>
                 <span className="num text-sm text-paper/80">#{fmtNum(p.rank)}</span>
               </span>
               {seeds.has(p.userId) && (
                 <span className="w-10">
-                  <span className={cn(label, "block")}>{t.me.playerSeed}</span>
+                  <span className={cn(label, "in-wipe block")} style={wipe}>{t.me.playerSeed}</span>
                   <span className="num text-sm text-paper/80">{seeds.get(p.userId)}</span>
                 </span>
               )}
               {stats && (
                 <>
                   <span>
-                    <span className={cn(label, "block")}>{t.me.playerCost}</span>
+                    <span className={cn(label, "in-wipe block")} style={wipe}>{t.me.playerCost}</span>
                     <span className="num text-sm text-paper/80">{stats.get(p.userId)?.cost?.toFixed(2) ?? "—"}</span>
                   </span>
                   <span>
-                    <span className={cn(label, "block")}>{t.me.playerAcc}</span>
+                    <span className={cn(label, "in-wipe block")} style={wipe}>{t.me.playerAcc}</span>
                     <span className="num text-sm text-paper/80">{pct(stats.get(p.userId)?.acc)}</span>
                   </span>
                 </>
@@ -99,7 +101,7 @@ export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { 
           </li>
         ))}
       </ul>
-      <div className="border-t border-line px-4 py-3 sm:px-5">
+      <div className="in-up in-slow border-t border-line px-4 py-3 sm:px-5" style={at(0.6, team.players.length, 0.12)}>
         <Link href={teamHref(team)} className="inline-flex items-center gap-1.5 text-xs font-display font-bold text-ash transition-colors hover:text-paper">
           {t.me.teamPage} <ArrowRight className="size-3.5" />
         </Link>
@@ -131,9 +133,9 @@ export function Side({ team, flip, fallback }: { team?: Team; flip?: boolean; fa
   );
 }
 
-export function Info({ icon: Icon, k, n }: { icon: typeof Flag; k: string; n: string }) {
+export function Info({ icon: Icon, k, n, i = 0 }: { icon: typeof Flag; k: string; n: string; i?: number }) {
   return (
-    <div className="flex min-w-0 items-center gap-3 px-4 py-3">
+    <div className="in-up in-slow flex min-w-0 items-center gap-3 px-4 py-3" style={at(0.85, i, 0.12)}>
       <Icon className="size-4 shrink-0 text-rose-hi" />
       <div className="min-w-0">
         <div className={label}>{k}</div>
