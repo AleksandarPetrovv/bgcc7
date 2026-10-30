@@ -4,7 +4,7 @@ import { db } from "./index";
 import { lobbyBookings, registrations, settings, users } from "./schema";
 import { safe } from "./safe";
 import { refreshUsers } from "./users";
-import { getSettings, saveSettings } from "./settings";
+import { saveSettings } from "./settings";
 import { avatarCol } from "./avatar";
 
 export const STATUSES = ["pending", "approved", "denied"] as const;
@@ -96,12 +96,11 @@ export async function lockBws() {
   const ids = (await db.select({ osuId: registrations.osuId }).from(registrations)).map((r) => r.osuId);
   await refreshUsers(ids);
   await snapshotBws();
-  await saveSettings(await getSettings());
-  await db.update(settings).set({ bwsLockedAt: new Date() }).where(eq(settings.id, 1));
+  await saveSettings({ bwsLockedAt: new Date() });
   return ids.length;
 }
 
 export async function unlockBws() {
   await db.update(registrations).set({ rankLock: null, badgesLock: null });
-  await db.update(settings).set({ bwsLockedAt: null }).where(eq(settings.id, 1));
+  await saveSettings({ bwsLockedAt: null });
 }

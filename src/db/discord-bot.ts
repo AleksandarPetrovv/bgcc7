@@ -114,12 +114,6 @@ async function runSync() {
     if (roleName.get(r.roleId) !== t.name) await editRole(r.roleId, t.name);
     if (chanName.get(r.channelId) !== slug(t.name)) await editChannel(r.channelId, { name: slug(t.name) });
   }
-  // the old shared "BGCC7 teams" category is empty now
-  const old = (await getState("cfg:category"))?.channelId;
-  if (old) {
-    await deleteChannel(old);
-    await db.delete(discordState).where(eq(discordState.key, "cfg:category"));
-  }
   const linked = new Map((await db.select({ osuId: users.osuId, discordId: users.discordId }).from(users).where(isNotNull(users.discordId))).map((u) => [u.osuId, u.discordId!]));
   const want = new Map<string, string>();
   for (const t of ts)
@@ -150,8 +144,6 @@ export async function cleanupDiscord() {
   if (!ready()) return;
   await g.bgccDcSync;
   for (const r of await db.select().from(discordTeams)) await dropTeam(r);
-  const cat = await getState("cfg:category");
-  if (cat?.channelId) await deleteChannel(cat.channelId);
   await db.delete(discordTeams);
   await db.delete(discordState).where(not(inArray(discordState.key, ["cfg:results", "cfg:pool"])));
 }
