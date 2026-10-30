@@ -1,7 +1,8 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { eq, ne, notLike } from "drizzle-orm";
 import { db, detached, type Tx } from "./index";
-import { matches, reschedules } from "./schema";
+import { availability, drafts, matchCache, matches, mpChat, mpLobbies, reschedules, scoreEdits, teams } from "./schema";
+import { TEST_MATCH } from "@/lib/format";
 import { advance } from "./bracket";
 import { lockMatch, notifyCaptain, staffOverride } from "./schedule";
 import { getAllTeams } from "./tournament";
@@ -38,6 +39,14 @@ export async function settleResult(match: Pick<Match, "id" | "referee">, score: 
     return false;
   }
 }
+
+/** everything that hangs off a match; a bracket reset clears all of it except the permanent test match's */
+export async function clearMatchChildren(tx: Tx) {
+  for (const t of [drafts, matchCache, scoreEdits, reschedules, availability, mpLobbies, mpChat]) await tx.delete(t).where(ne(t.matchId, TEST_MATCH.id));
+}
+
+/** SQL twin of isTestTeam: the real teams, without the permanent test ones */
+export const realTeams = notLike(teams.id, "test-%");
 
 /** staff sets a match time inside the caller's transaction: overrides the captains' requests and logs it in the reschedule history */
 export async function setMatchTime(tx: Tx, m: { id: string; team1Id: string | null }, at: Date | null, by: number) {

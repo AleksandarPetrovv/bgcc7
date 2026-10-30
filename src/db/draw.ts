@@ -1,9 +1,10 @@
 import "server-only";
 import { randomInt } from "node:crypto";
-import { eq, ne, notLike } from "drizzle-orm";
+import { eq, ne } from "drizzle-orm";
 import { isTestTeam, TEST_MATCH } from "@/lib/format";
 import { db, isBGCC6 } from "./index";
-import { drafts, matchCache, matches, pickems, teamMembers, teams } from "./schema";
+import { matches, pickems, teamMembers, teams } from "./schema";
+import { clearMatchChildren, realTeams } from "./match";
 import { getFormat } from "./edition";
 import { bwsRanking, getPlayerSeeds } from "./seeds";
 
@@ -33,8 +34,7 @@ export async function seedBracket() {
     })
     .sort((a, b) => a.avg - b.avg || a.best - b.best);
   await db.transaction(async (tx) => {
-    await tx.delete(drafts).where(ne(drafts.matchId, TEST_MATCH.id));
-    await tx.delete(matchCache);
+    await clearMatchChildren(tx);
     await tx.delete(pickems);
     await tx.update(matches).set({ team1Id: null, team2Id: null, score1: null, score2: null, winner: null, manual: false }).where(ne(matches.id, TEST_MATCH.id));
     for (const [k, { t }] of order.entries()) await tx.update(teams).set({ seed: k + 1 }).where(eq(teams.id, t.id));
@@ -52,7 +52,7 @@ export async function drawSuiji() {
   const top = shuffle(ranked.slice(0, n));
   const low = shuffle(ranked.slice(n, 2 * n));
   await db.transaction(async (tx) => {
-    await tx.delete(teams).where(notLike(teams.id, "test-%"));
+    await tx.delete(teams).where(realTeams);
     for (const [k, a] of top.entries()) {
       const id = newTeamId();
       await tx.insert(teams).values({ id, name: a.username });

@@ -1,11 +1,12 @@
 import "server-only";
 import { randomInt } from "node:crypto";
-import { and, arrayOverlaps, asc, eq, gte, inArray, lte, ne, notLike } from "drizzle-orm";
+import { and, arrayOverlaps, asc, eq, gte, inArray, lte, ne } from "drizzle-orm";
 import { TEST_MATCH } from "@/lib/format";
 import { fromSofiaInput } from "@/lib/time";
 import { db, dbBGCC6, isBGCC6 } from "./index";
-import { drafts, maps, matchCache, matches, pickems, poolSuggestions, poolVotes, registrations, reschedules, scoreEdits, staff, stages, teamMembers, teams, users } from "./schema";
+import { maps, matchCache, matches, pickems, poolSuggestions, poolVotes, registrations, staff, stages, teamMembers, teams, users } from "./schema";
 import { advance } from "./bracket";
+import { clearMatchChildren, realTeams } from "./match";
 import { drawSuiji, shuffle } from "./draw";
 import { getFormat } from "./edition";
 import { saveSettings } from "./settings";
@@ -264,12 +265,9 @@ export async function clearTestData() {
   const touched = [...new Set((await db.select({ id: maps.stageId }).from(maps).where(eq(maps.seeded, true))).map((m) => m.id))];
   await db.transaction(async (tx) => {
     await tx.delete(pickems);
-    await tx.delete(drafts);
-    await tx.delete(matchCache);
-    await tx.delete(scoreEdits);
-    await tx.delete(reschedules);
+    await clearMatchChildren(tx);
     await tx.update(matches).set({ team1Id: null, team2Id: null, score1: null, score2: null, winner: null, startsAt: null, mpLinks: "", referee: null, streamer: null, commentators: null, vodUrl: null, manual: false }).where(ne(matches.id, TEST_MATCH.id));
-    await tx.delete(teams).where(notLike(teams.id, "test-%"));
+    await tx.delete(teams).where(realTeams);
     await tx.delete(maps).where(eq(maps.seeded, true));
     await tx.delete(poolSuggestions).where(eq(poolSuggestions.seeded, true));
     if (touched.length) await tx.update(stages).set({ poolReleased: false }).where(inArray(stages.id, touched));
