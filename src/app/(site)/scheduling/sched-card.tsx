@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, CalendarClock, Check, Repeat, X } from "lucide-react";
+import { AlertTriangle, CalendarClock, Check, ChevronDown, Repeat, X } from "lucide-react";
 import { Countdown } from "@/components/site/countdown";
 import { Modal } from "@/components/site/modal";
 import { SlantButton } from "@/components/site/page";
@@ -88,15 +88,15 @@ function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
     p.status === "rejected" ? st.rejected(other(p.teamId)) : p.status === "cancelled" ? (p.staff || p.answeredBy == null ? st.staff : st.cancelled(of(p.answeredBy))) : p.status === "staff" ? st.set : st[p.status];
   if (!list.length) return null;
   return (
-    <details className="group border-t border-line">
+    <details className="group border-t border-line" open>
       <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-[0.7rem] font-display font-bold text-ash hover:text-paper sm:px-5">
-        {t.sched.history} <span className="num">{list.length}</span>
+        {t.sched.history} <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
       </summary>
       <ol className="grid gap-1.5 px-4 pb-4 sm:px-5">
         {list.map((p) => (
           <li key={p.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-sm">
             <span className={cn("num", p.status === "rejected" || p.status === "cancelled" ? "text-ash line-through" : "text-paper")}>{w.full(p.at)}</span>
-            <span className="text-xs text-ash">{team(p.teamId)}</span>
+            <span className="font-display text-sm font-bold text-ash">{team(p.teamId)}</span>
             <span className={cn("ml-auto text-[0.68rem] font-display font-bold", p.status === "accepted" ? "text-balkan-hi" : p.status === "pending" ? "text-gold-hi" : "text-rose-hi/80")}>{label(p)}</span>
           </li>
         ))}
@@ -109,7 +109,13 @@ export function SchedCard({ m, round, me, opp, week, open }: { m: SchedMatch; ro
   const t = useDict();
   const w = useWhen();
   const router = useRouter();
-  const [pick, setPick] = useState(false);
+  const [pick, setPickState] = useState(false);
+  // new key per open resets the form; same key while closing keeps the exit animation
+  const [pickKey, setPickKey] = useState(0);
+  const setPick = (v: boolean) => {
+    if (v) setPickKey((k) => k + 1);
+    setPickState(v);
+  };
   const [warn, setWarn] = useState(false);
   const [wd, setWd] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -221,7 +227,7 @@ export function SchedCard({ m, round, me, opp, week, open }: { m: SchedMatch; ro
       <History list={m.history} me={me} opp={opp} />
 
       {week && (
-        <Picker key={String(pick)} open={pick} onClose={() => setPick(false)} week={week} title={theirs ? t.sched.counter : agreed ? t.sched.reschedule : t.sched.propose} onSend={send} />
+        <Picker key={pickKey} open={pick} onClose={() => setPick(false)} week={week} title={theirs ? t.sched.counter : agreed ? t.sched.reschedule : t.sched.propose} onSend={send} />
       )}
       <Modal open={warn} onClose={() => setWarn(false)} tone="gold">
         <AlertTriangle className="size-7 text-gold-hi" />
