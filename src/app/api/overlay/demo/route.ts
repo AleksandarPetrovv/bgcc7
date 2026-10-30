@@ -4,6 +4,7 @@ import { type OverlayFeed, type FeedStep, type FeedTurn, type LiveScore } from "
 import { sse } from "@/lib/sse";
 import { getPoolStages } from "@/db/mappools";
 import { poolFeed, scheduleFeed } from "@/lib/overlay-feed";
+import { TB } from "@/lib/draft";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +47,7 @@ const POOL = Array.from({ length: 13 }, (_, i) => {
     slot = `DT${slotIndex - 8}`;
     mod = "DoubleTime";
   } else {
-    slot = "TB";
+    slot = TB;
     mod = "Tiebreaker";
   }
 

@@ -5,7 +5,7 @@ import { BanchoLobbyPlayerStates, BanchoLobbyTeamModes, BanchoLobbyWinConditions
 import { db } from "@/db";
 import { matches, mpLobbies, staff, users } from "@/db/schema";
 import { getFormat } from "@/db/edition";
-import { draftMaps, draftSlots, getDraft, setResult } from "@/db/drafts";
+import { getDraft, rulesOf, setResult } from "@/db/drafts";
 import { other, rollWinner, scoreOf, turnOf, type DraftView } from "@/lib/draft";
 import { getUser } from "@/lib/osu-api";
 import { lobbySize } from "@/lib/format";
@@ -28,7 +28,7 @@ export async function onFinished(matchId: string, scores: ScoreLine[]) {
   const d = await getDraft(matchId);
   if (!d) return null;
   const picks = d.steps.filter((s) => s.kind === "pick" && !s.skip);
-  const maps = await draftMaps(matchId, d.stageSlug);
+  const { maps } = await rulesOf(matchId, d.stageSlug);
   const idOf = (slot: string) => maps.find((m) => m.slot === slot)?.id;
   // the open pick, or a replay of the last decided one (its new result replaces the old)
   const pick = [picks.findLast((s) => !s.winner), l.lobby.beatmapId ? picks.findLast((s) => !!s.winner) : undefined].find(
@@ -61,7 +61,7 @@ async function narrate(l: Live, n: DraftView | null) {
   if (!n || !p || g.bgccIrc?.live.get(l.matchId) !== l) return;
   const name = (s: 1 | 2) => l.names[s - 1];
   const say = (text: string) => l.lobby.channel.sendMessage(text).catch(() => {});
-  const slots = await draftSlots(l.matchId, n.stageSlug);
+  const { slots } = await rulesOf(l.matchId, n.stageSlug);
 
   if ((n.roll1 != null && n.roll1 !== p.roll1) || (n.roll2 != null && n.roll2 !== p.roll2)) await new Promise((r) => setTimeout(r, 2000));
   for (const s of [1, 2] as const) {
@@ -255,7 +255,7 @@ async function poolMap(matchId: string, text: string) {
   const d = await getDraft(matchId);
   const [match] = d ? [] : await db.select({ stageSlug: matches.stageSlug, poolSlug: matches.poolSlug }).from(matches).where(eq(matches.id, matchId)).limit(1);
   const stage = d?.stageSlug ?? match?.poolSlug ?? match?.stageSlug;
-  const maps = stage ? await draftMaps(matchId, stage) : [];
+  const maps = stage ? (await rulesOf(matchId, stage)).maps : [];
   const byId = /^\d+$/.test(m[1]);
   const map = maps.find((x) => (byId ? x.id === Number(m[1]) : x.slot.toLowerCase() === m[1].toLowerCase()));
   if (!map) return byId ? { text, mod: undefined } : ("noslot" as const);
@@ -393,7 +393,7 @@ export async function spareSlot(matchId: string, by: number, open: boolean) {
 
 export async function lobbyPick(matchId: string, stageSlug: string, slot: string) {
   if (!g.bgccIrc?.live.has(matchId)) return;
-  const map = (await draftMaps(matchId, stageSlug)).find((m) => m.slot === slot);
+  const map = (await rulesOf(matchId, stageSlug)).maps.find((m) => m.slot === slot);
   if (!map) return;
   const l = await liveOf(matchId);
   if (l.lobby.beatmapId !== map.id) await l.lobby.setMap(map.id, 0);

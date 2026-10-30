@@ -4,13 +4,14 @@ import { randomInt } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { and, eq, isNull, or, sql } from "drizzle-orm";
 import { drafts, matches, mpLobbies, teamMembers, NO_TIMEOUTS, type DraftRules, type DraftUndo } from "./schema";
-import { getPoolStages } from "./mappools";
-import { getSettings } from "./settings";
+import { getPoolStages, poolMaps } from "./mappools";
+import { DEFAULT_SETTINGS, getSettings } from "./settings";
+import { getSkillLayouts } from "./format-plan";
 import { can } from "@/lib/roles";
 import { relayOnline } from "@/lib/relay";
 import { getViewer } from "@/lib/authz";
 import { getFormat } from "./edition";
-import { deadline, pickable, scoreOf, tbDue, turnOf, type DraftView, type Side } from "@/lib/draft";
+import { deadline, pickableSlots, scoreOf, TB, tbDue, turnOf, type DraftView, type Side } from "@/lib/draft";
 import { staffNames } from "@/lib/staff-names";
 import { staffIds } from "@/db/users";
 
@@ -32,42 +33,44 @@ export async function timers(): Promise<Timers> {
   return {
     banSecs: s.banSecs,
     pickSecs: s.pickSecs,
-    stages: stages.map((st) => ({ slug: st.slug, firstTo: st.firstTo ?? getFormat().firstTo, hasTb: st.pools.some((p) => p.maps.some((m) => m.slot === "TB")) })),
+    stages: stages.map((st) => ({ slug: st.slug, firstTo: st.firstTo, hasTb: st.pools.some((p) => p.category === "Tiebreaker" && p.maps.length > 0) })),
   };
 }
 
-const stageCfg = (c: Timers, slug: string) => c.stages.find((s) => s.slug === slug) ?? { firstTo: 7, hasTb: false };
+const stageCfg = (c: Timers, slug: string) => c.stages.find((s) => s.slug === slug) ?? { firstTo: getFormat().firstTo, hasTb: false };
 
 /** snapshot of the stage's rules and maps, stored on the draft when it opens or resets */
 export async function rulesFor(stageSlug: string): Promise<DraftRules> {
   const [c, stages] = await Promise.all([timers(), getPoolStages()]);
   const { firstTo, hasTb } = stageCfg(c, stageSlug);
-  const maps = (stages.find((s) => s.slug === stageSlug)?.pools ?? []).flatMap((p) => p.maps);
+  const maps = poolMaps(stages, stageSlug);
   return {
     firstTo,
     hasTb,
     banSecs: c.banSecs,
     pickSecs: c.pickSecs,
-    slots: maps.map((m) => m.slot).filter(pickable),
+    slots: pickableSlots(maps),
     maps: Object.fromEntries(maps.map((m) => [m.slot, m])),
   };
 }
 
-/** the draft's maps: its snapshot when it has one, else the stage's current pool */
-export async function draftMaps(matchId: string, stageSlug: string) {
-  const [r] = await db.select({ rules: drafts.rules, stageSlug: drafts.stageSlug }).from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
-  if (r?.rules && r.stageSlug === stageSlug) return Object.values(r.rules.maps);
-  return ((await getPoolStages()).find((s) => s.slug === stageSlug)?.pools ?? []).flatMap((p) => p.maps);
+/** everything a draft starts from on a stage: its frozen rules and bans plus empty progress. opening on a new stage and resetting both use it */
+export async function freshDraft(stageSlug: string) {
+  const [rules, s, layouts] = await Promise.all([rulesFor(stageSlug), getSettings(), getSkillLayouts()]);
+  return { stageSlug, rules, bans: layouts?.[stageSlug]?.bans ?? s.bans, banOrder: s.banOrder, steps: [], redo: [], turnAt: new Date(), pausedAt: null, pauseUntil: null, timeouts: NO_TIMEOUTS };
 }
 
-const slotsOf = async (r: Pick<Row, "rules" | "stageSlug">) => r.rules?.slots ?? poolSlots(r.stageSlug);
-
-export async function draftSlots(matchId: string, stageSlug: string) {
+/** the draft's maps and pickable slots: its frozen snapshot while it is on that stage, else the stage's current pool */
+export async function rulesOf(matchId: string, stageSlug: string) {
   const [r] = await db.select({ rules: drafts.rules, stageSlug: drafts.stageSlug }).from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
-  return r?.rules && r.stageSlug === stageSlug ? r.rules.slots : poolSlots(stageSlug);
+  if (r?.rules && r.stageSlug === stageSlug) return { maps: Object.values(r.rules.maps), slots: r.rules.slots };
+  const maps = poolMaps(await getPoolStages(), stageSlug);
+  return { maps, slots: pickableSlots(maps) };
 }
 
-export const toView = (r: Row, c: Timers = { banSecs: 90, pickSecs: 120, stages: [] }): DraftView => ({
+const slotsOf = async (r: Pick<Row, "rules" | "stageSlug">) => r.rules?.slots ?? pickableSlots(poolMaps(await getPoolStages(), r.stageSlug));
+
+export const toView = (r: Row, c: Timers = { banSecs: DEFAULT_SETTINGS.banSecs, pickSecs: DEFAULT_SETTINGS.pickSecs, stages: [] }): DraftView => ({
   open: r.open,
   stageSlug: r.stageSlug,
   bans: r.bans,
@@ -92,7 +95,7 @@ export const toView = (r: Row, c: Timers = { banSecs: 90, pickSecs: 120, stages:
 
 export function undoPlan(r: Pick<Row, "steps" | "choice" | "roll1" | "roll2">): DraftUndo | null {
   const tail = r.steps.at(-1);
-  const core = tail?.auto && tail.slot === "TB" && !tail.winner ? r.steps.slice(0, -1) : r.steps;
+  const core = tail?.auto && tail.slot === TB && !tail.winner ? r.steps.slice(0, -1) : r.steps;
   const last = core.at(-1);
   if (last?.kind === "pick" && !last.skip && last.winner) return { kind: "winner", slot: last.slot, winner: last.winner };
   if (tail) return { kind: "step", step: tail };
@@ -159,7 +162,7 @@ export async function settle(matchId: string) {
   const c = await timers();
   const d = await getDraft(matchId);
   if (!d?.open) return d;
-  const slots = await draftSlots(matchId, d.stageSlug);
+  const { slots } = await rulesOf(matchId, d.stageSlug);
   if (!due(d, slots, Date.now())) return d;
   const next = await db.transaction(async (tx) => {
     const [row] = await tx.select().from(drafts).where(eq(drafts.matchId, matchId)).for("update");
@@ -301,7 +304,7 @@ export async function myDraftClock(osuId: number) {
   const id = await myOpenId(osuId);
   if (!id) return { slug: null, end: null, pause: false, now: Date.now() };
   const d = await settle(id);
-  const end = !d ? null : d.pausedAt ? (d.pauseUntil ? new Date(d.pauseUntil).getTime() : null) : deadline(d, await draftSlots(id, d.stageSlug));
+  const end = !d ? null : d.pausedAt ? (d.pauseUntil ? new Date(d.pauseUntil).getTime() : null) : deadline(d, (await rulesOf(id, d.stageSlug)).slots);
   return { slug: id, end, pause: !!d?.pausedAt, now: Date.now() };
 }
 
@@ -315,11 +318,6 @@ async function myOpenId(osuId: number) {
     .where(and(eq(drafts.open, true), isNull(matches.winner), or(eq(matches.team1Id, cap.teamId), eq(matches.team2Id, cap.teamId))))
     .limit(1);
   return row && (await siteRun(row)).onSite ? row.id : null;
-}
-
-export async function poolSlots(stageSlug: string) {
-  const stage = (await getPoolStages()).find((s) => s.slug === stageSlug);
-  return (stage?.pools ?? []).flatMap((p) => p.maps.map((m) => m.slot)).filter(pickable);
 }
 
 export type DraftAct = { act: "roll" } | { act: "choose"; value: "pick" | "ban" } | { act: "ban" | "pick"; slot: string };
@@ -368,12 +366,12 @@ export async function setResult(matchId: string, slot: string, winner: Side | nu
     let steps = row.steps.map((s, k) => (k === i ? { ...s, winner: winner ?? undefined } : s));
     const lastPick = row.steps.findLastIndex((s) => s.kind === "pick" && !s.skip) === i;
     const base = toView({ ...row, steps }, c);
-    const tbOpen = steps.findIndex((s) => s.slot === "TB" && s.auto && !s.winner);
+    const tbOpen = steps.findIndex((s) => s.slot === TB && s.auto && !s.winner);
     const [s1, s2] = scoreOf(base);
     if (tbOpen >= 0 && !(s1 === base.firstTo - 1 && s2 === base.firstTo - 1)) steps = steps.filter((_, k) => k !== tbOpen);
     else if (tbDue(base)) {
       const t = turnOf({ ...base, hasTb: false, firstTo: 0 }, await slotsOf(row));
-      steps = [...steps, { team: "team" in t ? t.team : 1, kind: "pick", slot: "TB", auto: true }];
+      steps = [...steps, { team: "team" in t ? t.team : 1, kind: "pick", slot: TB, auto: true }];
     }
     const [next] = await tx
       .update(drafts)

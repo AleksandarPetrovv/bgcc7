@@ -1,4 +1,5 @@
 import { decideWinner } from "@/lib/result";
+import { MODS } from "@/lib/mods";
 export type Side = 1 | 2;
 export type DraftStep = { team: Side; kind: "ban" | "pick"; slot: string; skip?: boolean; winner?: Side; auto?: boolean };
 
@@ -82,7 +83,10 @@ export function plan(d: DraftView): { team: Side; kind: "ban" }[] {
   return Array.from({ length: d.bans * 2 }, (_, i) => ({ team: banTeam(d.banOrder, i, firstBan), kind: "ban" as const }));
 }
 
-export const pickable = (slot: string) => slot !== "TB";
+/** the tiebreaker's slot label; it is played, never picked */
+export const TB = MODS.Tiebreaker.short;
+export const pickable = (slot: string) => slot !== TB;
+export const pickableSlots = (maps: { slot: string }[]) => maps.map((m) => m.slot).filter(pickable);
 
 export const limitOf = (d: Pick<DraftView, "banSecs" | "pickSecs">, kind: Turn["kind"]) => (kind === "ban" ? d.banSecs : kind === "pick" ? d.pickSecs : 0);
 
@@ -100,5 +104,5 @@ export function scoreOf(d: Pick<DraftView, "steps">): [number, number] {
 
 export function tbDue(d: Pick<DraftView, "steps" | "firstTo" | "hasTb">) {
   const [s1, s2] = scoreOf(d);
-  return d.hasTb && d.firstTo > 1 && s1 === d.firstTo - 1 && s2 === d.firstTo - 1 && !d.steps.some((s) => s.slot === "TB");
+  return d.hasTb && d.firstTo > 1 && s1 === d.firstTo - 1 && s2 === d.firstTo - 1 && !d.steps.some((s) => s.slot === TB);
 }

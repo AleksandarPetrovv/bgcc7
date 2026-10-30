@@ -5,7 +5,7 @@ import { Crown, Eye, Settings, Star } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import { EASE } from "@/lib/ease";
 import { fmtLen, type Beatmap } from "@/lib/data";
-import { pickable, type DraftStep, type Side } from "@/lib/draft";
+import { type DraftStep, pickable, type Side, TB } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { slotColor } from "@/lib/format-plan";
 import { modHi, modOn, TEAM } from "@/lib/theme";
@@ -66,7 +66,7 @@ export function MapGrid({
                 const tap = canTap(m.slot);
                 const chosen = sel === m.slot;
                 const col = u ? TEAM[u.team] : me ? TEAM[me] : TEAM[1];
-                const tbu = !!u && m.slot === "TB";
+                const tbu = !!u && m.slot === TB;
                 const grey = u?.kind === "ban" || !!u?.winner || tbu;
                 const peek = u?.kind === "pick" && (admin || !!u.winner);
                 return (
@@ -197,7 +197,7 @@ export function MapGrid({
                             }}
                           >
                             <span className="block text-base tracking-wider sm:text-lg">
-                              {u.kind === "ban" ? t.draft.banned : u.slot === "TB" ? t.draft.tiebreaker : t.draft.pick(u.n)}
+                              {u.kind === "ban" ? t.draft.banned : u.slot === TB ? t.draft.tiebreaker : t.draft.pick(u.n)}
                             </span>
                             {u.kind === "pick" && <span className="block max-w-28 truncate text-[0.55rem] tracking-wide text-paper/80">{name(u.team)}</span>}
                           </motion.span>

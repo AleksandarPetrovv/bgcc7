@@ -69,6 +69,9 @@ export const getPoolStages = cache(() =>
   }, [] as PoolStage[]),
 );
 
+/** a stage's maps in pool order */
+export const poolMaps = (stages: PoolStage[], slug: string) => (stages.find((s) => s.slug === slug)?.pools ?? []).flatMap((p) => p.maps);
+
 /** first to how many wins a match on this stage is played */
 export const firstToOf = (stages: PoolStage[], slug: string) => stages.find((s) => s.slug === slug)?.firstTo ?? getFormat().firstTo;
 

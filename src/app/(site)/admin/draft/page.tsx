@@ -4,10 +4,10 @@ import { PageTitle } from "@/components/site/page";
 import { Words } from "@/components/site/rich";
 import { drafts } from "@/db/schema";
 import { timers, toView } from "@/db/drafts";
-import { getPoolStages } from "@/db/mappools";
+import { getPoolStages, poolMaps } from "@/db/mappools";
 import { getAllMatchRows, getAllTeams } from "@/db/tournament";
 import { getViewer } from "@/lib/authz";
-import { turnOf, pickable } from "@/lib/draft";
+import { pickableSlots, turnOf } from "@/lib/draft";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { fmtSofia } from "@/lib/time";
@@ -34,7 +34,6 @@ export default async function AdminDraft() {
   const locale = localeOf(lang);
   const team = (id: string | null) => teams.find((x) => x.id === id);
   const pools = stages.filter((s) => isBracketStage(s.slug) && s.pools.length);
-  const slotsOf = (slug: string) => (stages.find((s) => s.slug === slug)?.pools ?? []).flatMap((p) => p.maps.map((m) => m.slot)).filter(pickable);
 
   const time = (d: Date | null) => d?.getTime() ?? Infinity;
   const live = rows
@@ -43,7 +42,7 @@ export default async function AdminDraft() {
   const list: DraftRow[] = live.map((m) => {
     const raw = all.find((d) => d.matchId === m.id);
     const d = raw ? toView(raw, cfg) : null;
-    const turn = d ? turnOf(d, raw?.rules?.slots ?? slotsOf(d.stageSlug)) : null;
+    const turn = d ? turnOf(d, raw?.rules?.slots ?? pickableSlots(poolMaps(stages, d.stageSlug))) : null;
     const a = team(m.team1Id);
     const b = team(m.team2Id);
     return {

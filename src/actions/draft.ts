@@ -3,17 +3,14 @@
 import { db } from "@/db";
 import { eq, sql } from "drizzle-orm";
 
-import { drafts, matches, NO_TIMEOUTS, type DraftUndo } from "@/db/schema";
-import { answerTimeout, canRunMatch, emitDraft, redoStep, rulesFor, settle, undoStep } from "@/db/drafts";
+import { drafts, matches, type DraftUndo } from "@/db/schema";
+import { answerTimeout, canRunMatch, emitDraft, freshDraft, redoStep, settle, undoStep } from "@/db/drafts";
 import { abortTimer, sayTimer } from "@/lib/bancho";
 import { getPoolStages } from "@/db/mappools";
 import { getSettings } from "@/db/settings";
-import { getSkillLayouts } from "@/db/format-plan";
 import { guard } from "@/lib/admin-action";
 
 const bump = { rev: sql`${drafts.rev} + 1`, updatedAt: new Date() };
-
-const bansFor = async (stageSlug: string, fallback: number) => (await getSkillLayouts())?.[stageSlug]?.bans ?? fallback;
 
 async function done<T>(matchId: string, res: T) {
   emitDraft(matchId);
@@ -27,18 +24,16 @@ export async function openDraft(matchId: string, stageSlug: string) {
     const stage = (await getPoolStages()).find((s) => s.slug === stageSlug && s.pools.length);
     if (!m || !stage) return { ok: false, error: "invalid" };
     const [cur] = await db.select().from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
-    const s = await getSettings();
-    const bans = await bansFor(stageSlug, s.bans);
-    const rules = await rulesFor(stageSlug);
+    const fresh = await freshDraft(stageSlug);
     if (cur) {
-      const fresh = cur.stageSlug !== stageSlug;
-      // reopening restarts the current turn's clock so the closed time doesn't skip turns
-      const reopen = !fresh && !cur.open ? { turnAt: new Date(), pausedAt: null, pauseUntil: null } : {};
+      // a new stage starts over (the rolls stay); reopening restarts the current turn's clock so the closed time doesn't skip turns
+      const same = cur.stageSlug === stageSlug;
+      const reopen = same && !cur.open ? { turnAt: new Date(), pausedAt: null, pauseUntil: null } : {};
       await db
         .update(drafts)
-        .set({ open: true, stageSlug, ...(fresh || !cur.rules ? { rules } : {}), ...(fresh ? { steps: [], redo: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null, timeouts: NO_TIMEOUTS } : reopen), ...bump })
+        .set({ open: true, ...(same ? { ...reopen, ...(cur.rules ? {} : { rules: fresh.rules }) } : fresh), ...bump })
         .where(eq(drafts.matchId, matchId));
-    } else await db.insert(drafts).values({ matchId, stageSlug, bans, banOrder: s.banOrder, rules, turnAt: new Date() });
+    } else await db.insert(drafts).values({ matchId, ...fresh });
     return done(matchId, { matchId, stage: stage.title });
   });
 }
@@ -54,14 +49,8 @@ export async function closeDraft(matchId: string) {
 export async function resetDraft(matchId: string) {
   return guard("matches", "draft.reset", async () => {
     if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
-    const s = await getSettings();
     const [cur] = await db.select({ stageSlug: drafts.stageSlug }).from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
-    const bans = await bansFor(cur?.stageSlug ?? "", s.bans);
-    const rules = cur ? await rulesFor(cur.stageSlug) : null;
-    await db
-      .update(drafts)
-      .set({ rules, roll1: null, roll2: null, choice: null, steps: [], redo: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null, timeouts: NO_TIMEOUTS, ...bump })
-      .where(eq(drafts.matchId, matchId));
+    if (cur) await db.update(drafts).set({ ...(await freshDraft(cur.stageSlug)), roll1: null, roll2: null, choice: null, ...bump }).where(eq(drafts.matchId, matchId));
     return done(matchId, { matchId });
   });
 }
