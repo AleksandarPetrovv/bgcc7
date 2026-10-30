@@ -1,9 +1,9 @@
 import "server-only";
 import { EventEmitter } from "node:events";
-import { eq, inArray, sql } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { currentEdition, db } from "@/db";
 import { getFormat } from "@/db/edition";
-import { matches, teams, users } from "@/db/schema";
+import { matches, teams } from "@/db/schema";
 import { roundOf } from "./format";
 import type { Alert, AlertKind } from "./alert-types";
 
@@ -67,13 +67,6 @@ export function onAlerts(fn: () => void) {
   const { bus } = store();
   bus.on("change", fn);
   return () => void bus.off("change", fn);
-}
-
-/** osu id of a staff member stored by name on a match (referee, streamer) */
-export async function osuIdOf(name: string | null | undefined) {
-  if (!name?.trim()) return null;
-  const [u] = await db.select({ osuId: users.osuId }).from(users).where(sql`lower(${users.username}) = ${name.trim().toLowerCase()}`).limit(1).catch(() => []);
-  return u?.osuId ?? null;
 }
 
 /** "Quarterfinals · Team A vs Team B" plus the slug, for the popup header and links */

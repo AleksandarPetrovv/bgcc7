@@ -7,6 +7,7 @@ import { nameKey } from "@/lib/names";
 import { isScene, type Scene } from "@/lib/scenes";
 import { can, cleanRoles } from "@/lib/roles";
 import { getLive, IPC_PLAYING } from "@/lib/live-scores";
+import { staffNames } from "@/lib/staff-names";
 
 const g = globalThis as unknown as { bgccStreamFocus?: Map<string, string> };
 const focus = () => (g.bgccStreamFocus ??= new Map());
@@ -21,7 +22,7 @@ export async function overlayName(osuId: number) {
   return first?.username ?? (await usernameOf(osuId));
 }
 
-export const streamersOf = (m: { streamer: string | null }) => (m.streamer ?? "").split(",").map((s) => nameKey(s)).filter(Boolean);
+export const streamersOf = (m: { streamer: string | null }) => staffNames(m.streamer).map(nameKey);
 
 export async function streamMatches(osuId: number, all: boolean) {
   const me = nameKey((await usernameOf(osuId)) ?? "");

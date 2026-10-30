@@ -17,6 +17,7 @@ import {
   addRole, botUser, createChannel, createRole, deleteChannel, deleteMessage, deleteRole, discordReady, dm, editChannel, editRole,
   guildChannels, guildId, guildRoles, memberRoles, post, removeRole, type Embed, type Overwrite,
 } from "@/lib/discord";
+import { staffNames } from "@/lib/staff-names";
 
 const ready = () => discordReady() && !isBGCC6();
 const log = (what: string) => (e: unknown) => console.error(`[discord] ${what}`, e);
@@ -213,7 +214,7 @@ async function refDm(m: MatchRow, name: (id: string) => string) {
   const start = m.startsAt!.toISOString();
   const key = `ref:${m.id}`;
   if ((await getState(key))?.stamp === start) return;
-  const names = (m.referee ?? "").split(/[,&/]| and /).map((x) => x.trim().toLowerCase()).filter(Boolean);
+  const names = staffNames(m.referee).map((x) => x.toLowerCase());
   if (!names.length) return;
   const refs = await db.select({ discordId: users.discordId }).from(users).where(and(inArray(sql`lower(${users.username})`, names), isNotNull(users.discordId)));
   const [d] = await db.select({ open: drafts.open }).from(drafts).where(eq(drafts.matchId, m.id)).limit(1);

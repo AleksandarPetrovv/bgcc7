@@ -17,6 +17,7 @@ import { cueAbort, cueCountdown, cueFinish, cuePlay } from "@/lib/overlay-cues";
 
 import { closeLobby, onFinished, react, swapSlots } from "./bancho";
 import { nameKey, ircName } from "@/lib/names";
+import { staffNames } from "@/lib/staff-names";
 
 export type LobbySlot = { slot: number; name: string; id: number | null; side: 1 | 2 | null; team: "red" | "blue" | null; ready: "ready" | "notready" | "nomap"; host: boolean; mods: string[] };
 export type LobbyView = {
@@ -442,7 +443,7 @@ export function attach(l: Live) {
 async function timerBy(matchId: string, self: boolean, from: string) {
   if (self) return true;
   const [m] = await db.select({ referee: matches.referee }).from(matches).where(eq(matches.id, matchId)).limit(1);
-  const refs = (m?.referee ?? "").split(/[,&/]| and /).map(nameKey).filter(Boolean);
+  const refs = staffNames(m?.referee).map(nameKey);
   const hosts = (await getHosts()).map((h) => nameKey(h.username));
   return [...refs, ...hosts].includes(nameKey(from));
 }

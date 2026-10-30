@@ -7,7 +7,8 @@ import { firstToOf, type PoolStage } from "./mappools";
 import type { Match, Team } from "@/lib/data";
 import { buildScoreboard, playoffPools, SCOREBOARD_V, type ScoreEdit, type Scoreboard } from "@/lib/scoreboard";
 import { isLive } from "@/lib/matches";
-import { alertId, clear, describeMatch, failingFor, osuIdOf, raise } from "@/lib/alerts";
+import { alertId, clear, describeMatch, failingFor, raise } from "@/lib/alerts";
+import { staffIds } from "./users";
 import { decideWinner } from "@/lib/result";
 import { within } from "@/lib/utils";
 
@@ -78,7 +79,7 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
     console.error("[match]", match.id, e);
     if (isLive(match) && failingFor(staleId, STALE_AFTER)) {
       const info = await describeMatch(match.id);
-      raise({ id: staleId, kind: "scoresStale", level: "gold", match: info, href: `/admin/matches/${info.slug}`, detail: e instanceof Error ? e.message : String(e) }, { hosts: true, osuIds: [await osuIdOf(match.referee)] });
+      raise({ id: staleId, kind: "scoresStale", level: "gold", match: info, href: `/admin/matches/${info.slug}`, detail: e instanceof Error ? e.message : String(e) }, { hosts: true, osuIds: await staffIds(match.referee) });
     }
     return hit?.data ?? null;
   }

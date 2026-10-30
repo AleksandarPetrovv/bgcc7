@@ -3,7 +3,7 @@ import "server-only";
 import { randomInt } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { and, eq, isNull, or, sql } from "drizzle-orm";
-import { drafts, matches, mpLobbies, teamMembers, users, NO_TIMEOUTS, type DraftRules, type DraftUndo } from "./schema";
+import { drafts, matches, mpLobbies, teamMembers, NO_TIMEOUTS, type DraftRules, type DraftUndo } from "./schema";
 import { getPoolStages } from "./mappools";
 import { getSettings } from "./settings";
 import { can } from "@/lib/roles";
@@ -11,6 +11,8 @@ import { relayOnline } from "@/lib/relay";
 import { getViewer } from "@/lib/authz";
 import { getFormat } from "./edition";
 import { deadline, pickable, scoreOf, tbDue, turnOf, type DraftView, type Side } from "@/lib/draft";
+import { staffNames } from "@/lib/staff-names";
+import { staffIds } from "@/db/users";
 
 const g = globalThis as unknown as { draftBus?: EventEmitter };
 const bus = (g.draftBus ??= new EventEmitter().setMaxListeners(0));
@@ -210,10 +212,10 @@ export async function lobbyTimer(matchId: string, secs: number | null) {
 }
 
 async function siteRun(m: { id: string; referee: string | null }) {
-  const ref = m.referee ? ((await db.select({ osuId: users.osuId }).from(users).where(sql`lower(${users.username}) = ${m.referee.trim().toLowerCase()}`).limit(1))[0]?.osuId ?? null) : null;
+  const refs = await staffIds(m.referee);
   const [lob] = await db.select({ owner: mpLobbies.owner, open: mpLobbies.open }).from(mpLobbies).where(eq(mpLobbies.matchId, m.id)).limit(1);
-  const refLive = ref != null && (relayOnline(ref) || (!!lob?.open && lob.owner === String(ref)));
-  return { ref, refLive, onSite: refLive || !!lob };
+  const refLive = refs.some((ref) => relayOnline(ref) || (!!lob?.open && lob.owner === String(ref)));
+  return { refs, refLive, onSite: refLive || !!lob };
 }
 
 /** hosts run any match, a referee only the ones assigned to them (and, with `unassigned`, ones nobody has yet) */
@@ -224,9 +226,8 @@ export async function canRunMatch(matchId: string, opts: { unassigned?: boolean 
   if (!can(v.roles, "matches")) return false;
   const [m] = await db.select({ referee: matches.referee }).from(matches).where(eq(matches.id, matchId)).limit(1);
   if (!m) return false;
-  if (!m.referee?.trim()) return !!opts.unassigned;
-  const [u] = await db.select({ osuId: users.osuId }).from(users).where(sql`lower(${users.username}) = ${m.referee.trim().toLowerCase()}`).limit(1);
-  return u?.osuId === v.osuId;
+  if (!staffNames(m.referee).length) return !!opts.unassigned;
+  return (await staffIds(m.referee)).includes(v.osuId);
 }
 
 export async function draftAccess(matchId: string) {
@@ -235,8 +236,8 @@ export async function draftAccess(matchId: string) {
   const [m] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
   if (!m) return null;
   const staff = can(v.roles, "matches");
-  const { ref, onSite } = await siteRun(m);
-  const admin = staff && v.osuId === ref;
+  const { refs, onSite } = await siteRun(m);
+  const admin = staff && refs.includes(v.osuId);
   const watch = staff || can(v.roles, "draft");
   const [mem] = await db.select({ teamId: teamMembers.teamId, isCaptain: teamMembers.isCaptain }).from(teamMembers).where(eq(teamMembers.osuId, v.osuId)).limit(1);
   const team: Side | null = mem && mem.teamId === m.team1Id ? 1 : mem && mem.teamId === m.team2Id ? 2 : null;

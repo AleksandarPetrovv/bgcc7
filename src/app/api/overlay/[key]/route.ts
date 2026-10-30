@@ -7,7 +7,8 @@ import { onDraft } from "@/db/drafts";
 import { onLobby } from "@/lib/bancho";
 import { onLive } from "@/lib/live-scores";
 import { resolveOverlay, buildFeed } from "@/lib/overlay-feed";
-import { alertId, clear, describeMatch, failingFor, osuIdOf, raise } from "@/lib/alerts";
+import { alertId, clear, describeMatch, failingFor, raise } from "@/lib/alerts";
+import { staffIds } from "@/db/users";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +63,6 @@ async function overlayFailing(id: string, matchId: string | null, e: unknown) {
   const [m] = matchId ? await db.select({ streamer: matches.streamer }).from(matches).where(eq(matches.id, matchId)).limit(1) : [];
   raise(
     { id, kind: "overlayFailing", level: "gold", match: matchId ? await describeMatch(matchId) : undefined, href: "/admin/stream", detail: e instanceof Error ? e.message : String(e) },
-    { hosts: true, osuIds: [await osuIdOf(m?.streamer)] },
+    { hosts: true, osuIds: await staffIds(m?.streamer) },
   );
 }

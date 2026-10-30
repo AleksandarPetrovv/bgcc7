@@ -7,7 +7,8 @@ import { lockMatch, notifyCaptain, staffOverride } from "./schedule";
 import { getAllTeams } from "./tournament";
 import type { Match } from "@/lib/data";
 import { decideWinner, type Score } from "@/lib/result";
-import { alertId, clear, describeMatch, osuIdOf, raise } from "@/lib/alerts";
+import { alertId, clear, describeMatch, raise } from "@/lib/alerts";
+import { staffIds } from "./users";
 import { when } from "@/lib/discord-text";
 
 /**
@@ -32,7 +33,7 @@ export async function settleResult(match: Pick<Match, "id" | "referee">, score: 
     console.error("[match result]", match.id, e);
     if (winner) {
       const info = await describeMatch(match.id);
-      raise({ id: alert, kind: "finishFailed", level: "red", match: info, href: `/admin/matches/${info.slug}`, detail: e instanceof Error ? e.message : String(e) }, { hosts: true, osuIds: [await osuIdOf(match.referee)] });
+      raise({ id: alert, kind: "finishFailed", level: "red", match: info, href: `/admin/matches/${info.slug}`, detail: e instanceof Error ? e.message : String(e) }, { hosts: true, osuIds: await staffIds(match.referee) });
     }
     return false;
   }
