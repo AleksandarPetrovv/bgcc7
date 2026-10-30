@@ -7,10 +7,7 @@ import { getPoolStages } from "./mappools";
 import { getScoreboard } from "./scoreboards";
 import { getFormat } from "./edition";
 import { siteUrl } from "@/lib/links";
-import { matchLabel, resultMessage } from "@/lib/discord-text";
-import { when } from "@/lib/discord-text";
-import type { Match } from "@/lib/data";
-import type { Scoreboard } from "@/lib/scoreboard";
+import { matchLabel, resultMessage, when } from "@/lib/discord-text";
 import { addRole, botUser, createChannel, createRole, deleteChannel, deleteMessage, deleteRole, discordReady, dm, editChannel, editRole, guildChannels, guildId, guildRoles, memberRoles, post, removeRole, type Overwrite } from "@/lib/discord";
 import { staffNames } from "@/lib/staff-names";
 
