@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarClock, Crown, ExternalLink, Flag, Mic, Tv, Video } from "lucide-react";
+import { ArrowRight, CalendarClock, Crown, ExternalLink, Flag, Link2, Mic, Swords, Tv, Video } from "lucide-react";
 import { Container, PageTitle, SlantButton, Tag } from "@/components/site/page";
 import { Avatar } from "@/components/site/avatar";
 import { Countdown } from "@/components/site/countdown";
@@ -311,7 +311,7 @@ export default async function Me() {
   );
 
   const historyCard = (
-    <Card title={t.me.history} i={3} flush className="lg:absolute lg:inset-0 lg:flex lg:flex-col" body="lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+    <Card title={t.me.history} i={4} flush icon={<Swords className="size-3.5" />} className="mx-auto w-full max-w-4xl lg:col-span-2">
       {played.length === 0 ? (
         <p className="px-5 pb-5 text-sm text-ash">—</p>
       ) : (
@@ -326,13 +326,11 @@ export default async function Me() {
 
   const columns = (
     <>
-      <div className="lg:relative lg:self-stretch">{historyCard}</div>
-      <div className="flex flex-col gap-5 2xl:gap-8">
-        <TeamCard t={t} team={team} me={me} seeds={seeds} stats={pStats} record={record} i={2} />
-        <Card title={t.me.connections} i={4}>
-          <Connections osu={{ id: me, name: team.players.find((p) => p.userId === me)?.username ?? String(me), avatar: avatarPath(me) }} discord={discord} />
-        </Card>
-      </div>
+      <TeamCard t={t} team={team} me={me} seeds={seeds} stats={pStats} record={record} i={2} />
+      <Card title={t.me.connections} i={3} icon={<Link2 className="size-3.5" />}>
+        <Connections osu={{ id: me, name: team.players.find((p) => p.userId === me)?.username ?? String(me), avatar: avatarPath(me) }} discord={discord} />
+      </Card>
+      {historyCard}
     </>
   );
 
