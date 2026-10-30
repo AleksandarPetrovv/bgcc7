@@ -50,7 +50,7 @@
 }
 
 @keyframes sheen {
-  from { transform: translateX(-120%) skewX(-20deg); }
+  from { transform: translateX(-180%) skewX(-20deg); }
   to { transform: translateX(260%) skewX(-20deg); }
 }
 
@@ -112,7 +112,7 @@
   inset: 0;
   width: 40%;
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--white) 45%, transparent), transparent);
-  transform: translateX(-120%) skewX(-20deg);
+  transform: translateX(-180%) skewX(-20deg);
   pointer-events: none;
 }
 
