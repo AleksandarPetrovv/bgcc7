@@ -74,8 +74,7 @@ export const adminPlay = {
     draftHelp: "How many maps each team bans and in what order, A being the team that bans first. Bans and order count for pick and bans opened after this, the timers count right away.",
     bans: "Bans per team",
     order: "Ban order",
-    banSecs: "Ban timer",
-    pickSecs: "Pick timer",
+    pickBanSecs: "Pick / ban timer",
     timeoutSecs: "Timeout",
   },
   dr: {
