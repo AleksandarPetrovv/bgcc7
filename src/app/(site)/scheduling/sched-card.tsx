@@ -172,7 +172,7 @@ export function SchedCard({ m, round, me, opp, week, open }: { m: SchedMatch; ro
           <div className="relative mx-auto mt-5 max-w-xs pb-2">
             <p className="text-[0.7rem] font-display font-bold text-rose-hi">{t.sched.closesIn}</p>
             <Countdown to={week.deadline} />
-            <p className="mt-1 text-sm text-paper/80">{w.full(week.deadline)}</p>
+            <p className="mt-1 text-sm text-paper/80">({w.full(week.deadline)})</p>
           </div>
         )}
 
