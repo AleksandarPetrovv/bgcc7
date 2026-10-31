@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
+import { currentEdition, db } from "@/db";
+import { canSee } from "@/lib/authz";
 import { matches } from "@/db/schema";
 import { sse } from "@/lib/sse";
 import { onDraft } from "@/db/drafts";
@@ -11,6 +12,19 @@ import { alertId, clear, describeMatch, failingFor, osuIdOf, raise } from "@/lib
 export const dynamic = "force-dynamic";
 
 const FAILING_AFTER = 60_000;
+
+// every open overlay on the same match shares one build per 250ms instead of each hitting the db
+const g = globalThis as unknown as { bgccFeeds?: Map<string, { at: number; feed: ReturnType<typeof buildFeed> }> };
+const feeds = (g.bgccFeeds ??= new Map());
+async function sharedFeed(matchId: string) {
+  const k = `${currentEdition()}:${matchId}:${await canSee("schedule")}`;
+  const hit = feeds.get(k);
+  if (hit && Date.now() - hit.at < 250) return hit.feed;
+  const feed = buildFeed(matchId);
+  feeds.set(k, { at: Date.now(), feed });
+  feed.catch(() => feeds.delete(k));
+  return feed;
+}
 
 export async function GET(req: Request, { params }: { params: Promise<{ key: string }> }) {
   const key = decodeURIComponent((await params).key).toLowerCase();
@@ -31,7 +45,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ key: str
       try {
         matchId = (await resolveOverlay(key)).matchId;
         shown = matchId;
-        const feed = matchId ? await buildFeed(matchId) : null;
+        const feed = matchId ? await sharedFeed(matchId) : null;
         clear(id);
         return feed;
       } catch (e) {

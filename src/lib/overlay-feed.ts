@@ -16,6 +16,7 @@ import { isScene, type Scene } from "@/lib/scenes";
 import { getCue, PLAY_LEAD } from "@/lib/overlay-cues";
 import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup, FeedMatch, LiveScore } from "./overlay-types";
 import { TEST_MATCH } from "@/lib/format";
+import { canSee } from "@/lib/authz";
 
 const BUILD = String(Date.now());
 
@@ -46,6 +47,7 @@ function rolledSince(matchId: string, key: string, fallback: number) {
 }
 
 export async function scheduleFeed(): Promise<FeedMatch[]> {
+  if (!(await canSee("schedule"))) return [];
   return (await getAllMatches())
     .filter((m) => m.id !== TEST_MATCH.id)
     .map((m) => ({
