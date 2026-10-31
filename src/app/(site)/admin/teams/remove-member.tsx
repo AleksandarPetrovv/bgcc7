@@ -7,6 +7,7 @@ import { Crown, X } from "lucide-react";
 import { Btn } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
 import { removeMember } from "./actions";
+import { backdropClose } from "@/lib/backdrop";
 
 type Mate = { id: number; name: string; avatar: string };
 
@@ -42,7 +43,7 @@ export function RemoveMember({ osuId, captain, mates }: { osuId: number; captain
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
-                onClick={() => !pending && setOpen(false)}
+                {...backdropClose(() => !pending && setOpen(false))}
               >
                 <motion.div
                   initial={{ y: 40, scale: 0.92 }}

@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, Gavel, X } from "lucide-react";
 import { Btn } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
+import { backdropClose } from "@/lib/backdrop";
 
 function Name({ n }: { n: string }) {
   return (
@@ -66,7 +67,7 @@ export function RefSwapGuard({ live, lobby, from }: { live: boolean; lobby: bool
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
-                onClick={() => setTo(null)}
+                {...backdropClose(() => setTo(null))}
               >
                 <motion.div
                   initial={{ y: 40, scale: 0.92, skewY: 1.5 }}
