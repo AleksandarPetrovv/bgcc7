@@ -149,6 +149,7 @@ function Dot({ className }: { className?: string }) {
 export function SiteNav({ user, nav: base, register, live, captain, match: initialMatch, sched }: Props) {
   const nav = sched ? withSched(base) : base;
   const meDot = !!sched?.discord;
+  const schedDot = !!sched?.dot;
   const dots = [...(sched?.dot ? ["scheduling"] : []), ...(meDot ? ["me"] : [])];
   const { slug: match, clock } = useMatch(captain, initialMatch);
   const path = usePathname();
@@ -187,8 +188,8 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
       set(barRef.current, `translate3d(${x}px,0,0) scaleX(${w})`);
       set(shadowRef.current, `translate3d(${x + 3}px,0,0) scaleX(${w})`);
       set(glintRef.current, `translate3d(${el.offsetLeft + el.offsetWidth - 12}px,0,0)`);
-      // the me dot sits where the sparkle would
-      if (glintRef.current && meDot && activeBase === "/me") glintRef.current.style.opacity = "0";
+      // the me / scheduling dot sits where the sparkle would
+      if (glintRef.current && ((meDot && activeBase === "/me") || (schedDot && activeBase === "/scheduling"))) glintRef.current.style.opacity = "0";
       placed.current = true;
     };
     place(true);
@@ -197,7 +198,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
     const ro = new ResizeObserver(again);
     navRef.current?.querySelectorAll("a").forEach((a) => ro.observe(a));
     return () => ro.disconnect();
-  }, [activeBase, meDot]);
+  }, [activeBase, meDot, schedDot]);
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-field/90 backdrop-blur-md">
       <div className="flex h-16 items-center gap-2 pr-4 sm:gap-6 lg:h-20 lg:pr-6">
