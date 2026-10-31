@@ -15,7 +15,7 @@ export const label = "text-[0.65rem] font-display font-bold text-ash";
 
 export function Card({ title, children, className, i = 0, right, flush, body, icon }: { title: string; children: React.ReactNode; className?: string; i?: number; right?: React.ReactNode; flush?: boolean; body?: string; icon?: React.ReactNode }) {
   return (
-    <section className={cn("in-up in-slow relative overflow-hidden border border-line bg-coal", className)} style={v({ "--i": i, "--s": "0.16s", "--d": "0.2s", "--cd": `${0.2 + i * 0.16}s` })}>
+    <section className={cn("in-up in-slow relative overflow-hidden border border-line bg-coal", className)} style={v({ "--i": i, "--s": "0.12s", "--d": "0s", "--cd": `${i * 0.12}s` })}>
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-4 pb-1 pt-4 sm:px-5">
         {icon ?? <Glyph kind="spark" className="size-3" />}
         <h2 className="heading-slam text-lg">{title}</h2>
@@ -46,7 +46,7 @@ export function PlayerLink({ id, name, className }: { id: number; name: string; 
 type PStat = { cost: number | null; acc: number | null };
 
 export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { t: Dict; team: Team; me: number; seeds: Map<number, number>; stats?: Map<number, PStat>; record?: [number, number]; i?: number; className?: string }) {
-  const wipe = v({ "--d": "calc(var(--cd, 0s) + 0.75s)" });
+  const wipe = v({ "--d": "calc(var(--cd, 0s) + 0.4s)" });
   const avg = Math.round(team.players.reduce((n, p) => n + p.rank, 0) / Math.max(1, team.players.length));
   return (
     <Card title={t.me.team} i={i} flush className={className} icon={<Glyph kind="people" className="size-4" />}>
