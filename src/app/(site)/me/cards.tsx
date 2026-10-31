@@ -41,10 +41,10 @@ export function PlayerLink({ id, name, className }: { id: number; name: string; 
   );
 }
 
-export function TeamCard({ t, team, me, seeds, record, i }: { t: Dict; team: Team; me: number; seeds: Map<number, number>; record?: [number, number]; i?: number }) {
+export function TeamCard({ t, team, me, seeds, record, i, className }: { t: Dict; team: Team; me: number; seeds: Map<number, number>; record?: [number, number]; i?: number; className?: string }) {
   const avg = Math.round(team.players.reduce((n, p) => n + p.rank, 0) / Math.max(1, team.players.length));
   return (
-    <Card title={t.me.team} i={i} flush>
+    <Card title={t.me.team} i={i} flush className={className}>
       <div className="relative mx-4 flex items-center gap-3 overflow-hidden border border-line bg-ink p-3 sm:mx-5 sm:gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={team.image} alt="" className="pointer-events-none absolute inset-0 size-full scale-110 object-cover opacity-15 blur-md" aria-hidden />

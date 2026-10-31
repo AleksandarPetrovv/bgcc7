@@ -178,6 +178,8 @@ export const site: typeof en = {
     mapsWon: "Спечелени мапове",
     connections: "Твоите връзки",
     osu: "osu!",
+    open: "Отвори",
+    notLinked: "Не е свързан",
   },
   home: {
     badge: "bulgarian community cup",
