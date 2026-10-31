@@ -51,16 +51,18 @@ function Picker({ open, onClose, week, title, onSend }: { open: boolean; onClose
           start(async () => setErr(await onSend(val)));
         }}
       >
-        <input
-          type="datetime-local"
-          required
-          value={val}
-          min={week.min}
-          max={week.max}
-          step={300}
-          onChange={(e) => setVal(e.target.value)}
-          className="min-h-11 w-full min-w-0 border border-line bg-ink px-3 text-base text-paper outline-none [color-scheme:light] focus:border-rose"
-        />
+        <span className="flex min-h-11 w-full min-w-0 -skew-x-12 border border-line bg-ink focus-within:border-rose">
+          <input
+            type="datetime-local"
+            required
+            value={val}
+            min={week.min}
+            max={week.max}
+            step={300}
+            onChange={(e) => setVal(e.target.value)}
+            className="w-full min-w-0 skew-x-12 border-0 bg-transparent px-4 text-base text-paper outline-none [color-scheme:light]"
+          />
+        </span>
         {err && <p className="text-sm font-bold text-rose-hi">{err}</p>}
         <div className="flex flex-wrap gap-3">
           <SlantButton type="submit" disabled={pending} className="px-6 py-2.5">
