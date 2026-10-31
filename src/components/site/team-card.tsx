@@ -37,8 +37,8 @@ export function TeamCard({ team }: { team: Team }) {
         delay={0}
         closeDelay={0}
         render={
-          <Link href={teamHref(team)} {...meT(team.id)} className="me-ring lift group relative flex overflow-hidden border sm:block border-line bg-coal outline-offset-4 [--lift:var(--balkan)] hover:border-balkan">
-            <MeTag t={team.id} corner />
+          <Link href={teamHref(team)} {...meT(team.id)} className="lift group relative flex overflow-hidden border sm:block border-line bg-coal outline-offset-4 [--lift:var(--balkan)] hover:border-balkan">
+            <MeTag t={team.id} corner className="me-corner-lg" />
             <div className="relative w-24 shrink-0 overflow-hidden bg-ink sm:h-32 sm:w-auto">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={team.image} alt="" className="in-wipe absolute inset-0 size-full object-cover sm:static transition duration-500 group-hover:scale-105 [--d:0.1s]" />
