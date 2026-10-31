@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Crown, Flag } from "lucide-react";
 import { Glyph } from "@/components/site/graphics";
+import { People } from "@/components/site/page";
 import { Avatar } from "@/components/site/avatar";
 import { RecordText } from "@/components/site/record";
 import type { Dict } from "@/lib/i18n/dict";
@@ -12,11 +13,11 @@ export const v = (o: Record<string, string | number>) => o as React.CSSPropertie
 const pct = (a?: number | null) => (a == null ? "—" : `${(a * 100).toFixed(2)}%`);
 export const label = "text-[0.65rem] font-display font-bold text-ash";
 
-export function Card({ title, children, className, i = 0, right, flush, body }: { title: string; children: React.ReactNode; className?: string; i?: number; right?: React.ReactNode; flush?: boolean; body?: string }) {
+export function Card({ title, children, className, i = 0, right, flush, body, icon }: { title: string; children: React.ReactNode; className?: string; i?: number; right?: React.ReactNode; flush?: boolean; body?: string; icon?: React.ReactNode }) {
   return (
     <section className={cn("in-up relative overflow-hidden border border-line bg-coal", className)} style={v({ "--i": i, "--s": "0.08s", "--d": "0.2s" })}>
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-4 pb-1 pt-4 sm:px-5">
-        <Glyph kind="spark" className="size-3" />
+        {icon ?? <Glyph kind="spark" className="size-3" />}
         <h2 className="heading-slam text-lg">{title}</h2>
         {right && <div className="ml-auto">{right}</div>}
       </div>
@@ -47,7 +48,7 @@ type PStat = { cost: number | null; acc: number | null };
 export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { t: Dict; team: Team; me: number; seeds: Map<number, number>; stats?: Map<number, PStat>; record?: [number, number]; i?: number; className?: string }) {
   const avg = Math.round(team.players.reduce((n, p) => n + p.rank, 0) / Math.max(1, team.players.length));
   return (
-    <Card title={t.me.team} i={i} flush className={className}>
+    <Card title={t.me.team} i={i} flush className={className} icon={<People className="mb-0 self-center text-[1.4em]" />}>
       <div className="relative mx-4 flex items-center gap-3 overflow-hidden border border-line bg-ink p-3 sm:mx-5 sm:gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={team.image} alt="" className="pointer-events-none absolute inset-0 size-full scale-110 object-cover opacity-15 blur-md" aria-hidden />
