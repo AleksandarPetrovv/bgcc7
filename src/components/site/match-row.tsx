@@ -46,7 +46,8 @@ function Side({ id, flip, lost }: { id: string; flip?: boolean; lost?: boolean }
             </Link>
             <MeTag t={team.id} className="text-[0.55rem] sm:text-[0.65rem]" />
           </span>
-          <span className="in-up hidden gap-3 text-[0.6rem] font-display font-bold text-ash sm:flex" style={d("0.5s")}>
+          {/* pinned to the bottom so both sides line up whether or not one has the "your team" tag */}
+          <span className="in-up hidden gap-3 text-[0.6rem] font-display font-bold text-ash sm:mt-auto sm:flex" style={d("0.5s")}>
             <span>
               {t.common.seed} <span className="num text-sm text-paper">{team.seed}</span>
             </span>
