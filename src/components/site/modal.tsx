@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { X } from "lucide-react";
 import { useDict } from "./lang";
 import { cn } from "@/lib/utils";
+import { backdropClose } from "@/lib/backdrop";
 
 export function Modal({ open, onClose, children, tone = "rose", className }: { open: boolean; onClose: () => void; children: React.ReactNode; tone?: "rose" | "gold" | "balkan"; className?: string }) {
   const t = useDict();
@@ -20,7 +21,7 @@ export function Modal({ open, onClose, children, tone = "rose", className }: { o
   return createPortal(
     <AnimatePresence>
       {open && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm" onClick={onClose}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm" {...backdropClose(onClose)}>
           <motion.div
             initial={{ y: 40, scale: 0.92 }}
             animate={{ y: 0, scale: 1 }}

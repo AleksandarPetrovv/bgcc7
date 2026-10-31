@@ -8,6 +8,7 @@ import { useFormat } from "@/components/site/tournament";
 import { lobbySize } from "@/lib/format";
 import { EASE } from "@/components/site/motion";
 import { cn } from "@/lib/utils";
+import { backdropClose } from "@/lib/backdrop";
 
 export const POP = {
   initial: { opacity: 0, y: 12 },
@@ -54,7 +55,7 @@ export function HelperMissing({ onClose }: { onClose: () => void }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
-      onClick={onClose}
+      {...backdropClose(onClose)}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
     >
       <motion.div
@@ -108,7 +109,7 @@ export function StreamOrder({ onClose }: { onClose: () => void }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
-      onClick={onClose}
+      {...backdropClose(onClose)}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
     >
       <motion.div
@@ -163,7 +164,7 @@ export function LobbyHelp({ onClose }: { onClose: () => void }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
-      onClick={onClose}
+      {...backdropClose(onClose)}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
     >
       <motion.div
@@ -247,7 +248,7 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
-      onClick={onCancel}
+      {...backdropClose(onCancel)}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
     >
       <motion.div

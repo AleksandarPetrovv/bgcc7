@@ -8,6 +8,7 @@ import { useDict } from "@/components/site/lang";
 import type { Beatmap } from "@/lib/data";
 import type { Side } from "@/lib/draft";
 import { cn } from "@/lib/utils";
+import { backdropClose } from "@/lib/backdrop";
 import { slotColor } from "@/lib/format-plan";
 import { GOLD, modHi, TEAM, tint } from "@/lib/theme";
 import { Costs, MapCard } from "@/components/site/match-dialog";
@@ -292,7 +293,7 @@ export function ScoresPopup({ slug, slot, names, onClose }: { slug: string; slot
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
-      onClick={onClose}
+      {...backdropClose(onClose)}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
     >
       <motion.div
@@ -327,7 +328,7 @@ export function ResetPopup({ lobby, busy, onCancel, onReset }: { lobby: boolean;
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
-      onClick={onCancel}
+      {...backdropClose(onCancel)}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
     >
       <motion.div
