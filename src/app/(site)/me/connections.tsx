@@ -10,12 +10,13 @@ import { useDict } from "@/components/site/lang";
 import { logout } from "@/app/(site)/pickems/actions";
 import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
+import { at } from "@/components/site/rich";
 import { unlinkDiscord } from "./discord-actions";
 import { DiscordPrompt } from "./discord-prompt";
 
-function Row({ avatar, edge, platform, name, children }: { avatar: string | null; edge: string; platform: React.ReactNode; name: React.ReactNode; children: React.ReactNode }) {
+function Row({ avatar, edge, platform, name, n, children }: { avatar: string | null; edge: string; platform: React.ReactNode; name: React.ReactNode; n: number; children: React.ReactNode }) {
   return (
-    <div className="relative flex grow flex-wrap items-center gap-x-4 gap-y-3 overflow-hidden border border-line bg-ink p-4">
+    <div style={at(0.3, n, 0.15)} className="in-left in-slow relative flex grow flex-wrap items-center gap-x-4 gap-y-3 overflow-hidden border border-line bg-ink p-4">
       {avatar && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={avatar} alt="" className="pointer-events-none absolute inset-0 size-full scale-110 object-cover opacity-15 blur-md" aria-hidden />
@@ -48,6 +49,7 @@ export function Connections({ osu, discord }: { osu: { id: number; name: string;
       <Row
         avatar={osu.avatar}
         edge="border-rose"
+        n={0}
         platform={
           <>
             <OsuLogo className="size-3.5" /> osu!
@@ -66,6 +68,7 @@ export function Connections({ osu, discord }: { osu: { id: number; name: string;
         <Row
           avatar={discord.avatar}
           edge="border-azure"
+          n={1}
           platform={
             <>
               <DiscordLogo className="size-3" /> Discord

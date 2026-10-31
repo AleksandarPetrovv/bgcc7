@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, CalendarClock, Check, ChevronDown, Repeat, X } from "lucide-react";
 import { Countdown } from "@/components/site/countdown";
@@ -11,6 +11,8 @@ import { fmtSofiaDay, fmtSofiaTime } from "@/lib/time";
 import type { Proposal } from "@/lib/schedule";
 import type { SchedMatch } from "@/db/schedule";
 import { cn } from "@/lib/utils";
+import { at } from "@/components/site/rich";
+import { belowFold } from "@/components/site/in-view";
 import { accept, propose, withdraw } from "./actions";
 
 export type Side = { id: string; name: string; image: string; players: number[] };
@@ -89,12 +91,12 @@ function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
   if (!list.length) return null;
   return (
     <details className="group border-t border-line" open>
-      <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-[0.7rem] font-display font-bold text-ash hover:text-paper sm:px-5">
+      <summary style={at(1.5)} className="in-up in-slow flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-[0.7rem] font-display font-bold text-ash hover:text-paper sm:px-5">
         {t.sched.history} <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
       </summary>
       <ol className="grid gap-1.5 px-4 pb-4 sm:px-5">
-        {list.map((p) => (
-          <li key={p.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-sm">
+        {list.map((p, k) => (
+          <li key={p.id} style={at(1.6, k, 0.08)} className="in-left in-slow flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-sm">
             <span className={cn("num", p.status === "rejected" || p.status === "cancelled" ? "text-ash line-through" : "text-paper")}>{w.full(p.at)}</span>
             <span className="font-display text-sm font-bold text-ash">{team(p.teamId)}</span>
             <span className={cn("ml-auto text-[0.68rem] font-display font-bold", p.status === "accepted" ? "text-balkan-hi" : p.status === "pending" ? "text-gold-hi" : "text-rose-hi/80")}>{label(p)}</span>
@@ -105,8 +107,16 @@ function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
   );
 }
 
-export function SchedCard({ m, round, me, opp, week, open }: { m: SchedMatch; round: string; me: Side; opp: Side; week: Week; open: boolean }) {
+export function SchedCard({ m, round, me, opp, week, open, n = 0 }: { m: SchedMatch; round: string; me: Side; opp: Side; week: Week; open: boolean; n?: number }) {
   const t = useDict();
+  const ref = useRef<HTMLElement>(null);
+  // once the intro is over, parts that mount later (after a refresh) appear without the long delays
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    if (ref.current && belowFold(ref.current)) return setSettled(true);
+    const id = setTimeout(() => setSettled(true), 4000 + n * 220);
+    return () => clearTimeout(id);
+  }, [n]);
   const w = useWhen();
   const router = useRouter();
   const [pick, setPickState] = useState(false);
@@ -150,8 +160,12 @@ export function SchedCard({ m, round, me, opp, week, open }: { m: SchedMatch; ro
     });
 
   return (
-    <article className="in-up overflow-hidden border border-line bg-coal">
-      <div className="flex items-center gap-3 border-b border-line bg-ink/60 px-4 py-2.5 sm:px-5">
+    <article
+      ref={ref}
+      className={cn("in-up in-slow overflow-hidden border border-line bg-coal", settled && "no-intro")}
+      style={{ "--d": "0.2s", "--i": n, "--s": "0.22s", "--cd": `${0.2 + n * 0.22}s` } as React.CSSProperties}
+    >
+      <div style={at(0.15)} className="in-up in-slow flex items-center gap-3 border-b border-line bg-ink/60 px-4 py-2.5 sm:px-5">
         <span className="text-xs font-display font-bold text-rose-hi">{round}</span>
         {agreed && (
           <span className="ml-auto inline-flex items-center gap-1 text-[0.68rem] font-display font-bold text-balkan-hi">
@@ -160,22 +174,26 @@ export function SchedCard({ m, round, me, opp, week, open }: { m: SchedMatch; ro
         )}
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4 py-5 sm:gap-5 sm:px-5">
-        <Team s={me} />
-        <span className="heading-slam text-base text-ash">{t.common.vs}</span>
-        <Team s={opp} flip />
+        <div style={at(0.3)} className="in-left-far in-slow min-w-0">
+          <Team s={me} />
+        </div>
+        <span style={at(0.65)} className="in-slam heading-slam text-base text-ash">{t.common.vs}</span>
+        <div style={at(0.3)} className="in-right-far in-slow min-w-0">
+          <Team s={opp} flip />
+        </div>
       </div>
 
       <div className="border-t border-line px-4 py-5 text-center sm:px-5">
-        <p className={cn("num", agreed ? "text-3xl text-paper sm:text-4xl" : "text-4xl text-ash sm:text-5xl")}>{agreed ? w.full(agreed) : t.common.tbd}</p>
+        <p style={at(0.8)} className={cn("in-up in-slow num", agreed ? "text-3xl text-paper sm:text-4xl" : "text-4xl text-ash sm:text-5xl")}>{agreed ? w.full(agreed) : t.common.tbd}</p>
 
         {!week ? (
-          <p className="mt-4 text-sm text-ash">{t.sched.noWeek}</p>
+          <p style={at(0.95)} className="in-up in-slow mt-4 text-sm text-ash">{t.sched.noWeek}</p>
         ) : !open ? (
-          <p className="mt-4 text-sm font-bold text-ash">{t.sched.locked}</p>
+          <p style={at(0.95)} className="in-up in-slow mt-4 text-sm font-bold text-ash">{t.sched.locked}</p>
         ) : agreed ? (
-          <p className="mt-2 text-xs font-display font-bold text-ash/80">{t.sched.closes(w.short(week.deadline))}</p>
+          <p style={at(0.95)} className="in-up in-slow mt-2 text-xs font-display font-bold text-ash/80">{t.sched.closes(w.short(week.deadline))}</p>
         ) : (
-          <div className="relative mx-auto mt-5 max-w-xs pb-2">
+          <div style={at(0.95)} className="in-up in-slow relative mx-auto mt-5 max-w-xs pb-2">
             <p className="text-[0.7rem] font-display font-bold text-rose-hi">{t.sched.closesIn}</p>
             <Countdown to={week.deadline} />
             <p className="mt-1 text-sm text-paper/80">({w.full(week.deadline)})</p>
@@ -183,7 +201,7 @@ export function SchedCard({ m, round, me, opp, week, open }: { m: SchedMatch; ro
         )}
 
         {week && open && pend && (
-          <div className={cn("mx-auto mt-5 max-w-md border px-4 py-3", theirs ? "border-gold bg-gold/10" : "border-line")}>
+          <div style={at(1.1)} className={cn("in-up in-slow mx-auto mt-5 max-w-md border px-4 py-3", theirs ? "border-gold bg-gold/10" : "border-line")}>
             <p className="text-xs font-display font-bold text-ash">{theirs ? t.sched.proposed(opp.name) : t.sched.waitingOn(opp.name)}</p>
             <p className="num mt-1 text-2xl text-paper">{w.full(pend.at)}</p>
           </div>
@@ -193,31 +211,43 @@ export function SchedCard({ m, round, me, opp, week, open }: { m: SchedMatch; ro
           <div className="mt-5 flex flex-wrap justify-center gap-3">
             {theirs ? (
               <>
-                <SlantButton tone="balkan" onClick={yes} disabled={pending} className="px-6 py-2.5">
-                  <Check className="size-4" /> {pending ? "…" : t.sched.accept}
-                </SlantButton>
-                <SlantButton tone="outline" onClick={() => setPick(true)} className="px-5 py-2.5">
-                  <Repeat className="size-4" /> {t.sched.counter}
-                </SlantButton>
+                <span className="in-up in-slow inline-flex" style={at(1.25, 0, 0.1)}>
+                  <SlantButton tone="balkan" onClick={yes} disabled={pending} className="px-6 py-2.5">
+                    <Check className="size-4" /> {pending ? "…" : t.sched.accept}
+                  </SlantButton>
+                </span>
+                <span className="in-up in-slow inline-flex" style={at(1.25, 1, 0.1)}>
+                  <SlantButton tone="outline" onClick={() => setPick(true)} className="px-5 py-2.5">
+                    <Repeat className="size-4" /> {t.sched.counter}
+                  </SlantButton>
+                </span>
               </>
             ) : agreed ? (
-              <SlantButton tone="outline" onClick={() => setWarn(true)} className="px-5 py-2.5">
-                <Repeat className="size-4" /> {t.sched.reschedule}
-              </SlantButton>
+              <span className="in-up in-slow inline-flex" style={at(1.25, 0, 0.1)}>
+                <SlantButton tone="outline" onClick={() => setWarn(true)} className="px-5 py-2.5">
+                  <Repeat className="size-4" /> {t.sched.reschedule}
+                </SlantButton>
+              </span>
             ) : (
-              <SlantButton onClick={() => setPick(true)} className="px-6 py-2.5">
-                <CalendarClock className="size-4" /> {t.sched.propose}
-              </SlantButton>
+              <span className="in-up in-slow inline-flex" style={at(1.25, 0, 0.1)}>
+                <SlantButton onClick={() => setPick(true)} className="px-6 py-2.5">
+                  <CalendarClock className="size-4" /> {t.sched.propose}
+                </SlantButton>
+              </span>
             )}
             {!theirs && pend && (
-              <SlantButton tone="outline" onClick={pull} disabled={pending} className="px-5 py-2.5">
-                <X className="size-4" /> {t.sched.withdraw}
-              </SlantButton>
+              <span className="in-up in-slow inline-flex" style={at(1.25, 1, 0.1)}>
+                <SlantButton tone="outline" onClick={pull} disabled={pending} className="px-5 py-2.5">
+                  <X className="size-4" /> {t.sched.withdraw}
+                </SlantButton>
+              </span>
             )}
             {agreed && !pend && (
-              <SlantButton tone="outline" onClick={() => setWd(true)} disabled={pending} className="px-5 py-2.5">
-                <X className="size-4" /> {t.sched.withdraw}
-              </SlantButton>
+              <span className="in-up in-slow inline-flex" style={at(1.25, 1, 0.1)}>
+                <SlantButton tone="outline" onClick={() => setWd(true)} disabled={pending} className="px-5 py-2.5">
+                  <X className="size-4" /> {t.sched.withdraw}
+                </SlantButton>
+              </span>
             )}
           </div>
         )}

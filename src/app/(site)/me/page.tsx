@@ -35,6 +35,7 @@ import { matchCosts } from "@/lib/match-cost";
 import { Card, Stat, PlayerLink, TeamCard, Side, Info, label } from "./cards";
 import { QualifierPlacement, QualifierScores } from "./qualifier-scores";
 import { isBGCC6 } from "@/db";
+import { at } from "@/components/site/rich";
 
 
 export default async function Me() {
@@ -42,7 +43,7 @@ export default async function Me() {
   if (!me)
     return (
       <Container plain>
-        <PageTitle mark="people">{t.me.title}</PageTitle>
+        <PageTitle mark="me">{t.me.title}</PageTitle>
         <div className="flex flex-col items-center gap-5 py-16 text-center">
           <p className="text-ash">{t.me.login}</p>
           <form action={login.bind(null, "/me")}>
@@ -76,7 +77,7 @@ export default async function Me() {
 
   const shell = (children: React.ReactNode) => (
     <Container plain>
-      <PageTitle mark="people">{t.me.title}</PageTitle>
+      <PageTitle mark="me">{t.me.title}</PageTitle>
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2 2xl:gap-8">{children}</div>
     </Container>
   );
@@ -88,8 +89,9 @@ export default async function Me() {
         {settings.timeline.map((e, i) => (
           <li
             key={e.key}
+            style={at(0.3, i, 0.08)}
             className={cn(
-              "relative flex items-baseline gap-3 py-1.5 pl-3 font-display font-bold text-sm",
+              "in-left in-slow relative flex items-baseline gap-3 py-1.5 pl-3 font-display font-bold text-sm",
               states[i] === "now" ? "bg-slate font-black text-paper" : states[i] === "done" ? "text-ash" : "text-paper/80",
             )}
           >
@@ -124,7 +126,7 @@ export default async function Me() {
   const myBws = bwsAt >= 0 ? ranked[bwsAt] : null;
   const bwsTier = bwsAt < 0 ? 0 : bwsAt < ff.teams ? 1 : bwsAt < ff.teams * ff.teamSize ? 2 : 0;
   const bwsCard = myBws && (
-    <Card title="BWS" i={1}>
+    <Card title="BWS" i={0}>
       <div className="flex items-end gap-3">
         <span className="num text-6xl leading-[0.8] sm:text-7xl">#{bwsAt + 1}</span>
         <span className="pb-1 text-sm text-ash">{t.me.ofN(ranked.length)}</span>
@@ -238,7 +240,7 @@ export default async function Me() {
     );
   }
 
-  const placementCard = qp && <QualifierPlacement t={t} placement={myQual} total={qual.players.length} cut={settings.qualifyCount} />;
+  const placementCard = (i = 1) => qp && <QualifierPlacement t={t} placement={myQual} total={qual.players.length} cut={settings.qualifyCount} i={i} />;
 
   if (phase === "seeding" || !team)
     return shell(
@@ -247,7 +249,7 @@ export default async function Me() {
           (myBws ? (
             <>
               {bwsCard}
-              <Card title={t.me.team} i={2}>
+              <Card title={t.me.team} i={1}>
                 <p className="text-ash">{bwsTier ? t.me.noTeam : t.me.outsideCut(ff.teams * ff.teamSize)}</p>
               </Card>
             </>
@@ -256,7 +258,7 @@ export default async function Me() {
               <p className="text-paper/80">{t.me.notInLate}</p>
             </Card>
           ))}
-        {placementCard}
+        {placementCard()}
         {team ? (
           <TeamCard t={t} team={team} me={me} seeds={seeds} i={2} />
         ) : (
@@ -327,7 +329,7 @@ export default async function Me() {
   const columns = (
     <>
       <TeamCard t={t} team={team} me={me} seeds={seeds} stats={pStats} record={record} i={2} />
-      <Card title={t.me.connections} i={3} icon={<Link2 className="size-3.5 text-balkan" />} className="flex flex-col self-stretch" body="flex-1">
+      <Card title={t.me.connections} i={3} icon={<Link2 className="size-3.5 text-rose" />} className="flex flex-col self-stretch" body="flex-1">
         <Connections osu={{ id: me, name: team.players.find((p) => p.userId === me)?.username ?? String(me), avatar: avatarPath(me) }} discord={discord} />
       </Card>
       {historyCard}
@@ -368,7 +370,7 @@ export default async function Me() {
     nextCard = (
       <Card title={t.me.next} i={1} className="lg:col-span-2" right={pathTag} flush>
         <div className="px-4 sm:px-5">
-          <div className="flex items-center gap-3">
+          <div className="in-up in-slow flex items-center gap-3" style={at(0.15)}>
             <span className="text-xs font-display font-bold text-rose-hi">{roundName(t, m.round)}</span>
             {live && (
               <a href={TWITCH_URL} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-display font-bold text-rose-hi">
@@ -377,33 +379,45 @@ export default async function Me() {
             )}
           </div>
           <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 py-5 sm:gap-5 sm:py-6">
-            <Side team={team} />
-            <span className="mx-auto -skew-x-12 bg-rose px-2.5 py-1 shadow-[3px_3px_0_0_var(--rose-deep)] sm:px-4 sm:py-2">
-              <span className="heading-slam block skew-x-12 text-base text-white sm:text-2xl">{t.common.vs}</span>
+            <div className="in-left-far in-slow min-w-0" style={at(0.3)}>
+              <Side team={team} />
+            </div>
+            <span className="in-slam mx-auto" style={at(0.65)}>
+              <span className="block -skew-x-12 bg-rose px-2.5 py-1 shadow-[3px_3px_0_0_var(--rose-deep)] sm:px-4 sm:py-2">
+                <span className="heading-slam block skew-x-12 text-base text-white sm:text-2xl">{t.common.vs}</span>
+              </span>
             </span>
-            <Side team={other} flip fallback={sourceLabel(getFormat(), t, matches, m.id, us === 1 ? 2 : 1)} />
+            <div className="in-right-far in-slow min-w-0" style={at(0.3)}>
+              <Side team={other} flip fallback={sourceLabel(getFormat(), t, matches, m.id, us === 1 ? 2 : 1)} />
+            </div>
           </div>
         </div>
         <div className="grid grid-cols-2 border-y border-line bg-ink sm:grid-cols-4 sm:divide-x sm:divide-line">
-          <Info icon={CalendarClock} k={t.me.when} n={m.datetime ? fmt(m.datetime) : t.common.tbd} />
-          <Info icon={Flag} k={t.me.referee} n={m.referee ?? t.common.tbd} />
-          <Info icon={Video} k={t.me.stream} n={m.streamer ?? t.common.tbd} />
-          <Info icon={Mic} k={t.me.casters} n={m.commentators ?? t.common.tbd} />
+          <Info icon={CalendarClock} k={t.me.when} n={m.datetime ? fmt(m.datetime) : t.common.tbd} i={0} />
+          <Info icon={Flag} k={t.me.referee} n={m.referee ?? t.common.tbd} i={1} />
+          <Info icon={Video} k={t.me.stream} n={m.streamer ?? t.common.tbd} i={2} />
+          <Info icon={Mic} k={t.me.casters} n={m.commentators ?? t.common.tbd} i={3} />
         </div>
         <div className="grid grid-cols-2 gap-3 p-4 sm:flex sm:flex-wrap sm:items-center sm:p-5">
           {stage?.released && (
-            <SlantButton href={`/mappool/${m.stage}`} tone="paper" className="col-span-2 justify-center px-6 py-3 text-sm sm:text-base">
-              {t.me.pool} · {roundName(t, stage.title)} <ArrowRight className="size-4" />
-            </SlantButton>
+            <span className="in-up in-slow col-span-2 grid" style={at(1.3, 0)}>
+              <SlantButton href={`/mappool/${m.stage}`} tone="paper" className="justify-center px-6 py-3 text-sm sm:text-base">
+                {t.me.pool} · {roundName(t, stage.title)} <ArrowRight className="size-4" />
+              </SlantButton>
+            </span>
           )}
           {schedule && (
-            <SlantButton href="/matches" tone="outline" className="justify-center px-4 py-2.5 sm:px-5 sm:py-3">
-              {t.home.bracket}
-            </SlantButton>
+            <span className="in-up in-slow grid" style={at(1.3, 1)}>
+              <SlantButton href="/matches" tone="outline" className="justify-center px-4 py-2.5 sm:px-5 sm:py-3">
+                {t.home.bracket}
+              </SlantButton>
+            </span>
           )}
-          <SlantButton href={TWITCH_URL} tone="outline" className="justify-center px-4 py-2.5 sm:px-5 sm:py-3">
-            <Tv className="size-4" /> <span className="sm:hidden">Twitch</span><span className="hidden sm:inline">{t.me.watch}</span>
-          </SlantButton>
+          <span className="in-up in-slow grid" style={at(1.3, 2)}>
+            <SlantButton href={TWITCH_URL} tone="outline" className="justify-center px-4 py-2.5 sm:px-5 sm:py-3">
+              <Tv className="size-4" /> <span className="sm:hidden">Twitch</span><span className="hidden sm:inline">{t.me.watch}</span>
+            </SlantButton>
+          </span>
         </div>
       </Card>
     );
@@ -413,7 +427,7 @@ export default async function Me() {
     <>
       {nextCard}
       {columns}
-      {placementCard}
+      {placementCard(5)}
     </>,
   );
 }
