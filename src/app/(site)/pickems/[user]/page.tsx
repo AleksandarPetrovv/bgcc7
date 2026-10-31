@@ -12,6 +12,20 @@ import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 
+// names not in our db would otherwise hit the osu api on every request
+type Found = Awaited<ReturnType<typeof getUser>>;
+const g = globalThis as unknown as { bgccPickemsLookup?: Map<string, { exp: number; o: Found }> };
+const looked = (g.bgccPickemsLookup ??= new Map());
+async function lookup(name: string) {
+  const now = Date.now();
+  const hit = looked.get(name);
+  if (hit && hit.exp > now) return hit.o;
+  const o = await getUser(name, "username").catch(() => null);
+  if (looked.size > 5000) looked.clear();
+  looked.set(name, { exp: now + 10 * 60_000, o });
+  return o;
+}
+
 export default async function UserBracket({ params }: { params: Promise<{ user: string }> }) {
   await requireSection("pickems");
   const { user } = await params;
@@ -22,7 +36,7 @@ export default async function UserBracket({ params }: { params: Promise<{ user: 
   if (name !== userPath(name)) redirect(pickemsHref(name));
   let [u] = await db.select({ osuId: users.osuId }).from(users).where(eq(sql`replace(lower(${users.username}), ' ', '_')`, name)).limit(1);
   if (!u) {
-    const o = await getUser(name, "username").catch(() => null);
+    const o = await lookup(name);
     const [known] = o ? await db.select({ osuId: users.osuId, username: users.username }).from(users).where(eq(users.osuId, o.id)).limit(1) : [];
     if (o && known) {
       if (known.username !== o.username) await db.update(users).set({ username: o.username }).where(eq(users.osuId, o.id));
