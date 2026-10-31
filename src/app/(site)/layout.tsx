@@ -22,7 +22,7 @@ import { avatarPath } from "@/lib/avatar";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [session, viewer, vis, teams, matches, settings, dict] = await Promise.all([auth(), getViewer(), getVisibility(), getTeams(), getMatches(), getSettings(), getDict()]);
-  const user = session?.user?.name ? { name: session.user.name, image: viewer ? avatarPath(viewer.osuId) : session.user.image ?? null, admin: hasAdmin(viewer?.roles) } : null;
+  const user = session?.user?.name ? { name: session.user.name, image: viewer ? avatarPath(viewer.osuId, true) : session.user.image ?? null, admin: hasAdmin(viewer?.roles) } : null;
   const [captain, twitch, sched] = await Promise.all([viewer ? isPlayer(viewer.osuId) : false, vis.sections.streams || vis.staff ? getLive().then(Boolean) : false, schedNav(viewer?.osuId ?? null).catch(() => null)]);
   const match = captain && viewer ? await myOpenDraft(viewer.osuId).catch(() => null) : null;
   const regOpen = vis.sections.register && settings.phase === "registration" && windowState(settings.regOpensAt, settings.regClosesAt) === "open";
