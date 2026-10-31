@@ -16,7 +16,7 @@ export function Card({ title, children, className, i = 0, right, flush, body }: 
   return (
     <section className={cn("in-up relative overflow-hidden border border-line bg-coal", className)} style={v({ "--i": i, "--s": "0.08s", "--d": "0.2s" })}>
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-4 pb-1 pt-4 sm:px-5">
-        <Glyph kind="ring" className="size-3" />
+        <Glyph kind="spark" className="size-3" />
         <h2 className="heading-slam text-lg">{title}</h2>
         {right && <div className="ml-auto">{right}</div>}
       </div>

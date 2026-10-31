@@ -24,12 +24,6 @@ const GLYPHS = {
       <circle cx={12} cy={12} r={3.2} fill={HEX.rose} />
     </>
   ),
-  ring: (
-    <>
-      <circle cx={12} cy={12} r={8.5} fill="none" stroke={HEX.rose} strokeWidth={3.4} />
-      <circle cx={12} cy={12} r={3} fill={HEX.balkan} />
-    </>
-  ),
   spark: (
     <>
       <path d="M12 0C12.9 7.6 16.4 11.1 24 12C16.4 12.9 12.9 16.4 12 24C11.1 16.4 7.6 12.9 0 12C7.6 11.1 11.1 7.6 12 0Z" fill={HEX.rose} />
