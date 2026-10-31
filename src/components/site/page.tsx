@@ -362,7 +362,7 @@ export function SlantButton({
   disabled?: boolean;
 }) {
   const t = {
-    rose: "bg-rose text-white hover:bg-rose-hi",
+    rose: "bg-rose text-white hover:bg-rose-hi [--lift:var(--rose-deep)]",
     balkan: "bg-balkan text-on-fill hover:bg-paper hover:text-ink [--lift:var(--balkan-deep)]",
     paper: "bg-paper text-ink hover:bg-rose-deep [--lift:var(--rose)]",
     outline: "border border-line text-paper hover:border-rose [--lift:var(--rose)]",
