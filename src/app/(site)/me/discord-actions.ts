@@ -7,7 +7,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getViewer } from "@/lib/authz";
 import { myCaptainTeam } from "@/db/schedule";
-import { discordReady, dm, findMember } from "@/lib/discord";
+import { discordProfile, discordReady, dm, findMember } from "@/lib/discord";
 
 type Fail = "notFound" | "taken" | "failed" | "forbidden" | "dm" | "wait";
 type Pending = { id: string; name: string; code: string; exp: number; sentAt: number; tries: number };
@@ -69,6 +69,7 @@ export async function confirmDiscord(code: string): Promise<{ ok: true; name: st
   try {
     if (await takenBy(p.id, osuId)) return { ok: false, error: "taken" };
     await db.update(users).set({ discordId: p.id, discordName: p.name }).where(eq(users.osuId, osuId));
+    await discordProfile(p.id, true);
     revalidatePath("/", "layout");
     return { ok: true, name: p.name };
   } catch (e) {

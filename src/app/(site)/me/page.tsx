@@ -2,7 +2,6 @@ import { ArrowRight, CalendarClock, Crown, ExternalLink, Flag, Mic, Tv, Video } 
 import { Container, PageTitle, SlantButton, Tag } from "@/components/site/page";
 import { Avatar } from "@/components/site/avatar";
 import { Countdown } from "@/components/site/countdown";
-import { MatchDialog } from "@/components/site/match-dialog";
 import { RecordText } from "@/components/site/record";
 import { BestScore } from "@/components/site/best-score";
 import { currentOsuId } from "@/auth";
@@ -21,8 +20,10 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { myCaptainTeam } from "@/db/schedule";
-import { discordReady } from "@/lib/discord";
-import { DiscordLine } from "./discord-prompt";
+import { discordProfile, discordReady } from "@/lib/discord";
+import { Connections } from "./connections";
+import { MatchRow } from "@/components/site/match-row";
+import { avatarPath } from "@/lib/avatar";
 import { getScoreboard } from "@/db/scoreboards";
 import { fmtRange, phaseStates } from "@/lib/dates";
 import { fmtSofia, fmtSofiaTime, isFuture, windowState, tzLabel } from "@/lib/time";
@@ -33,7 +34,7 @@ import { getFormat } from "@/db/edition";
 import { TWITCH_URL, osuMatch } from "@/lib/links";
 import type { MapResult, PlayerLine } from "@/lib/scoreboard";
 import { cn } from "@/lib/utils";
-import { matchCosts, MEDAL, MEDAL_BG } from "@/lib/match-cost";
+import { matchCosts } from "@/lib/match-cost";
 import { Card, Stat, PlayerLink, TeamCard, Side, Info, label } from "./cards";
 import { QualifierPlacement, QualifierScores } from "./qualifier-scores";
 import { isBGCC6 } from "@/db";
@@ -274,16 +275,18 @@ export default async function Me() {
       </>,
     );
 
-  const discord =
+  const dcRow =
     discordReady() && (await myCaptainTeam(me))
       ? await db
           .select({ id: users.discordId, name: users.discordName })
           .from(users)
           .where(eq(users.osuId, me))
           .limit(1)
-          .then((r) => ({ name: r[0]?.id ? (r[0].name ?? r[0].id) : null }))
-          .catch(() => ({ name: null }))
+          .then((r) => r[0] ?? { id: null, name: null })
+          .catch(() => ({ id: null, name: null }))
       : null;
+  const dcProfile = dcRow?.id ? await discordProfile(dcRow.id) : null;
+  const discord = dcRow ? { name: dcRow.id ? (dcProfile?.name ?? dcRow.name ?? dcRow.id) : null, avatar: dcProfile?.avatar ?? null } : undefined;
   const mine = matches.filter((m) => m.team1.id === team.id || m.team2.id === team.id);
   const played = mine.filter((m) => m.winner).sort((a, b) => (a.datetime ?? "").localeCompare(b.datetime ?? ""));
   const usWon = (m: Match) => (m.team1.id === team.id ? m.winner === 1 : m.winner === 2);
@@ -312,11 +315,9 @@ export default async function Me() {
     const at = rows.findIndex((r) => r.id === me);
     return at < 0 ? [] : [{ m, cost: rows[at].cost, place: at + 1, of: rows.length }];
   });
-  const costOf = new Map(costs.map((c) => [c.m.id, c]));
-  const maxCost = Math.max(1, ...costs.map((c) => c.cost));
   const avgCost = costs.length ? costs.reduce((n, c) => n + c.cost, 0) / costs.length : null;
   const statsCard = (
-    <Card title={t.me.stats} i={3}>
+    <Card title={t.me.stats} i={3} className="self-stretch">
       <div className="grid grid-cols-2 gap-x-4 gap-y-5">
         <Stat k={t.me.mapsPlayed} n={String(plays.length)} />
         <Stat k={t.me.totalScore} n={fmtNum(plays.reduce((n, x) => n + x.p.score, 0))} />
@@ -346,48 +347,15 @@ export default async function Me() {
   );
 
   const historyCard = (
-    <Card title={t.me.history} i={4} flush>
+    <Card title={t.me.history} i={4} flush className="self-stretch">
       {played.length === 0 ? (
         <p className="px-5 pb-5 text-sm text-ash">—</p>
       ) : (
-        <ul className="divide-y divide-line border-t border-line">
-          {played.map((m) => {
-            const us = m.team1.id === team.id ? 1 : 2;
-            const other = teamById(us === 1 ? m.team2.id : m.team1.id);
-            const won = usWon(m);
-            return (
-              <li key={m.id} className={cn("relative flex items-center gap-3 overflow-hidden px-4 py-4 text-sm sm:gap-4 sm:px-5", won ? "bg-balkan/[0.06]" : "bg-rose/[0.05]")}>
-                <span className={cn("absolute inset-y-0 left-0 w-0.5", won ? "bg-balkan" : "bg-rose/70")} />
-                {costOf.get(m.id) && (
-                  <span
-                    className={cn("in-grow absolute bottom-0 left-0 h-[3px] origin-left opacity-80", MEDAL_BG[costOf.get(m.id)!.place - 1] ?? "bg-paper/25")}
-                    style={{ width: `${(costOf.get(m.id)!.cost / maxCost) * 100}%` }}
-                    aria-hidden
-                  />
-                )}
-                <span className={cn("num w-4 text-center text-xl", won ? "text-balkan-hi" : "text-rose-hi")}>{won ? t.me.won : t.me.lost}</span>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                {other && <img src={other.image} alt="" className="size-11 shrink-0 object-cover" />}
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-base font-display font-black">{other?.name}</div>
-                  <div className="truncate text-[0.65rem] font-display font-bold text-ash">{roundName(t, m.round)}</div>
-                </div>
-                {costOf.get(m.id) && (
-                  <div className="shrink-0 text-right leading-none">
-                    <div className={cn("num text-xl", MEDAL[costOf.get(m.id)!.place - 1] ?? "text-paper/60")}>{costOf.get(m.id)!.cost.toFixed(2)}</div>
-                    <div className="num mt-1 text-[0.65rem] text-ash">{t.me.ofPlayers(costOf.get(m.id)!.place, costOf.get(m.id)!.of)}</div>
-                  </div>
-                )}
-                <span className="num text-2xl">
-                  {us === 1 ? m.team1.score : m.team2.score}
-                  <span className="text-ash">-</span>
-                  {us === 1 ? m.team2.score : m.team1.score}
-                </span>
-                {m.links.length > 0 && <MatchDialog match={m} compact />}
-              </li>
-            );
-          })}
-        </ul>
+        <div className="space-y-4 px-4 pb-4 sm:px-5 sm:pb-5">
+          {played.map((m) => (
+            <MatchRow key={m.id} match={m} />
+          ))}
+        </div>
       )}
     </Card>
   );
@@ -474,26 +442,13 @@ export default async function Me() {
   return shell(
     <>
       {nextCard}
-      <div className="flex flex-col gap-5">
-        <TeamCard t={t} team={team} me={me} seeds={seeds} record={record} i={2} />
-        {historyCard}
-      </div>
-      <div className="flex flex-col gap-5 self-stretch">
-        {statsCard}
-        {placementCard}
-        <Card title={t.me.connections} i={5} className="flex-1">
-          <ul className="divide-y divide-line">
-            <li className="pb-3 text-sm text-ash">
-              {t.me.osu}: <PlayerLink id={me} name={team.players.find((p) => p.userId === me)?.username ?? String(me)} className="font-bold text-paper" />
-            </li>
-            {discord && (
-              <li className="pt-3">
-                <DiscordLine name={discord.name} />
-              </li>
-            )}
-          </ul>
-        </Card>
-      </div>
+      <TeamCard t={t} team={team} me={me} seeds={seeds} record={record} i={2} className="self-stretch" />
+      {statsCard}
+      {historyCard}
+      <Card title={t.me.connections} i={5} className="self-stretch">
+        <Connections osu={{ id: me, name: team.players.find((p) => p.userId === me)?.username ?? String(me), avatar: avatarPath(me) }} discord={discord} />
+      </Card>
+      {placementCard}
     </>,
   );
 }

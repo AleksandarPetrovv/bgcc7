@@ -176,6 +176,8 @@ export const site = {
     mapsWon: "Maps won",
     connections: "Your connections",
     osu: "osu!",
+    open: "Open",
+    notLinked: "Not linked",
   },
   home: {
     badge: "bulgarian community cup",
