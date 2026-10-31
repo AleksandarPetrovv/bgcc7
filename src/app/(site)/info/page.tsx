@@ -14,6 +14,7 @@ import { getPlan } from "@/db/format-plan";
 import { getMatches } from "@/db/tournament";
 import { getHosts } from "@/db/admin";
 import { stageWeeks } from "@/db/schedule";
+import { getSettings } from "@/db/settings";
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
@@ -53,10 +54,10 @@ export default async function InfoPage() {
   };
   const intro = ed("info.intro", t.info.intro);
   if (!isBGCC6()) {
-    const [plan, matches, hosts, weeks] = await Promise.all([getPlan(), getMatches(), getHosts(), stageWeeks()]);
+    const [plan, matches, hosts, weeks, settings] = await Promise.all([getPlan(), getMatches(), getHosts(), stageWeeks(), getSettings()]);
     return (
       <Container plain>
-        <InfoFolk t={t} f={f} raw={(path, fallback) => ed(path, fallback).raw} on={on} locale={lang === "bg" ? "bg-BG" : "en-GB"} plan={plan} matches={matches} weeks={weeks} hosts={hosts} />
+        <InfoFolk t={t} f={f} raw={(path, fallback) => ed(path, fallback).raw} on={on} locale={lang === "bg" ? "bg-BG" : "en-GB"} plan={plan} matches={matches} weeks={weeks} hosts={hosts} timer={settings.banSecs} />
       </Container>
     );
   }

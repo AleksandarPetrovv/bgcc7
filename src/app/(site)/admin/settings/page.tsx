@@ -67,11 +67,10 @@ export default async function AdminSettings() {
                   </div>
                 </fieldset>
               </div>
-              <div className="grid grid-cols-3 gap-3 border-t border-dashed border-line pt-4">
+              <div className="grid grid-cols-2 gap-3 border-t border-dashed border-line pt-4">
                 {(
                   [
-                    ["banSecs", t.admin.set.banSecs, s.banSecs],
-                    ["pickSecs", t.admin.set.pickSecs, s.pickSecs],
+                    ["pickBanSecs", t.admin.set.pickBanSecs, s.banSecs],
                     ["timeoutSecs", t.admin.set.timeoutSecs, s.timeoutSecs],
                   ] as const
                 ).map(([k, label, val]) => (
