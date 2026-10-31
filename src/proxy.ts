@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { RateLimiterMemory } from "rate-limiter-flexible";
+import { ipOf } from "@/lib/ip";
 
 const tier = (points: number) => new RateLimiterMemory({ points, duration: 60 });
 
@@ -21,11 +22,6 @@ function bucket(req: NextRequest, path: string): keyof typeof LIMITS {
   if (path.startsWith("/api/matches/")) return "osu";
   if (path.startsWith("/api/draft/") || path.startsWith("/api/lobby/")) return "stream";
   return "page";
-}
-
-function ipOf(req: NextRequest) {
-  const fwd = req.headers.get("x-forwarded-for")?.split(",").pop()?.trim();
-  return fwd || req.headers.get("x-real-ip") || "anon";
 }
 
 export async function proxy(req: NextRequest) {
