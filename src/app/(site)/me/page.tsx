@@ -16,10 +16,17 @@ import { getLobbies, mpIds } from "@/db/lobbies";
 import { getQualResults } from "@/db/qualifiers";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
+import { getPlayerSeeds } from "@/db/seeds";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { myCaptainTeam } from "@/db/schedule";
+import { discordReady } from "@/lib/discord";
+import { DiscordLine } from "./discord-prompt";
 import { getScoreboard } from "@/db/scoreboards";
 import { fmtRange, phaseStates } from "@/lib/dates";
 import { fmtSofia, fmtSofiaTime, isFuture, windowState, tzLabel } from "@/lib/time";
-import { flagUrl, fmtNum, type Match } from "@/lib/data";
+import { fmtNum, type Match } from "@/lib/data";
 import { rankBws } from "@/lib/bws";
 import { sourceLabel, isLive } from "@/lib/matches";
 import { getFormat } from "@/db/edition";
@@ -27,7 +34,7 @@ import { TWITCH_URL, osuMatch } from "@/lib/links";
 import type { MapResult, PlayerLine } from "@/lib/scoreboard";
 import { cn } from "@/lib/utils";
 import { matchCosts, MEDAL, MEDAL_BG } from "@/lib/match-cost";
-import { Card, Stat, PlayerLink, TeamCard, Side, Info, label, v } from "./cards";
+import { Card, Stat, PlayerLink, TeamCard, Side, Info, label } from "./cards";
 import { QualifierPlacement, QualifierScores } from "./qualifier-scores";
 import { isBGCC6 } from "@/db";
 
@@ -51,7 +58,7 @@ export default async function Me() {
       </Container>
     );
 
-  const [settings, regs, lobbies, qual, teams, matches, stages, schedule] = await Promise.all([
+  const [settings, regs, lobbies, qual, teams, matches, stages, schedule, seeds] = await Promise.all([
     getSettings(),
     getRegistrations(),
     getLobbies(),
@@ -60,6 +67,7 @@ export default async function Me() {
     getMatches(),
     getPoolStages(),
     canSee("schedule"),
+    getPlayerSeeds(),
   ]);
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const phase = settings.phase;
@@ -68,52 +76,11 @@ export default async function Me() {
   const team = teams.find((x) => x.players.some((p) => p.userId === me));
   const teamById = (id: string) => teams.find((x) => x.id === id);
   const fmt = (d: Date | string) => `${fmtSofia(new Date(d), locale)} ${tzLabel(new Date(d))}`;
-  const phaseKey: Record<string, string> = { registration: "reg", screening: "scr", qualifiers: "qual", seeding: "seed", playoffs: "play", finished: "done" };
 
-  const header = (
-    <section className="in-up relative mb-5 overflow-hidden border border-line bg-coal" style={v({ "--d": "0.1s" })}>
-      {team && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={team.image} alt="" className="pointer-events-none absolute inset-y-0 right-0 h-full w-1/2 object-cover opacity-[0.12] [mask-image:linear-gradient(to_left,black,transparent)]" aria-hidden />
-      )}
-      <div className="relative flex items-center gap-4 p-4 sm:gap-5 sm:p-6">
-        <Avatar src={reg?.avatarUrl} className="size-14 shrink-0 sm:size-20" />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2.5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            {reg?.country && <img src={flagUrl(reg.country)} alt="" className="h-4" />}
-            <span className="heading-slam min-w-0 truncate text-2xl sm:text-4xl">{reg?.username ?? t.me.title}</span>
-          </div>
-          {reg && (
-            <div className="num mt-1.5 flex flex-wrap gap-x-4 text-sm text-paper/70 sm:mt-2 sm:gap-x-5 sm:text-base">
-              {reg.rank !== null && <span>#{fmtNum(reg.rank)}</span>}
-              {reg.countryRank !== null && (
-                <span className="text-balkan-hi">
-                  {reg.country} #{reg.countryRank}
-                </span>
-              )}
-              {reg.pp !== null && <span>{fmtNum(Math.round(reg.pp))}pp</span>}
-            </div>
-          )}
-        </div>
-        <div className="flex shrink-0 flex-col items-end gap-2">
-          <span className="hidden -skew-x-12 sm:inline-flex border border-line bg-ink px-3 py-1">
-            <span className="skew-x-12 text-xs font-display font-bold text-paper/80">{t.timeline[phaseKey[phase]]}</span>
-          </span>
-          {reg && signupPhase && (
-            <Tag tone={reg.status === "approved" ? "balkan" : reg.status === "denied" ? "rose" : "paper"} className="text-xs">
-              {t.register.statusText[reg.status]}
-            </Tag>
-          )}
-        </div>
-      </div>
-    </section>
-  );
 
   const shell = (children: React.ReactNode) => (
     <Container plain>
       <PageTitle mark="people">{t.me.title}</PageTitle>
-      {header}
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2 2xl:gap-8">{children}</div>
     </Container>
   );
@@ -295,7 +262,7 @@ export default async function Me() {
           ))}
         {placementCard}
         {team ? (
-          <TeamCard t={t} team={team} me={me} i={2} />
+          <TeamCard t={t} team={team} me={me} seeds={seeds} i={2} />
         ) : (
           qp && (
             <Card title={t.me.team} i={2}>
@@ -307,6 +274,16 @@ export default async function Me() {
       </>,
     );
 
+  const discord =
+    discordReady() && (await myCaptainTeam(me))
+      ? await db
+          .select({ id: users.discordId, name: users.discordName })
+          .from(users)
+          .where(eq(users.osuId, me))
+          .limit(1)
+          .then((r) => ({ name: r[0]?.id ? (r[0].name ?? r[0].id) : null }))
+          .catch(() => ({ name: null }))
+      : null;
   const mine = matches.filter((m) => m.team1.id === team.id || m.team2.id === team.id);
   const played = mine.filter((m) => m.winner).sort((a, b) => (a.datetime ?? "").localeCompare(b.datetime ?? ""));
   const usWon = (m: Match) => (m.team1.id === team.id ? m.winner === 1 : m.winner === 2);
@@ -326,6 +303,7 @@ export default async function Me() {
   const plays: Best[] = boards.flatMap((b, k) =>
     b ? b.maps.filter((x) => !x.note).flatMap((map) => [...map.players[0], ...map.players[1]].filter((p) => p.id === me && p.score > 0).map((p) => ({ p, map, match: played[k] }))) : [],
   );
+  const mapsWon = plays.filter(({ p, map }) => map.winner === (map.players[0].includes(p) ? 1 : 2)).length;
   const best = plays.reduce<Best | null>((a, b) => (!a || b.p.score > a.p.score ? b : a), null);
   const costs: MyCost[] = played.flatMap((m, k) => {
     const b = boards[k];
@@ -342,6 +320,8 @@ export default async function Me() {
       <div className="grid grid-cols-2 gap-x-4 gap-y-5">
         <Stat k={t.me.mapsPlayed} n={String(plays.length)} />
         <Stat k={t.me.totalScore} n={fmtNum(plays.reduce((n, x) => n + x.p.score, 0))} />
+        <Stat k={t.me.avgScore} n={plays.length ? fmtNum(Math.round(plays.reduce((n, x) => n + x.p.score, 0) / plays.length)) : "—"} />
+        <Stat k={t.me.mapsWon} n={plays.length ? `${mapsWon}/${plays.length}` : "—"} />
         <Stat k={t.me.avgAcc} n={plays.length ? `${((plays.reduce((n, x) => n + x.p.acc, 0) / plays.length) * 100).toFixed(2)}%` : "—"} />
         <Stat k={t.me.history} n={<RecordText t={t} w={record[0]} l={record[1]} />} />
         <Stat k={t.me.avgCost} n={avgCost === null ? "—" : avgCost.toFixed(2)} />
@@ -427,7 +407,7 @@ export default async function Me() {
         </Card>
         {statsCard}
         <div className="flex flex-col gap-5">
-          <TeamCard t={t} team={team} me={me} record={record} i={2} />
+          <TeamCard t={t} team={team} me={me} seeds={seeds} record={record} i={2} />
         </div>
         {historyCard}
       </>,
@@ -495,12 +475,24 @@ export default async function Me() {
     <>
       {nextCard}
       <div className="flex flex-col gap-5">
-        <TeamCard t={t} team={team} me={me} record={record} i={2} />
+        <TeamCard t={t} team={team} me={me} seeds={seeds} record={record} i={2} />
         {historyCard}
       </div>
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-5 self-stretch">
         {statsCard}
         {placementCard}
+        <Card title={t.me.connections} i={5} className="flex-1">
+          <ul className="divide-y divide-line">
+            <li className="pb-3 text-sm text-ash">
+              {t.me.osu}: <PlayerLink id={me} name={team.players.find((p) => p.userId === me)?.username ?? String(me)} className="font-bold text-paper" />
+            </li>
+            {discord && (
+              <li className="pt-3">
+                <DiscordLine name={discord.name} />
+              </li>
+            )}
+          </ul>
+        </Card>
       </div>
     </>,
   );

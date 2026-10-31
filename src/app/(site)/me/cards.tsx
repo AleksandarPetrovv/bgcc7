@@ -41,7 +41,7 @@ export function PlayerLink({ id, name, className }: { id: number; name: string; 
   );
 }
 
-export function TeamCard({ t, team, me, record, i }: { t: Dict; team: Team; me: number; record?: [number, number]; i?: number }) {
+export function TeamCard({ t, team, me, seeds, record, i }: { t: Dict; team: Team; me: number; seeds: Map<number, number>; record?: [number, number]; i?: number }) {
   const avg = Math.round(team.players.reduce((n, p) => n + p.rank, 0) / Math.max(1, team.players.length));
   return (
     <Card title={t.me.team} i={i} flush>
@@ -70,8 +70,18 @@ export function TeamCard({ t, team, me, record, i }: { t: Dict; team: Team; me: 
             <PlayerLink id={p.userId} name={p.username} className={cn("min-w-0 truncate font-display font-black", p.userId === me && "text-balkan-hi")} />
             {p.userId === me && <span className="text-[0.6rem] font-display font-bold text-ash">{t.me.you}</span>}
             {p.isCaptain && <Crown className="size-3.5 shrink-0 text-gold-hi" aria-label={t.common.captain} />}
-            <span className="num ml-auto text-sm text-paper/80">#{fmtNum(p.rank)}</span>
-            <span className="num hidden w-16 text-right text-sm text-ash sm:block">{fmtNum(Math.round(p.pp))}pp</span>
+            <span className="ml-auto flex shrink-0 gap-4 text-right">
+              <span>
+                <span className={cn(label, "block")}>{t.me.globalRank}</span>
+                <span className="num text-sm text-paper/80">#{fmtNum(p.rank)}</span>
+              </span>
+              {seeds.has(p.userId) && (
+                <span className="w-10">
+                  <span className={cn(label, "block")}>{t.me.playerSeed}</span>
+                  <span className="num text-sm text-paper/80">{seeds.get(p.userId)}</span>
+                </span>
+              )}
+            </span>
           </li>
         ))}
       </ul>

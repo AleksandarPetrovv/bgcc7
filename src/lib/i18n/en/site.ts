@@ -170,6 +170,12 @@ export const site = {
     bestOn: "Best play",
     avgRank: "Avg rank",
     you: "You",
+    globalRank: "Global",
+    playerSeed: "Seed",
+    avgScore: "Average score",
+    mapsWon: "Maps won",
+    connections: "Your connections",
+    osu: "osu!",
   },
   home: {
     badge: "bulgarian community cup",
