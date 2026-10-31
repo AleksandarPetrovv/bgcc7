@@ -40,6 +40,7 @@ export function Connections({ osu, discord }: { osu: { id: number; name: string;
   const d = t.sched.dc;
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [n, setN] = useState(0);
   const [pending, start] = useTransition();
   const btn = "w-28 justify-center px-3 py-1.5 text-xs";
   return (
@@ -49,7 +50,7 @@ export function Connections({ osu, discord }: { osu: { id: number; name: string;
         edge="border-rose"
         platform={
           <>
-            <OsuLogo className="size-3" /> osu!
+            <OsuLogo className="size-3.5" /> osu!
           </>
         }
         name={osu.name}
@@ -72,7 +73,10 @@ export function Connections({ osu, discord }: { osu: { id: number; name: string;
           }
           name={discord.name ?? <span className="text-ash">{t.me.notLinked}</span>}
         >
-          <SlantButton tone={discord.name ? "outline" : "balkan"} onClick={() => setOpen(true)} className={btn}>
+          <SlantButton tone={discord.name ? "outline" : "balkan"} onClick={() => {
+            setN((k) => k + 1);
+            setOpen(true);
+          }} className={btn}>
             {discord.name ? d.change : d.missing} <Pencil className="size-3.5" />
           </SlantButton>
           {discord.name && (
@@ -92,7 +96,7 @@ export function Connections({ osu, discord }: { osu: { id: number; name: string;
           )}
         </Row>
       )}
-      <DiscordPrompt key={String(open)} open={open} onClose={() => setOpen(false)} />
+      <DiscordPrompt key={n} open={open} onClose={() => setOpen(false)} />
     </div>
   );
 }

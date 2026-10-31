@@ -164,6 +164,7 @@ export function DiscordLine({ name }: { name: string | null }) {
   const d = t.sched.dc;
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [n, setN] = useState(0);
   const [pending, start] = useTransition();
   const unlink = () =>
     start(async () => {
@@ -174,7 +175,10 @@ export function DiscordLine({ name }: { name: string | null }) {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ash">
       {name ? <span>{d.linked(name)}</span> : null}
-      <button type="button" onClick={() => setOpen(true)} className={btn}>
+      <button type="button" onClick={() => {
+            setN((k) => k + 1);
+            setOpen(true);
+          }} className={btn}>
         {name ? d.change : d.missing}
       </button>
       {name && (
@@ -182,7 +186,7 @@ export function DiscordLine({ name }: { name: string | null }) {
           {d.unlink}
         </button>
       )}
-      <DiscordPrompt key={String(open)} open={open} onClose={() => setOpen(false)} />
+      <DiscordPrompt key={n} open={open} onClose={() => setOpen(false)} />
     </div>
   );
 }
