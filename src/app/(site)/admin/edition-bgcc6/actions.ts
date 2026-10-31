@@ -3,14 +3,19 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
-import { EDITION_COOKIE, dbBGCC6, setCurrentEdition } from "@/db";
-import { settings } from "@/db/schema";
-import { getViewer, log } from "@/lib/authz";
+import { EDITION_COOKIE, dbBGCC6, dbOf, setCurrentEdition, siteEdition } from "@/db";
+import { settings, staff } from "@/db/schema";
+import { currentOsuId } from "@/auth";
+import { log } from "@/lib/authz";
+import { cleanRoles } from "@/lib/roles";
 import { isEdition } from "@/lib/format";
 
+// host of the live edition, not of whatever edition the viewer's cookie points at
 async function host() {
-  const v = await getViewer();
-  return v?.roles.includes("host") ? v.osuId : null;
+  const osuId = await currentOsuId();
+  if (!osuId) return null;
+  const [row] = await dbOf(siteEdition()).select({ roles: staff.permRoles }).from(staff).where(eq(staff.osuId, osuId)).limit(1);
+  return cleanRoles(row?.roles ?? []).includes("host") ? osuId : null;
 }
 
 export async function switchEdition(edition: string) {
