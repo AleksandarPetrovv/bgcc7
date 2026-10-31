@@ -36,18 +36,23 @@ function Side({ id, flip, lost }: { id: string; flip?: boolean; lost?: boolean }
     >
       {team ? (
         <>
+          {/* on desktop the badge sits above the picture in a slot both sides keep, so nothing below it shifts */}
+          <span className="-mb-1 hidden h-4 items-end justify-center sm:flex">
+            <MeTag t={team.id} className="text-[0.65rem]" />
+          </span>
           <Link href={teamHref(team)} className="shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={team.image} alt="" className={cn("in-pop size-14 border-b-[3px] object-cover sm:size-20", flip ? "border-azure" : "border-crimson", lost && "opacity-50")} style={d("0.25s")} />
           </Link>
           <span className="flex max-w-full min-w-0 flex-col items-center gap-1.5">
-            <Link href={teamHref(team)} className={cn("line-clamp-2 min-w-0 max-w-full break-words text-sm font-display font-black leading-tight hover:text-rose-hi sm:text-lg", lost && "text-ash")}>
+            <Link href={teamHref(team)} className={cn("line-clamp-2 min-w-0 max-w-full break-words text-sm font-display font-black leading-tight hover:text-rose-hi sm:line-clamp-1 sm:text-lg", lost && "text-ash")}>
               {team.name}
             </Link>
-            <MeTag t={team.id} className="text-[0.55rem] sm:text-[0.65rem]" />
+            <span className="sm:hidden">
+              <MeTag t={team.id} className="text-[0.55rem]" />
+            </span>
           </span>
-          {/* pinned to the bottom so both sides line up whether or not one has the "your team" tag */}
-          <span className="in-up hidden gap-3 text-[0.6rem] font-display font-bold text-ash sm:mt-auto sm:flex" style={d("0.5s")}>
+          <span className="in-up hidden gap-3 text-[0.6rem] font-display font-bold text-ash sm:flex" style={d("0.5s")}>
             <span>
               {t.common.seed} <span className="num text-sm text-paper">{team.seed}</span>
             </span>
@@ -58,6 +63,7 @@ function Side({ id, flip, lost }: { id: string; flip?: boolean; lost?: boolean }
         </>
       ) : (
         <>
+          <span className="-mb-1 hidden h-4 sm:block" />
           <span className="size-14 border-b-[3px] border-line bg-slate sm:size-20" />
           <span className="text-sm font-display font-bold text-ash">{t.common.tbd}</span>
         </>
