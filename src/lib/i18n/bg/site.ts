@@ -174,6 +174,8 @@ export const site: typeof en = {
     you: "Ти",
     globalRank: "Глобално",
     playerSeed: "Поставяне",
+    playerCost: "Ср. cost",
+    playerAcc: "Ср. точност",
     avgScore: "Среден резултат",
     mapsWon: "Спечелени мапове",
     connections: "Твоите връзки",
