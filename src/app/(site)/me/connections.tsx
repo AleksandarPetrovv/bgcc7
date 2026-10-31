@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ExternalLink, LogOut } from "lucide-react";
+import { ExternalLink, LogOut, Pencil, Unlink } from "lucide-react";
 import { SlantButton } from "@/components/site/page";
 import { DiscordLogo } from "@/components/site/discord-logo";
+import { OsuLogo } from "@/components/site/osu-logo";
 import { useDict } from "@/components/site/lang";
 import { logout } from "@/app/(site)/pickems/actions";
 import { osuUser } from "@/lib/links";
@@ -40,10 +41,19 @@ export function Connections({ osu, discord }: { osu: { id: number; name: string;
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
-  const btn = "px-3.5 py-1.5 text-xs";
+  const btn = "w-28 justify-center px-3 py-1.5 text-xs";
   return (
     <div className="flex flex-col gap-3">
-      <Row avatar={osu.avatar} edge="border-rose" platform="osu!" name={osu.name}>
+      <Row
+        avatar={osu.avatar}
+        edge="border-rose"
+        platform={
+          <>
+            <OsuLogo className="size-3" /> osu!
+          </>
+        }
+        name={osu.name}
+      >
         <SlantButton tone="outline" href={osuUser(osu.id)} className={btn}>
           {t.me.open} <ExternalLink className="size-3.5" />
         </SlantButton>
@@ -63,7 +73,7 @@ export function Connections({ osu, discord }: { osu: { id: number; name: string;
           name={discord.name ?? <span className="text-ash">{t.me.notLinked}</span>}
         >
           <SlantButton tone={discord.name ? "outline" : "balkan"} onClick={() => setOpen(true)} className={btn}>
-            {discord.name ? d.change : d.missing}
+            {discord.name ? d.change : d.missing} <Pencil className="size-3.5" />
           </SlantButton>
           {discord.name && (
             <SlantButton
@@ -77,7 +87,7 @@ export function Connections({ osu, discord }: { osu: { id: number; name: string;
               }
               className={btn}
             >
-              {d.unlink}
+              {d.unlink} <Unlink className="size-3.5" />
             </SlantButton>
           )}
         </Row>
