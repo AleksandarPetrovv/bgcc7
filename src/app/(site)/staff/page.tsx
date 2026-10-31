@@ -68,7 +68,7 @@ export default async function Staff() {
       {open.length > 0 && (
         <>
           <SectionHeading>{t.staff.openRoles}</SectionHeading>
-          <div className="flex flex-col gap-4 border border-dashed border-line p-5 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
             <div className="flex-1">
               <ul className="flex flex-wrap gap-1.5">
                 {open.map((r) => (

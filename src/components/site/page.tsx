@@ -192,18 +192,21 @@ function Tick() {
   );
 }
 
+const ln = { fill: "none", strokeWidth: 2.4, strokeLinecap: "round", strokeLinejoin: "round" } as const;
+const delays = (...d: number[]) => ({ animationDelay: d.map((x) => `${x}s`).join(", ") });
+
 function Bars() {
   return (
-    <span className="mb-[0.2em] flex h-[0.5em] items-end gap-[0.06em] self-end" aria-hidden>
+    <svg viewBox="0 0 24 24" className="mb-[0.16em] h-[0.5em] w-[0.5em] self-end overflow-visible" aria-hidden>
       {[
-        ["h-[45%] bg-paper/70", 0.25],
-        ["h-[80%] bg-balkan", 0.33],
-        ["h-[60%] bg-paper/70", 0.41],
-        ["h-full bg-rose", 0.49],
-      ].map(([c, d]) => (
-        <span key={c as string} className={cn("mk-rise block w-[0.1em] origin-bottom", c as string)} style={{ animationDelay: `${d}s` }} />
+        [1, 13, "fill-paper/70", 0.25],
+        [7, 5, "fill-balkan", 0.33],
+        [13, 9.5, "fill-paper/70", 0.41],
+        [19, 0, "fill-rose", 0.49],
+      ].map(([x, y, c, d], i) => (
+        <rect key={i} x={x as number} y={y as number} width={4.4} height={24 - (y as number)} className={cn("mk-bar", c as string)} style={delays(d as number, 2 + i * 0.9)} />
       ))}
-    </span>
+    </svg>
   );
 }
 
@@ -231,7 +234,86 @@ function Gears() {
   );
 }
 
-const MARKS = { gears: Gears, blocks: Blocks, streaks: Streaks, dots: Dots, glints: Glints, squiggle: Squiggle, chevrons: Chevrons, bubble: Bubble, people: People, cards: Cards, notes: Notes, tick: Tick, bars: Bars };
+function Me() {
+  return (
+    <svg viewBox="0 0 24 24" className="mb-[0.12em] h-[0.6em] w-[0.6em] self-end overflow-visible" aria-hidden>
+      <circle cx="12" cy="7" r="4" pathLength={1} {...ln} className="mk-pen stroke-rose" transform="rotate(90 12 7)" />
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" pathLength={1} {...ln} className="mk-pen-late stroke-rose" />
+    </svg>
+  );
+}
+
+function Team() {
+  const p = { ...ln, strokeWidth: 2 };
+  return (
+    <svg viewBox="0 0 24 24" className="mb-[0.12em] h-[0.62em] w-[0.62em] self-end overflow-visible" aria-hidden>
+      <g className="mk-crowd stroke-rose" style={delays(0.4, 1.2)}>
+        <circle cx={6} cy={4} r={2} {...p} />
+        <path d="M5 10H4a2 2 0 00-2 2v1" {...p} />
+      </g>
+      <g className="mk-crowd stroke-balkan" style={delays(0.5, 1.45)}>
+        <circle cx={18} cy={4} r={2} {...p} />
+        <path d="M19 10h1a2 2 0 012 2v1" {...p} />
+      </g>
+      <g className="mk-crowd stroke-paper" style={delays(0.25, 1.7)}>
+        <circle cx={12} cy={11} r={3} {...p} />
+        <path d="M17 21v-1a2 2 0 00-2-2H9a2 2 0 00-2 2v1" {...p} />
+      </g>
+    </svg>
+  );
+}
+
+function Users() {
+  return (
+    <svg viewBox="0 0 24 24" className="mb-[0.12em] h-[0.6em] w-[0.6em] self-end overflow-visible" aria-hidden>
+      <g className="mk-crowd stroke-paper" style={delays(0.25, 1.3)}>
+        <path d="M16 3.128a4 4 0 0 1 0 7.744" {...ln} />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" {...ln} />
+      </g>
+      <g className="mk-crowd stroke-rose" style={delays(0.4, 1.55)}>
+        <circle cx="9" cy="7" r="4" {...ln} />
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" {...ln} />
+      </g>
+    </svg>
+  );
+}
+
+function Swords() {
+  return (
+    <svg viewBox="0 0 24 24" className="mk-clash mb-[0.12em] h-[0.6em] w-[0.6em] self-end overflow-visible" aria-hidden>
+      <g className="mk-swing-l stroke-rose">
+        <path d="M14.5 17.5 3 6V3h3l11.5 11.5" {...ln} />
+        <path d="m13 19 6-6M16 16l4 4M19 21l2-2" {...ln} />
+      </g>
+      <g className="mk-swing-r stroke-paper">
+        <path d="M14.5 6.5 18 3h3v3l-3.5 3.5" {...ln} />
+        <path d="m5 14 4 4M7.5 16.5 4 20M5 21l-2-2" {...ln} />
+      </g>
+      <path d="M12 6.2 12.9 9.1 15.8 10 12.9 10.9 12 13.8 11.1 10.9 8.2 10 11.1 9.1Z" className="mk-spark fill-balkan" />
+    </svg>
+  );
+}
+
+function Clock() {
+  const hand = (d: string, cls: string) => (
+    <span className={cn("absolute inset-0", cls)}>
+      <svg viewBox="0 0 24 24" className="size-full overflow-visible">
+        <path d={d} {...ln} className="stroke-paper" />
+      </svg>
+    </span>
+  );
+  return (
+    <span className="relative mb-[0.12em] block h-[0.6em] w-[0.6em] self-end" aria-hidden>
+      <svg viewBox="0 0 24 24" className="absolute inset-0 size-full overflow-visible">
+        <circle cx="12" cy="12" r="10" {...ln} strokeWidth={1.7} className="mk-pop stroke-rose" style={{ transformOrigin: "50% 50%", ...delays(0.2) }} />
+      </svg>
+      {hand("M12.7 12h3.1", "mk-hand-h")}
+      {hand("M12 11.3V5.5", "mk-hand-m")}
+    </span>
+  );
+}
+
+const MARKS = { gears: Gears, blocks: Blocks, streaks: Streaks, dots: Dots, glints: Glints, squiggle: Squiggle, chevrons: Chevrons, bubble: Bubble, people: People, cards: Cards, notes: Notes, tick: Tick, bars: Bars, me: Me, team: Team, users: Users, swords: Swords, clock: Clock };
 export type Mark = keyof typeof MARKS;
 const FALLBACK: Mark[] = ["blocks", "streaks", "dots", "glints", "squiggle", "chevrons", "bars"];
 
@@ -258,7 +340,7 @@ export function PageTitle({
   const M = MARKS[mark ?? markFor(children)];
   return (
     <div className={cn("no-enter relative mb-6 flex flex-wrap items-end gap-x-8 gap-y-3 pb-3 sm:mb-8 sm:gap-y-4", className)}>
-      <h1 className="heading-slam flex min-w-0 max-w-full flex-wrap items-end gap-x-[0.3em] break-words text-[clamp(2rem,8.5vw,3rem)] sm:text-6xl">
+      <h1 className="heading-slam flex min-w-0 max-w-full flex-wrap items-end gap-x-[0.4em] break-words text-[clamp(2rem,8.5vw,3rem)] sm:text-6xl">
         <span className="anim-letter">{children}</span>
         {accent && (
           <span className="anim-letter text-rose-hi" style={{ animationDelay: "0.12s" }}>

@@ -140,6 +140,8 @@
     overflow-x: clip;
     overflow-y: scroll;
     scrollbar-gutter: stable;
+    /* content that grows in after a reload made anchoring push the restored scroll down each refresh */
+    overflow-anchor: none;
     scrollbar-color: var(--line) var(--ink);
     -webkit-tap-highlight-color: transparent;
   }

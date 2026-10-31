@@ -12,7 +12,7 @@ export default async function Matches() {
   const live = await getLiveScores(matches, teams, stages);
   return (
     <Container plain>
-      <PageTitle mark="chevrons">
+      <PageTitle mark="swords">
         {t.schedule.title}
       </PageTitle>
       <Wide full>

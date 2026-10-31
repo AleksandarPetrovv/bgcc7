@@ -77,7 +77,7 @@ export default async function Players() {
   return (
     <Container plain>
       <PageTitle
-        mark="people"
+        mark="users"
         right={
           <span className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-balkan-hi" title={t.common.players(players.length)}>

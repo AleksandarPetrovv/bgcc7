@@ -271,10 +271,31 @@
 .mk-pop { transform-box: fill-box; transform-origin: 50% 100%; animation: mk-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) both; }
 .mk-fan { transform: rotate(var(--r)); animation: mk-fan 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
 .mk-rise { animation: mk-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes mk-eq { 0%, 72%, 100% { transform: scaleY(1); } 82% { transform: scaleY(0.55); } 92% { transform: scaleY(1.06); } }
+.mk-bar { transform-box: fill-box; transform-origin: 50% 100%; animation: mk-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both, mk-eq 7s ease-in-out infinite; }
 @keyframes mk-gear-in { from { opacity: 0; scale: 0.3; } }
 @keyframes mk-spin { to { rotate: 360deg; } }
 .mk-gear { transform-box: fill-box; transform-origin: center; animation: mk-gear-in 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.3) both, mk-spin 9s linear 0.8s infinite; }
 .mk-gear-r { animation-name: mk-gear-in, mk-spin; animation-direction: normal, reverse; animation-duration: 0.6s, 5.2s; }
+.mk-crowd { transform-box: fill-box; transform-origin: 50% 100%; animation: mk-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) both, mk-hop 3.2s ease-in-out infinite; }
+@keyframes mk-twinkle-k { 0%, 100% { opacity: 0.25; scale: 0.6; } 50% { opacity: 1; scale: 1.15; } }
+.mk-twinkle { transform-box: fill-box; transform-origin: center; animation: mk-pop 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.3) both, mk-twinkle-k 2.4s ease-in-out infinite; }
+@keyframes mk-swing-l-k { 0% { opacity: 0; transform: translate(-30%, 30%) rotate(-55deg); } 70% { opacity: 1; transform: translate(2%, -2%) rotate(6deg); } 100% { opacity: 1; transform: none; } }
+@keyframes mk-swing-r-k { 0% { opacity: 0; transform: translate(30%, 30%) rotate(55deg); } 70% { opacity: 1; transform: translate(-2%, -2%) rotate(-6deg); } 100% { opacity: 1; transform: none; } }
+.mk-swing-l { transform-box: view-box; transform-origin: 4px 20px; animation: mk-swing-l-k 0.55s cubic-bezier(0.3, 0, 0.3, 1.2) 0.25s both; }
+.mk-swing-r { transform-box: view-box; transform-origin: 20px 20px; animation: mk-swing-r-k 0.55s cubic-bezier(0.3, 0, 0.3, 1.2) 0.32s both; }
+@keyframes mk-clash-k { 0%, 100% { transform: none; } 30% { transform: translateY(-6%) rotate(-4deg); } 60% { transform: translateY(2%) rotate(3deg); } }
+.mk-clash { animation: mk-clash-k 0.4s ease-out 0.75s both; }
+@keyframes mk-spark-k { 0% { opacity: 0; scale: 0; } 40% { opacity: 1; scale: 1.5; } 100% { opacity: 0; scale: 0.4; } }
+.mk-spark { transform-box: fill-box; transform-origin: center; animation: mk-spark-k 0.6s ease-out 0.75s both, mk-spark-k 0.6s ease-out 3.8s infinite; }
+@keyframes mk-hand-in { from { transform: rotate(-360deg); opacity: 0; } 12% { opacity: 1; } to { transform: rotate(0deg); } }
+@keyframes mk-turn { to { transform: rotate(360deg); } }
+.mk-hand-h, .mk-hand-m { will-change: transform; transform-origin: 50% 50%; backface-visibility: hidden; }
+.mk-hand-h { animation: mk-hand-in 2.6s cubic-bezier(0.25, 0.6, 0.25, 1) 0.35s both, mk-turn 240s linear 2.95s infinite; }
+.mk-hand-m { animation: mk-hand-in 2.6s cubic-bezier(0.25, 0.6, 0.25, 1) 0.35s both, mk-turn 20s linear 2.95s infinite; }
+@keyframes mk-pen { from { stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; } 2% { opacity: 1; } to { stroke-dasharray: 1; stroke-dashoffset: 0; opacity: 1; } }
+.mk-pen { animation: mk-pen 0.9s cubic-bezier(0.65, 0, 0.35, 1) 0.25s both; }
+.mk-pen-late { animation: mk-pen 0.7s cubic-bezier(0.65, 0, 0.35, 1) 0.65s both; }
 
 @keyframes k-trace { from { stroke-dashoffset: 900; } }
 .in-trace { stroke-dasharray: 900; animation: k-trace 2.6s cubic-bezier(0.45, 0, 0.25, 1) calc(var(--d, 0s) + 0.3s) backwards; }
@@ -370,3 +391,4 @@
   animation-play-state: paused;
 }
 
+.in-slow { animation-duration: 1.1s; }

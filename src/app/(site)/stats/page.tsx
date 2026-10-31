@@ -60,7 +60,7 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
     { k: t.stats.bestAcc, n: acc.acc, dec: 2, suf: "%", who: acc.player.username, map: mapBy(acc.mid) },
     isQual
       ? { k: t.stats.topSeed, n: lead.zSum, dec: 2, suf: "", who: lead.username, map: undefined }
-      : { k: t.stats.mostPoints, n: lead.zSum, dec: 0, suf: "", who: lead.username, map: undefined },
+      : { k: t.stats.topCost, n: ("topCost" in data && data.topCost?.cost) || 0, dec: 2, suf: "", who: ("topCost" in data && data.topCost?.username) || "—", map: undefined },
     { k: t.stats.scoresSet, n: isQual ? perfs.length : data.plays, dec: 0, suf: "", who: t.common.players(data.players.length), map: undefined },
   ];
 
@@ -101,8 +101,8 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
             <div key={m.id} className={cn("flex items-stretch border border-line bg-coal", k % 2 ? "in-right" : "in-left")} style={{ "--i": k, "--s": "0.06s" } as React.CSSProperties}>
               <div className="relative w-28 shrink-0 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={m.cover} alt="" className="absolute inset-0 size-full object-cover opacity-50" />
-                <span className="in-pop heading-slam relative flex h-full min-h-16 items-center justify-center text-3xl [text-shadow:0_0_8px_var(--coal),0_0_2px_var(--coal)]" style={{ "--d": "0.25s", color: modHi(skillColor(m.slot)) } as React.CSSProperties}>{m.slot}</span>
+                <img src={m.cover} alt="" className="absolute inset-0 size-full object-cover opacity-35" />
+                <span className="in-pop heading-slam relative flex h-full min-h-16 items-center justify-center px-0 mx-0 -translate-x-[0.1em] text-lg sm:text-xl [text-shadow:0_0_8px_var(--coal),0_0_2px_var(--coal)]" style={{ "--d": "0.25s", color: modHi(skillColor(m.slot)) } as React.CSSProperties}>{m.slot}</span>
               </div>
               <ol className="flex-1 divide-y divide-line">
                 {top.map((p, i) => (
