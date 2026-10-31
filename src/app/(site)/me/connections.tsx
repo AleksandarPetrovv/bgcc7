@@ -15,7 +15,7 @@ import { DiscordPrompt } from "./discord-prompt";
 
 function Row({ avatar, edge, platform, name, children }: { avatar: string | null; edge: string; platform: React.ReactNode; name: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="relative flex flex-wrap items-center gap-x-4 gap-y-3 overflow-hidden border border-line bg-ink p-4">
+    <div className="relative flex grow flex-wrap items-center gap-x-4 gap-y-3 overflow-hidden border border-line bg-ink p-4">
       {avatar && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={avatar} alt="" className="pointer-events-none absolute inset-0 size-full scale-110 object-cover opacity-15 blur-md" aria-hidden />
@@ -44,7 +44,7 @@ export function Connections({ osu, discord }: { osu: { id: number; name: string;
   const [pending, start] = useTransition();
   const btn = "w-28 justify-center px-3 py-1.5 text-xs";
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex h-full flex-col gap-3">
       <Row
         avatar={osu.avatar}
         edge="border-rose"

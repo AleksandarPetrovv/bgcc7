@@ -119,9 +119,9 @@ function Person({ className, delay }: { className: string; delay: number }) {
   );
 }
 
-export function People({ className }: { className?: string }) {
+function People() {
   return (
-    <span className={cn("mb-[0.2em] flex items-end gap-[0.08em] self-end", className)} aria-hidden>
+    <span className="mb-[0.2em] flex items-end gap-[0.08em] self-end" aria-hidden>
       <Person className="size-[0.34em] fill-paper" delay={0.25} />
       <Person className="size-[0.27em] fill-balkan" delay={0.35} />
       <Person className="size-[0.22em] fill-rose" delay={0.45} />
