@@ -47,7 +47,7 @@ export async function discordProfile(id: string, fresh = false): Promise<Profile
   const p = await call<{ username: string; global_name: string | null; avatar: string | null }>(`/users/${id}`)
     .then((u) => ({
       name: u.global_name || u.username,
-      avatar: u.avatar ? `https://cdn.discordapp.com/avatars/${id}/${u.avatar}.${u.avatar.startsWith("a_") ? "gif" : "png"}?size=128` : `https://cdn.discordapp.com/embed/avatars/${Number((BigInt(id) >> BigInt(22)) % BigInt(6))}.png`,
+      avatar: u.avatar ? `https://cdn.discordapp.com/avatars/${id}/${u.avatar}.png?size=128` : `https://cdn.discordapp.com/embed/avatars/${Number((BigInt(id) >> BigInt(22)) % BigInt(6))}.png`,
     }))
     .catch(() => hit?.p ?? null);
   profiles.set(id, { at: Date.now(), p });

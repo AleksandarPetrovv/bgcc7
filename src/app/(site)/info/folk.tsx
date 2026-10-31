@@ -10,6 +10,7 @@ import { roundStats, type Plan } from "@/lib/format-plan";
 import type { Match } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { Editable } from "./editable";
+import { avatarPath } from "@/lib/avatar";
 import { osuUser } from "@/lib/links";
 
 export type FolkProps = {
@@ -176,7 +177,7 @@ function Hosts({ p, compact }: { p: FolkProps; compact?: boolean }) {
           <a key={h.osuId} href={osuUser(h.osuId)} target="_blank" rel="noreferrer" className="group flex min-w-0 flex-col">
             <span className="relative aspect-square overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={h.avatarUrl ?? ""} alt="" className="absolute inset-0 size-full object-cover grayscale-[.3] transition duration-500 group-hover:scale-[1.03] group-hover:grayscale-0" />
+              <img src={h.avatarUrl ? avatarPath(h.osuId, true) : ""} alt="" className="absolute inset-0 size-full object-cover grayscale-[.3] transition duration-500 group-hover:scale-[1.03] group-hover:grayscale-0" />
               <span className="absolute inset-0 bg-gradient-to-t from-well/45 via-transparent to-transparent" aria-hidden />
               <span className={cn("absolute inset-x-0 top-0 h-1", i === 0 ? "bg-rose" : "bg-balkan")} aria-hidden />
             </span>

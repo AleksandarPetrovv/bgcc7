@@ -7,6 +7,7 @@ import { ROLES } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { requireSection } from "@/lib/authz";
 import { Stagger, StaggerItem } from "@/components/site/motion";
+import { avatarPath } from "@/lib/avatar";
 
 const rank = (r: string) => ROLES.indexOf(r as (typeof ROLES)[number]) + 1 || 99;
 
@@ -14,7 +15,7 @@ export default async function Staff() {
   await requireSection("staff");
   const [t, rows] = await Promise.all([getDict(), getPublicStaff()]);
   const list = rows
-    .map((p) => ({ osuId: p.osuId, username: p.username, avatar: p.avatarUrl ?? "", country: p.country ?? "", roles: [...p.permRoles].sort((a, b) => rank(a) - rank(b)) }))
+    .map((p) => ({ osuId: p.osuId, username: p.username, avatar: p.avatarUrl ? avatarPath(p.osuId, true) : "", country: p.country ?? "", roles: [...p.permRoles].sort((a, b) => rank(a) - rank(b)) }))
     .sort((a, b) => rank(a.roles[0]) - rank(b.roles[0]) || b.roles.length - a.roles.length);
   const open = ROLES.filter((r) => !list.some((p) => p.roles.includes(r)));
 
