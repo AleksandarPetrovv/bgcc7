@@ -296,13 +296,15 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
                   <span className="inline-block skew-x-12">{s ? `${s}s` : t.lobby.now}</span>
                 </button>
               ))}
-              <input
-                value={custom}
-                onChange={(e) => setCustom(e.target.value.replace(/\D/g, "").slice(0, 3))}
-                inputMode="numeric"
-                placeholder={t.lobby.secs}
-                className={cn("adm-bare num min-h-9 w-20 border bg-field px-2 text-sm outline-none placeholder:text-ash", custom ? "border-balkan" : "border-line focus:border-paper")}
-              />
+              <span className={cn("flex min-h-9 w-20 -skew-x-12 border bg-field", custom ? "border-balkan" : "border-line focus-within:border-paper")}>
+                <input
+                  value={custom}
+                  onChange={(e) => setCustom(e.target.value.replace(/\D/g, "").slice(0, 3))}
+                  inputMode="numeric"
+                  placeholder={t.lobby.secs}
+                  className="adm-bare num w-full min-w-0 skew-x-12 border-0 bg-transparent px-2 text-sm outline-none placeholder:text-ash"
+                />
+              </span>
             </div>
           </div>
         )}
