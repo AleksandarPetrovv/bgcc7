@@ -172,6 +172,12 @@ export const site: typeof en = {
     bestOn: "Най-добра игра",
     avgRank: "Среден ранг",
     you: "Ти",
+    globalRank: "Глобално",
+    playerSeed: "Поставяне",
+    avgScore: "Среден резултат",
+    mapsWon: "Спечелени мапове",
+    connections: "Твоите връзки",
+    osu: "osu!",
   },
   home: {
     badge: "bulgarian community cup",
