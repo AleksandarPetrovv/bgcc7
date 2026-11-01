@@ -6,11 +6,10 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { UnderlineTabs } from "@/components/site/pool-pager";
 import { useLang } from "@/components/site/lang";
 import { cn } from "@/lib/utils";
-import { offHours } from "@/lib/schedule";
+import { offHours, PICK_STEP as STEP } from "@/lib/schedule";
 import { localeOf } from "@/lib/i18n/locale";
 import { dayDate, fmtDate } from "@/lib/time";
 
-const STEP = 30;
 const pad = (n: number) => String(n).padStart(2, "0");
 const toMin = (hhmm: string) => +hhmm.slice(0, 2) * 60 + +hhmm.slice(3, 5);
 
@@ -35,7 +34,7 @@ function dayName(date: string, lang: string) {
 }
 
 const at = (date: string, mins: number) => `${date}T${pad(Math.floor(mins / 60))}:${pad(mins % 60)}`;
-/** blocked holds "YYYY-MM-DDTHH" hours someone of the four can't play; the night (00:30–11:30) is never free */
+/** blocked holds "YYYY-MM-DDTHH" hours someone of the four can't play; the night (OFF_HOURS) is never free */
 export const isFree = (blocked: Set<string>, v: string) => !blocked.has(v.slice(0, 13)) && !offHours(v);
 
 /** first free time stepping from mins by step (never mins itself), null when none is left in range */

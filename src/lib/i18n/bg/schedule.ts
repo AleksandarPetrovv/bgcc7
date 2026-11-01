@@ -1,4 +1,8 @@
 import type { schedule as en } from "../en/schedule";
+import { MATCH_FROM, MATCH_TO, OFF_HOURS, pointLabel, type WeekPoint } from "@/lib/schedule";
+
+const at = (p: WeekPoint, short = false) => pointLabel("bg-BG", p, short);
+const off = `${OFF_HOURS.from}–${OFF_HOURS.to}`;
 
 export const schedule: typeof en = {
   sched: {
@@ -16,7 +20,7 @@ export const schedule: typeof en = {
     propose: "Предложи час",
     reschedule: "Пренасрочи",
     withdraw: "Оттегли",
-    window: "пет 18:00 – нед 21:00, без 00:30–11:30 · българско време",
+    window: `${at(MATCH_FROM, true)} – ${at(MATCH_TO, true)}, без ${off} · българско време`,
     send: "Изпрати",
     cancel: "Отказ",
     history: "История",
@@ -53,7 +57,7 @@ export const schedule: typeof en = {
       busy: "Някой не може да играе в този час.",
       note: "Първо напиши кратка бележка.",
       closed: "Насрочването приключи.",
-      window: "Избери час между петък 18:00 и неделя 21:00, извън 00:30–11:30.",
+      window: `Избери час между ${at(MATCH_FROM)} и ${at(MATCH_TO)}, извън ${off}.`,
       gone: "Нещо се промени междувременно. Презареди страницата.",
       forbidden: "Не е позволено.",
       failed: "Нещо се обърка. Опитай пак.",

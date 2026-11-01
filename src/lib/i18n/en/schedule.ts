@@ -1,3 +1,8 @@
+import { MATCH_FROM, MATCH_TO, OFF_HOURS, pointLabel, type WeekPoint } from "@/lib/schedule";
+
+const at = (p: WeekPoint, short = false) => pointLabel("en-GB", p, short);
+const off = `${OFF_HOURS.from}–${OFF_HOURS.to}`;
+
 export const schedule = {
   sched: {
     title: "Scheduling",
@@ -14,7 +19,7 @@ export const schedule = {
     propose: "Propose a time",
     reschedule: "Reschedule",
     withdraw: "Withdraw",
-    window: "Fri 18:00 – Sun 21:00, not 00:30–11:30 · BG time",
+    window: `${at(MATCH_FROM, true)} – ${at(MATCH_TO, true)}, not ${off} · BG time`,
     send: "Send",
     cancel: "Cancel",
     history: "History",
@@ -53,7 +58,7 @@ export const schedule = {
       note: "Write a short note first.",
       busy: "Someone can't play at that time.",
       closed: "Scheduling is closed.",
-      window: "Pick a time between Friday 18:00 and Sunday 21:00, outside 00:30–11:30.",
+      window: `Pick a time between ${at(MATCH_FROM)} and ${at(MATCH_TO)}, outside ${off}.`,
       gone: "This changed in the meantime. Reload the page.",
       forbidden: "Not allowed.",
       failed: "Something went wrong. Try again.",
