@@ -3,6 +3,7 @@ import type { Match, QualMap, QualPlayer, Team } from "@/lib/data";
 import type { PoolStage } from "./mappools";
 import { scoreboardOrNull } from "./scoreboards";
 import { matchCosts } from "@/lib/match-cost";
+import { toQualMap } from "./qualifiers";
 
 export type StageStats = { maps: QualMap[]; players: QualPlayer[]; plays: number; matches: number; topCost?: { username: string; cost: number }; topCosts: TopCost[]; costs: TopCost[] };
 // acc/score: averages over the pool maps they played (plays of them)
@@ -35,9 +36,7 @@ export function mergeCosts(lists: TopCost[][]): TopCost[] {
 }
 
 export async function getStageStats(stage: PoolStage, matches: Match[], teams: Team[], stages: PoolStage[]): Promise<StageStats> {
-  const maps: QualMap[] = stage.pools.flatMap((p) =>
-    p.maps.map((m) => ({ slot: m.slot, title: m.title, version: m.version, creator: m.creator, sr: m.sr, bpm: m.bpm, cover: m.cover, id: m.id, length: m.length })),
-  );
+  const maps = stage.pools.flatMap((p) => p.maps.map(toQualMap));
   const inPool = new Set(maps.map((m) => m.id));
   const mine = matches.filter((m) => m.stage === stage.slug && m.links.length > 0);
   const boards = await Promise.all(

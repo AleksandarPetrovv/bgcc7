@@ -5,25 +5,17 @@ import { db } from "./index";
 import { lobbies, qualScores, users } from "./schema";
 import { safe } from "./safe";
 import { getQualifierMaps } from "./mappools";
-import type { QualMap, QualPlayer } from "@/lib/data";
+import type { Beatmap, QualMap, QualPlayer } from "@/lib/data";
 import { rankQualifiers } from "@/lib/qualifiers";
 import { avatarCol } from "./avatar";
 
 export type QualResults = { maps: QualMap[]; players: QualPlayer[] };
 
+/** the map fields result tables show */
+export const toQualMap = (m: Beatmap): QualMap => ({ slot: m.slot, title: m.title, version: m.version, creator: m.creator, sr: m.sr, bpm: m.bpm, cover: m.cover, id: m.id, length: m.length });
+
 export const getQualResults = cache(async (): Promise<QualResults> => {
-  const pool = await getQualifierMaps();
-  const maps: QualMap[] = pool.map((m) => ({
-    slot: m.slot,
-    title: m.title,
-    version: m.version,
-    creator: m.creator,
-    sr: m.sr,
-    bpm: m.bpm,
-    cover: m.cover,
-    id: m.id,
-    length: m.length,
-  }));
+  const maps = (await getQualifierMaps()).map(toQualMap);
   const rows = await safe(
     () =>
       db
