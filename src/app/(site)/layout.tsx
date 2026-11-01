@@ -9,34 +9,29 @@ import { meStyle } from "@/components/site/me";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getSettings } from "@/db/settings";
 import { isPlayer, myOpenDraft } from "@/db/drafts";
-import { schedNav } from "@/db/schedule";
-import { auth } from "@/auth";
-import { getViewer, getVisibility } from "@/lib/authz";
+import { getMe, regOpen, schedNav } from "@/db/viewer";
+import { getVisibility } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can, hasAdmin } from "@/lib/roles";
 import { adminMenu } from "./admin/menu";
 import { buildNav } from "@/lib/sections";
 import { getLive } from "@/lib/twitch";
 import { isLive } from "@/lib/matches";
-import { windowState } from "@/lib/time";
 import { avatarPath } from "@/lib/avatar";
 import { currentEdition } from "@/db";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const [session, viewer, vis, teams, matches, settings, dict] = await Promise.all([auth(), getViewer(), getVisibility(), getTeams(), getMatches(), getSettings(), getDict()]);
-  const user = session?.user?.name ? { name: session.user.name, image: viewer ? avatarPath(viewer.osuId, true) : session.user.image ?? null, admin: hasAdmin(viewer?.roles) ? (adminMenu().find((m) => m.perm.some((p) => can(viewer?.roles, p)))?.href ?? "/admin") : null } : null;
-  const [captain, twitch, sched] = await Promise.all([viewer ? isPlayer(viewer.osuId) : false, vis.sections.streams || vis.staff ? getLive().then(Boolean) : false, schedNav(viewer?.osuId ?? null).catch(() => null)]);
+  const [viewer, vis, teams, matches, settings, dict] = await Promise.all([getMe(), getVisibility(), getTeams(), getMatches(), getSettings(), getDict()]);
+  const user = viewer?.name ? { name: viewer.name, image: avatarPath(viewer.osuId, true), admin: hasAdmin(viewer.roles) ? (adminMenu().find((m) => m.perm.some((p) => can(viewer.roles, p)))?.href ?? "/admin") : null } : null;
+  const [captain, twitch, sched] = await Promise.all([viewer ? isPlayer(viewer.osuId) : false, vis.sections.streams || vis.staff ? getLive().then(Boolean) : false, schedNav().catch(() => null)]);
   const match = captain && viewer ? await myOpenDraft(viewer.osuId).catch(() => null) : null;
-  const regOpen = vis.sections.register && settings.phase === "registration" && windowState(settings.regOpensAt, settings.regClosesAt) === "open";
-  const me = viewer?.osuId ?? null;
-  const myTeam = me ? (teams.find((x) => x.players.some((p) => p.userId === me))?.id ?? null) : null;
-  const meCss = meStyle(me, myTeam, dict.common.meYou, dict.common.meTeam);
+  const meCss = meStyle(viewer?.osuId ?? null, viewer?.teamOf ?? null, dict.common.meYou, dict.common.meTeam);
   const live = [...(twitch ? ["streams"] : []), ...(matches.some((m) => isLive(m)) && (vis.sections.schedule || vis.staff) ? ["schedule"] : [])];
   return (
     <>
       {meCss && <style dangerouslySetInnerHTML={{ __html: meCss }} />}
       <Backdrop />
-      <SiteNav user={user} nav={buildNav(vis.sections, vis.staff, vis.off)} register={regOpen} live={live} captain={captain} match={match} sched={sched} />
+      <SiteNav user={user} nav={buildNav(vis.sections, vis.staff, vis.off)} register={regOpen(settings, vis.sections)} live={live} captain={captain} match={match} sched={sched} />
       <TournamentProvider teams={teams} matches={matches} edition={currentEdition()}>
         <main className="flex-1">{children}</main>
       </TournamentProvider>

@@ -3,7 +3,7 @@ import { Words } from "@/components/site/rich";
 import { Crown } from "lucide-react";
 import { Container, SectionHeading, Tag } from "@/components/site/page";
 import { MatchRow } from "@/components/site/match-row";
-import { cardLabels } from "@/lib/matches";
+import { cardLabels, recordOf } from "@/lib/matches";
 import { RecordText } from "@/components/site/record";
 import { getDict } from "@/lib/i18n/server";
 import { fmtNum, flagUrl } from "@/lib/data";
@@ -24,7 +24,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
   const avgSeed = seeds.length ? (seeds.reduce((a, b) => a + b, 0) / seeds.length).toFixed(1).replace(/\.0$/, "") : "-";
   const id = team.id;
   const matches = allMatches.filter((m) => m.team1.id === id || m.team2.id === id);
-  const wins = matches.filter((m) => (m.team1.id === id && m.winner === 1) || (m.team2.id === id && m.winner === 2)).length;
+  const [wins, losses] = recordOf(matches, id);
 
   return (
     <>
@@ -48,7 +48,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
                 [
                   [t.common.avgRank, `#${fmtNum(team.avgRank)}`],
                   [t.common.avgSeed, seeds.length ? `#${avgSeed}` : avgSeed],
-                  [t.common.record, <RecordText key="record" t={t} w={wins} l={matches.filter((m) => m.winner).length - wins} />],
+                  [t.common.record, <RecordText key="record" t={t} w={wins} l={losses} />],
                 ] as [string, React.ReactNode][]
               ).map(([k, v], i) => (
                 <div key={k} className="in-up" style={{ "--i": i, "--s": "0.1s", "--d": "0.7s" } as React.CSSProperties}>

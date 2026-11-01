@@ -7,7 +7,7 @@ import { MatchRow } from "@/components/site/match-row";
 import { useDict } from "@/components/site/lang";
 import { useTournament } from "@/components/site/tournament";
 import type { Match } from "@/lib/data";
-import { cardLabels } from "@/lib/matches";
+import { cardLabels, recentResults } from "@/lib/matches";
 import type { OverlayFeed } from "@/lib/overlay-types";
 import { Backdrop, Echo, editionNum, Lockup, Rule, TopBar } from "./chrome";
 
@@ -37,7 +37,7 @@ const ROWS = 5;
 export function ScheduleScene({ feed }: { feed: OverlayFeed }) {
   useFresh();
   const { matches } = useTournament();
-  const done = matches.filter((m) => m.winner).sort((a, b) => (b.datetime ?? "").localeCompare(a.datetime ?? "")).slice(0, ROWS);
+  const done = recentResults(matches).slice(0, ROWS);
   const pending = matches.filter((m) => !m.winner && (m.team1.id || m.team2.id));
   const next = [...pending.filter((m) => m.datetime).sort((a, b) => a.datetime!.localeCompare(b.datetime!)), ...pending.filter((m) => !m.datetime)].slice(0, ROWS);
   return (

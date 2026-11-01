@@ -1,11 +1,9 @@
-import { schedNav } from "@/db/schedule";
-import { getViewer } from "@/lib/authz";
+import { schedNav } from "@/db/viewer";
 import { DiscordPrompt } from "./discord-prompt";
 import { MeSubNav } from "./sub-nav";
 
 export default async function MeLayout({ children }: { children: React.ReactNode }) {
-  const v = await getViewer();
-  const sched = await schedNav(v?.osuId ?? null).catch(() => null);
+  const sched = await schedNav().catch(() => null);
   return (
     <>
       <MeSubNav />

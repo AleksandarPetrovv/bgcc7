@@ -53,7 +53,6 @@ type PStat = { cost: number | null; acc: number | null };
 
 export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { t: Dict; team: Team; me: number; seeds: Map<number, number>; stats?: Map<number, PStat>; record?: [number, number]; i?: number; className?: string }) {
   const wipe = v({ "--d": "calc(var(--cd, 0s) + 0.4s)" });
-  const avg = Math.round(team.players.reduce((n, p) => n + p.rank, 0) / Math.max(1, team.players.length));
   return (
     <Card title={t.me.team} i={i} className={className}>
       <div className="in-up in-slow relative flex items-center gap-3 overflow-hidden py-2 sm:gap-4" style={at(0.2)}>
@@ -65,7 +64,7 @@ export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { 
             <span>{t.me.seed(team.seed)}</span>
             {record && <RecordText t={t} w={record[0]} l={record[1]} />}
             <span>
-              {t.me.avgRank} #{fmtNum(avg)}
+              {t.me.avgRank} #{fmtNum(team.avgRank)}
             </span>
           </div>
         </div>

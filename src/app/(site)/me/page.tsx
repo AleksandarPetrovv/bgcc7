@@ -2,7 +2,6 @@ import { ArrowRight, CalendarClock, Crown, ExternalLink, Flag, Mic, Tv, Video } 
 import { Container, PageTitle, SlantButton, Tag } from "@/components/site/page";
 import { Avatar } from "@/components/site/avatar";
 import { Countdown } from "@/components/site/countdown";
-import { currentOsuId } from "@/auth";
 import { canSee } from "@/lib/authz";
 import { login } from "@/actions/auth";
 import { getDict, getLang } from "@/lib/i18n/server";
@@ -14,10 +13,8 @@ import { getQualResults } from "@/db/qualifiers";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
 import { getPlayerSeeds } from "@/db/seeds";
-import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { users } from "@/db/schema";
 import { canLinkDiscord } from "@/db/schedule";
+import { getMe, userLink } from "@/db/viewer";
 import { discordProfile } from "@/lib/discord";
 import { Connections } from "./connections";
 import { MatchRow } from "@/components/site/match-row";
@@ -28,7 +25,8 @@ import { Timeline } from "@/components/site/timeline";
 import { fmtSofia, fmtSofiaTime, isFuture, windowState, tzLabel } from "@/lib/time";
 import { fmtNum, type Match } from "@/lib/data";
 import { rankBws } from "@/lib/bws";
-import { cardLabels, sourceLabel, isLive } from "@/lib/matches";
+import { cardLabels, sourceLabel, isLive, wonBy, recordOf, upcomingMatches, finalResult } from "@/lib/matches";
+import { playerCount } from "@/lib/format";
 import { getFormat } from "@/db/edition";
 import { TWITCH_URL, osuMatch } from "@/lib/links";
 import { cn } from "@/lib/utils";
@@ -42,8 +40,8 @@ import { mpIds } from "@/lib/mp-links";
 
 
 export default async function Me() {
-  const [t, lang, me] = await Promise.all([getDict(), getLang(), currentOsuId()]);
-  if (!me)
+  const [t, lang, viewer] = await Promise.all([getDict(), getLang(), getMe()]);
+  if (!viewer)
     return (
       <Container plain>
         <PageTitle mark="me">{t.me.title}</PageTitle>
@@ -69,24 +67,17 @@ export default async function Me() {
     canSee("schedule"),
     getPlayerSeeds(),
   ]);
+  const me = viewer.osuId;
   const locale = localeOf(lang);
   const phase = settings.phase;
   const signupPhase = phase === "registration" || phase === "screening";
   const reg = regs.find((r) => r.osuId === me);
-  const team = teams.find((x) => x.players.some((p) => p.userId === me));
+  const team = teams.find((x) => x.id === viewer.teamOf);
   const teamById = (id: string) => teams.find((x) => x.id === id);
   const fmt = (d: Date | string) => `${fmtSofia(new Date(d), locale)} ${tzLabel(new Date(d))}`;
 
   // discord can be linked from registration on, so the connections card shows in every phase
-  const dcRow = canLinkDiscord()
-    ? await db
-        .select({ id: users.discordId, name: users.discordName, username: users.username })
-        .from(users)
-        .where(eq(users.osuId, me))
-        .limit(1)
-        .then((r) => r[0] ?? null)
-        .catch(() => null)
-    : null;
+  const dcRow = canLinkDiscord() ? await userLink(me).catch(() => null) : null;
   const dcProfile = dcRow?.id ? await discordProfile(dcRow.id) : null;
   const discord = dcRow ? { name: dcRow.id ? (dcProfile?.name ?? dcRow.name ?? dcRow.id) : null, avatar: dcProfile?.avatar ?? null } : isBGCC6() ? { name: null, avatar: null } : undefined;
   const osuName = team?.players.find((p) => p.userId === me)?.username ?? dcRow?.username ?? String(me);
@@ -132,14 +123,14 @@ export default async function Me() {
   const ranked = !isBGCC6() ? rankBws(regs.filter((r) => r.status !== "denied")).filter((r) => r.bws !== null) : [];
   const bwsAt = ranked.findIndex((r) => r.osuId === me);
   const myBws = bwsAt >= 0 ? ranked[bwsAt] : null;
-  const bwsTier = bwsAt < 0 ? 0 : bwsAt < ff.teams ? 1 : bwsAt < ff.teams * ff.teamSize ? 2 : 0;
+  const bwsTier = bwsAt < 0 ? 0 : bwsAt < ff.teams ? 1 : bwsAt < playerCount(ff) ? 2 : 0;
   const bwsCard = myBws && (
     <Card title="BWS" i={0}>
       <div className="flex items-end gap-3">
         <span className="num text-6xl leading-[0.8] sm:text-7xl">#{bwsAt + 1}</span>
         <span className="pb-1 text-sm text-ash">{t.me.ofN(ranked.length)}</span>
         <Tag tone={bwsTier ? "balkan" : "rose"} className="mb-1 ml-auto text-xs">
-          {bwsTier ? t.admin.tier(bwsTier) : t.me.outsideCut(ff.teams * ff.teamSize)}
+          {bwsTier ? t.admin.tier(bwsTier) : t.me.outsideCut(playerCount(ff))}
         </Tag>
       </div>
       <div className="num mt-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-line pt-3 text-sm text-paper/80">
@@ -260,7 +251,7 @@ export default async function Me() {
             <>
               {bwsCard}
               <Card title={t.me.team} i={1}>
-                <p className="text-ash">{bwsTier ? t.me.noTeam : t.me.outsideCut(ff.teams * ff.teamSize)}</p>
+                <p className="text-ash">{bwsTier ? t.me.noTeam : t.me.outsideCut(playerCount(ff))}</p>
               </Card>
             </>
           ) : (
@@ -285,12 +276,11 @@ export default async function Me() {
 
   const mine = matches.filter((m) => m.team1.id === team.id || m.team2.id === team.id);
   const played = mine.filter((m) => m.winner).sort((a, b) => (a.datetime ?? "").localeCompare(b.datetime ?? ""));
-  const usWon = (m: Match) => (m.team1.id === team.id ? m.winner === 1 : m.winner === 2);
-  const record: [number, number] = [played.filter(usWon).length, played.filter((m) => !usWon(m)).length];
-  const upcomingMatch = mine.filter((m) => !m.winner).sort((a, b) => (a.datetime ?? "9").localeCompare(b.datetime ?? "9"))[0];
+  const usWon = (m: Match) => wonBy(m, team.id);
+  const record = recordOf(matches, team.id);
+  const upcomingMatch = upcomingMatches(mine)[0];
   const lostIn = played.find((m) => (m.bracket === "losers" || m.bracket === "grand") && !usWon(m));
-  const lastGf = played.find((m) => m.id === "grand-final-reset") ?? played.find((m) => m.id === "grand-final");
-  const champion = !!lastGf && usWon(lastGf) && !upcomingMatch;
+  const champion = finalResult(matches)?.champion === team.id;
   const path = champion ? "champion" : lostIn && !upcomingMatch ? "out" : (upcomingMatch?.bracket ?? played.at(-1)?.bracket ?? "winners");
   const pathTag = (
     <span className={cn("text-xs font-display font-bold", path === "out" ? "text-rose-hi" : path === "champion" ? "text-gold-hi" : "text-balkan-hi")}>{t.me.path[path]}</span>

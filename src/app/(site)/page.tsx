@@ -8,7 +8,7 @@ import { Avatar } from "@/components/site/avatar";
 import { Reveal } from "@/components/site/motion";
 import { getDict } from "@/lib/i18n/server";
 import { roundName, type Dict } from "@/lib/i18n/dict";
-import { cardLabels } from "@/lib/matches";
+import { cardLabels, finalResult, recentResults, upcomingMatches } from "@/lib/matches";
 import { phaseStates } from "@/lib/dates";
 import { Timeline } from "@/components/site/timeline";
 import { getFill } from "@/db/copy";
@@ -24,18 +24,19 @@ import { osuMap } from "@/lib/links";
 import { modOn } from "@/lib/theme";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getLang } from "@/lib/i18n/server";
-import { isFuture, windowState } from "@/lib/time";
+import { isFuture } from "@/lib/time";
 import { MatchRow } from "@/components/site/match-row";
 import { RefreshWhileLive } from "./refresh-while-live";
 import { LineIndex } from "@/components/site/line-index";
 import { getRegistrations } from "@/db/registrations";
 import { cn } from "@/lib/utils";
 import { getSettings } from "@/db/settings";
-import { getViewer, getVisibility } from "@/lib/authz";
+import { getVisibility } from "@/lib/authz";
+import { getMe, regOpen } from "@/db/viewer";
+import { teamOfPlayer } from "@/lib/alive";
 import { duePhase } from "@/lib/phase-prompt";
 import { PhasePrompt } from "@/components/site/phase-prompt";
 import { InView } from "@/components/site/in-view";
-import { currentOsuId } from "@/auth";
 import { login } from "@/actions/auth";
 import { HeroGate } from "@/components/site/hero-gate";
 import { MeTag } from "@/components/site/me";
@@ -111,7 +112,7 @@ function TopList({ t, top, teams }: { t: Dict; top: TopCost[]; teams: Team[] }) 
   return (
     <ol>
       {top.map((p, i) => {
-        const team = teams.find((x) => x.players.some((pl) => pl.userId === p.id));
+        const team = teamOfPlayer(teams, p.id);
         return (
           <li
             key={p.id}
@@ -238,38 +239,26 @@ export default async function Home() {
     getPoolStages(),
   ]);
   const skills = await getSkillLayouts();
-  const [f, me, viewer] = await Promise.all([getFill(), currentOsuId(), getViewer()]);
+  const [f, me] = await Promise.all([getFill(), getMe()]);
   const locale = localeOf(lang);
   const teamById = (id: string) => teams.find((x) => x.id === id);
   const see = (s: keyof typeof vis.sections) => vis.sections[s];
   const phase = settings.phase;
-  const due = viewer?.roles.includes("host") ? duePhase(settings.timeline, phase, !isBGCC6()) : null;
-  const prompt = due && settings.phasePrompts[String(viewer!.osuId)] !== due ? due : null;
+  const due = me?.roles.includes("host") ? duePhase(settings.timeline, phase, !isBGCC6()) : null;
+  const prompt = due && settings.phasePrompts[String(me!.osuId)] !== due ? due : null;
   const playing = phase === "seeding" || phase === "playoffs";
   const big = "px-6 py-3 text-base sm:px-8 sm:py-4 sm:text-xl";
   const bigFill = "shadow-[4px_4px_0_0_var(--rose-deep)]";
-  const byId = new Map(matches.map((m) => [m.id, m]));
-  const gf1 = byId.get("grand-final");
-  const gf2 = byId.get("grand-final-reset");
-  const champSide = gf2?.winner ? gf2 : gf1?.winner === 1 ? gf1 : null;
-  const champ = phase === "finished" && champSide ? teamById(champSide.winner === 1 ? champSide.team1.id : champSide.team2.id) : undefined;
-  const runnerUp = champ && champSide ? teamById(champSide.winner === 1 ? champSide.team2.id : champSide.team1.id) : undefined;
+  const final = finalResult(matches);
+  const champ = phase === "finished" && final ? teamById(final.champion) : undefined;
+  const runnerUp = champ && final ? teamById(final.runnerUp) : undefined;
   const ctaHref: Record<string, string> = { screening: "/teams/players", qualifiers: "/qualifiers", seeding: "/teams", playoffs: "/matches", finished: "/matches" };
   const ctaOk: Record<string, boolean> = { screening: see("players"), qualifiers: see("lobbies"), seeding: see("teams"), playoffs: see("schedule"), finished: see("schedule") };
-  const regState = windowState(settings.regOpensAt, settings.regClosesAt);
-  const regCloses = phase === "registration" && see("register") && regState === "open" && isFuture(settings.regClosesAt) ? settings.regClosesAt!.toISOString() : null;
-  const mine = me ? regs.find((r) => r.osuId === me) : undefined;
-  const featured = matches
-    .filter((m) => m.winner)
-    .sort((a, b) => (b.datetime ?? "").localeCompare(a.datetime ?? ""))
-    .slice(0, 2);
-  // soonest scheduled first, then unscheduled ones with both teams, one team, none
-  const pending = matches.filter((m) => !m.winner);
-  const sides = (m: Match) => +!!m.team1.id + +!!m.team2.id;
-  const upcoming = [
-    ...pending.filter((m) => m.datetime).sort((a, b) => a.datetime!.localeCompare(b.datetime!)),
-    ...[2, 1, 0].flatMap((n) => pending.filter((m) => !m.datetime && sides(m) === n)),
-  ].slice(0, 2);
+  const signupOpen = regOpen(settings, vis.sections);
+  const regCloses = signupOpen && isFuture(settings.regClosesAt) ? settings.regClosesAt!.toISOString() : null;
+  const mine = me ? regs.find((r) => r.osuId === me.osuId) : undefined;
+  const featured = recentResults(matches).slice(0, 2);
+  const upcoming = upcomingMatches(matches).slice(0, 2);
   // a live match finishing moves it to previous and pulls the next one in
   const liveNow = upcoming.some((m) => m.running || (!!m.datetime && !isFuture(new Date(m.datetime))));
   // the round being played: the next match's pool when it's out, else the latest released one
@@ -309,7 +298,7 @@ export default async function Home() {
               <Words text={f(phase === "registration" ? t.home.intro : (t.home.introBy[phase] ?? t.home.intro))} d={0.6} s={0.014} lines />
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3 sm:mt-9 sm:gap-4" style={{ "--d": "1s", "--s": "0.08s" } as React.CSSProperties}>
-              {phase === "registration" && see("register") && regState === "open" ? (
+              {signupOpen ? (
                 <span className="in-pop inline-flex">
                   {mine && mine.status !== "denied" ? (
                     <span className="inline-flex -skew-x-12 cursor-default items-center border border-line bg-slate px-6 py-3 text-base font-display font-bold sm:px-8 sm:py-4 sm:text-xl text-ash" aria-disabled>

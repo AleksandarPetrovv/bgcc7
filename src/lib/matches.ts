@@ -1,27 +1,16 @@
 import type { Match } from "./data";
-import type { Format } from "./format";
+import { GF, GF_RESET, type Format } from "./format";
 import { roundName, type Dict } from "./i18n/dict";
 
 /** the fields a lobby, finish or captain can change while a staff form is open */
 export const matchStamp = (m: { team1Id: string | null; team2Id: string | null; score1: number | null; score2: number | null; winner: number | null; mpLinks: string; startsAt: Date | null }) =>
   JSON.stringify([m.team1Id, m.team2Id, m.score1, m.score2, m.winner, m.mpLinks, m.startsAt?.getTime() ?? null]);
 
-const SHORT: Record<string, string> = {
-  "Round of 16": "RO16",
-  "Round of 32": "RO32",
-  Quarterfinals: "QF",
-  "Round 1 (Quarter-Finals)": "QF",
-  Semifinals: "SF",
-  "Semi-Finals": "SF",
-  "Round 2 (Semi-Finals)": "SF",
-  Finals: "F",
-  "Winners Finals": "WF",
-  "Losers Finals": "LF",
-  "Grand Finals": "GF",
-};
-
 /** short round name for tight spots: RO16, QF, SF, F, GF, Losers R2 */
-export const shortRound = (round: string) => SHORT[round] ?? round.replace(/^Losers Round (\d+)$/, "Losers R$1");
+const shortRound = (t: Dict, round: string) => {
+  const losers = round.match(/^Losers Round (\d+)$/);
+  return t.roundsShort[round] ?? (losers ? t.losersShort(losers[1]) : roundName(t, round));
+};
 
 export function matchLabel(t: Dict, matches: Match[], id: string) {
   const m = matches.find((x) => x.id === id);
@@ -51,10 +40,39 @@ export const isLive = (m: Match, now = Date.now()) =>
 
 // round labels, longest first; a card takes the first one that fits (Losers Round 2 Match 3 > Losers R2 Match 3 > Losers R2 M3)
 export function cardLabels(t: Dict, matches: Match[], m: Match): string[] {
-  if (m.id === "grand-final") return [t.home.grandFinal, "GF"];
-  if (m.id === "grand-final-reset") return [t.home.gfReset, "GF Reset", "GFR"];
+  if (m.id === GF) return [t.home.grandFinal, t.roundsShort["Grand Finals"]];
+  if (m.id === GF_RESET) return [t.home.gfReset, ...t.home.gfResetShort];
   const same = matches.filter((o) => o.round === m.round);
   const k = same.findIndex((o) => o.id === m.id) + 1;
-  if (same.length < 2) return [roundName(t, m.round), shortRound(m.round)];
-  return [`${roundName(t, m.round)} ${t.nav.match} ${k}`, `${shortRound(m.round)} ${t.nav.match} ${k}`, `${shortRound(m.round)} ${t.nav.match[0]}${k}`];
+  const short = shortRound(t, m.round);
+  if (same.length < 2) return [roundName(t, m.round), short];
+  return [`${roundName(t, m.round)} ${t.nav.match} ${k}`, `${short} ${t.nav.match} ${k}`, `${short} ${t.nav.match[0]}${k}`];
+}
+
+/** finished matches, newest first */
+export const recentResults = (matches: Match[]) => matches.filter((m) => m.winner).sort((a, b) => (b.datetime ?? "").localeCompare(a.datetime ?? ""));
+
+/** unfinished matches: soonest scheduled first, then unscheduled ones with both teams, one team, none */
+export function upcomingMatches(matches: Match[]) {
+  const pending = matches.filter((m) => !m.winner);
+  const sides = (m: Match) => +!!m.team1.id + +!!m.team2.id;
+  return [...pending.filter((m) => m.datetime).sort((a, b) => a.datetime!.localeCompare(b.datetime!)), ...[2, 1, 0].flatMap((n) => pending.filter((m) => !m.datetime && sides(m) === n))];
+}
+
+export const wonBy = (m: Match, teamId: string) => (m.team1.id === teamId ? m.winner === 1 : m.team2.id === teamId && m.winner === 2);
+
+/** [wins, losses] over the team's finished matches */
+export function recordOf(matches: Match[], teamId: string): [number, number] {
+  const played = matches.filter((m) => m.winner && (m.team1.id === teamId || m.team2.id === teamId));
+  const w = played.filter((m) => wonBy(m, teamId)).length;
+  return [w, played.length - w];
+}
+
+/** the reset decides when played, else a grand final won by the upper bracket side (team1) */
+export function finalResult(matches: Match[]) {
+  const gf = matches.find((m) => m.id === GF);
+  const reset = matches.find((m) => m.id === GF_RESET);
+  const m = reset?.winner ? reset : gf?.winner === 1 ? gf : null;
+  if (!m) return null;
+  return m.winner === 1 ? { champion: m.team1.id, runnerUp: m.team2.id } : { champion: m.team2.id, runnerUp: m.team1.id };
 }

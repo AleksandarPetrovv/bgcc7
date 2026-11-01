@@ -4,8 +4,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { db, isBGCC6, type Tx } from "./index";
 import { availability, matches, reschedules, stages, users } from "./schema";
 import { safe } from "./safe";
-import { getAllTeams, getMatchRows, getTeams, type MatchRow } from "./tournament";
-import { getSettings } from "./settings";
+import { getAllTeams, getMatchRows, type MatchRow } from "./tournament";
 import { siteUrl } from "@/lib/links";
 import { dm, discordReady } from "@/lib/discord";
 import { isOpen, weekOf, type Proposal, type SchedStatus } from "@/lib/schedule";
@@ -16,23 +15,6 @@ export const captainOf = (t: Team | undefined) => t?.players[0]?.userId ?? null;
 export const stageWeeks = cache(() =>
   safe(async () => Object.fromEntries((await db.select({ slug: stages.slug, week: stages.week }).from(stages)).map((s) => [s.slug, s.week])) as Record<string, string | null>, {} as Record<string, string | null>),
 );
-
-export const myCaptainTeam = cache(async (osuId: number) => {
-  const ts = await getTeams();
-  return ts.find((t) => captainOf(t) === osuId)?.id ?? null;
-});
-
-// any team the player is on, knocked out or not
-export const teamOf = cache(async (osuId: number) => (await getTeams()).find((t) => t.players.some((p) => p.userId === osuId))?.id ?? null);
-
-// null once the team is knocked out (2 losses in double elim), so scheduling disappears for the whole team
-export const myTeam = cache(async (osuId: number) => {
-  const [ts, rows] = await Promise.all([getTeams(), getMatchRows()]);
-  const id = ts.find((t) => t.players.some((p) => p.userId === osuId))?.id ?? null;
-  if (!id) return null;
-  const losses = rows.filter((m) => m.winner != null && (m.winner === 1 ? m.team2Id : m.team1Id) === id).length;
-  return losses >= 2 ? null : id;
-});
 
 export const schedulable = (m: MatchRow) => !!m.team1Id && !!m.team2Id && m.winner == null;
 
@@ -78,8 +60,8 @@ export async function busyOf(ids: string[]) {
   return out;
 }
 
-export const mySchedule = cache(async (osuId: number): Promise<SchedMatch[]> => {
-  const team = await myTeam(osuId);
+/** team = the viewer's alive team (getMe().myTeam) */
+export const mySchedule = cache(async (team: string | null): Promise<SchedMatch[]> => {
   if (!team) return [];
   const [rows, weeks] = await Promise.all([getMatchRows(), stageWeeks()]);
   const mine = rows.filter((m) => schedulable(m) && (m.team1Id === team || m.team2Id === team));
@@ -112,20 +94,6 @@ export const needsHours = (m: SchedMatch, osuId: number) => soon(m) && !(osuId i
 
 // anyone logged in can link from registration on (linking early is fine; team roles only follow once they're on a team)
 export const canLinkDiscord = () => discordReady() && !isBGCC6();
-
-// show = scheduling nav item; discord = red dot on "me" + link popup for everyone without a linked discord
-export const schedNav = cache(async (osuId: number | null) => {
-  if (!osuId) return null;
-  const [s, team] = await Promise.all([getSettings(), teamOf(osuId)]);
-  const [me] = canLinkDiscord() ? await safe(() => db.select({ discordId: users.discordId }).from(users).where(eq(users.osuId, osuId)).limit(1), []) : [];
-  const discord = canLinkDiscord() && !me?.discordId;
-  if (!team) return { show: false, dot: false, discord };
-  const show = s.phase === "playoffs" && !!(await myTeam(osuId));
-  // captains: an answer waits on them, or a close match has no time. everyone: a close match where they never saved their hours
-  const [list, cap] = show ? await Promise.all([mySchedule(osuId), myCaptainTeam(osuId)]) : [[], null];
-  const dot = list.some((m) => (!!cap && (waitingOnMe(m) || needsTime(m))) || needsHours(m, osuId));
-  return { show, dot, discord };
-});
 
 export async function lockMatch(tx: Tx, id: string) {
   const [m] = await tx.select().from(matches).where(eq(matches.id, id)).for("update").limit(1);

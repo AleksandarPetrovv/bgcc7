@@ -4,13 +4,13 @@ import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { currentEdition, db, withEdition } from "@/db";
+import { currentEdition, db, withEdition, type Tx } from "@/db";
 import { availability, matches, reschedules } from "@/db/schema";
 import { getSettings } from "@/db/settings";
 import { getAllTeams } from "@/db/tournament";
 import { when } from "@/lib/discord-text";
-import { busyOf, lockMatch, myCaptainTeam, mySchedule, notifyCaptain, pendingOf, schedulable, stageWeeks, teamOf } from "@/db/schedule";
-import { getViewer } from "@/lib/authz";
+import { busyOf, lockMatch, mySchedule, notifyCaptain, pendingOf, schedulable, stageWeeks } from "@/db/schedule";
+import { getMe } from "@/db/viewer";
 import { siteUrl } from "@/lib/links";
 import { teamNote } from "@/db/discord-bot";
 import { fromSofiaInput } from "@/lib/time";
@@ -34,12 +34,21 @@ class Stop extends Error {
 }
 
 async function captain() {
-  const v = await getViewer();
+  const v = await getMe();
   if (!v) throw new Stop("forbidden");
   if ((await getSettings()).phase !== "playoffs") throw new Stop("forbidden");
-  const team = await myCaptainTeam(v.osuId);
+  const team = v.captainOf;
   if (!team) throw new Stop("forbidden");
   return { osuId: v.osuId, team };
+}
+
+// locked match of this team that can still be scheduled, in an open week
+async function openMatch(tx: Tx, matchId: string, team: string, weeks: Record<string, string | null>) {
+  const m = await lockMatch(tx, matchId);
+  if (!m || !schedulable(m) || (m.team1Id !== team && m.team2Id !== team)) throw new Stop("gone");
+  const w = weekOf(weeks[m.stageSlug]);
+  if (!w || !isOpen(w)) throw new Stop("closed");
+  return { m, w };
 }
 
 async function run(fn: () => Promise<() => Promise<void>>): Promise<Res> {
@@ -65,10 +74,7 @@ export async function propose(matchId: string, input: string, noteIn: string): P
     const at = fromSofiaInput(input);
     const weeks = await stageWeeks();
     const { opp, counter } = await db.transaction(async (tx) => {
-      const m = await lockMatch(tx, matchId);
-      if (!m || !schedulable(m) || (m.team1Id !== team && m.team2Id !== team)) throw new Stop("gone");
-      const w = weekOf(weeks[m.stageSlug]);
-      if (!w || !isOpen(w)) throw new Stop("closed");
+      const { m, w } = await openMatch(tx, matchId, team, weeks);
       if (!at || !inWindow(w, at) || offHours(input)) throw new Stop("window");
       // nobody of the four may have marked this hour as unavailable
       const busy = (await busyOf([m.id])).get(m.id) ?? {};
@@ -100,10 +106,7 @@ export async function accept(matchId: string, proposalId: number): Promise<Res> 
     const { osuId, team } = await captain();
     const weeks = await stageWeeks();
     const { by, at } = await db.transaction(async (tx) => {
-      const m = await lockMatch(tx, matchId);
-      if (!m || !schedulable(m) || (m.team1Id !== team && m.team2Id !== team)) throw new Stop("gone");
-      const w = weekOf(weeks[m.stageSlug]);
-      if (!w || !isOpen(w)) throw new Stop("closed");
+      const { m, w } = await openMatch(tx, matchId, team, weeks);
       const p = (await pendingOf(tx, m.id)).find((x) => x.id === proposalId);
       if (!p || p.teamId !== (m.team1Id === team ? m.team2Id : m.team1Id)) throw new Stop("gone");
       if (!inWindow(w, p.proposedAt)) throw new Stop("window");
@@ -126,10 +129,7 @@ export async function withdraw(matchId: string, noteIn: string): Promise<Res> {
     const note = noteOf(noteIn);
     const weeks = await stageWeeks();
     const { opp, agreed } = await db.transaction(async (tx) => {
-      const m = await lockMatch(tx, matchId);
-      if (!m || !schedulable(m) || (m.team1Id !== team && m.team2Id !== team)) throw new Stop("gone");
-      const w = weekOf(weeks[m.stageSlug]);
-      if (!w || !isOpen(w)) throw new Stop("closed");
+      const { m } = await openMatch(tx, matchId, team, weeks);
       const mine = (await pendingOf(tx, m.id)).find((p) => p.teamId === team);
       if (mine) await tx.update(reschedules).set({ status: "withdrawn", reply: note }).where(eq(reschedules.id, mine.id));
       else if (m.startsAt) {
@@ -158,10 +158,7 @@ export async function decline(matchId: string, proposalId: number, noteIn: strin
     const note = noteOf(noteIn);
     const weeks = await stageWeeks();
     const by = await db.transaction(async (tx) => {
-      const m = await lockMatch(tx, matchId);
-      if (!m || !schedulable(m) || (m.team1Id !== team && m.team2Id !== team)) throw new Stop("gone");
-      const w = weekOf(weeks[m.stageSlug]);
-      if (!w || !isOpen(w)) throw new Stop("closed");
+      const { m } = await openMatch(tx, matchId, team, weeks);
       const p = (await pendingOf(tx, m.id)).find((x) => x.id === proposalId);
       if (!p || p.teamId === team) throw new Stop("gone");
       await tx.update(reschedules).set({ status: "rejected", answeredBy: osuId, reply: note }).where(eq(reschedules.id, p.id));
@@ -178,9 +175,9 @@ export async function decline(matchId: string, proposalId: number, noteIn: strin
 /** a player of either team saves the hours they can't play for this match */
 export async function setBusy(matchId: string, hours: string[]): Promise<Res> {
   return run(async () => {
-    const v = await getViewer();
+    const v = await getMe();
     if (!v || (await getSettings()).phase !== "playoffs") throw new Stop("forbidden");
-    const team = await teamOf(v.osuId);
+    const team = v.teamOf;
     const weeks = await stageWeeks();
     const m = (await db.select().from(matches).where(eq(matches.id, matchId)).limit(1))[0];
     if (!m || !team || (m.team1Id !== team && m.team2Id !== team) || m.winner != null) throw new Stop("forbidden");
@@ -198,7 +195,7 @@ export async function setBusy(matchId: string, hours: string[]): Promise<Res> {
 
 /** fingerprint of the viewer's scheduling data; the page polls it and refreshes on change */
 export async function schedSig() {
-  const v = await getViewer();
+  const v = await getMe();
   if (!v) return "";
-  return createHash("sha1").update(JSON.stringify(await mySchedule(v.osuId))).digest("hex");
+  return createHash("sha1").update(JSON.stringify(await mySchedule(v.myTeam))).digest("hex");
 }

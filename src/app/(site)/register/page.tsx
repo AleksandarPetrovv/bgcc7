@@ -4,13 +4,13 @@ import { Container, PageTitle, Tag } from "@/components/site/page";
 import { RegisterForm } from "@/components/site/register-form";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils";
-import { auth } from "@/auth";
+import { getMe, regState } from "@/db/viewer";
 import { getRegistration } from "@/db/registrations";
 import { getSettings } from "@/db/settings";
 import { getFill } from "@/db/copy";
 import { getFormat } from "@/db/edition";
 import { requireSection } from "@/lib/authz";
-import { fmtSofia, windowState, tzLabel } from "@/lib/time";
+import { fmtSofia, tzLabel } from "@/lib/time";
 import { avatarPath } from "@/lib/avatar";
 
 import { localeOf } from "@/lib/i18n/locale";
@@ -18,11 +18,10 @@ export const generateMetadata = pageMeta("register");
 
 export default async function Register() {
   await requireSection("register");
-  const [t, lang, session, settings, f] = await Promise.all([getDict(), getLang(), auth(), getSettings(), getFill()]);
-  const osuId = Number(session?.user?.id) || null;
-  const user = osuId && session?.user?.name ? { name: session.user.name, image: avatarPath(osuId) } : null;
-  const status = osuId ? await getRegistration(osuId) : null;
-  const state = windowState(settings.regOpensAt, settings.regClosesAt);
+  const [t, lang, me, settings, f] = await Promise.all([getDict(), getLang(), getMe(), getSettings(), getFill()]);
+  const user = me?.name ? { name: me.name, image: avatarPath(me.osuId) } : null;
+  const status = me ? await getRegistration(me.osuId) : null;
+  const state = regState(settings);
   const fmt = (d: Date | null) => (d ? `${fmtSofia(d, localeOf(lang))} ${tzLabel(d)}` : "");
   const tag =
     state === "open" ? (

@@ -9,13 +9,13 @@ import { getSettings } from "@/db/settings";
 import { saveOsuUser } from "@/db/users";
 import { getUser } from "@/lib/osu-api";
 import { log } from "@/lib/authz";
-import { windowState } from "@/lib/time";
+import { regState } from "@/db/viewer";
 
 export async function signUp() {
   const osuId = await currentOsuId();
   if (!osuId) return { ok: false as const, error: "auth" };
   const s = await getSettings();
-  if (!s.sections.register || windowState(s.regOpensAt, s.regClosesAt) !== "open") return { ok: false as const, error: "closed" };
+  if (!s.sections.register || regState(s) !== "open") return { ok: false as const, error: "closed" };
   const u = await getUser(osuId).catch(() => null);
   if (!u) return { ok: false as const, error: "osu" };
   await saveOsuUser(u);
@@ -30,7 +30,7 @@ export async function withdraw() {
   const osuId = await currentOsuId();
   if (!osuId) return { ok: false as const, error: "auth" };
   const s = await getSettings();
-  if (windowState(s.regOpensAt, s.regClosesAt) !== "open") return { ok: false as const, error: "closed" };
+  if (regState(s) !== "open") return { ok: false as const, error: "closed" };
   // a denied entry stays so withdraw + sign up can't reset it to pending
   const gone = await db.delete(registrations).where(and(eq(registrations.osuId, osuId), ne(registrations.status, "denied"))).returning({ osuId: registrations.osuId });
   await db.delete(lobbyBookings).where(eq(lobbyBookings.osuId, osuId));

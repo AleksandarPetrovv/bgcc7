@@ -48,6 +48,7 @@ export const getAllTeams = cache(() =>
           isCaptain: m.isCaptain,
         }))
         .sort((a, b) => Number(b.isCaptain) - Number(a.isCaptain) || b.pp - a.pp);
+      // unranked players (rank 0) are left out; /me and /teams both read this
       const ranked = players.filter((p) => p.rank > 0);
       return {
         id: t.id,
