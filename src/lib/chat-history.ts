@@ -2,7 +2,8 @@ import "server-only";
 import { and, desc, eq, lt } from "drizzle-orm";
 import { db } from "@/db";
 import { mpChat, mpLobbies } from "@/db/schema";
-import { lobbyRefNames, type ChatLine } from "./bancho";
+import { lobbyRefNames } from "./bancho";
+import { chatLine, type ChatLine } from "./lobby-chat";
 import { visibleChatLine } from "./chat-visibility";
 import { nameKey } from "@/lib/names";
 
@@ -22,15 +23,7 @@ export async function lobbyChatHistory(matchId: string, admin: boolean, before?:
     .limit(PAGE_SIZE + 1);
   const refs = await lobbyRefNames();
   const page = rows.slice(0, PAGE_SIZE);
-  const lines = page.map<ChatLine>((row) => ({
-    id: row.id,
-    at: row.at.getTime(),
-    from: row.from,
-    text: row.text,
-    ...(row.local ? { local: true } : {}),
-    ...(row.side === 1 || row.side === 2 ? { side: row.side } : {}),
-    ...(refs.has(nameKey(row.from)) ? { ref: true } : {}),
-  })).reverse();
+  const lines = page.map<ChatLine>((row) => ({ ...chatLine(row), ...(refs.has(nameKey(row.from)) ? { ref: true } : {}) })).reverse();
 
   return {
     mpId: lobby.mpId,

@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { lobbyPost } from "./lobby-popups";
 import { useChatHistory } from "./use-chat-history";
 import { nameKey } from "@/lib/names";
+import { CHAT_GAP } from "@/lib/lobby-chat";
 
 type ChatProps = {
   slug: string;
@@ -63,7 +64,7 @@ function ChatSession({
     if (res?.ok) {
       const t0 = Date.now();
       setNow(t0);
-      setUntil(t0 + 1500);
+      setUntil(t0 + CHAT_GAP);
       if (inputRef.current?.value === sent) setText("");
     } else setFail(res?.error === "noslot" || res?.error === "nouser" || res?.error === "blocked" ? res.error : true);
     inputRef.current?.focus();
