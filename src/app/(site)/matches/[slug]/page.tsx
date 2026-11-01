@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { draftAccess, getDraft, rulesOf } from "@/db/drafts";
+import { getDraft, rulesOf } from "@/db/drafts";
 import { getPoolStages } from "@/db/mappools";
 import { getSkillLayouts } from "@/db/format-plan";
 import { bySkill } from "@/lib/format-plan";
@@ -9,6 +9,7 @@ import { getFormat } from "@/db/edition";
 import { matchIdFromSlug } from "@/lib/format";
 import { DraftRoom } from "./draft-room";
 import { roundName } from "@/lib/i18n/dict";
+import { draftAccess } from "@/lib/match-access";
 
 export const dynamic = "force-dynamic";
 

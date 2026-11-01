@@ -4,11 +4,12 @@ import { db } from "@/db";
 import { eq, sql } from "drizzle-orm";
 
 import { drafts, matches, type DraftUndo } from "@/db/schema";
-import { answerTimeout, canRunMatch, emitDraft, freshDraft, redoStep, settle, undoStep } from "@/db/drafts";
+import { answerTimeout, emitDraft, freshDraft, redoStep, settle, undoStep } from "@/db/drafts";
 import { abortTimer, sayTimer } from "@/lib/bancho";
 import { getPoolStages } from "@/db/mappools";
 import { getSettings } from "@/db/settings";
 import { guard } from "@/lib/admin-action";
+import { canRunMatch } from "@/lib/match-access";
 
 const bump = { rev: sql`${drafts.rev} + 1`, updatedAt: new Date() };
 

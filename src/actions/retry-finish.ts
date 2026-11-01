@@ -5,9 +5,9 @@ import { forgetScoreboard, getScoreboard } from "@/db/scoreboards";
 import { settleResult } from "@/db/match";
 import { getMatches, getTeams } from "@/db/tournament";
 import { decideWinner } from "@/lib/result";
-import { canRunMatch } from "@/db/drafts";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
+import { canRunMatch } from "@/lib/match-access";
 
 export async function retryFinish(matchId: string): Promise<ActionResult> {
   return guard("matches", "match.retryFinish", async () => {

@@ -13,12 +13,12 @@ import { announceMatchTime, setMatchTime } from "@/db/match";
 import { firstToOf, getPoolStages } from "@/db/mappools";
 import { forgetScoreboard } from "@/db/scoreboards";
 import { decideWinner } from "@/lib/result";
-import { canRunMatch } from "@/db/drafts";
 import { handOff } from "@/lib/bancho";
 import { matchStamp } from "@/lib/matches";
 import { later, postResult } from "@/db/discord-bot";
 import { isBracketStage } from "@/lib/format";
 import { mpIds, mpCsv } from "@/lib/mp-links";
+import { canRunMatch } from "@/lib/match-access";
 
 const text = (fd: FormData, k: string, max = 120) => String(fd.get(k) ?? "").trim().slice(0, max) || null;
 const num = (fd: FormData, k: string) => {

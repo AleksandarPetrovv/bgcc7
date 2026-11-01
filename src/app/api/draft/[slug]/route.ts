@@ -1,9 +1,10 @@
-import { applyDraft, draftAccess, getDraft, requestTimeout, setResult, settle, type DraftAct } from "@/db/drafts";
+import { applyDraft, getDraft, requestTimeout, setResult, settle, type DraftAct } from "@/db/drafts";
 import { log } from "@/lib/authz";
 import { getFormat } from "@/db/edition";
 import { matchIdFromSlug } from "@/lib/format";
 import { sse } from "@/lib/sse";
 import { nowPlaying } from "@/lib/bancho";
+import { draftAccess } from "@/lib/match-access";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request, { params }: RouteContext<"/api/draft/[slug]">) {

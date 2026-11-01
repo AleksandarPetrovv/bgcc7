@@ -3,17 +3,13 @@ import "server-only";
 import { randomInt } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { and, eq, isNull, or, sql } from "drizzle-orm";
-import { drafts, matches, mpLobbies, teamMembers, NO_TIMEOUTS, type DraftRules, type DraftUndo } from "./schema";
+import { drafts, matches, teamMembers, NO_TIMEOUTS, type DraftRules, type DraftUndo } from "./schema";
 import { getPoolStages, poolMaps } from "./mappools";
 import { DEFAULT_SETTINGS, getSettings } from "./settings";
 import { getSkillLayouts } from "./format-plan";
-import { can } from "@/lib/roles";
-import { relayOnline } from "@/lib/relay";
-import { getViewer } from "@/lib/authz";
+import { siteRun } from "@/lib/match-access";
 import { getFormat } from "./edition";
 import { deadline, pickableSlots, scoreOf, TB, tbDue, turnOf, type DraftView, type Side } from "@/lib/draft";
-import { staffNames } from "@/lib/staff-names";
-import { staffIds } from "@/db/users";
 
 const g = globalThis as unknown as { draftBus?: EventEmitter };
 const bus = (g.draftBus ??= new EventEmitter().setMaxListeners(0));
@@ -212,44 +208,6 @@ export async function lobbyTimer(matchId: string, secs: number | null) {
     .set({ turnAt, ...pause, rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
     .where(eq(drafts.matchId, matchId));
   emitDraft(matchId);
-}
-
-async function siteRun(m: { id: string; referee: string | null }) {
-  const refs = await staffIds(m.referee);
-  const [lob] = await db.select({ owner: mpLobbies.owner, open: mpLobbies.open }).from(mpLobbies).where(eq(mpLobbies.matchId, m.id)).limit(1);
-  const refLive = refs.some((ref) => relayOnline(ref) || (!!lob?.open && lob.owner === String(ref)));
-  return { refs, refLive, onSite: refLive || !!lob };
-}
-
-/** hosts run any match, a referee only the ones assigned to them (and, with `unassigned`, ones nobody has yet) */
-export async function canRunMatch(matchId: string, opts: { unassigned?: boolean } = {}) {
-  const v = await getViewer();
-  if (!v) return false;
-  if (v.roles.includes("host")) return true;
-  if (!can(v.roles, "matches")) return false;
-  const [m] = await db.select({ referee: matches.referee }).from(matches).where(eq(matches.id, matchId)).limit(1);
-  if (!m) return false;
-  if (!staffNames(m.referee).length) return !!opts.unassigned;
-  return (await staffIds(m.referee)).includes(v.osuId);
-}
-
-export async function draftAccess(matchId: string) {
-  const v = await getViewer();
-  if (!v) return null;
-  const [m] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
-  if (!m) return null;
-  const staff = can(v.roles, "matches");
-  const { refs, onSite } = await siteRun(m);
-  const admin = staff && refs.includes(v.osuId);
-  const watch = staff || can(v.roles, "draft");
-  const [mem] = await db.select({ teamId: teamMembers.teamId, isCaptain: teamMembers.isCaptain }).from(teamMembers).where(eq(teamMembers.osuId, v.osuId)).limit(1);
-  const team: Side | null = mem && mem.teamId === m.team1Id ? 1 : mem && mem.teamId === m.team2Id ? 2 : null;
-  const side = team && mem?.isCaptain ? team : null;
-  if (!admin && !watch && !(team && onSite)) return null;
-  const streams = !!v.roles?.includes("host") || (!!v.roles?.includes("referee") && !!v.roles?.includes("streamer"));
-  // hosts answer timeout requests too, not only the assigned ref
-  const runs = admin || !!v.roles?.includes("host");
-  return { osuId: v.osuId, admin, runs, staff, streams, side, team, match: m };
 }
 
 /** a captain asks for their one timeout; it waits in the queue until the ref accepts or declines */

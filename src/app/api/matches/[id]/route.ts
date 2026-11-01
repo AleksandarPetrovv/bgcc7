@@ -2,7 +2,7 @@ import { getAllMatches, getAllTeams } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
 import { getScoreboard } from "@/db/scoreboards";
 import { TEST_MATCH } from "@/lib/format";
-import { draftAccess } from "@/db/drafts";
+import { draftAccess } from "@/lib/match-access";
 
 export async function GET(_: Request, { params }: RouteContext<"/api/matches/[id]">) {
   const { id } = await params;

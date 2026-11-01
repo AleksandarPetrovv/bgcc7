@@ -1,11 +1,11 @@
 import { currentEdition, siteEdition } from "@/db";
-import { draftAccess } from "@/db/drafts";
 import { getFormat } from "@/db/edition";
 import { matchIdFromSlug } from "@/lib/format";
 import { log } from "@/lib/authz";
 import { abortLobby, canLobby, closeLobby, lobbyOwner, ensureBot, inviteMissing, kickSlot, lobbyView, makeLobby, moveSlot, onLobby, refreshLobby, sayLocal, sendChat, abortTimer, spareSlot, startLobby, teamSlot } from "@/lib/bancho";
 import { sse } from "@/lib/sse";
 import { visibleChatLine } from "@/lib/chat-visibility";
+import { draftAccess } from "@/lib/match-access";
 
 export const dynamic = "force-dynamic";
 

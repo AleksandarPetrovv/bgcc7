@@ -1,7 +1,7 @@
-import { draftAccess } from "@/db/drafts";
 import { getFormat } from "@/db/edition";
 import { lobbyChatHistory } from "@/lib/chat-history";
 import { matchIdFromSlug } from "@/lib/format";
+import { draftAccess } from "@/lib/match-access";
 
 export const dynamic = "force-dynamic";
 

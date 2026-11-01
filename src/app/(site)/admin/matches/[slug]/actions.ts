@@ -9,9 +9,9 @@ import { settleResult } from "@/db/match";
 import { forgetScoreboard, getScoreboard } from "@/db/scoreboards";
 import { getMatches, getTeams } from "@/db/tournament";
 import { guard } from "@/lib/admin-action";
-import { canRunMatch } from "@/db/drafts";
 import { decideWinner } from "@/lib/result";
 import type { ActionResult } from "@/lib/roles";
+import { canRunMatch } from "@/lib/match-access";
 
 const parseMods = (v: string) => (v.toUpperCase().replace(/[^A-Z]/g, "").match(/.{2}/g) ?? []).filter((m) => m !== "NM").join(",");
 
