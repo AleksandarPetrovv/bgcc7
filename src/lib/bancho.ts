@@ -5,47 +5,24 @@ import { BanchoLobbyPlayerStates, BanchoLobbyTeamModes, BanchoLobbyWinConditions
 import { db } from "@/db";
 import { matches, mpLobbies, staff, users } from "@/db/schema";
 import { getFormat } from "@/db/edition";
-import { getDraft, rulesOf, setResult } from "@/db/drafts";
+import { getDraft, rulesOf } from "@/db/drafts";
 import { other, rollWinner, scoreOf, turnOf, type DraftView } from "@/lib/draft";
 import { getUser } from "@/lib/osu-api";
 import { lobbySize } from "@/lib/format";
 
-import { CHAT_GAP, attach, canLobby, conn, ensureBot, g, lastSent, lobbyOwner, markClosed, membersOf, online, ownerOf, ping, playStart, state, syncOf, typed, type Live, type LobbySlot, type LobbyView } from "./bancho-irc";
+import { actions, attach, canLobby, conn, coolingDown, ensureBot, g, lastSent, lobbyOwner, markClosed, membersOf, online, ownerOf, ping, playStart, retire, state, swapSlots, syncOf, target, typed, type Live, type LobbySlot, type LobbyView } from "./bancho-irc";
+import { CHAT_SHOWN, cleanChat } from "./lobby-chat";
 import { MOD_LOBBY } from "./mods";
-import { nameKey, ircName } from "@/lib/names";
+import { nameKey } from "@/lib/names";
 import { within } from "./utils";
 import { decideWinner } from "./result";
 import { staffIds } from "@/db/users";
 import { mpIds, mpCsv } from "@/lib/mp-links";
 
-export { CHAT_GAP, canLobby, ensureBot, lobbyOwner, onLobby, sayLocal, type ChatLine, type LobbySlot, type LobbyView } from "./bancho-irc";
+export { canLobby, ensureBot, lobbyOwner, onLobby, sayLocal, type LobbySlot, type LobbyView } from "./bancho-irc";
+export type { ChatLine } from "./lobby-chat";
 
-export type ScoreLine = { score: number; pass: boolean; team?: string; userId?: number };
-
-export async function onFinished(matchId: string, scores: ScoreLine[]) {
-  const l = g.bgccIrc?.live.get(matchId);
-  if (!l) return null;
-  const d = await getDraft(matchId);
-  if (!d) return null;
-  const picks = d.steps.filter((s) => s.kind === "pick" && !s.skip);
-  const { maps } = await rulesOf(matchId, d.stageSlug);
-  const idOf = (slot: string) => maps.find((m) => m.slot === slot)?.id;
-  // the open pick, or a replay of the last decided one (its new result replaces the old)
-  const pick = [picks.findLast((s) => !s.winner), l.lobby.beatmapId ? picks.findLast((s) => !!s.winner) : undefined].find(
-    (s) => s && idOf(s.slot) && (!l.lobby.beatmapId || l.lobby.beatmapId === idOf(s.slot)),
-  );
-  if (!pick) return null;
-  const sum = [0, 0];
-  for (const s of scores) {
-    const side = (s.userId && l.members.get(s.userId)) || (s.team === "Red" ? 1 : s.team === "Blue" ? 2 : null);
-    if (side && s.pass !== false) sum[side - 1] += s.score;
-  }
-  if (sum[0] === sum[1]) return null;
-  const winner = sum[0] > sum[1] ? 1 : 2;
-  const r = await setResult(matchId, pick.slot, winner);
-  if (typeof r === "string") return null;
-  return { slot: pick.slot, winner, sum };
-}
+Object.assign(actions, { closeLobby, react });
 
 export function react(matchId: string) {
   const l = g.bgccIrc?.live.get(matchId);
@@ -145,7 +122,7 @@ export async function lobbyView(matchId: string, viewer?: number): Promise<Lobby
     mods: (lb.mods ?? []).map((m) => m.shortMod.toUpperCase()),
     freemod: !!lb.freemod,
     playing: !!lb.playing,
-    chat: l.chat.slice(-100).map((c) => (refs.has(nameKey(c.from)) ? { ...c, ref: true } : c)),
+    chat: l.chat.slice(-CHAT_SHOWN).map((c) => (refs.has(nameKey(c.from)) ? { ...c, ref: true } : c)),
   };
 }
 
@@ -266,12 +243,11 @@ const modArgs = (mod: string) => (MOD_LOBBY[mod] ? [MOD_LOBBY[mod], false] : ["N
 
 
 export async function sendChat(matchId: string, by: number, raw: string) {
-  const hit = await poolMap(matchId, raw.replace(/[\r\n]+/g, " ").trim().slice(0, 300));
+  const hit = await poolMap(matchId, cleanChat(raw));
   if (typeof hit === "string") return hit;
   const text = hit.text;
   if (!text) return "empty" as const;
-  const wait = (lastSent.get(by) ?? 0) + CHAT_GAP - Date.now();
-  if (wait > 0) return "cooldown" as const;
+  if (coolingDown(by)) return "cooldown" as const;
   lastSent.set(by, Date.now());
   const { l, lb } = await lobbyAs(matchId);
   if (l.owner !== by) return "forbidden" as const;
@@ -307,12 +283,9 @@ export async function handOff(matchId: string, referee: string | null) {
   if (!owner) return;
   if ((await staffIds(referee)).includes(owner)) return;
   await db.update(mpLobbies).set({ open: false, closedAt: new Date() }).where(and(eq(mpLobbies.matchId, matchId), eq(mpLobbies.open, true)));
-  const s = g.bgccIrc;
-  const l = s?.live.get(matchId);
+  const l = g.bgccIrc?.live.get(matchId);
   if (l) {
-    l.lobby.removeAllListeners();
-    l.lobby.channel.removeAllListeners("message");
-    s!.live.delete(matchId);
+    retire(l);
     const say = (m: string) => l.lobby.channel.sendMessage(m).catch(() => {});
     void say("The referee changed. This lobby closes in 5 minutes, a new invite is on its way.");
     setTimeout(() => void within(say("!mp close"), 8000), HANDOFF).unref();
@@ -320,8 +293,6 @@ export async function handOff(matchId: string, referee: string | null) {
   console.log(`[bancho] handoff ${matchId} from ${owner}`);
   ping(matchId);
 }
-
-const target = (p: { user: { id: number; ircUsername: string } }) => (p.user.id ? `#${p.user.id}` : ircName(p.user.ircUsername));
 
 async function slotPlayer(matchId: string, by: number, slot: number) {
   const { l, lb } = await lobbyAs(matchId);
@@ -352,29 +323,6 @@ export async function teamSlot(matchId: string, by: number, slot: number, team: 
   if (!p) return "empty" as const;
   const { say, who } = p;
   await say(`!mp team ${who} ${team}`);
-}
-
-export async function swapSlots(l: Live, say: (m: string) => Promise<unknown>, from: number, to: number) {
-  const lb = l.lobby;
-  const me = lb.slots[from];
-  if (!me || to === from) return;
-  const cur = lb.size || lobbySize(getFormat());
-  const there = lb.slots[to];
-  const grow = to + 1 > cur ? to + 1 : 0;
-  if (!there) {
-    if (grow) await say(`!mp size ${grow}`);
-    await say(`!mp move ${target(me)} ${to + 1}`);
-    if (grow) await say(`!mp size ${cur}`);
-    return;
-  }
-  let temp = lobbySize(getFormat());
-  while (temp < 15 && (lb.slots[temp] || temp === from || temp === to)) temp++;
-  const size = Math.max(cur, temp + 1);
-  if (size !== cur) await say(`!mp size ${size}`);
-  await say(`!mp move ${target(me)} ${temp + 1}`);
-  await say(`!mp move ${target(there)} ${from + 1}`);
-  await say(`!mp move ${target(me)} ${to + 1}`);
-  if (size !== cur) await say(`!mp size ${cur}`);
 }
 
 export async function moveSlot(matchId: string, by: number, from: number, to: number) {

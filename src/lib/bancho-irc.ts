@@ -8,14 +8,15 @@ import { matches, mpChat, mpLobbies, users } from "@/db/schema";
 import { getAllTeams } from "@/db/tournament";
 import { getHosts } from "@/db/admin";
 import { getFormat } from "@/db/edition";
-import { getDraft, lobbyTimer, onDraft } from "@/db/drafts";
+import { getDraft, lobbyTimer, onDraft, rulesOf, setResult } from "@/db/drafts";
 import type { DraftView } from "@/lib/draft";
 import { blocked } from "@/lib/chat-filter";
 import { onRelay, relayName, relayOnline, relaySocket } from "@/lib/relay";
 import { alertId, clearWhere, describeMatch, raise } from "@/lib/alerts";
 import { cueAbort, cueCountdown, cueFinish, cuePlay } from "@/lib/overlay-cues";
+import { lobbySize } from "@/lib/format";
 
-import { closeLobby, onFinished, react, swapSlots } from "./bancho";
+import { CHAT_GAP, CHAT_KEEP, chatLine, cleanChat, type ChatLine } from "./lobby-chat";
 import { nameKey, ircName } from "@/lib/names";
 import { staffNames } from "@/lib/staff-names";
 
@@ -41,7 +42,6 @@ export type LobbyView = {
 };
 
 export type Conn = { client: BanchoClient; ready: Promise<unknown> | null; owner: number };
-export type ChatLine = { id?: number; at: number; from: string; text: string; ref?: boolean; local?: boolean; side?: 1 | 2 };
 export type Live = {
   matchId: string;
   owner: number;
@@ -57,8 +57,25 @@ export type Live = {
   active: number;
 };
 export type State = { conns: Map<number, Conn>; live: Map<string, Live>; bus: EventEmitter; restored: boolean };
+type Sync = { last: number; quietUntil: number; timer?: ReturnType<typeof setTimeout> };
+type Keep = { synced: Map<string, Sync>; paceQ: Map<number, { q: Promise<unknown>; last: number }>; lastSent: Map<number, number>; typed: Map<string, number>; playStart: Map<string, number> };
 
-export const g = globalThis as unknown as { bgccIrc?: State };
+export const g = globalThis as unknown as { bgccIrc?: State; bgccIrcKeep?: Keep };
+
+const keep = (g.bgccIrcKeep ??= { synced: new Map(), paceQ: new Map(), lastSent: new Map(), typed: new Map(), playStart: new Map() });
+const { synced, paceQ } = keep;
+export const { lastSent, typed, playStart } = keep;
+
+// bancho.ts fills these on load; it is the only importer of this file, so they are set before any lobby event
+export const actions = {} as { closeLobby: (matchId: string) => Promise<void>; react: (matchId: string) => void };
+
+export function retire(l: Live) {
+  l.lobby.removeAllListeners();
+  l.lobby.channel.removeAllListeners("message");
+  g.bgccIrc?.live.delete(l.matchId);
+}
+
+export const coolingDown = (by: number) => (lastSent.get(by) ?? 0) + CHAT_GAP - Date.now() > 0;
 
 const apiKey = () => process.env.OSU_API_V1_KEY || null;
 
@@ -82,7 +99,7 @@ export function state(): State | null {
       setInterval(sweepIdle, 30_000).unref();
       setInterval(syncIdle, 5_000).unref();
       // events can come from a bgcc6 view with the same match id; lobbies only follow the site edition
-      onDraft((id) => withEdition("site", () => react(id)));
+      onDraft((id) => withEdition("site", () => actions.react(id)));
       onRelay((osuId, up) => withEdition("site", () => (up ? void restoreOwner(osuId) : dropConn(osuId))));
     });
   return g.bgccIrc ?? null;
@@ -105,12 +122,7 @@ function dropConn(owner: number) {
   const c = s?.conns.get(owner);
   if (!c) return;
   s!.conns.delete(owner);
-  for (const l of [...s!.live.values()])
-    if (l.owner === owner) {
-      l.lobby.removeAllListeners();
-      l.lobby.channel.removeAllListeners("message");
-      s!.live.delete(l.matchId);
-    }
+  for (const l of [...s!.live.values()]) if (l.owner === owner) retire(l);
   try {
     c.client.disconnect();
   } catch {}
@@ -254,23 +266,22 @@ export async function membersOf(matchId: string) {
 }
 
 async function history(mpId: number): Promise<ChatLine[]> {
-  const rows = await db.select().from(mpChat).where(eq(mpChat.mpId, mpId)).orderBy(desc(mpChat.id)).limit(150).catch(() => []);
-  return rows.reverse().map((r) => ({ id: r.id, at: r.at.getTime(), from: r.from, text: r.text, ...(r.local ? { local: true } : {}), ...(r.side === 1 || r.side === 2 ? { side: r.side } : {}) }));
+  const rows = await db.select().from(mpChat).where(eq(mpChat.mpId, mpId)).orderBy(desc(mpChat.id)).limit(CHAT_KEEP).catch(() => []);
+  return rows.reverse().map(chatLine);
 }
 
 export async function sayLocal(matchId: string, by: number, raw: string, side: 1 | 2 | null) {
-  const text = raw.replace(/[\r\n]+/g, " ").trim().slice(0, 300);
+  const text = cleanChat(raw);
   if (!text) return "empty" as const;
   if (blocked(text)) return "blocked" as const;
-  const wait = (lastSent.get(by) ?? 0) + CHAT_GAP - Date.now();
-  if (wait > 0) return "cooldown" as const;
+  if (coolingDown(by)) return "cooldown" as const;
   const l = g.bgccIrc?.live.get(matchId);
   if (!l) return "closed" as const;
   lastSent.set(by, Date.now());
   const [u] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, by)).limit(1);
   const line: ChatLine = { at: Date.now(), from: ircName(u?.username ?? String(by)), text, local: true, ...(side ? { side } : {}) };
   l.chat.push(line);
-  if (l.chat.length > 150) l.chat.splice(0, l.chat.length - 150);
+  if (l.chat.length > CHAT_KEEP) l.chat.splice(0, l.chat.length - CHAT_KEEP);
   await db.insert(mpChat).values({ matchId, mpId: l.mpId, at: new Date(line.at), from: line.from, text, local: true, side }).returning({ id: mpChat.id }).then(([row]) => { line.id = row.id; }).catch((e) => console.error("[bancho] chat save", e));
   ping(matchId);
   return "ok" as const;
@@ -312,14 +323,13 @@ const IDLE = 10 * 60_000;
 function sweepIdle() {
   const s = g.bgccIrc;
   if (!s) return;
-  for (const l of s.live.values()) if (!l.lobby.playing && Date.now() - l.active > IDLE) void closeLobby(l.matchId).catch(() => {});
+  for (const l of s.live.values()) if (!l.lobby.playing && Date.now() - l.active > IDLE) void actions.closeLobby(l.matchId).catch(() => {});
 }
 
 const SYNC_GAP = 10_000;
 const SYNC_IDLE = 15_000;
 const NONCED = /^!mp (map|mods|lock|unlock|size|set|clearhost|close|start|timer|aborttimer|abort|settings)\b/;
 const SETTINGS_LINE =/^(Room name:|Beatmap:|Team mode:|Active mods:|Players:|Slot \d+\s)/;
-const synced = new Map<string, { last: number; quietUntil: number; timer?: ReturnType<typeof setTimeout> }>();
 export const syncOf = (matchId: string) => synced.get(matchId) ?? synced.set(matchId, { last: 0, quietUntil: 0 }).get(matchId)!;
 
 // restores and rejoins re-read settings; keep that dump out of the chat
@@ -352,7 +362,6 @@ function syncIdle() {
 }
 
 const CMD_GAP = 750;
-const paceQ = new Map<number, { q: Promise<unknown>; last: number }>();
 
 function pace(channel: unknown, mpId: number) {
   const c = channel as { sendMessage: (m: string) => Promise<unknown>; paced?: boolean };
@@ -403,7 +412,7 @@ export function attach(l: Live) {
       .returning({ id: mpChat.id })
       .then(([row]) => { line.id = row.id; ping(l.matchId); })
       .catch((e) => console.error("[bancho] chat save", e));
-    if (l.chat.length > 150) l.chat.splice(0, l.chat.length - 150);
+    if (l.chat.length > CHAT_KEEP) l.chat.splice(0, l.chat.length - CHAT_KEEP);
     const cmd = msg.message.trim().match(/^!mp\s+(timer|aborttimer)\b\s*(\d+)?/i);
     if (cmd) void timerBy(l.matchId, msg.self, msg.user.ircUsername).then((ok) => (ok ? lobbyTimer(l.matchId, cmd[1].toLowerCase() === "timer" ? Math.min(Number(cmd[2] ?? 30), 3600) || 30 : null) : undefined)).catch((e) => console.error("[bancho] timer", e));
     const play = msg.message.trim().match(/^!mp\s+(start|abort|aborttimer)\b\s*(\d+)?/i);
@@ -452,18 +461,60 @@ export async function markClosed(matchId: string) {
   console.log(`[bancho] closed ${matchId}`);
   const s = g.bgccIrc;
   const l = s?.live.get(matchId);
-  if (l) {
-    l.lobby.removeAllListeners();
-    l.lobby.channel.removeAllListeners("message");
-    s!.live.delete(matchId);
-  }
+  if (l) retire(l);
   await db.update(mpLobbies).set({ open: false, closedAt: new Date() }).where(and(eq(mpLobbies.matchId, matchId), eq(mpLobbies.open, true)));
   clearWhere((a) => a.match?.id === matchId && (a.kind === "ircLost" || a.kind === "helperOffline"));
   ping(matchId);
 }
 
+type ScoreLine = { score: number; pass: boolean; team?: string; userId?: number };
 
-export const lastSent = new Map<number, number>();
-export const typed = new Map<string, number>();
-export const playStart = new Map<string, number>();
-export const CHAT_GAP = 1500;
+async function onFinished(matchId: string, scores: ScoreLine[]) {
+  const l = g.bgccIrc?.live.get(matchId);
+  if (!l) return null;
+  const d = await getDraft(matchId);
+  if (!d) return null;
+  const picks = d.steps.filter((s) => s.kind === "pick" && !s.skip);
+  const { maps } = await rulesOf(matchId, d.stageSlug);
+  const idOf = (slot: string) => maps.find((m) => m.slot === slot)?.id;
+  // the open pick, or a replay of the last decided one (its new result replaces the old)
+  const pick = [picks.findLast((s) => !s.winner), l.lobby.beatmapId ? picks.findLast((s) => !!s.winner) : undefined].find(
+    (s) => s && idOf(s.slot) && (!l.lobby.beatmapId || l.lobby.beatmapId === idOf(s.slot)),
+  );
+  if (!pick) return null;
+  const sum = [0, 0];
+  for (const s of scores) {
+    const side = (s.userId && l.members.get(s.userId)) || (s.team === "Red" ? 1 : s.team === "Blue" ? 2 : null);
+    if (side && s.pass !== false) sum[side - 1] += s.score;
+  }
+  if (sum[0] === sum[1]) return null;
+  const winner = sum[0] > sum[1] ? 1 : 2;
+  const r = await setResult(matchId, pick.slot, winner);
+  if (typeof r === "string") return null;
+  return { slot: pick.slot, winner, sum };
+}
+
+export const target = (p: { user: { id: number; ircUsername: string } }) => (p.user.id ? `#${p.user.id}` : ircName(p.user.ircUsername));
+
+export async function swapSlots(l: Live, say: (m: string) => Promise<unknown>, from: number, to: number) {
+  const lb = l.lobby;
+  const me = lb.slots[from];
+  if (!me || to === from) return;
+  const cur = lb.size || lobbySize(getFormat());
+  const there = lb.slots[to];
+  const grow = to + 1 > cur ? to + 1 : 0;
+  if (!there) {
+    if (grow) await say(`!mp size ${grow}`);
+    await say(`!mp move ${target(me)} ${to + 1}`);
+    if (grow) await say(`!mp size ${cur}`);
+    return;
+  }
+  let temp = lobbySize(getFormat());
+  while (temp < 15 && (lb.slots[temp] || temp === from || temp === to)) temp++;
+  const size = Math.max(cur, temp + 1);
+  if (size !== cur) await say(`!mp size ${size}`);
+  await say(`!mp move ${target(me)} ${temp + 1}`);
+  await say(`!mp move ${target(there)} ${from + 1}`);
+  await say(`!mp move ${target(me)} ${to + 1}`);
+  if (size !== cur) await say(`!mp size ${cur}`);
+}
