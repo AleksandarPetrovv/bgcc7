@@ -1,5 +1,5 @@
 import type { Match } from "./data";
-import { GF, GF_RESET, type Format } from "./format";
+import { GF, GF_RESET, matchNum, type Format } from "./format";
 import { roundName, type Dict } from "./i18n/dict";
 
 /** the fields a lobby, finish or captain can change while a staff form is open */
@@ -12,18 +12,17 @@ const shortRound = (t: Dict, round: string) => {
   return t.roundsShort[round] ?? (losers ? t.losersShort(losers[1]) : roundName(t, round));
 };
 
-export function matchLabel(t: Dict, matches: Match[], id: string) {
+export function matchLabel(f: Format, t: Dict, matches: Match[], id: string) {
   const m = matches.find((x) => x.id === id);
   if (!m) return t.common.tbd;
-  const same = matches.filter((o) => o.round === m.round);
-  const name = roundName(t, m.round);
-  return same.length > 1 ? `${name} #${same.indexOf(m) + 1}` : name;
+  const k = matchNum(f, id);
+  return k ? `${roundName(t, m.round)} #${k}` : roundName(t, m.round);
 }
 
 export function sourceLabel(f: Format, t: Dict, matches: Match[], id: string, slot: 1 | 2) {
   const src = f.feed[id]?.[slot - 1];
   if (!src) return t.common.tbd;
-  const label = matchLabel(t, matches, src.from);
+  const label = matchLabel(f, t, matches, src.from);
   return src.take === "W" ? t.common.winnerOf(label) : t.common.loserOf(label);
 }
 
@@ -39,13 +38,12 @@ export const isLive = (m: Match, now = Date.now()) =>
   (!!m.running || (m.links.length > 0 && !!m.datetime && now - new Date(m.datetime).getTime() < STARTED_WINDOW && now >= new Date(m.datetime).getTime() - 3600_000));
 
 // round labels, longest first; a card takes the first one that fits (Losers Round 2 Match 3 > Losers R2 Match 3 > Losers R2 M3)
-export function cardLabels(t: Dict, matches: Match[], m: Match): string[] {
+export function cardLabels(f: Format, t: Dict, m: Match): string[] {
   if (m.id === GF) return [t.home.grandFinal, t.roundsShort["Grand Finals"]];
   if (m.id === GF_RESET) return [t.home.gfReset, ...t.home.gfResetShort];
-  const same = matches.filter((o) => o.round === m.round);
-  const k = same.findIndex((o) => o.id === m.id) + 1;
+  const k = matchNum(f, m.id);
   const short = shortRound(t, m.round);
-  if (same.length < 2) return [roundName(t, m.round), short];
+  if (!k) return [roundName(t, m.round), short];
   return [`${roundName(t, m.round)} ${t.nav.match} ${k}`, `${short} ${t.nav.match} ${k}`, `${short} ${t.nav.match[0]}${k}`];
 }
 

@@ -12,6 +12,7 @@ import { getPlayerSeeds } from "@/db/seeds";
 import { osuUser } from "@/lib/links";
 import { requireSection } from "@/lib/authz";
 import { MeTag, meP } from "@/components/site/me";
+import { getFormat } from "@/db/edition";
 
 export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
   await requireSection("teams");
@@ -96,7 +97,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
           // the home page's small cards
           <div className="grid grid-cols-1 gap-x-10 gap-y-4 md:grid-cols-2">
             {matches.map((m, n) => (
-              <MatchRow key={m.id} match={m} small label={cardLabels(t, allMatches, m)} delay={0.2 + n * 0.06} />
+              <MatchRow key={m.id} match={m} small label={cardLabels(getFormat(), t, m)} delay={0.2 + n * 0.06} />
             ))}
           </div>
         ) : (

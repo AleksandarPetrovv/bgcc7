@@ -45,6 +45,7 @@ import { currentEdition, isBGCC6 } from "@/db";
 import { localeOf } from "@/lib/i18n/locale";
 import { MODS } from "@/lib/mods";
 import { editionNumber, isBracketStage } from "@/lib/format";
+import { getFormat } from "@/db/edition";
 
 const INK: Record<string, number> = { "6": 0.15, "7": 0.22 };
 
@@ -268,7 +269,7 @@ export default async function Home() {
   // top 3 by match cost: the whole tournament, then every round with results
   const played = cur && see("stats") ? (await Promise.all(released.map(async (s) => ({ s, costs: (await getStageStats(bySkill(s, skills?.[s.slug]), matches, teams, stages)).costs })))).filter((x) => x.costs.length) : [];
   const top = played.length ? [{ name: t.home.total, top: mergeCosts(played.map((x) => x.costs)).slice(0, 3) }, ...played.map((x) => ({ name: roundName(t, x.s.title), top: x.costs.slice(0, 3) }))] : undefined;
-  const label = (m: Match) => cardLabels(t, matches, m);
+  const label = (m: Match) => cardLabels(getFormat(), t, m);
 
   return (
     <>

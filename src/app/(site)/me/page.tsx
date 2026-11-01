@@ -309,7 +309,7 @@ export default async function Me() {
         // the home page's small cards, newest on top
         <div className="mx-auto flex max-w-2xl flex-col gap-4">
           {played.toReversed().map((m, n) => (
-            <MatchRow key={m.id} match={m} small label={cardLabels(t, matches, m)} delay={0.3 + n * 0.08} />
+            <MatchRow key={m.id} match={m} small label={cardLabels(ff, t, m)} delay={0.3 + n * 0.08} />
           ))}
         </div>
       )}

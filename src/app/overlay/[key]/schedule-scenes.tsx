@@ -19,13 +19,13 @@ function useFresh() {
 
 function Column({ title, list }: { title: string; list: Match[] }) {
   const t = useDict();
-  const { matches } = useTournament();
+  const { format: f } = useTournament();
   return (
     <section className="flex min-w-0 flex-col">
       <h2 className="heading-slam border-b border-line pb-3 text-[30px]">{title}</h2>
       <div className="mt-5 flex flex-col gap-3">
         {list.map((m, i) => (
-          <MatchRow key={m.id} match={m} small plain label={cardLabels(t, matches, m)} live={m.running ? null : undefined} delay={0.2 + i * 0.06} />
+          <MatchRow key={m.id} match={m} small plain label={cardLabels(f, t, m)} live={m.running ? null : undefined} delay={0.2 + i * 0.06} />
         ))}
       </div>
     </section>
