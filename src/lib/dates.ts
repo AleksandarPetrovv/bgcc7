@@ -1,4 +1,6 @@
-import { playerCount, versus, type Format } from "./format";
+import { bestOf, playerCount, versus, type Format } from "./format";
+import { DEADLINE, MATCH_FROM, MATCH_TO, pointLabel } from "./schedule";
+import { phaseKey } from "./sections";
 import { dayDate, fmtDate, sofiaDate, tzLabel } from "./time";
 
 export type TimelineRow = { key: string; from: string | null; to: string | null };
@@ -48,7 +50,10 @@ export function buildTokens(opts: {
   tokens.teams2m = String(2 * n - 1);
   tokens.teams2p = String(2 * n + 1);
   tokens.teams2p2 = String(2 * n + 2);
-  for (const [slug, ft] of Object.entries(firstTo)) if (ft) tokens[`bo.${slug}`] = String(ft * 2 - 1);
+  tokens.matchFrom = pointLabel(locale, MATCH_FROM);
+  tokens.matchTo = pointLabel(locale, MATCH_TO);
+  tokens.deadline = pointLabel(locale, DEADLINE);
+  for (const [slug, ft] of Object.entries(firstTo)) if (ft) tokens[`bo.${slug}`] = String(bestOf(ft));
   const bg = locale.startsWith("bg");
   for (const [slug, n] of Object.entries(opts.bans ?? {})) tokens[`bans.${slug}`] = `${n} ${bg ? (n === 1 ? "бан" : "бана") : n === 1 ? "ban" : "bans"}`;
   const fm = opts.format;
@@ -65,10 +70,8 @@ export function buildTokens(opts: {
   return tokens;
 }
 
-const PHASE_KEY: Record<string, string> = { registration: "reg", screening: "scr", qualifiers: "qual", seeding: "seed", playoffs: "play", finished: "done" };
-
 export function phaseStates(rows: TimelineRow[], phase: string): TimelineState[] {
-  const at = rows.findIndex((r) => r.key === PHASE_KEY[phase]);
+  const at = rows.findIndex((r) => r.key === phaseKey(phase));
   if (at < 0) return timelineStates(rows);
   return rows.map((_, i) => (i < at ? "done" : i === at ? "now" : "next"));
 }

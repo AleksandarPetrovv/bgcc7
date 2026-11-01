@@ -16,6 +16,7 @@ import { osuUser } from "@/lib/links";
 import { roundName } from "@/lib/i18n/dict";
 import { MOD_COLOR } from "@/lib/mods";
 import { MEDAL } from "@/lib/theme";
+import { DEFAULT_SETTINGS } from "@/db/settings";
 
 export type FolkProps = {
   t: Dict;
@@ -28,6 +29,7 @@ export type FolkProps = {
   weeks?: Record<string, string | null>;
   hosts?: { osuId: number; username: string; avatarUrl: string | null; roles: string[] }[];
   timer?: number;
+  timeout?: number;
 };
 
 // every visible text starts typing at the same moment, the boxes around it arrive one by one
@@ -95,7 +97,9 @@ function Ledger({ path, items, p, plain, locked = [] }: { path: string; items: s
     <ul className="divide-y divide-paper/10">
       {items.map((item, i) => {
         const lock = locked.includes(i);
-        const text = lock ? item.replace("%timer%", String(p.timer ?? 90)) : p.raw(`${path}.${i}`, item);
+        const text = lock
+          ? item.replace("%timer%", String(p.timer ?? DEFAULT_SETTINGS.banSecs)).replace("%timeout%", p.t.info.timeoutLen(p.timeout ?? DEFAULT_SETTINGS.timeoutSecs))
+          : p.raw(`${path}.${i}`, item);
         return (
           <li key={i} className="flex gap-3.5 py-2.5 text-[0.97rem] leading-relaxed text-paper/75 first:pt-0 last:pb-0">
             <Stitch />
@@ -312,7 +316,7 @@ export function InfoFolk(p: FolkProps) {
           <Title>
             <E p={p} path="info.procedure" value={t.info.procedure} fill={false} />
           </Title>
-          <Ledger path="info.procItems" items={t.info.procItems} p={p} plain locked={[3]} />
+          <Ledger path="info.procItems" items={t.info.procItems} p={p} plain locked={[3, 4]} />
         </Tile>
       </Sheet>
     </div>

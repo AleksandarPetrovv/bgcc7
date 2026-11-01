@@ -38,6 +38,9 @@ export const PRESETS: Record<Phase, Section[]> = {
 export const presetSections = (p: Phase) => Object.fromEntries(SECTIONS.map((s) => [s, PRESETS[p].includes(s)])) as Record<Section, boolean>;
 
 export const TIMELINE_KEYS = ["reg", "scr", "qual", "seed", "play", "done"] as const;
+/** a phase and its timeline row share their position in PHASES / TIMELINE_KEYS */
+export const phaseKey = (p: string): string | undefined => TIMELINE_KEYS[PHASES.indexOf(p as Phase)];
+export const keyPhase = (k: string): Phase | undefined => PHASES[TIMELINE_KEYS.indexOf(k as (typeof TIMELINE_KEYS)[number])];
 
 export const DEFAULT_TIMELINE = [
   { key: "reg", from: "2027-08-16", to: "2027-09-05" },
