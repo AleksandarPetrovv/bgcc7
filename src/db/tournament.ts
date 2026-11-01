@@ -5,7 +5,7 @@ import { db } from "./index";
 import { drafts, matches, mpLobbies, sponsors, teamMembers, teams, users } from "./schema";
 import { safe } from "./safe";
 import type { Match, Player, Sponsor, Team } from "@/lib/data";
-import { optImg } from "@/lib/img";
+import { teamImg } from "@/lib/img";
 import { isTestTeam, TEST_MATCH } from "@/lib/format";
 import { avatarCol } from "./avatar";
 import { avatarPath } from "@/lib/avatar";
@@ -53,7 +53,7 @@ export const getAllTeams = cache(() =>
       return {
         id: t.id,
         name: t.name,
-        image: t.image && /s-ul\.eu\//.test(t.image) ? `/api/img?u=${encodeURIComponent(t.image)}&f=${encodeURIComponent(players[0]?.avatar ?? "")}` : optImg(t.image || players[0]?.avatar || ""),
+        image: teamImg(t.image, players[0]?.avatar),
         rawImage: t.image || players[0]?.avatar || "",
         players,
         avgRank: ranked.length ? Math.round(ranked.reduce((n, p) => n + p.rank, 0) / ranked.length) : 0,
