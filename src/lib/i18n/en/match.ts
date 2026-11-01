@@ -1,3 +1,5 @@
+import { SCORES_STALE_AFTER } from "@/lib/format";
+
 export const match = {
   lobby: {
     title: "Lobby",
@@ -148,7 +150,7 @@ export const match = {
     },
     scoresStale: {
       title: "Scores aren't updating",
-      means: "The site hasn't been able to load this match's scores from osu! for over 2 minutes.",
+      means: `The site hasn't been able to load this match's scores from osu! for over ${SCORES_STALE_AFTER / 60_000} minutes.`,
       steps: ["Check the mp link on the match is right.", "osu! may be having API problems. Scores catch up on their own once it works again."],
       button: "Open match admin",
     },

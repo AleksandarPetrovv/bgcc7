@@ -1,3 +1,5 @@
+import { LINK_TTL } from "@/lib/format";
+
 export const adminSetup = {
   title: "Admin",
   menu: {
@@ -112,7 +114,7 @@ export const adminSetup = {
     linkTitle: "Link the app",
     linkCode: "Code from the app",
     wrongCode: "Wrong or expired code.",
-    locked: "Too many wrong codes. Try again in 10 minutes.",
+    locked: `Too many wrong codes. Try again in ${LINK_TTL / 60_000} minutes.`,
     status: "Status",
     online: "App running and connected",
     offline: "App not running",

@@ -14,7 +14,7 @@ import { setQualify, setRounds } from "./(bgcc6)/actions";
 import { PickemsToggle } from "./pickems-toggle";
 import { isBGCC6 } from "@/db";
 import { cssVars } from "@/lib/utils";
-import { isBracketStage } from "@/lib/format";
+import { bestOf, isBracketStage } from "@/lib/format";
 
 
 export default async function AdminSettings() {
@@ -85,7 +85,7 @@ export default async function AdminSettings() {
                         <span className="block text-sm font-display font-bold">{roundName(t, st.title)}</span>
                         <span className="block truncate text-xs text-ash">{usedBy(st.slug).join(" · ") || "—"}</span>
                       </span>
-                      <span className="hidden text-xs font-display font-bold text-ash sm:block">{t.admin.set.bestOf(ft * 2 - 1)}</span>
+                      <span className="hidden text-xs font-display font-bold text-ash sm:block">{t.admin.set.bestOf(bestOf(ft))}</span>
                       <span className="flex items-center gap-2 text-xs font-display font-bold text-ash">
                         {t.admin.set.firstTo}
                         <Field type="number" name={`ft.${st.id}`} min={1} max={20} defaultValue={ft} className={`${inputCls} num w-20 text-center text-lg`} />

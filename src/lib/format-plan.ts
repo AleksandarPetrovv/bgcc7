@@ -1,4 +1,5 @@
 import { DEFAULT_CATALOG, DEFAULT_ROUNDS } from "./format-defaults";
+import { bestOf } from "./format";
 import { LONG_MOD, MOD_COLOR } from "./mods";
 
 export const PLAN_MODS = ["NM", "HD", "HR", "DT"] as const;
@@ -47,7 +48,7 @@ export function roundStats(r: PlanRound) {
   const pickable = all.length;
   const picks = 2 * (r.firstTo - 1);
   const open = Math.max(0, pickable - 2 * r.bans);
-  return { tally, pickable, maps: pickable + 1, picks, open, bestOf: 2 * r.firstTo - 1, ratio: open ? picks / open : 0 };
+  return { tally, pickable, maps: pickable + 1, picks, open, bestOf: bestOf(r.firstTo), ratio: open ? picks / open : 0 };
 }
 
 const int = (v: unknown, lo: number, hi: number, d: number) => (typeof v === "number" && Number.isInteger(v) ? Math.min(hi, Math.max(lo, v)) : d);

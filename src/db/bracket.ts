@@ -5,6 +5,7 @@ import { drafts, matches, mpLobbies } from "./schema";
 import { getFormat } from "./edition";
 import { staffOverride } from "./schedule";
 import { alertId, clear, describeMatch, raise } from "@/lib/alerts";
+import { GF, GF_RESET } from "@/lib/format";
 
 type Q = Pick<typeof db, "select" | "update">;
 
@@ -37,7 +38,7 @@ export async function advance(q: Q = db) {
     const feed = f.feed[r.id];
     if (!feed || r.manual) continue;
     // the reset final only exists when the lower bracket side (team2) wins the grand final
-    const noReset = r.id === "grand-final-reset" && byId.get("grand-final")?.winner === 1;
+    const noReset = r.id === GF_RESET && byId.get(GF)?.winner === 1;
     const team1Id = noReset ? null : result(feed[0].from, feed[0].take);
     const team2Id = noReset ? null : result(feed[1].from, feed[1].take);
     if (team1Id === r.team1Id && team2Id === r.team2Id) continue;

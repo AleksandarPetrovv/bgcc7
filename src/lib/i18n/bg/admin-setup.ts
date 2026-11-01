@@ -1,4 +1,5 @@
 import type { adminSetup as en } from "../en/admin-setup";
+import { LINK_TTL } from "@/lib/format";
 
 export const adminSetup: typeof en = {
   title: "Админ",
@@ -114,7 +115,7 @@ export const adminSetup: typeof en = {
     linkTitle: "Свържи приложението",
     linkCode: "Кодът от приложението",
     wrongCode: "Грешен или изтекъл код.",
-    locked: "Твърде много грешни кодове. Опитай пак след 10 минути.",
+    locked: `Твърде много грешни кодове. Опитай пак след ${LINK_TTL / 60_000} минути.`,
     status: "Статус",
     online: "Приложението работи и е свързано",
     offline: "Приложението не работи",

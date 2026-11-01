@@ -11,6 +11,7 @@ import { alertId, clear, describeMatch, failingFor, raise } from "@/lib/alerts";
 import { staffIds } from "./users";
 import { decideWinner } from "@/lib/result";
 import { within } from "@/lib/utils";
+import { SCORES_STALE_AFTER } from "@/lib/format";
 
 const LIVE_TTL = 30_000;
 // on globalThis so dev reloads and every route bundle share one cache
@@ -42,7 +43,6 @@ export async function forgetScoreboard(matchId: string) {
   await db.delete(matchCache).where(eq(matchCache.matchId, matchId));
 }
 
-const STALE_AFTER = 2 * 60_000;
 
 export async function getScoreboard(match: Match, teams: Team[], stages: PoolStage[]): Promise<Scoreboard | null> {
   if (!match.links.length) return null;
@@ -79,7 +79,7 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
     return data;
   } catch (e) {
     console.error("[match]", match.id, e);
-    if (isLive(match) && failingFor(staleId, STALE_AFTER)) {
+    if (isLive(match) && failingFor(staleId, SCORES_STALE_AFTER)) {
       const info = await describeMatch(match.id);
       raise({ id: staleId, kind: "scoresStale", level: "gold", match: info, href: `/admin/matches/${info.slug}`, detail: e instanceof Error ? e.message : String(e) }, { hosts: true, osuIds: await staffIds(match.referee) });
     }

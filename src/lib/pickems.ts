@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Match } from "@/lib/data";
-import { roundOf, type Format } from "@/lib/format";
+import { GF, GF_RESET, roundOf, type Format } from "@/lib/format";
 
 const pointsFor = (f: Format, id: string) => f.points[roundOf(id)] ?? 0;
 
@@ -30,12 +30,12 @@ export function resolve(f: Format, picks: Picks, seeded: Seeding) {
   for (const id of f.order) {
     slots[id] = seeded[id] ? [seeded[id][0], seeded[id][1]] : [result(f.feed[id][0].from, f.feed[id][0].take), result(f.feed[id][1].from, f.feed[id][1].take)];
     const [a, b] = slots[id];
-    const live = a && b && (id !== "grand-final-reset" || clean["grand-final"] === slots["grand-final"][1]);
+    const live = a && b && (id !== GF_RESET || clean[GF] === slots[GF][1]);
     if (live && picks[id] && (picks[id] === a || picks[id] === b)) clean[id] = picks[id];
   }
-  const resetLive = !!clean["grand-final"] && clean["grand-final"] === slots["grand-final"][1];
+  const resetLive = !!clean[GF] && clean[GF] === slots[GF][1];
   const total = f.order.length - (resetLive ? 0 : 1);
-  const champion = resetLive ? (clean["grand-final-reset"] ?? null) : (clean["grand-final"] ?? null);
+  const champion = resetLive ? (clean[GF_RESET] ?? null) : (clean[GF] ?? null);
   return { slots, picks: clean, total, resetLive, champion };
 }
 

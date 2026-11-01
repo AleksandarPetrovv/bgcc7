@@ -7,6 +7,7 @@ import { db, withEdition } from "@/db";
 import { mpLobbies, refApps, users } from "@/db/schema";
 import { alertId, alertsFor, clearWhere, describeMatch, onAlerts, raise } from "./alerts";
 import { nameKey, ircName } from "@/lib/names";
+import { LINK_TTL } from "@/lib/format";
 
 export type RelayMsg = { t: "open" } | { t: "line"; l: string } | { t: "close" };
 export type RelayEv = { t: "opened" } | { t: "line"; l: string } | { t: "closed"; why?: string };
@@ -62,7 +63,6 @@ export const validState = (st: string) => /^[A-Za-z0-9_-]{32,64}$/.test(st);
 
 // pairing: the helper asks for a short code, the staff member types it on the site. no link carries the state,
 // so nobody can send a ready-made "click to link" url. the secret state never leaves the helper except to us
-const LINK_TTL = 10 * 60_000;
 const MAX_PENDING = 2000;
 const MAX_FAILS = 5;
 type Pending = { state: string; code: string; exp: number };

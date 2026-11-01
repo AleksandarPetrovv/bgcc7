@@ -1,4 +1,5 @@
 import type { match as en } from "../en/match";
+import { SCORES_STALE_AFTER } from "@/lib/format";
 
 export const match: typeof en = {
   lobby: {
@@ -150,7 +151,7 @@ export const match: typeof en = {
     },
     scoresStale: {
       title: "Резултатите не се обновяват",
-      means: "Сайтът не успява да зареди резултатите на този мач от osu! от повече от 2 минути.",
+      means: `Сайтът не успява да зареди резултатите на този мач от osu! от повече от ${SCORES_STALE_AFTER / 60_000} минути.`,
       steps: ["Провери дали mp линкът на мача е правилен.", "osu! може да има проблеми с API. Резултатите ще се обновят сами, когато то заработи отново."],
       button: "Отвори мача в админ панела",
     },

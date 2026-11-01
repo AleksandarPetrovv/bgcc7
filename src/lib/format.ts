@@ -223,6 +223,13 @@ export const FORMATS: Record<Edition, Format> = { bgcc6: formatBGCC6, bgcc7: FOR
 
 export const GF = "grand-final";
 export const GF_RESET = "grand-final-reset";
+/** a team is out after this many losses (double elimination) */
+export const KO_LOSSES = 2;
+export const bestOf = (firstTo: number) => 2 * firstTo - 1;
+/** live scores count as stale after failing to load for this long */
+export const SCORES_STALE_AFTER = 2 * 60_000;
+/** helper pairing codes expire after this, and too many wrong codes lock linking for as long */
+export const LINK_TTL = 10 * 60_000;
 
 const ROUNDS = new Set(Object.values(FORMATS).flatMap((f) => Object.keys(f.rounds)));
 export const roundOf = (matchId: string) => (ROUNDS.has(matchId) ? matchId : matchId.replace(/-\d+$/, ""));
