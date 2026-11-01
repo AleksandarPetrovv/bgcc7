@@ -1,7 +1,7 @@
 import "server-only";
 import { asc, eq, inArray, sql } from "drizzle-orm";
 import { currentEdition, db } from "./index";
-import { drafts, matches, mpLobbies, staff, userNames, users } from "./schema";
+import { matches, staff, userNames, users } from "./schema";
 import { getAllMatches } from "./tournament";
 import { nameKey } from "@/lib/names";
 import { isScene, type Scene } from "@/lib/scenes";
@@ -42,12 +42,7 @@ export async function currentStreamMatch(osuId: number) {
     return null;
   }
   const pending = list.filter((m) => m.winner === null).sort((a, b) => (a.datetime ? Date.parse(a.datetime) : Infinity) - (b.datetime ? Date.parse(b.datetime) : Infinity));
-  const ids = pending.map((m) => m.id);
-  const [openDrafts, openLobbies] = ids.length ? await Promise.all([
-    db.select({ id: drafts.matchId, open: drafts.open }).from(drafts).where(inArray(drafts.matchId, ids)),
-    db.select({ id: mpLobbies.matchId, open: mpLobbies.open }).from(mpLobbies).where(inArray(mpLobbies.matchId, ids)),
-  ]) : [[], []];
-  const activeIds = new Set([...openDrafts, ...openLobbies].filter((m) => m.open).map((m) => m.id));
+  const activeIds = new Set(pending.filter((m) => m.running).map((m) => m.id));
   const active = pending.find((m) => activeIds.has(m.id));
   const current = list.find((m) => m.id === focus().get(key));
   // keep the final map and winner on stream until the next match actually opens.
