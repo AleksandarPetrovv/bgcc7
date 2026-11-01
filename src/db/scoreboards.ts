@@ -13,7 +13,9 @@ import { decideWinner } from "@/lib/result";
 import { within } from "@/lib/utils";
 
 const LIVE_TTL = 30_000;
-const live = new Map<string, { at: number; data: Scoreboard }>();
+// on globalThis so dev reloads and every route bundle share one cache
+const g = globalThis as unknown as { bgccLiveBoards?: Map<string, { at: number; data: Scoreboard }> };
+const live = (g.bgccLiveBoards ??= new Map());
 
 async function stored(id: string, links: string) {
   try {
