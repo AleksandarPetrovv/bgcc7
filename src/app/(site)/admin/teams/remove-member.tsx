@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { motion } from "motion/react";
 import { Crown } from "lucide-react";
 import { Btn, ErrorNote } from "@/components/admin/form";
-import { Modal } from "@/components/site/modal";
+import { Popup } from "@/components/site/popup";
 import { useDict } from "@/components/site/lang";
 import { SlantBg } from "@/components/site/slant";
 import { removeMember } from "./actions";
@@ -34,7 +34,7 @@ export function RemoveMember({ osuId, captain, mates }: { osuId: number; captain
         {pending ? t.admin.saving : t.admin.remove}
       </Btn>
       {fail && !pending && <ErrorNote />}
-      <Modal open={open} onClose={() => !pending && setOpen(false)} tone="gold" className="max-w-sm">
+      <Popup open={open} onClose={() => !pending && setOpen(false)} tone="gold" shadow={6} className="max-w-sm p-5 sm:p-6">
         <Crown className="size-7 fill-current text-gold-hi" />
         <h3 className="heading-slam mt-2 text-2xl">{t.admin.heirTitle}</h3>
         <p className="mt-1 text-sm text-ash">{t.admin.heirText}</p>
@@ -58,7 +58,7 @@ export function RemoveMember({ osuId, captain, mates }: { osuId: number; captain
           ))}
         </div>
         {fail && !pending && <p className="mt-3"><ErrorNote /></p>}
-      </Modal>
+      </Popup>
     </>
   );
 }

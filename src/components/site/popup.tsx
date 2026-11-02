@@ -1,0 +1,79 @@
+"use client";
+
+import { useState } from "react";
+import { Dialog } from "@base-ui/react/dialog";
+import { X } from "lucide-react";
+import { useDict } from "./lang";
+import { cn } from "@/lib/utils";
+
+export type PopupTone = "rose" | "gold" | "balkan" | "line" | { c: string; deep: string };
+
+const TONES = {
+  rose: { c: "var(--rose)", deep: "var(--rose-deep)" },
+  gold: { c: "var(--gold)", deep: "var(--gold-deep)" },
+  balkan: { c: "var(--balkan)", deep: "var(--balkan-deep)" },
+  line: { c: "var(--line)", deep: "transparent" },
+};
+
+/**
+ * the one centred popup: backdrop, house chrome (tone border + offset shadow), the dialog entrance.
+ * no `onClose` = forced choice (Escape, backdrop and X do nothing).
+ * `closeButton={false}` keeps Escape/backdrop dismissal but draws no X.
+ * `open` omitted = open while mounted; a user close then plays the exit before calling `onClose`.
+ */
+export function Popup({
+  open,
+  onClose,
+  tone = "rose",
+  shadow = 8,
+  className,
+  style,
+  label,
+  closeButton = true,
+  children,
+}: {
+  open?: boolean;
+  onClose?: () => void;
+  tone?: PopupTone;
+  shadow?: number;
+  className?: string;
+  style?: React.CSSProperties;
+  label?: string;
+  closeButton?: boolean;
+  children: React.ReactNode;
+}) {
+  const t = useDict();
+  const [closing, setClosing] = useState(false);
+  const shown = (open ?? true) && !closing;
+  const c = typeof tone === "string" ? TONES[tone] : tone;
+  const close = () => (open === undefined ? setClosing(true) : onClose?.());
+  return (
+    <Dialog.Root
+      open={shown}
+      disablePointerDismissal={!onClose}
+      onOpenChange={(next) => !next && onClose && close()}
+      onOpenChangeComplete={(next) => !next && closing && onClose?.()}
+    >
+      <Dialog.Portal>
+        <Dialog.Backdrop className="pop-backdrop fixed inset-0 z-50 bg-black/55 backdrop-blur-sm transition-opacity duration-200 ease-out data-[starting-style]:opacity-0 data-[ending-style]:opacity-0" />
+        <Dialog.Popup
+          aria-label={label}
+          className={cn(
+            "mdlg fixed left-1/2 top-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto border-2 bg-coal p-6 outline-none",
+            className,
+          )}
+          style={{ borderColor: c.c, boxShadow: `${shadow}px ${shadow}px 0 0 ${c.deep}`, ...style }}
+        >
+          {children}
+          {onClose && closeButton && (
+            <Dialog.Close aria-label={t.draft.close} className="absolute right-2 top-2 z-10 p-2 text-ash transition-colors hover:text-paper">
+              <X className="size-4" />
+            </Dialog.Close>
+          )}
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
+export const PopupTitle = Dialog.Title;

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ExternalLink, Eye } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popup, PopupTitle } from "./popup";
 import { useDict, useLang } from "./lang";
 import { fmtSofia } from "@/lib/time";
 import { fmtNum, type Match } from "@/lib/data";
@@ -272,89 +272,89 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
 
   return (
     <>
-      <Dialog open={open} onOpenChange={(next) => (next ? !busy && load() : setOpen(false))}>
-        <DialogTrigger
-          aria-label={t.match.details}
-          title={t.match.details}
-          className={
-            children
-              ? className
-              : cn(
-                  "group flex shrink-0 items-center justify-center",
-                  compact ? "-mr-1 h-6" : "px-2 hover:bg-slate sm:px-3",
-                )
-          }
-        >
-          {children ?? <DetailsChip />}
-        </DialogTrigger>
-        <DialogContent className="mdlg max-h-[88dvh] grid-cols-[minmax(0,1fr)] content-start gap-0 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [--px:0.75rem] sm:[--px:1.25rem] [touch-action:pan-y] rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
-          {/* -top-px + the upward shadow close the sliver that let scrolled maps peek above the header */}
-          <div className="sticky -top-px z-10 min-w-0 border-b border-line bg-ink py-3 pl-(--px) pr-[calc(var(--px)+var(--sbw,0px))] shadow-[0_-8px_0_0_var(--ink)] sm:py-4">
-            <DialogTitle className="in-wipe pr-8 text-xs font-display font-bold text-rose-hi" style={cssVars({ "--d": "0.1s" })}>
-              {roundName(t, match.round)}
-            </DialogTitle>
-            {/* min-content on phones lets the date wrap so team names don't break mid-word */}
-            <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_min-content_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-4">
-              {teams.map((team, i) => (
-                <div
-                  key={i}
-                  className={cn("flex min-w-0 items-center gap-2 sm:gap-3", i === 1 ? "in-right order-3 flex-row-reverse text-right" : "in-left")}
-                  style={cssVars({ "--d": "0.12s" })}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {team && <img src={team.image} alt="" className={cn("size-8 shrink-0 border-b-[3px] object-cover sm:size-12", i ? "border-azure" : "border-crimson")} />}
-                  <span className={cn("line-clamp-2 min-w-0 break-words text-xs font-display font-black leading-tight sm:text-lg", match.winner && match.winner !== i + 1 && "text-ash")}>
-                    {names[i]}
-                  </span>
-                </div>
-              ))}
-              <span className="in-slam order-2 flex flex-col items-center gap-1.5" style={cssVars({ "--d": "0.25s" })}>
-                <span className="num whitespace-nowrap text-2xl leading-none sm:text-4xl">
-                  <span className={match.winner === 2 ? "text-ash" : "text-paper"}>{score[0]}</span>
-                  <span className="mx-2 text-ash sm:mx-3">–</span>
-                  <span className={match.winner === 1 ? "text-ash" : "text-paper"}>{score[1]}</span>
+      <button
+        type="button"
+        onClick={() => !busy && load()}
+        aria-label={t.match.details}
+        title={t.match.details}
+        className={
+          children
+            ? className
+            : cn(
+                "group flex shrink-0 items-center justify-center",
+                compact ? "-mr-1 h-6" : "px-2 hover:bg-slate sm:px-3",
+              )
+        }
+      >
+        {children ?? <DetailsChip />}
+      </button>
+      <Popup open={open} onClose={() => setOpen(false)} tone="line" shadow={0} className="grid w-full max-w-[calc(100%-2rem)] text-sm max-h-[88dvh] grid-cols-[minmax(0,1fr)] content-start gap-0 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [--px:0.75rem] sm:[--px:1.25rem] [touch-action:pan-y] rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
+        {/* -top-px + the upward shadow close the sliver that let scrolled maps peek above the header */}
+        <div className="sticky -top-px z-10 min-w-0 border-b border-line bg-ink py-3 pl-(--px) pr-[calc(var(--px)+var(--sbw,0px))] shadow-[0_-8px_0_0_var(--ink)] sm:py-4">
+          <PopupTitle className="in-wipe pr-8 text-xs font-display font-bold text-rose-hi" style={cssVars({ "--d": "0.1s" })}>
+            {roundName(t, match.round)}
+          </PopupTitle>
+          {/* min-content on phones lets the date wrap so team names don't break mid-word */}
+          <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_min-content_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-4">
+            {teams.map((team, i) => (
+              <div
+                key={i}
+                className={cn("flex min-w-0 items-center gap-2 sm:gap-3", i === 1 ? "in-right order-3 flex-row-reverse text-right" : "in-left")}
+                style={cssVars({ "--d": "0.12s" })}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {team && <img src={team.image} alt="" className={cn("size-8 shrink-0 border-b-[3px] object-cover sm:size-12", i ? "border-azure" : "border-crimson")} />}
+                <span className={cn("line-clamp-2 min-w-0 break-words text-xs font-display font-black leading-tight sm:text-lg", match.winner && match.winner !== i + 1 && "text-ash")}>
+                  {names[i]}
                 </span>
-                {when && <span className="num text-center text-[0.7rem] italic leading-tight sm:whitespace-nowrap sm:leading-none text-paper/70 sm:text-[0.8rem]">{when}</span>}
-              </span>
-            </div>
-            {match.links.length > 0 && (
-              <div className="mt-2.5 flex flex-wrap gap-2">
-                {match.links.map((id, i) => (
-                  <a
-                    key={id}
-                    href={osuMatch(id)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 border border-line px-2 py-1 text-[0.7rem] font-display font-bold text-ash transition hover:border-paper/40 hover:text-paper"
-                  >
-                    {match.links.length > 1 ? t.match.lobby(i + 1) : "osu! mp"} <ExternalLink className="size-3" />
-                  </a>
-                ))}
               </div>
-            )}
+            ))}
+            <span className="in-slam order-2 flex flex-col items-center gap-1.5" style={cssVars({ "--d": "0.25s" })}>
+              <span className="num whitespace-nowrap text-2xl leading-none sm:text-4xl">
+                <span className={match.winner === 2 ? "text-ash" : "text-paper"}>{score[0]}</span>
+                <span className="mx-2 text-ash sm:mx-3">–</span>
+                <span className={match.winner === 1 ? "text-ash" : "text-paper"}>{score[1]}</span>
+              </span>
+              {when && <span className="num text-center text-[0.7rem] italic leading-tight sm:whitespace-nowrap sm:leading-none text-paper/70 sm:text-[0.8rem]">{when}</span>}
+            </span>
           </div>
-          {data === null ? (
-            <div className={`space-y-4 py-3 pl-(--px) pr-[calc(var(--px)+var(--sbw,0px))] sm:py-5`} aria-busy>
-              {[0, 1, 2].map((k) => (
-                <div key={k} className="in-up relative h-40 overflow-hidden border-b border-line" style={cssVars({ "--i": k, "--s": "0.1s" })}>
-                  <span className="mdlg-shine absolute inset-0" style={{ animationDelay: `${k * 0.15}s` }} />
-                  <span className="absolute left-3.5 top-3 h-6 w-12 -skew-x-12 bg-slate" />
-                  <span className="absolute left-20 top-3.5 h-3 w-1/2 bg-slate" />
-                  <span className="absolute inset-x-3.5 top-16 flex h-1 gap-0.5">
-                    <span className="w-1/2 bg-rose/30" />
-                    <span className="flex-1 bg-azure/30" />
-                  </span>
-                </div>
+          {match.links.length > 0 && (
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              {match.links.map((id, i) => (
+                <a
+                  key={id}
+                  href={osuMatch(id)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 border border-line px-2 py-1 text-[0.7rem] font-display font-bold text-ash transition hover:border-paper/40 hover:text-paper"
+                >
+                  {match.links.length > 1 ? t.match.lobby(i + 1) : "osu! mp"} <ExternalLink className="size-3" />
+                </a>
               ))}
             </div>
-          ) : data === "error" ? (
-            <p className="p-10 text-center text-sm text-rose-hi">{t.match.error}</p>
-          ) : (
-            <Board match={match} data={data} names={names} />
           )}
-          <ScrollThumb />
-        </DialogContent>
-      </Dialog>
+        </div>
+        {data === null ? (
+          <div className={`space-y-4 py-3 pl-(--px) pr-[calc(var(--px)+var(--sbw,0px))] sm:py-5`} aria-busy>
+            {[0, 1, 2].map((k) => (
+              <div key={k} className="in-up relative h-40 overflow-hidden border-b border-line" style={cssVars({ "--i": k, "--s": "0.1s" })}>
+                <span className="mdlg-shine absolute inset-0" style={{ animationDelay: `${k * 0.15}s` }} />
+                <span className="absolute left-3.5 top-3 h-6 w-12 -skew-x-12 bg-slate" />
+                <span className="absolute left-20 top-3.5 h-3 w-1/2 bg-slate" />
+                <span className="absolute inset-x-3.5 top-16 flex h-1 gap-0.5">
+                  <span className="w-1/2 bg-rose/30" />
+                  <span className="flex-1 bg-azure/30" />
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : data === "error" ? (
+          <p className="p-10 text-center text-sm text-rose-hi">{t.match.error}</p>
+        ) : (
+          <Board match={match} data={data} names={names} />
+        )}
+        <ScrollThumb />
+      </Popup>
     </>
   );
 }

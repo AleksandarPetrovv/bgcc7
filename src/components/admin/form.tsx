@@ -2,7 +2,7 @@
 
 import { createContext, useActionState, useCallback, useContext, useEffect, useRef, useState, useTransition } from "react";
 import { Flash } from "./flash";
-import { Modal } from "@/components/site/modal";
+import { Popup } from "@/components/site/popup";
 import { Sparkle } from "@/components/site/graphics";
 import { useDict } from "@/components/site/lang";
 import { WeekdayInput } from "@/components/site/weekday-input";
@@ -233,7 +233,7 @@ export function ErrorNote({ children }: { children?: React.ReactNode }) {
 function Confirm({ open, text, yes, no, onYes, onClose, children }: { open: boolean; text: string; yes: string; no?: string; onYes: () => void; onClose: () => void; children?: React.ReactNode }) {
   const t = useDict();
   return (
-    <Modal open={open} onClose={onClose}>
+    <Popup open={open} onClose={onClose} shadow={6} className="p-5 sm:p-6">
       <p className="pr-8 text-base font-display font-black leading-snug text-paper">{text}</p>
       {children}
       <div className="mt-5 flex flex-wrap gap-3">
@@ -250,6 +250,6 @@ function Confirm({ open, text, yes, no, onYes, onClose, children }: { open: bool
           {no ?? t.sched.cancel}
         </Btn>
       </div>
-    </Modal>
+    </Popup>
   );
 }

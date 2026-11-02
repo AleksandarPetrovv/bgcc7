@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowUpRight, Lock, Pause, Play, RotateCcw, Undo2, X } from "lucide-react";
 import { Btn, ErrorNote } from "@/components/admin/form";
 import { Dropdown } from "@/components/admin/dropdown";
-import { Modal } from "@/components/site/modal";
+import { Popup } from "@/components/site/popup";
 import { useDict } from "@/components/site/lang";
 import { EASE } from "@/lib/ease";
 import type { ActionResult } from "@/lib/action-result";
@@ -201,7 +201,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
           </>
         )}
       </div>
-      <Modal open={!!ask} onClose={() => setAsk(null)}>
+      <Popup open={!!ask} onClose={() => setAsk(null)} shadow={6} className="p-5 sm:p-6">
         <p className="pr-6 text-sm font-bold text-paper">{ask?.text}</p>
         <div className="mt-5 flex justify-end gap-2">
           <Btn type="button" tone="outline" small onClick={() => setAsk(null)}>
@@ -219,7 +219,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
             {ask?.label}
           </Btn>
         </div>
-      </Modal>
+      </Popup>
     </motion.li>
   );
 }

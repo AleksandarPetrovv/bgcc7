@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, CalendarClock, Check, ChevronDown, Repeat, X } from "lucide-react";
 import { Countdown } from "@/components/site/countdown";
-import { Modal } from "@/components/site/modal";
+import { Popup } from "@/components/site/popup";
 import { SlantButton } from "@/components/site/page";
 import { SlantBg } from "@/components/site/slant";
 import { useDict, useLang } from "@/components/site/lang";
@@ -93,7 +93,7 @@ function NoteModal({ open, onClose, title, text, action, onSend }: { open: boole
   const [err, setErr] = useState<string | null>(null);
   const [pending, start] = useTransition();
   return (
-    <Modal open={open} onClose={() => !pending && onClose()} tone="gold">
+    <Popup open={open} onClose={() => !pending && onClose()} tone="gold" shadow={6} className="p-5 sm:p-6">
       <AlertTriangle className="size-7 text-gold-hi" />
       <h3 className="heading-slam mt-2 pr-6 text-2xl">{title}</h3>
       <p className="mt-2 text-sm text-paper/85">{text}</p>
@@ -116,7 +116,7 @@ function NoteModal({ open, onClose, title, text, action, onSend }: { open: boole
           </SlantButton>
         </div>
       </form>
-    </Modal>
+    </Popup>
   );
 }
 
@@ -128,7 +128,7 @@ function Picker({ open, onClose, week, title, onSend, blocked }: { open: boolean
   const [err, setErr] = useState<string | null>(null);
   const [pending, start] = useTransition();
   return (
-    <Modal open={open} onClose={() => !pending && onClose()}>
+    <Popup open={open} onClose={() => !pending && onClose()} shadow={6} className="p-5 sm:p-6">
       <h3 className="heading-slam pr-6 text-2xl">{title}</h3>
       <p className="mt-1 text-xs font-display font-bold text-ash">{t.sched.window}</p>
       <form
@@ -152,7 +152,7 @@ function Picker({ open, onClose, week, title, onSend, blocked }: { open: boolean
           </SlantButton>
         </div>
       </form>
-    </Modal>
+    </Popup>
   );
 }
 
@@ -462,7 +462,7 @@ export function SchedCard({ m, round, me, opp, week, open, viewer, readOnly = fa
       {week && (
         <Picker key={pickKey} open={pick} onClose={() => setPick(false)} week={week} title={theirs ? t.sched.counter : agreed ? t.sched.reschedule : t.sched.propose} onSend={send} blocked={blocked} />
       )}
-      <Modal open={warn} onClose={() => setWarn(false)} tone="gold">
+      <Popup open={warn} onClose={() => setWarn(false)} tone="gold" shadow={6} className="p-5 sm:p-6">
         <AlertTriangle className="size-7 text-gold-hi" />
         <h3 className="heading-slam mt-2 pr-6 text-2xl">{t.sched.warnTitle}</h3>
         <p className="mt-2 text-sm text-paper/85">{t.sched.warnText}</p>
@@ -480,7 +480,7 @@ export function SchedCard({ m, round, me, opp, week, open, viewer, readOnly = fa
             {t.sched.cancel}
           </SlantButton>
         </div>
-      </Modal>
+      </Popup>
       <NoteModal
         key={askKey}
         open={askOpen}

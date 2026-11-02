@@ -88,7 +88,7 @@ html.lite .grain::after {
 }
 
 /* no -webkit- twin here: the minifier dropped the whole declaration pair, which left this rule empty */
-html.lite :is([role="dialog"], [role="dialog"] *, .fixed, .sub-nav, .backdrop-blur, [data-slot="dialog-overlay"]) {
+html.lite :is([role="dialog"], [role="dialog"] *, .fixed, .sub-nav, .backdrop-blur) {
   backdrop-filter: none !important;
 }
 

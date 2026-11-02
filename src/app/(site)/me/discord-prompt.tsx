@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
-import { Modal } from "@/components/site/modal";
+import { Popup } from "@/components/site/popup";
 import { SlantButton } from "@/components/site/page";
 import { SlantBg } from "@/components/site/slant";
 import { useDict } from "@/components/site/lang";
@@ -52,7 +52,7 @@ export function DiscordPrompt({ open: ctl, onClose }: { open?: boolean; onClose?
   };
 
   return (
-    <Modal open={open} onClose={close} tone="balkan">
+    <Popup open={open} onClose={close} tone="balkan" shadow={6} className="p-5 sm:p-6">
       {step.k === "ok" ? (
         <div className="flex flex-col items-center gap-4 py-4 text-center">
           <CheckCircle2 className="size-10 text-balkan-hi" />
@@ -147,6 +147,6 @@ export function DiscordPrompt({ open: ctl, onClose }: { open?: boolean; onClose?
           </div>
         </>
       )}
-    </Modal>
+    </Popup>
   );
 }
