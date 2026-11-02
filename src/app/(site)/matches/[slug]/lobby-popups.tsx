@@ -9,6 +9,7 @@ import { lobbySize } from "@/lib/format";
 import { EASE } from "@/lib/ease";
 import { cn } from "@/lib/utils";
 import { backdropClose } from "@/lib/backdrop";
+import { SlantBg } from "@/components/site/slant";
 
 export const POP = {
   initial: { opacity: 0, y: 12 },
@@ -21,29 +22,31 @@ export async function lobbyPost(slug: string, body: Record<string, unknown>) {
   return ((await r?.json().catch(() => null)) ?? null) as { ok: boolean; error?: string } | null;
 }
 
-export function IconBtn({ children, className, ...p }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+export function IconBtn({ children, className, slant, slantStyle, ...p }: React.ButtonHTMLAttributes<HTMLButtonElement> & { slant?: string; slantStyle?: React.CSSProperties }) {
   return (
-    <button type="button" {...p} className={cn("inline-flex h-7 w-8 -skew-x-12 items-center justify-center border border-line text-ash transition-colors hover:border-paper hover:text-paper disabled:opacity-40", className)}>
-      <span className="inline-flex skew-x-12">{children}</span>
+    <button type="button" {...p} className={cn("group/ib relative isolate inline-flex h-7 w-8 items-center justify-center text-ash transition-colors hover:text-paper disabled:opacity-40", className)}>
+      <SlantBg className={cn("border border-line transition-colors group-hover/ib:border-paper", slant)} style={slantStyle} />
+      <span className="inline-flex">{children}</span>
     </button>
   );
 }
 
 export function Btn({ onClick, disabled, tone = "line", wide, children }: { onClick: () => void; disabled?: boolean; tone?: "line" | "go" | "warn" | "bad"; wide?: boolean; children: React.ReactNode }) {
   const cls = {
-    line: "border-line text-paper hover:border-paper",
-    go: "border-balkan bg-balkan text-on-fill hover:bg-paper hover:text-ink hover:border-paper",
-    warn: "border-gold text-gold-hi hover:bg-gold/10",
-    bad: "border-rose text-rose-hi hover:bg-rose/10",
+    line: ["text-paper", "border-line group-hover/btn:border-paper"],
+    go: ["text-on-fill hover:text-ink", "border-balkan bg-balkan group-hover/btn:border-paper group-hover/btn:bg-paper"],
+    warn: ["text-gold-hi", "border-gold group-hover/btn:bg-gold/10"],
+    bad: ["text-rose-hi", "border-rose group-hover/btn:bg-rose/10"],
   }[tone];
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={cn("inline-flex min-h-8 min-w-0 -skew-x-12 items-center border px-3 text-[0.62rem] font-display font-bold transition-colors disabled:opacity-50 sm:text-xs", wide && "justify-center px-1.5", cls)}
+      className={cn("group/btn relative isolate inline-flex min-h-8 min-w-0 items-center px-3 text-[0.62rem] font-display font-bold transition-colors disabled:opacity-50 sm:text-xs", wide && "justify-center px-1.5", cls[0])}
     >
-      <span className="inline-flex min-w-0 skew-x-12 items-center gap-1 whitespace-nowrap max-sm:[&>svg]:size-3 [&>svg]:shrink-0 sm:gap-1.5">{children}</span>
+      <SlantBg className={cn("border transition-colors", cls[1])} />
+      <span className="inline-flex min-w-0 items-center gap-1 whitespace-nowrap max-sm:[&>svg]:size-3 [&>svg]:shrink-0 sm:gap-1.5">{children}</span>
     </button>
   );
 }
@@ -78,9 +81,10 @@ export function HelperMissing({ onClose }: { onClose: () => void }) {
             href="/download/helper"
             whileHover={{ x: 4 }}
             whileTap={{ scale: 0.97 }}
-            className="flex min-h-12 -skew-x-6 items-center bg-gold px-5 font-display font-bold text-on-fill shadow-[5px_5px_0_0_var(--gold-deep)]"
+            className="relative isolate flex min-h-12 items-center px-5 font-display font-bold text-on-fill"
           >
-            <span className="inline-flex skew-x-6 items-center gap-2">
+            <SlantBg className="-skew-x-6 bg-gold shadow-[5px_5px_0_0_var(--gold-deep)]" />
+            <span className="inline-flex items-center gap-2">
               <Download className="size-4" strokeWidth={3} /> {t.lobby.helperDownload}
             </span>
           </motion.a>
@@ -90,9 +94,10 @@ export function HelperMissing({ onClose }: { onClose: () => void }) {
             rel="noreferrer"
             whileHover={{ x: 4 }}
             whileTap={{ scale: 0.97 }}
-            className="flex min-h-12 -skew-x-6 items-center border border-gold px-5 font-display font-bold text-gold-hi hover:bg-gold/10"
+            className="group/hp relative isolate flex min-h-12 items-center px-5 font-display font-bold text-gold-hi"
           >
-            <span className="inline-flex skew-x-6 items-center gap-2">
+            <SlantBg className="-skew-x-6 border border-gold group-hover/hp:bg-gold/10" />
+            <span className="inline-flex items-center gap-2">
               <ExternalLink className="size-4" /> {t.lobby.helperPage}
             </span>
           </motion.a>
@@ -130,8 +135,9 @@ export function StreamOrder({ onClose }: { onClose: () => void }) {
         <ol className="mt-4 space-y-2.5">
           {t.lobby.streamSteps.map((s, i) => (
             <li key={i} className="flex items-start gap-3">
-              <span className="num inline-flex size-6 shrink-0 -skew-x-12 items-center justify-center bg-gold text-xs font-display font-black text-on-fill">
-                <span className="skew-x-12">{i + 1}</span>
+              <span className="num relative isolate inline-flex size-6 shrink-0 items-center justify-center text-xs font-display font-black text-on-fill">
+                <SlantBg className="bg-gold" />
+                <span>{i + 1}</span>
               </span>
               <span className="text-sm font-bold leading-relaxed text-paper/85">{s}</span>
             </li>
@@ -142,9 +148,10 @@ export function StreamOrder({ onClose }: { onClose: () => void }) {
           onClick={onClose}
           whileHover={{ x: 4 }}
           whileTap={{ scale: 0.97 }}
-          className="mt-6 flex min-h-12 w-full -skew-x-6 items-center bg-gold px-5 font-display font-bold text-on-fill shadow-[5px_5px_0_0_var(--gold-deep)]"
+          className="relative isolate mt-6 flex min-h-12 w-full items-center px-5 font-display font-bold text-on-fill"
         >
-          <span className="inline-flex skew-x-6 items-center gap-2">
+          <SlantBg className="-skew-x-6 bg-gold shadow-[5px_5px_0_0_var(--gold-deep)]" />
+          <span className="inline-flex items-center gap-2">
             <Check className="size-4" strokeWidth={3} /> {t.lobby.gotIt}
           </span>
         </motion.button>
@@ -200,8 +207,9 @@ export function LobbyHelp({ onClose }: { onClose: () => void }) {
                 className="grid gap-2 sm:grid-cols-[9.5rem_minmax(0,1fr)] sm:gap-4"
               >
                 <span className="self-start">
-                  <span className="inline-flex -skew-x-12 border px-2.5 py-1 text-xs font-display font-bold" style={{ borderColor: HELP_C[i], color: HELP_C[i] }}>
-                    <span className="skew-x-12">{h.k}</span>
+                  <span className="relative isolate inline-flex px-2.5 py-1 text-xs font-display font-bold" style={{ color: HELP_C[i] }}>
+                    <SlantBg className="border" style={{ borderColor: HELP_C[i] }} />
+                    <span>{h.k}</span>
                   </span>
                 </span>
                 <span className="min-w-0">
@@ -289,20 +297,22 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
                     setCustom("");
                   }}
                   className={cn(
-                    "num min-h-9 min-w-12 -skew-x-12 border px-2.5 text-sm font-display font-black transition-colors",
-                    !custom && secs === s ? "border-balkan bg-balkan text-on-fill" : "border-line text-paper hover:border-paper",
+                    "group/sec num relative isolate min-h-9 min-w-12 px-2.5 text-sm font-display font-black transition-colors",
+                    !custom && secs === s ? "text-on-fill" : "text-paper",
                   )}
                 >
-                  <span className="inline-block skew-x-12">{s ? `${s}s` : t.lobby.now}</span>
+                  <SlantBg className={cn("border transition-colors", !custom && secs === s ? "border-balkan bg-balkan" : "border-line group-hover/sec:border-paper")} />
+                  <span className="inline-block">{s ? `${s}s` : t.lobby.now}</span>
                 </button>
               ))}
-              <span className={cn("flex min-h-9 w-20 -skew-x-12 border bg-field", custom ? "border-balkan" : "border-line focus-within:border-paper")}>
+              <span className="group/in relative isolate flex min-h-9 w-20">
+                <SlantBg className={cn("border bg-field", custom ? "border-balkan" : "border-line group-focus-within/in:border-paper")} />
                 <input
                   value={custom}
                   onChange={(e) => setCustom(e.target.value.replace(/\D/g, "").slice(0, 3))}
                   inputMode="numeric"
                   placeholder={t.lobby.secs}
-                  className="adm-bare num w-full min-w-0 skew-x-12 border-0 bg-transparent px-2 text-sm outline-none placeholder:text-ash"
+                  className="adm-bare num w-full min-w-0 border-0 bg-transparent px-2 text-sm outline-none placeholder:text-ash"
                 />
               </span>
             </div>
@@ -314,10 +324,10 @@ export function LobbyAsk({ kind, warn = [], onCancel, onGo }: { kind: "start" | 
             whileHover={{ x: 4 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => onGo(pickSecs)}
-            className={cn("flex min-h-12 -skew-x-6 items-center px-5 text-left font-display font-bold", kind === "close" ? "text-white" : "text-paper")}
-            style={{ background: tone.c, boxShadow: `5px 5px 0 0 ${tone.deep}` }}
+            className={cn("relative isolate flex min-h-12 items-center px-5 text-left font-display font-bold", kind === "close" ? "text-white" : "text-paper")}
           >
-            <span className="inline-flex skew-x-6 items-center gap-2">
+            <SlantBg className="-skew-x-6" style={{ background: tone.c, boxShadow: `5px 5px 0 0 ${tone.deep}` }} />
+            <span className="inline-flex items-center gap-2">
               <tone.Icon className={cn("size-4", kind === "start" && "fill-current")} /> {copy[2]}
               {kind === "start" && <span className="num normal-case">{pickSecs ? `· ${pickSecs}s` : `· ${t.lobby.now}`}</span>}
             </span>

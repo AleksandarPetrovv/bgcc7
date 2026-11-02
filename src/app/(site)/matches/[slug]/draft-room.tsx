@@ -11,6 +11,7 @@ import type { Match } from "@/lib/data";
 import { Confetti } from "@/components/site/confetti";
 import { deadline, limitOf, pickable, rollWinner, scoreOf, turnOf, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 import { TEAM } from "@/lib/theme";
 import { answerTimeoutAct, resetDraft } from "@/actions/draft";
 import { LobbyPanel } from "./lobby-panel";
@@ -364,9 +365,10 @@ export function DraftRoom({
               type="button"
               onClick={() => setAsk(unscored.slot)}
               title={t.draft.whoWonHint}
-              className="group inline-flex min-h-8 -skew-x-12 items-center border border-dashed border-gold-deep/60 bg-gold/10 px-3 text-gold-hi transition-colors hover:border-gold-deep hover:bg-gold/25"
+              className="group relative isolate inline-flex min-h-8 items-center px-3 text-gold-hi"
             >
-              <span className="flex skew-x-12 items-center gap-1.5 text-[0.7rem] font-display font-bold">
+              <SlantBg className="border border-dashed border-gold-deep/60 bg-gold/10 transition-colors group-hover:border-gold-deep group-hover:bg-gold/25" />
+              <span className="flex items-center gap-1.5 text-[0.7rem] font-display font-bold">
                 <Crown className="size-3.5" />
                 {t.draft.whoWonSlot(unscored.slot)}
               </span>
@@ -439,7 +441,7 @@ export function DraftRoom({
                   whileTap={{ scale: 0.95 }}
                   className="heading-slam relative isolate ml-auto inline-flex min-h-12 flex-1 items-center justify-center gap-2 px-6 text-xl text-white disabled:opacity-60 sm:flex-none sm:text-2xl"
                 >
-                  <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12" style={{ background: TEAM[me].c, boxShadow: `5px 5px 0 0 ${TEAM[me].deep}` }} />
+                  <SlantBg style={{ background: TEAM[me].c, boxShadow: `5px 5px 0 0 ${TEAM[me].deep}` }} />
                   {turn.kind === "ban" ? <Ban className="size-5" /> : <Swords className="size-5" />}
                   {t.draft.confirm(turn.kind, sel)}
                 </motion.button>
@@ -462,9 +464,8 @@ export function DraftRoom({
               sel && "pointer-events-none",
             )}
           >
-            <span
-              aria-hidden
-              className={cn("absolute inset-0 -z-10 -skew-x-12 border-2 bg-ink/95 backdrop-blur transition-[filter]", toUsed ? "border-line" : "group-hover:brightness-110")}
+            <SlantBg
+              className={cn("border-2 bg-ink/95 backdrop-blur transition-[filter]", toUsed ? "border-line" : "group-hover:brightness-110")}
               style={toUsed ? undefined : { borderColor: TEAM[side].c, boxShadow: `4px 4px 0 0 ${TEAM[side].deep}` }}
             />
             {toUsed ? <Hourglass className="size-4" /> : <Pause className="size-4" style={{ color: TEAM[side].hi }} />}

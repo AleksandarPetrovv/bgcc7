@@ -5,6 +5,7 @@ import { Send } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import type { LobbyView } from "@/lib/bancho";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 import { lobbyPost } from "./lobby-popups";
 import { useChatHistory } from "./use-chat-history";
 import { nameKey } from "@/lib/names";
@@ -99,7 +100,8 @@ function ChatSession({
       )}
       {canSay && (
       <form onSubmit={send} className="flex gap-2 border-t border-line px-3 py-2">
-        <span className={cn("flex min-w-0 flex-1 -skew-x-12 border border-line bg-field focus-within:border-paper", fail && "border-rose focus-within:border-rose")}>
+        <span className="group/in relative isolate flex min-w-0 flex-1">
+        <SlantBg className={cn("border border-line bg-field group-focus-within/in:border-paper", fail && "border-rose group-focus-within/in:border-rose")} />
         <input
           ref={inputRef}
           value={text}
@@ -111,15 +113,16 @@ function ChatSession({
           autoComplete="off"
           disabled={disabled}
           placeholder={readOnly ? t.lobby.sayPlayer : t.lobby.say}
-          className="adm-bare min-w-0 flex-1 skew-x-12 border-0 bg-transparent px-4 py-2 text-[0.95rem] outline-none placeholder:text-ash"
+          className="adm-bare min-w-0 flex-1 border-0 bg-transparent px-4 py-2 text-[0.95rem] outline-none placeholder:text-ash"
         />
         </span>
         <button
           type="submit"
           disabled={disabled || busy || !!left || !text.trim()}
-          className="inline-flex min-h-8 min-w-20 -skew-x-12 items-center justify-center border border-balkan bg-balkan px-3 text-xs font-display font-bold text-on-fill transition-colors hover:bg-paper hover:text-ink disabled:opacity-50"
+          className="group/send relative isolate inline-flex min-h-8 min-w-20 items-center justify-center px-3 text-xs font-display font-bold text-on-fill transition-colors hover:text-ink disabled:opacity-50"
         >
-          <span className="inline-flex skew-x-12 items-center gap-1.5">{left ? <span className="num">{left}s</span> : <><Send className="size-3.5" /> {t.lobby.send}</>}</span>
+          <SlantBg className="border border-balkan bg-balkan transition-colors group-hover/send:bg-paper" />
+          <span className="inline-flex items-center gap-1.5">{left ? <span className="num">{left}s</span> : <><Send className="size-3.5" /> {t.lobby.send}</>}</span>
         </button>
       </form>
       )}

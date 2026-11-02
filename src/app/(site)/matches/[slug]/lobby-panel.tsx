@@ -14,6 +14,7 @@ import type { Beatmap } from "@/lib/data";
 import type { LobbyView } from "@/lib/bancho";
 import { slotColor } from "@/lib/format-plan";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 import { LOBBY_TEAM, modHi, TEAM } from "@/lib/theme";
 import { osuMp } from "@/lib/links";
 import { Btn, HelperMissing, IconBtn, LobbyAsk, StreamOrder, lobbyPost } from "./lobby-popups";
@@ -119,10 +120,10 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                         type="button"
                         disabled={pending || offline}
                         onClick={() => run({ act: "team", slot: i, team: want })}
-                        className="inline-flex h-7 -skew-x-12 items-center border px-2 text-[0.62rem] font-display font-bold text-white transition-[filter] hover:brightness-125 disabled:opacity-50"
-                        style={{ background: LOBBY_TEAM[want], borderColor: LOBBY_TEAM[want] }}
+                        className="group/mv relative isolate inline-flex h-7 items-center px-2 text-[0.62rem] font-display font-bold text-white disabled:opacity-50"
                       >
-                        <span className="skew-x-12">{t.lobby.moveTo(t.lobby.side[want])}</span>
+                        <SlantBg className="border transition-[filter] group-hover/mv:brightness-125" style={{ background: LOBBY_TEAM[want], borderColor: LOBBY_TEAM[want] }} />
+                        <span>{t.lobby.moveTo(t.lobby.side[want])}</span>
                       </button>
                     )}
                   </>
@@ -163,11 +164,12 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
               <span className="flex min-w-0 flex-wrap items-center gap-1">
                 <span
                   className={cn(
-                    "inline-flex -skew-x-12 items-center whitespace-nowrap border px-1.5 text-[0.6rem] font-display font-bold leading-4",
-                    s.ready === "ready" ? "border-balkan bg-balkan text-on-fill" : s.ready === "nomap" ? "border-rose text-rose-hi" : "border-line text-ash",
+                    "relative isolate inline-flex items-center whitespace-nowrap px-1.5 text-[0.6rem] font-display font-bold leading-4",
+                    s.ready === "ready" ? "text-on-fill" : s.ready === "nomap" ? "text-rose-hi" : "text-ash",
                   )}
                 >
-                  <span className="inline-flex skew-x-12 items-center gap-1">
+                  <SlantBg className={cn("border", s.ready === "ready" ? "border-balkan bg-balkan" : s.ready === "nomap" ? "border-rose" : "border-line")} />
+                  <span className="inline-flex items-center gap-1">
                     {s.ready === "ready" && <Check className="size-3" strokeWidth={3} />}
                     {t.lobby.ready[s.ready]}
                   </span>
@@ -175,13 +177,15 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                 {v.freemod && (
                   <>
                     {!s.mods.includes("NF") && (
-                      <span title={t.lobby.noNf} className="-skew-x-12 border border-paper/40 px-1.5 text-[0.6rem] font-display font-black leading-4 text-paper/50">
-                        <span className="inline-block skew-x-12 line-through decoration-rose-hi decoration-2">NF</span>
+                      <span title={t.lobby.noNf} className="relative isolate px-1.5 text-[0.6rem] font-display font-black leading-4 text-paper/50">
+                        <SlantBg className="border border-paper/40" />
+                        <span className="inline-block line-through decoration-rose-hi decoration-2">NF</span>
                       </span>
                     )}
                     {s.mods.map((m) => (
-                      <span key={m} className="-skew-x-12 border px-1.5 text-[0.6rem] font-display font-black leading-4" style={{ borderColor: modC(m), color: modC(m) }}>
-                        <span className="inline-block skew-x-12">{m}</span>
+                      <span key={m} className="relative isolate px-1.5 text-[0.6rem] font-display font-black leading-4" style={{ color: modC(m) }}>
+                        <SlantBg className="border" style={{ borderColor: modC(m) }} />
+                        <span className="inline-block">{m}</span>
                       </span>
                     ))}
                   </>
@@ -193,7 +197,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                   title={t.lobby.swapTeam}
                   disabled={pending || offline}
                   onClick={() => run({ act: "team", slot: i, team: s.team === "red" ? "blue" : "red" })}
-                  style={{ background: s.team === "blue" ? LOBBY_TEAM.blue : LOBBY_TEAM.red, borderColor: "transparent" }}
+                  slantStyle={{ background: s.team === "blue" ? LOBBY_TEAM.blue : LOBBY_TEAM.red, borderColor: "transparent" }}
                   className="hover:brightness-125"
                 >
                   {null}
@@ -204,12 +208,13 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                     title={mode === "swap" ? t.lobby.swap : t.lobby.move}
                     disabled={pending || offline || !targets(i, mode).length}
                     onClick={() => setPicking(picking?.slot === i && picking.mode === mode ? null : { slot: i, mode })}
-                    className={picking?.slot === i && picking.mode === mode ? "border-paper text-paper" : ""}
+                    className={picking?.slot === i && picking.mode === mode ? "text-paper" : ""}
+                    slant={picking?.slot === i && picking.mode === mode ? "border-paper" : ""}
                   >
                     {mode === "swap" ? <ArrowUpDown className="size-3.5" /> : <MoveVertical className="size-3.5" />}
                   </IconBtn>
                 ))}
-                <IconBtn title={t.lobby.kick} disabled={pending || offline} onClick={() => askKick({ text: t.lobby.confirmKick(s.name), yes: t.lobby.kick, onYes: () => run({ act: "kick", slot: i }) })} className="hover:border-rose hover:text-rose-hi">
+                <IconBtn title={t.lobby.kick} disabled={pending || offline} onClick={() => askKick({ text: t.lobby.confirmKick(s.name), yes: t.lobby.kick, onYes: () => run({ act: "kick", slot: i }) })} className="hover:text-rose-hi" slant="group-hover/ib:border-rose">
                   <UserX className="size-3.5" />
                 </IconBtn>
                 <AnimatePresence>
@@ -229,9 +234,10 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                             setPicking(null);
                             run({ act: "move", slot: i, to: k });
                           }}
-                          className="num inline-flex h-7 min-w-8 max-w-48 -skew-x-12 items-center border border-line bg-ink px-2.5 text-xs font-display font-black text-paper shadow-[3px_3px_0_0_color-mix(in_srgb,var(--rose-deep)_45%,transparent)] transition-colors hover:border-paper hover:bg-paper hover:text-ink"
+                          className="group/to num relative isolate inline-flex h-7 min-w-8 max-w-48 items-center px-2.5 text-xs font-display font-black text-paper transition-colors hover:text-ink"
                         >
-                          <span className="inline-flex min-w-0 skew-x-12 items-center gap-1.5">
+                          <SlantBg className="border border-line bg-ink shadow-[3px_3px_0_0_color-mix(in_srgb,var(--rose-deep)_45%,transparent)] transition-colors group-hover/to:border-paper group-hover/to:bg-paper" />
+                          <span className="inline-flex min-w-0 items-center gap-1.5">
                             <span>{k + 1}</span>
                             {all[k] && <span className="truncate">{all[k]!.name}</span>}
                           </span>
@@ -249,8 +255,9 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
           <>
             <span className="num w-4 text-[0.7rem] font-display font-black text-ash">{i + 1}</span>
             <span className="flex-1">
-              <span className={cn("inline-flex -skew-x-12 border px-1.5 text-[0.6rem] font-display font-bold leading-4", locked ? "border-dashed border-line text-ash/70" : "border-line/70 text-ash/60")}>
-                <span className="inline-flex skew-x-12 items-center gap-1">
+              <span className={cn("relative isolate inline-flex px-1.5 text-[0.6rem] font-display font-bold leading-4", locked ? "text-ash/70" : "text-ash/60")}>
+                <SlantBg className={cn("border", locked ? "border-dashed border-line" : "border-line/70")} />
+                <span className="inline-flex items-center gap-1">
                   {locked && <Lock className="size-3" />}
                   {locked ? t.lobby.locked : t.lobby.empty}
                 </span>
@@ -277,20 +284,22 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
       <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2">
         <span className="heading-slam text-lg">{t.lobby.title}</span>
         {(() => {
-          const cls = "num inline-flex min-h-6 -skew-x-12 items-center border border-line px-2 text-[0.7rem] font-display font-bold text-paper";
+          const cls = "group/st num relative isolate inline-flex min-h-6 items-center px-2 text-[0.7rem] font-display font-bold text-paper";
           const body = (
-            <span className="inline-flex skew-x-12 items-center gap-1.5 whitespace-nowrap">
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
               {open ? (v.bot === "online" ? <CircleDot className="size-3" /> : <RefreshCw className="size-3 animate-spin" />) : v.bot === "off" ? <Unplug className="size-3" /> : <CircleDashed className="size-3" />}
               {open ? (v.bot === "online" ? v.mpId : t.lobby.status.reconnecting) : v.bot === "off" ? t.lobby.status.offline : t.lobby.status.none}
               {link && <ExternalLink className="size-3" />}
             </span>
           );
           return link ? (
-            <a href={link} target="_blank" rel="noreferrer" title={t.lobby.bot[v.bot]} className={cn(cls, "transition-colors hover:border-rose")}>
+            <a href={link} target="_blank" rel="noreferrer" title={t.lobby.bot[v.bot]} className={cls}>
+              <SlantBg className="border border-line transition-colors group-hover/st:border-rose" />
               {body}
             </a>
           ) : (
             <span title={t.lobby.bot[v.bot]} className={cls}>
+              <SlantBg className="border border-line" />
               {body}
             </span>
           );
@@ -400,9 +409,10 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                     type="button"
                     disabled={pending || offline}
                     onClick={fixAll}
-                    className="ml-auto inline-flex h-8 -skew-x-12 items-center border border-gold bg-gold px-3 text-xs font-display font-bold text-on-fill transition-colors hover:bg-paper hover:text-ink disabled:opacity-50"
+                    className="group/fix relative isolate ml-auto inline-flex h-8 items-center px-3 text-xs font-display font-bold text-on-fill transition-colors hover:text-ink disabled:opacity-50"
                   >
-                    <span className="skew-x-12">{t.lobby.fixAll}</span>
+                    <SlantBg className="border border-gold bg-gold transition-colors group-hover/fix:bg-paper" />
+                    <span>{t.lobby.fixAll}</span>
                   </button>
                 )}
               </div>
@@ -449,8 +459,9 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                 </span>
                 <span className="relative mt-1.5 flex flex-wrap gap-1">
                   {(v.freemod ? [...v.mods, "FM"] : v.mods.length ? v.mods : ["NM"]).map((m) => (
-                    <span key={m} className="-skew-x-12 border px-1.5 text-[0.7rem] font-display font-black leading-5" style={{ borderColor: modC(m), color: modC(m) }}>
-                      <span className="inline-block skew-x-12">{m}</span>
+                    <span key={m} className="relative isolate px-1.5 text-[0.7rem] font-display font-black leading-5" style={{ color: modC(m) }}>
+                      <SlantBg className="border" style={{ borderColor: modC(m) }} />
+                      <span className="inline-block">{m}</span>
                     </span>
                   ))}
                 </span>

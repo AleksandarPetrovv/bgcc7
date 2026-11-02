@@ -8,6 +8,7 @@ import { useDict } from "@/components/site/lang";
 import type { Beatmap } from "@/lib/data";
 import type { Side } from "@/lib/draft";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 import { backdropClose } from "@/lib/backdrop";
 import { slotColor } from "@/lib/format-plan";
 import { GOLD, modHi, TEAM, tint } from "@/lib/theme";
@@ -68,13 +69,12 @@ export function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onP
                 aria-checked={on}
                 onClick={() => setChoice(c)}
                 className={cn(
-                  "group relative flex -skew-x-6 cursor-pointer select-none flex-col items-center gap-2 border-2 px-3 py-6 font-display font-bold transition-[transform,color,border-color,translate,scale,rotate] duration-200 active:scale-95",
-                  on ? "text-white" : "border-line text-ash hover:-translate-y-1 hover:text-paper",
+                  "group relative isolate flex cursor-pointer select-none flex-col items-center gap-2 px-3 py-6 font-display font-bold transition-[transform,color,translate,scale,rotate] duration-200 active:scale-95",
+                  on ? "text-white" : "text-ash hover:-translate-y-1 hover:text-paper",
                 )}
-                style={on ? { borderColor: col.c } : undefined}
               >
-                {on && <span className="absolute inset-0" style={{ background: col.c, boxShadow: `5px 5px 0 0 ${col.deep}` }} aria-hidden />}
-                <span className="relative flex skew-x-6 flex-col items-center gap-2">
+                <SlantBg className={cn("-skew-x-6 border-2 transition-colors duration-200", !on && "border-line")} style={on ? { borderColor: col.c, background: col.c, boxShadow: `5px 5px 0 0 ${col.deep}` } : undefined} />
+                <span className="relative flex flex-col items-center gap-2">
                   <Icon className={cn("size-8 transition-transform duration-300", on ? "scale-110" : c === "pick" ? "group-hover:rotate-12" : "group-hover:-rotate-12")} />
                   <span className="heading-slam text-xl sm:text-2xl">{c === "pick" ? t.draft.firstPick : t.draft.firstBan}</span>
                 </span>
@@ -88,9 +88,8 @@ export function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onP
           onClick={() => choice && onPick(choice)}
           className={cn("group heading-slam relative isolate mt-5 flex min-h-14 w-full items-center justify-center gap-2 text-2xl transition-opacity duration-200 disabled:cursor-not-allowed disabled:opacity-50", choice ? "text-white" : "text-ash")}
         >
-          <span
-            aria-hidden
-            className="absolute inset-0 -z-10 -skew-x-12 group-hover:brightness-110"
+          <SlantBg
+            className="group-hover:brightness-110"
             style={{ background: choice ? col.c : "var(--slate)", boxShadow: choice ? `5px 5px 0 0 ${col.deep}` : undefined }}
           />
           {busy ? <Waiting /> : <Check className="size-6" strokeWidth={3} />}
@@ -145,10 +144,10 @@ export function TimerDock({
       <motion.div
         animate={low && left > 0 ? { scale: [1, 1.04, 1] } : { scale: 1 }}
         transition={low ? { duration: 1, repeat: Infinity } : { duration: 0.2 }}
-        className="relative -skew-x-12 overflow-hidden border-2 bg-ink/95 px-5 pb-3 pt-2 backdrop-blur"
-        style={{ borderColor: c, boxShadow: `6px 6px 0 0 ${deep}, 0 0 40px -10px ${c}` }}
+        className="relative isolate px-5 pb-3 pt-2"
       >
-        <div className="flex skew-x-12 items-center gap-4">
+        <SlantBg className="overflow-hidden border-2 bg-ink/95 backdrop-blur" style={{ borderColor: c, boxShadow: `6px 6px 0 0 ${deep}, 0 0 40px -10px ${c}` }} />
+        <div className="flex items-center gap-4">
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="flex items-center gap-1.5 text-[0.65rem] font-display font-bold" style={{ color: hi }}>
               {pause && <Pause className="size-3.5" />}
@@ -169,7 +168,7 @@ export function TimerDock({
           </span>
         </div>
         {note && (
-          <p className="mt-1.5 skew-x-12 text-center text-xs font-display font-black" style={{ color: note.color }}>
+          <p className="mt-1.5 text-center text-xs font-display font-black" style={{ color: note.color }}>
             {note.text}
           </p>
         )}
@@ -241,16 +240,20 @@ export function WinnerPopup({
                 whileTap={{ scale: 0.96 }}
                 transition={{ duration: 0.1 }}
                 className={cn(
-                  "group relative flex min-h-28 flex-col items-center justify-center gap-2 overflow-hidden px-3 text-white disabled:opacity-60",
-                  "-skew-x-6",
+                  "group relative isolate flex min-h-28 flex-col items-center justify-center gap-2 px-3 text-white disabled:opacity-60",
                 )}
-                style={{
-                  background: `linear-gradient(${s === 1 ? "135deg" : "225deg"}, ${TEAM[s].c}, ${TEAM[s].deep})`,
-                  boxShadow: current === s ? `0 0 0 3px var(--paper), 5px 5px 0 0 ${TEAM[s].deep}` : `5px 5px 0 0 ${TEAM[s].deep}`,
-                }}
               >
-                <span className="pointer-events-none absolute -right-4 -top-4 size-16 rotate-45 bg-white/10 transition-transform duration-300 group-hover:scale-150" aria-hidden />
-                <span className={cn("relative flex max-w-full flex-col items-center gap-1", "skew-x-6")}>
+                <SlantBg
+                  className="-skew-x-6"
+                  style={{
+                    background: `linear-gradient(${s === 1 ? "135deg" : "225deg"}, ${TEAM[s].c}, ${TEAM[s].deep})`,
+                    boxShadow: current === s ? `0 0 0 3px var(--paper), 5px 5px 0 0 ${TEAM[s].deep}` : `5px 5px 0 0 ${TEAM[s].deep}`,
+                  }}
+                />
+                <span className="pointer-events-none absolute inset-0 -z-10 -skew-x-6 overflow-hidden" aria-hidden>
+                  <span className="absolute -right-4 -top-4 size-16 rotate-45 bg-white/10 transition-transform duration-300 group-hover:scale-150" />
+                </span>
+                <span className="relative flex max-w-full flex-col items-center gap-1">
                   <span className="text-[0.65rem] font-display font-bold text-white/70">{s === 1 ? t.draft.red : t.draft.blue}</span>
                   <span className="line-clamp-2 max-w-full break-words text-sm font-display font-black leading-tight sm:text-base">{teams[s - 1]}</span>
                   {busy === s && <Waiting />}
@@ -263,9 +266,10 @@ export function WinnerPopup({
               type="button"
               disabled={busy != null}
               onClick={() => { if (!saving.current) onScores(); }}
-              className="mt-5 inline-flex min-h-9 -skew-x-12 items-center border border-paper/40 px-4 text-xs font-display font-bold text-paper transition-colors hover:border-paper disabled:opacity-50"
+              className="group/fs relative isolate mt-5 inline-flex min-h-9 items-center px-4 text-xs font-display font-bold text-paper disabled:opacity-50"
             >
-              <span className="inline-flex skew-x-12 items-center gap-1.5">
+              <SlantBg className="border border-paper/40 transition-colors group-hover/fs:border-paper" />
+              <span className="inline-flex items-center gap-1.5">
                 <ListOrdered className="size-3.5" /> {t.draft.fullScores}
               </span>
             </button>
@@ -358,9 +362,10 @@ export function ResetPopup({ lobby, busy, onCancel, onReset }: { lobby: boolean;
               whileHover={{ x: 4 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => onReset(true)}
-              className="flex min-h-12 -skew-x-6 items-center bg-rose px-5 text-left font-display font-bold text-white shadow-[5px_5px_0_0_var(--rose-deep)] disabled:opacity-60"
+              className="relative isolate flex min-h-12 items-center px-5 text-left font-display font-bold text-white disabled:opacity-60"
             >
-              <span className="inline-flex skew-x-6 items-center gap-2">
+              <SlantBg className="-skew-x-6 bg-rose shadow-[5px_5px_0_0_var(--rose-deep)]" />
+              <span className="inline-flex items-center gap-2">
                 <DoorClosed className="size-4" /> {t.draft.resetClose}
               </span>
             </motion.button>
@@ -372,11 +377,12 @@ export function ResetPopup({ lobby, busy, onCancel, onReset }: { lobby: boolean;
             whileTap={{ scale: 0.97 }}
             onClick={() => onReset(false)}
             className={cn(
-              "flex min-h-12 -skew-x-6 items-center px-5 text-left font-display font-bold disabled:opacity-60",
-              lobby ? "border border-rose text-rose-hi hover:bg-rose/10" : "bg-rose text-white shadow-[5px_5px_0_0_var(--rose-deep)]",
+              "group/rs relative isolate flex min-h-12 items-center px-5 text-left font-display font-bold disabled:opacity-60",
+              lobby ? "text-rose-hi" : "text-white",
             )}
           >
-            <span className="inline-flex skew-x-6 items-center gap-2">
+            <SlantBg className={cn("-skew-x-6", lobby ? "border border-rose group-hover/rs:bg-rose/10" : "bg-rose shadow-[5px_5px_0_0_var(--rose-deep)]")} />
+            <span className="inline-flex items-center gap-2">
               <RotateCcw className="size-4" /> {lobby ? t.draft.resetKeep : t.draft.reset}
             </span>
           </motion.button>
@@ -472,9 +478,8 @@ export function AskPopup({ icon: Icon, color, title, body, actions, busy, onClos
               onClick={a.onClick}
               className={cn("group relative isolate inline-flex min-h-12 items-center justify-center px-6 font-display font-bold disabled:opacity-60", a.fill ? "flex-1 text-white" : "text-paper")}
             >
-              <span
-                aria-hidden
-                className="absolute inset-0 -z-10 -skew-x-12 border-2 transition-[filter] group-hover:brightness-110"
+              <SlantBg
+                className="border-2 transition-[filter] group-hover:brightness-110"
                 style={a.fill ? { background: color.c, borderColor: color.c, boxShadow: `5px 5px 0 0 ${color.deep}` } : { borderColor: "var(--line)" }}
               />
               {a.label}

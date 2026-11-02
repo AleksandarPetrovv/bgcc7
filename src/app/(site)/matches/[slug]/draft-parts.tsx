@@ -7,6 +7,7 @@ import { useDict } from "@/components/site/lang";
 import { EASE } from "@/lib/ease";
 import { plan, type DraftStep, type DraftUndo, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 import { GOLD, TEAM, tint } from "@/lib/theme";
 import { holdDraft, redoDraft, resumeDraft, undoDraft } from "@/actions/draft";
 import { Waiting } from "./draft-popups";
@@ -143,8 +144,7 @@ export function AdminBar({
   const stepText = (u: DraftUndo) =>
     u.kind === "winner" ? t.draft.stepWin(u.slot) : u.kind === "step" ? (u.step.skip ? t.draft.stepSkip : t.draft.stepDo(u.step.kind, u.step.slot)) : u.kind === "choice" ? t.draft.stepChoice : t.draft.stepRolls;
   const btn = "group relative isolate inline-flex min-h-8 items-center gap-1.5 px-3 text-xs font-display font-bold disabled:opacity-50";
-  // skewed frame behind untransformed text (skewing the text blurs it)
-  const sk = (c: string) => <span aria-hidden className={cn("absolute inset-0 -z-10 -skew-x-12 border", c)} />;
+  const sk = (c: string) => <SlantBg className={cn("border", c)} />;
   const idle = "border-line group-hover:border-rose";
   return (
     <motion.div
@@ -253,10 +253,10 @@ export function TeamsHeader({ teams, turn, me, score }: { teams: [TeamInfo, Team
                 initial={{ scale: 0, rotate: -20 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: "spring", stiffness: 500, damping: 16, delay: 0.7 }}
-                className="inline-flex shrink-0 -skew-x-12 items-center px-2 py-0.5 text-white"
-                style={{ background: TEAM[s].c }}
+                className="relative isolate inline-flex shrink-0 items-center px-2 py-0.5 text-white"
               >
-                <span className="inline-flex skew-x-12 items-center gap-1 text-[0.6rem] font-display font-bold sm:text-[0.65rem]">
+                <SlantBg style={{ background: TEAM[s].c }} />
+                <span className="inline-flex items-center gap-1 text-[0.6rem] font-display font-bold sm:text-[0.65rem]">
                   <span className="anim-twinkle" aria-hidden>
                     ✦
                   </span>
@@ -380,7 +380,7 @@ export function Rolls({
                         whileTap={{ scale: 0.9, rotate: -6 }}
                         className="relative isolate inline-flex min-h-11 items-center gap-2 px-6 font-display font-bold text-white disabled:opacity-60"
                       >
-                        <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12" style={{ background: TEAM[s].c }} />
+                        <SlantBg style={{ background: TEAM[s].c }} />
                         <Dices className={cn("size-5", busy && "animate-spin")} /> {t.draft.roll}
                       </motion.button>
                     ) : (val == null && !hold) || turn.kind === "tie" ? (
@@ -431,19 +431,21 @@ export function Sequence({ d, turn }: { d: DraftView; turn: Turn }) {
                   delay: Math.min(i, 10) * 0.04,
                 }}
                 className={cn(
-                  "relative flex w-16 shrink-0 -skew-x-12 flex-col items-center justify-center border-2 py-1.5 sm:w-20",
-                  (!x.step || x.step.skip) && "border-dashed",
+                  "relative isolate flex w-16 shrink-0 flex-col items-center justify-center py-2 sm:w-20",
                 )}
-                style={{
-                  borderColor: TEAM[x.team].c,
-                  background: x.step ? (x.kind === "ban" || x.step.skip ? "var(--coal)" : TEAM[x.team].c) : now ? tint(TEAM[x.team].c, 13) : "transparent",
-                }}
                 title={x.step?.skip ? t.draft.skipped : undefined}
               >
-                {now && <span className="dr-glow absolute inset-0" style={{ background: tint(TEAM[x.team].c, 20) }} aria-hidden />}
+                <SlantBg
+                  className={cn("border-2", (!x.step || x.step.skip) && "border-dashed")}
+                  style={{
+                    borderColor: TEAM[x.team].c,
+                    background: x.step ? (x.kind === "ban" || x.step.skip ? "var(--coal)" : TEAM[x.team].c) : now ? tint(TEAM[x.team].c, 13) : "transparent",
+                  }}
+                />
+                {now && <SlantBg className="dr-glow inset-[2px]" style={{ background: tint(TEAM[x.team].c, 20) }} />}
                 <span
                   className={cn(
-                    "relative skew-x-12 text-[0.6rem] font-display font-bold",
+                    "relative text-[0.6rem] font-display font-bold",
                     x.step && !x.step.skip && x.kind === "pick" ? "text-white/80" : TEAM[x.team].text,
                   )}
                 >
@@ -451,7 +453,7 @@ export function Sequence({ d, turn }: { d: DraftView; turn: Turn }) {
                 </span>
                 <span
                   className={cn(
-                    "num relative skew-x-12 text-base font-display font-black leading-tight",
+                    "num relative text-base font-display font-black leading-tight",
                     x.step?.skip ? "text-ash" : x.step ? (x.kind === "ban" ? "text-paper/60 line-through" : "text-white") : "text-ash/60",
                   )}
                 >

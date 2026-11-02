@@ -7,6 +7,7 @@ import { EASE } from "@/lib/ease";
 import { fmtLen, type Beatmap } from "@/lib/data";
 import { type DraftStep, pickable, type Side, TB } from "@/lib/draft";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 import { slotColor } from "@/lib/format-plan";
 import { modHi, modOn, TEAM } from "@/lib/theme";
 import { CopyId } from "./draft-popups";
@@ -54,10 +55,10 @@ export function MapGrid({
                 ease: EASE,
                 delay: 0.3 + pi * 0.06,
               }}
-              className={cn("mb-2 inline-flex -skew-x-12 items-center gap-2 px-3 py-1 text-sm font-display font-bold", light ? "text-on-fill" : "text-white")}
-              style={{ background: mod.color }}
+              className={cn("relative isolate mb-2 inline-flex items-center gap-2 px-3 py-1 text-sm font-display font-bold", light ? "text-on-fill" : "text-white")}
             >
-              <span className="skew-x-12">{mod.label}</span>
+              <SlantBg style={{ background: mod.color }} />
+              <span>{mod.label}</span>
             </motion.div>
             <div className="grid grid-cols-1 gap-2 @2xl:grid-cols-2 @5xl:grid-cols-3 @[100rem]:grid-cols-4">
               {p.maps.map((m, k) => {
@@ -143,8 +144,9 @@ export function MapGrid({
                         {m.slot}
                       </span>
                       {skill && !tb && MODS[m.mod] && (
-                        <span className={cn("absolute bottom-2 right-2.5 -skew-x-12 border bg-ink/70 px-1.5 text-xs font-display font-black leading-5", grey && "opacity-40")} style={{ borderColor: modHi(MODS[m.mod].color), color: modHi(MODS[m.mod].color) }}>
-                          <span className="inline-block skew-x-12">{MODS[m.mod].short}</span>
+                        <span className={cn("absolute bottom-2 right-2.5 isolate px-1.5 text-xs font-display font-black leading-5", grey && "opacity-40")} style={{ color: modHi(MODS[m.mod].color) }}>
+                          <SlantBg className="border bg-ink/70" style={{ borderColor: modHi(MODS[m.mod].color) }} />
+                          <span className="inline-block">{MODS[m.mod].short}</span>
                         </span>
                       )}
                       <span className={cn("relative flex min-w-0 flex-1 flex-col justify-center pl-1", "pr-3", grey && "opacity-40")}>
@@ -226,8 +228,9 @@ export function MapGrid({
                         aria-label={admin ? t.draft.mapSettings : t.draft.fullScores}
                         className="group absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
                       >
-                        <span className="relative inline-flex h-8 w-12 -skew-x-12 items-center justify-center border border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--rose-deep)] transition-[background-color,translate,box-shadow] duration-200 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 group-hover:bg-rose-hi group-hover:shadow-[5px_5px_0_0_var(--rose-deep)]">
-                          {admin ? <Settings className="size-[18px] skew-x-12" /> : <Eye className="size-[18px] skew-x-12" />}
+                        <span className="relative isolate inline-flex h-8 w-12 items-center justify-center text-white transition-[translate] duration-200 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5">
+                          <SlantBg className="border border-rose bg-rose shadow-[3px_3px_0_0_var(--rose-deep)] transition-[background-color,box-shadow] duration-200 group-hover:bg-rose-hi group-hover:shadow-[5px_5px_0_0_var(--rose-deep)]" />
+                          {admin ? <Settings className="size-[18px]" /> : <Eye className="size-[18px]" />}
                         </span>
                       </motion.button>
                     )}
