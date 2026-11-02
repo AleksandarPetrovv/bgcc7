@@ -1,12 +1,12 @@
 export const ROLES = ["host", "technical", "leadDesign", "referee", "mappooler", "playtester", "streamer", "commentator", "designer"] as const;
 export type Role = (typeof ROLES)[number];
 
-export const PERMS = ["phase", "screening", "lobbies", "qualifiers", "mappools", "poolEdit", "poolVote", "teams", "matches", "draft", "staff", "log", "settings", "format", "formatEdit", "stream", "overlay", "discord"] as const;
+export const PERMS = ["host", "phase", "screening", "lobbies", "qualifiers", "mappools", "poolEdit", "poolVote", "teams", "matches", "staff", "log", "settings", "format", "formatEdit", "stream", "overlay", "discord"] as const;
 export type Perm = (typeof PERMS)[number];
 
 const GRANTS: Record<Role, readonly Perm[]> = {
   host: PERMS,
-  referee: ["lobbies", "qualifiers", "matches", "draft", "format", "stream"],
+  referee: ["lobbies", "qualifiers", "matches", "format", "stream"],
   mappooler: ["mappools", "poolEdit", "poolVote", "format", "formatEdit"],
   playtester: ["mappools", "poolVote", "format"],
   streamer: ["stream", "overlay"],
@@ -15,6 +15,9 @@ const GRANTS: Record<Role, readonly Perm[]> = {
   leadDesign: [],
   designer: [],
 };
+
+// referees link the helper for lobbies, streamers for the overlay
+export const HELPER_PERMS = ["matches", "overlay"] as const satisfies readonly Perm[];
 
 export const can = (roles: readonly Role[] | null | undefined, perm: Perm) => !!roles?.some((r) => GRANTS[r].includes(perm));
 export const hasAdmin = (roles: readonly Role[] | null | undefined) => !!roles?.some((r) => GRANTS[r].length);

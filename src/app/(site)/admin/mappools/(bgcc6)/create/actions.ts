@@ -10,7 +10,7 @@ import { MOD_ORDER } from "@/lib/mods";
 import type { ActionResult } from "@/lib/action-result";
 
 export async function saveBlueprint(stageId: number, _: ActionResult, fd: FormData) {
-  return guard("phase", "stage.blueprint", async () => {
+  return guard("host", "stage.blueprint", async () => {
     if (!isBGCC6()) return { ok: false, error: "forbidden" };
     const s = await blueprintFor(stageId);
     if (!s) return { ok: false, error: "notFound" };

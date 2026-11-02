@@ -3,9 +3,9 @@
 import { guard } from "@/lib/admin-action";
 import { getViewer } from "@/lib/authz";
 import type { ActionResult } from "@/lib/action-result";
-import { can } from "@/lib/roles";
+import { can, HELPER_PERMS } from "@/lib/roles";
 import { confirmCode, unpair } from "@/lib/relay";
-import { helperView, HELPER_PERMS } from "@/lib/helper-sig";
+import { helperView } from "@/lib/helper-sig";
 
 export async function linkHelper(_: ActionResult, fd: FormData) {
   return guard(HELPER_PERMS, "helper.link", async ({ osuId }) => {

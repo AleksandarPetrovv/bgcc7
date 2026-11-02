@@ -19,7 +19,7 @@ async function dropPack(stageId: number) {
 }
 
 export async function renameStage(id: number, _: ActionResult, fd: FormData) {
-  return guard("phase", "stage.rename", async () => {
+  return guard("host", "stage.rename", async () => {
     const title = String(fd.get("title") ?? "")
       .trim()
       .slice(0, 40);

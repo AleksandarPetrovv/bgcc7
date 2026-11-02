@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { CalendarClock, ChevronRight, ClipboardCheck, Download, Dices, DoorOpen, Gauge, LayoutGrid, Layers, Link2, MonitorPlay, Music2, ScrollText, Settings2, Shield, Swords, Trophy, Users } from "lucide-react";
+import { CalendarClock, ChevronRight, ClipboardCheck, Download, Dices, DoorOpen, LayoutGrid, Layers, Link2, MonitorPlay, Music2, ScrollText, Settings2, Shield, Swords, Trophy, Users } from "lucide-react";
 import { TwitchLogo } from "@/components/site/twitch-logo";
 import { DiscordLogo } from "@/components/site/discord-logo";
 import { Sparkle } from "@/components/site/graphics";
 import { cn } from "@/lib/utils";
+import type { AdminKey } from "./menu";
 
-const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+const ICONS: Record<AdminKey, React.ComponentType<{ className?: string }>> = {
   phase: Layers,
   screening: ClipboardCheck,
   lobbies: DoorOpen,
@@ -32,14 +33,14 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
 
 const spring = { type: "spring", stiffness: 520, damping: 42 } as const;
 
-export function AdminNav({ items }: { items: { href: string; label: string }[] }) {
+export function AdminNav({ items }: { items: { key: AdminKey; href: string; label: string }[] }) {
   const path = usePathname();
   return (
     <nav className="grid grid-cols-8 gap-x-0.5 gap-y-1.5 py-2 lg:flex lg:flex-col lg:justify-start lg:gap-1 lg:py-3" aria-label="Admin">
       {items.map((i) => {
-        const key = i.href.split("/")[2];
-        const Icon = ICONS[key] ?? Gauge;
-        const active = i.href === "/admin" ? path === i.href : path.startsWith(i.href);
+        const key = i.key;
+        const Icon = ICONS[key];
+        const active = path.startsWith(i.href);
         return (
           <Link
             key={i.href}

@@ -15,7 +15,7 @@ async function sponsorFrom(fd: FormData) {
 }
 
 export async function addSponsor(_: ActionResult, fd: FormData) {
-  return guard("phase", "sponsor.add", async () => {
+  return guard("host", "sponsor.add", async () => {
     const row = await sponsorFrom(fd);
     if (!row) return { ok: false, error: "notFound" };
     const all = await db.select({ id: sponsors.id }).from(sponsors);
@@ -25,7 +25,7 @@ export async function addSponsor(_: ActionResult, fd: FormData) {
 }
 
 export async function updateSponsor(id: number, _: ActionResult, fd: FormData) {
-  return guard("phase", "sponsor.update", async () => {
+  return guard("host", "sponsor.update", async () => {
     const row = await sponsorFrom(fd);
     if (!row) return { ok: false, error: "notFound" };
     const [old] = await db.select({ name: sponsors.name }).from(sponsors).where(eq(sponsors.id, id)).limit(1);
@@ -35,7 +35,7 @@ export async function updateSponsor(id: number, _: ActionResult, fd: FormData) {
 }
 
 export async function reorderSponsors(ids: number[]) {
-  return guard("phase", "sponsor.reorder", async () => {
+  return guard("host", "sponsor.reorder", async () => {
     if (!Array.isArray(ids) || !ids.every((i) => Number.isInteger(i))) return { ok: false, error: "invalid" };
     for (const [order, id] of ids.entries()) await db.update(sponsors).set({ order }).where(eq(sponsors.id, id));
     const rows = await db.select({ name: sponsors.name }).from(sponsors).orderBy(asc(sponsors.order));
@@ -44,7 +44,7 @@ export async function reorderSponsors(ids: number[]) {
 }
 
 export async function deleteSponsor(id: number) {
-  return guard("phase", "sponsor.delete", async () => {
+  return guard("host", "sponsor.delete", async () => {
     const [row] = await db.delete(sponsors).where(eq(sponsors.id, id)).returning({ name: sponsors.name });
     return { log: { name: row?.name ?? null } };
   });

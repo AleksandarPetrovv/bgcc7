@@ -14,7 +14,7 @@ import { isBracketStage } from "@/lib/format";
 
 export default async function PoolCreate({ searchParams }: { searchParams: Promise<{ stage?: string }> }) {
   const [t, viewer, stages, sp] = await Promise.all([getDict(), getViewer(), getPoolStages(), searchParams]);
-  if (!can(viewer?.roles, "phase")) notFound();
+  if (!can(viewer?.roles, "host")) notFound();
   if (!isBGCC6()) redirect("/admin/format");
   const stage = stages.find((s) => s.slug === sp.stage) ?? stages[0];
   if (!stage) return null;

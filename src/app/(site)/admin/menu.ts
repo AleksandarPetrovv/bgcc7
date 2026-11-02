@@ -1,22 +1,30 @@
-import type { Perm } from "@/lib/roles";
-import { menuBGCC6 } from "./menu-bgcc6";
+import { isBGCC6 } from "@/db";
+import { can, HELPER_PERMS, type Perm, type Role } from "@/lib/roles";
 
-export const adminMenu = (): { href: string; perm: Perm[] }[] => [
-  { href: "/admin/helper", perm: ["matches", "overlay"] },
-  { href: "/admin/phase", perm: ["phase"] },
-  { href: "/admin/screening", perm: ["screening"] },
-  ...menuBGCC6(),
-  { href: "/admin/mappools", perm: ["mappools"] },
-  { href: "/admin/teams", perm: ["teams"] },
-  { href: "/admin/matches", perm: ["matches"] },
-  { href: "/admin/scheduling", perm: ["matches"] },
-  { href: "/admin/draft", perm: ["draft"] },
-  { href: "/admin/stream", perm: ["stream"] },
-  { href: "/admin/overlay", perm: ["overlay"] },
-  { href: "/admin/site", perm: ["phase"] },
-  { href: "/admin/staff", perm: ["staff"] },
-  { href: "/admin/log", perm: ["log"] },
-  { href: "/admin/settings", perm: ["settings"] },
-  { href: "/admin/discord", perm: ["discord"] },
-  { href: "/admin/format", perm: ["format"] },
-];
+// every admin page in nav order; the url is /admin/<key>, the label t.admin.menu[key], the icon ICONS[key]
+const SECTIONS = [
+  { key: "helper", perm: HELPER_PERMS },
+  { key: "phase", perm: ["phase"] },
+  { key: "screening", perm: ["screening"] },
+  { key: "lobbies", perm: ["lobbies"], bgcc6: true },
+  { key: "qualifiers", perm: ["qualifiers"], bgcc6: true },
+  { key: "mappools", perm: ["mappools"] },
+  { key: "teams", perm: ["teams"] },
+  { key: "matches", perm: ["matches"] },
+  { key: "scheduling", perm: ["matches"] },
+  { key: "draft", perm: ["matches"] },
+  { key: "stream", perm: ["stream"] },
+  { key: "overlay", perm: ["overlay"] },
+  { key: "site", perm: ["host"] },
+  { key: "staff", perm: ["staff"] },
+  { key: "log", perm: ["log"] },
+  { key: "settings", perm: ["settings"] },
+  { key: "discord", perm: ["discord"] },
+  { key: "format", perm: ["format"] },
+] as const satisfies readonly { key: string; perm: readonly Perm[]; bgcc6?: boolean }[];
+
+export type AdminKey = (typeof SECTIONS)[number]["key"];
+
+/** the admin pages this viewer can open, in nav order */
+export const adminMenu = (roles: readonly Role[] | null | undefined) =>
+  SECTIONS.filter((s) => (!("bgcc6" in s) || isBGCC6()) && s.perm.some((p) => can(roles, p))).map((s) => ({ key: s.key as AdminKey, href: `/admin/${s.key}` }));

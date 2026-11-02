@@ -35,7 +35,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
   if (!can(viewer?.roles, "mappools")) notFound();
   const stage = stages.find((s) => s.slug === sp.stage) ?? stages[0];
   if (!stage) return null;
-  const host = can(viewer?.roles, "phase");
+  const host = can(viewer?.roles, "host");
   const edit = can(viewer?.roles, "poolEdit");
   const name = (s: { title: string }) => roundName(t, s.title);
   const [checks, layouts] = await Promise.all([getMapChecks(stage.pools.flatMap((p) => p.maps.map((m) => m.id))), getSkillLayouts()]);

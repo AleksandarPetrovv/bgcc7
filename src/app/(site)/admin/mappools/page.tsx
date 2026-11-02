@@ -16,7 +16,7 @@ export default async function MappoolsHub() {
   if (!viewer || !can(viewer.roles, "mappools")) notFound();
   const sheets = await Promise.all(stages.map((s) => getSheet(s.id, viewer.osuId, s.blueprint)));
   const edit = can(viewer.roles, "poolEdit");
-  const host = can(viewer.roles, "phase");
+  const host = can(viewer.roles, "host");
   const vote = can(viewer.roles, "poolVote");
   const owed = vote ? sheets.reduce((n, s) => n + s.owed, 0) : 0;
   const mapCount = stages.reduce((n, s) => n + s.pools.reduce((k, p) => k + p.maps.length, 0), 0);

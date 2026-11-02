@@ -5,7 +5,7 @@ import { Tag } from "@/components/site/page";
 import { auth } from "@/auth";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
-import { can, hasAdmin } from "@/lib/roles";
+import { hasAdmin } from "@/lib/roles";
 import { getHosts } from "@/db/admin";
 import type { Role } from "@/lib/roles";
 import { adminMenu } from "./menu";
@@ -15,7 +15,7 @@ import { RuleDiamond } from "@/components/site/rule";
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const [viewer, session, t] = await Promise.all([getViewer(), auth(), getDict()]);
   if (!viewer || !hasAdmin(viewer.roles)) notFound();
-  const items = adminMenu().filter((m) => m.perm.some((p) => can(viewer.roles, p))).map((m) => ({ href: m.href, label: t.admin.menu[m.href.split("/")[2]] }));
+  const items = adminMenu(viewer.roles).map((m) => ({ ...m, label: t.admin.menu[m.key] }));
   const hosts = viewer.roles.includes("host") ? await getHosts() : [];
   const hostIndex = hosts.findIndex((host) => host.osuId === viewer.osuId);
   const mainRoles: Role[] = ["referee", "commentator", "mappooler", "playtester"];

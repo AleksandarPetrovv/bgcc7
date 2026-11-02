@@ -15,7 +15,7 @@ import { localeOf } from "@/lib/i18n/locale";
 
 export default async function AdminSite() {
   const [t, lang, viewer, sponsors, stages] = await Promise.all([getDict(), getLang(), getViewer(), getSponsors(), getPoolStages()]);
-  if (!can(viewer?.roles, "phase")) notFound();
+  if (!can(viewer?.roles, "host")) notFound();
 
   return (
     <>

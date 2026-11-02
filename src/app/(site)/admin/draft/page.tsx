@@ -29,7 +29,7 @@ export default async function AdminDraft() {
     db.select().from(drafts).catch(() => []),
   ]);
   const cfg = await timers();
-  if (!can(viewer?.roles, "draft")) notFound();
+  if (!can(viewer?.roles, "matches")) notFound();
   const control = can(viewer?.roles, "matches");
   const locale = localeOf(lang);
   const team = (id: string | null) => teams.find((x) => x.id === id);

@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import { Download } from "lucide-react";
-import { helperView, HELPER_PERMS } from "@/lib/helper-sig";
+import { helperView } from "@/lib/helper-sig";
 import { HelperLink, HelperPoll, UnlinkHelper } from "@/components/admin/link-gate";
 import { PageTitle, SlantButton } from "@/components/site/page";
 import { Panel } from "@/components/admin/form";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
-import { can } from "@/lib/roles";
+import { can, HELPER_PERMS } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
 import { getLang } from "@/lib/i18n/server";

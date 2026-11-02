@@ -67,7 +67,7 @@ export async function removeSuggestion(id: number) {
   return guard("poolEdit", "pool.unsuggest", async ({ osuId, roles }) => {
     const [s] = await db.select().from(poolSuggestions).where(eq(poolSuggestions.id, id)).limit(1);
     if (!s) return { ok: false, error: "notFound" };
-    if (s.picked || (s.osuId !== osuId && !can(roles, "phase"))) return { ok: false, error: "forbidden" };
+    if (s.picked || (s.osuId !== osuId && !can(roles, "host"))) return { ok: false, error: "forbidden" };
     await db.delete(poolSuggestions).where(eq(poolSuggestions.id, id));
     await settle(osuId, s.stageId, s.mod, s.slot);
     return { log: { id, title: s.title, version: s.version } };
@@ -75,14 +75,14 @@ export async function removeSuggestion(id: number) {
 }
 
 export async function pickNow(stageId: number, mod: string, slot: number) {
-  return guard("phase", "pool.force", async ({ osuId }) => {
+  return guard("host", "pool.force", async ({ osuId }) => {
     await settle(osuId, stageId, mod, slot, true);
     return { log: { stageId, mod, slot: slot + 1 } };
   });
 }
 
 export async function pickSuggestion(id: number) {
-  return guard("phase", "pool.force", async ({ osuId }) => {
+  return guard("host", "pool.force", async ({ osuId }) => {
     const [s] = await db.select().from(poolSuggestions).where(eq(poolSuggestions.id, id)).limit(1);
     if (!s) return { ok: false, error: "notFound" };
     await settle(osuId, s.stageId, s.mod, s.slot, true, id);
