@@ -43,7 +43,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
             <h1 className="heading-slam mt-2 max-w-3xl text-4xl sm:text-6xl">
               <Words text={team.name} d={0.4} s={0.08} />
             </h1>
-            <div className="mt-3 flex gap-8">
+            <div className="mt-3 grid grid-cols-[repeat(3,auto)] justify-start gap-x-5 sm:flex sm:gap-8">
               {(
                 [
                   [t.common.avgRank, `#${fmtNum(team.avgRank)}`],
@@ -53,7 +53,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
               ).map(([k, v], i) => (
                 <div key={k} className="in-up" style={{ "--i": i, "--s": "0.1s", "--d": "0.7s" } as React.CSSProperties}>
                   <div className="text-[0.65rem] font-display font-bold text-rose-hi">{k}</div>
-                  <div className="num text-3xl">{v}</div>
+                  <div className="num whitespace-nowrap text-[clamp(1.25rem,5.6vw,1.875rem)] sm:text-3xl">{v}</div>
                 </div>
               ))}
             </div>
@@ -79,7 +79,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
                 </div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={flagUrl(p.country)} alt="" className="mt-1 h-3" />
-                <div className="num mt-2 flex gap-4 text-sm text-paper/75">
+                <div className="num mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-paper/75">
                   <span>#{fmtNum(p.rank)}</span>
                   <span>{fmtNum(Math.round(p.pp))}pp</span>
                   <span>{p.accuracy.toFixed(2)}%</span>
