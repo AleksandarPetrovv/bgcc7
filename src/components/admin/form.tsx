@@ -9,7 +9,6 @@ import { WeekdayInput } from "@/components/site/weekday-input";
 import { errorText, type ActionResult } from "@/lib/action-result";
 import { cn } from "@/lib/utils";
 
-export const labelCls = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 
 // [text, skewed background]: the skew lives on an absolute span so the text is never transformed (transformed text goes blurry)
 const TONES = {

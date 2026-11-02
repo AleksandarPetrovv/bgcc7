@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CalendarClock, ChevronDown, Gavel, Link2, Radio, Video } from "lucide-react";
-import { ActionForm, DateTimeField, Field, labelCls } from "@/components/admin/form";
+import { ActionForm, DateTimeField, Field } from "@/components/admin/form";
+import { labelCls } from "@/components/admin/label";
 import { Dropdown } from "@/components/admin/dropdown";
 import { MpLinks } from "@/components/admin/mp-links";
 import { RefSwapGuard } from "./ref-swap-guard";

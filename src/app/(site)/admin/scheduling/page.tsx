@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, DateTimeField, Panel, labelCls } from "@/components/admin/form";
+import { ActionForm, DateTimeField, Panel } from "@/components/admin/form";
+import { labelCls } from "@/components/admin/label";
 import { getPoolStages } from "@/db/mappools";
 import { getMatchRows, getTeams } from "@/db/tournament";
 import { historyOf, stageWeeks } from "@/db/schedule";

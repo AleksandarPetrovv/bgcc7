@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 import { usePollRefresh } from "@/components/site/use-poll-refresh";
 import { Link2, Unlink } from "lucide-react";
 import { helperState, linkHelper, unlinkHelper } from "@/actions/helper-link";
-import { ActionForm, Field, Panel, labelCls } from "./form";
+import { ActionForm, Field, Panel } from "./form";
+import { labelCls } from "./label";
 import { useDict } from "@/components/site/lang";
 
 // link panel collapses once the helper is linked and comes back after an unlink

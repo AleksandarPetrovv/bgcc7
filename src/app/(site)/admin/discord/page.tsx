@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, labelCls, Panel } from "@/components/admin/form";
+import { ActionForm, Panel } from "@/components/admin/form";
+import { labelCls } from "@/components/admin/label";
 import { Dropdown } from "@/components/admin/dropdown";
 import { getCfg } from "@/db/discord-bot";
 import { db } from "@/db";

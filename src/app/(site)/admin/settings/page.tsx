@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { getFormat } from "@/db/edition";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, labelCls, Panel, Field } from "@/components/admin/form";
+import { ActionForm, Panel, Field } from "@/components/admin/form";
+import { labelCls } from "@/components/admin/label";
 import { getSettings } from "@/db/settings";
 import { getPoolStages } from "@/db/mappools";
 import { getMatches } from "@/db/tournament";
