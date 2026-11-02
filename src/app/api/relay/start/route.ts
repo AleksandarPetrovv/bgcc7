@@ -1,10 +1,11 @@
-import { startLink, validState } from "@/lib/relay";
+import { startLink } from "@/lib/relay";
+import { relayError, startRes, validState } from "@/lib/relay-contract";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const b = (await req.json().catch(() => null)) as { state?: unknown } | null;
-  if (typeof b?.state !== "string" || !validState(b.state)) return Response.json({ error: "invalid" }, { status: 400 });
+  if (typeof b?.state !== "string" || !validState(b.state)) return relayError("invalid");
   const code = startLink(b.state);
-  return code ? Response.json({ code }) : Response.json({ error: "busy" }, { status: 503 });
+  return code ? Response.json(startRes(code)) : relayError("busy");
 }

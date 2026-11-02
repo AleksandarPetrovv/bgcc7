@@ -12,7 +12,7 @@ import { getDraft, lobbyTimer, onDraft, rulesOf, setResult } from "@/db/drafts";
 import type { DraftView } from "@/lib/draft";
 import { blocked } from "@/lib/chat-filter";
 import { onRelay, relayName, relayOnline, relaySocket } from "@/lib/relay";
-import { alertId, clearWhere, describeMatch, raise } from "@/lib/alerts";
+import { clearWhere, describeMatch, ownedBy, ownerAlertId, raise } from "@/lib/alerts";
 import { cueAbort, cueCountdown, cueFinish, cuePlay } from "@/lib/overlay-cues";
 import { lobbySize } from "@/lib/format";
 
@@ -175,7 +175,7 @@ function newConn(s: State, c: NonNullable<ReturnType<typeof creds>>, owner: numb
   client.on("connected", () => {
     console.log(`${tag} connected`);
     for (const l of s.live.values()) if (l.owner === owner) void rejoin(l);
-    clearWhere((a) => a.kind === "ircLost" && a.id.endsWith(`:${owner}`));
+    clearWhere(ownedBy("ircLost", owner));
     ping();
   });
   client.on("disconnected", (e) => {
@@ -198,7 +198,7 @@ async function ircLost(s: State, owner: number, why?: string) {
     for (const l of s.live.values()) {
       if (l.owner !== owner) continue;
       const match = await describeMatch(l.matchId);
-      raise({ id: alertId("ircLost", `${l.matchId}:${owner}`), kind: "ircLost", level: "red", match, href: `/matches/${match.slug}`, detail: why }, { hosts: true, osuIds: [owner] });
+      raise({ id: ownerAlertId("ircLost", l.matchId, owner), kind: "ircLost", level: "red", match, href: `/matches/${match.slug}`, detail: why }, { hosts: true, osuIds: [owner] });
     }
   });
 }

@@ -1,12 +1,13 @@
 import { alertsFor } from "@/lib/alerts";
+import { relayAccess } from "@/lib/authz";
 import { relayAuth } from "@/lib/relay";
-import { relayPerms } from "@/lib/relay-perms";
+import { relayError, relayMe } from "@/lib/relay-contract";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   const app = await relayAuth(req);
-  if (!app) return Response.json({ error: "unpaired" }, { status: 401 });
-  const perms = await relayPerms(app.osuId);
-  return Response.json({ id: app.osuId, name: app.ircName, ref: perms.ref, stream: perms.stream, alerts: alertsFor(app.osuId, perms.host) });
+  if (!app) return relayError("unpaired");
+  const a = await relayAccess(app.osuId);
+  return Response.json(relayMe(app.osuId, app.ircName, a, alertsFor(app.osuId, a.host)));
 }

@@ -1,12 +1,8 @@
 import "server-only";
 import { EventEmitter } from "node:events";
 import { currentEdition } from "@/db";
-import type { LiveScore, ScorePacket } from "./overlay-types";
-
-export const LIVE_STALE_MS = 10_000;
-export const IPC_PLAYING = 3;
-
-export type LiveReject = "noplayers" | "players" | "swapped" | "map";
+import type { LiveScore } from "./overlay-types";
+import { LIVE_STALE_MS, type LiveReject, type ScorePacket } from "./relay-contract";
 
 type Store = { scores: Map<string, LiveScore>; rejects?: Map<string, { why: LiveReject; at: number }>; bus: EventEmitter };
 const g = globalThis as unknown as { bgccLive?: Store };

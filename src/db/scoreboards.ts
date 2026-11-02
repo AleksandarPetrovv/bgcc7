@@ -11,7 +11,7 @@ import { alertId, clear, describeMatch, failingFor, raise } from "@/lib/alerts";
 import { staffIds } from "./users";
 import { decideWinner } from "@/lib/result";
 import { within } from "@/lib/utils";
-import { SCORES_STALE_AFTER } from "@/lib/format";
+import { SCORES_STALE_AFTER } from "@/lib/relay-contract";
 
 const LIVE_TTL = 30_000;
 // on globalThis so dev reloads and every route bundle share one cache

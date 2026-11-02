@@ -1,4 +1,4 @@
-import { LINK_TTL } from "@/lib/format";
+import { LINK_TTL } from "@/lib/relay-contract";
 
 export const adminSetup = {
   title: "Admin",

@@ -1,5 +1,5 @@
 import type { match as en } from "../en/match";
-import { SCORES_STALE_AFTER } from "@/lib/format";
+import { SCORES_STALE_AFTER } from "@/lib/relay-contract";
 
 export const match: typeof en = {
   lobby: {

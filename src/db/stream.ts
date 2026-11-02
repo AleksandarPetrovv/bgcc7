@@ -6,7 +6,8 @@ import { getAllMatches } from "./tournament";
 import { nameKey } from "@/lib/names";
 import { isScene, type Scene } from "@/lib/scenes";
 import { can, cleanRoles } from "@/lib/roles";
-import { getLive, IPC_PLAYING } from "@/lib/live-scores";
+import { getLive } from "@/lib/live-scores";
+import { IPC_PLAYING } from "@/lib/relay-contract";
 import { staffNames } from "@/lib/staff-names";
 
 const g = globalThis as unknown as { bgccStreamFocus?: Map<string, string> };

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -197,6 +197,8 @@ export function App() {
     } else show("s-run");
   }, [status, unlinkBusy]);
 
+  const failEv = useEffectEvent(fail);
+  const syncAutoEv = useEffectEvent(syncAuto);
   useEffect(() => {
     let alive = true;
     const offs: (() => void)[] = [];
@@ -220,25 +222,24 @@ export function App() {
             try {
               setStatus(await invoke<Status>("status"));
             } catch (e) {
-              fail("run", errorText(e));
+              failEv("run", errorText(e));
             }
-            syncAuto();
+            syncAutoEv();
           }),
         );
-        offs.push(await listen("link_error", (e) => fail("wait", errorText(e.payload))));
+        offs.push(await listen("link_error", (e) => failEv("wait", errorText(e.payload))));
         const past = await invoke<Entry[]>("logs");
         if (alive) setLogs((l) => [...l, ...past].slice(0, 60));
         setStatus(await invoke<Status>("status"));
-        await syncAuto();
+        await syncAutoEv();
       } catch (e) {
-        fail(screenRef.current === "s-run" ? "run" : "login", errorText(e));
+        failEv(screenRef.current === "s-run" ? "run" : "login", errorText(e));
       }
     })();
     return () => {
       alive = false;
       offs.forEach((off) => off());
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

@@ -5,7 +5,7 @@ import { currentEdition, db } from "@/db";
 import { getFormat } from "@/db/edition";
 import { matches, teams } from "@/db/schema";
 import { roundOf } from "./format";
-import type { Alert, AlertKind } from "./alert-types";
+import type { Alert, AlertKind } from "./relay-contract";
 
 /** who sees an alert: hosts, and/or these osu ids */
 export type Audience = { hosts?: boolean; osuIds?: (number | null | undefined)[] };
@@ -16,6 +16,9 @@ const g = globalThis as unknown as { bgccAlerts?: Store };
 const store = () => (g.bgccAlerts ??= { list: new Map(), bus: new EventEmitter().setMaxListeners(0), since: new Map() });
 
 export const alertId = (kind: AlertKind, key: string) => `${kind}:${currentEdition()}:${key}`;
+/** an alert about one match that belongs to one staff member, so all of theirs can be cleared together */
+export const ownerAlertId = (kind: AlertKind, matchId: string, osuId: number) => alertId(kind, `${matchId}:${osuId}`);
+export const ownedBy = (kind: AlertKind, osuId: number) => (a: Alert) => a.kind === kind && a.id.endsWith(`:${osuId}`);
 
 export function raise(alert: Omit<Alert, "since">, who: Audience) {
   const s = store();

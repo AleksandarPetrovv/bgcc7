@@ -8,8 +8,13 @@ import { resolveOsuUser, saveOsuUser } from "@/db/users";
 import { guard } from "@/lib/admin-action";
 import { cleanRoles } from "@/lib/roles";
 import type { ActionResult } from "@/lib/action-result";
-import { relayPerms } from "@/lib/relay-perms";
+import { relayAccess } from "@/lib/authz";
 import { relayKick } from "@/lib/relay";
+
+// a helper whose account lost both helper roles is cut off at once instead of at its next request
+const kickIfNoHelperRole = async (osuId: number) => {
+  if (!(await relayAccess(osuId)).any) relayKick(osuId);
+};
 
 export async function addStaff(_: ActionResult, fd: FormData) {
   return guard("staff", "staff.add", async () => {
@@ -26,8 +31,7 @@ export async function updateStaff(osuId: number, _: ActionResult, fd: FormData) 
     const permRoles = cleanRoles(fd.getAll("permRoles").map(String));
     if (!permRoles.includes("host") && !(await otherHost(osuId))) return { ok: false, error: "lastHost" };
     await db.update(staff).set({ permRoles }).where(eq(staff.osuId, osuId));
-    const p = await relayPerms(osuId);
-    if (!p.ref && !p.stream) relayKick(osuId);
+    await kickIfNoHelperRole(osuId);
     return { log: { osuId, permRoles } };
   });
 }
@@ -43,8 +47,7 @@ export async function removeStaff(osuId: number) {
   return guard("staff", "staff.remove", async () => {
     if (!(await otherHost(osuId))) return { ok: false, error: "lastHost" };
     await db.delete(staff).where(eq(staff.osuId, osuId));
-    const p = await relayPerms(osuId);
-    if (!p.ref && !p.stream) relayKick(osuId);
+    await kickIfNoHelperRole(osuId);
     return { log: { osuId } };
   });
 }

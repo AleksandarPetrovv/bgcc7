@@ -13,10 +13,21 @@ import type { ActionName } from "./action-names";
 
 export type Viewer = { osuId: number; roles: Role[] };
 
-const rolesOf = cache(async (osuId: number) => {
+async function readRoles(osuId: number) {
   const [row] = await db.select({ roles: staff.permRoles }).from(staff).where(eq(staff.osuId, osuId)).limit(1);
   return cleanRoles(row?.roles ?? []);
-});
+}
+const rolesOf = cache(readRoles);
+
+/** what a staff member's helper may do: ref lobbies, stream scores, get host alerts */
+export const helperAccess = (roles: readonly Role[]) => {
+  const ref = can(roles, "matches");
+  const stream = can(roles, "overlay");
+  return { ref, stream, any: ref || stream, host: roles.includes("host") };
+};
+
+/** the one gate for /api/relay/*; reads fresh roles (not the request cache) so it sees a role change made just before. a db error throws */
+export const relayAccess = async (osuId: number) => helperAccess(await readRoles(osuId));
 
 /** pages render a viewer without staff roles when the db is down */
 export const getViewer = cache(async (): Promise<Viewer | null> => {

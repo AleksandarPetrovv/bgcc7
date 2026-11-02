@@ -1,4 +1,4 @@
-import { getViewer } from "@/lib/authz";
+import { getViewer, helperAccess } from "@/lib/authz";
 import { alertsFor, onAlerts } from "@/lib/alerts";
 import { sse } from "@/lib/sse";
 
@@ -8,6 +8,6 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const v = await getViewer();
   if (!v?.roles.length) return new Response(null, { status: 204 });
-  const host = v.roles.includes("host");
+  const { host } = helperAccess(v.roles);
   return sse(req, async () => alertsFor(v.osuId, host), onAlerts, 30_000);
 }

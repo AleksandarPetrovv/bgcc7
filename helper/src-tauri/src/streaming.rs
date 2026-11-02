@@ -1,19 +1,30 @@
-use crate::{relay::Shared, SITE};
+use crate::{relay::{http, Shared}, SITE};
 use rtosu_dataprovider::{v2::TosuV2Packet, OsuReader};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::sync::{atomic::{AtomicBool, Ordering}, Arc};
 use std::time::{Duration, Instant};
 use tokio::sync::watch;
 
+// these mirror SCORE_LIMITS, SCORE_KEEPALIVE_MS and LIVE_REJECTS in src/lib/relay-contract.ts
+pub(crate) const MAX_CLIENTS: usize = 16;
+pub(crate) const NAME_UNITS: usize = 32;
+pub(crate) const MAX_MODS: usize = 16;
+pub(crate) const IPC_STATE_MAX: i32 = 10;
+pub(crate) const KEEPALIVE: Duration = Duration::from_secs(2);
+pub(crate) const LIVE_REJECTS: [&str; 4] = ["noplayers", "players", "swapped", "map"];
+
+/// POST /api/relay/score
 #[derive(Clone, PartialEq, Serialize)]
+#[cfg_attr(test, derive(Deserialize))]
 #[serde(rename_all = "camelCase")]
-struct ScorePacket {
+pub(crate) struct ScorePacket {
     ipc_state: i32,
     map_id: i32,
     clients: Vec<LiveClient>,
 }
 
 #[derive(Clone, PartialEq, Serialize)]
+#[cfg_attr(test, derive(Deserialize))]
 #[serde(rename_all = "camelCase")]
 struct LiveClient {
     ipc_id: u64,
@@ -31,17 +42,17 @@ struct LiveClient {
 fn packet(source: &TosuV2Packet) -> ScorePacket {
     let clients = source.tourney.clients.iter()
         .filter(|c| c.team == "left" || c.team == "right")
-        .take(16)
+        .take(MAX_CLIENTS)
         .map(|c| {
             let mut units = 0;
             let name = c.user.name.chars().take_while(|ch| {
                 units += ch.len_utf16();
-                units <= 32
+                units <= NAME_UNITS
             }).collect();
             let mods = c.play.mods.array.iter()
                 .map(|m| m.acronym.to_ascii_uppercase())
                 .filter(|m| m.len() == 2 && m.bytes().all(|b| b.is_ascii_uppercase() || b.is_ascii_digit()))
-                .take(16).collect();
+                .take(MAX_MODS).collect();
             LiveClient {
                 ipc_id: (c.ipc_id as u64).min(9_007_199_254_740_991),
                 team: c.team.clone(),
@@ -56,10 +67,18 @@ fn packet(source: &TosuV2Packet) -> ScorePacket {
             }
         }).collect();
     ScorePacket {
-        ipc_state: source.tourney.ipc_state.clamp(0, 10),
+        ipc_state: source.tourney.ipc_state.clamp(0, IPC_STATE_MAX),
         map_id: source.beatmap.id.max(0),
         clients,
     }
+}
+
+/// the /score reply: {ok, match} or {error, match?}
+#[derive(Deserialize, Default)]
+pub(crate) struct ScoreReply {
+    #[serde(rename = "match")]
+    pub(crate) matched: Option<String>,
+    pub(crate) error: Option<String>,
 }
 
 #[derive(Clone)]
@@ -87,10 +106,6 @@ fn state(sh: &Shared, value: &str, clients: usize, matched: Option<String>) {
 }
 
 pub async fn run(sh: Arc<Shared>, token: String, mut stop: watch::Receiver<bool>) {
-    let http = match reqwest::Client::builder().user_agent("bgcc-helper/1.0").timeout(Duration::from_secs(5)).build() {
-        Ok(http) => http,
-        Err(_) => { state(&sh, "error", 0, None); return; }
-    };
     let (tx, mut latest) = watch::channel(Sample::Waiting);
     let quitting = Arc::new(AtomicBool::new(false));
     let guard = ReaderStop(quitting.clone());
@@ -134,7 +149,7 @@ pub async fn run(sh: Arc<Shared>, token: String, mut stop: watch::Receiver<bool>
             Sample::Error => { state(&sh, "error", 0, None); continue; }
             Sample::Packet(p) => p,
         };
-        if sent.as_ref().is_some_and(|(last, at)| *last == p && at.elapsed() < Duration::from_secs(2)) { continue; }
+        if sent.as_ref().is_some_and(|(last, at)| *last == p && at.elapsed() < KEEPALIVE) { continue; }
         let count = p.clients.len();
         if last_count != Some(count) && diagnostic.elapsed() >= Duration::from_secs(15) {
             sh.note("info", format!("tourney clients: {count}"));
@@ -143,12 +158,10 @@ pub async fn run(sh: Arc<Shared>, token: String, mut stop: watch::Receiver<bool>
         }
         let result = tokio::select! {
             result = async {
-                let response = http.post(format!("{SITE}/api/relay/score")).bearer_auth(&token).json(&p).send().await?;
+                let response = http().post(format!("{SITE}/api/relay/score")).bearer_auth(&token).json(&p).timeout(Duration::from_secs(5)).send().await?;
                 let code = response.status().as_u16();
-                let body = response.json::<serde_json::Value>().await.unwrap_or_default();
-                let matched = body.get("match").and_then(|m| m.as_str()).map(str::to_owned);
-                let why = body.get("error").and_then(|e| e.as_str()).unwrap_or("").to_owned();
-                Ok::<_, reqwest::Error>((code, matched, why))
+                let body = response.json::<ScoreReply>().await.unwrap_or_default();
+                Ok::<_, reqwest::Error>((code, body.matched, body.error.unwrap_or_default()))
             } => result,
             _ = stop.changed() => break,
         };
@@ -157,7 +170,7 @@ pub async fn run(sh: Arc<Shared>, token: String, mut stop: watch::Receiver<bool>
         match result {
             Ok((200, Some(matched), _)) => state(&sh, "sending", count, Some(matched)),
             Ok((409, matched, why)) => {
-                let s = match why.as_str() { "noplayers" | "players" | "swapped" | "map" => why.as_str(), _ => "nomatch" };
+                let s = if LIVE_REJECTS.contains(&why.as_str()) { why.as_str() } else { "nomatch" };
                 state(&sh, s, count, matched);
             }
             Ok((401, _, _)) => { crate::invalidate(&sh, &token); break; }

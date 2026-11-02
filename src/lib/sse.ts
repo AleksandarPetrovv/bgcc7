@@ -8,7 +8,7 @@ const g = globalThis as unknown as { bgccSseOpen?: Map<string, number> };
 const openPerIp = (g.bgccSseOpen ??= new Map());
 
 export const SSE_HEADERS = { "Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no" };
-export const sseFrame = (data: unknown) => `data: ${JSON.stringify(data)}\n\n`;
+export { sseFrame } from "./relay-contract";
 
 /**
  * a read-and-diff stream: `read` runs on every `subscribe` event and every `every` ms, only changed results go out.

@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { LoaderCircle, X } from "lucide-react";
 import { retryFinish } from "@/actions/retry-finish";
-import { ALERT_KINDS, snoozeMs, type Alert } from "@/lib/alert-types";
+import { isAlert, snoozeMs, type Alert } from "@/lib/relay-contract";
 import { cn } from "@/lib/utils";
 import { useDict } from "./lang";
 
@@ -31,12 +31,6 @@ function currentSnoozes(value: Snoozes, alerts: Alert[]): Snoozes {
   const ids = new Set(alerts.map((a) => a.id));
   const now = Date.now();
   return Object.fromEntries(Object.entries(value).filter(([id, until]) => ids.has(id) && until > now));
-}
-
-function isAlert(value: unknown): value is Alert {
-  if (!value || typeof value !== "object") return false;
-  const a = value as Alert;
-  return typeof a.id === "string" && ALERT_KINDS.includes(a.kind) && (a.level === "red" || a.level === "gold") && typeof a.since === "number" && Number.isFinite(a.since);
 }
 
 function AlertCard({ alert, onSnooze }: { alert: Alert; onSnooze: (alert: Alert) => void }) {

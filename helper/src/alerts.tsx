@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { snoozeMs, type Alert as SiteAlert, type HelperAlertKind } from "../../src/lib/relay-contract";
 import { ALERT_TEXT } from "./text";
 
-export type Alert = { id: string; kind: string; level: "red" | "gold"; since: number; match?: { label?: string }; href?: string; blocked?: string[]; detail?: string };
+export type Alert = Omit<SiteAlert, "kind"> & { kind: HelperAlertKind };
 
 export const validAlerts = (alerts: unknown): Alert[] | null =>
   Array.isArray(alerts) ? alerts.filter((a) => a && typeof a.id === "string" && Object.hasOwn(ALERT_TEXT, a.kind) && (a.level === "red" || a.level === "gold")) : null;
@@ -17,7 +18,7 @@ function AlertCard({ alert, onSnooze }: { alert: Alert; onSnooze: (minutes: numb
   const text = ALERT_TEXT[alert.kind];
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const minutes = alert.level === "red" ? 10 : 30;
+  const minutes = snoozeMs(alert) / 60_000;
   const titleId = `alert-title-${alert.id}`;
   const href = typeof alert.href === "string" && alert.href.startsWith("/") && !alert.href.startsWith("//") ? alert.href : null;
   const open = async () => {

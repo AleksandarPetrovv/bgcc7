@@ -1,5 +1,5 @@
 import type { adminSetup as en } from "../en/admin-setup";
-import { LINK_TTL } from "@/lib/format";
+import { LINK_TTL } from "@/lib/relay-contract";
 
 export const adminSetup: typeof en = {
   title: "Админ",

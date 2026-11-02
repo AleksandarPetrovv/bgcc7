@@ -1,24 +1,7 @@
 import type { Scene } from "./scenes";
+import type { ScorePacket } from "./relay-contract";
 
-export type LiveClient = {
-  ipcId: number;
-  team: "left" | "right";
-  userId: number;
-  name: string;
-  score: number;
-  accuracy: number;
-  combo: number;
-  maxCombo: number;
-  mods: string[];
-  failed: boolean;
-};
-
-// what the helper posts to /api/relay/score, about 10 times a second
-export type ScorePacket = {
-  ipcState: number;
-  mapId: number;
-  clients: LiveClient[];
-};
+export type { LiveClient, ScorePacket } from "./relay-contract";
 
 export type LiveScore = ScorePacket & {
   matchId: string;

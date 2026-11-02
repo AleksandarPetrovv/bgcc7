@@ -5,12 +5,10 @@ import { EventEmitter } from "node:events";
 import { and, eq } from "drizzle-orm";
 import { db, withEdition } from "@/db";
 import { mpLobbies, refApps, users } from "@/db/schema";
-import { alertId, alertsFor, clearWhere, describeMatch, onAlerts, raise } from "./alerts";
-import { nameKey, ircName } from "@/lib/names";
-import { LINK_TTL } from "@/lib/format";
-
-export type RelayMsg = { t: "open" } | { t: "line"; l: string } | { t: "close" };
-export type RelayEv = { t: "opened" } | { t: "line"; l: string } | { t: "closed"; why?: string };
+import { alertsFor, clearWhere, describeMatch, onAlerts, ownedBy, ownerAlertId, raise } from "./alerts";
+import { ircName } from "@/lib/names";
+import { SSE_HEADERS, sseFrame } from "@/lib/sse";
+import { APP_SEEN_MS, LINK_TTL, OFFLINE_GRACE, SSE_PING_MS, validState, frame, type RelayEv, type RelayFrame, type RelayMsg } from "@/lib/relay-contract";
 
 export class RelaySocket extends EventEmitter {
   private opened?: () => void;
@@ -25,16 +23,16 @@ export class RelaySocket extends EventEmitter {
     this.opened = cb;
     this.r.sock = this;
     if (!this.r.push) return void setImmediate(() => this.end("app offline"));
-    this.r.push({ t: "open" });
+    this.r.push(frame.open());
     return this;
   }
   write(data: string) {
     if (this.dead) return false;
-    for (const l of String(data).split(/\r?\n/)) if (l) this.r.push?.({ t: "line", l });
+    for (const l of String(data).split(/\r?\n/)) if (l) this.r.push?.(frame.line(l));
     return true;
   }
   destroy() {
-    this.r.push?.({ t: "close" });
+    this.r.push?.(frame.close());
     this.end("destroyed");
   }
   feed(ev: RelayEv) {
@@ -58,8 +56,6 @@ const g = globalThis as unknown as { bgccRelay?: Store };
 const store = () => (g.bgccRelay ??= { relays: new Map(), codes: new Map(), bus: new EventEmitter().setMaxListeners(0) });
 
 const hash = (t: string) => createHash("sha256").update(t).digest("hex");
-
-export const validState = (st: string) => /^[A-Za-z0-9_-]{32,64}$/.test(st);
 
 // pairing: the helper asks for a short code, the staff member types it on the site. no link carries the state,
 // so nobody can send a ready-made "click to link" url. the secret state never leaves the helper except to us
@@ -109,13 +105,13 @@ export function confirmCode(input: string, osuId: number): "ok" | "wrong" | "loc
   return "ok";
 }
 
-export async function claim(st: string, irc: string | null) {
+export async function claim(st: string) {
   const { codes } = store();
   const hit = codes.get(st);
   if (!hit || hit.exp < Date.now()) return "pending" as const;
   const [u] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, hit.osuId)).limit(1);
   codes.delete(st);
-  if (!u || (irc !== null && nameKey(u.username) !== nameKey(irc))) return "wrongname" as const;
+  if (!u) return "wrongname" as const;
   const token = randomBytes(32).toString("base64url");
   const row = { tokenHash: hash(token), ircName: ircName(u.username), createdAt: new Date(), seenAt: null };
   await db.insert(refApps).values({ osuId: hit.osuId, ...row }).onConflictDoUpdate({ target: refApps.osuId, set: row });
@@ -133,10 +129,10 @@ export async function relayAuth(req: Request) {
 
 const gs = globalThis as unknown as { bgccHelperSeen?: Map<number, number> };
 const seen = () => (gs.bgccHelperSeen ??= new Map());
-// the helper pings /api/relay/me every 20s, so this covers streamers that never open the irc relay
-export const appRunning = (osuId: number) => relayOnline(osuId) || Date.now() - (seen().get(osuId) ?? 0) < 45_000;
+// the helper polls /api/relay/me, so this covers streamers that never open the irc relay
+export const appRunning = (osuId: number) => relayOnline(osuId) || Date.now() - (seen().get(osuId) ?? 0) < APP_SEEN_MS;
 
-// the helper says bye on quit, so the site shows it closed at once instead of after the 45s window
+// the helper says bye on quit, so the site shows it closed at once instead of after the APP_SEEN_MS window
 export async function appClosed(osuId: number) {
   seen().delete(osuId);
   drop(osuId);
@@ -173,11 +169,6 @@ function drop(osuId: number) {
   setTimeout(() => void helperGone(osuId).catch(() => {}), OFFLINE_GRACE).unref();
 }
 
-// a helper restart takes a few seconds; only call it offline when it stays gone
-const OFFLINE_GRACE = 20_000;
-
-const ownsHelperAlert = (osuId: number) => (a: { kind: string; id: string }) => a.kind === "helperOffline" && a.id.endsWith(`:${osuId}`);
-
 async function helperGone(osuId: number) {
   if (relayOnline(osuId)) return;
   await withEdition("site", async () => {
@@ -185,14 +176,12 @@ async function helperGone(osuId: number) {
     for (const { matchId } of open) {
       if (relayOnline(osuId)) return;
       const match = await describeMatch(matchId);
-      raise({ id: alertId("helperOffline", `${matchId}:${osuId}`), kind: "helperOffline", level: "red", match, href: "/download/helper" }, { osuIds: [osuId] });
+      raise({ id: ownerAlertId("helperOffline", matchId, osuId), kind: "helperOffline", level: "red", match, href: "/download/helper" }, { osuIds: [osuId] });
     }
   });
 }
 
-export function relayKick(osuId: number) {
-  drop(osuId);
-}
+export { drop as relayKick };
 
 export function relayStream(req: Request, osuId: number, ircName: string, host = false) {
   const { relays, bus } = store();
@@ -217,25 +206,27 @@ export function relayStream(req: Request, osuId: number, ircName: string, host =
           stop();
         }
       };
-      r.push = (m) => send(`data: ${JSON.stringify(m)}\n\n`);
-      timer = setInterval(() => send(": ping\n\n"), 15_000);
+      const push = (f: RelayFrame) => send(sseFrame(f));
+      r.push = push;
+      timer = setInterval(() => send(": ping\n\n"), SSE_PING_MS);
       req.signal.addEventListener("abort", stop);
-      send(`data: ${JSON.stringify({ t: "hello", name: ircName, id: osuId })}\n\n`);
+      push(frame.hello(ircName, osuId));
       void db.update(refApps).set({ seenAt: new Date() }).where(eq(refApps.osuId, osuId)).catch(() => {});
       bus.emit("relay", osuId, true);
-      clearWhere(ownsHelperAlert(osuId));
+      clearWhere(ownedBy("helperOffline", osuId));
       const pushAlerts = () => {
-        const json = JSON.stringify(alertsFor(osuId, host));
+        const alerts = alertsFor(osuId, host);
+        const json = JSON.stringify(alerts);
         if (json === lastAlerts) return;
         lastAlerts = json;
-        send(`data: {"t":"alerts","alerts":${json}}\n\n`);
+        push(frame.alerts(alerts));
       };
       offAlerts = onAlerts(pushAlerts);
       pushAlerts();
     },
     cancel: stop,
   });
-  return new Response(stream, { headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no" } });
+  return new Response(stream, { headers: SSE_HEADERS });
 }
 
 export function relayIn(osuId: number, evs: RelayEv[]) {

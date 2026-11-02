@@ -1,0 +1,77 @@
+{
+  "errors": { "invalid": 400, "unpaired": 401, "wrongname": 403, "noref": 403, "nostream": 403, "noroles": 403, "norelay": 409, "nomatch": 409, "busy": 503 },
+  "liveRejects": ["noplayers", "players", "swapped", "map"],
+  "alertKinds": ["ircLost", "helperOffline", "finishFailed", "bracketBlocked", "scoresStale", "overlayFailing", "siteDown"],
+  "limits": {
+    "stateBytes": 32,
+    "linkTtlMs": 600000,
+    "claimPollMs": 3000,
+    "claimPolls": 200,
+    "mePollMs": 20000,
+    "appSeenMs": 45000,
+    "siteDownAfterMs": 60000,
+    "relayInMax": 500,
+    "relayInBatch": 300,
+    "relayLineMax": 4095,
+    "liveStaleMs": 10000,
+    "scoreKeepaliveMs": 2000,
+    "ipcPlaying": 3,
+    "score": { "ipcStateMax": 10, "clients": 16, "nameUnits": 32, "mods": 16, "scoreMax": 2147483647, "accuracyMax": 100 }
+  },
+  "start": {
+    "req": { "state": "8b7kGfd5OXa3uOhQWfHq41DA7aveCGjvGczkaiv3Aks" },
+    "res": { "code": "hvick225_595" }
+  },
+  "claim": {
+    "req": { "state": "8b7kGfd5OXa3uOhQWfHq41DA7aveCGjvGczkaiv3Aks" },
+    "pending": { "pending": true },
+    "res": { "token": "rxNwpVxcaVL9DEXl3TucPPfi6BHx_CRPJVjMk1uvsUA", "name": "Kaloyan_Ivanov" }
+  },
+  "me": {
+    "id": 11283745,
+    "name": "Kaloyan_Ivanov",
+    "ref": true,
+    "stream": false,
+    "alerts": [
+      { "id": "helperOffline:bgcc7:winners-r1-3:11283745", "kind": "helperOffline", "level": "red", "since": 1793462400000, "match": { "id": "winners-r1-3", "slug": "winners-r1-3", "label": "Round of 16 · Sofia Smokers vs Plovdiv Pandas" }, "href": "/download/helper" }
+    ]
+  },
+  "stream": [
+    { "t": "hello", "name": "Kaloyan_Ivanov", "id": 11283745 },
+    { "t": "open" },
+    { "t": "line", "l": "PRIVMSG #mp_118734561 :!mp map 4716254 0" },
+    { "t": "close" },
+    {
+      "t": "alerts",
+      "alerts": [
+        { "id": "ircLost:bgcc7:winners-r1-3:11283745", "kind": "ircLost", "level": "red", "since": 1793462460000, "match": { "id": "winners-r1-3", "slug": "winners-r1-3", "label": "Round of 16 · Sofia Smokers vs Plovdiv Pandas" }, "href": "/matches/winners-r1-3", "detail": "Connection closed" },
+        { "id": "finishFailed:bgcc7:winners-r1-2", "kind": "finishFailed", "level": "red", "since": 1793461800000, "match": { "id": "winners-r1-2", "slug": "winners-r1-2", "label": "Round of 16 · Varna Wavers vs Burgas Blitz" }, "href": "/admin/matches", "detail": "write conflict on matches" },
+        { "id": "bracketBlocked:bgcc7:bracket", "kind": "bracketBlocked", "level": "gold", "since": 1793460000000, "href": "/admin/matches", "blocked": ["Quarterfinals · Sofia Smokers vs Ruse Rapids"] },
+        { "id": "scoresStale:bgcc7:winners-r1-4", "kind": "scoresStale", "level": "gold", "since": 1793462100000, "match": { "id": "winners-r1-4", "slug": "winners-r1-4", "label": "Round of 16 · Stara Zagora Stars vs Pleven Pulse" }, "href": "/admin/matches", "detail": "osu! api 502" },
+        { "id": "overlayFailing:bgcc7:k7d2pq", "kind": "overlayFailing", "level": "gold", "since": 1793462200000, "href": "/admin/stream", "detail": "feed build failed" }
+      ]
+    }
+  ],
+  "in": {
+    "ev": [
+      { "t": "opened" },
+      { "t": "line", "l": ":BanchoBot!cho@ppy.sh PRIVMSG Kaloyan_Ivanov :Created the tournament match https://osu.ppy.sh/mp/118734561 BGCC7: (Sofia Smokers) vs (Plovdiv Pandas)" },
+      { "t": "closed", "why": "irc closed" }
+    ]
+  },
+  "score": {
+    "req": {
+      "ipcState": 3,
+      "mapId": 4716254,
+      "clients": [
+        { "ipcId": 0, "team": "left", "userId": 9384721, "name": "Velichko", "score": 512330, "accuracy": 97.84, "combo": 412, "maxCombo": 418, "mods": ["HD"], "failed": false },
+        { "ipcId": 1, "team": "left", "userId": 14520387, "name": "deyan_osu", "score": 498112, "accuracy": 96.51, "combo": 380, "maxCombo": 380, "mods": ["HD"], "failed": false },
+        { "ipcId": 2, "team": "right", "userId": 12099834, "name": "Mirela", "score": 530004, "accuracy": 98.12, "combo": 418, "maxCombo": 418, "mods": [], "failed": false },
+        { "ipcId": 3, "team": "right", "userId": 17733105, "name": "Stoyan B", "score": 301876, "accuracy": 91.07, "combo": 22, "maxCombo": 211, "mods": ["NF"], "failed": true }
+      ]
+    },
+    "ok": { "ok": true, "match": "winners-r1-3" },
+    "reject": { "error": "swapped", "match": "winners-r1-3" }
+  },
+  "siteDown": { "id": "siteDown", "kind": "siteDown", "level": "red", "since": 1793462520000 }
+}

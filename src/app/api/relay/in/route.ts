@@ -1,18 +1,14 @@
-import { relayAuth, relayIn, type RelayEv } from "@/lib/relay";
-import { relayPerms } from "@/lib/relay-perms";
+import { relayAuth, relayIn } from "@/lib/relay";
+import { relayAccess } from "@/lib/authz";
+import { RELAY_IN_MAX, relayError, validEv } from "@/lib/relay-contract";
 
 export const dynamic = "force-dynamic";
 
-const valid = (e: unknown): e is RelayEv => {
-  const x = e as RelayEv | null;
-  return !!x && (x.t === "opened" || x.t === "closed" || (x.t === "line" && typeof x.l === "string" && x.l.length < 4096));
-};
-
 export async function POST(req: Request) {
   const app = await relayAuth(req);
-  if (!app) return Response.json({ error: "unpaired" }, { status: 401 });
-  if (!(await relayPerms(app.osuId)).ref) return Response.json({ error: "noref" }, { status: 403 });
+  if (!app) return relayError("unpaired");
+  if (!(await relayAccess(app.osuId)).ref) return relayError("noref");
   const b = (await req.json().catch(() => null)) as { ev?: unknown } | null;
-  const ev = Array.isArray(b?.ev) ? b.ev.slice(0, 500).filter(valid) : [];
-  return relayIn(app.osuId, ev) ? Response.json({ ok: true }) : Response.json({ error: "nostream" }, { status: 409 });
+  const ev = Array.isArray(b?.ev) ? b.ev.slice(0, RELAY_IN_MAX).filter(validEv) : [];
+  return relayIn(app.osuId, ev) ? Response.json({ ok: true }) : relayError("norelay");
 }
