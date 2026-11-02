@@ -9,19 +9,13 @@ import type { Beatmap } from "@/lib/data";
 import type { Side } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
-import { backdropClose } from "@/lib/backdrop";
+import { Popup, PopupTitle } from "@/components/site/popup";
 import { slotColor } from "@/lib/format-plan";
 import { GOLD, modHi, TEAM, tint } from "@/lib/theme";
 import { Costs, MapCard } from "@/components/site/match-dialog";
 import type { MapResult, Scoreboard } from "@/lib/scoreboard";
 
 const noop = () => () => {};
-
-const POP = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.16, ease: "easeOut" } },
-  exit: { opacity: 0, transition: { duration: 0.12 } },
-} as const;
 
 export function Portal({ children }: { children: React.ReactNode }) {
   const ready = useSyncExternalStore(
@@ -37,25 +31,11 @@ export function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onP
   const [choice, setChoice] = useState<"pick" | "ban" | null>(null);
   const col = TEAM[me];
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1, transition: { duration: 0.15 } }}
-      exit={{ opacity: 0, transition: { duration: 0.15 } }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
-    >
-      <motion.div
-        initial={POP.initial}
-        animate={POP.animate}
-        exit={POP.exit}
-        className="relative w-full max-w-lg overflow-hidden border-2 bg-coal p-6 sm:p-8"
-        style={{ borderColor: col.c, boxShadow: `8px 8px 0 0 ${col.deep}` }}
-        role="dialog"
-        aria-modal="true"
-      >
+    <Popup tone={col} className="max-w-lg sm:p-8">
         <Crown className="size-10 fill-current text-gold-hi" />
-        <h3 className="heading-slam mt-3 text-4xl sm:text-5xl" style={{ color: col.hi }}>
+        <PopupTitle className="heading-slam mt-3 text-4xl sm:text-5xl" style={{ color: col.hi }}>
           {t.draft.choose}
-        </h3>
+        </PopupTitle>
         <p className="mt-1 text-sm font-bold text-ash">{t.draft.chooseHint}</p>
         <div className="mt-6 grid grid-cols-2 gap-3" role="radiogroup">
           {(["pick", "ban"] as const).map((c) => {
@@ -95,8 +75,7 @@ export function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onP
           {busy ? <Waiting /> : <Check className="size-6" strokeWidth={3} />}
           {t.draft.select}
         </button>
-      </motion.div>
-    </motion.div>
+    </Popup>
   );
 }
 
@@ -210,23 +189,10 @@ export function WinnerPopup({
     }
   }
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.15 } }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
-    >
-      <motion.div
-        initial={POP.initial}
-        animate={POP.animate}
-        exit={POP.exit}
-        className="relative w-full max-w-xl overflow-hidden border-2 border-line bg-coal p-6 sm:p-8"
-        role="dialog"
-        aria-modal="true"
-      >
+    <Popup tone="line" className="max-w-xl sm:p-8">
         <div className="relative text-center">
           <Crown className="mx-auto size-9 fill-current text-gold-hi" />
-          <h3 className="heading-slam mt-2 text-4xl sm:text-5xl">{t.draft.whoWon}</h3>
+          <PopupTitle className="heading-slam mt-2 text-4xl sm:text-5xl">{t.draft.whoWon}</PopupTitle>
           <p className="mt-1 truncate text-sm font-display font-bold text-ash">
             <span style={{ color: modHi(color) }}>{slot}</span> · {map.title}
           </p>
@@ -278,8 +244,7 @@ export function WinnerPopup({
             {t.draft.later}
           </button>
         </div>
-      </motion.div>
-    </motion.div>
+    </Popup>
   );
 }
 
@@ -300,22 +265,7 @@ export function ScoresPopup({ slug, slot, names, onClose }: { slug: string; slot
     };
   }, [slug, slot]);
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.2 } }}
-      {...backdropClose(onClose)}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
-    >
-      <motion.div
-        initial={POP.initial}
-        animate={POP.animate}
-        exit={POP.exit}
-        onClick={(e) => e.stopPropagation()}
-        className="relative max-h-[88dvh] w-full max-w-lg overflow-y-auto"
-        role="dialog"
-        aria-modal="true"
-      >
+    <Popup onClose={onClose} closeButton={false} tone="line" shadow={0} label={slot} className="max-h-[88dvh] max-w-lg border-0 bg-transparent p-0">
         {data && data !== "none" ? (
           <div className="space-y-3 bg-ink">
             <MapCard m={data.map} i={0} />
@@ -327,32 +277,16 @@ export function ScoresPopup({ slug, slot, names, onClose }: { slug: string; slot
         <button type="button" onClick={onClose} className="mt-3 block w-full text-xs font-display font-bold text-ash hover:text-paper">
           {t.draft.close}
         </button>
-      </motion.div>
-    </motion.div>
+    </Popup>
   );
 }
 
 export function ResetPopup({ lobby, busy, onCancel, onReset }: { lobby: boolean; busy: boolean; onCancel: () => void; onReset: (close: boolean) => void }) {
   const t = useDict();
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.2 } }}
-      {...backdropClose(onCancel)}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
-    >
-      <motion.div
-        initial={POP.initial}
-        animate={POP.animate}
-        exit={POP.exit}
-        onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md overflow-hidden border-2 border-rose bg-coal p-6 shadow-[8px_8px_0_0_var(--rose-deep)]"
-        role="dialog"
-        aria-modal="true"
-      >
+    <Popup onClose={onCancel}>
         <RotateCcw className="size-8 text-rose-hi" />
-        <h3 className="heading-slam mt-2 text-3xl">{t.draft.resetTitle}</h3>
+        <PopupTitle className="heading-slam mt-2 text-3xl">{t.draft.resetTitle}</PopupTitle>
         <p className="mt-1 text-sm font-bold text-paper/70">{t.draft.resetBody}</p>
         <div className="mt-6 flex flex-col gap-2.5">
           {lobby && (
@@ -390,8 +324,7 @@ export function ResetPopup({ lobby, busy, onCancel, onReset }: { lobby: boolean;
             {t.draft.cancel}
           </button>
         </div>
-      </motion.div>
-    </motion.div>
+    </Popup>
   );
 }
 
@@ -439,34 +372,12 @@ type AskAction = { label: string; onClick: () => void; fill?: boolean };
 
 /** centered confirm popup. without onClose it can't be dismissed (no backdrop click, no esc), only answered */
 export function AskPopup({ icon: Icon, color, title, body, actions, busy, onClose }: { icon: LucideIcon; color: { c: string; hi: string; deep: string }; title: string; body: string; actions: AskAction[]; busy?: boolean; onClose?: () => void }) {
-  useEffect(() => {
-    if (!onClose) return;
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", esc);
-    return () => window.removeEventListener("keydown", esc);
-  }, [onClose]);
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1, transition: { duration: 0.2 } }}
-      exit={{ opacity: 0, transition: { duration: 0.2 } }}
-      {...(onClose ? backdropClose(onClose) : {})}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
-    >
-      <motion.div
-        initial={POP.initial}
-        animate={POP.animate}
-        exit={POP.exit}
-        onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md overflow-hidden border-2 bg-coal p-6"
-        style={{ borderColor: color.c, boxShadow: `8px 8px 0 0 ${color.deep}` }}
-        role="alertdialog"
-        aria-modal="true"
-      >
+    <Popup onClose={onClose} tone={color}>
         <Icon className="size-8" style={{ color: color.hi }} />
-        <h3 className="heading-slam mt-2 text-3xl" style={{ color: color.hi }}>
+        <PopupTitle className="heading-slam mt-2 text-3xl" style={{ color: color.hi }}>
           {title}
-        </h3>
+        </PopupTitle>
         <p className="mt-1 text-sm font-bold text-paper/70">{body}</p>
         <div className="mt-6 flex flex-wrap gap-3">
           {actions.map((a) => (
@@ -486,7 +397,6 @@ export function AskPopup({ icon: Icon, color, title, body, actions, busy, onClos
             </motion.button>
           ))}
         </div>
-      </motion.div>
-    </motion.div>
+    </Popup>
   );
 }
