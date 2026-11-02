@@ -16,13 +16,15 @@ export type Picks = Record<string, string>;
 /** decided or already started matches can't be picked any more */
 export const lockedOf = (matches: Match[], now = Date.now()) => matches.filter((m) => m.winner || (m.datetime && new Date(m.datetime).getTime() <= now)).map((m) => m.id);
 
-/** picks open once every first-round matchup is known and close when the first bracket match starts */
+/** picks open once every first-round matchup is known and close when the first bracket match starts or has a result */
 export function pickemsWindow(f: Format, matches: Match[], now = Date.now()) {
+  const bracket = matches.filter((m) => f.order.includes(m.id));
   const seeded = seedingOf(f, matches);
   const known = f.order.filter((id) => !f.feed[id]).every((id) => seeded[id]?.[0] && seeded[id]?.[1]);
-  const starts = matches.filter((m) => f.order.includes(m.id) && m.datetime).map((m) => new Date(m.datetime!).getTime());
+  const starts = bracket.filter((m) => m.datetime).map((m) => new Date(m.datetime!).getTime());
   const closesAt = starts.length ? Math.min(...starts) : null;
-  return { open: known && (closesAt === null || now < closesAt), closesAt };
+  const started = bracket.some((m) => m.winner) || (closesAt !== null && now >= closesAt);
+  return { open: known && !started, closesAt, started };
 }
 
 export const picksSchema = (f: Format) => z.partialRecord(z.enum(f.order as [string, ...string[]]), z.string().min(1).max(64));

@@ -6,7 +6,6 @@ import { pickemsWindow } from "@/lib/pickems";
 
 /** an admin changed the teams or matchups: until the first match starts, every saved bracket (and so the leaderboard) starts over */
 export async function resetPickems() {
-  const { closesAt } = pickemsWindow(getFormat(), await getMatches());
-  if (closesAt !== null && Date.now() >= closesAt) return;
+  if (pickemsWindow(getFormat(), await getMatches()).started) return;
   await db.delete(pickems);
 }
