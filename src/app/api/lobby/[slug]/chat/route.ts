@@ -1,13 +1,10 @@
-import { getFormat } from "@/db/edition";
 import { lobbyChatHistory } from "@/lib/chat-history";
-import { matchIdFromSlug } from "@/lib/format";
-import { draftAccess } from "@/lib/match-access";
+import { withMatch } from "@/lib/match-access";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request, { params }: RouteContext<"/api/lobby/[slug]/chat">) {
-  const id = matchIdFromSlug(await getFormat(), (await params).slug);
-  const access = await draftAccess(id);
+  const { id, access } = await withMatch((await params).slug);
   const headers = { "Cache-Control": "private, no-store" };
   if (!access) return Response.json({ error: "forbidden" }, { status: 403, headers });
 

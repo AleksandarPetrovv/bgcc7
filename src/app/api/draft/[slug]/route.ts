@@ -1,24 +1,26 @@
-import { applyDraft, getDraft, requestTimeout, setResult, settle, type DraftAct } from "@/db/drafts";
+import { applyDraft, getDraft, onDraft, requestTimeout, setResult, settle, type DraftAct } from "@/db/drafts";
 import { log } from "@/lib/authz";
-import { getFormat } from "@/db/edition";
-import { matchIdFromSlug } from "@/lib/format";
 import { sse } from "@/lib/sse";
 import { nowPlaying } from "@/lib/bancho";
-import { draftAccess } from "@/lib/match-access";
+import { withMatch } from "@/lib/match-access";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request, { params }: RouteContext<"/api/draft/[slug]">) {
-  const id = matchIdFromSlug(await getFormat(), (await params).slug);
-  if (!(await draftAccess(id))) return Response.json({ error: "forbidden" }, { status: 403 });
-  return sse(req, async () => {
-    const d = await settle(id);
-    return d && { ...d, playing: nowPlaying(id) };
-  }, 1000);
+  const { id, access } = await withMatch((await params).slug);
+  if (!access) return Response.json({ error: "forbidden" }, { status: 403 });
+  return sse(
+    req,
+    async () => {
+      const d = await settle(id);
+      return d && { ...d, playing: nowPlaying(id) };
+    },
+    onDraft,
+    1000,
+  );
 }
 
 export async function POST(req: Request, { params }: RouteContext<"/api/draft/[slug]">) {
-  const id = matchIdFromSlug(await getFormat(), (await params).slug);
-  const who = await draftAccess(id);
+  const { id, access: who } = await withMatch((await params).slug);
   if (!who) return Response.json({ error: "forbidden" }, { status: 403 });
   const body = (await req.json().catch(() => null)) as (DraftAct & { side?: number }) | { act: "result"; slot: string; winner: number | null } | { act: "timeout" } | null;
   if (body?.act === "result") {

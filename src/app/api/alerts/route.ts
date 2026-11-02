@@ -9,5 +9,5 @@ export async function GET(req: Request) {
   const v = await getViewer();
   if (!v?.roles.length) return new Response(null, { status: 204 });
   const host = v.roles.includes("host");
-  return sse(req, async () => alertsFor(v.osuId, host), 30_000, onAlerts);
+  return sse(req, async () => alertsFor(v.osuId, host), onAlerts, 30_000);
 }

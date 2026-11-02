@@ -8,6 +8,8 @@ import { can } from "./roles";
 import { relayOnline } from "./relay";
 import { staffNames } from "./staff-names";
 import type { Side } from "./draft";
+import { getFormat } from "@/db/edition";
+import { matchIdFromSlug } from "./format";
 
 /** who runs the match: its referees, whether one of them is live (helper online or owning the open lobby), and whether it is played through the site */
 export async function siteRun(m: { id: string; referee: string | null }) {
@@ -27,6 +29,12 @@ export async function canRunMatch(matchId: string, opts: { unassigned?: boolean 
   if (!m) return false;
   if (!staffNames(m.referee).length) return !!opts.unassigned;
   return (await staffIds(m.referee)).includes(v.osuId);
+}
+
+/** a match url's id and what the viewer may do there (null = nothing) */
+export async function withMatch(slug: string) {
+  const id = matchIdFromSlug(getFormat(), slug);
+  return { id, access: await draftAccess(id) };
 }
 
 export async function draftAccess(matchId: string) {

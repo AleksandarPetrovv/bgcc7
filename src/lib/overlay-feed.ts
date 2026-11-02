@@ -159,7 +159,7 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
   const firstTo = draft?.firstTo ?? firstToOf(stages, stageSlug);
 
   const live = getLive(matchId);
-  const playing = currentEdition() === siteEdition() ? nowPlaying(matchId) : null;
+  const playing = nowPlaying(matchId);
   const inPlay = live ? live.ipcState === IPC_PLAYING : !!playing;
   const mapId = live?.mapId || playing?.mapId || 0;
 

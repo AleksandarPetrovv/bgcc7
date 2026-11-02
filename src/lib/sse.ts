@@ -1,6 +1,5 @@
 import "server-only";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { onDraft } from "@/db/drafts";
 import { ipOf } from "@/lib/ip";
 
 // open streams per ip, so one client can't pile up connections that each poll the db
@@ -8,8 +7,14 @@ const MAX_PER_IP = 30;
 const g = globalThis as unknown as { bgccSseOpen?: Map<string, number> };
 const openPerIp = (g.bgccSseOpen ??= new Map());
 
-// gap: min ms between reads, so bursts of change events coalesce into one read
-export function sse(req: Request, read: () => Promise<unknown>, every = 3000, subscribe: (fn: () => void) => () => void = onDraft, gap = 250) {
+export const SSE_HEADERS = { "Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no" };
+export const sseFrame = (data: unknown) => `data: ${JSON.stringify(data)}\n\n`;
+
+/**
+ * a read-and-diff stream: `read` runs on every `subscribe` event and every `every` ms, only changed results go out.
+ * gap: min ms between reads, so bursts of change events coalesce into one read
+ */
+export function sse(req: Request, read: () => Promise<unknown>, subscribe: (fn: () => void) => () => void, every = 3000, gap = 250) {
   const ip = ipOf(req);
   const count = openPerIp.get(ip) ?? 0;
   if (count >= MAX_PER_IP) return new Response("too many streams", { status: 429, headers: { "Retry-After": "60" } });
@@ -88,7 +93,5 @@ export function sse(req: Request, read: () => Promise<unknown>, every = 3000, su
     },
     cancel: () => stop("cancelled"),
   });
-  return new Response(stream, {
-    headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no" },
-  });
+  return new Response(stream, { headers: SSE_HEADERS });
 }

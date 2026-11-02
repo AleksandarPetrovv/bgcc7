@@ -2,7 +2,7 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { BanchoLobbyPlayerStates, BanchoLobbyTeamModes, BanchoLobbyWinConditions } from "bancho.js";
-import { db } from "@/db";
+import { currentEdition, db, siteEdition } from "@/db";
 import { matches, mpLobbies, staff, users } from "@/db/schema";
 import { getFormat } from "@/db/edition";
 import { getDraft, rulesOf } from "@/db/drafts";
@@ -213,6 +213,8 @@ export async function abortLobby(matchId: string) {
 
 
 export function nowPlaying(matchId: string) {
+  // live lobbies only exist for the site edition; an archived edition shares match ids
+  if (currentEdition() !== siteEdition()) return null;
   const l = g.bgccIrc?.live.get(matchId);
   if (!l?.lobby.playing) return null;
   if (!playStart.has(matchId)) playStart.set(matchId, Date.now());

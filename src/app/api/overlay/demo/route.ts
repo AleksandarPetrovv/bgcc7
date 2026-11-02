@@ -230,7 +230,7 @@ export async function GET(req: Request) {
       const score: [number, number] = feed.match.winner ? [firstTo, 2] : feed.match.score;
       return { ...feed, match: { ...feed.match, round: stage!.title, firstTo, score }, pool: real.pool, groups: real.groups, steps, current, live: feed.live && current ? { ...feed.live, mapId: current.id } : feed.live };
     },
-    100,
     () => () => {},
+    100,
   );
 }

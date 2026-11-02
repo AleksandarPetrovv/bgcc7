@@ -55,8 +55,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ key: str
         throw e;
       }
     },
-    1000,
     subscribe,
+    1000,
   );
 }
 

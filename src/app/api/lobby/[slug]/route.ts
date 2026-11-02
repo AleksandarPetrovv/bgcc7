@@ -1,11 +1,9 @@
 import { currentEdition, siteEdition } from "@/db";
-import { getFormat } from "@/db/edition";
-import { matchIdFromSlug } from "@/lib/format";
 import { log } from "@/lib/authz";
 import { abortLobby, canLobby, closeLobby, lobbyOwner, ensureBot, inviteMissing, kickSlot, lobbyView, makeLobby, moveSlot, onLobby, refreshLobby, sayLocal, sendChat, abortTimer, spareSlot, startLobby, teamSlot } from "@/lib/bancho";
 import { sse } from "@/lib/sse";
 import { visibleChatLine } from "@/lib/chat-visibility";
-import { draftAccess } from "@/lib/match-access";
+import { withMatch } from "@/lib/match-access";
 
 export const dynamic = "force-dynamic";
 
@@ -14,27 +12,19 @@ type Ctx = { params: Promise<{ slug: string }> };
 // live lobbies are keyed by bare match id and only exist for the site edition; bgcc6 shares those ids
 const otherEdition = () => (currentEdition() !== siteEdition() ? Response.json({ error: "notFound" }, { status: 404 }) : null);
 
-async function who(ctx: Ctx) {
-  const id = matchIdFromSlug(await getFormat(), (await ctx.params).slug);
-  const a = await draftAccess(id);
-  return a?.admin ? { id, osuId: a.osuId } : null;
-}
-
 export async function GET(req: Request, ctx: Ctx) {
   const off = otherEdition();
   if (off) return off;
-  const id = matchIdFromSlug(await getFormat(), (await ctx.params).slug);
-  const a = await draftAccess(id);
+  const { id, access: a } = await withMatch((await ctx.params).slug);
   if (!a) return Response.json({ error: "forbidden" }, { status: 403 });
   void ensureBot().catch((e) => console.error("[bancho]", e));
-  if (a.admin) return sse(req, () => lobbyView(id, a.osuId), 3000, onLobby);
+  if (a.admin) return sse(req, () => lobbyView(id, a.osuId), onLobby);
   return sse(
     req,
     async () => {
       const v = await lobbyView(id);
       return { ...v, password: "", chat: v.chat.filter(visibleChatLine) };
     },
-    3000,
     onLobby,
   );
 }
@@ -46,15 +36,14 @@ export async function POST(req: Request, ctx: Ctx) {
   if (off) return off;
   const b = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   const act = typeof b?.act === "string" ? b.act : "";
+  const { id, access: a } = await withMatch((await ctx.params).slug);
   if (act === "say") {
-    const a = await draftAccess(matchIdFromSlug(await getFormat(), (await ctx.params).slug));
     if (!a || (!a.team && !a.admin)) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
     const r = await sayLocal(a.match.id, a.osuId, String(b?.text ?? ""), a.team);
     return r === "ok" ? Response.json({ ok: true }) : Response.json({ ok: false, error: r }, { status: 429 });
   }
-  const w = await who(ctx);
-  if (!w) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
-  const { id, osuId } = w;
+  if (!a?.admin) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+  const { osuId } = a;
   const owner = await lobbyOwner(id);
   if (act === "make" ? (owner !== null && owner !== osuId) || !canLobby(osuId) : owner !== osuId) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
   try {

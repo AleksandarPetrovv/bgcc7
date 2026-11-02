@@ -22,6 +22,9 @@ import { AdminBar, Rolls, Sequence, TeamsHeader, type TeamInfo } from "./draft-p
 import { MapGrid, type Pool } from "./draft-maps";
 import { decideWinner } from "@/lib/result";
 
+const draftPost = (slug: string, body: object) =>
+  fetch(`/api/draft/${slug}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+
 function isDraftResponse(value: unknown): value is DraftView {
   const object = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
   const number = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
@@ -175,11 +178,7 @@ export function DraftRoom({
     if (busy || !me) return;
     setBusy(true);
     setErr(false);
-    const res = await fetch(`/api/draft/${slug}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...body, side: me }),
-    }).catch(() => null);
+    const res = await draftPost(slug, { ...body, side: me }).catch(() => null);
     setBusy(false);
     if (!res?.ok) return setErr(true);
     const next = (await res.json()) as DraftView;
@@ -196,11 +195,7 @@ export function DraftRoom({
     savingResult.current = true;
     setErr(false);
     try {
-      const res = await fetch(`/api/draft/${slug}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ act: "result", slot, winner }),
-      });
+      const res = await draftPost(slug, { act: "result", slot, winner });
       if (!res.ok) throw new Error("result failed");
       const next: unknown = await res.json();
       if (!isDraftResponse(next) || !next.steps.some((step) => step.kind === "pick" && !step.skip && step.slot === slot && step.winner === winner)) {
@@ -272,7 +267,7 @@ export function DraftRoom({
   const toColor = (s: Side): "Red" | "Blue" => (s === 1 ? "Red" : "Blue");
   async function requestTimeout() {
     setToAsk(null);
-    const res = await fetch(`/api/draft/${slug}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ act: "timeout" }) }).catch(() => null);
+    const res = await draftPost(slug, { act: "timeout" }).catch(() => null);
     if (res?.ok) return take((await res.json()) as DraftView);
     if (res && ((await res.json().catch(() => null)) as { error?: string } | null)?.error === "playing") return setToAsk("map");
     setErr(true);
