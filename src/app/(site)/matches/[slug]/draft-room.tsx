@@ -106,7 +106,7 @@ export function DraftRoom({
       try {
         await fn();
       } catch {
-        window.location.reload();
+        setErr(true);
       }
     });
   const [ask, setAsk] = useState<string | null>(null);

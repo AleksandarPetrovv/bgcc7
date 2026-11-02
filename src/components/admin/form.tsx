@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef, useState, useTransition } from "react";
+import { createContext, useActionState, useCallback, useContext, useEffect, useRef, useState, useTransition } from "react";
 import { Flash } from "./flash";
 import { Modal } from "@/components/site/modal";
 import { Sparkle } from "@/components/site/graphics";
@@ -39,6 +39,28 @@ export function Btn({ tone = "rose", small, fill, className, children, ...props 
   );
 }
 
+export type ConfirmAsk = { text: string; yes: string; no?: string; body?: React.ReactNode };
+type Guard = (fd: FormData) => ConfirmAsk | null;
+const GuardSlot = createContext<((g: Guard) => () => void) | null>(null);
+
+/** inside an ActionForm: run a check on submit; return a confirm to ask first, or null to submit straight away */
+export function useConfirmWhen(guard: Guard | null) {
+  const register = useContext(GuardSlot);
+  useEffect(() => (register && guard ? register(guard) : undefined), [register, guard]);
+}
+
+/** in-site confirm: call ask({ text, yes, onYes }) and render the returned dialog once */
+export function useConfirm() {
+  const [open, setOpen] = useState(false);
+  const [req, setReq] = useState<(ConfirmAsk & { onYes: () => void }) | null>(null);
+  const ask = useCallback((r: ConfirmAsk & { onYes: () => void }) => {
+    setReq(r);
+    setOpen(true);
+  }, []);
+  const dialog = <Confirm open={open} text={req?.text ?? ""} yes={req?.yes ?? ""} no={req?.no} onYes={() => req?.onYes()} onClose={() => setOpen(false)}>{req?.body}</Confirm>;
+  return [ask, dialog] as const;
+}
+
 type Props = {
   action: (prev: ActionResult, fd: FormData) => Promise<ActionResult>;
   children?: React.ReactNode;
@@ -54,26 +76,35 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
   const [state, formAction, pending] = useActionState(action, null);
   const formRef = useRef<HTMLFormElement>(null);
   const confirmed = useRef(false);
-  const [ask, setAsk] = useState(false);
+  const guard = useRef<Guard | null>(null);
+  const register = useCallback((g: Guard) => {
+    guard.current = g;
+    return () => {
+      if (guard.current === g) guard.current = null;
+    };
+  }, []);
+  const [ask, dialog] = useConfirm();
   const msg = state && (state.ok ? t.admin.saved : errorText(t, state.error));
   return (
     <form
       ref={formRef}
       action={formAction}
       className={className}
-      onSubmit={
-        confirm
-          ? (e) => {
-              if (confirmed.current) confirmed.current = false;
-              else {
-                e.preventDefault();
-                setAsk(true);
-              }
-            }
-          : undefined
-      }
+      onSubmit={(e) => {
+        if (confirmed.current) return void (confirmed.current = false);
+        const q = guard.current?.(new FormData(e.currentTarget)) ?? (confirm ? { text: confirm, yes: submit ?? t.admin.save } : null);
+        if (!q) return;
+        e.preventDefault();
+        ask({
+          ...q,
+          onYes: () => {
+            confirmed.current = true;
+            formRef.current?.requestSubmit();
+          },
+        });
+      }}
     >
-      {children}
+      <GuardSlot.Provider value={register}>{children}</GuardSlot.Provider>
       <div className="flex flex-wrap items-center gap-3">
         <Btn type="submit" disabled={pending} tone={ghost ? "outline" : "rose"} small={ghost}>
           {icon}
@@ -89,18 +120,7 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
             </span>
           ))}
       </div>
-      {confirm && (
-        <Confirm
-          open={ask}
-          text={confirm}
-          yes={submit ?? t.admin.save}
-          onYes={() => {
-            confirmed.current = true;
-            formRef.current?.requestSubmit();
-          }}
-          onClose={() => setAsk(false)}
-        />
-      )}
+      {dialog}
     </form>
   );
 }
@@ -162,13 +182,15 @@ export function IconAction({
   children: React.ReactNode;
 }) {
   const [pending, start] = useTransition();
-  const [ask, setAsk] = useState(false);
+  const [fail, setFail] = useState(false);
+  const [ask, dialog] = useConfirm();
   const run = () =>
     start(async () => {
       try {
+        setFail(false);
         await action();
       } catch {
-        window.location.reload();
+        setFail(true);
       }
     });
   return (
@@ -178,7 +200,7 @@ export function IconAction({
         aria-label={label}
         title={label}
         disabled={pending}
-        onClick={() => (confirm ? setAsk(true) : run())}
+        onClick={() => (confirm ? ask({ text: confirm, yes: label, onYes: run }) : run())}
         className={cn(
           "group relative isolate inline-flex size-10 items-center justify-center transition-[color,translate] duration-200 hover:-translate-y-0.5 disabled:opacity-50",
           danger ? "text-rose-hi hover:text-white" : "text-ash hover:text-paper",
@@ -194,17 +216,28 @@ export function IconAction({
         />
         <span className={cn(pending && "animate-pulse")}>{children}</span>
       </button>
-      {confirm && <Confirm open={ask} text={confirm} yes={label} onYes={run} onClose={() => setAsk(false)} />}
+      {fail && !pending && <ErrorNote />}
+      {dialog}
     </>
   );
 }
 
+export function ErrorNote({ children }: { children?: React.ReactNode }) {
+  const t = useDict();
+  return (
+    <span role="status" className="in-left text-xs font-display font-bold text-rose-hi [--d:0s]">
+      {children ?? t.admin.error}
+    </span>
+  );
+}
+
 // centered in-site confirm instead of the browser's window.confirm
-function Confirm({ open, text, yes, onYes, onClose }: { open: boolean; text: string; yes: string; onYes: () => void; onClose: () => void }) {
+function Confirm({ open, text, yes, no, onYes, onClose, children }: { open: boolean; text: string; yes: string; no?: string; onYes: () => void; onClose: () => void; children?: React.ReactNode }) {
   const t = useDict();
   return (
     <Modal open={open} onClose={onClose}>
       <p className="pr-8 text-base font-display font-black leading-snug text-paper">{text}</p>
+      {children}
       <div className="mt-5 flex flex-wrap gap-3">
         <Btn
           type="button"
@@ -216,7 +249,7 @@ function Confirm({ open, text, yes, onYes, onClose }: { open: boolean; text: str
           {yes}
         </Btn>
         <Btn type="button" tone="outline" onClick={onClose}>
-          {t.sched.cancel}
+          {no ?? t.sched.cancel}
         </Btn>
       </div>
     </Modal>

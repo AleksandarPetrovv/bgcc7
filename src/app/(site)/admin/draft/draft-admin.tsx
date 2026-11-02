@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowUpRight, Lock, Pause, Play, RotateCcw, Undo2, X } from "lucide-react";
-import { Btn } from "@/components/admin/form";
+import { Btn, ErrorNote } from "@/components/admin/form";
 import { Dropdown } from "@/components/admin/dropdown";
 import { Modal } from "@/components/site/modal";
 import { useDict } from "@/components/site/lang";
@@ -53,7 +53,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
         const res = await fn();
         setFail(!res?.ok);
       } catch {
-        window.location.reload();
+        setFail(true);
       }
     });
 
@@ -180,7 +180,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
                 </motion.span>
               )}
             </AnimatePresence>
-            {fail && !pending && <span className="text-xs font-display font-bold text-rose-hi">{t.admin.error}</span>}
+            {fail && !pending && <ErrorNote />}
             <AnimatePresence>
               {r.draft && (
                 <motion.span key="view" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="ml-auto">

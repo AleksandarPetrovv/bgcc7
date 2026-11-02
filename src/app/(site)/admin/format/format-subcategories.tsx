@@ -4,6 +4,7 @@ import { useContext } from "react";
 import { Reorder, useDragControls } from "motion/react";
 import { GripVertical, Plus, Trash2, X } from "lucide-react";
 import { useDict } from "@/components/site/lang";
+import { useConfirm } from "@/components/admin/form";
 import { newId, type SubcategoryGroup } from "@/lib/format-plan";
 import { Cascade } from "@/components/site/cascade";
 import { RuleDiamond } from "@/components/site/rule";
@@ -38,9 +39,11 @@ export function SubcategoryEditor({ groups, onChange }: { groups: SubcategoryGro
   const t = useDict();
   const edit = useContext(Edit);
   const update = (id: string, group: SubcategoryGroup) => onChange(groups.map((g) => g.id === id ? group : g));
+  const [ask, dialog] = useConfirm();
   const removeGroup = (group: SubcategoryGroup) => {
-    if (group.items.length && !window.confirm(t.admin.fp.confirmRemoveGroup(group.name))) return;
-    onChange(groups.filter((g) => g.id !== group.id));
+    const go = () => onChange(groups.filter((g) => g.id !== group.id));
+    if (group.items.length) ask({ text: t.admin.fp.confirmRemoveGroup(group.name), yes: t.admin.fp.removeGroup, onYes: go });
+    else go();
   };
   const intro = useIntroWindow();
   return <Intro.Provider value={intro}><Cascade step={0.01} className="[--d:0.9s]"><section className="in-up relative border-b border-line [--i:0]">
@@ -82,6 +85,7 @@ export function SubcategoryEditor({ groups, onChange }: { groups: SubcategoryGro
         {edit && <button type="button" data-cascade onClick={() => update(group.id, { ...group, items: [...group.items, { id: newId(), name: t.admin.fp.newSubcategory }] })} className="in-up mt-2 flex w-full items-center justify-center gap-1 border border-dashed border-line px-2 py-2 text-xs font-display font-bold text-ash hover:border-rose hover:text-rose-hi"><Plus className="size-3.5" />{t.admin.fp.addSubcategory}</button>}
       </div>)}
     </div>
+  {dialog}
   </section></Cascade></Intro.Provider>;
 }
 

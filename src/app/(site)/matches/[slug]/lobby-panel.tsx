@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowUpDown, Check, CircleDashed, CircleDot, Copy, DoorClosed, ExternalLink, Lock, LockOpen, Map as MapIcon, MoveVertical, OctagonX, Play, Plus, RefreshCw, Send, Timer, TimerOff, Unplug, UserPlus, UserX, Users } from "lucide-react";
+import { useConfirm } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
 import { useSSE } from "@/components/site/use-sse";
 import { useFormat } from "@/components/site/tournament";
@@ -33,6 +34,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
   const [picking, setPicking] = useState<{ slot: number; mode: "swap" | "move" } | null>(null);
   const [ask, setAsk] = useState<"start" | "abort" | "close" | null>(null);
   const [noHelper, setNoHelper] = useState(false);
+  const [askKick, kickDialog] = useConfirm();
   const [order, setOrder] = useState(false);
   const [say, setSay] = useState("");
   const sayRef = useRef<HTMLInputElement>(null);
@@ -207,7 +209,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                     {mode === "swap" ? <ArrowUpDown className="size-3.5" /> : <MoveVertical className="size-3.5" />}
                   </IconBtn>
                 ))}
-                <IconBtn title={t.lobby.kick} disabled={pending || offline} onClick={() => window.confirm(t.lobby.confirmKick(s.name)) && run({ act: "kick", slot: i })} className="hover:border-rose hover:text-rose-hi">
+                <IconBtn title={t.lobby.kick} disabled={pending || offline} onClick={() => askKick({ text: t.lobby.confirmKick(s.name), yes: t.lobby.kick, onYes: () => run({ act: "kick", slot: i }) })} className="hover:border-rose hover:text-rose-hi">
                   <UserX className="size-3.5" />
                 </IconBtn>
                 <AnimatePresence>
@@ -458,6 +460,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
           </motion.div>
         )}
       </AnimatePresence>
+      {kickDialog}
     </motion.section>
   );
 }

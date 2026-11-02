@@ -34,6 +34,7 @@ function OverlaySubscription({ url }: { url: string }) {
       try {
         const next: OverlayFeed | null = JSON.parse(event.data);
         if (next?.build) {
+          // new deploy: OBS has nobody to click, so pick up the new bundle on its own
           if (build && build !== next.build) return window.location.reload();
           build = next.build;
         }

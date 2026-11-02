@@ -3,7 +3,7 @@
 import { startTransition, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { RotateCcw } from "lucide-react";
-import { Btn } from "@/components/admin/form";
+import { Btn, useConfirm } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
 import { DEFAULT_PLAN, type Plan, type PlanRound } from "@/lib/format-plan";
 import { cn } from "@/lib/utils";
@@ -74,9 +74,10 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
     return () => window.removeEventListener("beforeunload", warn);
   }, [edit, writer]);
 
+  const [ask, dialog] = useConfirm();
   const reset = () => {
-    if (!edit || resetting || !window.confirm(t.admin.fp.confirmReset)) return;
-    writer.reset();
+    if (!edit || resetting) return;
+    ask({ text: t.admin.fp.confirmReset, yes: t.admin.fp.reset, onYes: () => writer.reset() });
   };
 
   return (
@@ -131,6 +132,7 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
             </Btn>
           </div>
         )}
+        {dialog}
       </div>
       </Catalog.Provider>
     </Edit.Provider>

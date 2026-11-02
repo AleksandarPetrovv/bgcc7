@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Download, FileArchive, PackagePlus, UploadCloud } from "lucide-react";
-import { Btn } from "@/components/admin/form";
+import { Btn, useConfirm } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
 import { Tabs } from "@/components/site/tabs";
 import type { Pack } from "@/lib/data";
@@ -30,6 +30,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
   const [jobs, setJobs] = useState<Record<string, Job>>({});
   const [made, setMade] = useState<Record<string, Pack>>({});
   const prev = useRef<Record<string, Job["state"]>>({});
+  const [ask, dialog] = useConfirm();
 
   const setMsg = useCallback((m: { ok: boolean; text: string } | null, key = slug) => setMsgs((all) => ({ ...all, [key]: m })), [slug]);
 
@@ -89,9 +90,12 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
       return next;
     });
 
-  async function generate() {
+  function generate() {
+    if (pack) ask({ text: t.admin.confirmGeneratePack, yes: t.admin.packGenerate, onYes: startGenerate });
+    else startGenerate();
+  }
+  async function startGenerate() {
     const key = slug;
-    if (pack && !window.confirm(t.admin.confirmGeneratePack)) return;
     setMsg(null, key);
     const res = await fetch(`/api/admin/mappack/${key}/generate`, { method: "POST" }).catch(() => null);
     if (!res?.ok) return setMsg({ ok: false, text: t.admin.packGenFailed }, key);
@@ -129,8 +133,8 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
     xhr.send(file);
   }
 
-  async function remove() {
-    if (!window.confirm(t.admin.confirmDeletePack)) return;
+  const remove = () => ask({ text: t.admin.confirmDeletePack, yes: t.admin.packDelete, onYes: startRemove });
+  async function startRemove() {
     const key = slug;
     const res = await fetch(`/api/admin/mappack/${key}`, { method: "DELETE" });
     forget(key);
@@ -279,6 +283,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
           </motion.p>
         )}
       </AnimatePresence>
+      {dialog}
     </div>
   );
 }
