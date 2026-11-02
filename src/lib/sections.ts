@@ -1,4 +1,5 @@
 import { NAV_BGCC6, ROUTES_BGCC6 } from "./sections-bgcc6";
+import type { Dict } from "./i18n/dict";
 
 export const SECTIONS = [
   "info",
@@ -69,52 +70,78 @@ const ROUTES: [string, Section][] = [
 
 export const sectionOf = (path: string) => ROUTES.find(([p]) => path === p || path.startsWith(`${p}/`))?.[1] ?? null;
 
-export type NavKey = "home" | "me" | "info" | "qualifiers" | "teams" | "players" | "schedule" | "scheduling" | "mappool" | "pickems" | "stats" | "streams" | "staff";
+export type NavKey = "home" | "me" | "register" | "info" | "qualifiers" | "teams" | "players" | "schedule" | "scheduling" | "mappool" | "pickems" | "stats" | "streams" | "staff";
 
-export type NavGroup = { key: NavKey; base: string; items: { href: string; section: Section | null; key?: NavKey }[] };
+/**
+ * one group per top-nav entry; its items are the group's sub-nav (label = the sub-nav tab).
+ * `top: false` groups only have a sub-nav, `sched` groups show only to captains who can schedule, `alias` is another path that lights the entry up
+ */
+export type NavGroup = { key: NavKey; base: string; top?: false; sched?: true; alias?: string; items: { href: string; section: Section | null; key?: NavKey; label?: (t: Dict) => string }[] };
 
 const NAV: NavGroup[] = [
   { key: "home", base: "/", items: [{ href: "/", section: null }] },
-  { key: "me", base: "/me", items: [{ href: "/me", section: null }] },
-  { key: "info", base: "/info", items: [{ href: "/info", section: "info" }] },
+  { key: "me", base: "/me", items: [{ href: "/me", section: null, label: (t) => t.me.title }] },
+  {
+    key: "info",
+    base: "/info",
+    items: [
+      { href: "/info", section: "info", label: (t) => t.sub.information },
+      { href: "/info/condensed", section: "info", label: (t) => t.sub.condensed },
+    ],
+  },
+  { key: "register", base: "/register", top: false, items: [{ href: "/register", section: "register", label: (t) => t.nav.register }] },
   ...NAV_BGCC6,
   {
     key: "teams",
     base: "/teams",
     items: [
-      { href: "/teams", section: "teams" },
-      { href: "/teams/players", section: "players", key: "players" },
+      { href: "/teams", section: "teams", label: (t) => t.sub.teamList },
+      { href: "/teams/players", section: "players", key: "players", label: (t) => t.sub.players },
     ],
   },
+  { key: "schedule", base: "/matches", alias: "/results", items: [{ href: "/matches", section: "schedule", label: (t) => t.sub.schedule }] },
+  { key: "scheduling", base: "/scheduling", sched: true, items: [{ href: "/scheduling", section: null, label: (t) => t.nav.scheduling }] },
+  { key: "mappool", base: "/mappool", items: [{ href: "/mappool", section: "mappool", label: (t) => t.nav.mappool }] },
+  { key: "pickems", base: "/pickems", items: [{ href: "/pickems", section: "pickems", label: (t) => t.nav.pickems }] },
+  { key: "stats", base: "/stats", items: [{ href: "/stats", section: "stats", label: (t) => t.nav.stats }] },
   {
-    key: "schedule",
-    base: "/matches",
-    items: [{ href: "/matches", section: "schedule" }],
+    key: "streams",
+    base: "/streams",
+    items: [
+      { href: "/streams", section: "streams", label: (t) => t.sub.live },
+      { href: "/streams/vods", section: "streams", label: (t) => t.sub.vods },
+    ],
   },
-  { key: "mappool", base: "/mappool", items: [{ href: "/mappool", section: "mappool" }] },
-  { key: "pickems", base: "/pickems", items: [{ href: "/pickems", section: "pickems" }] },
-  { key: "stats", base: "/stats", items: [{ href: "/stats", section: "stats" }] },
-  { key: "streams", base: "/streams", items: [{ href: "/streams", section: "streams" }] },
   {
     key: "staff",
     base: "/staff",
     items: [
-      { href: "/staff", section: "staff" },
-      { href: "/staff/sponsors", section: "sponsors" },
+      { href: "/staff", section: "staff", label: (t) => t.sub.staff },
+      { href: "/staff/sponsors", section: "sponsors", label: (t) => t.sub.sponsors },
     ],
   },
 ];
 
-export type NavItem = { key: NavKey; href: string; base: string; hidden: boolean };
+/** the sub-nav tabs of the group at `base` */
+export const subNavOf = (base: string, t: Dict) =>
+  (NAV.find((g) => g.base === base)?.items ?? []).flatMap((i) => (i.label ? [{ href: i.href, label: i.label(t) }] : []));
 
-export function buildNav(sections: Record<string, boolean>, staff: boolean, off: string[] = []): NavItem[] {
+/** public pages for the sitemap: every top-nav entry everyone can reach */
+export const PUBLIC_PAGES = NAV.filter((g) => g.top !== false && !g.sched && g.key !== "me" && !NAV_BGCC6.includes(g)).map((g) => g.base);
+
+export type NavItem = { key: NavKey; href: string; base: string; alias?: string; hidden: boolean };
+
+export const isActive = (path: string, n: { base: string; alias?: string }) =>
+  n.base === "/" ? path === "/" : [n.base, n.alias].some((b) => b && (path === b || path.startsWith(`${b}/`)));
+
+export function buildNav(sections: Record<string, boolean>, staff: boolean, off: string[] = [], sched = false): NavItem[] {
   const open = (s: Section | null) => s === null || !!sections[s];
-  return NAV.flatMap((g) => {
+  return NAV.filter((g) => g.top !== false && (!g.sched || sched)).flatMap((g) => {
     const items = g.items.filter((i) => !i.section || !off.includes(i.section));
     const pub = items.find((i) => open(i.section));
     const first = pub ?? (staff ? items[0] : undefined);
     if (!first) return [];
-    return [{ key: first.key ?? g.key, href: first.href, base: g.base, hidden: !pub }];
+    return [{ key: first.key ?? g.key, href: first.href, base: g.base, alias: g.alias, hidden: !pub }];
   });
 }
 

@@ -8,14 +8,14 @@ import { lobbyBookings, registrations } from "@/db/schema";
 import { getSettings } from "@/db/settings";
 import { saveOsuUser } from "@/db/users";
 import { getUser } from "@/lib/osu-api";
-import { log } from "@/lib/authz";
+import { getVisibility, log } from "@/lib/authz";
 import { regState } from "@/db/viewer";
 
 export async function signUp() {
   const osuId = await currentOsuId();
   if (!osuId) return { ok: false as const, error: "auth" };
-  const s = await getSettings();
-  if (!s.sections.register || regState(s) !== "open") return { ok: false as const, error: "closed" };
+  const [s, { sections }] = await Promise.all([getSettings(), getVisibility()]);
+  if (!sections.register || regState(s) !== "open") return { ok: false as const, error: "closed" };
   const u = await getUser(osuId).catch(() => null);
   if (!u) return { ok: false as const, error: "osu" };
   await saveOsuUser(u);

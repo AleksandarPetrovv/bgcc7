@@ -1,11 +1,11 @@
 import { pageMeta } from "@/lib/page-meta";
 import { Container, PageTitle } from "@/components/site/page";
 import { Words } from "@/components/site/rich";
-import { getDict, getLang } from "@/lib/i18n/server";
+import { getDict } from "@/lib/i18n/server";
 import { getFill } from "@/db/copy";
 import { isBGCC6 } from "@/db";
-import { getInfoCopy } from "@/db/info-copy";
-import { getViewer, requireSection } from "@/lib/authz";
+import { infoText } from "../copy";
+import { requireSection } from "@/lib/authz";
 import { Editable } from "../editable";
 import { CondensedFolk } from "../folk";
 import { getPlan } from "@/db/format-plan";
@@ -17,9 +17,7 @@ export const generateMetadata = pageMeta("info");
 
 export default async function Condensed() {
   await requireSection("info");
-  const [t, f, copy, lang, viewer] = await Promise.all([getDict(), getFill(), getInfoCopy(), getLang(), getViewer()]);
-  const on = !isBGCC6() && !!viewer?.roles.includes("host");
-  const raw = (path: string, fallback: string) => copy[`${lang}:${path}`] ?? fallback;
+  const [t, f, { lang, on, raw }] = await Promise.all([getDict(), getFill(), infoText()]);
   const title = raw("info.condensed", t.info.condensed);
   if (!isBGCC6()) {
     const [plan, matches, hosts] = await Promise.all([getPlan(), getMatches(), getHosts()]);

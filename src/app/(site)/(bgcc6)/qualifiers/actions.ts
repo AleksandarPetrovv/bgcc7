@@ -7,15 +7,15 @@ import { db } from "@/db";
 import { lobbies, lobbyBookings, registrations } from "@/db/schema";
 import { getSettings } from "@/db/settings";
 import { windowState } from "@/lib/time";
-import { log } from "@/lib/authz";
+import { getVisibility, log } from "@/lib/authz";
 
 type Res = { ok: true } | { ok: false; error: "auth" | "approved" | "closed" | "full" | "error" };
 
 async function allowed(): Promise<{ osuId: number } | Res> {
   const osuId = await currentOsuId();
   if (!osuId) return { ok: false, error: "auth" };
-  const s = await getSettings();
-  if (!s.sections.lobbies || windowState(s.bookingOpensAt, s.bookingClosesAt) !== "open") return { ok: false, error: "closed" };
+  const [s, { sections }] = await Promise.all([getSettings(), getVisibility()]);
+  if (!sections.lobbies || windowState(s.bookingOpensAt, s.bookingClosesAt) !== "open") return { ok: false, error: "closed" };
   const [reg] = await db.select({ status: registrations.status }).from(registrations).where(eq(registrations.osuId, osuId)).limit(1);
   if (reg?.status !== "approved") return { ok: false, error: "approved" };
   return { osuId };

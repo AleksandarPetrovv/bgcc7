@@ -5,10 +5,9 @@ import { InView } from "@/components/site/in-view";
 import { getDict } from "@/lib/i18n/server";
 import { DISCORD_URL } from "@/lib/links";
 import { getFill } from "@/db/copy";
-import { getViewer, requireSection } from "@/lib/authz";
+import { requireSection } from "@/lib/authz";
 import { isBGCC6 } from "@/db";
-import { getInfoCopy } from "@/db/info-copy";
-import { getLang } from "@/lib/i18n/server";
+import { infoText } from "./copy";
 import { Editable } from "./editable";
 import { InfoFolk } from "./folk";
 import { getPlan } from "@/db/format-plan";
@@ -45,9 +44,8 @@ export const generateMetadata = pageMeta("info");
 
 export default async function InfoPage() {
   await requireSection("info");
-  const [t, f, copy, lang, viewer] = await Promise.all([getDict(), getFill(), getInfoCopy(), getLang(), getViewer()]);
-  const on = !isBGCC6() && !!viewer?.roles.includes("host");
-  const ed: Ed = (path, fallback) => ({ path, raw: copy[`${lang}:${path}`] ?? fallback });
+  const [t, f, { lang, on, raw }] = await Promise.all([getDict(), getFill(), infoText()]);
+  const ed: Ed = (path, fallback) => ({ path, raw: raw(path, fallback) });
   const E = (path: string, value: string, fill = true) => {
     const e = ed(path, value);
     return (

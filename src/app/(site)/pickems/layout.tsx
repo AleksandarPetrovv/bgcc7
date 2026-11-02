@@ -1,12 +1,3 @@
-import { GatedSubNav } from "@/components/site/gated-sub-nav";
-import { getDict } from "@/lib/i18n/server";
+import { sectionLayout } from "@/components/site/gated-sub-nav";
 
-export default async function Layout({ children }: { children: React.ReactNode }) {
-  const t = await getDict();
-  return (
-    <>
-      <GatedSubNav items={[{ href: "/pickems", label: t.nav.pickems }]} />
-      {children}
-    </>
-  );
-}
+export default sectionLayout("/pickems");

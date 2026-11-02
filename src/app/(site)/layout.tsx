@@ -31,7 +31,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     <>
       {meCss && <style dangerouslySetInnerHTML={{ __html: meCss }} />}
       <Backdrop />
-      <SiteNav user={user} nav={buildNav(vis.sections, vis.staff, vis.off)} register={regOpen(settings, vis.sections)} live={live} captain={captain} match={match} sched={sched} />
+      <SiteNav user={user} nav={buildNav(vis.sections, vis.staff, vis.off, !!sched?.show)} register={regOpen(settings, vis.sections)} live={live} captain={captain} match={match} sched={sched} />
       <TournamentProvider teams={teams} matches={matches} edition={currentEdition()}>
         <main className="flex-1">{children}</main>
       </TournamentProvider>

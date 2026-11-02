@@ -11,17 +11,9 @@ import { useDict } from "./lang";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
 import { login, logout } from "@/actions/auth";
-import type { NavItem } from "@/lib/sections";
+import { isActive, type NavItem } from "@/lib/sections";
 
 const bar = "pointer-events-none absolute left-0 h-1 w-[100px] origin-left opacity-0 transition-[transform,opacity,translate,scale,rotate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform";
-
-const withSched = (nav: NavItem[]): NavItem[] => {
-  const item: NavItem = { key: "scheduling", href: "/scheduling", base: "/scheduling", hidden: false };
-  const at = nav.findIndex((n) => n.key === "schedule");
-  return at < 0 ? [...nav, item] : [...nav.slice(0, at + 1), item, ...nav.slice(at + 1)];
-};
-
-const isActive = (path: string, base: string) => (base === "/" ? path === "/" : path === base || path.startsWith(`${base}/`) || (base === "/matches" && path.startsWith("/results/")));
 
 function AdminCrest({ on }: { on: boolean }) {
   return (
@@ -149,8 +141,7 @@ function Dot({ className }: { className?: string }) {
   return <span className={cn("size-2 shrink-0 rounded-full bg-rose shadow-[0_0_0_2px_var(--ink)]", className)} aria-hidden />;
 }
 
-export function SiteNav({ user, nav: base, register, live, captain, match: initialMatch, sched }: Props) {
-  const nav = sched?.show ? withSched(base) : base;
+export function SiteNav({ user, nav, register, live, captain, match: initialMatch, sched }: Props) {
   const desk: (Omit<NavItem, "key"> & { key: NavItem["key"] | "admin" })[] = user?.admin ? [...nav, { key: "admin", href: user.admin, base: "/admin", hidden: false }] : nav;
   const meDot = !!sched?.discord;
   const schedDot = !!sched?.dot;
@@ -179,8 +170,8 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
   // a nav click only highlights early until the route changes; otherwise returning to `from` (e.g. via the logo) revives it
   if (clicked && clicked.from !== path) setClicked(null);
   const target = clicked && clicked.from === path ? clicked.base : null;
-  const on = (base: string) => (target ? target === base : isActive(path, base));
-  const activeBase = desk.find((n) => on(n.base))?.base ?? "";
+  const on = (n: { base: string; alias?: string }) => (target ? target === n.base : isActive(path, n));
+  const activeBase = desk.find((n) => on(n))?.base ?? "";
 
   useLayoutEffect(() => {
     const place = (animate: boolean) => {
@@ -281,7 +272,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
             <Sparkle className="inset-0 size-full" />
           </span>
           {desk.map((n, i) => {
-            const active = on(n.base);
+            const active = on(n);
             return (
               <Fragment key={n.href}>
                 {i > 0 && <span className="my-auto size-1 shrink-0 rotate-45 bg-line" aria-hidden />}
@@ -373,11 +364,11 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
               data-compact="1"
               aria-label={t.nav.admin}
               title={t.nav.admin}
-              aria-current={isActive(path, "/admin") ? "page" : undefined}
+              aria-current={isActive(path, { base: "/admin" }) ? "page" : undefined}
               className={cn(
                 "group relative -mr-2 flex size-10 items-center justify-center",
                 compact,
-                isActive(path, "/admin") && "adm-on",
+                isActive(path, { base: "/admin" }) && "adm-on",
               )}
             >
               <AdminCrest on={false} />
@@ -404,10 +395,10 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
                     key={n.href}
                     href={n.href}
                     onClick={() => setOpen(false)}
-                    aria-current={isActive(menuPath, n.base) ? "page" : undefined}
+                    aria-current={isActive(menuPath, n) ? "page" : undefined}
                     className={cn(
                       "heading-slam flex min-h-12 items-center border-b border-line px-6 py-2.5 text-2xl",
-                      isActive(menuPath, n.base) ? "bg-rose text-white" : "text-paper hover:bg-slate",
+                      isActive(menuPath, n) ? "bg-rose text-white" : "text-paper hover:bg-slate",
                       n.hidden && "opacity-40",
                     )}
                   >

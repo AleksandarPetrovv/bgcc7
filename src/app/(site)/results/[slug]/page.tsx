@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: PageProps<"/results/[slug]">)
   if (!m) return {};
   const title = `${roundName(t, m.round)} · ${m.team1.name} vs ${m.team2.name}`;
   const description = m.winner ? `${m.team1.name} ${m.team1.score ?? 0} - ${m.team2.score ?? 0} ${m.team2.name}` : undefined;
-  return { title: `${title} · ${getFormat().name}`, description, openGraph: { title, description } };
+  return { title, description, openGraph: { title, description } };
 }
 
 export default async function Result({ params }: PageProps<"/results/[slug]">) {

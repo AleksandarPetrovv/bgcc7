@@ -1,11 +1,10 @@
 import type { MetadataRoute } from "next";
 import { siteUrl } from "@/lib/links";
+import { PUBLIC_PAGES } from "@/lib/sections";
 
 export const dynamic = "force-dynamic";
 
-const PAGES = ["", "/info", "/mappool", "/teams", "/matches", "/stats", "/pickems", "/streams", "/staff"];
-
 export default function sitemap(): MetadataRoute.Sitemap {
   const site = siteUrl();
-  return PAGES.map((p) => ({ url: `${site}${p}`, changeFrequency: "daily", priority: p ? 0.7 : 1 }));
+  return PUBLIC_PAGES.map((p) => ({ url: `${site}${p === "/" ? "" : p}`, changeFrequency: "daily", priority: p === "/" ? 1 : 0.7 }));
 }
