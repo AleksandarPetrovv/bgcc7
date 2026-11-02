@@ -3,6 +3,7 @@
 import { and, arrayContains, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { staff } from "@/db/schema";
+import { writeOrder } from "@/db/reorder";
 import { resolveOsuUser, saveOsuUser } from "@/db/users";
 import { guard } from "@/lib/admin-action";
 import { cleanRoles } from "@/lib/roles";
@@ -33,8 +34,7 @@ export async function updateStaff(osuId: number, _: ActionResult, fd: FormData) 
 
 export async function reorderStaff(ids: number[]) {
   return guard("staff", "staff.reorder", async () => {
-    if (!Array.isArray(ids) || !ids.every((i) => Number.isInteger(i))) return { ok: false, error: "invalid" };
-    for (const [order, osuId] of ids.entries()) await db.update(staff).set({ order }).where(eq(staff.osuId, osuId));
+    if (!(await writeOrder(staff, staff.osuId, ids))) return { ok: false, error: "invalid" };
     return { log: { ids } };
   });
 }

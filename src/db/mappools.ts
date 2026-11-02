@@ -1,7 +1,10 @@
 import "server-only";
 import { cache } from "react";
 import { asc, eq } from "drizzle-orm";
-import { db } from "./index";
+import { rm } from "node:fs/promises";
+import { currentEdition, db, dbOf } from "./index";
+import { packPath } from "@/lib/uploads";
+import type { Edition } from "@/lib/format";
 import { maps, stages } from "./schema";
 import { safe } from "./safe";
 import { getSkillLayouts } from "./format-plan";
@@ -26,6 +29,19 @@ export type PoolStage = {
 export async function blueprintFor(stageId: number) {
   const [s] = await db.select({ slug: stages.slug, blueprint: stages.blueprint }).from(stages).where(eq(stages.id, stageId)).limit(1);
   return s ?? null;
+}
+
+/** a real mod and a slot inside the stage's saved blueprint */
+export async function slotInBlueprint(stageId: number, mod: string, slot: number) {
+  if (!MODS[mod] || !Number.isInteger(slot) || slot < 0) return false;
+  const s = await blueprintFor(stageId);
+  return !!s && slot < (s.blueprint[mod] ?? 0);
+}
+
+// a changed pool makes the uploaded pack stale, so it goes completely
+export async function clearPack(stageId: number, ed: Edition = currentEdition()) {
+  const [s] = await dbOf(ed).update(stages).set({ packSize: null, packAt: null }).where(eq(stages.id, stageId)).returning({ slug: stages.slug });
+  if (s) await rm(packPath(s.slug, ed), { force: true });
 }
 
 export const slotOf = (mod: string, i: number) => `${MODS[mod]?.short ?? mod}${mod === "Tiebreaker" ? "" : i + 1}`;

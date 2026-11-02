@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePollRefresh } from "@/components/site/use-poll-refresh";
 import { AnimatePresence, motion } from "motion/react";
 import { InView } from "@/components/site/in-view";
 import { RuleDiamond } from "@/components/site/rule";
@@ -16,38 +16,16 @@ const Ctx = createContext<{ mod: string }>({ mod: "all" });
 
 export function SheetView({ stageId, version, mods, children }: { stageId: number; version: string; mods: Mod[]; children: React.ReactNode }) {
   const t = useDict();
-  const router = useRouter();
   const [mod, setMod] = useState("all");
-  const latest = useRef(version);
-  useEffect(() => {
-    latest.current = version;
-  }, [version]);
-
-  useEffect(() => {
-    let busy = false;
-    const tick = async () => {
-      if (busy || document.hidden) return;
-      busy = true;
-      try {
-        const r = await fetch(`/api/admin/pool-sheet/${stageId}`, { cache: "no-store" });
-        if (r.ok) {
-          const { v } = (await r.json()) as { v: string };
-          if (v && v !== latest.current) {
-            latest.current = v;
-            router.refresh();
-          }
-        }
-      } catch {}
-      busy = false;
-    };
-    const id = setInterval(tick, 3000);
-    const onVis = () => !document.hidden && tick();
-    document.addEventListener("visibilitychange", onVis);
-    return () => {
-      clearInterval(id);
-      document.removeEventListener("visibilitychange", onVis);
-    };
-  }, [stageId, router]);
+  usePollRefresh(
+    version,
+    async () => {
+      const r = await fetch(`/api/admin/pool-sheet/${stageId}`, { cache: "no-store" });
+      return r.ok ? ((await r.json()) as { v: string }).v : null;
+    },
+    3000,
+    "visible",
+  );
 
   const chips = [{ key: "all", short: t.admin.allMods, color: "var(--paper)", count: mods.reduce((n, m) => n + m.count, 0) }, ...mods];
 

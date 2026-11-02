@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowUpRight, Check, Hourglass, Scale, Star, Trash2 } from "lucide-react";
+import { ArrowUpRight, Check, Hourglass, Scale, Trash2 } from "lucide-react";
 import { LinkTabs } from "@/components/site/tabs";
 import { PageTitle } from "@/components/site/page";
 import { ActionForm, IconAction } from "@/components/admin/form";
@@ -10,7 +10,6 @@ import { subcategoryNames } from "@/lib/format-plan";
 import { TagChips } from "../tag-chips";
 import { getSheet, sheetVersion } from "@/db/pool-sheet";
 import { getViewer } from "@/lib/authz";
-import { fmtLen } from "@/lib/data";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { modHi } from "@/lib/theme";
@@ -20,8 +19,8 @@ import { pickNow, pickSuggestion, removeSuggestion, suggestMap } from "./actions
 import { VoteCell } from "./vote-cell";
 import { SlotPop } from "../slot-pop";
 import { SheetView, SlotBox } from "./sheet-view";
-import { osuMap } from "@/lib/links";
 import { cardCover } from "@/lib/data";
+import { MapMeta, ModChip } from "../map-meta";
 import { roundName } from "@/lib/i18n/dict";
 import { MOD_ORDER, MODS } from "@/lib/mods";
 
@@ -108,11 +107,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                   <span className={cn("in-slam heading-slam shrink-0 whitespace-nowrap text-2xl [--d:0.2s]", s.mod !== "Tiebreaker" && "w-24")} style={{ color: modHi(color) }}>
                     {label}
                   </span>
-                  {sk && s.mod !== "Tiebreaker" && (
-                    <span className="-skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-display font-black" style={{ borderColor: modHi(MODS[s.mod].color), color: modHi(MODS[s.mod].color) }}>
-                      <span className="inline-block skew-x-12">{MODS[s.mod].short}</span>
-                    </span>
-                  )}
+                  {sk && s.mod !== "Tiebreaker" && <ModChip mod={s.mod} />}
                   {sk && <TagChips names={subcategoryNames(plan.subcategories, sk.ids)} color={color} />}
                   {s.picked ? (
                     unset(s) && (
@@ -177,25 +172,11 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={cardCover(m.cover)} alt="" loading="lazy" decoding="async" className="hidden h-12 w-28 shrink-0 object-cover sm:block" />
                       <div className="min-w-0 flex-1 basis-56">
-                        <a
-                          href={osuMap(m.beatmapId)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="block truncate font-display font-bold decoration-rose underline-offset-4 transition-colors hover:text-rose-hi hover:underline"
-                        >
-                          {m.title} <span className="text-ash">[{m.version}]</span>
-                        </a>
-                        <div className="num flex flex-wrap gap-x-3 text-sm text-paper/70">
-                          <span className="flex items-center gap-1 text-gold-hi">
-                            <Star className="size-3.5 fill-current" /> {m.sr.toFixed(2)}
-                          </span>
-                          <span>{Math.round(m.bpm)} bpm</span>
-                          <span>{fmtLen(m.length)}</span>
-                          <span className="text-ash">ID: {m.beatmapId}</span>
+                        <MapMeta id={m.beatmapId} map={m}>
                           <span className="text-ash">
                             {t.admin.suggestedBy} <span className="font-bold text-paper/80">{m.by}</span>
                           </span>
-                        </div>
+                        </MapMeta>
                         <TagChips names={subcategoryNames(plan.subcategories, m.subcategoryIds)} color={color} filled className="mt-1.5" />
                       </div>
                       <div className="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">

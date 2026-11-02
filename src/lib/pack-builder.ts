@@ -11,7 +11,7 @@ import { asc, eq } from "drizzle-orm";
 import { currentEdition, dbOf } from "@/db";
 import type { Edition } from "@/lib/format";
 import { maps as mapsTable, stages } from "@/db/schema";
-import { slotOf } from "@/db/mappools";
+import { clearPack, slotOf } from "@/db/mappools";
 import { getSkillLayouts } from "@/db/format-plan";
 import { skillSlot } from "./format-plan";
 import { log } from "./authz";
@@ -205,8 +205,7 @@ async function build(slug: string, osuId: number, job: PackJob, ed: Edition) {
     job.zipping = true;
 
     const dest = packPath(slug, ed);
-    await rm(dest, { force: true });
-    await db.update(stages).set({ packSize: null, packAt: null }).where(eq(stages.id, stage.id));
+    await clearPack(stage.id, ed);
 
     // A number first, so osu! imports the maps in pool order whatever the slot names sort as.
     const files = sets.map((s, i) => ({ name: `${String(i + 1).padStart(2, "0")} ${s.slot} - ${s.name} (${s.setId}).osz`, file: got.get(s.setId)! }));

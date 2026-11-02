@@ -3,6 +3,7 @@
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { sponsors } from "@/db/schema";
+import { writeOrder } from "@/db/reorder";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/action-result";
 import { osuUser } from "@/lib/links";
@@ -36,8 +37,7 @@ export async function updateSponsor(id: number, _: ActionResult, fd: FormData) {
 
 export async function reorderSponsors(ids: number[]) {
   return guard("host", "sponsor.reorder", async () => {
-    if (!Array.isArray(ids) || !ids.every((i) => Number.isInteger(i))) return { ok: false, error: "invalid" };
-    for (const [order, id] of ids.entries()) await db.update(sponsors).set({ order }).where(eq(sponsors.id, id));
+    if (!(await writeOrder(sponsors, sponsors.id, ids))) return { ok: false, error: "invalid" };
     const rows = await db.select({ name: sponsors.name }).from(sponsors).orderBy(asc(sponsors.order));
     return { log: { names: rows.map((r) => r.name) } };
   });

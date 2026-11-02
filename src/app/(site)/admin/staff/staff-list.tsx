@@ -1,8 +1,8 @@
 "use client";
 
-import { Flash } from "@/components/admin/flash";
-import { useRef, useState, useTransition } from "react";
+import { useState } from "react";
 import { Reorder, useDragControls } from "motion/react";
+import { SortableList } from "@/components/admin/sortable-list";
 import { Brush, Check, Crown, Gamepad2, Gavel, GripVertical, Lock, Map as MapIcon, Mic, Palette, Radio, TriangleAlert, Wrench } from "lucide-react";
 import { ActionForm } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
@@ -129,42 +129,7 @@ function PermPicker({ initial }: { initial: string[] }) {
 }
 
 export function StaffList({ rows }: { rows: StaffRow[] }) {
-  const t = useDict();
-  const [items, setItems] = useState(rows);
-  const [pending, start] = useTransition();
-  const [saved, setSaved] = useState(false);
-  const latest = useRef(rows);
-
-  function commit() {
-    const ids = latest.current.map((s) => s.osuId);
-    if (ids.join() === rows.map((s) => s.osuId).join()) return;
-    start(async () => {
-      const r = await reorderStaff(ids);
-      setSaved(!!r?.ok);
-    });
-  }
-
   return (
-    <div>
-      <p className="mb-2 text-xs text-ash">
-        {t.admin.dragHint}
-        {saved && !pending && <Flash className="ml-2 font-display font-bold text-balkan-hi">{t.admin.saved}</Flash>}
-      </p>
-      <Cascade step={0.025} className="[--d:0.35s]">
-      <Reorder.Group
-        axis="y"
-        values={items}
-        onReorder={(v) => {
-          latest.current = v;
-          setItems(v);
-        }}
-        className={cn("space-y-6", pending && "opacity-70")}
-      >
-        {items.map((s, i) => (
-          <Row key={s.osuId} s={s} i={i} onDrop={commit} />
-        ))}
-      </Reorder.Group>
-      </Cascade>
-    </div>
+    <SortableList rows={rows} id={(s) => s.osuId} save={reorderStaff} hint="top" className="space-y-6" row={Row} wrap={(list) => <Cascade step={0.025} className="[--d:0.35s]">{list}</Cascade>} />
   );
 }

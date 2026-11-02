@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { usePollRefresh } from "@/components/site/use-poll-refresh";
 import { Link2, Unlink } from "lucide-react";
 import { helperState, linkHelper, unlinkHelper } from "@/actions/helper-link";
 import { ActionForm, Field, Panel, labelCls } from "./form";
@@ -25,22 +24,7 @@ export function LinkGate({ linked, children }: { linked: boolean; children: Reac
 
 // the helper reports to the server on its own; re-fetch the page data in place when its state changes
 export function HelperPoll({ sig }: { sig: string }) {
-  const router = useRouter();
-  const last = useRef(sig);
-  useEffect(() => {
-    last.current = sig;
-  }, [sig]);
-  useEffect(() => {
-    const id = setInterval(async () => {
-      if (document.hidden) return;
-      const s = await helperState().catch(() => null);
-      if (s && s !== last.current) {
-        last.current = s;
-        router.refresh();
-      }
-    }, 3000);
-    return () => clearInterval(id);
-  }, [router]);
+  usePollRefresh(sig, helperState, 3000);
   return null;
 }
 

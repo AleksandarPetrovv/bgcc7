@@ -1,8 +1,8 @@
 "use client";
 
-import { Flash } from "@/components/admin/flash";
-import { useRef, useState, useTransition } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion, Reorder, useDragControls } from "motion/react";
+import { SortableList } from "@/components/admin/sortable-list";
 import { GripVertical, Pencil, X } from "lucide-react";
 import { ActionForm, inputCls, Field } from "@/components/admin/form";
 import { Avatar } from "@/components/site/avatar";
@@ -87,40 +87,8 @@ function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
 
 export function SponsorList({ sponsors }: { sponsors: Sponsor[] }) {
   const t = useDict();
-  const [items, setItems] = useState(sponsors);
-  const [pending, start] = useTransition();
-  const [saved, setSaved] = useState(false);
-  const latest = useRef(sponsors);
-
-  function commit() {
-    const ids = latest.current.map((s) => s.id);
-    if (ids.join() === sponsors.map((s) => s.id).join()) return;
-    start(async () => {
-      const r = await reorderSponsors(ids);
-      setSaved(!!r?.ok);
-    });
-  }
-
-  if (!items.length) return <p className="text-sm text-ash">{t.admin.noSponsors}</p>;
+  if (!sponsors.length) return <p className="text-sm text-ash">{t.admin.noSponsors}</p>;
   return (
-    <div>
-      <Reorder.Group
-        axis="y"
-        values={items}
-        onReorder={(v) => {
-          latest.current = v;
-          setItems(v);
-        }}
-        className={cn("border-t border-line", pending && "opacity-70")}
-      >
-        {items.map((s, i) => (
-          <Row key={s.id} s={s} i={i} onDrop={commit} />
-        ))}
-      </Reorder.Group>
-      <p className="mt-2 text-xs text-ash">
-        {t.admin.dragHint}
-        {saved && !pending && <Flash className="ml-2 font-display font-bold text-balkan-hi">{t.admin.saved}</Flash>}
-      </p>
-    </div>
+    <SortableList rows={sponsors} id={(s) => s.id} save={reorderSponsors} hint="bottom" className="border-t border-line" row={Row} />
   );
 }

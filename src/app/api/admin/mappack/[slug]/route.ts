@@ -7,6 +7,7 @@ import type { ReadableStream as WebStream } from "node:stream/web";
 import { eq } from "drizzle-orm";
 import { currentEdition, db } from "@/db";
 import { stages } from "@/db/schema";
+import { clearPack } from "@/db/mappools";
 import { staffFor } from "@/lib/authz";
 import { logWrite } from "@/lib/admin-action";
 import { PACK_MAX, packPath } from "@/lib/uploads";
@@ -57,8 +58,7 @@ export async function DELETE(_: Request, { params }: RouteContext<"/api/admin/ma
   if (!who) return Response.json({ error: "forbidden" }, { status: 403 });
   const stage = await stageOf((await params).slug);
   if (!stage) return Response.json({ error: "notFound" }, { status: 404 });
-  await rm(packPath(stage.slug, currentEdition()), { force: true });
-  await db.update(stages).set({ packSize: null, packAt: null }).where(eq(stages.id, stage.id));
+  await clearPack(stage.id);
   await logWrite(who.osuId, "pack.delete", { stage: stage.title });
   return Response.json({ ok: true });
 }

@@ -3,14 +3,15 @@ import { InView } from "@/components/site/in-view";
 import { PageTitle } from "@/components/site/page";
 import { RuleDiamond } from "@/components/site/rule";
 import { notFound } from "next/navigation";
-import { ArrowDown, ArrowUp, Download, Star, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Download, Trash2 } from "lucide-react";
 import { ActionForm, inputCls, Panel, Field, IconAction } from "@/components/admin/form";
 import { getPoolStages, slotOf } from "@/db/mappools";
 import { getSkillLayouts } from "@/db/format-plan";
 import { getMapChecks } from "@/lib/osu-api";
 import { getViewer } from "@/lib/authz";
-import { cardCover, fmtLen } from "@/lib/data";
+import { cardCover } from "@/lib/data";
 import { TagChips } from "../tag-chips";
+import { MapMeta, ModChip } from "../map-meta";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { PackUploader } from "@/components/admin/pack-uploader";
 import { can } from "@/lib/roles";
@@ -23,7 +24,6 @@ import { ReleaseToggle } from "../release-toggle";
 import { SwapRow } from "../swap-row";
 import { PoolMode } from "../pool-mode";
 import Link from "next/link";
-import { osuMap } from "@/lib/links";
 import { localeOf } from "@/lib/i18n/locale";
 import { roundName } from "@/lib/i18n/dict";
 import { MOD_ORDER, MODS } from "@/lib/mods";
@@ -158,11 +158,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
               <ul className="divide-y divide-line">
                 {items.map(({ mod, slot, out, note, label: tagLabel }, i) => {
                   const color = skill && !out ? accent : MODS[mod].color;
-                  const chip = skill && mod !== "Tiebreaker" ? (
-                    <span className="-skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-display font-black" style={{ borderColor: modHi(MODS[mod].color), color: modHi(MODS[mod].color) }}>
-                      <span className="inline-block skew-x-12">{MODS[mod].short}</span>
-                    </span>
-                  ) : null;
+                  const chip = skill && mod !== "Tiebreaker" ? <ModChip mod={mod} /> : null;
                   const count = countOf(mod);
                   const m = mapsOf(mod).find((x) => x.order === slot);
                   const tag = note ? <TagChips names={note.split("\n")} color={color} className="mt-1" /> : null;
@@ -201,28 +197,18 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                       <img src={cardCover(m.cover)} alt="" loading="lazy" decoding="async" className="in-wipe hidden h-10 w-24 object-cover sm:block [--d:0.35s]" />
                       {/* phones: slot + buttons on top, the map under them at full width */}
                       <div className="min-w-0 basis-full max-sm:order-last sm:flex-1 sm:basis-0">
-                        <a
-                          href={osuMap(m.id)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="block truncate font-display font-bold decoration-rose underline-offset-4 transition-colors hover:text-rose-hi hover:underline"
-                        >
-                          {m.title} <span className="text-ash">[{m.version}]</span>
-                        </a>
-                        {out && <div className="text-xs font-display font-bold text-rose-hi">{t.admin.outsideLayout}</div>}
-                        {tag}
-                        {checks.get(m.id)?.dmca && <div className="text-xs font-display font-bold text-rose-hi">{t.admin.mapDmca}</div>}
-                        <div className="num flex flex-wrap gap-x-3 text-sm text-paper/70">
-                          <span className="flex items-center gap-1 text-gold-hi">
-                            <Star className="size-3.5 fill-current" /> {m.sr.toFixed(2)}
-                          </span>
-                          <span>{Math.round(m.bpm)} bpm</span>
-                          <span>{fmtLen(m.length)}</span>
-                          <span className="hidden text-ash sm:inline">
-                            CS {m.cs} · AR {m.ar} · OD {m.od}
-                          </span>
-                          <span className="text-ash">ID: {m.id}</span>
-                        </div>
+                        <MapMeta
+                          id={m.id}
+                          map={m}
+                          diff
+                          note={
+                            <>
+                              {out && <div className="text-xs font-display font-bold text-rose-hi">{t.admin.outsideLayout}</div>}
+                              {tag}
+                              {checks.get(m.id)?.dmca && <div className="text-xs font-display font-bold text-rose-hi">{t.admin.mapDmca}</div>}
+                            </>
+                          }
+                        />
                       </div>
                       {edit && (
                         <div className="ml-auto flex items-center gap-1.5">
