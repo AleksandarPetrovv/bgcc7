@@ -3,8 +3,9 @@
 import { useEffect } from "react";
 
 // fields wrap their caption in a <label>, and a click anywhere on a label activates its field.
-// only a click on the field itself should; checkbox / radio rows stay clickable as a whole
-const SELF = "input, select, textarea, button, a, [role=group], [contenteditable], .adm-field";
+// only a click on the field itself should; checkbox / radio rows stay clickable as a whole.
+// custom widgets mark their own box with `data-field`
+const SELF = "input, select, textarea, button, a, [contenteditable], [data-field]";
 
 export function LabelGuard() {
   useEffect(() => {

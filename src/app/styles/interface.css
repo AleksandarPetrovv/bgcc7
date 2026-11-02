@@ -149,18 +149,27 @@ label:not(:has(input[type="checkbox"], input[type="radio"])) > * { pointer-event
 
 .adm-field {
   position: relative;
+  isolation: isolate;
   display: inline-flex;
   align-items: stretch;
   min-width: 0;
   height: 2.5rem;
+}
+/* the slanted box is a layer behind the input, so the typed text is never transformed */
+.adm-field::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   transform: skewX(-12deg);
   border: 1px solid var(--line);
   border-bottom: 2px solid color-mix(in srgb, var(--paper) 16%, transparent);
   background-color: var(--field);
   transition: border-color 0.2s, background-color 0.2s, box-shadow 0.25s;
 }
-.adm-field:hover { border-color: color-mix(in srgb, var(--paper) 22%, transparent); }
-.adm-field:focus-within {
+.adm-field:hover::before { border-color: color-mix(in srgb, var(--paper) 22%, transparent); }
+.adm-field:focus-within::before {
   border-bottom-color: var(--rose);
   background-color: var(--well);
   box-shadow: 4px 4px 0 0 var(--rose-deep);
@@ -168,7 +177,6 @@ label:not(:has(input[type="checkbox"], input[type="radio"])) > * { pointer-event
 .adm-field > input.adm-bare {
   width: 100%;
   min-width: 0;
-  transform: skewX(12deg);
   border: 0;
   background: transparent;
   padding: 0 0.9rem;
@@ -220,14 +228,13 @@ label:not(:has(input[type="checkbox"], input[type="radio"])) > * { pointer-event
   display: inline-block;
   flex-shrink: 0;
   margin-inline: 0.45em;
-  padding: 0.18em 0.5em;
-  transform: skewX(-12deg);
+  padding: 0.18em 0.6em;
+  clip-path: polygon(0.25em 0, 100% 0, calc(100% - 0.25em) 100%, 0 100%);
   background: linear-gradient(135deg, var(--foil-a), var(--foil-b) 55%, var(--foil-c));
   color: var(--ink);
   font: 800 0.58rem/1.15 var(--font-display);
   white-space: nowrap;
   vertical-align: middle;
-  box-shadow: 0 0 8px color-mix(in srgb, var(--gold) 35%, transparent);
   text-shadow: 0 1px 0 color-mix(in srgb, white 35%, transparent);
 }
 /* in match rows "Your team" covered the team name: short "You" (set in meStyle), same foil, text shadow */
