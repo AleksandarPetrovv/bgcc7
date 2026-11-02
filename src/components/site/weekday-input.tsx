@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { CalendarDays, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useDict, useLang } from "./lang";
@@ -10,6 +9,7 @@ import { FORMAT } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { EASE } from "@/lib/ease";
 import { SlantBg } from "@/components/site/slant";
+import { AnchoredPopup } from "@/components/site/anchored-popup";
 
 type Props = {
   value: string;
@@ -26,14 +26,13 @@ type Props = {
 };
 
 const YEAR = FORMAT.year;
-const YEARS = [2026, 2027];
+const YEARS = [YEAR - 1, YEAR];
 const pad = (n: number) => String(n).padStart(2, "0");
 const iso = (y: number, m: number, d: number) => `${y}-${pad(m)}-${pad(d)}`;
 const monthDays = (y: number, m: number) => new Date(Date.UTC(y, m, 0)).getUTCDate();
-const noop = () => () => {};
 
 /** date / datetime-local field that reads "10 Nov, Tuesday, 11:11" (", 2026" when outside the tournament year; the weekday shortens only if it doesn't fit).
- *  the date opens a one-click calendar (stays in the set year), the time a wheel picker, the year a 2026/2027 list; the weekday does nothing.
+ *  the date opens a one-click calendar (stays in the set year), the time a wheel picker, the year a list of the tournament year and the one before; the weekday does nothing.
  *  once the real date is in the tournament year the year is hidden, so new admins can't pick the wrong one. */
 export function WeekdayInput({ value, onValue, kind = "datetime-local", name, required, "aria-label": aria, className, box, text }: Props) {
   const t = useDict();
@@ -164,68 +163,17 @@ export function WeekdayInput({ value, onValue, kind = "datetime-local", name, re
   );
 }
 
-/** popup under its anchor, same look as the admin dropdown; width in rem so it scales with the site; closes on outside press or Escape */
+/** popup under its anchor (always below), width in rem so it scales with the site */
 function Pop({ anchor, open, onClose, width, children }: { anchor: React.RefObject<HTMLElement | null>; open: boolean; onClose: () => void; width: number; children: React.ReactNode }) {
-  const mounted = useSyncExternalStore(noop, () => true, () => false);
-  const box = useRef<HTMLDivElement>(null);
-  const close = useRef(onClose);
-  useEffect(() => {
-    close.current = onClose;
-  });
-  const [pos, setPos] = useState<{ left: number; top: number; w: number } | null>(null);
-
-  useLayoutEffect(() => {
-    if (!open) return;
-    const place = () => {
-      const r = anchor.current?.getBoundingClientRect();
-      if (!r) return;
-      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-      const w = Math.min(width * rem, window.innerWidth - 16);
-      setPos({ left: Math.max(8, Math.min(r.left, window.innerWidth - w - 8)), top: r.bottom + 6, w });
-    };
-    place();
-    window.addEventListener("resize", place);
-    window.addEventListener("scroll", place, true);
-    return () => {
-      window.removeEventListener("resize", place);
-      window.removeEventListener("scroll", place, true);
-    };
-  }, [open, anchor, width]);
-
-  useEffect(() => {
-    if (!open) return;
-    const down = (e: PointerEvent) => {
-      const el = e.target as Node;
-      if (!box.current?.contains(el) && !anchor.current?.contains(el)) close.current();
-    };
-    const key = (e: KeyboardEvent) => e.key === "Escape" && close.current();
-    document.addEventListener("pointerdown", down);
-    document.addEventListener("keydown", key);
-    return () => {
-      document.removeEventListener("pointerdown", down);
-      document.removeEventListener("keydown", key);
-    };
-  }, [open, anchor]);
-
-  if (!mounted) return null;
-  return createPortal(
-    <AnimatePresence>
-      {open && pos && (
-        <motion.div
-          ref={box}
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6, transition: { duration: 0.15 } }}
-          transition={{ duration: 0.28, ease: EASE }}
-          className="fixed z-[70] overflow-hidden border border-rose bg-coal shadow-[6px_6px_0_0_var(--rose-deep)]"
-          style={{ left: pos.left, top: pos.top, width: pos.w }}
-        >
-          <span className="pointer-events-none absolute inset-x-0 top-0 z-10 h-0.5 bg-gradient-to-r from-rose via-rose-hi to-transparent" aria-hidden />
-          {children}
-        </motion.div>
-      )}
-    </AnimatePresence>,
-    document.body,
+  const place = (r: DOMRect) => {
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const w = Math.min(width * rem, window.innerWidth - 16);
+    return { left: Math.max(8, Math.min(r.left, window.innerWidth - w - 8)), top: r.bottom + 6, width: w };
+  };
+  return (
+    <AnchoredPopup anchor={anchor} open={open} onClose={onClose} place={place}>
+      {children}
+    </AnchoredPopup>
   );
 }
 
@@ -323,6 +271,10 @@ function Calendar({
 }
 
 const ROWS = 5;
+// one mouse notch is ~100, trackpad events are a few each: 30 lets one notch step a row without trackpads racing
+const WHEEL_STEP = 30;
+// wait for smooth scroll and snap to finish before committing, so passing rows don't each fire onPick
+const SETTLE_MS = 120;
 
 /** apple-style wheels: scroll either column, the centre row is the value; rows further out shrink and fade (sizes, not transforms, so text stays crisp) */
 function TimeWheel({ h, mi, onHour, onMinute }: { h: number; mi: number; onHour: (h: number) => void; onMinute: (m: number) => void }) {
@@ -357,7 +309,7 @@ function Wheel({ items, cur, onPick }: { items: number[]; cur: number; onPick: (
     const wheel = (e: WheelEvent) => {
       e.preventDefault();
       acc += e.deltaY;
-      if (Math.abs(acc) < 30) return;
+      if (Math.abs(acc) < WHEEL_STEP) return;
       const from = goal >= 0 ? goal : Math.round(el.scrollTop / rowH());
       goal = Math.max(0, Math.min(items.length - 1, from + Math.sign(acc)));
       acc = 0;
@@ -377,7 +329,7 @@ function Wheel({ items, cur, onPick }: { items: number[]; cur: number; onPick: (
     const i = Math.max(0, Math.min(items.length - 1, Math.round(el.scrollTop / rowH())));
     setAt(i);
     clearTimeout(settle.current);
-    settle.current = window.setTimeout(() => onPick(items[i]), 120);
+    settle.current = window.setTimeout(() => onPick(items[i]), SETTLE_MS);
   };
   const spacer = <div style={{ height: `${((ROWS - 1) / 2) * 2.5}rem` }} aria-hidden />;
   return (

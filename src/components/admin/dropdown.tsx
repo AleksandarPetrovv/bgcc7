@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/site/avatar";
 import { EASE } from "@/lib/ease";
 import { SlantBg } from "@/components/site/slant";
+import { AnchoredPopup } from "@/components/site/anchored-popup";
 
 export type DropOption = {
   value: string;
@@ -31,8 +31,6 @@ type Props = {
   "aria-label"?: string;
 };
 
-const noop = () => () => {};
-
 function OptionAvatar({ src }: { src: string | null }) {
   return (
     <span className="relative inline-flex size-7 shrink-0 -skew-x-12 overflow-hidden border border-paper/30 bg-slate">
@@ -43,66 +41,23 @@ function OptionAvatar({ src }: { src: string | null }) {
 
 export function Dropdown({ options, name, value, defaultValue, onChange, placeholder, required, disabled, className, multiple, "aria-label": aria }: Props) {
   const id = useId();
-  const mounted = useSyncExternalStore(
-    noop,
-    () => true,
-    () => false,
-  );
   const [inner, setInner] = useState(defaultValue ?? "");
   const cur = value ?? inner;
   const [open, setOpen] = useState(false);
   const [hi, setHi] = useState(0);
   const [q, setQ] = useState("");
-  const [pos, setPos] = useState<{
-    left: number;
-    top: number;
-    width: number;
-    up: boolean;
-  } | null>(null);
   const btn = useRef<HTMLButtonElement>(null);
-  const closedAt = useRef(-1e9);
   const list = useRef<HTMLDivElement>(null);
   const search = options.length > 8;
   const shown = q ? options.filter((o) => `${o.label} ${o.hint ?? ""}`.toLowerCase().includes(q.toLowerCase())) : options;
   const picked = multiple ? cur.split(",").map((s) => s.trim()).filter(Boolean) : [];
   const sel: DropOption | undefined = multiple ? (picked.length ? { value: cur, label: options.filter((o) => picked.includes(o.value)).map((o) => o.label).join(", ") } : undefined) : options.find((o) => o.value === cur);
 
-  const place = useCallback(() => {
-    const r = btn.current?.getBoundingClientRect();
-    if (!r) return;
+  const place = (r: DOMRect) => {
     const below = window.innerHeight - r.bottom;
     const up = below < 280 && r.top > below;
-    setPos({
-      left: r.left,
-      top: up ? r.top - 6 : r.bottom + 6,
-      width: Math.max(r.width, 200),
-      up,
-    });
-  }, []);
-
-  useLayoutEffect(() => {
-    if (!open) return;
-    place();
-    window.addEventListener("resize", place);
-    window.addEventListener("scroll", place, true);
-    return () => {
-      window.removeEventListener("resize", place);
-      window.removeEventListener("scroll", place, true);
-    };
-  }, [open, place]);
-
-  useEffect(() => {
-    if (!open) return;
-    const down = (e: PointerEvent) => {
-      const el = e.target as Node;
-      if (!btn.current?.contains(el) && !list.current?.contains(el)) {
-        closedAt.current = e.timeStamp;
-        setOpen(false);
-      }
-    };
-    document.addEventListener("pointerdown", down);
-    return () => document.removeEventListener("pointerdown", down);
-  }, [open]);
+    return { left: r.left, top: up ? r.top - 6 : r.bottom + 6, width: Math.max(r.width, 200), up };
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -166,8 +121,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
         aria-expanded={open}
         aria-controls={open ? id : undefined}
         aria-label={aria}
-        // a press outside already closed it; the wrapping <label> then forwards that click here, which must not reopen it
-        onClick={(e) => e.timeStamp - closedAt.current > 400 && toggle(!open)}
+        onClick={() => toggle(!open)}
         onKeyDown={key}
         className={cn(
           "group relative isolate flex h-10 w-full min-w-0 items-center px-3 text-left text-sm normal-case tracking-normal outline-none disabled:cursor-not-allowed disabled:opacity-50",
@@ -210,114 +164,80 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
           style={{ opacity: 0, height: 1, minHeight: 0, padding: 0, border: 0 }}
         />
       )}
-      {mounted &&
-        createPortal(
-          <AnimatePresence>
-            {open && pos && (
-              <motion.div
-                ref={list}
-                id={id}
-                role="listbox"
-                initial={{ opacity: 0, scaleY: 0.6, y: pos.up ? 8 : -8 }}
-                animate={{ opacity: 1, scaleY: 1, y: 0 }}
-                exit={{
-                  opacity: 0,
-                  scaleY: 0.7,
-                  y: pos.up ? 6 : -6,
-                  transition: { duration: 0.15 },
-                }}
-                transition={{ duration: 0.28, ease: EASE }}
-                onKeyDown={key}
-                className="fixed z-[70] flex max-h-72 flex-col overflow-hidden border border-rose bg-coal shadow-[6px_6px_0_0_var(--rose-deep)]"
-                style={{
-                  left: pos.left,
-                  width: pos.width,
-                  ...(pos.up
-                    ? {
-                        bottom: window.innerHeight - pos.top,
-                        transformOrigin: "bottom",
-                      }
-                    : { top: pos.top, transformOrigin: "top" }),
-                }}
-              >
-                <span className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-rose via-rose-hi to-transparent" aria-hidden />
-                {search && (
-                  <label className="flex shrink-0 items-center gap-2 border-b border-line px-3 py-2">
-                    <Search className="size-3.5 shrink-0 text-ash" />
-                    <input
-                      autoFocus
-                      value={q}
-                      onChange={(e) => {
-                        setQ(e.target.value);
-                        setHi(0);
-                      }}
-                      className="min-h-0 w-full border-0 bg-transparent p-0 text-sm text-paper outline-none placeholder:text-ash"
-                      placeholder="…"
-                    />
-                  </label>
-                )}
-                <div className="min-h-0 overflow-y-auto overscroll-contain p-1">
-                  {shown.map((o, i) => {
-                    const on = multiple ? picked.includes(o.value) : o.value === cur;
-                    const lit = i === hi;
-                    return (
-                      <motion.button
-                        key={o.value}
-                        type="button"
-                        role="option"
-                        aria-selected={on}
-                        data-i={i}
-                        tabIndex={-1}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{
-                          opacity: 1,
-                          x: 0,
-                          transition: {
-                            duration: 0.25,
-                            ease: EASE,
-                            delay: Math.min(i, 10) * 0.02,
-                          },
-                        }}
-                        onPointerEnter={() => setHi(i)}
-                        onClick={() => choose(o.value)}
-                        className={cn(
-                          "relative flex min-h-9 w-full items-center gap-2 px-3 text-left text-sm transition-colors",
-                          on ? "text-white font-display font-bold" : lit ? "text-paper" : "text-paper/75",
-                        )}
-                      >
-                        {/* over the selected option the highlight stays mounted but invisible, so it still slides out to the neighbours */}
-                        {lit && (
-                          <motion.span
-                            layoutId={`${id}-hi`}
-                            className={cn("absolute inset-0 bg-rose/12", on && "opacity-0")}
-                            transition={{
-                              type: "spring",
-                              stiffness: 600,
-                              damping: 42,
-                            }}
-                            aria-hidden
-                          />
-                        )}
-                        {on && <span className="absolute inset-0 bg-rose/80" aria-hidden />}
-                        {o.color && <span className="relative size-2 shrink-0 rotate-45" style={{ background: o.color }} aria-hidden />}
-                        {o.avatar !== undefined && <OptionAvatar src={o.avatar} />}
-                        <span className="relative min-w-0 flex-1 truncate font-display font-bold">{o.label}</span>
-                        {o.hint && <span className="num relative shrink-0 text-xs opacity-60">{o.hint}</span>}
-                        {on && (
-                          <motion.span initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} className="relative shrink-0">
-                            <Check className="size-3.5" strokeWidth={3} />
-                          </motion.span>
-                        )}
-                      </motion.button>
-                    );
-                  })}
-                  {!shown.length && <span className="block px-3 py-2 text-sm text-ash">—</span>}
-                </div>
-              </motion.div>
+      <AnchoredPopup ref={list} anchor={btn} open={open} onClose={() => setOpen(false)} place={place} id={id} role="listbox" onKeyDown={key} className="flex max-h-72 flex-col">
+            {search && (
+              <label className="flex shrink-0 items-center gap-2 border-b border-line px-3 py-2">
+                <Search className="size-3.5 shrink-0 text-ash" />
+                <input
+                  autoFocus
+                  value={q}
+                  onChange={(e) => {
+                    setQ(e.target.value);
+                    setHi(0);
+                  }}
+                  className="min-h-0 w-full border-0 bg-transparent p-0 text-sm text-paper outline-none placeholder:text-ash"
+                  placeholder="…"
+                />
+              </label>
             )}
-          </AnimatePresence>,
-          document.body,
-        )}
+            <div className="min-h-0 overflow-y-auto overscroll-contain p-1">
+              {shown.map((o, i) => {
+                const on = multiple ? picked.includes(o.value) : o.value === cur;
+                const lit = i === hi;
+                return (
+                  <motion.button
+                    key={o.value}
+                    type="button"
+                    role="option"
+                    aria-selected={on}
+                    data-i={i}
+                    tabIndex={-1}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                      transition: {
+                        duration: 0.25,
+                        ease: EASE,
+                        delay: Math.min(i, 10) * 0.02,
+                      },
+                    }}
+                    onPointerEnter={() => setHi(i)}
+                    onClick={() => choose(o.value)}
+                    className={cn(
+                      "relative flex min-h-9 w-full items-center gap-2 px-3 text-left text-sm transition-colors",
+                      on ? "text-white font-display font-bold" : lit ? "text-paper" : "text-paper/75",
+                    )}
+                  >
+                    {/* over the selected option the highlight stays mounted but invisible, so it still slides out to the neighbours */}
+                    {lit && (
+                      <motion.span
+                        layoutId={`${id}-hi`}
+                        className={cn("absolute inset-0 bg-rose/12", on && "opacity-0")}
+                        transition={{
+                          type: "spring",
+                          stiffness: 600,
+                          damping: 42,
+                        }}
+                        aria-hidden
+                      />
+                    )}
+                    {on && <span className="absolute inset-0 bg-rose/80" aria-hidden />}
+                    {o.color && <span className="relative size-2 shrink-0 rotate-45" style={{ background: o.color }} aria-hidden />}
+                    {o.avatar !== undefined && <OptionAvatar src={o.avatar} />}
+                    <span className="relative min-w-0 flex-1 truncate font-display font-bold">{o.label}</span>
+                    {o.hint && <span className="num relative shrink-0 text-xs opacity-60">{o.hint}</span>}
+                    {on && (
+                      <motion.span initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} className="relative shrink-0">
+                        <Check className="size-3.5" strokeWidth={3} />
+                      </motion.span>
+                    )}
+                  </motion.button>
+                );
+              })}
+              {!shown.length && <span className="block px-3 py-2 text-sm text-ash">—</span>}
+            </div>
+      </AnchoredPopup>
     </span>
   );
 }

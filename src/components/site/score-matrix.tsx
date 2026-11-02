@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { AnchoredPopup } from "./anchored-popup";
 import { Search } from "lucide-react";
 import { fmtNum, flagUrl, type QualPerf, type QualMap, type QualPlayer } from "@/lib/data";
 import { useDict } from "./lang";
@@ -13,21 +13,27 @@ import { MOD_COLOR } from "@/lib/mods";
 
 
 
-type Open = { id: string; at: React.CSSProperties; map: QualMap; perf: QualPerf; player: QualPlayer } | null;
+type Card = { id: string; map: QualMap; perf: QualPerf; player: QualPlayer };
 
 const W = 300;
+const place = (r: DOMRect) => {
+  const left = Math.max(12, Math.min(window.innerWidth - W - 12, r.right));
+  return r.top > 330 ? { left, top: r.top - 6, width: W, up: true } : { left, top: r.bottom + 6, width: W };
+};
 
 export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]; players: QualPlayer[] }; cut: number }) {
   const t = useDict();
   const [q, setQ] = useState("");
-  const [open, setOpen] = useState<Open>(null);
-  const close = useCallback(() => setOpen(null), []);
+  const [card, setCard] = useState<Card | null>(null);
+  const [on, setOn] = useState(false);
+  const open = on ? card : null;
+  const anchor = useRef<HTMLElement | null>(null);
+  const close = useCallback(() => setOn(false), []);
   const show = (el: HTMLElement, key: string, map: QualMap, perf: QualPerf, player: QualPlayer) => {
-    if (open?.id === key) return setOpen(null);
-    const r = el.getBoundingClientRect();
-    const left = Math.max(12, Math.min(window.innerWidth - W - 12, r.right)) + window.scrollX;
-    const at: React.CSSProperties = r.top > 330 ? { left, top: r.top + window.scrollY - 6, transform: "translateY(-100%)" } : { left, top: r.bottom + window.scrollY + 6 };
-    setOpen({ id: key, at, map, perf, player });
+    if (open?.id === key) return setOn(false);
+    anchor.current = el;
+    setCard({ id: key, map, perf, player });
+    setOn(true);
   };
 
   const places = useMemo(() => {
@@ -122,29 +128,19 @@ export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]
         </table>
       </div>
 
-      {open && createPortal(<ScoreCard {...open} key={open.id} onClose={close} />, document.body)}
+      {card && (
+        <AnchoredPopup key={card.id} anchor={anchor} open={on} onClose={close} place={place} chrome={false} role="dialog" aria-label={`${card.map.slot} ${card.player.username}`} className="z-50">
+          <ScoreCard {...card} />
+        </AnchoredPopup>
+      )}
     </div>
   );
 }
 
-function ScoreCard({ at, map, perf, player, onClose }: NonNullable<Open> & { onClose: () => void }) {
+function ScoreCard({ map, perf, player }: Card) {
   const t = useDict();
-  const box = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const down = (e: PointerEvent) => e.target instanceof Node && !box.current?.contains(e.target) && onClose();
-    const key = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("pointerdown", down);
-    window.addEventListener("keydown", key);
-    window.addEventListener("resize", onClose);
-    return () => {
-      window.removeEventListener("pointerdown", down);
-      window.removeEventListener("keydown", key);
-      window.removeEventListener("resize", onClose);
-    };
-  }, [onClose]);
   return (
-    <div ref={box} role="dialog" aria-label={`${map.slot} ${player.username}`} className="absolute z-50" style={{ ...at, width: W }}>
-    <div className="vote-pop border border-balkan bg-ink shadow-[5px_5px_0_0_var(--rose-deep)]">
+    <div className="border border-balkan bg-ink shadow-[5px_5px_0_0_var(--rose-deep)]">
       <div className="relative h-16 overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={map.cover} alt="" className="absolute inset-0 size-full object-cover opacity-50" />
@@ -171,7 +167,6 @@ function ScoreCard({ at, map, perf, player, onClose }: NonNullable<Open> & { onC
         ))}
       </div>
       <div className="px-3 py-1.5 text-[0.65rem] font-display font-bold text-ash">{perf.manual ? <span className="text-gold-hi">{t.qual.manual}</span> : perf.matchName}</div>
-    </div>
     </div>
   );
 }
