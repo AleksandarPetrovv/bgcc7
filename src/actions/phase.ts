@@ -11,7 +11,7 @@ import { isBGCC6 } from "@/db";
 
 async function applyPhase(p: Phase) {
   if (!phasesFor(isBGCC6()).includes(p)) return false;
-  await saveSettings({ phase: p, sections: presetSections(p), pickemsOpen: p !== "playoffs" && p !== "finished" });
+  await saveSettings({ phase: p, sections: presetSections(p) });
   if (isBGCC6()) return;
   // only before the draw: afterwards the locked ranks are what seeds and tiers were built on
   if (p === "registration") {

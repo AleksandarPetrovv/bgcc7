@@ -62,7 +62,6 @@ export const settings = pgTable("settings", {
   regClosesAt: timestamp("reg_closes_at", { withTimezone: true }),
   bookingOpensAt: timestamp("booking_opens_at", { withTimezone: true }),
   bookingClosesAt: timestamp("booking_closes_at", { withTimezone: true }),
-  pickemsOpen: boolean("pickems_open").notNull().default(false),
   timeline: jsonb("timeline").$type<{ key: string; from?: string | null; to?: string | null }[]>().notNull(),
   qualifyCount: integer("qualify_count").notNull().default(24),
   phasePrompts: jsonb("phase_prompts").$type<Record<string, string>>().notNull().default({}),

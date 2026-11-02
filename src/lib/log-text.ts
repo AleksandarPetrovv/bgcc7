@@ -65,8 +65,6 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? "обнови датите за записване и лобита" : "updated the registration and lobby booking dates";
     case "phase.dismiss":
       return bg ? `отложи смяната на етапа към ${b(h.phase(String(p.phase)))}` : `put off switching the stage to ${b(h.phase(String(p.phase)))}`;
-    case "settings.pickems":
-      return p.pickemsOpen ? (bg ? "отвори прогнозите" : "opened pick'ems") : bg ? "затвори прогнозите" : "closed pick'ems";
     case "settings.draft":
       return bg
         ? `смени баните на ${b(p.bans)} на отбор, ред ${b(String(p.banOrder).toUpperCase())}, ${b(`${p.banSecs ?? 90}с`)} за бан, ${b(`${p.pickSecs ?? 120}с`)} за пик, таймаут ${b(`${p.timeoutSecs ?? 180}с`)}`
@@ -386,7 +384,6 @@ const SUMMARY: Record<string, [string, string]> = {
   "phase.timeline": ["updated the timeline dates", "обнови датите в графика"],
   "settings.draft": ["changed the pick and ban settings", "промени настройките за пик и бан"],
   "settings.qualify": ["changed how many players qualify", "промени колко играчи се класират"],
-  "settings.pickems": ["opened and closed pick'ems", "отваряше и затваряше прогнозите"],
   "stage.update": ["updated pool settings", "обнови настройките на пул"],
   "stage.rename": ["renamed stages", "преименува етапи"],
   "stage.blueprint": ["changed pool layouts", "промени разпределението на пулове"],

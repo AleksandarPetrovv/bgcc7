@@ -256,7 +256,7 @@ export async function seedTestData() {
     await db.insert(pickems).values({ osuId: p.osuId, picks });
   }
 
-  await saveSettings({ phase: "playoffs", sections: presetSections("playoffs"), pickemsOpen: false });
+  await saveSettings({ phase: "playoffs", sections: presetSections("playoffs") });
   return { players: COUNT };
 }
 
@@ -273,7 +273,7 @@ export async function clearTestData() {
     if (touched.length) await tx.update(stages).set({ poolReleased: false }).where(inArray(stages.id, touched));
     await tx.delete(registrations).where(and(gte(registrations.osuId, FIRST), lte(registrations.osuId, LAST)));
   });
-  await saveSettings({ phase: "registration", sections: presetSections("registration"), pickemsOpen: false });
+  await saveSettings({ phase: "registration", sections: presetSections("registration") });
   const ids = Array.from({ length: COUNT }, (_, i) => FIRST + i);
   await dbBGCC6.delete(users).where(inArray(users.osuId, ids));
   return { cleared: true };

@@ -22,10 +22,19 @@ import { MeTag } from "@/components/site/me";
 import { roundName } from "@/lib/i18n/dict";
 
 
-type Props = { osuId: number | null; saved: Picks | null; leaderboard: LeaderRow[]; open: boolean; locked: string[] };
+type Props = { osuId: number | null; saved: Picks | null; leaderboard: LeaderRow[]; open: boolean; closesAt: number | null; locked: string[] };
 
-export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) {
+export function PickemsView({ osuId, saved, leaderboard, open: openAtLoad, closesAt, locked }: Props) {
   const t = useDict();
+  const [open, setOpen] = useState(openAtLoad);
+  useEffect(() => {
+    if (!openAtLoad || closesAt === null) return;
+    const ms = closesAt - Date.now();
+    // setTimeout fires at once past ~24.8 days, so far-off closes wait for a reload instead
+    if (ms > 2 ** 31 - 1) return;
+    const id = setTimeout(() => setOpen(false), Math.max(0, ms));
+    return () => clearTimeout(id);
+  }, [openAtLoad, closesAt]);
   const { matches, format: f } = useTournament();
   const seeding = seedingOf(f, matches);
   const DRAFT = useIsBGCC6() ? "bgcc7-pickems" : "bgcc7-suiji-pickems";

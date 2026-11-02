@@ -351,6 +351,13 @@
       "when": 1794011163708,
       "tag": "0049_availability",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1794091638592,
+      "tag": "0050_drop_pickems_open",
+      "breakpoints": true
     }
   ]
 }

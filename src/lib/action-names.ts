@@ -16,7 +16,7 @@ const GROUPS = {
   staff: ["staff.add", "staff.remove", "staff.reorder", "staff.update"],
   site: [
     "discord.channels", "discord.cleanup", "discord.sync", "edition.clear", "edition.seed", "edition.switch", "format.reset", "format.save", "helper.link", "helper.unlink", "info.edit",
-    "overlay.link", "overlay.unlink", "refapp.link", "refapp.unlink", "schedule.set", "schedule.week", "settings.draft", "settings.pickems", "settings.qualify", "settings.rounds",
+    "overlay.link", "overlay.unlink", "refapp.link", "refapp.unlink", "schedule.set", "schedule.week", "settings.draft", "settings.qualify", "settings.rounds",
     "site.links", "site.wipeTestData", "sponsor.add", "sponsor.delete", "sponsor.reorder", "sponsor.update", "stream.scene",
   ],
 } as const;

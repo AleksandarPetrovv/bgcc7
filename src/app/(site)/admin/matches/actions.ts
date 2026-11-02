@@ -3,6 +3,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { getFormat } from "@/db/edition";
+import { resetPickems } from "@/db/pickems";
 import { matches, stages, teams } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/action-result";
@@ -96,6 +97,7 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     if (patch.referee !== m.referee) await handOff(id, patch.referee).catch((e) => console.error("[handoff]", e));
     if (winner && (winner !== m.winner || score1 !== m.score1 || score2 !== m.score2)) later("result", () => postResult(id));
     if (patch.startsAt && patch.startsAt.getTime() !== m.startsAt?.getTime()) announceMatchTime([patch.team1Id, patch.team2Id], patch.startsAt, { dm: false });
+    if (patch.team1Id !== m.team1Id || patch.team2Id !== m.team2Id) await resetPickems();
     return { log: { id, ...patch } };
   }, { match: id, unassigned: true });
 }

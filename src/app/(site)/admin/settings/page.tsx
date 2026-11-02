@@ -12,7 +12,6 @@ import { roundName } from "@/lib/i18n/dict";
 import { can } from "@/lib/roles";
 import { setDraft } from "./actions";
 import { setQualify, setRounds } from "./(bgcc6)/actions";
-import { PickemsToggle } from "./pickems-toggle";
 import { isBGCC6 } from "@/db";
 import { cssVars } from "@/lib/utils";
 import { bestOf, isBracketStage } from "@/lib/format";
@@ -27,9 +26,9 @@ export default async function AdminSettings() {
   return (
     <>
       <PageTitle mark="gears">{t.admin.menu.settings}</PageTitle>
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 xl:items-start">
+      <div className={isBGCC6() ? "grid grid-cols-1 gap-6 xl:grid-cols-2 xl:items-start" : "mx-auto max-w-2xl"}>
+        {isBGCC6() && (
         <div className="space-y-6">
-          {isBGCC6() && (
           <Panel title={t.admin.set.qualify} help={t.admin.set.qualifyHelp} i={1}>
             <ActionForm key={s.qualifyCount} action={setQualify} className="space-y-4">
               <label className={labelCls}>
@@ -38,14 +37,10 @@ export default async function AdminSettings() {
               </label>
             </ActionForm>
           </Panel>
-          )}
-
-          <Panel title={t.admin.set.pickems} help={t.admin.set.pickemsHelp} i={1}>
-            <PickemsToggle key={String(s.pickemsOpen)} open={s.pickemsOpen} />
-          </Panel>
         </div>
+        )}
         <div className="space-y-6">
-          <Panel title={t.admin.set.draft} help={t.admin.set.draftHelp} i={2}>
+          <Panel title={t.admin.set.draft} help={t.admin.set.draftHelp} i={isBGCC6() ? 2 : 1}>
             <ActionForm key={`${s.bans}${s.banSecs}${s.pickSecs}${s.timeoutSecs}`} action={setDraft} className="flex flex-col items-center gap-6">
               <div className="flex flex-wrap items-end justify-center gap-5">
                 <label className={labelCls}>

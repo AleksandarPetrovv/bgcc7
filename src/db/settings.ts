@@ -15,7 +15,6 @@ export type Settings = {
   regClosesAt: Date | null;
   bookingOpensAt: Date | null;
   bookingClosesAt: Date | null;
-  pickemsOpen: boolean;
   timeline: TimelineRow[];
   qualifyCount: number;
   phasePrompts: Record<string, string>;
@@ -36,7 +35,6 @@ export const DEFAULT_SETTINGS: Settings = {
   regClosesAt: fromSofiaInput("2027-09-05T23:59"),
   bookingOpensAt: fromSofiaInput("2027-09-06T00:00"),
   bookingClosesAt: fromSofiaInput("2027-09-10T23:59"),
-  pickemsOpen: false,
   timeline: DEFAULT_TIMELINE,
   qualifyCount: 24,
   phasePrompts: {},
@@ -70,7 +68,6 @@ export const getSettings = cache(() =>
       regClosesAt: row.regClosesAt,
       bookingOpensAt: row.bookingOpensAt,
       bookingClosesAt: row.bookingClosesAt,
-      pickemsOpen: row.pickemsOpen,
       timeline: withReg(row.timeline, row.regOpensAt, row.regClosesAt),
       qualifyCount: row.qualifyCount,
       phasePrompts: row.phasePrompts ?? {},

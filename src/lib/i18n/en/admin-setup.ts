@@ -90,7 +90,6 @@ export const adminSetup = {
   regCloses: "Registration closes",
   bookingOpens: "Lobby booking opens",
   bookingCloses: "Lobby booking closes",
-  pickemsOpen: "Pick'ems accept picks",
   qualifyCount: "Players who qualify",
   timeline: "Home page timeline",
   timelineHelp: "These dates show up everywhere on the site: the home page, the rules, the register steps. The home page highlights whichever step today falls in.",

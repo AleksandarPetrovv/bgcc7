@@ -5,9 +5,8 @@ import { revalidatePath } from "next/cache";
 import { currentOsuId } from "@/auth";
 import { getFormat } from "@/db/edition";
 import { pickems } from "@/db/schema";
-import { lockedOf, picksSchema, resolve, seedingOf } from "@/lib/pickems";
+import { lockedOf, pickemsWindow, picksSchema, resolve, seedingOf } from "@/lib/pickems";
 import { getPicks } from "@/db/queries";
-import { getSettings } from "@/db/settings";
 import { getVisibility } from "@/lib/authz";
 import { getMatches } from "@/db/tournament";
 
@@ -17,8 +16,8 @@ export async function savePickems(input: unknown) {
   const f = await getFormat();
   const parsed = picksSchema(f).safeParse(input);
   if (!parsed.success) return { ok: false as const, error: "invalid" };
-  const [settings, matches, { sections }] = await Promise.all([getSettings(), getMatches(), getVisibility()]);
-  if (!settings.pickemsOpen || !sections.pickems) return { ok: false as const, error: "closed" };
+  const [matches, { sections }] = await Promise.all([getMatches(), getVisibility()]);
+  if (!pickemsWindow(f, matches).open || !sections.pickems) return { ok: false as const, error: "closed" };
   const locked = new Set(lockedOf(matches));
   const old = (await getPicks(osuId)) ?? {};
   const keep = (p: Record<string, string>, l: boolean) => Object.fromEntries(Object.entries(p).filter(([id]) => locked.has(id) === l));
