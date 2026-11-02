@@ -7,32 +7,13 @@ import { describe, summarize, type LogCtx } from "@/lib/log-text";
 import { getFormat } from "@/db/edition";
 import { matchNum, roundOf } from "@/lib/format";
 import { compactLog, type CompactLogEntry } from "@/lib/log-compact";
+import { groupOf, type LogGroup } from "@/lib/action-names";
 import { fmtSofia, fmtSofiaDay, fmtSofiaTime, sofiaDate, tzLabel } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { localeOf } from "@/lib/i18n/locale";
 import { roundName } from "@/lib/i18n/dict";
 
-const categoryPrefixes: Record<string, string[]> = {
-  players: ["register.", "lobby.book", "lobby.leave", "reschedule.request", "reschedule.accepted", "reschedule.declined", "reschedule.cancelled"],
-  phase: ["phase."],
-  screening: ["screening."],
-  lobbies: ["lobby."],
-  qualifiers: ["qual."],
-  mappools: ["stage.", "map.", "pack."],
-  teams: ["team"],
-  matches: ["match.", "reschedule.approve", "reschedule.deny"],
-  site: ["site.", "sponsor."],
-  staff: ["staff."],
-};
-
-const categoryOf = (action: string) => {
-  if (categoryPrefixes.players.some((p) => action.startsWith(p))) return "players";
-  if (action.startsWith("draft.")) return "lobbies";
-  if (action.startsWith("pool.")) return "mappools";
-  return Object.keys(categoryPrefixes).find((g) => g !== "players" && categoryPrefixes[g].some((p) => action.startsWith(p))) ?? "site";
-};
-
-const DOT: Record<string, string> = {
+const DOT: Record<LogGroup, string> = {
   players: "bg-balkan",
   screening: "bg-balkan",
   phase: "bg-paper",
@@ -93,7 +74,7 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
     }
   };
   const renderRow = (r: LogRow, i: number) => {
-    const g = categoryOf(r.action);
+    const g = groupOf(r.action);
     return (
       <li key={r.id} className="in-left group relative flex items-center gap-3 border-b border-line px-3 py-2.5 transition-colors last:border-b-0 hover:bg-slate" style={{ "--i": Math.min(i, 24), "--s": "0.05s", "--d": "0.15s" } as React.CSSProperties}>
         <span className={cn("absolute inset-y-0 left-0 w-0.5 origin-top scale-y-0 transition-transform duration-300 group-hover:scale-y-100", DOT[g])} aria-hidden />

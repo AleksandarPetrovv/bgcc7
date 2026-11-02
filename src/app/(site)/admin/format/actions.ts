@@ -15,13 +15,13 @@ export async function savePlan(input: unknown) {
     const plan = cleanPlan(input);
     if (!plan) return { ok: false, error: "invalid" };
     await store(plan);
-    return { rounds: plan.rounds.length };
+    return { log: { rounds: plan.rounds.length } };
   });
 }
 
 export async function resetPlan() {
   return guard("formatEdit", "format.reset", async () => {
     await store(DEFAULT_PLAN);
-    return { rounds: DEFAULT_PLAN.rounds.length };
+    return { log: { rounds: DEFAULT_PLAN.rounds.length } };
   });
 }

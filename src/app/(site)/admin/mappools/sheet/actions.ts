@@ -5,9 +5,10 @@ import { db } from "@/db";
 import { poolSuggestions, poolVotes, stages } from "@/db/schema";
 import { resolveSlot, slotPicked } from "@/db/pool-sheet";
 import { guard } from "@/lib/admin-action";
-import { getViewer, log } from "@/lib/authz";
+import { log } from "@/lib/authz";
 import { fetchMap, parseBeatmapId } from "@/lib/fetch-map";
-import { can, type ActionResult } from "@/lib/roles";
+import { can } from "@/lib/roles";
+import type { ActionResult } from "@/lib/action-result";
 import { getPlan } from "@/db/format-plan";
 import { MODS } from "@/lib/mods";
 
@@ -17,7 +18,7 @@ async function settle(osuId: number, stageId: number, mod: string, slot: number,
 }
 
 export async function suggestMap(stageId: number, mod: string, slot: number, _: ActionResult, fd: FormData) {
-  return guard("poolEdit", "pool.suggest", async (osuId) => {
+  return guard("poolEdit", "pool.suggest", async ({ osuId }) => {
     const beatmapId = parseBeatmapId(fd.get("beatmap"));
     if (!Number.isInteger(beatmapId) || beatmapId <= 0 || !MODS[mod] || !Number.isInteger(slot) || slot < 0) return { ok: false, error: "invalid" };
     const [st] = await db.select({ blueprint: stages.blueprint }).from(stages).where(eq(stages.id, stageId)).limit(1);
@@ -40,12 +41,12 @@ export async function suggestMap(stageId: number, mod: string, slot: number, _: 
     const known = new Set((await getPlan()).subcategories.flatMap((g) => g.items.map((i) => i.id)));
     const subcategoryIds = [...new Set(fd.getAll("tags").map(String))].filter((id) => known.has(id)).slice(0, 12);
     await db.insert(poolSuggestions).values({ stageId, mod, slot, osuId, ...data, subcategoryIds });
-    return { stageId, mod, slot: slot + 1, beatmapId, title: data.title, version: data.version };
+    return { log: { stageId, mod, slot: slot + 1, beatmapId, title: data.title, version: data.version } };
   });
 }
 
 export async function voteSuggestion(id: number, score: number, note: string) {
-  return guard("poolVote", "pool.vote", async (osuId) => {
+  return guard("poolVote", "pool.vote", async ({ osuId }) => {
     const text = String(note ?? "")
       .trim()
       .slice(0, 300);
@@ -58,34 +59,33 @@ export async function voteSuggestion(id: number, score: number, note: string) {
       .values({ suggestionId: id, osuId, score, note: text })
       .onConflictDoUpdate({ target: [poolVotes.suggestionId, poolVotes.osuId], set: { score, note: text } });
     await settle(osuId, s.stageId, s.mod, s.slot);
-    return { id, score, title: s.title, version: s.version };
+    return { log: { id, score, title: s.title, version: s.version } };
   });
 }
 
 export async function removeSuggestion(id: number) {
-  return guard("poolEdit", "pool.unsuggest", async (osuId) => {
+  return guard("poolEdit", "pool.unsuggest", async ({ osuId, roles }) => {
     const [s] = await db.select().from(poolSuggestions).where(eq(poolSuggestions.id, id)).limit(1);
     if (!s) return { ok: false, error: "notFound" };
-    const viewer = await getViewer();
-    if (s.picked || (s.osuId !== osuId && !can(viewer?.roles, "phase"))) return { ok: false, error: "forbidden" };
+    if (s.picked || (s.osuId !== osuId && !can(roles, "phase"))) return { ok: false, error: "forbidden" };
     await db.delete(poolSuggestions).where(eq(poolSuggestions.id, id));
     await settle(osuId, s.stageId, s.mod, s.slot);
-    return { id, title: s.title, version: s.version };
+    return { log: { id, title: s.title, version: s.version } };
   });
 }
 
 export async function pickNow(stageId: number, mod: string, slot: number) {
-  return guard("phase", "pool.force", async (osuId) => {
+  return guard("phase", "pool.force", async ({ osuId }) => {
     await settle(osuId, stageId, mod, slot, true);
-    return { stageId, mod, slot: slot + 1 };
+    return { log: { stageId, mod, slot: slot + 1 } };
   });
 }
 
 export async function pickSuggestion(id: number) {
-  return guard("phase", "pool.force", async (osuId) => {
+  return guard("phase", "pool.force", async ({ osuId }) => {
     const [s] = await db.select().from(poolSuggestions).where(eq(poolSuggestions.id, id)).limit(1);
     if (!s) return { ok: false, error: "notFound" };
     await settle(osuId, s.stageId, s.mod, s.slot, true, id);
-    return { stageId: s.stageId, mod: s.mod, slot: s.slot + 1 };
+    return { log: { stageId: s.stageId, mod: s.mod, slot: s.slot + 1 } };
   });
 }

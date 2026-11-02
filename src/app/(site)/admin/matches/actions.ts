@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { getFormat } from "@/db/edition";
 import { matches, stages, teams } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
-import type { ActionResult } from "@/lib/roles";
+import type { ActionResult } from "@/lib/action-result";
 import { fromSofiaInput } from "@/lib/time";
 import { advance } from "@/db/bracket";
 import { lockMatch } from "@/db/schedule";
@@ -18,7 +18,6 @@ import { matchStamp } from "@/lib/matches";
 import { later, postResult } from "@/db/discord-bot";
 import { isBracketStage } from "@/lib/format";
 import { mpIds, mpCsv } from "@/lib/mp-links";
-import { canRunMatch } from "@/lib/match-access";
 
 const text = (fd: FormData, k: string, max = 120) => String(fd.get(k) ?? "").trim().slice(0, max) || null;
 const num = (fd: FormData, k: string) => {
@@ -29,12 +28,11 @@ const num = (fd: FormData, k: string) => {
 };
 
 export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
-  return guard("matches", "match.save", async (osuId) => {
+  // unassigned matches stay open so a referee can take one; assigned ones only their ref or a host
+  return guard("matches", "match.save", async ({ osuId }) => {
     const f = getFormat();
     const [m] = await db.select().from(matches).where(eq(matches.id, id)).limit(1);
     if (!m) return { ok: false, error: "notFound" };
-    // unassigned matches stay open so a referee can take one; assigned ones only their ref or a host
-    if (!(await canRunMatch(id, { unassigned: true }))) return { ok: false, error: "forbidden" };
     const score1 = num(fd, "score1");
     const score2 = num(fd, "score2");
     if (score1 === undefined || score2 === undefined) return { ok: false, error: "invalid" };
@@ -98,14 +96,13 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     if (patch.referee !== m.referee) await handOff(id, patch.referee).catch((e) => console.error("[handoff]", e));
     if (winner && (winner !== m.winner || score1 !== m.score1 || score2 !== m.score2)) later("result", () => postResult(id));
     if (patch.startsAt && patch.startsAt.getTime() !== m.startsAt?.getTime()) announceMatchTime([patch.team1Id, patch.team2Id], patch.startsAt, { dm: false });
-    return { id, ...patch };
-  });
+    return { log: { id, ...patch } };
+  }, { match: id, unassigned: true });
 }
 
 export async function clearCache(id: string) {
   return guard("matches", "match.clearCache", async () => {
-    if (!(await canRunMatch(id))) return { ok: false, error: "forbidden" };
     await forgetScoreboard(id);
-    return { id };
-  });
+    return { log: { id } };
+  }, { match: id });
 }

@@ -3,7 +3,10 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { helperState } from "@/app/(site)/admin/helper/actions";
+import { Link2, Unlink } from "lucide-react";
+import { helperState, linkHelper, unlinkHelper } from "@/actions/helper-link";
+import { ActionForm, Field, Panel, labelCls } from "./form";
+import { useDict } from "@/components/site/lang";
 
 // link panel collapses once the helper is linked and comes back after an unlink
 export function LinkGate({ linked, children }: { linked: boolean; children: React.ReactNode }) {
@@ -39,4 +42,26 @@ export function HelperPoll({ sig }: { sig: string }) {
     return () => clearInterval(id);
   }, [router]);
   return null;
+}
+
+/** the link-code panel, folded away while the helper is linked */
+export function HelperLink({ linked, i }: { linked: boolean; i: number }) {
+  const r = useDict().admin.refApp;
+  return (
+    <LinkGate linked={linked}>
+      <Panel title={r.linkTitle} i={i}>
+        <ActionForm action={linkHelper} submit={r.link} icon={<Link2 className="size-4" />} className="flex flex-wrap items-end gap-3">
+          <label className={labelCls}>
+            {r.linkCode}
+            <Field name="code" required maxLength={64} autoComplete="off" spellCheck={false} className="w-64" />
+          </label>
+        </ActionForm>
+      </Panel>
+    </LinkGate>
+  );
+}
+
+export function UnlinkHelper() {
+  const r = useDict().admin.refApp;
+  return <ActionForm action={unlinkHelper} submit={r.unlink} ghost confirm={r.unlinkAsk} icon={<Unlink className="size-3.5" />} />;
 }

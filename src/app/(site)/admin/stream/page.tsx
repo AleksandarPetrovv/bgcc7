@@ -6,7 +6,7 @@ import { CopyLink } from "@/components/admin/copy-link";
 import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
-import { siteUrl } from "@/lib/links";
+import { overlayUrl } from "@/lib/links";
 import { fmtSofia } from "@/lib/time";
 import { streamMatches } from "@/db/stream";
 import { getLive, getReject } from "@/lib/live-scores";
@@ -24,7 +24,6 @@ export default async function Stream() {
   const all = can(viewer.roles, "matches");
   const list = (await streamMatches(viewer.osuId, all)).sort((a, b) => Number(b.mine) - Number(a.mine));
   const s = t.admin.stream;
-  const base = siteUrl();
 
   return (
     <>
@@ -59,7 +58,7 @@ export default async function Stream() {
                 <SceneButtons id={m.id} initial={m.scene} />
               </div>
               <div data-cascade className="in-up">
-                <CopyLink url={`${base}/overlay/${m.slug}`} />
+                <CopyLink url={overlayUrl(m.slug)} />
               </div>
             </div>
           </Panel>

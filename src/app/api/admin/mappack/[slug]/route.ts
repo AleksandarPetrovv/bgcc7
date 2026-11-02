@@ -4,11 +4,11 @@ import path from "node:path";
 import { Readable, Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { ReadableStream as WebStream } from "node:stream/web";
-import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { currentEdition, db } from "@/db";
 import { stages } from "@/db/schema";
-import { log, requireRole } from "@/lib/authz";
+import { staffFor } from "@/lib/authz";
+import { logWrite } from "@/lib/admin-action";
 import { PACK_MAX, packPath } from "@/lib/uploads";
 
 async function stageOf(slug: string) {
@@ -16,16 +16,8 @@ async function stageOf(slug: string) {
   return s ?? null;
 }
 
-async function staff() {
-  try {
-    return await requireRole("poolEdit");
-  } catch {
-    return null;
-  }
-}
-
 export async function PUT(req: Request, { params }: RouteContext<"/api/admin/mappack/[slug]">) {
-  const who = await staff();
+  const who = await staffFor("poolEdit");
   if (!who) return Response.json({ error: "forbidden" }, { status: 403 });
   const stage = await stageOf((await params).slug);
   if (!stage) return Response.json({ error: "notFound" }, { status: 404 });
@@ -56,19 +48,17 @@ export async function PUT(req: Request, { params }: RouteContext<"/api/admin/map
     return Response.json({ error: msg === "tooBig" ? "tooBig" : msg === "notZip" ? "notZip" : "failed" }, { status: 400 });
   }
   await db.update(stages).set({ packSize: size, packAt: new Date() }).where(eq(stages.id, stage.id));
-  await log(who.osuId, "pack.upload", { stage: stage.title, size });
-  revalidatePath("/", "layout");
+  await logWrite(who.osuId, "pack.upload", { stage: stage.title, size });
   return Response.json({ ok: true, size });
 }
 
 export async function DELETE(_: Request, { params }: RouteContext<"/api/admin/mappack/[slug]">) {
-  const who = await staff();
+  const who = await staffFor("poolEdit");
   if (!who) return Response.json({ error: "forbidden" }, { status: 403 });
   const stage = await stageOf((await params).slug);
   if (!stage) return Response.json({ error: "notFound" }, { status: 404 });
   await rm(packPath(stage.slug, currentEdition()), { force: true });
   await db.update(stages).set({ packSize: null, packAt: null }).where(eq(stages.id, stage.id));
-  await log(who.osuId, "pack.delete", { stage: stage.title });
-  revalidatePath("/", "layout");
+  await logWrite(who.osuId, "pack.delete", { stage: stage.title });
   return Response.json({ ok: true });
 }

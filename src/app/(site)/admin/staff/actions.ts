@@ -5,7 +5,8 @@ import { db } from "@/db";
 import { staff } from "@/db/schema";
 import { resolveOsuUser, saveOsuUser } from "@/db/users";
 import { guard } from "@/lib/admin-action";
-import { cleanRoles, type ActionResult } from "@/lib/roles";
+import { cleanRoles } from "@/lib/roles";
+import type { ActionResult } from "@/lib/action-result";
 import { relayPerms } from "@/lib/relay-perms";
 import { relayKick } from "@/lib/relay";
 
@@ -15,7 +16,7 @@ export async function addStaff(_: ActionResult, fd: FormData) {
     if (!u) return { ok: false, error: "notFound" };
     await saveOsuUser(u);
     await db.insert(staff).values({ osuId: u.id }).onConflictDoNothing();
-    return { osuId: u.id, username: u.username };
+    return { log: { osuId: u.id, username: u.username } };
   });
 }
 
@@ -26,7 +27,7 @@ export async function updateStaff(osuId: number, _: ActionResult, fd: FormData) 
     await db.update(staff).set({ permRoles }).where(eq(staff.osuId, osuId));
     const p = await relayPerms(osuId);
     if (!p.ref && !p.stream) relayKick(osuId);
-    return { osuId, permRoles };
+    return { log: { osuId, permRoles } };
   });
 }
 
@@ -34,7 +35,7 @@ export async function reorderStaff(ids: number[]) {
   return guard("staff", "staff.reorder", async () => {
     if (!Array.isArray(ids) || !ids.every((i) => Number.isInteger(i))) return { ok: false, error: "invalid" };
     for (const [order, osuId] of ids.entries()) await db.update(staff).set({ order }).where(eq(staff.osuId, osuId));
-    return { ids };
+    return { log: { ids } };
   });
 }
 
@@ -44,7 +45,7 @@ export async function removeStaff(osuId: number) {
     await db.delete(staff).where(eq(staff.osuId, osuId));
     const p = await relayPerms(osuId);
     if (!p.ref && !p.stream) relayKick(osuId);
-    return { osuId };
+    return { log: { osuId } };
   });
 }
 

@@ -2,7 +2,7 @@
 
 import { ActionForm, Field, inputCls } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
-import type { ActionResult } from "@/lib/roles";
+import type { ActionResult } from "@/lib/action-result";
 import { cn } from "@/lib/utils";
 
 type Action = (prev: ActionResult, fd: FormData) => Promise<ActionResult>;

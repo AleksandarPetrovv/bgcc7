@@ -10,8 +10,7 @@ import { forgetScoreboard, getScoreboard } from "@/db/scoreboards";
 import { getMatches, getTeams } from "@/db/tournament";
 import { guard } from "@/lib/admin-action";
 import { decideWinner } from "@/lib/result";
-import type { ActionResult } from "@/lib/roles";
-import { canRunMatch } from "@/lib/match-access";
+import type { ActionResult } from "@/lib/action-result";
 
 const parseMods = (v: string) => (v.toUpperCase().replace(/[^A-Z]/g, "").match(/.{2}/g) ?? []).filter((m) => m !== "NM").join(",");
 
@@ -37,8 +36,7 @@ async function rosterTeam(matchId: string, osuId: number) {
 }
 
 export async function saveScore(matchId: string, gameId: number, fixedOsuId: number | null, _: ActionResult, fd: FormData) {
-  return guard("matches", "match.score.save", async (by) => {
-    if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
+  return guard("matches", "match.score.save", async ({ osuId: by }) => {
     const osuId = fixedOsuId ?? Number(fd.get("osuId"));
     const score = Math.round(Number(String(fd.get("score") ?? "").replace(/[\s,.]/g, "")));
     const accIn = Number(String(fd.get("acc") ?? "").replace(",", "."));
@@ -52,28 +50,26 @@ export async function saveScore(matchId: string, gameId: number, fixedOsuId: num
       .values(values)
       .onConflictDoUpdate({ target: [scoreEdits.matchId, scoreEdits.gameId, scoreEdits.osuId], set: values });
     await sync(matchId);
-    return { matchId, gameId, osuId, score, acc: accIn };
-  });
+    return { log: { matchId, gameId, osuId, score, acc: accIn } };
+  }, { match: matchId });
 }
 
 export async function removeScore(matchId: string, gameId: number, osuId: number, team: 1 | 2) {
-  return guard("matches", "match.score.remove", async (by) => {
-    if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
+  return guard("matches", "match.score.remove", async ({ osuId: by }) => {
     const values = { matchId, gameId, osuId, team, score: 0, acc: 0, mods: "", removed: true, editedBy: by, editedAt: new Date() };
     await db
       .insert(scoreEdits)
       .values(values)
       .onConflictDoUpdate({ target: [scoreEdits.matchId, scoreEdits.gameId, scoreEdits.osuId], set: values });
     await sync(matchId);
-    return { matchId, gameId, osuId };
-  });
+    return { log: { matchId, gameId, osuId } };
+  }, { match: matchId });
 }
 
 export async function undoScore(matchId: string, gameId: number, osuId: number) {
   return guard("matches", "match.score.undo", async () => {
-    if (!(await canRunMatch(matchId))) return { ok: false, error: "forbidden" };
     await db.delete(scoreEdits).where(and(eq(scoreEdits.matchId, matchId), eq(scoreEdits.gameId, gameId), eq(scoreEdits.osuId, osuId)));
     await sync(matchId);
-    return { matchId, gameId, osuId };
-  });
+    return { log: { matchId, gameId, osuId } };
+  }, { match: matchId });
 }

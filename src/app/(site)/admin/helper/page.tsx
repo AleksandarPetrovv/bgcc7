@@ -1,19 +1,14 @@
 import { notFound } from "next/navigation";
-import { Download, Link2, Unlink } from "lucide-react";
-import { helperSig } from "@/lib/helper-sig";
-import { HelperPoll, LinkGate } from "@/components/admin/link-gate";
+import { Download } from "lucide-react";
+import { helperView, HELPER_PERMS } from "@/lib/helper-sig";
+import { HelperLink, HelperPoll, UnlinkHelper } from "@/components/admin/link-gate";
 import { PageTitle, SlantButton } from "@/components/site/page";
-import { ActionForm, Field, Panel, labelCls } from "@/components/admin/form";
+import { Panel } from "@/components/admin/form";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
-import { appOf, appRunning, relayOnline } from "@/lib/relay";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
-import { linkApp, unlinkApp } from "./actions";
-import { linkHelper, unlinkHelper } from "@/actions/helper-link";
-import { currentStreamMatch } from "@/db/stream";
-import { getLive } from "@/lib/live-scores";
 import { getLang } from "@/lib/i18n/server";
 import { fmtSofia } from "@/lib/time";
 import { localeOf } from "@/lib/i18n/locale";
@@ -22,15 +17,14 @@ export const dynamic = "force-dynamic";
 
 export default async function HelperPage() {
   const [t, viewer] = await Promise.all([getDict(), getViewer()]);
-  if (!viewer || !(can(viewer.roles, "matches") || can(viewer.roles, "overlay"))) notFound();
+  if (!viewer || !HELPER_PERMS.some((p) => can(viewer.roles, p))) notFound();
   const ref = can(viewer.roles, "matches");
-  const app = await appOf(viewer.osuId);
-  const online = appRunning(viewer.osuId);
-  const irc = relayOnline(viewer.osuId);
   const r = t.admin.refApp;
   const streamer = can(viewer.roles, "overlay");
-  const [match, lang, sig] = await Promise.all([streamer ? currentStreamMatch(viewer.osuId) : null, getLang(), helperSig(viewer.osuId)]);
-  const live = match ? getLive(match.id) : null;
+  const [h, lang] = await Promise.all([helperView(viewer.osuId), getLang()]);
+  const { app, online, irc, sig } = h;
+  const match = streamer ? h.match : null;
+  const live = match ? h.live : null;
   const locale = localeOf(lang);
   const tile = "in-up flex min-w-0 flex-col gap-1.5 border border-line bg-ink/50 px-4 py-3";
   const k = "in-wipe text-[0.68rem] font-display font-bold text-ash";
@@ -40,16 +34,7 @@ export default async function HelperPage() {
       <PageTitle mark="whistle">{t.admin.menu.helper}</PageTitle>
       <HelperPoll sig={sig} />
       <Cascade className="grid max-w-3xl gap-6 [--d:0.35s]" step={0.08}>
-        <LinkGate linked={!!app}>
-          <Panel title={r.linkTitle} i={1}>
-            <ActionForm action={ref ? linkApp : linkHelper} submit={r.link} icon={<Link2 className="size-4" />} className="flex flex-wrap items-end gap-3">
-              <label className={labelCls}>
-                {r.linkCode}
-                <Field name="code" required maxLength={64} autoComplete="off" spellCheck={false} className="w-64" />
-              </label>
-            </ActionForm>
-          </Panel>
-        </LinkGate>
+        <HelperLink linked={!!app} i={1} />
         <Panel
           title={t.admin.menu.helper}
           i={2}
@@ -58,7 +43,7 @@ export default async function HelperPage() {
               <SlantButton href="/download/helper" download tone="rose">
                 <Download className="size-4" /> {r.download}
               </SlantButton>
-              {app && <ActionForm action={ref ? unlinkApp : unlinkHelper} submit={r.unlink} ghost confirm={r.unlinkAsk} icon={<Unlink className="size-3.5" />} />}
+              {app && <UnlinkHelper />}
             </>
           }
         >

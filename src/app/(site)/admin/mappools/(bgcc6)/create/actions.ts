@@ -7,7 +7,7 @@ import { blueprintFor } from "@/db/mappools";
 import { guard } from "@/lib/admin-action";
 import { isBracketStage } from "@/lib/format";
 import { MOD_ORDER } from "@/lib/mods";
-import type { ActionResult } from "@/lib/roles";
+import type { ActionResult } from "@/lib/action-result";
 
 export async function saveBlueprint(stageId: number, _: ActionResult, fd: FormData) {
   return guard("phase", "stage.blueprint", async () => {
@@ -26,6 +26,6 @@ export async function saveBlueprint(stageId: number, _: ActionResult, fd: FormDa
       if (Number.isFinite(n) && n > 0) blueprint[mod] = Math.min(n, 99);
     }
     await db.update(stages).set({ blueprint }).where(eq(stages.id, stageId));
-    return { stageId, blueprint };
+    return { log: { stageId, blueprint } };
   });
 }

@@ -77,6 +77,8 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `затвори пик и бан за ${match()}` : `closed pick and ban for ${match()}`;
     case "draft.pause":
       return bg ? `пусна таймаут в ${match()}` : `called a timeout in ${match()}`;
+    case "draft.hold":
+      return bg ? `постави на пауза пик и бана в ${match()}` : `paused pick and ban in ${match()}`;
     case "draft.timeoutRequest":
       return bg ? `поиска таймаут за ${p.team === 2 ? "синия" : "червения"} отбор в ${match()}` : `requested a timeout for the ${p.team === 2 ? "blue" : "red"} team in ${match()}`;
     case "draft.timeoutAccept":

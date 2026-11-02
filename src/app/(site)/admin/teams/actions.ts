@@ -7,7 +7,7 @@ import { newTeamId, seedBracket } from "@/db/draw";
 import { getQualResults } from "@/db/qualifiers";
 import { getSettings } from "@/db/settings";
 import { guard } from "@/lib/admin-action";
-import type { ActionResult } from "@/lib/roles";
+import type { ActionResult } from "@/lib/action-result";
 import { isTestTeam } from "@/lib/format";
 import { playedIds } from "@/db/bracket";
 
@@ -31,7 +31,7 @@ export async function generateTeams() {
         for (const [i, p] of picks.entries()) await tx.insert(teamMembers).values({ osuId: p.id, teamId: id, isCaptain: i === 0 });
       }
     });
-    return { teams: n };
+    return { log: { teams: n } };
   });
 }
 
@@ -42,7 +42,7 @@ export async function createTeam(_: ActionResult, fd: FormData) {
     const all = (await db.select({ id: teams.id, seed: teams.seed }).from(teams)).filter((t) => !isTestTeam(t.id));
     const id = newId();
     await db.insert(teams).values({ id, name, seed: Math.max(all.length, ...all.map((t) => t.seed)) + 1 });
-    return { id, name };
+    return { log: { id, name } };
   });
 }
 
@@ -57,7 +57,7 @@ export async function updateTeam(id: string, _: ActionResult, fd: FormData) {
       await db.update(teamMembers).set({ isCaptain: false }).where(and(eq(teamMembers.teamId, id), ne(teamMembers.osuId, captain)));
       await db.update(teamMembers).set({ isCaptain: true }).where(and(eq(teamMembers.teamId, id), eq(teamMembers.osuId, captain)));
     }
-    return { id, name, image, captain };
+    return { log: { id, name, image, captain } };
   });
 }
 
@@ -72,7 +72,7 @@ export async function deleteTeam(id: string) {
       for (const [k, t] of left.entries()) await tx.update(teams).set({ seed: k + 1 }).where(eq(teams.id, t.id));
       return gone;
     });
-    return { id, name: row?.name ?? null };
+    return { log: { id, name: row?.name ?? null } };
   });
 }
 
@@ -89,7 +89,7 @@ export async function placeMember(_: ActionResult, fd: FormData) {
       .values({ osuId, teamId, isCaptain: lead })
       .onConflictDoUpdate({ target: teamMembers.osuId, set: { teamId, isCaptain: lead } });
     if (old?.isCaptain && old.teamId !== teamId) await promote(old.teamId);
-    return { osuId, teamId };
+    return { log: { osuId, teamId } };
   });
 }
 
@@ -108,14 +108,14 @@ export async function removeMember(osuId: number, heir?: number) {
   return guard("teams", "team.removeMember", async () => {
     const [row] = await db.delete(teamMembers).where(eq(teamMembers.osuId, osuId)).returning();
     if (row?.isCaptain) await promote(row.teamId, heir);
-    return { osuId, heir: row?.isCaptain ? (heir ?? null) : undefined };
+    return { log: { osuId, heir: row?.isCaptain ? (heir ?? null) : undefined } };
   });
 }
 
 export async function seedTeams() {
   return guard("teams", "teams.seed", async () => {
     const teams = await seedBracket();
-    return teams ? { teams } : { ok: false, error: "invalid" };
+    return teams ? { log: { teams } } : { ok: false, error: "invalid" };
   });
 }
 
@@ -125,6 +125,6 @@ export async function setBadges(osuId: number, _: ActionResult, fd: FormData) {
     const n = raw === "" ? null : Number(raw);
     if (n !== null && (!Number.isInteger(n) || n < 0 || n > 99)) return { ok: false, error: "invalid" };
     await db.update(users).set({ badgeOverride: n }).where(eq(users.osuId, osuId));
-    return { osuId, badges: n };
+    return { log: { osuId, badges: n } };
   });
 }

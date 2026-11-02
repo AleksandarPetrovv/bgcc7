@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { lobbies, lobbyBookings, registrations } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
-import type { ActionResult } from "@/lib/roles";
+import type { ActionResult } from "@/lib/action-result";
 import { fromSofiaInput } from "@/lib/time";
 import { mpIds, mpCsv } from "@/lib/mp-links";
 
@@ -23,7 +23,7 @@ export async function createLobby(_: ActionResult, fd: FormData) {
     const v = parse(fd);
     if (!v) return { ok: false, error: "invalid" };
     await db.insert(lobbies).values(v);
-    return v;
+    return { log: v };
   });
 }
 
@@ -32,14 +32,14 @@ export async function updateLobby(id: number, _: ActionResult, fd: FormData) {
     const v = parse(fd);
     if (!v) return { ok: false, error: "invalid" };
     await db.update(lobbies).set(v).where(eq(lobbies.id, id));
-    return { id, ...v };
+    return { log: { id, ...v } };
   });
 }
 
 export async function deleteLobby(id: number) {
   return guard("lobbies", "lobby.delete", async () => {
     const [row] = await db.delete(lobbies).where(eq(lobbies.id, id)).returning({ name: lobbies.name });
-    return { id, name: row?.name ?? null };
+    return { log: { id, name: row?.name ?? null } };
   });
 }
 
@@ -54,13 +54,13 @@ export async function placePlayer(_: ActionResult, fd: FormData) {
       .insert(lobbyBookings)
       .values({ osuId, lobbyId })
       .onConflictDoUpdate({ target: lobbyBookings.osuId, set: { lobbyId, bookedAt: new Date() } });
-    return { osuId, lobbyId };
+    return { log: { osuId, lobbyId } };
   });
 }
 
 export async function unbook(osuId: number) {
   return guard("lobbies", "lobby.unbook", async () => {
     await db.delete(lobbyBookings).where(eq(lobbyBookings.osuId, osuId));
-    return { osuId };
+    return { log: { osuId } };
   });
 }

@@ -91,11 +91,6 @@ export function startLink(st: string) {
   return null;
 }
 
-export function linkResult(fd: FormData, osuId: number) {
-  const r = confirmCode(String(fd.get("code") ?? ""), osuId);
-  return r === "ok" ? { linked: true } : { ok: false, error: r === "locked" ? ("locked" as const) : ("wrongCode" as const) };
-}
-
 export function confirmCode(input: string, osuId: number): "ok" | "wrong" | "locked" {
   const now = Date.now();
   const f = fails().get(osuId) ?? { n: 0, until: 0 };

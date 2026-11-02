@@ -4,7 +4,7 @@ import { getSettings, saveSettings } from "@/db/settings";
 import { getTeams } from "@/db/tournament";
 import { getBwsLock, lockBws, unlockBws } from "@/db/registrations";
 import { guard } from "@/lib/admin-action";
-import type { ActionResult } from "@/lib/roles";
+import type { ActionResult } from "@/lib/action-result";
 import { PHASES, phasesFor, presetSections, SECTIONS, TIMELINE_KEYS, type Phase } from "@/lib/sections";
 import { fromSofiaInput } from "@/lib/time";
 import { isBGCC6 } from "@/db";
@@ -21,20 +21,14 @@ async function applyPhase(p: Phase) {
 }
 
 export async function setPhase(_: ActionResult, fd: FormData) {
-  return guard("phase", "phase.set", async () => {
-    const phase = String(fd.get("phase"));
-    if (!(PHASES as readonly string[]).includes(phase)) return { ok: false, error: "invalid" };
-    const p = phase as Phase;
-    if ((await applyPhase(p)) === false) return { ok: false, error: "invalid" };
-    return { phase: p };
-  });
+  return acceptPhase(String(fd.get("phase")));
 }
 
 export async function setSections(_: ActionResult, fd: FormData) {
   return guard("phase", "phase.sections", async () => {
     const sections = Object.fromEntries(SECTIONS.map((s) => [s, fd.get(s) === "on"])) as Record<(typeof SECTIONS)[number], boolean>;
     await saveSettings({ sections });
-    return { shown: SECTIONS.filter((s) => sections[s]) };
+    return { log: { shown: SECTIONS.filter((s) => sections[s]) } };
   });
 }
 
@@ -49,7 +43,7 @@ export async function setDates(_: ActionResult, fd: FormData) {
     };
     if (Object.entries(patch).some(([k, d]) => String(fd.get(k) ?? "").trim() && !d)) return { ok: false, error: "invalid" };
     await saveSettings(patch);
-    return patch;
+    return { log: patch };
   });
 }
 
@@ -61,7 +55,7 @@ export async function setTimeline(_: ActionResult, fd: FormData) {
     };
     const timeline = TIMELINE_KEYS.filter((k) => k !== "reg").map((key) => ({ key, from: date(`from.${key}`), to: date(`to.${key}`) }));
     await saveSettings({ timeline });
-    return { timeline };
+    return { log: { timeline } };
   });
 }
 
@@ -70,14 +64,14 @@ export async function acceptPhase(phase: string) {
     if (!(PHASES as readonly string[]).includes(phase)) return { ok: false, error: "invalid" };
     const p = phase as Phase;
     if ((await applyPhase(p)) === false) return { ok: false, error: "invalid" };
-    return { phase: p };
+    return { log: { phase: p } };
   });
 }
 
 export async function dismissPhase(phase: string) {
-  return guard("phase", "phase.dismiss", async (osuId) => {
+  return guard("phase", "phase.dismiss", async ({ osuId }) => {
     const { phasePrompts } = await getSettings();
     await saveSettings({ phasePrompts: { ...phasePrompts, [osuId]: phase } });
-    return { phase };
+    return { log: { phase } };
   });
 }

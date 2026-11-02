@@ -10,6 +10,7 @@ import type { RegRow } from "@/db/registrations";
 import { flagUrl, fmtNum } from "@/lib/data";
 import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
+import { errorText } from "@/lib/action-result";
 import { decide, removeRegistration } from "./actions";
 
 const TAG = { pending: "paper", approved: "balkan", denied: "rose" } as const;
@@ -66,7 +67,7 @@ export function ScreeningRow({ p, signedAt, i }: { p: RegRow; signedAt: string; 
             <Undo2 className="size-4" /> {t.admin.reset}
           </Btn>
         )}
-        {state && !pending && !state.ok && <span className="text-xs font-display font-bold text-rose-hi">{state.error === "note" ? t.admin.denyNote : t.admin.error}</span>}
+        {state && !pending && !state.ok && <span className="text-xs font-display font-bold text-rose-hi">{errorText(t, state.error)}</span>}
       </form>
     </InView>
   );

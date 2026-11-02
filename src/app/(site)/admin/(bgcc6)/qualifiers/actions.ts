@@ -7,7 +7,7 @@ import { getQualifierMaps } from "@/db/mappools";
 import { saveOsuUser } from "@/db/users";
 import { guard } from "@/lib/admin-action";
 import { getMpMatch, getUser } from "@/lib/osu-api";
-import type { ActionResult } from "@/lib/roles";
+import type { ActionResult } from "@/lib/action-result";
 import { mpIds } from "@/lib/mp-links";
 
 type Row = typeof qualScores.$inferInsert;
@@ -57,7 +57,7 @@ async function importLobby(lobbyId: number) {
 }
 
 export async function importOne(lobbyId: number) {
-  return guard("qualifiers", "qual.import", async () => ({ lobbyId, scores: await importLobby(lobbyId) }));
+  return guard("qualifiers", "qual.import", async () => ({ log: { lobbyId, scores: await importLobby(lobbyId) } }));
 }
 
 export async function importAll() {
@@ -65,7 +65,7 @@ export async function importAll() {
     const all = await db.select({ id: lobbies.id, mpLinks: lobbies.mpLinks }).from(lobbies);
     let scores = 0;
     for (const l of all) if (mpIds(l.mpLinks).length) scores += await importLobby(l.id);
-    return { scores };
+    return { log: { scores } };
   });
 }
 
@@ -77,7 +77,7 @@ export async function updateScore(id: number, _: ActionResult, fd: FormData) {
     if (!Number.isInteger(score) || score < 0 || !(acc >= 0 && acc <= 100)) return { ok: false, error: "invalid" };
     const [row] = await db.update(qualScores).set({ score, acc, mods, lobbyId: null, seeded: false }).where(eq(qualScores.id, id)).returning();
     if (!row) return { ok: false, error: "notFound" };
-    return { osuId: row.osuId, beatmapId: row.beatmapId, score, acc, mods };
+    return { log: { osuId: row.osuId, beatmapId: row.beatmapId, score, acc, mods } };
   });
 }
 
@@ -108,20 +108,20 @@ export async function setScore(_: ActionResult, fd: FormData) {
       .insert(qualScores)
       .values(row)
       .onConflictDoUpdate({ target: [qualScores.osuId, qualScores.beatmapId], set: row });
-    return row;
+    return { log: row };
   });
 }
 
 export async function deleteScore(id: number) {
   return guard("qualifiers", "qual.deleteScore", async () => {
     const [row] = await db.delete(qualScores).where(eq(qualScores.id, id)).returning();
-    return row ?? { id };
+    return { log: row ?? { id } };
   });
 }
 
 export async function clearPlayer(osuId: number) {
   return guard("qualifiers", "qual.clearPlayer", async () => {
     await db.delete(qualScores).where(and(eq(qualScores.osuId, osuId)));
-    return { osuId };
+    return { log: { osuId } };
   });
 }

@@ -6,3 +6,4 @@ export const osuMap = (id: number) => `https://osu.ppy.sh/b/${id}`;
 export const osuMatch = (id: number | string) => `https://osu.ppy.sh/community/matches/${id}`;
 export const osuMp = (id: number | string) => `https://osu.ppy.sh/mp/${id}`;
 export const siteUrl = () => (process.env.AUTH_URL ?? process.env.PUBLIC_URL ?? "").replace(/\/$/, "");
+export const overlayUrl = (key: string) => `${siteUrl()}/overlay/${key}`;

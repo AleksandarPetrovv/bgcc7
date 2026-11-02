@@ -1,18 +1,20 @@
 import type { LogRow } from "@/db/admin";
 import { sofiaDate } from "@/lib/time";
+import type { ActionName } from "@/lib/action-names";
 
 type Category = "refereed" | "poolWork" | "ratings" | "screening" | "qualifierScores" | "matchScores";
 type Scope = { category: Category; context: string; key: string };
 export type CompactLogEntry = { kind: "row"; row: LogRow } | { kind: "group"; category: Category | "action"; context: string; latest: LogRow; rows: LogRow[] };
 
-const refereeActions = new Set([
+const names = (...a: ActionName[]) => new Set<string>(a);
+const refereeActions = names(
   "lobby.make", "lobby.chat", "lobby.invite", "lobby.start", "lobby.abort", "lobby.close",
   "lobby.aborttimer", "lobby.kick", "lobby.spare", "lobby.team", "lobby.move", "lobby.cmd", "lobby.refresh",
-  "draft.open", "draft.close", "draft.pause", "draft.resume", "draft.end", "draft.reset", "draft.undo", "draft.redo",
-]);
-const poolActions = new Set(["pool.suggest", "pool.unsuggest", "map.add", "map.move"]);
-const qualifierActions = new Set(["qual.setScore", "qual.deleteScore", "qual.clearPlayer"]);
-const scoreActions = new Set(["match.score.save", "match.score.remove", "match.score.undo"]);
+  "draft.open", "draft.close", "draft.pause", "draft.hold", "draft.resume", "draft.end", "draft.reset", "draft.undo", "draft.redo",
+);
+const poolActions = names("pool.suggest", "pool.unsuggest", "map.add", "map.move");
+const qualifierActions = names("qual.setScore", "qual.deleteScore", "qual.clearPlayer");
+const scoreActions = names("match.score.save", "match.score.remove", "match.score.undo");
 const inactivity = 60 * 60 * 1000;
 
 function payload(row: LogRow): Record<string, unknown> {

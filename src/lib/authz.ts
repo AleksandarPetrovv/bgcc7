@@ -5,29 +5,39 @@ import { eq } from "drizzle-orm";
 import { currentOsuId } from "@/auth";
 import { currentEdition, db } from "@/db";
 import { adminLog, staff } from "@/db/schema";
-import { safe } from "@/db/safe";
 import { getSettings } from "@/db/settings";
 import { getFormat } from "@/db/edition";
 import { can, cleanRoles, hasAdmin, type Perm, type Role } from "./roles";
 import type { Section } from "./sections";
+import type { ActionName } from "./action-names";
 
-export const getViewer = cache(async (): Promise<{ osuId: number; roles: Role[] } | null> => {
+export type Viewer = { osuId: number; roles: Role[] };
+
+const rolesOf = cache(async (osuId: number) => {
+  const [row] = await db.select({ roles: staff.permRoles }).from(staff).where(eq(staff.osuId, osuId)).limit(1);
+  return cleanRoles(row?.roles ?? []);
+});
+
+/** pages render a viewer without staff roles when the db is down */
+export const getViewer = cache(async (): Promise<Viewer | null> => {
   const osuId = await currentOsuId();
   if (!osuId) return null;
-  const roles = await safe(async () => {
-    const [row] = await db.select({ roles: staff.permRoles }).from(staff).where(eq(staff.osuId, osuId)).limit(1);
-    return cleanRoles(row?.roles ?? []);
-  }, [] as Role[]);
+  const roles = await rolesOf(osuId).catch((e) => {
+    console.error("[viewer]", e);
+    return [] as Role[];
+  });
   return { osuId, roles };
 });
 
-export async function requireRole(perm: Perm) {
-  const v = await getViewer();
-  if (!v || !can(v.roles, perm)) throw new Error("forbidden");
-  return v;
+/** the viewer if they hold `perm` (or any of a list), else null; a db error throws instead of reading as no access */
+export async function staffFor(perm: Perm | readonly Perm[]): Promise<Viewer | null> {
+  const osuId = await currentOsuId();
+  if (!osuId) return null;
+  const roles = await rolesOf(osuId);
+  return [perm].flat().some((p) => can(roles, p)) ? { osuId, roles } : null;
 }
 
-export async function log(osuId: number, action: string, payload?: unknown) {
+export async function log(osuId: number, action: ActionName, payload?: unknown) {
   await db
     .insert(adminLog)
     .values({ osuId, action, payload: { ...(payload && typeof payload === "object" && !Array.isArray(payload) ? payload : payload == null ? {} : { value: payload }), _edition: currentEdition() } })

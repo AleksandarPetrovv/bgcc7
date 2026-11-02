@@ -5,7 +5,7 @@ import { Lock, Minus, Plus } from "lucide-react";
 import { ActionForm } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
 import { modHi, modOn } from "@/lib/theme";
-import type { ActionResult } from "@/lib/roles";
+import type { ActionResult } from "@/lib/action-result";
 import { MODS } from "@/lib/mods";
 
 type Action = (prev: ActionResult, fd: FormData) => Promise<ActionResult>;

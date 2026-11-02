@@ -10,7 +10,7 @@ import { Dropdown } from "@/components/admin/dropdown";
 import { Modal } from "@/components/site/modal";
 import { useDict } from "@/components/site/lang";
 import { EASE } from "@/lib/ease";
-import type { ActionResult } from "@/lib/roles";
+import type { ActionResult } from "@/lib/action-result";
 import { cn } from "@/lib/utils";
 import { closeDraft, endDraft, openDraft, pauseDraft, resetDraft, resumeDraft, undoDraft } from "@/actions/draft";
 

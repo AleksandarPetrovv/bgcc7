@@ -1,17 +1,13 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { registrations, teamMembers, teams, users } from "@/db/schema";
-import { requireRole } from "@/lib/authz";
+import { staffFor } from "@/lib/authz";
 import { getFormat } from "@/db/edition";
 
 const clean = (s: string) => s.replace(/[,\r\n]/g, " ").trim();
 
 export async function GET(req: Request) {
-  try {
-    await requireRole("screening");
-  } catch {
-    return new Response("forbidden", { status: 403 });
-  }
+  if (!(await staffFor("screening"))) return new Response("forbidden", { status: 403 });
   const withTeams = new URL(req.url).searchParams.get("teams") === "1";
   let lines: string[];
   if (withTeams) {

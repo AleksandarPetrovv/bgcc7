@@ -6,12 +6,12 @@ import { matches, reschedules, stages } from "@/db/schema";
 import { lockMatch, staffOverride } from "@/db/schedule";
 import { announceMatchTime, setMatchTime } from "@/db/match";
 import { guard } from "@/lib/admin-action";
-import type { ActionResult } from "@/lib/roles";
+import type { ActionResult } from "@/lib/action-result";
 import { fromSofiaInput } from "@/lib/time";
 import { inWindow, mondayOf, weekOf } from "@/lib/schedule";
 
 export async function setWeek(slug: string, _: ActionResult, fd: FormData) {
-  return guard("matches", "schedule.week", async (osuId) => {
+  return guard("matches", "schedule.week", async ({ osuId }) => {
     const raw = String(fd.get("week") ?? "").trim();
     const week = raw ? mondayOf(raw) : null;
     if (raw && !week) return { ok: false, error: "invalid" };
@@ -35,12 +35,12 @@ export async function setWeek(slug: string, _: ActionResult, fd: FormData) {
       return true;
     });
     if (!found) return { ok: false, error: "notFound" };
-    return { stage: slug, week };
+    return { log: { stage: slug, week } };
   });
 }
 
 export async function setTime(id: string, _: ActionResult, fd: FormData) {
-  return guard("matches", "schedule.set", async (osuId) => {
+  return guard("matches", "schedule.set", async ({ osuId }) => {
     const raw = String(fd.get("at") ?? "").trim();
     const at = raw ? fromSofiaInput(raw) : null;
     if (raw && !at) return { ok: false, error: "invalid" };
@@ -56,6 +56,6 @@ export async function setTime(id: string, _: ActionResult, fd: FormData) {
     });
     if (!out) return { ok: false, error: "notFound" };
     if (!out.same && at) announceMatchTime([out.team1Id, out.team2Id], at, { dm: true });
-    return { match: id, at: at?.toISOString() ?? null };
+    return { log: { match: id, at: at?.toISOString() ?? null } };
   });
 }

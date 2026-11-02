@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { Pencil, Plus, X } from "lucide-react";
 import { Btn, Field, inputCls } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
-import type { ActionResult } from "@/lib/roles";
+import { errorText, type ActionResult } from "@/lib/action-result";
 import { modHi } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import type { SubcategoryGroup } from "@/lib/format-plan";
@@ -35,16 +35,7 @@ function Pop({ action, title, slot, color, submit, tags, onClose, at, closing }:
       window.removeEventListener("scroll", scroll, { capture: true });
     };
   }, [onClose]);
-  const err =
-    state && !state.ok
-      ? state.error === "notFound"
-        ? t.admin.notFound
-        : state.error === "taken"
-          ? t.admin.taken
-          : state.error === "oneEach"
-            ? t.admin.oneEach
-            : t.admin.error
-      : null;
+  const err = state && !state.ok ? errorText(t, state.error) : null;
   return (
     <div
       ref={box}

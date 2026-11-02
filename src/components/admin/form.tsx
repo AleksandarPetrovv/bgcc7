@@ -6,7 +6,7 @@ import { Modal } from "@/components/site/modal";
 import { Sparkle } from "@/components/site/graphics";
 import { useDict } from "@/components/site/lang";
 import { WeekdayInput } from "@/components/site/weekday-input";
-import type { ActionResult } from "@/lib/roles";
+import { errorText, type ActionResult } from "@/lib/action-result";
 import { cn } from "@/lib/utils";
 
 export const inputCls = "min-w-0";
@@ -55,25 +55,7 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
   const formRef = useRef<HTMLFormElement>(null);
   const confirmed = useRef(false);
   const [ask, setAsk] = useState(false);
-  const msg =
-    state &&
-    (state.ok
-      ? t.admin.saved
-      : state.error === "notFound"
-        ? t.admin.notFound
-        : state.error === "lastHost"
-          ? t.admin.lastHost
-          : state.error === "taken"
-            ? t.admin.taken
-            : state.error === "oneEach"
-              ? t.admin.oneEach
-              : state.error === "stale"
-                ? t.admin.stale
-                : state.error === "wrongCode"
-                  ? t.admin.refApp.wrongCode
-                  : state.error === "locked"
-                    ? t.admin.refApp.locked
-                    : t.admin.error);
+  const msg = state && (state.ok ? t.admin.saved : errorText(t, state.error));
   return (
     <form
       ref={formRef}

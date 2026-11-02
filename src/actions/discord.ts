@@ -4,7 +4,7 @@ import { guard } from "@/lib/admin-action";
 import { cleanupDiscord, setCfg, syncTeams } from "@/db/discord-bot";
 import { getSettings } from "@/db/settings";
 import { guildChannels } from "@/lib/discord";
-import type { ActionResult } from "@/lib/roles";
+import type { ActionResult } from "@/lib/action-result";
 
 export async function saveChannels(_: ActionResult, fd: FormData) {
   return guard("discord", "discord.channels", async () => {
@@ -17,14 +17,14 @@ export async function saveChannels(_: ActionResult, fd: FormData) {
     const pool = pick("pool");
     await setCfg("results", results);
     await setCfg("pool", pool);
-    return { results, pool };
+    return { log: { results, pool } };
   });
 }
 
 export async function syncNow() {
   return guard("discord", "discord.sync", async () => {
     await syncTeams();
-    return {};
+    return;
   });
 }
 
@@ -32,6 +32,6 @@ export async function cleanup() {
   return guard("discord", "discord.cleanup", async () => {
     if ((await getSettings()).phase !== "finished") return { ok: false, error: "invalid" };
     await cleanupDiscord();
-    return {};
+    return;
   });
 }

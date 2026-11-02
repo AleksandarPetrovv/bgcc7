@@ -2,13 +2,13 @@
 
 import { saveSettings } from "@/db/settings";
 import { guard } from "@/lib/admin-action";
-import type { ActionResult } from "@/lib/roles";
+import type { ActionResult } from "@/lib/action-result";
 
 export async function setPickems(_: ActionResult, fd: FormData) {
   return guard("settings", "settings.pickems", async () => {
     const pickemsOpen = fd.get("open") === "1";
     await saveSettings({ pickemsOpen });
-    return { pickemsOpen };
+    return { log: { pickemsOpen } };
   });
 }
 
@@ -23,6 +23,6 @@ export async function setDraft(_: ActionResult, fd: FormData) {
     const okSecs = (n: number) => Number.isInteger(n) && n >= 10 && n <= 900;
     if (!Number.isInteger(bans) || bans < 0 || bans > 4 || ![banSecs, pickSecs, timeoutSecs].every(okSecs)) return { ok: false, error: "invalid" };
     await saveSettings({ bans, banOrder, banSecs, pickSecs, timeoutSecs });
-    return { bans, banOrder, banSecs, pickSecs, timeoutSecs };
+    return { log: { bans, banOrder, banSecs, pickSecs, timeoutSecs } };
   });
 }

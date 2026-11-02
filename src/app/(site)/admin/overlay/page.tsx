@@ -1,32 +1,29 @@
 import { notFound } from "next/navigation";
-import { Download, ExternalLink, Link2, Unlink } from "lucide-react";
+import { Download, ExternalLink } from "lucide-react";
 import { PageTitle, SlantButton } from "@/components/site/page";
-import { ActionForm, Field, Panel, labelCls } from "@/components/admin/form";
+import { Panel } from "@/components/admin/form";
 import { CopyLink } from "@/components/admin/copy-link";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
-import { appOf, appRunning } from "@/lib/relay";
 import { userPath } from "@/lib/data";
 import { fill } from "@/lib/dates";
-import { siteUrl } from "@/lib/links";
+import { overlayUrl } from "@/lib/links";
 import { cn } from "@/lib/utils";
 import { getFormat } from "@/db/edition";
 import { overlayName } from "@/db/stream";
-import { linkHelper, unlinkHelper } from "@/actions/helper-link";
-import { HelperPoll, LinkGate } from "@/components/admin/link-gate";
-import { helperSig } from "@/lib/helper-sig";
+import { HelperLink, HelperPoll, UnlinkHelper } from "@/components/admin/link-gate";
+import { helperView } from "@/lib/helper-sig";
 
 export const dynamic = "force-dynamic";
 
 export default async function Overlay() {
   const [t, viewer] = await Promise.all([getDict(), getViewer()]);
   if (!viewer || !can(viewer.roles, "overlay")) notFound();
-  const [app, name, sig] = await Promise.all([appOf(viewer.osuId), overlayName(viewer.osuId), helperSig(viewer.osuId)]);
-  const online = appRunning(viewer.osuId);
+  const [{ app, online, sig }, name] = await Promise.all([helperView(viewer.osuId), overlayName(viewer.osuId)]);
   const o = t.admin.overlay;
   const r = t.admin.refApp;
-  const url = `${siteUrl()}/overlay/${userPath(name ?? String(viewer.osuId))}`;
+  const url = overlayUrl(userPath(name ?? String(viewer.osuId)));
   let i = 1;
 
   return (
@@ -34,16 +31,7 @@ export default async function Overlay() {
       <PageTitle mark="layers">{t.admin.menu.overlay}</PageTitle>
       <HelperPoll sig={sig} />
       <div className="grid max-w-3xl gap-6">
-        <LinkGate linked={!!app}>
-          <Panel title={r.linkTitle} i={i++}>
-            <ActionForm action={linkHelper} submit={r.link} icon={<Link2 className="size-4" />} className="flex flex-wrap items-end gap-3">
-              <label className={labelCls}>
-                {r.linkCode}
-                <Field name="code" required maxLength={64} autoComplete="off" spellCheck={false} className="w-64" />
-              </label>
-            </ActionForm>
-          </Panel>
-        </LinkGate>
+        <HelperLink linked={!!app} i={i++} />
         <Panel title={o.link} i={i++}>
           <div className="grid gap-4">
             <CopyLink url={url} />
@@ -62,7 +50,7 @@ export default async function Overlay() {
               <SlantButton href="/download/helper" download tone="rose">
                 <Download className="size-4" /> {r.download}
               </SlantButton>
-              {app && <ActionForm action={unlinkHelper} submit={r.unlink} ghost confirm={r.unlinkAsk} icon={<Unlink className="size-3.5" />} />}
+              {app && <UnlinkHelper />}
             </span>
           </div>
         </Panel>
