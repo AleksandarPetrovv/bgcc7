@@ -9,7 +9,6 @@ import { WeekdayInput } from "@/components/site/weekday-input";
 import { errorText, type ActionResult } from "@/lib/action-result";
 import { cn } from "@/lib/utils";
 
-export const inputCls = "min-w-0";
 export const labelCls = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 
 // [text, skewed background]: the skew lives on an absolute span so the text is never transformed (transformed text goes blurry)
@@ -145,7 +144,7 @@ export function Panel({ title, help, aside, children, className, i = 0 }: { titl
 
 export function Field({ className, inputClassName, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { inputClassName?: string }) {
   return (
-    <span className={cn("adm-field", props.disabled && "opacity-45", className)}>
+    <span className={cn("adm-field min-w-0", props.disabled && "opacity-45", className)}>
       <input {...props} className={cn("adm-bare", inputClassName)} />
     </span>
   );

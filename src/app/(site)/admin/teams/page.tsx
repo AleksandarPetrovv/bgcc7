@@ -2,7 +2,7 @@ import { Crown } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, inputCls, Panel, Field } from "@/components/admin/form";
+import { ActionForm, Panel, Field, labelCls } from "@/components/admin/form";
 import { getQualResults } from "@/db/qualifiers";
 import { getBwsLock, getRegistrations } from "@/db/registrations";
 import { fmtSofia } from "@/lib/time";
@@ -26,8 +26,6 @@ import { localeOf } from "@/lib/i18n/locale";
 import { getPlayerSeeds } from "@/db/seeds";
 
 const bwsGrid = "grid grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_4rem] items-center gap-x-2 px-2 sm:gap-x-3 sm:px-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_6rem_10rem_6rem]";
-const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
-
 export default async function AdminTeams() {
   const [t, lang, viewer, teams, results, regs, settings, f, locked] = await Promise.all([getDict(), getLang(), getViewer(), getTeams(), getQualResults(), getRegistrations(), getSettings(), getFormat(), getBwsLock()]);
   if (!can(viewer?.roles, "teams")) notFound();
@@ -109,7 +107,7 @@ export default async function AdminTeams() {
                           defaultValue={p.badgeOverride ?? p.badges ?? 0}
                           aria-label={`${t.admin.badges} · ${p.username}`}
                           title={p.badgeOverride !== null ? t.admin.badgesEdited(p.badges ?? 0) : undefined}
-                          className={cn(inputCls, "num w-14 text-center", p.badgeOverride !== null && "[&_input]:text-gold-hi")}
+                          className={cn("num w-14 text-center", p.badgeOverride !== null && "[&_input]:text-gold-hi")}
                         />
                       </ActionForm>
                       <span className="num text-center font-display font-bold text-paper">{p.bws === null ? "–" : fmtNum(p.bws)}</span>
@@ -135,7 +133,7 @@ export default async function AdminTeams() {
         )}
         <Panel title={t.admin.newTeam} i={1}>
           <ActionForm action={createTeam} submit={t.admin.create} className="flex items-center gap-3">
-            <Field name="name" required maxLength={40} placeholder={t.admin.teamName} aria-label={t.admin.teamName} className={cn(inputCls, "flex-1 sm:max-w-sm")} />
+            <Field name="name" required maxLength={40} placeholder={t.admin.teamName} aria-label={t.admin.teamName} className="flex-1 sm:max-w-sm" />
           </ActionForm>
         </Panel>
       </div>
@@ -162,15 +160,15 @@ export default async function AdminTeams() {
             <div className="space-y-4 py-4">
               <ActionForm key={`${team.id}-${team.name}-${team.seed}-${team.players.map((p) => p.userId + String(p.isCaptain)).join()}`} action={updateTeam.bind(null, team.id)} className="space-y-3">
                 <div className="grid gap-2">
-                  <label className={label}>
+                  <label className={labelCls}>
                     {t.admin.teamName}
-                    <Field name="name" required maxLength={40} defaultValue={team.name} className={inputCls} />
+                    <Field name="name" required maxLength={40} defaultValue={team.name} />
                   </label>
                   <p className="self-end text-xs text-ash">{t.admin.seedLocked}</p>
                 </div>
-                <label className={label}>
+                <label className={labelCls}>
                   {t.admin.teamImage}
-                  <Field name="image" maxLength={500} placeholder="https://…" defaultValue={team.players[0] && team.rawImage === team.players[0].avatar ? "" : team.rawImage} className={inputCls} />
+                  <Field name="image" maxLength={500} placeholder="https://…" defaultValue={team.players[0] && team.rawImage === team.players[0].avatar ? "" : team.rawImage} />
                 </label>
                 {team.players.length > 0 && (
                   <fieldset>

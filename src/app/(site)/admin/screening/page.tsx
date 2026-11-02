@@ -3,7 +3,7 @@ import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
 import { notFound } from "next/navigation";
 import { Download } from "lucide-react";
-import { ActionForm, inputCls, Panel, Field } from "@/components/admin/form";
+import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { getRegistrations, STATUSES, isStatus } from "@/db/registrations";
 import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
@@ -32,7 +32,7 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
       <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-[1fr_auto]">
         <Panel title={t.admin.addPlayer} help={t.admin.addPlayerHelp}>
           <ActionForm action={addPlayer} submit={t.admin.add} className="flex items-center gap-3">
-            <Field name="q" required maxLength={32} placeholder={t.admin.addPlaceholder} aria-label={t.admin.addPlaceholder} className={cn(inputCls, "flex-1 sm:max-w-sm")} />
+            <Field name="q" required maxLength={32} placeholder={t.admin.addPlaceholder} aria-label={t.admin.addPlaceholder} className="flex-1 sm:max-w-sm" />
           </ActionForm>
         </Panel>
         <div className="in-right flex flex-col justify-center gap-3 border-l border-line xl:w-80 xl:pl-5 [--d:0.35s]">

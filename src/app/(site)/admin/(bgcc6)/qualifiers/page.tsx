@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { InView } from "@/components/site/in-view";
 import { Words } from "@/components/site/rich";
 import { PageTitle, SubHeading } from "@/components/site/page";
-import { ActionForm, inputCls, Panel, Field } from "@/components/admin/form";
+import { ActionForm, Panel, Field, labelCls } from "@/components/admin/form";
 import { getLobbies } from "@/db/lobbies";
 import { getQualResults, getQualScoreRows } from "@/db/qualifiers";
 import { getSettings } from "@/db/settings";
@@ -15,8 +15,6 @@ import { clearPlayer, deleteScore, importAll, importOne, setScore, updateScore }
 import { Dropdown } from "@/components/admin/dropdown";
 import { isBGCC6 } from "@/db";
 import { mpIds } from "@/lib/mp-links";
-
-const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 
 export default async function AdminQualifiers() {
   const [t, viewer, lobbies, results, rows, settings] = await Promise.all([getDict(), getViewer(), getLobbies(), getQualResults(), getQualScoreRows(), getSettings()]);
@@ -47,25 +45,25 @@ export default async function AdminQualifiers() {
         <Panel title={t.admin.setScore} help={t.admin.setScoreHelp} i={1}>
           <ActionForm action={setScore} className="space-y-4">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-6">
-              <label className={cn(label, "col-span-2 sm:col-span-3")}>
+              <label className={cn(labelCls, "col-span-2 sm:col-span-3")}>
                 {t.admin.player}
-                <Field name="player" required maxLength={32} placeholder={t.admin.addPlaceholder} className={inputCls} />
+                <Field name="player" required maxLength={32} placeholder={t.admin.addPlaceholder} />
               </label>
-              <label className={cn(label, "col-span-2 sm:col-span-3")}>
+              <label className={cn(labelCls, "col-span-2 sm:col-span-3")}>
                 {t.admin.map}
                 <Dropdown name="beatmapId" required defaultValue={results.maps[0] ? String(results.maps[0].id) : ""} options={results.maps.map((m) => ({ value: String(m.id), label: `${m.slot} · ${m.title}` }))} />
               </label>
-              <label className={cn(label, "sm:col-span-2")}>
+              <label className={cn(labelCls, "sm:col-span-2")}>
                 {t.admin.scoreLabel}
-                <Field type="number" name="score" required min={0} className={inputCls} />
+                <Field type="number" name="score" required min={0} />
               </label>
-              <label className={cn(label, "sm:col-span-2")}>
+              <label className={cn(labelCls, "sm:col-span-2")}>
                 {t.admin.accLabel}
-                <Field type="number" name="acc" required min={0} max={100} step="0.01" className={inputCls} />
+                <Field type="number" name="acc" required min={0} max={100} step="0.01" />
               </label>
-              <label className={cn(label, "col-span-2 sm:col-span-2")}>
+              <label className={cn(labelCls, "col-span-2 sm:col-span-2")}>
                 {t.admin.mod}
-                <Field name="mods" placeholder="NF,HD" maxLength={30} className={inputCls} />
+                <Field name="mods" placeholder="NF,HD" maxLength={30} />
               </label>
             </div>
           </ActionForm>
@@ -96,9 +94,9 @@ export default async function AdminQualifiers() {
                     <li key={r.id} className="flex items-center gap-2 border-l border-line py-1 pl-2">
                       <span className="w-10 shrink-0 text-sm font-display font-black">{slotOf.get(r.beatmapId) ?? "?"}</span>
                       <ActionForm key={`${r.id}-${r.score}-${r.acc}-${r.mods}`} action={updateScore.bind(null, r.id)} submit="✓" ghost className="flex min-w-0 flex-1 items-center gap-1.5">
-                        <Field name="score" inputMode="numeric" required defaultValue={r.score} aria-label={t.admin.scoreLabel} className={cn(inputCls, "adm-tight num w-0 flex-[3]")} />
-                        <Field name="acc" inputMode="decimal" required defaultValue={r.acc.toFixed(2)} aria-label={t.admin.accLabel} className={cn(inputCls, "adm-tight num w-0 flex-[2]")} />
-                        <Field name="mods" defaultValue={r.mods ?? ""} placeholder="NF" aria-label={t.admin.mod} className={cn(inputCls, "adm-tight font-display w-0 flex-[2] uppercase")} />
+                        <Field name="score" inputMode="numeric" required defaultValue={r.score} aria-label={t.admin.scoreLabel} className="adm-tight num w-0 flex-[3]" />
+                        <Field name="acc" inputMode="decimal" required defaultValue={r.acc.toFixed(2)} aria-label={t.admin.accLabel} className="adm-tight num w-0 flex-[2]" />
+                        <Field name="mods" defaultValue={r.mods ?? ""} placeholder="NF" aria-label={t.admin.mod} className="adm-tight font-display w-0 flex-[2] uppercase" />
                       </ActionForm>
                       <ActionForm action={deleteScore.bind(null, r.id)} submit="×" ghost />
                     </li>

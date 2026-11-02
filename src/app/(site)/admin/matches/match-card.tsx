@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CalendarClock, ChevronDown, Gavel, Link2, Radio, Video } from "lucide-react";
-import { ActionForm, DateTimeField, Field, inputCls } from "@/components/admin/form";
+import { ActionForm, DateTimeField, Field, labelCls } from "@/components/admin/form";
 import { Dropdown } from "@/components/admin/dropdown";
 import { MpLinks } from "@/components/admin/mp-links";
 import { RefSwapGuard } from "./ref-swap-guard";
@@ -14,7 +14,6 @@ import { clearCache, saveMatch } from "./actions";
 import { osuMp } from "@/lib/links";
 import { mpIds } from "@/lib/mp-links";
 
-const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 const group = "relative border-t border-line pt-5";
 
 function Legend({ children }: { children: React.ReactNode }) {
@@ -151,27 +150,27 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
             <fieldset className={group}>
               <Legend>{t.admin.secResult}</Legend>
               <div className="grid grid-cols-[minmax(0,1fr)_5rem] gap-x-3 gap-y-3">
-                <label className={label}>
+                <label className={labelCls}>
                   <span className="flex items-center gap-1.5">
                     <span className="size-2 bg-crimson" /> {t.admin.teamN(1)}
                   </span>
                   <Dropdown name="team1Id" defaultValue={m.team1Id ?? ""} options={[{ value: "", label: t.common.tbd }, ...teams.map((x) => ({ value: x.id, label: x.name }))]} />
                 </label>
-                <label className={label}>
+                <label className={labelCls}>
                   {t.admin.scoreShort}
-                  <Field type="number" name="score1" min={0} max={99} defaultValue={m.score1 ?? ""} className={cn(inputCls, "text-center")} />
+                  <Field type="number" name="score1" min={0} max={99} defaultValue={m.score1 ?? ""} className="text-center" />
                 </label>
-                <label className={cn(label, "col-start-2 row-start-2")}>
+                <label className={cn(labelCls, "col-start-2 row-start-2")}>
                   {t.admin.scoreShort}
-                  <Field type="number" name="score2" min={0} max={99} defaultValue={m.score2 ?? ""} className={cn(inputCls, "text-center")} />
+                  <Field type="number" name="score2" min={0} max={99} defaultValue={m.score2 ?? ""} className="text-center" />
                 </label>
-                <label className={cn(label, "col-start-1 row-start-2")}>
+                <label className={cn(labelCls, "col-start-1 row-start-2")}>
                   <span className="flex items-center gap-1.5">
                     <span className="size-2 bg-azure" /> {t.admin.teamN(2)}
                   </span>
                   <Dropdown name="team2Id" defaultValue={m.team2Id ?? ""} options={[{ value: "", label: t.common.tbd }, ...teams.map((x) => ({ value: x.id, label: x.name }))]} />
                 </label>
-                <label className={cn(label, "col-span-2")}>
+                <label className={cn(labelCls, "col-span-2")}>
                   {t.admin.winner}
                   <Dropdown
                     name="winner"
@@ -196,11 +195,11 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
             <fieldset className={group}>
               <Legend>{t.admin.secStaff}</Legend>
               <div className="grid grid-cols-2 gap-3">
-                <label className={cn(label, "col-span-2 sm:col-span-1")}>
+                <label className={cn(labelCls, "col-span-2 sm:col-span-1")}>
                   {t.admin.startsAt}
                   <DateTimeField name="startsAt" defaultValue={toSofiaInput(m.startsAt)} className="w-full" />
                 </label>
-                <label className={label}>
+                <label className={labelCls}>
                   {t.admin.matchPool}
                   <Dropdown
                     name="poolSlug"
@@ -208,16 +207,16 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
                     options={pools.map((p) => ({ value: p.slug, label: p.slug === m.stageSlug ? `${p.title} · ${t.admin.matchPoolRound}` : p.title }))}
                   />
                 </label>
-                <label className={label}>
+                <label className={labelCls}>
                   {t.admin.referee}
                   <RefSwapGuard live={!!live} lobby={!!live?.lobby} from={m.referee ?? ""} />
                   <Dropdown name="referee" defaultValue={m.referee ?? ""} options={[{ value: "", label: t.common.tbd }, ...refs.referee.map((r) => ({ value: r, label: r }))]} />
                 </label>
-                <label className={label}>
+                <label className={labelCls}>
                   {t.admin.streamer}
                   <Dropdown name="streamer" multiple placeholder={t.common.tbd} defaultValue={m.streamer ?? ""} options={refs.streamer.map((r) => ({ value: r, label: r }))} />
                 </label>
-                <label className={cn(label, "col-span-2")}>
+                <label className={cn(labelCls, "col-span-2")}>
                   {t.admin.commentators}
                   <Dropdown name="commentators" multiple placeholder={t.common.tbd} defaultValue={m.commentators ?? ""} options={refs.commentator.map((r) => ({ value: r, label: r }))} />
                 </label>
@@ -228,13 +227,13 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
           <fieldset className={group}>
             <Legend>{t.admin.secLinks}</Legend>
             <div className="grid gap-3 md:grid-cols-2">
-              <label className={label}>
+              <label className={labelCls}>
                 {t.admin.mpLinks}
-                <MpLinks name="mpLinks" initial={mp.map((x) => osuMp(x))} className={inputCls} />
+                <MpLinks name="mpLinks" initial={mp.map((x) => osuMp(x))} />
               </label>
-              <label className={label}>
+              <label className={labelCls}>
                 {t.admin.vodUrl}
-                <Field name="vodUrl" maxLength={300} placeholder="https://…" defaultValue={m.vodUrl ?? ""} className={inputCls} />
+                <Field name="vodUrl" maxLength={300} placeholder="https://…" defaultValue={m.vodUrl ?? ""} />
               </label>
             </div>
           </fieldset>

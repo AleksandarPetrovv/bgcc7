@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getFormat } from "@/db/edition";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, inputCls, labelCls, Panel, Field } from "@/components/admin/form";
+import { ActionForm, labelCls, Panel, Field } from "@/components/admin/form";
 import { getSettings } from "@/db/settings";
 import { getPoolStages } from "@/db/mappools";
 import { getMatches } from "@/db/tournament";
@@ -33,7 +33,7 @@ export default async function AdminSettings() {
             <ActionForm key={s.qualifyCount} action={setQualify} className="space-y-4">
               <label className={labelCls}>
                 {t.admin.qualifyCount}
-                <Field type="number" name="qualifyCount" min={3} max={96} defaultValue={s.qualifyCount} className={`${inputCls} num w-28 text-lg`} />
+                <Field type="number" name="qualifyCount" min={3} max={96} defaultValue={s.qualifyCount} className="num w-28 text-lg" />
               </label>
             </ActionForm>
           </Panel>
@@ -49,7 +49,7 @@ export default async function AdminSettings() {
               <div className="flex flex-wrap items-end justify-center gap-5">
                 <label className={labelCls}>
                   {t.admin.set.bans}
-                  <Field type="number" name="bans" min={0} max={4} defaultValue={s.bans} className={`${inputCls} num w-20 text-lg`} />
+                  <Field type="number" name="bans" min={0} max={4} defaultValue={s.bans} className="num w-20 text-lg" />
                 </label>
                 {(
                   [
@@ -60,7 +60,7 @@ export default async function AdminSettings() {
                   <label key={k} className={labelCls}>
                     {label}
                     <span className="flex items-center gap-1.5">
-                      <Field type="number" name={k} min={10} max={900} defaultValue={val} className={`${inputCls} num w-24 text-lg`} />
+                      <Field type="number" name={k} min={10} max={900} defaultValue={val} className="num w-24 text-lg" />
                       <span className="text-xs text-ash">s</span>
                     </span>
                   </label>
@@ -88,7 +88,7 @@ export default async function AdminSettings() {
                       <span className="hidden text-xs font-display font-bold text-ash sm:block">{t.admin.set.bestOf(bestOf(ft))}</span>
                       <span className="flex items-center gap-2 text-xs font-display font-bold text-ash">
                         {t.admin.set.firstTo}
-                        <Field type="number" name={`ft.${st.id}`} min={1} max={20} defaultValue={ft} className={`${inputCls} num w-20 text-center text-lg`} />
+                        <Field type="number" name={`ft.${st.id}`} min={1} max={20} defaultValue={ft} className="num w-20 text-center text-lg" />
                       </span>
                     </label>
                   );

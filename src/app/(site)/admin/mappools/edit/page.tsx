@@ -4,7 +4,7 @@ import { PageTitle } from "@/components/site/page";
 import { RuleDiamond } from "@/components/site/rule";
 import { notFound } from "next/navigation";
 import { ArrowDown, ArrowUp, Download, Trash2 } from "lucide-react";
-import { ActionForm, inputCls, Panel, Field, IconAction } from "@/components/admin/form";
+import { ActionForm, Panel, Field, labelCls, IconAction } from "@/components/admin/form";
 import { getPoolStages, slotOf } from "@/db/mappools";
 import { getSkillLayouts } from "@/db/format-plan";
 import { getMapChecks } from "@/lib/osu-api";
@@ -27,8 +27,6 @@ import Link from "next/link";
 import { localeOf } from "@/lib/i18n/locale";
 import { roundName } from "@/lib/i18n/dict";
 import { MOD_ORDER, MODS } from "@/lib/mods";
-
-const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 
 export default async function AdminMappools({ searchParams }: PageProps<"/admin/mappools">) {
   const [t, lang, viewer, stages, sp] = await Promise.all([getDict(), getLang(), getViewer(), getPoolStages(), searchParams]);
@@ -78,9 +76,9 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
 
       {host && (
         <ActionForm key={`${stage.id}-${stage.title}`} action={renameStage.bind(null, stage.id)} className="in-up mx-auto mb-6 flex w-full max-w-xl items-end gap-3 [--d:0.15s]">
-          <label className={cn(label, "flex-1")}>
+          <label className={cn(labelCls, "flex-1")}>
             {t.admin.stageTitle}
-            <Field name="title" required maxLength={40} defaultValue={stage.title} className={inputCls} />
+            <Field name="title" required maxLength={40} defaultValue={stage.title} />
           </label>
         </ActionForm>
       )}

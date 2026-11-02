@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion, Reorder, useDragControls } from "motion/react";
 import { SortableList } from "@/components/admin/sortable-list";
 import { GripVertical, Pencil, X } from "lucide-react";
-import { ActionForm, inputCls, Field } from "@/components/admin/form";
+import { ActionForm, Field } from "@/components/admin/form";
 import { Avatar } from "@/components/site/avatar";
 import { useDict } from "@/components/site/lang";
 import type { Sponsor } from "@/lib/data";
@@ -76,7 +76,7 @@ function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
             className="overflow-hidden"
           >
             <ActionForm action={updateSponsor.bind(null, s.id)} className="flex items-center gap-3 border-t border-line py-3">
-              <Field name="q" required defaultValue={s.url ?? s.name} aria-label={t.admin.sponsorQ} className={cn(inputCls, "flex-1")} />
+              <Field name="q" required defaultValue={s.url ?? s.name} aria-label={t.admin.sponsorQ} className="flex-1" />
             </ActionForm>
           </motion.div>
         )}

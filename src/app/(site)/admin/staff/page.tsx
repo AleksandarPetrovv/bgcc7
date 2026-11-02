@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getRegistrations } from "@/db/registrations";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, inputCls, Panel, Field } from "@/components/admin/form";
+import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { getStaff } from "@/db/admin";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
@@ -24,7 +24,7 @@ export default async function AdminStaff() {
 
       <Panel title={t.admin.addStaff} className="mb-6">
         <ActionForm action={addStaff} submit={t.admin.add} className="flex items-center gap-3">
-          <Field name="q" required maxLength={32} placeholder={t.admin.addPlaceholder} className={`${inputCls} flex-1 sm:max-w-sm`} aria-label={t.admin.addPlaceholder} />
+          <Field name="q" required maxLength={32} placeholder={t.admin.addPlaceholder} className="flex-1 sm:max-w-sm" aria-label={t.admin.addPlaceholder} />
         </ActionForm>
       </Panel>
 

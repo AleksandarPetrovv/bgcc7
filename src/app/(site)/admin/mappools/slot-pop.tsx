@@ -3,7 +3,7 @@
 import { useActionState, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Pencil, Plus, X } from "lucide-react";
-import { Btn, Field, inputCls } from "@/components/admin/form";
+import { Btn, Field } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
 import { errorText, type ActionResult } from "@/lib/action-result";
 import { modHi } from "@/lib/theme";
@@ -59,7 +59,7 @@ function Pop({ action, title, slot, color, submit, tags, onClose, at, closing }:
       </div>
       <form action={formAction}>
         <div className="flex items-stretch gap-3 p-4">
-          <Field name="beatmap" required autoFocus placeholder={t.admin.pasteMap} aria-label={t.admin.beatmap} className={cn(inputCls, "min-w-0 flex-1 focus-within:!shadow-none")} inputClassName="pr-3" />
+          <Field name="beatmap" required autoFocus placeholder={t.admin.pasteMap} aria-label={t.admin.beatmap} className="min-w-0 flex-1 focus-within:!shadow-none" inputClassName="pr-3" />
           <Btn type="submit" disabled={pending} className="h-10 min-h-0 shrink-0 px-5">
             {pending ? t.admin.saving : submit}
           </Btn>

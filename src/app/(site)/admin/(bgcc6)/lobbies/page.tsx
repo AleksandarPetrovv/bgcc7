@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { InView } from "@/components/site/in-view";
 import { PageTitle } from "@/components/site/page";
 import { RuleDiamond } from "@/components/site/rule";
-import { ActionForm, DateTimeField, inputCls, Panel, Field } from "@/components/admin/form";
+import { ActionForm, DateTimeField, Panel, Field, labelCls } from "@/components/admin/form";
 import { getLobbies, type Lobby } from "@/db/lobbies";
 import { getRegistrations } from "@/db/registrations";
 import { getViewer } from "@/lib/authz";
@@ -18,31 +18,29 @@ import { isBGCC6 } from "@/db";
 import { localeOf } from "@/lib/i18n/locale";
 import { mpIds } from "@/lib/mp-links";
 
-const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
-
 function LobbyFields({ t, l }: { t: Dict; l?: Lobby }) {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.2fr_1.3fr_0.6fr_1fr]">
-      <label className={label}>
+      <label className={labelCls}>
         {t.admin.lobbyName}
-        <Field name="name" required maxLength={40} defaultValue={l?.name} className={inputCls} />
+        <Field name="name" required maxLength={40} defaultValue={l?.name} />
       </label>
-      <label className={label}>
+      <label className={labelCls}>
         {t.admin.startsAt}
         <DateTimeField name="startsAt" required defaultValue={toSofiaInput(l?.startsAt ?? nextHour())} className="w-full" />
       </label>
-      <label className={label}>
+      <label className={labelCls}>
         {t.admin.capacity}
-        <Field type="number" name="capacity" min={1} max={32} required defaultValue={l?.capacity ?? 8} className={inputCls} />
+        <Field type="number" name="capacity" min={1} max={32} required defaultValue={l?.capacity ?? 8} />
       </label>
-      <label className={label}>
+      <label className={labelCls}>
         {t.admin.referee}
-        <Field name="referee" maxLength={60} defaultValue={l?.referee ?? ""} className={inputCls} />
+        <Field name="referee" maxLength={60} defaultValue={l?.referee ?? ""} />
       </label>
       {l && (
-        <label className={cn(label, "sm:col-span-2 lg:col-span-4")}>
+        <label className={cn(labelCls, "sm:col-span-2 lg:col-span-4")}>
           {t.admin.mpLinks}
-          <Field name="mpLinks" defaultValue={mpIds(l.mpLinks).map((id) => osuMp(id)).join(", ")} className={inputCls} />
+          <Field name="mpLinks" defaultValue={mpIds(l.mpLinks).map((id) => osuMp(id)).join(", ")} />
         </label>
       )}
     </div>

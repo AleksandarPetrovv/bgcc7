@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, inputCls, Panel, Field } from "@/components/admin/form";
+import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { getSponsors } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
 import { getViewer } from "@/lib/authz";
@@ -30,7 +30,7 @@ export default async function AdminSite() {
 
         <Panel title={t.admin.sponsors} help={t.admin.sponsorHelp} i={1}>
           <ActionForm action={addSponsor} submit={t.admin.add} className="mb-5 flex items-center gap-3">
-            <Field name="q" required maxLength={200} placeholder="https://osu.ppy.sh/users/…" aria-label={t.admin.sponsorQ} className={cn(inputCls, "min-w-0 flex-1")} />
+            <Field name="q" required maxLength={200} placeholder="https://osu.ppy.sh/users/…" aria-label={t.admin.sponsorQ} className="min-w-0 flex-1" />
           </ActionForm>
           <SponsorList key={sponsors.map((s) => `${s.id}:${s.name}`).join()} sponsors={sponsors} />
         </Panel>
