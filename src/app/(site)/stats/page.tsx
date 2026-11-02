@@ -118,18 +118,18 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
             .slice(0, 3);
           return (
             <div key={m.id} className={cn("flex items-stretch border-b border-line", k % 2 ? "in-right" : "in-left")} style={{ "--i": k, "--s": "0.06s" } as React.CSSProperties}>
-              <div className="relative w-28 shrink-0 overflow-hidden">
+              <div className="relative w-20 shrink-0 overflow-hidden sm:w-28">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={m.cover} alt="" className="absolute inset-0 size-full object-cover opacity-35 [mask-image:linear-gradient(to_right,black_40%,transparent)]" />
                 <span className="in-pop heading-slam relative flex h-full min-h-16 items-center justify-center px-0 mx-0 -translate-x-[0.1em] text-lg sm:text-xl [text-shadow:0_0_8px_var(--ink),0_0_2px_var(--ink)]" style={{ "--d": "0.25s", color: modHi(skillColor(m.slot)) } as React.CSSProperties}>{m.slot}</span>
               </div>
-              <ol className="flex-1 divide-y divide-line">
+              <ol className="min-w-0 flex-1 divide-y divide-line">
                 {top.map((p, i) => (
                   <li key={p.id} {...meP(p.id)} className="me-hl flex items-center gap-2 px-3 py-1.5 text-sm">
-                    <span className={cn("num w-5", MEDAL[i])}>{i + 1}</span>
-                    <a href={osuUser(p.id)} target="_blank" rel="noreferrer" className="font-display font-bold hover:text-rose-hi">{p.username}</a>
+                    <span className={cn("num w-5 shrink-0", MEDAL[i])}>{i + 1}</span>
+                    <a href={osuUser(p.id)} target="_blank" rel="noreferrer" className="min-w-0 truncate font-display font-bold hover:text-rose-hi">{p.username}</a>
                     <MeTag p={p.id} />
-                    <span className="num ml-auto text-base">{fmtNum(p.perf[m.id].score)}</span>
+                    <span className="num ml-auto shrink-0 text-base">{fmtNum(p.perf[m.id].score)}</span>
                   </li>
                 ))}
               </ol>
