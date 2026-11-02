@@ -50,14 +50,14 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
   );
 }
 
-export function MapCard({ m, i }: { m: MapResult; i: number }) {
+export function MapCard({ m, i, className }: { m: MapResult; i: number; className?: string }) {
   const t = useDict();
   const color = modHi(m.slot ? slotColor(m.slot) : m.mod ? MODS[m.mod]?.color : undefined);
   const sum = m.team1 + m.team2;
   const share = sum ? (m.team1 / sum) * 100 : 50;
   return (
     <article
-      className={cn("in-up relative border-b-2 border-dashed border-line", m.note && "opacity-50")}
+      className={cn("in-up relative border-b-2 border-dashed border-line", m.note && "opacity-50", className)}
       style={cssVars({ "--i": Math.min(i, 6), "--s": "0.08s", "--d": "0.12s" })}
     >
       <RuleDiamond />
@@ -185,7 +185,8 @@ function Board({ match, data, names }: { match: Match; data: Scoreboard; names: 
               <span className="size-2 shrink-0 rotate-45 bg-rose" aria-hidden />
             </div>
           )}
-          <MapCard m={m} i={i} />
+          {/* bleed through the board padding so the cover and separator span the popup; content stays put */}
+          <MapCard m={m} i={i} className="-mx-3 px-3 sm:-mx-5 sm:px-5" />
         </div>
       ))}
       <Costs data={data} names={names} finished={!!match.winner} />
