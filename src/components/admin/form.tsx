@@ -8,6 +8,7 @@ import { useDict } from "@/components/site/lang";
 import { WeekdayInput } from "@/components/site/weekday-input";
 import { errorText, type ActionResult } from "@/lib/action-result";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 
 
 // [text, skewed background]: the skew lives on an absolute span so the text is never transformed (transformed text goes blurry)
@@ -31,7 +32,7 @@ export function Btn({ tone = "rose", small, fill, className, children, ...props 
         className,
       )}
     >
-      <span aria-hidden className={cn("absolute inset-0 -z-10 -skew-x-12", TONES[tone][1], fill)} />
+      <SlantBg className={cn(TONES[tone][1], fill)} />
       {children}
     </button>
   );
@@ -143,7 +144,7 @@ export function Panel({ title, help, aside, children, className, i = 0 }: { titl
 
 export function Field({ className, inputClassName, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { inputClassName?: string }) {
   return (
-    <span className={cn("adm-field min-w-0", props.disabled && "opacity-45", className)}>
+    <span data-field className={cn("adm-field min-w-0", props.disabled && "opacity-45", className)}>
       <input {...props} className={cn("adm-bare", inputClassName)} />
     </span>
   );
@@ -204,10 +205,9 @@ export function IconAction({
           danger ? "text-rose-hi hover:text-white" : "text-ash hover:text-paper",
         )}
       >
-        <span
-          aria-hidden
+        <SlantBg
           className={cn(
-            "absolute inset-0 -z-10 -skew-x-12 border transition-[border-color,background-color] duration-200",
+            "border transition-[border-color,background-color] duration-200",
             danger ? "border-rose/50 group-hover:border-rose group-hover:bg-rose" : "border-line group-hover:border-paper/40 group-hover:bg-slate",
             bare && "border-transparent",
           )}

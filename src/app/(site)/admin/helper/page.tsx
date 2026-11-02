@@ -12,6 +12,7 @@ import { Cascade } from "@/components/site/cascade";
 import { getLang } from "@/lib/i18n/server";
 import { fmtSofia } from "@/lib/time";
 import { localeOf } from "@/lib/i18n/locale";
+import { SlantBg } from "@/components/site/slant";
 
 export const dynamic = "force-dynamic";
 
@@ -59,8 +60,8 @@ export default async function HelperPage() {
             <div data-cascade className={tile}>
               <span data-cascade className={k}>{r.modes}</span>
               <span className="flex flex-wrap gap-2">
-                {ref && <span data-cascade className="in-pop"><span className="inline-block -skew-x-12 bg-rose px-2.5 py-0.5 text-xs font-display font-bold text-white"><span className="inline-block skew-x-12">{r.referee}</span></span></span>}
-                {streamer && <span data-cascade className="in-pop"><span className="inline-block -skew-x-12 bg-azure px-2.5 py-0.5 text-xs font-display font-bold text-white"><span className="inline-block skew-x-12">{r.streamer}</span></span></span>}
+                {ref && <span data-cascade className="in-pop"><span className="relative isolate inline-block px-2.5 py-0.5 text-xs font-display font-bold text-white"><SlantBg className="bg-rose" />{r.referee}</span></span>}
+                {streamer && <span data-cascade className="in-pop"><span className="relative isolate inline-block px-2.5 py-0.5 text-xs font-display font-bold text-white"><SlantBg className="bg-azure" />{r.streamer}</span></span>}
                 {!ref && !streamer && <span className="text-sm text-ash">{r.noModes}</span>}
               </span>
             </div>

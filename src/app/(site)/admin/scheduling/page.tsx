@@ -16,13 +16,14 @@ import { setTime, setWeek } from "./actions";
 import { localeOf } from "@/lib/i18n/locale";
 import { roundName } from "@/lib/i18n/dict";
 import { isBracketStage } from "@/lib/format";
+import { SlantBg } from "@/components/site/slant";
 
-const TONE: Record<string, { bar: string; chip: string }> = {
-  agreed: { bar: "bg-balkan", chip: "bg-balkan text-on-fill" },
-  staff: { bar: "bg-rose", chip: "bg-rose text-white" },
-  proposed: { bar: "bg-gold", chip: "bg-gold text-on-fill" },
-  tbd: { bar: "bg-line", chip: "border border-line text-ash" },
-  waiting: { bar: "bg-line", chip: "border border-line text-ash" },
+const TONE: Record<string, { bar: string; chip: string; ink: string }> = {
+  agreed: { bar: "bg-balkan", chip: "bg-balkan", ink: "text-on-fill" },
+  staff: { bar: "bg-rose", chip: "bg-rose", ink: "text-white" },
+  proposed: { bar: "bg-gold", chip: "bg-gold", ink: "text-on-fill" },
+  tbd: { bar: "bg-line", chip: "border border-line", ink: "text-ash" },
+  waiting: { bar: "bg-line", chip: "border border-line", ink: "text-ash" },
 };
 
 export default async function AdminScheduling() {
@@ -88,8 +89,9 @@ export default async function AdminScheduling() {
                             {!m.startsAt && pend && <span className="ml-2 text-xs text-ash">{name(pend.teamId)}</span>}
                           </span>
                           <span data-cascade className="in-pop ml-auto">
-                            <span className={cn("inline-flex -skew-x-12 px-2.5 py-1 text-[0.68rem] font-display font-bold", TONE[state].chip)}>
-                              <span className="skew-x-12">{s.admin.state[state]}</span>
+                            <span className={cn("relative isolate inline-flex px-2.5 py-1 text-[0.68rem] font-display font-bold", TONE[state].ink)}>
+                              <SlantBg className={TONE[state].chip} />
+                              {s.admin.state[state]}
                             </span>
                           </span>
                         </div>

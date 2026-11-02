@@ -11,6 +11,7 @@ import type { Pack } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { fmtDate } from "@/lib/time";
 import { roundName } from "@/lib/i18n/dict";
+import { SlantBg } from "@/components/site/slant";
 
 type StageInfo = { slug: string; title: string; pack: Pack | null };
 type Job = { state: "running" | "done" | "error"; done: number; total: number; missing: string[]; error?: string; size?: number; zipping?: boolean };
@@ -178,9 +179,10 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
                 download
                 aria-label={t.admin.packDownload}
                 title={t.admin.packDownload}
-                className="lift-sm grid size-10 shrink-0 -skew-x-12 place-items-center border border-balkan/60 text-balkan-hi transition-colors hover:bg-balkan hover:text-on-fill"
+                className="lift-sm group/dl relative isolate grid size-10 shrink-0 place-items-center text-balkan-hi transition-colors hover:text-on-fill"
               >
-                <Download className="size-4 skew-x-12" />
+                <SlantBg className="border border-balkan/60 transition-colors group-hover/dl:bg-balkan" />
+                <Download className="size-4" />
               </a>
             ) : (
               <Btn type="button" tone="outline" small onClick={remove}>

@@ -12,6 +12,7 @@ import { useDict } from "@/components/site/lang";
 import { EASE } from "@/lib/ease";
 import type { ActionResult } from "@/lib/action-result";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 import { closeDraft, endDraft, openDraft, pauseDraft, resetDraft, resumeDraft, undoDraft } from "@/actions/draft";
 
 type TeamLite = { name: string; image: string } | null;
@@ -123,7 +124,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
             rel="noopener"
             className="group relative isolate ml-auto inline-flex min-h-9 items-center gap-1.5 px-3 text-xs font-display font-bold text-ink"
           >
-            <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 bg-paper group-hover:bg-rose-deep" />
+            <SlantBg className="bg-paper group-hover:bg-rose-deep" />
               {t.admin.dr.view}
               <ArrowUpRight className="size-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
           </Link>
@@ -190,7 +191,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
                     rel="noopener"
                     className="group relative isolate inline-flex min-h-9 items-center gap-1.5 px-3 text-xs font-display font-bold text-ink"
                   >
-                    <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 bg-paper group-hover:bg-rose-deep" />
+                    <SlantBg className="bg-paper group-hover:bg-rose-deep" />
                       {t.admin.dr.view}
                       <ArrowUpRight className="size-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                   </Link>

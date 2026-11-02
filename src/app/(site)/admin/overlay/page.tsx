@@ -14,6 +14,7 @@ import { getFormat } from "@/db/edition";
 import { overlayName } from "@/db/stream";
 import { HelperLink, HelperPoll, UnlinkHelper } from "@/components/admin/link-gate";
 import { helperView } from "@/lib/helper-sig";
+import { SlantBg } from "@/components/site/slant";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +37,7 @@ export default async function Overlay() {
           <div className="grid gap-4">
             <CopyLink url={url} />
             <a href="/overlay/demo" target="_blank" rel="noopener noreferrer" className="group relative isolate inline-flex w-fit items-center gap-2 px-4 py-2 text-sm font-display font-bold text-paper">
-              <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 border border-line group-hover:border-rose" /><ExternalLink className="size-4" />{o.test}
+              <SlantBg className="border border-line group-hover:border-rose" /><ExternalLink className="size-4" />{o.test}
             </a>
           </div>
         </Panel>

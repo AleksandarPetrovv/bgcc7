@@ -9,6 +9,7 @@ import { dayFmt, dayMonth } from "@/lib/time";
 import { FORMAT } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { EASE } from "@/lib/ease";
+import { SlantBg } from "@/components/site/slant";
 
 type Props = {
   value: string;
@@ -69,7 +70,7 @@ export function WeekdayInput({ value, onValue, kind = "datetime-local", name, re
     cn("-mx-1 px-1 outline-none transition-colors duration-150 hover:bg-rose/20 hover:text-paper focus-visible:bg-rose/25", on && "bg-rose/30 text-paper");
 
   return (
-    <div ref={field} role="group" aria-label={aria} className={cn("group/dt relative isolate flex min-w-0 items-center pl-4 pr-3", className)}>
+    <div ref={field} role="group" data-field aria-label={aria} className={cn("group/dt relative isolate flex min-w-0 items-center pl-4 pr-3", className)}>
       {/* first in the field on purpose: a wrapping <label> forwards hover and clicks to its first control, which must not be the date button */}
       <input
         tabIndex={-1}
@@ -82,7 +83,7 @@ export function WeekdayInput({ value, onValue, kind = "datetime-local", name, re
         className="pointer-events-none absolute inset-x-0 bottom-0 w-full"
         style={{ opacity: 0, height: 1, minHeight: 0, padding: 0, border: 0 }}
       />
-      <span aria-hidden className={cn("absolute inset-0 -z-10 -skew-x-12", box, open && "!border-b-rose !bg-well shadow-[4px_4px_0_0_var(--rose-deep)]")} />
+      <SlantBg className={cn(box, open && "!border-b-rose !bg-well shadow-[4px_4px_0_0_var(--rose-deep)]")} />
       <span aria-hidden ref={probe} className={cn("pointer-events-none invisible absolute left-0 top-0 whitespace-pre", text)}>
         {full}
       </span>
@@ -305,10 +306,9 @@ function Calendar({
                 on ? "text-white" : "text-paper/80 hover:text-paper focus-visible:text-paper",
               )}
             >
-              <span
-                aria-hidden
+              <SlantBg
                 className={cn(
-                  "absolute inset-0.5 -z-10 -skew-x-12 transition-colors",
+                  "inset-0.5 transition-colors",
                   on ? "bg-rose" : "group-hover/d:bg-rose/20 group-focus-visible/d:bg-rose/20",
                   !on && id === today && "border border-rose/60",
                 )}

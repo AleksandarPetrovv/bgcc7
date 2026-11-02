@@ -13,6 +13,7 @@ import { getFormat } from "@/db/edition";
 import { isBGCC6 } from "@/db";
 import { discordReady } from "@/lib/discord";
 import { cleanup } from "@/actions/discord";
+import { SlantBg } from "@/components/site/slant";
 
 const check = "size-4 shrink-0 accent-rose";
 
@@ -44,12 +45,11 @@ export default async function AdminPhase() {
                 <label
                   key={p}
                   style={{ "--i": i, "--s": "0.07s", "--d": "0.5s" } as React.CSSProperties}
-                  className="in-pop flex min-h-14 -skew-x-6 cursor-pointer items-center gap-2.5 whitespace-nowrap border border-line px-4 text-sm font-display font-bold transition-colors hover:border-paper/40 has-[:checked]:border-rose has-[:checked]:bg-rose/10 has-[:checked]:shadow-[4px_4px_0_0_var(--rose-deep)]"
+                  className="in-pop group/ph relative isolate flex min-h-14 cursor-pointer items-center gap-2.5 whitespace-nowrap px-4 text-sm font-display font-bold"
                 >
-                  <span className="flex skew-x-6 items-center gap-2.5">
-                    <input type="radio" name="phase" value={p} defaultChecked={p === s.phase} className={check} />
-                    {t.admin.phases[p]}
-                  </span>
+                  <SlantBg className="-skew-x-6 border border-line transition-colors group-hover/ph:border-paper/40 group-has-[:checked]/ph:border-rose group-has-[:checked]/ph:bg-rose/10 group-has-[:checked]/ph:shadow-[4px_4px_0_0_var(--rose-deep)]" />
+                  <input type="radio" name="phase" value={p} defaultChecked={p === s.phase} className={check} />
+                  {t.admin.phases[p]}
                 </label>
               ))}
             </div>

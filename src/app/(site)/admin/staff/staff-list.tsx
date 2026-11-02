@@ -11,6 +11,7 @@ import { ROLES, titleOnly, type Role } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
 import { RuleDiamond } from "@/components/site/rule";
+import { SlantBg } from "@/components/site/slant";
 import { removeStaff, reorderStaff, updateStaff } from "./actions";
 
 export type StaffRow = {
@@ -105,15 +106,22 @@ function PermPicker({ initial }: { initial: string[] }) {
               key={r}
               data-cascade
               className={cn(
-                "in-pop group/perm flex h-10 -skew-x-12 items-center border px-3 transition-[color,background-color,border-color,box-shadow,opacity] duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose",
-                checked ? "border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--rose-deep)]" : "border-line bg-ink/40 text-ash",
+                "in-pop group/perm relative isolate flex h-10 items-center px-3 transition-[color,opacity] duration-200",
+                checked ? "text-white" : "text-ash",
                 blocked ? "cursor-not-allowed" : "cursor-pointer",
                 blocked && !checked && "opacity-35",
-                !blocked && !checked && "hover:border-paper/40 hover:text-paper",
+                !blocked && !checked && "hover:text-paper",
               )}
             >
+              <SlantBg
+                className={cn(
+                  "border transition-[background-color,border-color,box-shadow] duration-200 group-has-[:focus-visible]/perm:ring-2 group-has-[:focus-visible]/perm:ring-rose",
+                  checked ? "border-rose bg-rose shadow-[3px_3px_0_0_var(--rose-deep)]" : "border-line bg-ink/40",
+                  !blocked && !checked && "group-hover/perm:border-paper/40",
+                )}
+              />
               <input type="checkbox" name="permRoles" value={r} checked={checked} disabled={blocked} onChange={() => toggle(r)} className="sr-only" />
-              <span className="flex skew-x-12 items-center gap-2 text-xs font-display font-bold">
+              <span className="flex items-center gap-2 text-xs font-display font-bold">
                 <span className={cn("grid size-4 place-items-center border transition-colors", checked ? "border-white bg-white text-rose" : "border-current")}>
                   {checked ? <Check className="size-3" strokeWidth={3.5} /> : blocked && <Lock className="size-2.5" />}
                 </span>

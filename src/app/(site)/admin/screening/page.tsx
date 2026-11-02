@@ -9,10 +9,10 @@ import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { fmtSofia } from "@/lib/time";
-import { cn } from "@/lib/utils";
 import { addPlayer, approveAllPending, refreshStats } from "./actions";
 import { ScreeningRow } from "./screening-row";
 import { localeOf } from "@/lib/i18n/locale";
+import { SlantBg } from "@/components/site/slant";
 
 export default async function AdminScreening({ searchParams }: PageProps<"/admin/screening">) {
   const [t, lang, viewer, rows, sp] = await Promise.all([getDict(), getLang(), getViewer(), getRegistrations(), searchParams]);
@@ -42,11 +42,11 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
         <Panel i={2} title={t.admin.exportPlayers} help={t.admin.exportHelp} className="xl:col-span-2">
           <div className="flex flex-wrap gap-3">
             <a href="/admin/screening/export" className="group relative isolate inline-flex min-h-10 items-center gap-2 px-4 text-sm font-display font-bold text-on-fill hover:text-ink">
-              <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 bg-balkan group-hover:bg-paper" />
+              <SlantBg className="bg-balkan group-hover:bg-paper" />
               <Download className="size-4" /> {t.admin.exportPlayers}
             </a>
             <a href="/admin/screening/export?teams=1" className="group relative isolate inline-flex min-h-10 items-center gap-2 px-4 text-sm font-display font-bold text-paper">
-              <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 border border-line group-hover:border-rose" />
+              <SlantBg className="border border-line group-hover:border-rose" />
               <Download className="size-4" /> {t.admin.exportTeams}
             </a>
           </div>

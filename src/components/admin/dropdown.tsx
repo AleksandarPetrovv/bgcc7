@@ -7,6 +7,7 @@ import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/site/avatar";
 import { EASE } from "@/lib/ease";
+import { SlantBg } from "@/components/site/slant";
 
 export type DropOption = {
   value: string;
@@ -169,11 +170,16 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
         onClick={(e) => e.timeStamp - closedAt.current > 400 && toggle(!open)}
         onKeyDown={key}
         className={cn(
-          "group relative flex h-10 w-full min-w-0 -skew-x-12 items-center border border-b-2 bg-field px-3 text-left text-sm normal-case tracking-normal outline-none transition-[border-color,background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-rose disabled:cursor-not-allowed disabled:opacity-50",
-          open ? "border-rose bg-rose/10 shadow-[4px_4px_0_0_var(--rose-deep)]" : "border-line hover:border-paper/40",
+          "group relative isolate flex h-10 w-full min-w-0 items-center px-3 text-left text-sm normal-case tracking-normal outline-none disabled:cursor-not-allowed disabled:opacity-50",
         )}
       >
-        <span className="flex min-w-0 flex-1 skew-x-12 items-center gap-2">
+        <SlantBg
+          className={cn(
+            "border border-b-2 bg-field transition-[border-color,background-color,box-shadow] duration-200 group-focus-visible:ring-2 group-focus-visible:ring-rose",
+            open ? "border-rose bg-rose/10 shadow-[4px_4px_0_0_var(--rose-deep)]" : "border-line group-hover:border-paper/40",
+          )}
+        />
+        <span className="flex min-w-0 flex-1 items-center gap-2">
           {sel?.avatar !== undefined && <OptionAvatar src={sel.avatar} />}
           {sel?.color && <span className="size-2 shrink-0 rotate-45" style={{ background: sel.color }} aria-hidden />}
           <AnimatePresence mode="popLayout" initial={false}>
