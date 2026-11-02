@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowUpDown, Check, CircleDashed, CircleDot, Copy, DoorClosed, ExternalLink, Lock, LockOpen, Map as MapIcon, MoveVertical, OctagonX, Play, Plus, RefreshCw, Send, Timer, TimerOff, Unplug, UserPlus, UserX, Users } from "lucide-react";
 import { useConfirm } from "@/components/admin/form";
@@ -23,7 +22,10 @@ import { MOD_COLOR } from "@/lib/mods";
 import { nameKey } from "@/lib/names";
 
 const TEAM_HI = { red: TEAM[1].hi, blue: TEAM[2].hi } as const;
-const modC = (m: string) => modHi(MOD_COLOR[m]) ?? "var(--ash)";
+// bancho drops !mp team commands sent back to back, so space them ~1s
+// (on top of the IRC send queue in bancho-irc.ts)
+const TEAM_MOVE_GAP_MS = 1000;
+const modC =(m: string) => modHi(MOD_COLOR[m]) ?? "var(--ash)";
 
 export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = false, canSay, teamNames, startWarn = [] }: { slug: string; maps: Beatmap[]; onOpen: (open: boolean) => void; readOnly?: boolean; streams?: boolean; canSay: boolean; teamNames: [string, string]; startWarn?: string[] }) {
   const t = useDict();
@@ -85,7 +87,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
     start(async () => {
       setErr(false);
       for (const [i, w] of wrong.entries()) {
-        if (i > 0) await new Promise((r) => setTimeout(r, 1000));
+        if (i > 0) await new Promise((r) => setTimeout(r, TEAM_MOVE_GAP_MS));
         const res = await lobbyPost(slug, { act: "team", slot: w.slot, team: w.team });
         if (!res?.ok) setErr(true);
       }
@@ -377,26 +379,20 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
           </div>
         </div>
       )}
-      {typeof document !== "undefined" &&
-        createPortal(
-          <AnimatePresence>
-            {noHelper && <HelperMissing key="helper" onClose={() => setNoHelper(false)} />}
-            {order && <StreamOrder key="order" onClose={() => setOrder(false)} />}
-            {ask && (
-              <LobbyAsk
-                key={ask}
-                kind={ask}
-                warn={warn}
-                onCancel={() => setAsk(null)}
-                onGo={(secs) => {
-                  setAsk(null);
-                  run(ask === "start" ? { act: "start", secs } : { act: ask });
-                }}
-              />
-            )}
-          </AnimatePresence>,
-          document.body,
-        )}
+      {noHelper && <HelperMissing onClose={() => setNoHelper(false)} />}
+      {order && <StreamOrder onClose={() => setOrder(false)} />}
+      {ask && (
+        <LobbyAsk
+          key={ask}
+          kind={ask}
+          warn={warn}
+          onCancel={() => setAsk(null)}
+          onGo={(secs) => {
+            setAsk(null);
+            run(ask === "start" ? { act: "start", secs } : { act: ask });
+          }}
+        />
+      )}
 
       <AnimatePresence initial={false}>
         {open && (

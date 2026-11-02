@@ -93,6 +93,7 @@ function Stitch() {
 }
 
 // locked items follow admin settings, so hosts can't edit them
+const settingItems = (items: string[]) => items.flatMap((x, i) => (/%(timer|timeout)%/.test(x) ? [i] : []));
 function Ledger({ path, items, p, plain, locked = [] }: { path: string; items: string[]; p: FolkProps; plain?: boolean; locked?: number[] }) {
   return (
     <ul className="divide-y divide-paper/10">
@@ -318,7 +319,7 @@ export function InfoFolk(p: FolkProps) {
           <Title>
             <E p={p} path="info.procedure" value={t.info.procedure} fill={false} />
           </Title>
-          <Ledger path="info.procItems" items={t.info.procItems} p={p} plain locked={[3, 4]} />
+          <Ledger path="info.procItems" items={t.info.procItems} p={p} plain locked={settingItems(t.info.procItems)} />
         </Tile>
       </Sheet>
     </div>
