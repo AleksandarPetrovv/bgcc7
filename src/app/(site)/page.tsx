@@ -46,6 +46,7 @@ import { localeOf } from "@/lib/i18n/locale";
 import { MODS } from "@/lib/mods";
 import { editionNumber, isBracketStage } from "@/lib/format";
 import { getFormat } from "@/db/edition";
+import { Fragment } from "react";
 
 const INK: Record<string, number> = { "6": 0.15, "7": 0.22 };
 
@@ -383,7 +384,7 @@ export default async function Home() {
           {see("schedule") && upcoming.length > 0 && (
             <InView className="order-2 flex flex-col xl:order-none xl:col-start-3">
             <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3" style={{ "--d": "1.3s" } as React.CSSProperties}>
-              <h2 className="heading-slam min-w-0 text-3xl sm:whitespace-nowrap xl:text-[clamp(1.25rem,1.65vw,1.65rem)]">{t.home.upcoming.replace("/", "/​")}</h2>
+              <h2 className="heading-slam min-w-0 text-3xl sm:whitespace-nowrap xl:text-[clamp(1.25rem,1.65vw,1.65rem)]">{t.home.upcoming.split("/").map((w, i) => (i ? <Fragment key={i}>/<wbr />{w}</Fragment> : w))}</h2>
               <Link href="/matches" className="group inline-flex shrink-0 items-center gap-1.5 text-sm font-display font-bold text-ash transition-colors hover:text-paper">
                 {t.home.fullSchedule} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
