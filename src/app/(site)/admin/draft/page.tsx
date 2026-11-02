@@ -1,4 +1,5 @@
 import { db } from "@/db";
+import { safe } from "@/db/safe";
 import { notFound } from "next/navigation";
 import { PageTitle } from "@/components/site/page";
 import { Words } from "@/components/site/rich";
@@ -26,7 +27,7 @@ export default async function AdminDraft() {
     getAllMatchRows(),
     getAllTeams(),
     getPoolStages(),
-    db.select().from(drafts).catch(() => []),
+    safe(() => db.select().from(drafts), []),
   ]);
   const cfg = await timers();
   if (!can(viewer?.roles, "matches")) notFound();

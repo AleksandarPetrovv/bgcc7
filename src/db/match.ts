@@ -59,7 +59,7 @@ export async function setMatchTime(tx: Tx, m: { id: string; team1Id: string | nu
 export function announceMatchTime(teams: [string | null, string | null], at: Date, { dm }: { dm: boolean }) {
   const [t1, t2] = teams;
   detached("schedule", async () => {
-    if (dm) await Promise.all([t1, t2].filter((t): t is string => !!t).map((t) => notifyCaptain(t, (link) => `Staff set your match to **${when(at)}**. ${link}`).catch(() => {})));
+    if (dm) await Promise.all([t1, t2].filter((t): t is string => !!t).map((t) => notifyCaptain(t, (link) => `Staff set your match to **${when(at)}**. ${link}`).catch((e) => console.error("[dm] match time", t, e))));
     if (!t1 || !t2) return;
     const ts = await getAllTeams();
     const name = (x: string) => ts.find((t) => t.id === x)?.name ?? x;

@@ -58,7 +58,9 @@ function useMatch(captain: boolean, initial: string | null) {
         const m = JSON.parse(e.data) as { slug: string | null; end: number | null; pause: boolean; now: number } | null;
         setSlug(m?.slug ?? null);
         setClock({ end: m?.end ?? null, pause: !!m?.pause, offset: m ? m.now - Date.now() : 0 });
-      } catch {}
+      } catch (err) {
+        console.error("[draft/mine]", err);
+      }
     };
     return () => es.close();
   }, [captain]);
