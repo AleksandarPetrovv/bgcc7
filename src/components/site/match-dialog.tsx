@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ExternalLink, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useDict, useLang } from "./lang";
@@ -18,7 +18,7 @@ import { MEDAL, modHi, TEAM as TEAMS } from "@/lib/theme";
 import { osuMatch } from "@/lib/links";
 import { RuleDiamond } from "./rule";
 import { localeOf } from "@/lib/i18n/locale";
-import { MODS } from "@/lib/mods";
+import { MOD_COLOR, MODS } from "@/lib/mods";
 
 const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
 const cache = new Map<string, Scoreboard>();
@@ -50,6 +50,16 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
   );
 }
 
+function ModBadge({ mods }: { mods: string[] }) {
+  const c = modHi(MOD_COLOR[mods[0] ?? "NM"] ?? "var(--ash)");
+  return (
+    <span className="in-pop relative isolate px-1.5 py-0.5 text-[0.6rem] font-display font-black leading-none" style={{ color: c, ...cssVars({ "--d": "0.45s" }) }}>
+      <SlantBg className="border" style={{ borderColor: c }} />
+      {mods.join("") || "NM"}
+    </span>
+  );
+}
+
 export function MapCard({ m, i, className }: { m: MapResult; i: number; className?: string }) {
   const t = useDict();
   const color = modHi(m.slot ? slotColor(m.slot) : m.mod ? MODS[m.mod]?.color : undefined);
@@ -78,8 +88,7 @@ export function MapCard({ m, i, className }: { m: MapResult; i: number; classNam
         <div className="min-w-0 flex-1 pt-0.5">
           <div className="truncate text-sm font-display font-bold leading-tight">{m.title}</div>
           <div className="truncate text-xs text-ash">
-            {m.version}
-            {m.mods.length > 0 && <span className="ml-1.5">+{m.mods.join("")}</span>}
+            {m.version && `[${m.version}]`}
             {m.note && <span className="ml-1.5 font-display font-bold text-rose-hi">{t.match.notes[m.note]}</span>}
           </div>
         </div>
@@ -97,11 +106,14 @@ export function MapCard({ m, i, className }: { m: MapResult; i: number; classNam
             <span className={cn("in-left num text-xl leading-none", m.winner === 1 ? "text-crimson-hi" : "text-ash")} style={cssVars({ "--d": "0.3s" })}>
               {fmtNum(m.team1)}
             </span>
-            {sum > 0 && (
-              <span className="in-drop num text-[0.7rem] text-ash" style={cssVars({ "--d": "0.55s" })}>
-                {fmtNum(Math.abs(m.team1 - m.team2))}
-              </span>
-            )}
+            <div className="flex flex-col items-center gap-1.5">
+              <ModBadge mods={m.mods} />
+              {sum > 0 && (
+                <span className="in-drop num text-[0.7rem] leading-none text-ash" style={cssVars({ "--d": "0.55s" })}>
+                  {fmtNum(Math.abs(m.team1 - m.team2))}
+                </span>
+              )}
+            </div>
             <span className={cn("in-right num text-xl leading-none", m.winner === 2 ? "text-azure-hi" : "text-ash")} style={cssVars({ "--d": "0.3s" })}>
               {fmtNum(m.team2)}
             </span>
@@ -175,7 +187,7 @@ function Board({ match, data, names }: { match: Match; data: Scoreboard; names: 
   const t = useDict();
   const played = data.maps.filter((m) => !m.note);
   return (
-    <div className="min-w-0 space-y-5 p-3 sm:space-y-6 sm:p-5">
+    <div className="min-w-0 space-y-5 py-3 pl-(--px) pr-[calc(var(--px)+var(--sbw,0px))] sm:space-y-6 sm:py-5">
       {played.map((m, i) => (
         <div key={`${m.lobby}-${i}`}>
           {data.lobbies.length > 1 && (i === 0 || played[i - 1].lobby !== m.lobby) && (
@@ -185,8 +197,8 @@ function Board({ match, data, names }: { match: Match; data: Scoreboard; names: 
               <span className="size-2 shrink-0 rotate-45 bg-rose" aria-hidden />
             </div>
           )}
-          {/* bleed through the board padding so the cover and separator span the popup; content stays put */}
-          <MapCard m={m} i={i} className="-mx-3 px-3 sm:-mx-5 sm:px-5" />
+          {/* bleed through the board padding (and under the overlay scrollbar) so the cover and separator span the popup; content stays put */}
+          <MapCard m={m} i={i} className="-ml-(--px) -mr-[calc(var(--px)+var(--sbw,0px))] pl-(--px) pr-[calc(var(--px)+var(--sbw,0px))]" />
         </div>
       ))}
       <Costs data={data} names={names} finished={!!match.winner} />
@@ -275,9 +287,9 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
         >
           {children ?? <DetailsChip />}
         </DialogTrigger>
-        <DialogContent className="mdlg max-h-[88dvh] grid-cols-[minmax(0,1fr)] content-start gap-0 overflow-y-auto overflow-x-hidden [-webkit-overflow-scrolling:touch] [touch-action:pan-y] rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
+        <DialogContent className="mdlg max-h-[88dvh] grid-cols-[minmax(0,1fr)] content-start gap-0 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [--px:0.75rem] sm:[--px:1.25rem] [touch-action:pan-y] rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
           {/* -top-px + the upward shadow close the sliver that let scrolled maps peek above the header */}
-          <div className="sticky -top-px z-10 min-w-0 border-b border-line bg-ink px-3 py-3 shadow-[0_-8px_0_0_var(--ink)] sm:px-5 sm:py-4">
+          <div className="sticky -top-px z-10 min-w-0 border-b border-line bg-ink py-3 pl-(--px) pr-[calc(var(--px)+var(--sbw,0px))] shadow-[0_-8px_0_0_var(--ink)] sm:py-4">
             <DialogTitle className="in-wipe pr-8 text-xs font-display font-bold text-rose-hi" style={cssVars({ "--d": "0.1s" })}>
               {roundName(t, match.round)}
             </DialogTitle>
@@ -322,7 +334,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
             )}
           </div>
           {data === null ? (
-            <div className="space-y-4 p-3 sm:p-5" aria-busy>
+            <div className={`space-y-4 py-3 pl-(--px) pr-[calc(var(--px)+var(--sbw,0px))] sm:py-5`} aria-busy>
               {[0, 1, 2].map((k) => (
                 <div key={k} className="in-up relative h-40 overflow-hidden border-b border-line" style={cssVars({ "--i": k, "--s": "0.1s" })}>
                   <span className="mdlg-shine absolute inset-0" style={{ animationDelay: `${k * 0.15}s` }} />
@@ -340,10 +352,63 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
           ) : (
             <Board match={match} data={data} names={names} />
           )}
+          <ScrollThumb />
         </DialogContent>
       </Dialog>
     </>
   );
+}
+
+// the native scrollbar takes a lane the map rows can't paint under, so it's hidden and this thumb floats over the edge.
+// --sbw keeps the content where it sat next to the native scrollbar.
+function ScrollThumb() {
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = ref.current!;
+    const box = el.parentElement!;
+    const probe = document.createElement("div");
+    probe.style.cssText = "position:absolute;width:100px;height:100px;overflow:scroll;visibility:hidden";
+    box.append(probe);
+    const lane = 100 - probe.clientWidth;
+    probe.remove();
+    const sync = () => {
+      const { scrollTop: t, scrollHeight: s, clientHeight: c } = box;
+      const over = s > c + 1;
+      const h = Math.max(32, (c * c) / s);
+      box.style.setProperty("--sbw", over ? `${lane}px` : "0px");
+      el.style.display = over ? "" : "none";
+      el.style.height = `${h}px`;
+      el.style.transform = `translateY(${t + (over ? (t / (s - c)) * (c - h) : 0)}px)`;
+    };
+    sync();
+    box.addEventListener("scroll", sync, { passive: true });
+    const ro = new ResizeObserver(sync);
+    ro.observe(box);
+    const mo = new MutationObserver(sync);
+    mo.observe(box, { childList: true, subtree: true });
+    let drag: { y: number; top: number } | null = null;
+    const down = (e: PointerEvent) => {
+      drag = { y: e.clientY, top: box.scrollTop };
+      el.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    };
+    const move = (e: PointerEvent) => {
+      if (!drag) return;
+      const { scrollHeight: s, clientHeight: c } = box;
+      box.scrollTop = drag.top + ((e.clientY - drag.y) * (s - c)) / (c - Math.max(32, (c * c) / s));
+    };
+    const up = () => (drag = null);
+    el.addEventListener("pointerdown", down);
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerup", up);
+    el.addEventListener("pointercancel", up);
+    return () => {
+      box.removeEventListener("scroll", sync);
+      ro.disconnect();
+      mo.disconnect();
+    };
+  }, []);
+  return <span ref={ref} aria-hidden className="absolute right-0.5 top-0 z-20 w-1.5 cursor-default touch-none bg-line transition-[background-color] hover:bg-paper/40" />;
 }
 
 export function DetailsChip() {
