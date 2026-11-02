@@ -4,11 +4,12 @@ import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { useConfirmWhen } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
+import { SlantBg } from "@/components/site/slant";
 
 function Name({ n }: { n: string }) {
   return (
     <span className="relative isolate inline-flex min-w-0 max-w-full px-3 py-1.5">
-      <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 border border-line bg-slate" />
+      <SlantBg className="border border-line bg-slate" />
       <span className="truncate text-base font-display font-black">{n}</span>
     </span>
   );

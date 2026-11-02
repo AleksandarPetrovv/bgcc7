@@ -9,6 +9,7 @@ import { RuleDiamond } from "@/components/site/rule";
 import { useDict } from "@/components/site/lang";
 import { modHi } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 
 type Mod = { key: string; short: string; color: string; count: number };
 
@@ -123,9 +124,10 @@ export function SlotBox({
                     aria-expanded={open}
                     aria-label={open ? t.admin.collapse : t.admin.expand}
                     title={open ? t.admin.collapse : t.admin.expand}
-                    className="absolute right-1 top-1/2 grid size-10 -translate-y-1/2 -skew-x-12 place-items-center border border-line text-ash transition-colors hover:border-paper/40 hover:text-paper"
+                    className="group/fold absolute right-1 top-1/2 isolate grid size-10 -translate-y-1/2 place-items-center text-ash transition-colors hover:text-paper"
                   >
-                    <ChevronDown className={cn("size-4 skew-x-12 transition-transform duration-300", !open && "-rotate-90")} />
+                    <SlantBg className="border border-line transition-colors group-hover/fold:border-paper/40" />
+                    <ChevronDown className={cn("size-4 transition-transform duration-300", !open && "-rotate-90")} />
                   </button>
                 )}
               </header>

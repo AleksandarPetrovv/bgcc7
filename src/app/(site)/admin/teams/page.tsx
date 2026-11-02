@@ -23,6 +23,7 @@ import { avatarPath } from "@/lib/avatar";
 import { isBGCC6 } from "@/db";
 import { Cascade } from "@/components/site/cascade";
 import { RuleDiamond } from "@/components/site/rule";
+import { SlantBg } from "@/components/site/slant";
 import { localeOf } from "@/lib/i18n/locale";
 import { getPlayerSeeds } from "@/db/seeds";
 
@@ -88,11 +89,11 @@ export default async function AdminTeams() {
                         {tier ? (
                           <span
                             className={cn(
-                              "heading-slam grid h-7 w-9 -skew-x-12 place-items-center text-base leading-none",
-                              tier === 1 ? "bg-gold text-on-fill shadow-[2px_2px_0_0_var(--gold-deep)]" : "bg-silver text-on-fill shadow-[2px_2px_0_0_var(--silver-deep)]",
+                              "heading-slam relative isolate grid h-7 w-9 place-items-center text-base leading-none text-on-fill",
                             )}
                           >
-                            <span className="skew-x-12">{tier === 1 ? "A" : "B"}</span>
+                            <SlantBg className={tier === 1 ? "bg-gold shadow-[2px_2px_0_0_var(--gold-deep)]" : "bg-silver shadow-[2px_2px_0_0_var(--silver-deep)]"} />
+                            {tier === 1 ? "A" : "B"}
                           </span>
                         ) : (
                           <span className="text-ash">–</span>
@@ -178,10 +179,11 @@ export default async function AdminTeams() {
                       {team.players.map((p) => (
                         <label
                           key={p.userId}
-                          className="group relative flex h-12 min-w-0 -skew-x-12 cursor-pointer items-center border border-line bg-field px-2.5 text-ash transition-[border-color,background-color,box-shadow,color] duration-200 hover:border-paper/40 hover:text-paper has-[:checked]:border-gold has-[:checked]:bg-gold/10 has-[:checked]:text-paper has-[:checked]:shadow-[4px_4px_0_0_var(--gold-deep)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose"
+                          className="group relative isolate flex h-12 min-w-0 cursor-pointer items-center px-2.5 text-ash transition-colors duration-200 hover:text-paper has-[:checked]:text-paper"
                         >
+                          <SlantBg className="border border-line bg-field transition-[border-color,background-color,box-shadow] duration-200 group-hover:border-paper/40 group-has-[:checked]:border-gold group-has-[:checked]:bg-gold/10 group-has-[:checked]:shadow-[4px_4px_0_0_var(--gold-deep)] group-has-[:focus-visible]:ring-2 group-has-[:focus-visible]:ring-rose" />
                           <input type="radio" name="captain" value={p.userId} defaultChecked={p.isCaptain} className="peer sr-only" />
-                          <span className="flex min-w-0 flex-1 skew-x-12 items-center gap-2">
+                          <span className="flex min-w-0 flex-1 items-center gap-2">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={p.avatar} alt="" className="size-7 shrink-0 grayscale transition group-has-[:checked]:grayscale-0" />
                             <span className="min-w-0 flex-1 truncate text-sm font-display font-black">{p.username}</span>

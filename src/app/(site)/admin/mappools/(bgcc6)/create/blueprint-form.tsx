@@ -7,6 +7,7 @@ import { useDict } from "@/components/site/lang";
 import { modHi, modOn } from "@/lib/theme";
 import type { ActionResult } from "@/lib/action-result";
 import { MODS } from "@/lib/mods";
+import { SlantBg } from "@/components/site/slant";
 
 type Action = (prev: ActionResult, fd: FormData) => Promise<ActionResult>;
 
@@ -32,17 +33,19 @@ export function BlueprintForm({ action, mods, initial, tb }: { action: Action; m
                   </div>
                   <div className="mt-1 text-[0.65rem] font-display font-black uppercase text-ash">{MODS[m].label}</div>
                 </div>
-                <div className="flex h-10 shrink-0 -skew-x-12">
+                <div className="flex h-10 shrink-0">
                   <button
                     type="button"
                     onClick={() => set(m, counts[m] - 1)}
                     disabled={counts[m] === 0}
                     aria-label={`${MODS[m].short} −`}
-                    className="grid h-10 w-10 place-items-center border border-line text-ash transition-colors hover:border-paper/40 hover:bg-field hover:text-paper disabled:opacity-30"
+                    className="group/dec relative isolate grid h-10 w-10 place-items-center text-ash transition-colors hover:text-paper disabled:opacity-30"
                   >
-                    <Minus className="size-4 skew-x-12" strokeWidth={3} />
+                    <SlantBg className="border border-line transition-colors group-hover/dec:border-paper/40 group-hover/dec:bg-field" />
+                    <Minus className="size-4" strokeWidth={3} />
                   </button>
-                  <span className="grid h-10 w-14 place-items-center border-y border-line bg-ink/60">
+                  <span className="relative isolate grid h-10 w-14 place-items-center">
+                    <SlantBg className="border-y border-line bg-ink/60" />
                     <input
                       name={m}
                       type="number"
@@ -51,17 +54,18 @@ export function BlueprintForm({ action, mods, initial, tb }: { action: Action; m
                       value={counts[m]}
                       onChange={(e) => set(m, Number(e.target.value))}
                       aria-label={MODS[m].label}
-                      className="adm-bare num h-full w-full skew-x-12 appearance-none border-0 bg-transparent p-0 text-center text-2xl font-display font-black leading-none text-paper outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="adm-bare num h-full w-full appearance-none border-0 bg-transparent p-0 text-center text-2xl font-display font-black leading-none text-paper outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                   </span>
                   <button
                     type="button"
                     onClick={() => set(m, counts[m] + 1)}
                     aria-label={`${MODS[m].short} +`}
-                    className="grid h-10 w-10 place-items-center border transition-[filter] hover:brightness-110"
-                    style={{ background: c, borderColor: c, color: modOn(c) }}
+                    className="relative isolate grid h-10 w-10 place-items-center transition-[filter] hover:brightness-110"
+                    style={{ color: modOn(c) }}
                   >
-                    <Plus className="size-4 skew-x-12" strokeWidth={3} />
+                    <SlantBg className="border" style={{ background: c, borderColor: c }} />
+                    <Plus className="size-4" strokeWidth={3} />
                   </button>
                 </div>
               </div>
@@ -70,8 +74,9 @@ export function BlueprintForm({ action, mods, initial, tb }: { action: Action; m
                   <span className="text-[0.65rem] font-display font-bold text-ash">{t.admin.noSlots}</span>
                 ) : (
                   Array.from({ length: counts[m] }, (_, i) => (
-                    <span key={i} className="num -skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-display font-black" style={{ borderColor: modHi(c), color: modHi(c) }}>
-                      <span className="inline-block skew-x-12">{label(m, i)}</span>
+                    <span key={i} className="num relative isolate px-1.5 py-0.5 text-[0.65rem] font-display font-black" style={{ color: modHi(c) }}>
+                      <SlantBg className="border" style={{ borderColor: modHi(c) }} />
+                      {label(m, i)}
                     </span>
                   ))
                 )}

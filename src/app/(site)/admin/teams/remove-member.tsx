@@ -6,6 +6,7 @@ import { Crown } from "lucide-react";
 import { Btn, ErrorNote } from "@/components/admin/form";
 import { Modal } from "@/components/site/modal";
 import { useDict } from "@/components/site/lang";
+import { SlantBg } from "@/components/site/slant";
 import { removeMember } from "./actions";
 
 type Mate = { id: number; name: string; avatar: string };
@@ -48,7 +49,7 @@ export function RemoveMember({ osuId, captain, mates }: { osuId: number; captain
               animate={{ opacity: 1, x: 0, transition: { delay: 0.08 + i * 0.05 } }}
               className="group relative isolate flex min-h-12 items-center gap-3 px-3 text-left disabled:opacity-50"
             >
-              <span aria-hidden className="absolute inset-0 -z-10 -skew-x-6 border border-line transition-colors group-hover:border-gold group-hover:bg-gold/10" />
+              <SlantBg className="-skew-x-6 border border-line transition-colors group-hover:border-gold group-hover:bg-gold/10" />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={m.avatar} alt="" className="size-8" />
               <span className="font-display font-black">{m.name}</span>

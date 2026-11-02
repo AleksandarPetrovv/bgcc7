@@ -8,6 +8,7 @@ import { selectedSubcategories, subcategoryNames, newId, PLAN_MODS, roundStats, 
 import { cn, cssVars } from "@/lib/utils";
 import { modHi, modOn } from "@/lib/theme";
 import { RuleDiamond } from "@/components/site/rule";
+import { SlantBg } from "@/components/site/slant";
 import { Catalog, Edit, Intro, useFresh, useIntroWindow } from "./format-context";
 import { roundName } from "@/lib/i18n/dict";
 
@@ -20,21 +21,28 @@ const COLOR: Record<PlanMod | "FM", string> = {
 };
 
 
+const stepBtn = "group/step relative isolate grid w-8 place-items-center text-ash transition-colors hover:text-paper disabled:opacity-30";
+const stepBg = "transition-colors group-hover/step:bg-field";
+
 function Stepper({ value, min, max, onChange, label }: { value: number; min: number; max: number; onChange: (n: number) => void; label: string }) {
   const edit = useContext(Edit);
   return (
-    <div className="flex h-9 -skew-x-12 border border-line" role="group" aria-label={label}>
+    <div className="relative isolate flex h-9 p-px" role="group" data-field aria-label={label}>
+      <SlantBg className="border border-line" />
       {edit && (
-        <button type="button" onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min} aria-label={`${label} −`} className="grid w-8 place-items-center text-ash transition-colors hover:bg-field hover:text-paper disabled:opacity-30">
-          <Minus className="size-3.5 skew-x-12" strokeWidth={3} />
+        <button type="button" onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min} aria-label={`${label} −`} className={stepBtn}>
+          <SlantBg className={stepBg} />
+          <Minus className="size-3.5" strokeWidth={3} />
         </button>
       )}
-      <span className={cn("num grid w-9 place-items-center bg-ink/60 text-lg leading-none", edit && "border-x border-line")}>
-        <span className="skew-x-12">{value}</span>
+      <span className="num relative isolate grid w-9 place-items-center text-lg leading-none">
+        <SlantBg className={cn("bg-ink/60", edit && "border-x border-line")} />
+        {value}
       </span>
       {edit && (
-        <button type="button" onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max} aria-label={`${label} +`} className="grid w-8 place-items-center text-ash transition-colors hover:bg-field hover:text-paper disabled:opacity-30">
-          <Plus className="size-3.5 skew-x-12" strokeWidth={3} />
+        <button type="button" onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max} aria-label={`${label} +`} className={stepBtn}>
+          <SlantBg className={stepBg} />
+          <Plus className="size-3.5" strokeWidth={3} />
         </button>
       )}
     </div>
@@ -58,10 +66,11 @@ function ModPick({ mod, onMod, label }: { mod: PlanMod; onMod: (mod: PlanMod) =>
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={label}
-        className="flex h-7 -skew-x-12 items-center border px-2.5 transition-colors hover:bg-field"
-        style={{ borderColor: modHi(COLOR[mod]), color: modHi(COLOR[mod]) }}
+        className="group/mp relative isolate flex h-7 items-center px-2.5"
+        style={{ color: modHi(COLOR[mod]) }}
       >
-        <span className="flex skew-x-12 items-center gap-1 text-xs font-display font-black">
+        <SlantBg className="border transition-colors group-hover/mp:bg-field" style={{ borderColor: modHi(COLOR[mod]) }} />
+        <span className="flex items-center gap-1 text-xs font-display font-black">
           {mod}
           <ChevronDown className={cn("size-3 transition-transform duration-200", open && "rotate-180")} strokeWidth={3} />
         </span>
@@ -87,10 +96,11 @@ function ModPick({ mod, onMod, label }: { mod: PlanMod; onMod: (mod: PlanMod) =>
                   onMod(m);
                   setOpen(false);
                 }}
-                className={cn("flex h-7 w-16 -skew-x-12 items-center justify-center border text-xs font-display font-black transition-colors", m === mod ? "" : "hover:bg-[color-mix(in_srgb,var(--c)_22%,transparent)]")}
-                style={{ borderColor: COLOR[m], color: m === mod ? modOn(COLOR[m]) : modHi(COLOR[m]), background: m === mod ? COLOR[m] : undefined, ...cssVars({ "--c": COLOR[m] }) }}
+                className="group/opt relative isolate flex h-7 w-16 items-center justify-center text-xs font-display font-black transition-colors"
+                style={{ color: m === mod ? modOn(COLOR[m]) : modHi(COLOR[m]), ...cssVars({ "--c": COLOR[m] }) }}
               >
-                <span className="skew-x-12">{m}</span>
+                <SlantBg className={cn("border transition-colors", m !== mod && "group-hover/opt:bg-[color-mix(in_srgb,var(--c)_22%,transparent)]")} style={{ borderColor: COLOR[m], background: m === mod ? COLOR[m] : undefined }} />
+                {m}
               </button>
             ))}
           </motion.div>
@@ -110,16 +120,18 @@ function SrInput({ value, onChange, label }: { value: number | null; onChange: (
     setDraft({ value: n, text: fmt(n) });
     onChange(n);
   };
-  const btn = "grid w-8 place-items-center text-ash transition-colors hover:bg-field hover:text-paper disabled:opacity-30";
   return (
-    <div className="flex h-9 -skew-x-12 border border-line transition-colors focus-within:border-gold" role="group" aria-label={label}>
+    <div className="group/sr relative isolate flex h-9 p-px" role="group" data-field aria-label={label}>
+      <SlantBg className="border border-line transition-colors group-focus-within/sr:border-gold" />
       {edit && (
-        <button type="button" onClick={() => step(-0.1)} aria-label={`${label} −`} className={btn}>
-          <Minus className="size-3.5 skew-x-12" strokeWidth={3} />
+        <button type="button" onClick={() => step(-0.1)} aria-label={`${label} −`} className={stepBtn}>
+          <SlantBg className={stepBg} />
+          <Minus className="size-3.5" strokeWidth={3} />
         </button>
       )}
-      <span className={cn("flex w-[4.75rem] items-center justify-center gap-1 bg-ink/60", edit && "border-x border-line")}>
-        <Star className="size-3 shrink-0 skew-x-12 fill-current text-gold-hi" />
+      <span className="relative isolate flex w-[4.75rem] items-center justify-center gap-1">
+        <SlantBg className={cn("bg-ink/60", edit && "border-x border-line")} />
+        <Star className="size-3 shrink-0 fill-current text-gold-hi" />
         <input
           value={text}
           readOnly={!edit}
@@ -134,12 +146,13 @@ function SrInput({ value, onChange, label }: { value: number | null; onChange: (
             onChange(next);
           }}
           onBlur={() => setDraft({ value, text: fmt(value) })}
-          className="adm-bare num w-11 skew-x-12 border-0 bg-transparent p-0 text-center text-lg leading-none text-paper outline-none placeholder:text-ash"
+          className="adm-bare num w-11 border-0 bg-transparent p-0 text-center text-lg leading-none text-paper outline-none placeholder:text-ash"
         />
       </span>
       {edit && (
-        <button type="button" onClick={() => step(0.1)} aria-label={`${label} +`} className={btn}>
-          <Plus className="size-3.5 skew-x-12" strokeWidth={3} />
+        <button type="button" onClick={() => step(0.1)} aria-label={`${label} +`} className={stepBtn}>
+          <SlantBg className={stepBg} />
+          <Plus className="size-3.5" strokeWidth={3} />
         </button>
       )}
     </div>
@@ -175,13 +188,13 @@ function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "
         type="button"
         onClick={(e) => { setPopupLeft(Math.min(0, window.innerWidth - e.currentTarget.getBoundingClientRect().left - 304)); setOpen((o) => !o); }}
         aria-expanded={open}
-        className={cn("relative flex min-h-16 w-full max-w-full -skew-x-6 sm:w-40 flex-col items-start justify-start gap-0.5 border px-2.5 py-1.5 text-left sm:px-3 transition-shadow", open && "shadow-[3px_3px_0_0_var(--rose-deep)]")}
-        style={{ borderColor: c, background: `color-mix(in srgb, ${c} ${open ? 26 : 14}%, var(--field))` }}
+        className="relative isolate flex min-h-16 w-full max-w-full sm:w-40 flex-col items-start justify-start gap-0.5 px-2.5 py-1.5 text-left sm:px-3"
       >
-        <span className="skew-x-6 text-xs font-display font-black" style={{ color: modHi(c) }}>
+        <SlantBg className={cn("-skew-x-6 border transition-shadow", open && "shadow-[3px_3px_0_0_var(--rose-deep)]")} style={{ borderColor: c, background: `color-mix(in srgb, ${c} ${open ? 26 : 14}%, var(--field))` }} />
+        <span className="text-xs font-display font-black" style={{ color: modHi(c) }}>
           {mod}
         </span>
-        <span className="flex w-full min-w-0 skew-x-6 flex-col text-[0.66rem] font-display sm:text-[0.72rem] font-semibold leading-snug text-paper/85">{names.length ? names.map((name, i) => <span key={i} className="truncate">{name}</span>) : <span className="text-ash/50">—</span>}</span>
+        <span className="flex w-full min-w-0 flex-col text-[0.66rem] font-display sm:text-[0.72rem] font-semibold leading-snug text-paper/85">{names.length ? names.map((name, i) => <span key={i} className="truncate">{name}</span>) : <span className="text-ash/50">—</span>}</span>
       </button>
       <AnimatePresence>
         {open && (
@@ -200,8 +213,9 @@ function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "
               {edit && onMod && mod !== "FM" ? (
                 <ModPick mod={mod} onMod={onMod} label={t.admin.fp.mods} />
               ) : (
-                <span className="-skew-x-12 border px-1.5 text-xs font-display font-black" style={{ borderColor: c, color: modHi(c) }}>
-                  <span className="inline-block skew-x-12">{mod}</span>
+                <span className="relative isolate px-1.5 text-xs font-display font-black" style={{ color: modHi(c) }}>
+                  <SlantBg className="border" style={{ borderColor: c }} />
+                  {mod}
                 </span>
               )}
               <span className="flex-1" />
@@ -277,10 +291,11 @@ function CatRow({ c, onChange, onRemove, prev }: { c: PlanCat; onChange: (c: Pla
                 key={m}
                 type="button"
                 onClick={() => add(m)}
-                className="h-7 -skew-x-12 border border-line px-1.5 text-[0.62rem] font-display font-black text-ash transition-colors hover:border-[var(--m)] hover:bg-[var(--m)] hover:text-[var(--mo)]"
+                className="group/add relative isolate h-7 px-1.5 text-[0.62rem] font-display font-black text-ash transition-colors hover:text-[var(--mo)]"
                 style={cssVars({ "--m": COLOR[m], "--mo": modOn(COLOR[m]) })}
               >
-                <span className="inline-block skew-x-12">+{m}</span>
+                <SlantBg className="border border-line transition-colors group-hover/add:border-[var(--m)] group-hover/add:bg-[var(--m)]" />
+                +{m}
               </button>
             ))}
           </div>
@@ -306,8 +321,9 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
       <RuleDiamond />
       <header className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-line pb-3">
         <span data-cascade className="in-pop">
-          <span className="heading-slam inline-block -skew-x-12 bg-rose px-2.5 py-1 text-xl leading-none text-white shadow-[3px_3px_0_0_var(--rose-deep)]">
-            <span className="inline-block skew-x-12">BO{s.bestOf}</span>
+          <span className="heading-slam relative isolate inline-block px-2.5 py-1 text-xl leading-none text-white">
+            <SlantBg className="bg-rose shadow-[3px_3px_0_0_var(--rose-deep)]" />
+            BO{s.bestOf}
           </span>
         </span>
         <h2 data-cascade className="in-wipe heading-slam flex-1 whitespace-nowrap text-2xl sm:text-3xl">{roundName(t, r.name)}</h2>
@@ -362,9 +378,10 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
           <button
             type="button"
             onClick={() => onChange({ ...r, cats: [...r.cats, { id: newId(), name: t.admin.fp.newCat, maps: [] }] })}
-            className="flex h-10 w-full -skew-x-6 items-center justify-center gap-2 border border-dashed border-line text-xs font-display font-bold text-ash transition-colors hover:border-rose hover:text-rose-hi"
+            className="group/cat relative isolate flex h-10 w-full items-center justify-center gap-2 text-xs font-display font-bold text-ash transition-colors hover:text-rose-hi"
           >
-            <span className="flex skew-x-6 items-center gap-2">
+            <SlantBg className="-skew-x-6 border border-dashed border-line transition-colors group-hover/cat:border-rose" />
+            <span className="flex items-center gap-2">
               <Plus className="size-3.5" strokeWidth={3} /> {t.admin.fp.addCat}
             </span>
           </button>

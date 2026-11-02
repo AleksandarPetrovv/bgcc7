@@ -2,6 +2,7 @@ import { LinkTabs } from "@/components/site/tabs";
 import { InView } from "@/components/site/in-view";
 import { PageTitle } from "@/components/site/page";
 import { RuleDiamond } from "@/components/site/rule";
+import { SlantBg } from "@/components/site/slant";
 import { notFound } from "next/navigation";
 import { ArrowDown, ArrowUp, Download, Trash2 } from "lucide-react";
 import { ActionForm, Panel, Field, IconAction } from "@/components/admin/form";
@@ -116,7 +117,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
             download
             className="in-left group relative isolate mb-6 flex w-fit items-center gap-2 px-4 py-2.5 text-xs font-display font-bold text-balkan-hi hover:text-on-fill [--d:0.2s]"
           >
-            <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 border border-balkan/60 group-hover:bg-balkan" />
+            <SlantBg className="border border-balkan/60 group-hover:bg-balkan" />
             <Download className="size-4" /> {t.admin.packDownload}
           </a>
         )

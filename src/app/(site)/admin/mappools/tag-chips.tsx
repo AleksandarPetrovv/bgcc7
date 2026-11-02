@@ -1,5 +1,6 @@
 import { modHi } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 
 export function TagChips({ names, label, color, filled, className }: { names: string[]; label?: string; color: string; filled?: boolean; className?: string }) {
   if (!names.length) return null;
@@ -10,10 +11,10 @@ export function TagChips({ names, label, color, filled, className }: { names: st
       {names.map((n) => (
         <span
           key={n}
-          className="-skew-x-12 border px-1.5 py-px text-[0.72rem] font-display font-bold leading-snug text-paper"
-          style={{ borderColor: filled ? c : `color-mix(in srgb, ${c} 55%, transparent)`, background: filled ? `color-mix(in srgb, ${c} 20%, transparent)` : undefined }}
+          className="relative isolate px-1.5 py-px text-[0.72rem] font-display font-bold leading-snug text-paper"
         >
-          <span className="inline-block skew-x-12">{n}</span>
+          <SlantBg className="border" style={{ borderColor: filled ? c : `color-mix(in srgb, ${c} 55%, transparent)`, background: filled ? `color-mix(in srgb, ${c} 20%, transparent)` : undefined }} />
+          {n}
         </span>
       ))}
     </span>

@@ -11,6 +11,7 @@ import { getFormat } from "@/db/edition";
 import { matchStamp } from "@/lib/matches";
 import { dayTime, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 import { clearCache, saveMatch } from "./actions";
 import { osuMp } from "@/lib/links";
 import { mpIds } from "@/lib/mp-links";
@@ -19,8 +20,9 @@ const group = "relative border-t border-line pt-5";
 
 function Legend({ children }: { children: React.ReactNode }) {
   return (
-    <span className="absolute -top-3 left-0 -skew-x-12 border border-line bg-ink px-2 py-0.5 text-[0.62rem] font-display font-bold text-paper/80">
-      <span className="inline-block skew-x-12">{children}</span>
+    <span className="absolute -top-3 left-0 isolate px-2 py-0.5 text-[0.62rem] font-display font-bold text-paper/80">
+      <SlantBg className="border border-line bg-ink" />
+      {children}
     </span>
   );
 }
@@ -45,19 +47,20 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
     const won = m.winner === n;
     const c = n === 1 ? "crimson" : "azure";
     return (
-      <span
-        className={cn(
-          "grid h-10 w-10 -skew-x-12 place-items-center border sm:w-11",
-          won
-            ? c === "crimson"
-              ? "border-crimson bg-crimson text-white"
-              : "border-azure bg-azure text-white"
-            : c === "crimson"
-              ? "border-crimson/40 text-crimson-hi"
-              : "border-azure/40 text-azure-hi",
-        )}
-      >
-        <span className="heading-slam skew-x-12 text-xl leading-none">{v ?? "–"}</span>
+      <span className={cn("relative isolate grid h-10 w-10 place-items-center sm:w-11", won ? "text-white" : c === "crimson" ? "text-crimson-hi" : "text-azure-hi")}>
+        <SlantBg
+          className={cn(
+            "border",
+            won
+              ? c === "crimson"
+                ? "border-crimson bg-crimson"
+                : "border-azure bg-azure"
+              : c === "crimson"
+                ? "border-crimson/40"
+                : "border-azure/40",
+          )}
+        />
+        <span className="heading-slam text-xl leading-none">{v ?? "–"}</span>
       </span>
     );
   };
@@ -73,17 +76,12 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
           <span className="num text-[0.65rem] font-display font-bold text-ash">{m.id}</span>
           <span
             className={cn(
-              "w-fit -skew-x-12 px-1.5 py-0.5 text-[0.6rem] font-display font-bold",
-              status === "done"
-                ? "bg-balkan/15 text-balkan-hi"
-                : status === "live"
-                  ? "bg-rose/15 text-rose-hi"
-                  : status === "soon"
-                    ? "bg-azure/15 text-azure-hi"
-                    : "bg-line/60 text-ash",
+              "relative isolate w-fit px-1.5 py-0.5 text-[0.6rem] font-display font-bold",
+              { done: "text-balkan-hi", live: "text-rose-hi", soon: "text-azure-hi", tbd: "text-ash" }[status],
             )}
           >
-            <span className="inline-block skew-x-12">{t.admin.mStatus[status]}</span>
+            <SlantBg className={{ done: "bg-balkan/15", live: "bg-rose/15", soon: "bg-azure/15", tbd: "bg-line/60" }[status]} />
+            {t.admin.mStatus[status]}
           </span>
         </span>
 
@@ -139,8 +137,9 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
           </span>
         </span>
 
-        <span className="grid size-8 shrink-0 -skew-x-12 place-items-center border border-line text-ash transition-colors group-hover:border-paper/40 group-hover:text-paper group-open:border-rose group-open:bg-rose group-open:text-white">
-          <ChevronDown className="size-4 skew-x-12 transition-transform duration-300 group-open:rotate-180" aria-hidden />
+        <span className="relative isolate grid size-8 shrink-0 place-items-center text-ash transition-colors group-hover:text-paper group-open:text-white">
+          <SlantBg className="border border-line transition-colors group-hover:border-paper/40 group-open:border-rose group-open:bg-rose" />
+          <ChevronDown className="size-4 transition-transform duration-300 group-open:rotate-180" aria-hidden />
         </span>
       </summary>
 
@@ -246,7 +245,7 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
               href={`/admin/matches/${m.id}`}
               className="group/ms relative isolate inline-flex min-h-10 items-center px-4 text-xs font-display font-bold text-on-fill hover:text-ink"
             >
-              <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 bg-balkan group-hover/ms:bg-paper" />
+              <SlantBg className="bg-balkan group-hover/ms:bg-paper" />
               {t.admin.ms.open}
             </Link>
             <ActionForm action={clearCache.bind(null, m.id)} submit={t.admin.clearCache} ghost />

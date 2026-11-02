@@ -14,6 +14,7 @@ import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { modHi } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 import { PoolMode } from "../pool-mode";
 import { pickNow, pickSuggestion, removeSuggestion, suggestMap } from "./actions";
 import { VoteCell } from "./vote-cell";
@@ -116,8 +117,9 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                       </Link>
                     )
                   ) : s.tie ? (
-                    <span className="in-pop flex -skew-x-12 items-center border border-rose/70 bg-rose/15 px-2.5 py-1 text-xs font-display font-bold text-rose-hi [--d:0.3s]">
-                      <span className="flex skew-x-12 items-center gap-1.5">
+                    <span className="in-pop relative isolate flex items-center px-2.5 py-1 text-xs font-display font-bold text-rose-hi [--d:0.3s]">
+                      <SlantBg className="border border-rose/70 bg-rose/15" />
+                      <span className="flex items-center gap-1.5">
                         <Scale className="size-3.5" /> {host ? t.admin.tieHost : t.admin.tie}
                       </span>
                     </span>
@@ -156,18 +158,13 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                       {(green || lead) && <span className={cn("absolute inset-y-0 left-0 w-1", green ? "bg-balkan" : "bg-rose")} aria-hidden />}
                       <span
                         className={cn(
-                          "grid size-8 shrink-0 -skew-x-12 place-items-center border text-sm font-display font-black",
-                          m.picked
-                            ? "border-balkan bg-balkan text-on-fill"
-                            : tiedWin
-                              ? "border-paper/25 bg-paper/10 text-paper/60"
-                              : lead
-                                ? "border-rose/70 text-rose-hi"
-                                : "border-line text-ash",
+                          "relative isolate grid size-8 shrink-0 place-items-center text-sm font-display font-black",
+                          m.picked ? "text-on-fill" : tiedWin ? "text-paper/60" : lead ? "text-rose-hi" : "text-ash",
                         )}
                         title={m.picked ? t.admin.slotPicked : undefined}
                       >
-                        <span className="num skew-x-12">{m.picked ? <Check className="size-4" strokeWidth={3.5} /> : tiedWin ? "–" : `#${place}`}</span>
+                        <SlantBg className={cn("border", m.picked ? "border-balkan bg-balkan" : tiedWin ? "border-paper/25 bg-paper/10" : lead ? "border-rose/70" : "border-line")} />
+                        <span className="num">{m.picked ? <Check className="size-4" strokeWidth={3.5} /> : tiedWin ? "–" : `#${place}`}</span>
                       </span>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={cardCover(m.cover)} alt="" loading="lazy" decoding="async" className="hidden h-12 w-28 shrink-0 object-cover sm:block" />

@@ -10,6 +10,7 @@ import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { isBGCC6 } from "@/db";
 import { RuleDiamond } from "@/components/site/rule";
+import { SlantBg } from "@/components/site/slant";
 
 export default async function MappoolsHub() {
   const [t, viewer, stages] = await Promise.all([getDict(), getViewer(), getPoolStages()]);
@@ -52,8 +53,9 @@ export default async function MappoolsHub() {
                 aria-hidden
               />
               <span className="flex items-start justify-between gap-4">
-                <span className="grid size-14 -skew-x-12 place-items-center border border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--rose-deep)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105">
-                  <Icon className="size-7 skew-x-12" strokeWidth={2} />
+                <span className="relative isolate grid size-14 place-items-center text-white">
+                  <SlantBg className="border border-rose bg-rose shadow-[3px_3px_0_0_var(--rose-deep)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105" />
+                  <Icon className="size-7" strokeWidth={2} />
                 </span>
                 <ArrowUpRight className="size-6 text-ash transition-[color,transform,translate,scale,rotate] duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-rose-hi" />
               </span>

@@ -6,6 +6,7 @@ import { useDict } from "@/components/site/lang";
 import type { Pooler, Voter } from "@/db/pool-sheet";
 import { scoreColor } from "@/lib/score-color";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 import { VotePicker } from "./vote-picker";
 import { VotesPop } from "./votes-pop";
 
@@ -42,31 +43,35 @@ export function VoteCell({ id, viewer, mine, mineNote, canVote, own, picked, won
       {canVote &&
         !picked &&
         (own ? (
-          <span className="-skew-x-12 bg-rose px-2.5 py-1 text-xs font-display font-bold uppercase tracking-wider text-white shadow-[2px_2px_0_0_var(--rose-deep)]">
-            <span className="inline-block skew-x-12">{t.admin.yourSuggestion}</span>
+          <span className="relative isolate px-2.5 py-1 text-xs font-display font-bold uppercase tracking-wider text-white">
+            <SlantBg className="bg-rose shadow-[2px_2px_0_0_var(--rose-deep)]" />
+            {t.admin.yourSuggestion}
           </span>
         ) : (
           <VotePicker id={id} mine={mine} mineNote={mineNote} onDraft={(n, saved) => setDraft({ n, saved })} />
         ))}
       <div className="relative flex w-28 flex-col items-center leading-none">
-        <span
-          className={cn(
-            "relative flex h-10 min-w-24 -skew-x-12 items-center justify-center border bg-ink/60 px-3 transition-[border-color,box-shadow] duration-200",
-            preview
-              ? "border-dashed border-paper/40"
-              : won
-                ? "border-balkan shadow-[3px_3px_0_0_var(--balkan-deep)]"
-                : lead && !picked
-                  ? "border-rose shadow-[3px_3px_0_0_var(--rose-deep)]"
-                  : "border-line",
-          )}
-        >
+        <span className="relative isolate flex h-10 min-w-24 items-center justify-center px-3">
+          <SlantBg
+            className={cn(
+              "border bg-ink/60 transition-[border-color,box-shadow] duration-200",
+              preview
+                ? "border-dashed border-paper/40"
+                : won
+                  ? "border-balkan shadow-[3px_3px_0_0_var(--balkan-deep)]"
+                  : lead && !picked
+                    ? "border-rose shadow-[3px_3px_0_0_var(--rose-deep)]"
+                    : "border-line",
+            )}
+          />
+          {avg !== null && <SlantBg className="inset-px border-b-[3px] opacity-80 transition-colors duration-200" style={{ borderColor: scoreColor(avg) }} />}
           {lead && !picked && (
-            <span className="absolute -left-2.5 -top-2.5 grid size-6 place-items-center bg-rose text-white shadow-[2px_2px_0_0_var(--rose-deep)]">
-              <Crown className="size-3.5 skew-x-12" />
+            <span className="absolute -left-1.5 -top-2.5 isolate grid size-6 place-items-center text-white">
+              <SlantBg className="bg-rose shadow-[2px_2px_0_0_var(--rose-deep)]" />
+              <Crown className="size-3.5" />
             </span>
           )}
-          <span className={cn("heading-slam skew-x-12 text-[1.7rem] leading-none tabular-nums", avg === null ? "text-ash" : "text-paper")}>
+          <span className={cn("heading-slam text-[1.7rem] leading-none tabular-nums", avg === null ? "text-ash" : "text-paper")}>
             {avg === null ? (
               "?"
             ) : (
@@ -76,7 +81,6 @@ export function VoteCell({ id, viewer, mine, mineNote, canVote, own, picked, won
               </>
             )}
           </span>
-          {avg !== null && <span className="absolute inset-x-0 bottom-0 h-[3px] opacity-80 transition-colors duration-200" style={{ background: scoreColor(avg) }} aria-hidden />}
         </span>
         <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap">
           {preview ? (

@@ -6,6 +6,7 @@ import { Btn } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
 import { scoreColor } from "@/lib/score-color";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 import { voteSuggestion } from "./actions";
 
 const STEPS = Array.from({ length: 10 }, (_, k) => k + 1);
@@ -98,8 +99,9 @@ export function VotePicker({ id, mine, mineNote, onDraft }: { id: number; mine: 
           )}
         </span>
         {saved.n !== null && !dirty ? (
-          <span className="flex min-h-10 w-24 shrink-0 -skew-x-12 items-center justify-center border border-balkan/60 text-xs font-display font-bold text-balkan-hi">
-            <span className="flex skew-x-12 items-center gap-1.5">
+          <span className="relative isolate flex min-h-10 w-24 shrink-0 items-center justify-center text-xs font-display font-bold text-balkan-hi">
+            <SlantBg className="border border-balkan/60" />
+            <span className="flex items-center gap-1.5">
               <Check className="size-3.5" strokeWidth={3} /> {t.admin.voted}
             </span>
           </span>
@@ -109,7 +111,7 @@ export function VotePicker({ id, mine, mineNote, onDraft }: { id: number; mine: 
           </Btn>
         )}
       </div>
-      <span className={cn("adm-field adm-tight w-full", draft !== null && dirty && note.trim().length < 2 && "border-rose/60")}>
+      <span data-field className={cn("adm-field adm-tight w-full", draft !== null && dirty && note.trim().length < 2 && "before:!border-rose/60")}>
         <input
           className="adm-bare"
           value={note}

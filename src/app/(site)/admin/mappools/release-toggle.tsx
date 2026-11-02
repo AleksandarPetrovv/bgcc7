@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Check, Eye, EyeOff } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 import { setReleased } from "./actions";
 
 export function ReleaseToggle({ stageId, released, className }: { stageId: number; released: boolean; className?: string }) {
@@ -14,12 +15,18 @@ export function ReleaseToggle({ stageId, released, className }: { stageId: numbe
   return (
     <label
       className={cn(
-        "flex h-10 w-fit -skew-x-12 cursor-pointer items-center border px-3.5 transition-[color,background-color,border-color,box-shadow,opacity] duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose",
-        on ? "border-rose bg-rose text-white shadow-[3px_3px_0_0_var(--rose-deep)]" : "border-line bg-ink/40 text-ash hover:border-paper/40 hover:text-paper",
+        "group/rel relative isolate flex h-10 w-fit cursor-pointer items-center px-3.5 transition-[color,opacity] duration-200",
+        on ? "text-white" : "text-ash hover:text-paper",
         pending && "opacity-60",
         className,
       )}
     >
+      <SlantBg
+        className={cn(
+          "border transition-[background-color,border-color,box-shadow] duration-200 group-has-[:focus-visible]/rel:ring-2 group-has-[:focus-visible]/rel:ring-rose",
+          on ? "border-rose bg-rose shadow-[3px_3px_0_0_var(--rose-deep)]" : "border-line bg-ink/40 group-hover/rel:border-paper/40",
+        )}
+      />
       <input
         type="checkbox"
         checked={on}
@@ -34,7 +41,7 @@ export function ReleaseToggle({ stageId, released, className }: { stageId: numbe
           });
         }}
       />
-      <span className="flex skew-x-12 items-center gap-2 text-xs font-display font-bold">
+      <span className="flex items-center gap-2 text-xs font-display font-bold">
         <span className={cn("grid size-4 place-items-center border transition-colors", on ? "border-white bg-white text-rose" : "border-current")}>
           {on && <Check className="size-3" strokeWidth={3.5} />}
         </span>

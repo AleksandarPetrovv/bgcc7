@@ -3,12 +3,14 @@ import { fmtLen } from "@/lib/data";
 import { osuMap } from "@/lib/links";
 import { MODS } from "@/lib/mods";
 import { modHi } from "@/lib/theme";
+import { SlantBg } from "@/components/site/slant";
 
 export function ModChip({ mod }: { mod: string }) {
   const c = modHi(MODS[mod].color);
   return (
-    <span className="-skew-x-12 border px-1.5 py-0.5 text-[0.65rem] font-display font-black" style={{ borderColor: c, color: c }}>
-      <span className="inline-block skew-x-12">{MODS[mod].short}</span>
+    <span className="relative isolate px-1.5 py-0.5 text-[0.65rem] font-display font-black" style={{ color: c }}>
+      <SlantBg className="border" style={{ borderColor: c }} />
+      {MODS[mod].short}
     </span>
   );
 }
