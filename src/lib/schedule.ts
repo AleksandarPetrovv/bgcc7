@@ -1,8 +1,21 @@
 import { addDays, dayDate, fmtDate, fromSofiaInput } from "./time";
+import type { Dict } from "./i18n/dict";
 
 export type SchedStatus = "pending" | "accepted" | "rejected" | "cancelled" | "withdrawn" | "staff";
 
 export type Proposal = { id: number; teamId: string; by: number; at: string; status: SchedStatus; answeredBy: number | null; staff: boolean; createdAt: string; note: string | null; reply: string | null };
+
+/** a history line's status; the name in it is the captain who answered, not their team */
+export const historyLabel = (p: Pick<Proposal, "status" | "staff" | "answeredBy">, st: Dict["sched"]["st"], who: (osuId: number | null) => string) =>
+  p.status === "staff"
+    ? st.set
+    : p.status === "cancelled" && (p.staff || p.answeredBy == null)
+      ? st.staff
+      : p.status === "rejected"
+        ? st.rejected(who(p.answeredBy))
+        : p.status === "cancelled"
+          ? st.cancelled(who(p.answeredBy))
+          : st[p.status];
 
 export function mondayOf(iso: string) {
   const d = dayDate(iso);

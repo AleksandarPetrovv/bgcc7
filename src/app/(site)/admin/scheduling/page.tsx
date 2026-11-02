@@ -8,7 +8,7 @@ import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { fmtSofia, toSofiaInput } from "@/lib/time";
-import { isOpen, weekOf, type Proposal } from "@/lib/schedule";
+import { historyLabel, isOpen, weekOf, type Proposal } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
 import { setTime, setWeek } from "./actions";
@@ -30,7 +30,7 @@ export default async function AdminScheduling() {
   const s = t.sched;
   const locale = localeOf(lang);
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? "—";
-  const teamOf = (osuId: number | null) => (osuId == null ? null : (teams.find((x) => x.players.some((p) => p.userId === osuId))?.id ?? null));
+  const captain = (osuId: number | null) => (osuId == null ? s.staffName : (teams.flatMap((x) => x.players).find((p) => p.userId === osuId)?.username ?? s.staffName));
   const hist = await historyOf(rows.map((m) => m.id)).catch(() => new Map<string, Proposal[]>());
   const list = stages.filter((x) => isBracketStage(x.slug));
   const Side = ({ id, side }: { id: string | null; side: 0 | 1 }) => {
@@ -100,7 +100,7 @@ export default async function AdminScheduling() {
                                 <li key={p.id} className="flex flex-wrap gap-x-2">
                                   <span className="num">{fmtSofia(new Date(p.at), locale)}</span>
                                   <span className="text-paper/85">{name(p.teamId)}</span>
-                                  <span className="font-display font-bold">{p.status === "staff" ? s.st.set : p.staff || (p.status === "cancelled" && p.answeredBy == null) ? s.st.staff : p.status === "rejected" ? s.st.rejected(name(p.teamId === m.team1Id ? m.team2Id : m.team1Id)) : p.status === "cancelled" ? s.st.cancelled(name(teamOf(p.answeredBy))) : s.st[p.status]}</span>
+                                  <span className="font-display font-bold">{historyLabel(p, s.st, captain)}</span>
                                   {p.note && <span className="basis-full italic">“{p.note}”</span>}
                                   {p.reply && <span className="basis-full italic text-rose-hi/80">↳ “{p.reply}”</span>}
                                 </li>

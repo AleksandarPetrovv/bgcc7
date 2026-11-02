@@ -11,7 +11,7 @@ import { fmtDate, fmtSofiaDay, fmtSofiaTime } from "@/lib/time";
 import { DayTime, firstFree, isFree } from "./day-time";
 import { Availability } from "./availability";
 import { avatarPath } from "@/lib/avatar";
-import type { Proposal } from "@/lib/schedule";
+import { historyLabel, type Proposal } from "@/lib/schedule";
 import type { SchedMatch } from "@/db/schedule";
 import { cn } from "@/lib/utils";
 import { at, Letters } from "@/components/site/rich";
@@ -218,9 +218,7 @@ function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
   const w = useWhen();
   const st = t.sched.st;
   const person = usePerson(me, opp);
-  // names in labels are the captain who answered, not the team
-  const label = (p: Proposal) =>
-    p.status === "rejected" ? st.rejected(person(p.answeredBy).name) : p.status === "cancelled" ? (p.staff || p.answeredBy == null ? st.staff : st.cancelled(person(p.answeredBy).name)) : p.status === "staff" ? st.set : st[p.status];
+  const label = (p: Proposal) => historyLabel(p, st, (id) => person(id).name);
   const [open, setOpen] = useState(true);
   if (!list.length) return null;
   return (
