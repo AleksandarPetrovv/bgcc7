@@ -10,6 +10,7 @@ import { Sparkle, Wordmark } from "./graphics";
 import { useDict } from "./lang";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "./slant";
 import { login, logout } from "@/actions/auth";
 import { isActive, type NavItem } from "@/lib/sections";
 
@@ -309,16 +310,16 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
           {register && (
           <Link
             href="/register"
-            className="group/reg relative hidden h-9 items-center px-4 text-[0.8rem] font-display font-bold text-ink hover:text-white sm:inline-flex"
+            className="group/reg relative isolate hidden h-9 items-center px-4 text-[0.8rem] font-display font-bold text-ink hover:text-white sm:inline-flex"
           >
-            <span className="absolute inset-0 -skew-x-12 bg-paper group-hover/reg:bg-rose" aria-hidden />
+            <SlantBg className="bg-paper group-hover/reg:bg-rose" />
             <span className="relative">{t.nav.register}</span>
           </Link>
           )}
           <AnimatePresence>{match && <MatchLink key={match} slug={match} path={path} clock={clock} />}</AnimatePresence>
           {user ? (
-            <div className="relative hidden h-9 items-center md:flex">
-              <span className="pointer-events-none absolute inset-0 -skew-x-12 border border-line" aria-hidden />
+            <div className="relative isolate hidden h-9 items-center md:flex">
+              <SlantBg className="border border-line" />
               <Link
                 href="/me"
                 title={t.nav.me}
@@ -341,9 +342,9 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
                 onClick={() => start(() => logout())}
                 aria-label={t.nav.logout}
                 title={t.nav.logout}
-                className="group/out relative flex h-full items-center px-2.5 text-ash hover:text-white"
+                className="group/out relative isolate flex h-full items-center px-2.5 text-ash hover:text-white"
               >
-                <span className="absolute inset-0 -skew-x-12 border-l border-line group-hover/out:bg-rose" aria-hidden />
+                <SlantBg className="border-l border-line group-hover/out:bg-rose" />
                 <LogOut className="relative size-4" />
               </button>
             </div>
@@ -352,9 +353,9 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
               type="button"
               disabled={pending}
               onClick={() => start(() => login(path))}
-              className="group/in relative hidden h-9 items-center whitespace-nowrap px-3.5 text-[0.8rem] font-display font-black text-paper hover:text-white disabled:opacity-60 md:inline-flex"
+              className="group/in relative isolate hidden h-9 items-center whitespace-nowrap px-3.5 text-[0.8rem] font-display font-black text-paper hover:text-white disabled:opacity-60 md:inline-flex"
             >
-              <span className="absolute inset-0 -skew-x-12 border border-line group-hover/in:border-rose group-hover/in:bg-rose" aria-hidden />
+              <SlantBg className="border border-line group-hover/in:border-rose group-hover/in:bg-rose" />
               <span className="relative">{t.nav.login}</span>
             </button>
           )}

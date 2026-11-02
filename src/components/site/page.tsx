@@ -8,6 +8,7 @@ import { DiscordLogo } from "./discord-logo";
 import { useBelowFold } from "./motion";
 import { useDict } from "./lang";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "./slant";
 import { EASE } from "@/lib/ease";
 
 export function SubNav({ items }: { items: { href: string; label: string; hidden?: boolean }[] }) {
@@ -642,7 +643,7 @@ export function SlantButton({
   const cls = cn("group/sk relative isolate inline-flex items-center gap-2 px-4 py-2 text-sm font-display font-bold", text, className);
   const inner = (
     <>
-      <span aria-hidden className={cn("absolute inset-0 -z-10 -skew-x-12", bg, fill)} />
+      <SlantBg className={cn(bg, fill)} />
       {children}
     </>
   );

@@ -5,6 +5,7 @@ import { dictFor, LANGS, type Lang } from "@/lib/i18n/dict";
 import type { Edition } from "@/lib/format";
 import { setLang } from "@/lib/i18n/actions";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "./slant";
 
 const LangContext = createContext<{ lang: Lang; edition: Edition }>({ lang: "en", edition: "bgcc7" });
 
@@ -25,7 +26,8 @@ export function LangSwitch() {
   const t = useDict();
   const [pending, start] = useTransition();
   return (
-    <div className={cn("flex h-9 -skew-x-12 border border-line text-[0.8rem] font-display font-black", pending && "opacity-60")} role="group" aria-label={t.footer.language}>
+    <div className={cn("relative isolate flex h-9 border border-transparent text-[0.8rem] font-display font-black", pending && "opacity-60")} role="group" aria-label={t.footer.language}>
+      <SlantBg className="-inset-px border border-line" />
       {LANGS.map((l) => (
         <button
           key={l}
@@ -33,9 +35,10 @@ export function LangSwitch() {
           aria-pressed={l === lang}
           disabled={pending}
           onClick={() => l !== lang && start(() => setLang(l))}
-          className={cn("px-3.5 uppercase transition-colors", l === lang ? "bg-paper text-ink" : "text-ash hover:text-paper")}
+          className={cn("relative isolate px-3.5 uppercase transition-colors", l === lang ? "text-ink" : "text-ash hover:text-paper")}
         >
-          <span className="inline-block skew-x-12">{l}</span>
+          <SlantBg className={cn("transition-colors", l === lang && "bg-paper")} />
+          {l}
         </button>
       ))}
     </div>

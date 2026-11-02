@@ -6,6 +6,7 @@ import { EDITIONS, type Edition } from "@/lib/format";
 import { viewEdition } from "@/lib/edition-action-bgcc6";
 import { cn } from "@/lib/utils";
 import { useDict, useEdition } from "./lang";
+import { SlantBg } from "./slant";
 
 export function EditionView({ className }: { className?: string }) {
   const edition = useEdition();
@@ -19,7 +20,8 @@ export function EditionView({ className }: { className?: string }) {
       window.location.assign(`/${path.split("/")[1] ?? ""}`);
     });
   return (
-    <div className={cn("flex h-8 shrink-0 -skew-x-12 border border-line text-[0.75rem] font-display font-black lg:h-9 lg:text-[0.8rem]", pending && "opacity-60", className)} role="group" aria-label={t.nav.edition}>
+    <div className={cn("relative isolate flex h-8 shrink-0 border border-transparent text-[0.75rem] font-display font-black lg:h-9 lg:text-[0.8rem]", pending && "opacity-60", className)} role="group" aria-label={t.nav.edition}>
+      <SlantBg className="-inset-px border border-line" />
       {EDITIONS.map((e) => (
         <button
           key={e}
@@ -28,11 +30,10 @@ export function EditionView({ className }: { className?: string }) {
           disabled={pending}
           onClick={() => e !== edition && pick(e)}
           title={e.toUpperCase()}
-          className={cn("px-2.5 uppercase transition-colors sm:px-3", e === edition ? "bg-paper text-ink" : "text-ash hover:text-paper")}
+          className={cn("relative isolate px-2.5 uppercase transition-colors sm:px-3", e === edition ? "text-ink" : "text-ash hover:text-paper")}
         >
-          <span className="inline-block skew-x-12">
-            {e.slice(4)}
-          </span>
+          <SlantBg className={cn("transition-colors", e === edition && "bg-paper")} />
+          {e.slice(4)}
         </button>
       ))}
     </div>

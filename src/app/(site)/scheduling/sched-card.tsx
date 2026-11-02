@@ -6,6 +6,7 @@ import { AlertTriangle, CalendarClock, Check, ChevronDown, Repeat, X } from "luc
 import { Countdown } from "@/components/site/countdown";
 import { Modal } from "@/components/site/modal";
 import { SlantButton } from "@/components/site/page";
+import { SlantBg } from "@/components/site/slant";
 import { useDict, useLang } from "@/components/site/lang";
 import { fmtDate, fmtSofiaDay, fmtSofiaTime } from "@/lib/time";
 import { DayTime, firstFree, isFree } from "./day-time";
@@ -56,7 +57,8 @@ function NoteField({ value, onChange }: { value: string; onChange: (v: string) =
     // a div, not a label: only a click inside the box itself focuses it
     <div className="grid gap-1.5 text-xs font-display font-bold text-ash">
       <span id="sched-note">{t.sched.note}</span>
-      <span className="flex w-full min-w-0 -skew-x-6 border border-line bg-ink focus-within:border-rose">
+      <span className="group/note relative isolate flex w-full min-w-0 border border-transparent">
+        <SlantBg className="-skew-x-6 -inset-px border border-line bg-ink group-focus-within/note:border-rose" />
         <textarea
           aria-labelledby="sched-note"
           required
@@ -65,7 +67,7 @@ function NoteField({ value, onChange }: { value: string; onChange: (v: string) =
           value={value}
           placeholder={t.sched.notePh}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full min-w-0 skew-x-6 resize-none border-0 bg-transparent px-4 py-2.5 font-sans text-sm font-normal text-paper outline-none placeholder:text-ash/70"
+          className="w-full min-w-0 resize-none border-0 bg-transparent px-4 py-2.5 font-sans text-sm font-normal text-paper outline-none placeholder:text-ash/70"
         />
       </span>
     </div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Check, Crown } from "lucide-react";
 import { Sparkle } from "@/components/site/graphics";
 import { SlantButton } from "@/components/site/page";
+import { SlantBg } from "@/components/site/slant";
 import { RuleDiamond } from "@/components/site/rule";
 import { Words } from "@/components/site/rich";
 import { Avatar } from "@/components/site/avatar";
@@ -202,14 +203,16 @@ function PoolRow({ t, stage, split }: { t: Dict; stage: Omit<PoolStage, "pools">
               <img src={m.cover} alt="" loading="lazy" className="absolute inset-0 -z-10 size-full object-cover opacity-40 saturate-[1.15] transition duration-500 group-hover:scale-105 group-hover:opacity-55 dark:opacity-25 dark:group-hover:opacity-40" />
               <span className="absolute inset-0 -z-10 bg-gradient-to-t from-coal via-coal/70 to-coal/10" aria-hidden />
               <span className="flex items-start justify-between gap-2">
-                <span className="-skew-x-12 px-2 py-1" style={{ background: m.color }}>
-                  <span className="heading-slam block skew-x-12 text-base leading-none sm:text-lg" style={{ color: modOn(m.color) }}>{m.slot}</span>
+                <span className="relative isolate px-2 py-1">
+                  <SlantBg style={{ background: m.color }} />
+                  <span className="heading-slam block text-base leading-none sm:text-lg" style={{ color: modOn(m.color) }}>{m.slot}</span>
                 </span>
                 <span className="flex flex-col items-stretch gap-1">
                   <span className="num text-xs italic leading-none text-paper/80">{m.sr.toFixed(2)}★</span>
                   {mod && (
-                    <span className="-skew-x-12 py-0.5 text-center" style={{ background: mod.color }}>
-                      <span className="block skew-x-12 font-display text-[0.65rem] font-black leading-none" style={{ color: modOn(mod.color) }}>{mod.short}</span>
+                    <span className="relative isolate py-0.5 text-center">
+                      <SlantBg style={{ background: mod.color }} />
+                      <span className="block font-display text-[0.65rem] font-black leading-none" style={{ color: modOn(mod.color) }}>{mod.short}</span>
                     </span>
                   )}
                 </span>
@@ -303,8 +306,9 @@ export default async function Home() {
               {signupOpen ? (
                 <span className="in-pop inline-flex">
                   {mine && mine.status !== "denied" ? (
-                    <span className="inline-flex -skew-x-12 cursor-default items-center border border-line bg-slate px-6 py-3 text-base font-display font-bold sm:px-8 sm:py-4 sm:text-xl text-ash" aria-disabled>
-                      <span className="inline-flex skew-x-12 items-center gap-2">
+                    <span className="relative isolate inline-flex cursor-default items-center border border-transparent px-6 py-3 text-base font-display font-bold sm:px-8 sm:py-4 sm:text-xl text-ash" aria-disabled>
+                      <SlantBg className="-inset-px border border-line bg-slate" />
+                      <span className="inline-flex items-center gap-2">
                         <Check className="size-5" /> {mine.status === "approved" ? t.me.signedUp : t.me.signedUpPending}
                       </span>
                     </span>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useSyncExternalStore } from "react";
 import { dicts } from "@/lib/i18n/dict";
 import { LANG_COOKIE } from "@/lib/i18n/locale";
+import { SlantBg } from "@/components/site/slant";
 
 const noop = () => () => {};
 
@@ -24,11 +25,13 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
           <h1 className="mt-4 text-[clamp(2rem,6vw,3.5rem)] font-display font-bold leading-none">{t.error.title}</h1>
           <p className="mt-3 max-w-[46ch] text-pretty text-lg text-paper/70">{t.error.text}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <button type="button" onClick={reset} className="-skew-x-12 bg-paper px-5 py-2.5 font-display font-bold text-ink">
-              <span className="inline-block skew-x-12">{t.error.retry}</span>
+            <button type="button" onClick={reset} className="relative isolate px-5 py-2.5 font-display font-bold text-ink">
+              <SlantBg className="bg-paper" />
+              {t.error.retry}
             </button>
-            <Link href="/" className="-skew-x-12 border border-paper/40 px-5 py-2.5 font-display font-bold">
-              <span className="inline-block skew-x-12">{t.notFound.home}</span>
+            <Link href="/" className="relative isolate border border-transparent px-5 py-2.5 font-display font-bold">
+              <SlantBg className="-inset-px border border-paper/40" />
+              {t.notFound.home}
             </Link>
           </div>
         </main>

@@ -7,6 +7,7 @@ import { retryFinish } from "@/actions/retry-finish";
 import { isAlert, snoozeMs, type Alert } from "@/lib/relay-contract";
 import { cn } from "@/lib/utils";
 import { useDict } from "./lang";
+import { SlantBg } from "./slant";
 
 const KEY = "bgcc-alert-snooze";
 type Snoozes = Record<string, number>;
@@ -40,7 +41,8 @@ function AlertCard({ alert, onSnooze }: { alert: Alert; onSnooze: (alert: Alert)
   const [pending, start] = useTransition();
   const [failed, setFailed] = useState(false);
   const red = alert.level === "red";
-  const button = cn("inline-flex min-h-10 -skew-x-12 items-center justify-center gap-2 px-4 py-2 text-sm font-display font-black transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-paper disabled:opacity-60", red ? "bg-rose text-white hover:bg-paper hover:text-ink" : "bg-gold text-on-fill hover:bg-paper hover:text-ink");
+  const button = cn("group/ab relative isolate inline-flex min-h-10 items-center justify-center gap-2 px-4 py-2 text-sm font-display font-black outline-none transition-colors disabled:opacity-60 hover:text-ink", red ? "text-white" : "text-on-fill");
+  const box = <SlantBg className={cn("transition-colors group-hover/ab:bg-paper group-focus-visible/ab:outline-2 group-focus-visible/ab:outline-offset-4 group-focus-visible/ab:outline-paper", red ? "bg-rose" : "bg-gold")} />;
 
   const retry = () => {
     if (!alert.match || pending) return;
@@ -79,11 +81,12 @@ function AlertCard({ alert, onSnooze }: { alert: Alert; onSnooze: (alert: Alert)
         {alert.kind === "finishFailed" ? (
           <>
             <button type="button" onClick={retry} disabled={pending || !alert.match} className={button} aria-busy={pending}>
-              <span className="inline-flex skew-x-12 items-center gap-2">{pending && <LoaderCircle className="size-4 motion-safe:animate-spin" aria-hidden />}{pending ? t.retrying : t.retry}</span>
+              {box}
+              <span className="inline-flex items-center gap-2">{pending && <LoaderCircle className="size-4 motion-safe:animate-spin" aria-hidden />}{pending ? t.retrying : t.retry}</span>
             </button>
             {alert.href && <Link href={alert.href} className="min-h-10 content-center text-sm font-display font-bold text-paper underline decoration-ash underline-offset-4 hover:decoration-paper focus-visible:outline-2 focus-visible:outline-paper">{t.openMatchAdmin}</Link>}
           </>
-        ) : alert.href && <Link href={alert.href} className={button}><span className="skew-x-12">{text.button}</span></Link>}
+        ) : alert.href && <Link href={alert.href} className={button}>{box}{text.button}</Link>}
       </div>
       {failed && <p role="alert" className="mt-3 text-sm font-bold text-rose-hi">{t.retryFailed}</p>}
       {alert.detail && (

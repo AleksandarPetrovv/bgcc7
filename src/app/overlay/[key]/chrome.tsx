@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { FeedTeam, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
+import { SlantBg } from "@/components/site/slant";
 import { TEAM as SIDE } from "@/lib/theme";
 import { editionNumber } from "@/lib/format";
 import { EASE } from "@/lib/ease";
@@ -155,7 +156,7 @@ export function TeamPlate({ team, side, big, className }: { team: FeedTeam; side
 export function Slant({ className, layer, style, children }: { className?: string; layer?: string; style?: React.CSSProperties; children: React.ReactNode }) {
   return (
     <span className={cn("relative isolate inline-flex", className)}>
-      <span className={cn("absolute inset-0 -z-10 -skew-x-12", layer)} style={style} aria-hidden />
+      <SlantBg className={layer} style={style} />
       {children}
     </span>
   );

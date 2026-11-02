@@ -1,5 +1,6 @@
 import { ArrowRight, CalendarClock, Crown, ExternalLink, Flag, Mic, Tv, Video } from "lucide-react";
 import { Container, PageTitle, SlantButton, Tag } from "@/components/site/page";
+import { SlantBg } from "@/components/site/slant";
 import { Avatar } from "@/components/site/avatar";
 import { Countdown } from "@/components/site/countdown";
 import { canSee } from "@/lib/authz";
@@ -378,8 +379,9 @@ export default async function Me() {
               <Side team={team} />
             </div>
             <span className="in-slam mx-auto" style={at(0.65)}>
-              <span className="block -skew-x-12 bg-rose px-2.5 py-1 shadow-[3px_3px_0_0_var(--rose-deep)] sm:px-4 sm:py-2">
-                <span className="heading-slam block skew-x-12 text-base text-white sm:text-2xl">{t.common.vs}</span>
+              <span className="relative isolate block px-2.5 py-1 sm:px-4 sm:py-2">
+                <SlantBg className="bg-rose shadow-[3px_3px_0_0_var(--rose-deep)]" />
+                <span className="heading-slam block text-base text-white sm:text-2xl">{t.common.vs}</span>
               </span>
             </span>
             <div className="in-right-far in-slow min-w-0" style={at(0.3)}>

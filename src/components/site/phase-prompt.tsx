@@ -10,6 +10,7 @@ import { PHASES } from "@/lib/sections";
 import { Glyph } from "./graphics";
 import { useDict } from "./lang";
 import { cn, cssVars } from "@/lib/utils";
+import { SlantBg } from "./slant";
 
 
 export function PhasePrompt({ current, next }: { current: string; next: string }) {
@@ -69,7 +70,7 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
             className="in-pop group relative isolate inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-display font-bold text-white"
             style={cssVars({ "--d": "0.7s" })}
           >
-            <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 bg-rose shadow-[3px_3px_0_0_var(--rose-deep)] group-hover:bg-rose-hi" />
+            <SlantBg className="bg-rose shadow-[3px_3px_0_0_var(--rose-deep)] group-hover:bg-rose-hi" />
             <Check className="size-4" /> {t.admin.prompt.yes(name)}
           </button>
           <Link
@@ -78,7 +79,7 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
             className="in-pop group relative isolate inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-display font-bold text-paper"
             style={cssVars({ "--d": "0.78s" })}
           >
-            <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 border border-line group-hover:border-rose" />
+            <SlantBg className="border border-line group-hover:border-rose" />
             {t.admin.prompt.stages} <ArrowRight className="size-4" />
           </Link>
           <button

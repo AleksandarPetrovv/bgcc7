@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { Modal } from "@/components/site/modal";
 import { SlantButton } from "@/components/site/page";
+import { SlantBg } from "@/components/site/slant";
 import { useDict } from "@/components/site/lang";
 import { DISCORD_URL } from "@/lib/links";
 import { cn } from "@/lib/utils";
@@ -40,8 +41,9 @@ export function DiscordPrompt({ open: ctl, onClose }: { open?: boolean; onClose?
     });
 
   const msg: Record<Fail, string> = { notFound: d.notFound, taken: d.taken, failed: d.failed, dm: d.dmFailed, wait: d.wait, expired: d.expired };
-  const wrap = "flex min-h-11 min-w-0 flex-1 -skew-x-12 border border-line bg-ink focus-within:border-balkan";
-  const field = "adm-bare min-w-0 flex-1 skew-x-12 border-0 bg-transparent px-4 text-base text-paper outline-none placeholder:text-ash";
+  const wrap = "group/dcf relative isolate flex min-h-11 min-w-0 flex-1 border border-transparent";
+  const box = "-inset-px border border-line bg-ink group-focus-within/dcf:border-balkan";
+  const field = "adm-bare min-w-0 flex-1 border-0 bg-transparent px-4 text-base text-paper outline-none placeholder:text-ash";
 
   const close = () => {
     setOwn(false);
@@ -73,7 +75,8 @@ export function DiscordPrompt({ open: ctl, onClose }: { open?: boolean; onClose?
             <label className="sr-only" htmlFor="dc-code">
               {d.codeLabel}
             </label>
-            <span className={cn(wrap, "w-full", step.wrong && "border-rose")}>
+            <span className={cn(wrap, "w-full")}>
+              <SlantBg className={cn(box, step.wrong && "border-rose")} />
               <input
                 id="dc-code"
                 value={code}
@@ -121,6 +124,7 @@ export function DiscordPrompt({ open: ctl, onClose }: { open?: boolean; onClose?
               {d.label}
             </label>
             <span className={wrap}>
+            <SlantBg className={box} />
             <input
               id="dc-name"
               value={name}

@@ -25,6 +25,7 @@ import { osuMap } from "@/lib/links";
 import { modHi, modOn } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { RuleDiamond } from "@/components/site/rule";
+import { SlantBg } from "@/components/site/slant";
 
 export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: string }) {
   const t = useDict();
@@ -125,8 +126,9 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                             {m.title}
                           </a>
                           {skill && m.mod !== "Tiebreaker" && MODS[m.mod] && (
-                            <span className="shrink-0 -skew-x-12 border px-2 py-0.5 text-xs font-display font-black leading-4 sm:text-sm" style={{ borderColor: modHi(MODS[m.mod].color), color: modHi(MODS[m.mod].color) }}>
-                              <span className="inline-block skew-x-12">{MODS[m.mod].short}</span>
+                            <span className="relative isolate shrink-0 border border-transparent px-2 py-0.5 text-xs font-display font-black leading-4 sm:text-sm" style={{ color: modHi(MODS[m.mod].color) }}>
+                              <SlantBg className="-inset-px border" style={{ borderColor: modHi(MODS[m.mod].color) }} />
+                              {MODS[m.mod].short}
                             </span>
                           )}
                         </span>

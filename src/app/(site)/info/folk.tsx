@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Star } from "lucide-react";
 import { SlantButton } from "@/components/site/page";
 import { Letters } from "@/components/site/rich";
+import { SlantBg } from "@/components/site/slant";
 import { InView } from "@/components/site/in-view";
 import type { Dict } from "@/lib/i18n/dict";
 import { DISCORD_URL } from "@/lib/links";
@@ -165,8 +166,9 @@ function StageTable({ p }: { p: FolkProps }) {
           </span>
           <span className="col-span-2 flex flex-wrap gap-1.5 md:col-span-1">
             {r.mods.map(([mod, n, color]) => (
-              <span key={mod} className="num -skew-x-12 border px-1.5 py-0.5 text-xs font-display font-black leading-none" style={{ background: color, borderColor: color, color: "var(--white)" }}>
-                <Letters text={`${n} ${mod}`} d={T} className="inline-block skew-x-12" />
+              <span key={mod} className="num relative isolate border border-transparent px-1.5 py-0.5 text-xs font-display font-black leading-none" style={{ color: "var(--white)" }}>
+                <SlantBg className="-inset-px border" style={{ background: color, borderColor: color }} />
+                <Letters text={`${n} ${mod}`} d={T} />
               </span>
             ))}
           </span>
