@@ -1,4 +1,5 @@
 import "server-only";
+import { normEdition } from "@/lib/boot";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { workUnitAsyncStorage } from "next/dist/server/app-render/work-unit-async-storage.external";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -53,8 +54,11 @@ export const setCurrentEdition = (e: Edition) => {
 
 export async function ensureEdition() {
   if (g.bgccEdition) return;
-  const rows = await clientBGCC6<{ edition: string }[]>`select edition from public.settings where id = 1`.catch(() => null);
-  if (rows) g.bgccEdition = rows[0]?.edition === "bgcc6" ? "bgcc6" : "bgcc7";
+  const rows = await clientBGCC6<{ edition: string }[]>`select edition from public.settings where id = 1`.catch((e) => {
+    console.error("[db] edition", e);
+    return null;
+  });
+  if (rows) g.bgccEdition = normEdition(rows[0]?.edition);
 }
 
 export const dbOf = (e: Edition) => (e === "bgcc6" ? dbBGCC6 : base);

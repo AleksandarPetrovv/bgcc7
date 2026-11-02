@@ -28,6 +28,7 @@ async function sharedFeed(matchId: string) {
 }
 
 export async function GET(req: Request, { params }: { params: Promise<{ key: string }> }) {
+  // proxy.ts only lowercases page urls, so the api does it for its own key
   const key = decodeURIComponent((await params).key).toLowerCase();
   if (!(await resolveOverlay(key)).found) return Response.json({ error: "notfound" }, { status: 404 });
 

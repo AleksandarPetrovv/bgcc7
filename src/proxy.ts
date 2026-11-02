@@ -13,10 +13,13 @@ const LIMITS = {
   download: tier(10),
   relay: tier(1500),
   page: tier(600),
+  // requests without any ip header: only the in-container discord tick, which proves itself with a key
+  internal: tier(120),
 };
 
 function bucket(req: NextRequest, path: string): keyof typeof LIMITS {
   if (path.startsWith("/api/auth") || path === "/api/relay/start") return "auth";
+  // the helper's busy calls; its /me and /stream polls are GETs (page tier) and /bye is a POST (write tier) on purpose
   if (path === "/api/relay/in" || path === "/api/relay/claim" || path === "/api/relay/score") return "relay";
   if (path.startsWith("/download/")) return "download";
   if (req.method !== "GET" && req.method !== "HEAD") return "write";
@@ -32,9 +35,9 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(`${site}${path}${req.nextUrl.search}`, 308);
   }
   const ip = ipOf(req);
-  const b = bucket(req, path);
+  const b = ip === "anon" ? "internal" : bucket(req, path);
   try {
-    await LIMITS[b].consume(`${b}:${ip}`, ip === "anon" ? 0.2 : 1);
+    await LIMITS[b].consume(`${b}:${ip}`);
   } catch {
     return new NextResponse("slow down", { status: 429, headers: { "Retry-After": "60" } });
   }

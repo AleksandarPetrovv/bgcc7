@@ -1,10 +1,11 @@
-import { createHash, timingSafeEqual } from "node:crypto";
+import { timingSafeEqual } from "node:crypto";
+import { tickKey } from "@/lib/boot";
 import { ensureEdition, withEdition } from "@/db";
 import { tick } from "@/db/discord-bot";
 
 export const dynamic = "force-dynamic";
 
-const key = () => createHash("sha256").update(`discord-tick:${process.env.AUTH_SECRET ?? ""}`).digest();
+const key = () => Buffer.from(tickKey(process.env.AUTH_SECRET ?? ""), "hex");
 
 // called every minute by instrumentation.ts from inside the container; the header proves it
 export async function POST(req: Request) {
