@@ -124,7 +124,7 @@ const meta = (m: PoolMap) => ({
 const VOTE_NOTES = ["fits the slot well", "a bit too hard", "too easy for this round", "great pick", "plays fine", "meh", "love this one", "too long", "nice skillset check", "bit generic"];
 
 const day = (iso: string, h: number) => fromSofiaInput(`${iso}T${String(h).padStart(2, "0")}:00`)!;
-const WEEKS = ["2027-12-04", "2027-12-11", "2027-12-18", "2027-12-25", "2028-01-08"];
+const WEEKS = ["2027-09-18", "2027-09-25", "2027-10-02", "2027-10-09", "2027-10-16"];
 const WEEK_OF: Record<string, number> = { "round-of-16": 0, quarterfinals: 1, semifinals: 2, finals: 3, "grand-finals": 4 };
 
 export async function seedTestData() {
