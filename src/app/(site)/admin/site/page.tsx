@@ -18,7 +18,7 @@ export default async function AdminSite() {
 
   return (
     <>
-      <PageTitle>{t.admin.menu.site}</PageTitle>
+      <PageTitle mark="chain">{t.admin.menu.site}</PageTitle>
 
       <Cascade className="grid grid-cols-1 gap-6 xl:grid-cols-2" step={0.06}>
         <div className="space-y-6">

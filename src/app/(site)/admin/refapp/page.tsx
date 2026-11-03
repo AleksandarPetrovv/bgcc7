@@ -35,7 +35,7 @@ export default async function RefApp({ searchParams }: { searchParams: Promise<R
 
   return (
     <>
-      <PageTitle mark="chevrons">{t.admin.menu.refapp}</PageTitle>
+      <PageTitle mark="whistle">{t.admin.menu.refapp}</PageTitle>
       <Cascade className="grid max-w-3xl gap-6 [--d:0.35s]" step={0.08}>
         {st && (
           <Panel title={r.linkTitle} i={1}>

@@ -33,7 +33,7 @@ export default async function AdminPhase() {
 
   return (
     <>
-      <PageTitle>{t.admin.menu.phase}</PageTitle>
+      <PageTitle mark="timeline">{t.admin.menu.phase}</PageTitle>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <Panel title={t.admin.phaseNow} help={t.admin.phaseHelp} className="xl:col-span-2" i={0}>
           <ActionForm action={setPhase} submit={t.admin.applyPhase} className="space-y-4">

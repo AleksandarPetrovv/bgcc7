@@ -26,7 +26,7 @@ export default async function Stream() {
 
   return (
     <>
-      <PageTitle mark="chevrons">{t.admin.menu.stream}</PageTitle>
+      <PageTitle mark="camera">{t.admin.menu.stream}</PageTitle>
       <Cascade className="grid max-w-4xl gap-6" step={0.06}>
         {list.length === 0 && <p className="text-sm font-bold text-ash">{all ? s.noneAll : s.none}</p>}
         {list.map((m, i) => (

@@ -22,7 +22,7 @@ export default async function AdminMatches() {
 
   return (
     <>
-      <PageTitle>{t.admin.menu.matches}</PageTitle>
+      <PageTitle mark="swords">{t.admin.menu.matches}</PageTitle>
       <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
         <Words text={t.admin.matchesHelp} d={0.15} s={0.012} />
       </p>

@@ -23,7 +23,7 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
 
   return (
     <>
-      <PageTitle>{t.admin.menu.screening}</PageTitle>
+      <PageTitle mark="screen">{t.admin.menu.screening}</PageTitle>
       <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
         <Words text={t.admin.screeningHelp} d={0.15} s={0.012} />
       </p>

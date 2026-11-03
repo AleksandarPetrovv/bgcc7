@@ -13,7 +13,7 @@ export default async function AdminFormat() {
   if (!can(viewer?.roles, "format")) notFound();
   return (
     <>
-      <PageTitle mark="bars">{t.admin.menu.format}</PageTitle>
+      <PageTitle mark="plan">{t.admin.menu.format}</PageTitle>
       <FormatEditor initial={plan} edit={can(viewer?.roles, "formatEdit")} />
     </>
   );

@@ -20,7 +20,7 @@ export default async function PoolCreate({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <PageTitle>{t.admin.poolCreate}</PageTitle>
+      <PageTitle mark="notes">{t.admin.poolCreate}</PageTitle>
       <LinkTabs
         className="mb-6"
         label={t.admin.menu.mappools}

@@ -21,7 +21,7 @@ export default async function AdminLog({ searchParams }: PageProps<"/admin/log">
   }
   return (
     <>
-      <PageTitle>{t.admin.menu.log}</PageTitle>
+      <PageTitle mark="log">{t.admin.menu.log}</PageTitle>
       <StaffFilter options={options} value={filter === undefined ? "" : String(filter)} label={t.admin.audit.filterStaff} all={t.admin.audit.allStaff} />
       <LogTable key={filter ?? "all"} rows={rows} ctx={ctx} lang={lang} t={t} empty={t.admin.noLog} />
     </>

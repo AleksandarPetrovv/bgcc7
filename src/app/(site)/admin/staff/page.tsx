@@ -17,7 +17,7 @@ export default async function AdminStaff() {
   if (!can(viewer?.roles, "staff")) notFound();
   return (
     <>
-      <PageTitle>{t.admin.menu.staff}</PageTitle>
+      <PageTitle mark="badge">{t.admin.menu.staff}</PageTitle>
       <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
         <Words text={t.admin.staffHelp} d={0.15} s={0.012} />
       </p>

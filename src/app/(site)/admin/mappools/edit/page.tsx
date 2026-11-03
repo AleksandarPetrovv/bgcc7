@@ -55,7 +55,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
 
   return (
     <>
-      <PageTitle>{t.admin.menu.mappools}</PageTitle>
+      <PageTitle mark="notes">{t.admin.menu.mappools}</PageTitle>
       <PoolMode t={t} on="edit" stage={stage.slug} edit={edit} />
 
       <LinkTabs

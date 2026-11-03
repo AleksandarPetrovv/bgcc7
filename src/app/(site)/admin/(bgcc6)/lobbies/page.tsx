@@ -56,7 +56,7 @@ export default async function AdminLobbies() {
 
   return (
     <>
-      <PageTitle>{t.admin.menu.lobbies}</PageTitle>
+      <PageTitle mark="stopwatch">{t.admin.menu.lobbies}</PageTitle>
 
       <Panel title={t.admin.newLobby} className="mb-6">
         <ActionForm action={createLobby} submit={t.admin.create} className="space-y-4">

@@ -49,7 +49,7 @@ export default async function AdminTeams() {
 
   return (
     <>
-      <PageTitle>{t.admin.menu.teams}</PageTitle>
+      <PageTitle mark="team">{t.admin.menu.teams}</PageTitle>
       <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
         <Words text={suiji ? t.admin.bwsHelp(need) : t.admin.teamsHelp(settings.qualifyCount)} d={0.15} s={0.012} />
       </p>

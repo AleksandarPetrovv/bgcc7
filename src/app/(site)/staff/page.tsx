@@ -21,7 +21,7 @@ export default async function Staff() {
 
   return (
     <Container>
-      <PageTitle mark="dots">
+      <PageTitle mark="badge">
         {t.staff.title}
       </PageTitle>
 
