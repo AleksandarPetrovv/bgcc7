@@ -181,10 +181,10 @@ function Hosts({ p, compact, d = 0 }: { p: FolkProps; compact?: boolean; d?: num
   if (!hosts.length) return <div className="hidden lg:col-span-6 lg:block" aria-hidden />;
   return (
     <InView className={cn("relative flex items-center border-t border-dashed border-paper/10 py-9 lg:col-span-6 lg:border-l lg:border-t-0 lg:pl-12", compact ? "lg:py-10" : "lg:py-0")}>
-      <div className={cn("mx-auto grid w-full grid-cols-2 gap-6 sm:gap-10", compact ? "lg:max-w-md" : "lg:absolute lg:inset-y-7 lg:left-12 lg:right-0 lg:w-auto lg:grid-cols-[auto_auto] lg:justify-center lg:gap-6 lg:grid-rows-[minmax(0,1fr)] xl:inset-y-9")}>
+      <div className={cn("mx-auto grid w-full grid-cols-2 gap-6 sm:gap-10", compact ? "lg:max-w-md" : "lg:absolute lg:inset-y-7 lg:left-12 lg:right-0 lg:w-auto lg:grid-cols-[auto_auto] lg:content-center lg:justify-center lg:gap-6 lg:[container-type:size] xl:inset-y-9")}>
         {hosts.slice(0, 2).map((h, i) => (
-          <a key={h.osuId} href={osuUser(h.osuId)} target="_blank" rel="noreferrer" className={cn("group flex min-w-0 flex-col", !compact && "lg:grid lg:min-h-0 lg:grid-rows-[minmax(0,1fr)_auto_auto]")}>
-            <span className={cn("in-up in-slow relative aspect-square overflow-hidden", !compact && "lg:h-full lg:max-w-full lg:justify-self-center")} style={dv(d + i * 0.15)}>
+          <a key={h.osuId} href={osuUser(h.osuId)} target="_blank" rel="noreferrer" className="group flex min-w-0 flex-col">
+            <span className={cn("in-up in-slow relative aspect-square overflow-hidden", !compact && "lg:w-[min(calc(100cqh_-_2.5rem_-_clamp(1.4rem,2vw,2.4rem)),calc(50cqw_-_0.75rem))]")} style={dv(d + i * 0.15)}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={h.avatarUrl ? avatarPath(h.osuId, true) : ""} alt="" className="absolute inset-0 size-full object-cover grayscale-[.3] transition duration-500 group-hover:scale-[1.03] group-hover:grayscale-0" />
               <span className="absolute inset-0 bg-gradient-to-t from-well/45 via-transparent to-transparent" aria-hidden />
