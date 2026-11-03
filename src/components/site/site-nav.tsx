@@ -162,6 +162,10 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
   const shadowRef = useRef<HTMLSpanElement>(null);
   const glintRef = useRef<HTMLSpanElement>(null);
   const placed = useRef(false);
+  const rowRef = useRef<HTMLDivElement>(null);
+  const rightRef = useRef<HTMLDivElement>(null);
+  // null until measured: css decides (xl), then the full nav only shows when it fits with room to spare
+  const [fit, setFit] = useState<boolean | null>(null);
   const [clicked, setClicked] = useState<{ base: string; from: string } | null>(null);
   // a nav click only highlights early until the route changes; otherwise returning to `from` (e.g. via the logo) revives it
   if (clicked && clicked.from !== path) setClicked(null);
@@ -199,17 +203,48 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
     const ro = new ResizeObserver(again);
     navRef.current?.querySelectorAll("a").forEach((a) => ro.observe(a));
     return () => ro.disconnect();
-  }, [activeBase, meDot, schedDot]);
+  }, [activeBase, meDot, schedDot, fit]);
+
+  useLayoutEffect(() => {
+    const row = rowRef.current, nav = navRef.current, right = rightRef.current;
+    if (!row || !nav || !right) return;
+    const measure = () => {
+      const left = nav.previousElementSibling?.getBoundingClientRect().right ?? 0;
+      const kids = [...right.children].filter((k) => !(k as HTMLElement).dataset.compact && k.getBoundingClientRect().width > 0);
+      const gap = parseFloat(getComputedStyle(right).columnGap) || 0;
+      const rightW = kids.reduce((s, k) => s + k.getBoundingClientRect().width, 0) + gap * Math.max(0, kids.length - 1);
+      const rowGap = parseFloat(getComputedStyle(row).columnGap) || 0;
+      const r = row.getBoundingClientRect();
+      const start = r.left + (r.width - nav.offsetWidth) / 2;
+      const end = r.right - (parseFloat(getComputedStyle(row).paddingRight) || 0) - rightW;
+      setFit(window.innerWidth >= 1024 && start - left >= rowGap + 8 && end - (start + nav.offsetWidth) >= rowGap + 8);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(row);
+    ro.observe(right);
+    nav.querySelectorAll("a").forEach((a) => ro.observe(a));
+    return () => ro.disconnect();
+  }, [desk.length, user, register, match]);
+  const compact = fit === null ? "xl:hidden" : fit ? "hidden" : "";
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-field/90 backdrop-blur-md">
-      <div className="flex h-16 items-center gap-2 pr-4 sm:gap-6 lg:h-20 lg:pr-6">
+      <div ref={rowRef} className="relative flex h-16 items-center gap-2 pr-4 sm:gap-6 lg:h-20 lg:pr-6">
         <Link href="/" className="group flex h-full items-center gap-1 pl-4 lg:pl-6" aria-label={t.nav.homeLabel}>
           <Wordmark size="md" className="text-paper" />
         </Link>
         <EditionView className="ml-1 sm:ml-0" />
         <ThemeToggle />
 
-        <nav ref={navRef} className="relative ml-auto hidden h-full items-stretch xl:flex" aria-label={t.nav.main}>
+        <nav
+          ref={navRef}
+          className={cn(
+            "h-full items-stretch",
+            fit === null ? "relative ml-auto hidden xl:flex" : fit ? "absolute left-1/2 top-0 flex -translate-x-1/2" : "pointer-events-none invisible absolute left-0 top-0 flex",
+          )}
+          aria-label={t.nav.main}
+          aria-hidden={fit === false || undefined}
+        >
           <span ref={shadowRef} className={cn(bar, "bottom-0")} aria-hidden>
             <span className="block h-full -skew-x-[30deg] bg-rose-deep" />
           </span>
@@ -231,7 +266,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
                   }}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "group relative flex items-center whitespace-nowrap px-2.5 text-[0.78rem] font-display font-bold transition-colors 2xl:px-3.5",
+                    "group relative flex items-center whitespace-nowrap px-2 text-[0.78rem] font-display font-bold transition-colors",
                     active ? "text-paper" : "text-paper/70 hover:text-paper",
                   )}
                 >
@@ -245,7 +280,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 xl:ml-4">
+        <div ref={rightRef} className={cn("flex items-center gap-2", fit === null ? "ml-auto xl:ml-4" : "ml-auto")}>
           {register && (
           <Link
             href="/register"
@@ -297,11 +332,13 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
           {user?.admin && (
             <Link
               href="/admin"
+              data-compact="1"
               aria-label={t.nav.admin}
               title={t.nav.admin}
               aria-current={isActive(path, "/admin") ? "page" : undefined}
               className={cn(
-                "group relative -mr-2 flex size-10 items-center justify-center xl:hidden",
+                "group relative -mr-2 flex size-10 items-center justify-center",
+                compact,
                 isActive(path, "/admin") && "adm-on",
               )}
             >
@@ -309,7 +346,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
             </Link>
           )}
           <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger className="relative p-2 text-paper xl:hidden" aria-label={t.nav.openMenu}>
+            <SheetTrigger data-compact="1" className={cn("relative p-2 text-paper", compact)} aria-label={t.nav.openMenu}>
               <Menu className="size-6" />
               {(live.length > 0 || dots.length > 0 || meDot) && <span className="absolute right-1.5 top-1.5 size-2 animate-pulse rounded-full bg-rose" aria-hidden />}
             </SheetTrigger>
