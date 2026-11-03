@@ -27,10 +27,10 @@ export function EditionView({ className }: { className?: string }) {
           aria-pressed={e === edition}
           disabled={pending}
           onClick={() => e !== edition && pick(e)}
+          title={e.toUpperCase()}
           className={cn("px-2.5 uppercase transition-colors sm:px-3", e === edition ? "bg-paper text-ink" : "text-ash hover:text-paper")}
         >
           <span className="inline-block skew-x-12">
-            <span className="hidden sm:inline">bgcc</span>
             {e.slice(4)}
           </span>
         </button>
