@@ -47,7 +47,7 @@ export default async function AdminScheduling() {
 
   return (
     <>
-      <PageTitle>{t.admin.menu.scheduling}</PageTitle>
+      <PageTitle mark="clock">{t.admin.menu.scheduling}</PageTitle>
       <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">{s.admin.help}</p>
       <Cascade className="space-y-8" step={0.035}>
         {list.map((st, n) => {

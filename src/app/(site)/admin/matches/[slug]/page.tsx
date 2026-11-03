@@ -36,7 +36,7 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
       <Link href="/admin/matches" className="in-left mb-4 inline-flex items-center gap-1.5 text-xs font-display font-bold text-ash hover:text-paper">
         <ArrowLeft className="size-3.5" /> {t.admin.ms.back}
       </Link>
-      <PageTitle mark="bars" right={sb && <span className="num text-3xl text-paper">{sb.score.join(" - ")}</span>}>
+      <PageTitle mark="swords" right={sb && <span className="num text-3xl text-paper">{sb.score.join(" - ")}</span>}>
         {`${sides[0]?.name ?? t.common.tbd} vs ${sides[1]?.name ?? t.common.tbd}`}
       </PageTitle>
       <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">

@@ -49,7 +49,7 @@ export function AdminNav({ items }: { items: { href: string; label: string }[] }
             className={cn(
               "group relative flex min-w-0 flex-1 items-center justify-center gap-3 whitespace-nowrap py-2 lg:flex-none lg:justify-start lg:whitespace-normal lg:px-2.5 text-[0.8rem] font-display font-bold transition-colors duration-200",
               active ? "text-white" : key === "refapp" ? "text-balkan-hi hover:text-paper" : "text-ash hover:text-paper",
-              key === "refapp" && !active && "lg:mb-2 lg:border lg:border-dashed lg:border-balkan/50",
+              key === "refapp" && !active && "lg:mb-2",
             )}
           >
             {active && (

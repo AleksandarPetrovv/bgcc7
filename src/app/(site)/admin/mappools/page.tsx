@@ -32,7 +32,7 @@ export default async function MappoolsHub() {
   ];
   return (
     <>
-      <PageTitle>{t.admin.menu.mappools}</PageTitle>
+      <PageTitle mark="notes">{t.admin.menu.mappools}</PageTitle>
       <div className="grid gap-4 sm:grid-cols-2">
         {tiles.map(({ href, Icon, title, sub, hot }, i) => (
           <div

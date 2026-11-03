@@ -59,7 +59,7 @@ export default async function AdminDraft() {
 
   return (
     <>
-      <PageTitle mark="glints">{t.admin.menu.draft}</PageTitle>
+      <PageTitle mark="draft">{t.admin.menu.draft}</PageTitle>
       <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
         <Words text={t.admin.dr.help} d={0.15} s={0.012} />
       </p>

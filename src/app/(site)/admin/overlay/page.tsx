@@ -30,7 +30,7 @@ export default async function Overlay({ searchParams }: { searchParams: Promise<
 
   return (
     <>
-      <PageTitle mark="chevrons">{t.admin.menu.overlay}</PageTitle>
+      <PageTitle mark="layers">{t.admin.menu.overlay}</PageTitle>
       <div className="grid max-w-3xl gap-6">
         {st && (
           <Panel title={r.linkTitle} i={i++}>

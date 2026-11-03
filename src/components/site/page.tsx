@@ -173,12 +173,14 @@ function Note({ className, delay, beamed }: { className: string; delay: number; 
 
 export function Notes() {
   return (
-    <span className="mb-[0.16em] flex items-end gap-[0.04em] self-end" aria-hidden>
+    <span className="mb-[0.16em] flex items-end self-end" aria-hidden>
       <Note className="size-[0.4em] fill-paper" delay={0.25} beamed />
-      <span className="mb-[0.18em]">
-        <Note className="size-[0.3em] fill-balkan" delay={0.37} />
+      <span className="-ml-[0.06em] mb-[0.12em]">
+        <Note className="size-[0.28em] fill-balkan" delay={0.37} />
       </span>
-      <Note className="size-[0.26em] fill-rose" delay={0.49} />
+      <span className="-ml-[0.09em]">
+        <Note className="size-[0.24em] fill-rose" delay={0.49} />
+      </span>
     </span>
   );
 }
@@ -313,7 +315,165 @@ function Clock() {
   );
 }
 
-const MARKS = { gears: Gears, blocks: Blocks, streaks: Streaks, dots: Dots, glints: Glints, squiggle: Squiggle, chevrons: Chevrons, bubble: Bubble, people: People, cards: Cards, notes: Notes, tick: Tick, bars: Bars, me: Me, team: Team, users: Users, swords: Swords, clock: Clock };
+const box = "mb-[0.12em] h-[0.6em] w-[0.6em] self-end overflow-visible";
+const at = (d: number) => ({ animationDelay: `${d}s` });
+
+function Stopwatch() {
+  return (
+    <span className="relative mb-[0.12em] block h-[0.6em] w-[0.6em] self-end" aria-hidden>
+      <svg viewBox="0 0 24 24" className="absolute inset-0 size-full overflow-visible">
+        <circle cx="12" cy="14" r="8.5" {...ln} strokeWidth={1.9} className="mk-pop stroke-rose" style={{ transformOrigin: "50% 50%", ...at(0.2) }} />
+        <path d="M10 2.5h4M12 2.5v3" {...ln} className="mk-pop stroke-paper" style={at(0.35)} />
+        <path d="m19 6.5 1.5-1.5" {...ln} className="mk-pop stroke-balkan" style={at(0.45)} />
+      </svg>
+      <span className="mk-sweep absolute inset-0" style={{ transformOrigin: "50% 58.33%" }}>
+        <svg viewBox="0 0 24 24" className="size-full overflow-visible">
+          <path d="M12 13.3V8" {...ln} className="stroke-paper" />
+        </svg>
+      </span>
+    </span>
+  );
+}
+
+function Badge() {
+  return (
+    <svg viewBox="0 0 24 24" className={box} aria-hidden>
+      <g className="mk-hang">
+        <g className="mk-sway" style={at(1.7)}>
+          <path d="M7 1.5 12 9l5-7.5" pathLength={1} {...ln} className="mk-pen stroke-rose" style={at(0.1)} />
+          <g className="mk-show" style={at(0.3)}>
+            <rect x="5" y="9" width="14" height="13" rx="2" {...ln} className="stroke-paper" />
+            <circle cx="12" cy="14" r="2" className="mk-dot fill-balkan" style={at(1.15)} />
+            <path d="M9 18.5h6" pathLength={1} {...ln} className="mk-pen stroke-paper" style={at(1.3)} />
+          </g>
+        </g>
+      </g>
+    </svg>
+  );
+}
+
+function Whistle() {
+  return (
+    <svg viewBox="0 0 24 24" className={box} aria-hidden>
+      <g className="mk-clash">
+        <g className="mk-pop" style={at(0.2)}>
+          <circle cx="8" cy="15" r="5" {...ln} className="stroke-paper" />
+          <path d="M8 10h12.5a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5H13" {...ln} className="stroke-paper" />
+          <circle cx="8" cy="15" r="1.6" className="fill-rose" />
+        </g>
+      </g>
+      <path d="M14 6.5 15.5 3.5M18 7l2.5-2.5" {...ln} className="mk-toot stroke-balkan" />
+    </svg>
+  );
+}
+
+function Draft() {
+  return (
+    <svg viewBox="0 0 24 24" className={box} aria-hidden>
+      <g className="mk-pop" style={at(0.2)}>
+        <rect x="1.5" y="5" width="9" height="14" rx="1.5" {...ln} className="stroke-balkan" transform="rotate(-8 6 12)" />
+      </g>
+      <g className="mk-pop" style={at(0.32)}>
+        <rect x="13.5" y="5" width="9" height="14" rx="1.5" {...ln} className="stroke-paper" transform="rotate(8 18 12)" />
+      </g>
+      <path d="M3.8 12.6 5.6 14.4 8.6 10.6" pathLength={1} {...ln} className="mk-pen stroke-balkan" style={at(0.6)} />
+      <path d="M14.5 17.5 21.5 6.5" pathLength={1} {...ln} className="mk-pen stroke-rose" style={at(0.75)} />
+    </svg>
+  );
+}
+
+function Camera() {
+  return (
+    <svg viewBox="0 0 24 24" className={box} aria-hidden>
+      <g className="mk-pop" style={at(0.2)}>
+        <rect x="1.5" y="6.5" width="14" height="11" rx="2" {...ln} className="stroke-paper" />
+        <path d="m15.5 10.5 6-3v9l-6-3Z" {...ln} className="stroke-paper" />
+      </g>
+      <circle cx="6" cy="10.5" r="1.7" className="mk-rec fill-rose" />
+    </svg>
+  );
+}
+
+function Layers() {
+  return (
+    <svg viewBox="0 0 24 24" className={box} aria-hidden>
+      <path d="m2 16.5 10 5 10-5" {...ln} className="mk-pop stroke-paper" style={{ ...at(0.2) }} />
+      <g className="mk-drift" style={{ "--y": "1.2px" } as React.CSSProperties}>
+        <path d="m2 12 10 5 10-5" {...ln} className="mk-pop stroke-balkan" style={at(0.3)} />
+      </g>
+      <g className="mk-drift" style={{ "--y": "-1.6px" } as React.CSSProperties}>
+        <path d="M12 2.5 22 7.5 12 12.5 2 7.5Z" className="mk-pop fill-rose" style={at(0.42)} />
+      </g>
+    </svg>
+  );
+}
+
+function Plan() {
+  const tiles = [
+    [1.5, 2, "fill-paper"], [9, 2, "fill-balkan"], [16.5, 2, "fill-rose"],
+    [1.5, 9.5, "fill-rose"], [9, 9.5, "fill-paper"], [16.5, 9.5, "fill-balkan"],
+  ] as const;
+  return (
+    <svg viewBox="0 0 24 24" className={box} aria-hidden>
+      {tiles.map(([x, y, c], i) => (
+        <rect key={i} x={x} y={y} width="6" height="6" rx="1.4" className={cn("mk-crowd", c)} style={delays(0.2 + i * 0.07, 1.5 + i * 0.4)} />
+      ))}
+      <path d="M1.5 20.5h21" pathLength={1} {...ln} className="mk-pen stroke-paper/50" style={at(0.7)} />
+    </svg>
+  );
+}
+
+function Timeline() {
+  return (
+    <svg viewBox="0 0 24 24" className={box} aria-hidden>
+      <path d="M3 12h18" pathLength={1} {...ln} className="mk-pen stroke-paper/50" style={at(0.2)} />
+      <circle cx="3.5" cy="12" r="2.2" className="mk-pop fill-paper" style={at(0.3)} />
+      <circle cx="12" cy="12" r="4.5" className="mk-ping fill-none stroke-rose" strokeWidth={1.4} />
+      <circle cx="12" cy="12" r="3" className="mk-pop fill-rose" style={at(0.45)} />
+      <circle cx="20.5" cy="12" r="2.2" {...ln} strokeWidth={1.8} className="mk-pop fill-ink stroke-balkan" style={at(0.6)} />
+    </svg>
+  );
+}
+
+function Screen() {
+  return (
+    <svg viewBox="0 0 24 24" className={box} aria-hidden>
+      <g className="mk-scan">
+        <g className="mk-pop" style={at(0.2)}>
+          <circle cx="10" cy="10" r="7" {...ln} className="stroke-paper" />
+          <path d="m15.2 15.2 6 6" {...ln} strokeWidth={3} className="stroke-rose" />
+        </g>
+        <path d="M6.8 10.2 9 12.4 13 7.8" pathLength={1} {...ln} className="mk-pen stroke-balkan" style={at(0.55)} />
+      </g>
+    </svg>
+  );
+}
+
+function Chain() {
+  return (
+    <svg viewBox="0 0 24 24" className={box} aria-hidden>
+      <g className="mk-drift" style={{ "--x": "0.8px", "--y": "-0.8px" } as React.CSSProperties}>
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" pathLength={1} {...ln} className="mk-pen stroke-rose" style={at(0.2)} />
+      </g>
+      <g className="mk-drift" style={{ "--x": "-0.8px", "--y": "0.8px" } as React.CSSProperties}>
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" pathLength={1} {...ln} className="mk-pen stroke-paper" style={at(0.45)} />
+      </g>
+    </svg>
+  );
+}
+
+function Log() {
+  return (
+    <svg viewBox="0 0 24 24" className={box} aria-hidden>
+      <rect x="4" y="2" width="16" height="20" rx="2" {...ln} className="mk-pop stroke-paper" style={at(0.2)} />
+      <path d="M8 7.5h8" pathLength={1} {...ln} className="mk-pen stroke-rose" style={at(0.45)} />
+      <path d="M8 12h8" pathLength={1} {...ln} className="mk-pen stroke-balkan" style={at(0.65)} />
+      <path d="M8 16.5h5" pathLength={1} {...ln} className="mk-pen stroke-paper" style={at(0.85)} />
+    </svg>
+  );
+}
+
+const MARKS = { gears: Gears, blocks: Blocks, streaks: Streaks, dots: Dots, glints: Glints, squiggle: Squiggle, chevrons: Chevrons, bubble: Bubble, people: People, cards: Cards, notes: Notes, tick: Tick, bars: Bars, me: Me, team: Team, users: Users, swords: Swords, clock: Clock, stopwatch: Stopwatch, badge: Badge, whistle: Whistle, draft: Draft, camera: Camera, layers: Layers, plan: Plan, timeline: Timeline, screen: Screen, chain: Chain, log: Log };
 export type Mark = keyof typeof MARKS;
 const FALLBACK: Mark[] = ["blocks", "streaks", "dots", "glints", "squiggle", "chevrons", "bars"];
 

@@ -53,7 +53,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
 
   return (
     <>
-      <PageTitle>{t.admin.menu.mappools}</PageTitle>
+      <PageTitle mark="notes">{t.admin.menu.mappools}</PageTitle>
       <PoolMode t={t} on="sheet" stage={stage.slug} edit={edit} />
 
       <LinkTabs

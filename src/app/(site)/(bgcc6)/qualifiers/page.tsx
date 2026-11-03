@@ -40,7 +40,7 @@ export default async function Lobbies() {
 
   return (
     <Container plain>
-      <PageTitle mark="streaks" right={tag}>{t.qual.title}</PageTitle>
+      <PageTitle mark="stopwatch" right={tag}>{t.qual.title}</PageTitle>
       {hint && (
         <p className="-mt-4 mb-8 text-sm text-ash">
           <Words text={hint} d={0.2} s={0.025} />
