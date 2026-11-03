@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="166" height="36" viewBox="0 0 166 36">
+<g transform="translate(83.0 18.0) skewX(-12) translate(-83.0 -18.0)"><rect x="11" y="4" width="150" height="32" fill="#9a3b62"/><rect x="8" y="1" width="150" height="32" fill="#c4577f"/></g>
+<g transform="translate(26 9.0) scale(0.75)" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></g>
+<text x="52" y="23.0" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="800" fill="#fff">Light mode</text>
+</svg>
