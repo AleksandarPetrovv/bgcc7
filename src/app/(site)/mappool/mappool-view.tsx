@@ -106,7 +106,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                       </span>
                       <div className="flex min-w-0 flex-1 flex-col justify-center">
                         <span className="flex min-w-0 items-center gap-2">
-                          <a href={osuMap(m.id)} target="_blank" rel="noreferrer" className="truncate text-base font-display font-black transition-colors hover:text-[var(--lift)] sm:text-lg 2xl:text-xl">
+                          <a href={osuMap(m.id)} target="_blank" rel="noreferrer" className="min-w-0 truncate text-base font-display font-black transition-colors hover:text-[var(--lift)] sm:text-lg 2xl:text-xl">
                             {m.title}
                           </a>
                           {skill && m.mod !== "Tiebreaker" && MODS[m.mod] && (
