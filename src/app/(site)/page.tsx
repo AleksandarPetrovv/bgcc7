@@ -253,7 +253,7 @@ function MiniBracket() {
 function Timeline({ t, timeline, locale, states }: { t: Dict; timeline: TimelineRow[]; locale: string; states: ReturnType<typeof phaseStates> }) {
   return (
     <InView as="ol" className="relative mt-6">
-      <span className="anim-stitch absolute bottom-3 left-[7px] top-3 border-l-2 border-dashed border-line" aria-hidden />
+      <span className="absolute bottom-3 left-0 top-3 flex w-4 justify-center" aria-hidden><span className="anim-stitch border-l-2 border-dashed border-line" /></span>
       {timeline.map((e, i) => {
         const current = states[i] === "now";
         const done = states[i] === "done";
@@ -266,17 +266,16 @@ function Timeline({ t, timeline, locale, states }: { t: Dict; timeline: Timeline
             )}
             style={{ "--d": "0.3s", "--i": i, "--s": "0.08s" } as React.CSSProperties}
           >
-            <span className="in-pop absolute left-0 top-1/2 flex size-4 -translate-y-1/2 items-center justify-center bg-ink" style={{ "--d": "0.45s", "--i": i, "--s": "0.08s" } as React.CSSProperties}>
+            <span className="in-pop absolute left-0 top-1/2 flex size-4 -translate-y-1/2 items-center justify-center" style={{ "--d": "0.45s", "--i": i, "--s": "0.08s" } as React.CSSProperties}>
               {current ? (
                 <>
                   <span className="anim-ping-diamond absolute size-2.5 bg-rose" aria-hidden />
                   <span className="size-2.5 rotate-45 bg-rose" />
                 </>
               ) : (
-                <span className={cn("size-2 rotate-45", done ? "bg-ash" : "border border-paper/60")} />
+                <span className={cn("size-2 rotate-45", done ? "bg-ash" : "border border-paper/60 bg-ink")} />
               )}
             </span>
-            {current && <span className="absolute inset-y-0 left-0 w-0.5 bg-rose" aria-hidden />}
             <span className="flex-1">{t.timeline[e.key]}</span>
             <span className="in-wipe num whitespace-nowrap text-base normal-case" style={{ "--d": "0.55s", "--i": i, "--s": "0.08s" } as React.CSSProperties}>{fmtRange(locale, e.from, e.to)}</span>
           </li>
