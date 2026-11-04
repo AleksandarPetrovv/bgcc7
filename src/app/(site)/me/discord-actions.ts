@@ -6,7 +6,8 @@ import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getViewer } from "@/lib/authz";
-import { myCaptainTeam } from "@/db/schedule";
+import { teamOf } from "@/db/schedule";
+import { later, syncTeams } from "@/db/discord-bot";
 import { discordProfile, discordReady, dm, findMember } from "@/lib/discord";
 
 type Fail = "notFound" | "taken" | "failed" | "forbidden" | "dm" | "wait";
@@ -19,16 +20,16 @@ const MAX_TRIES = 5;
 const g = globalThis as unknown as { bgccDiscordCodes?: Map<number, Pending> };
 const codes = (g.bgccDiscordCodes ??= new Map());
 
-async function captain() {
+async function player() {
   const v = await getViewer();
-  return v && discordReady() && (await myCaptainTeam(v.osuId)) ? v.osuId : null;
+  return v && discordReady() && (await teamOf(v.osuId)) ? v.osuId : null;
 }
 
 const takenBy = async (discordId: string, osuId: number) =>
   !!(await db.select({ id: users.osuId }).from(users).where(and(eq(users.discordId, discordId), ne(users.osuId, osuId))).limit(1))[0];
 
 export async function linkDiscord(name: string): Promise<{ ok: true; name: string } | { ok: false; error: Fail }> {
-  const osuId = await captain();
+  const osuId = await player();
   if (!osuId) return { ok: false, error: "forbidden" };
   const prev = codes.get(osuId);
   if (prev && Date.now() - prev.sentAt < RESEND_AFTER) {
@@ -55,7 +56,7 @@ export async function linkDiscord(name: string): Promise<{ ok: true; name: strin
 }
 
 export async function confirmDiscord(code: string): Promise<{ ok: true; name: string } | { ok: false; error: "wrong" | "expired" | "taken" | "failed" | "forbidden" }> {
-  const osuId = await captain();
+  const osuId = await player();
   if (!osuId) return { ok: false, error: "forbidden" };
   const p = codes.get(osuId);
   if (!p || p.exp < Date.now() || p.tries >= MAX_TRIES) {
@@ -70,6 +71,7 @@ export async function confirmDiscord(code: string): Promise<{ ok: true; name: st
     if (await takenBy(p.id, osuId)) return { ok: false, error: "taken" };
     await db.update(users).set({ discordId: p.id, discordName: p.name }).where(eq(users.osuId, osuId));
     await discordProfile(p.id, true);
+    later("sync", syncTeams);
     revalidatePath("/", "layout");
     return { ok: true, name: p.name };
   } catch (e) {
@@ -81,9 +83,10 @@ export async function confirmDiscord(code: string): Promise<{ ok: true; name: st
 
 export async function unlinkDiscord(): Promise<{ ok: boolean }> {
   const v = await getViewer();
-  if (!v || !(await myCaptainTeam(v.osuId))) return { ok: false };
+  if (!v || !(await teamOf(v.osuId))) return { ok: false };
   try {
     await db.update(users).set({ discordId: null, discordName: null }).where(eq(users.osuId, v.osuId));
+    later("sync", syncTeams);
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {

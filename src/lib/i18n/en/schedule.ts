@@ -40,7 +40,7 @@ export const schedule = {
     } as Record<string, string>,
     dc: {
       title: "Link your Discord",
-      text: "Enter your Discord username so you get a DM whenever a schedule request needs your answer. Our bot will DM you a 6 digit code.",
+      text: "Enter your Discord username to get your team role and channel, match reminders and schedule DMs. Our bot will DM you a 6 digit code.",
       need: "You need to be in the BGCC7 Discord server!",
       label: "Discord username",
       check: "Send code",
@@ -54,7 +54,7 @@ export const schedule = {
       dmFailed: "Couldn't DM you. Allow DMs from server members in the BGCC7 server's privacy settings and try again.",
       wait: "A code was just sent. Wait a minute before asking for a new one.",
       expired: "That code expired or had too many wrong tries. Ask for a new one.",
-      ok: (n: string) => `Linked as ${n}. You'll get a DM when you need to answer.`,
+      ok: (n: string) => `Linked as ${n}. You'll get your team role in the BGCC7 server shortly.`,
       notFound: "You're either not in the BGCC7 Discord server or typed your username wrong.",
       failed: "Couldn't reach Discord right now. Try again in a bit.",
       taken: "That Discord account is already linked to another player.",
