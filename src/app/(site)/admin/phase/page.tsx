@@ -11,6 +11,8 @@ import { phaseStates } from "@/lib/dates";
 import { setDates, setPhase, setSections, setTimeline } from "./actions";
 import { getFormat } from "@/db/edition";
 import { isBGCC6 } from "@/db";
+import { discordReady } from "@/lib/discord";
+import { cleanup } from "../discord/actions";
 
 const check = "size-4 shrink-0 accent-rose";
 
@@ -52,6 +54,11 @@ export default async function AdminPhase() {
               ))}
             </div>
           </ActionForm>
+          {s.phase === "finished" && can(viewer?.roles, "discord") && discordReady() && (
+            <div className="mt-4 border-t border-line pt-4">
+              <ActionForm action={cleanup} submit={t.admin.dc.cleanup} confirm={t.admin.dc.confirmCleanup} ghost />
+            </div>
+          )}
         </Panel>
 
         <Panel title={t.admin.sectionsTitle} help={t.admin.sectionsHelp} i={1}>

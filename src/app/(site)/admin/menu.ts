@@ -17,5 +17,6 @@ export const adminMenu = (): { href: string; perm: Perm[] }[] => [
   { href: "/admin/staff", perm: ["staff"] },
   { href: "/admin/log", perm: ["log"] },
   { href: "/admin/settings", perm: ["settings"] },
+  { href: "/admin/discord", perm: ["discord"] },
   { href: "/admin/format", perm: ["format"] },
 ];
