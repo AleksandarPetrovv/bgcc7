@@ -274,10 +274,11 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
                           on ? "text-white font-display font-bold" : lit ? "text-paper" : "text-paper/75",
                         )}
                       >
-                        {lit && !on && (
+                        {/* over the selected option the highlight stays mounted but invisible, so it still slides out to the neighbours */}
+                        {lit && (
                           <motion.span
                             layoutId={`${id}-hi`}
-                            className="absolute inset-0 bg-rose/12"
+                            className={cn("absolute inset-0 bg-rose/12", on && "opacity-0")}
                             transition={{
                               type: "spring",
                               stiffness: 600,
