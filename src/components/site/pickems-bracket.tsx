@@ -22,7 +22,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
   const fill = avail >= 640 ? Math.floor(Math.min(290, Math.max(box.minW, (avail - cols * box.g - 8) / (cols + 1)))) : undefined;
   const { W, G, H, x, LB, POS, WIN, HEADERS, gfCol, width, height } = pickLayout(f, fill);
   const fit = fitBox(width, height, 1);
-  const { slots, picks: clean, resetLive, champion } = resolve(f, picks, seedingOf(matches));
+  const { slots, picks: clean, resetLive, champion } = resolve(f, picks, seedingOf(f, matches));
   const champ = champion ? teamById(champion) : undefined;
   const real = (id: string) => {
     const m = matches.find((x) => x.id === id);
@@ -48,7 +48,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
           {Object.entries(WIN).map(([a, b]) => (
             <path key={a} d={wire(a, b)} pathLength={1} className="in-draw" style={{ "--d": `${0.55 + POS[a][0] * 0.14}s` } as React.CSSProperties} fill="none" stroke={wireColor(a).stroke} strokeOpacity={wireColor(a).opacity} strokeWidth={2} />
           ))}
-          {resetLive && <path d={`M${x(gfCol) + W / 2} ${POS["GF-M1"][1] + H} V${POS["GF-M2"][1]}`} style={{ stroke: "var(--gold)" }} strokeWidth={2} strokeDasharray="3 3" />}
+          {resetLive && <path d={`M${x(gfCol) + W / 2} ${POS["grand-final"][1] + H} V${POS["grand-final-reset"][1]}`} style={{ stroke: "var(--gold)" }} strokeWidth={2} strokeDasharray="3 3" />}
         </svg>
 
         {HEADERS.map((h) => (
@@ -65,7 +65,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
         </div>
 
         {champ && (
-          <div key={champ.id} className="anim-rise absolute border border-gold/40 bg-coal" style={{ left: x(gfCol), top: POS["GF-M2"][1] + H + 30, width: W }}>
+          <div key={champ.id} className="anim-rise absolute border border-gold/40 bg-coal" style={{ left: x(gfCol), top: POS["grand-final-reset"][1] + H + 30, width: W }}>
             <div className="flex items-center gap-1.5 bg-gold px-2.5 py-1 text-[0.7rem] font-display font-bold text-on-fill">
               <Crown className="size-3.5" /> {t.pickems.champion}
             </div>
@@ -94,10 +94,10 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
           </div>
         )}
 
-        {f.order.filter((id) => id !== "GF-M2" || resetLive).map((id) => {
+        {f.order.filter((id) => id !== "grand-final-reset" || resetLive).map((id) => {
           const [c, y] = POS[id];
           const pair = slots[id];
-          const isGf = id.startsWith("GF");
+          const isGf = id.startsWith("grand-");
           return (
             <div
               key={id}

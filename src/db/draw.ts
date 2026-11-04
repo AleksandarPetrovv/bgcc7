@@ -43,7 +43,7 @@ export async function seedBracket() {
     await tx.delete(pickems);
     await tx.update(matches).set({ team1Id: null, team2Id: null, score1: null, score2: null, winner: null, manual: false }).where(ne(matches.id, TEST_MATCH.id));
     for (const [k, { t }] of order.entries()) await tx.update(teams).set({ seed: k + 1 }).where(eq(teams.id, t.id));
-    for (const [k, [s1, s2]] of f.r1.entries()) await tx.update(matches).set({ team1Id: order[s1 - 1].t.id, team2Id: order[s2 - 1].t.id }).where(eq(matches.id, `WB-R1-M${k + 1}`));
+    for (const [k, [s1, s2]] of f.r1.entries()) await tx.update(matches).set({ team1Id: order[s1 - 1].t.id, team2Id: order[s2 - 1].t.id }).where(eq(matches.id, f.order[k]));
   });
   return order.map(({ t, avg }, k) => `#${k + 1} ${t.name} (${avg})`).join(", ");
 }

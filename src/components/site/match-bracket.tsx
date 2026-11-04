@@ -24,7 +24,7 @@ function bracketLayout(f: Format) {
   const P = H + gap;
   const LOW = TOP + (upRows - 1) * P + H + 130;
   const CENTER = gfRow * P + H / 2;
-  const POS: Pos = { "GF-M1": [gfCol, CENTER - H - 12, "u"], "GF-M2": [gfCol, CENTER + 12, "u"] };
+  const POS: Pos = { "grand-final": [gfCol, CENTER - H - 12, "u"], "grand-final-reset": [gfCol, CENTER + 12, "u"] };
   for (const [id, [c, r, h]] of Object.entries(f.layout.pos)) POS[id] = [c, r * P, h];
   const top = (id: string) => {
     const [, y, h] = POS[id];
@@ -72,8 +72,8 @@ function Box({ id, m, live, slim, className, style, onEnter, onLeave }: { id: st
   return (
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className={cn("flex flex-col overflow-hidden border bg-coal transition-[border-color] duration-200", className)} style={style}>
       <div className="flex h-7 shrink-0 items-center gap-2 border-b border-line bg-ink/70 px-2.5">
-        <span className="num truncate text-[0.78rem] text-paper/75">{m.datetime ? `${id === "GF-M2" ? new Date(m.datetime).toLocaleDateString(locale, { timeZone: TZ, day: "2-digit", month: "short" }) : day(m.datetime)} · ${clock(m.datetime)}` : m.winner ? "" : m.team1.id && m.team2.id ? t.common.tbd : "—"}</span>
-        {id === "GF-M2" && <span className="shrink-0 whitespace-nowrap text-[0.6rem] font-display font-bold text-gold-hi">{t.rounds.reset}</span>}
+        <span className="num truncate text-[0.78rem] text-paper/75">{m.datetime ? `${id === "grand-final-reset" ? new Date(m.datetime).toLocaleDateString(locale, { timeZone: TZ, day: "2-digit", month: "short" }) : day(m.datetime)} · ${clock(m.datetime)}` : m.winner ? "" : m.team1.id && m.team2.id ? t.common.tbd : "—"}</span>
+        {id === "grand-final-reset" && <span className="shrink-0 whitespace-nowrap text-[0.6rem] font-display font-bold text-gold-hi">{t.rounds.reset}</span>}
         <span className="ml-auto flex items-center gap-1">
           {live !== undefined && <LiveDot />}
           {m.links.length > 0 && <MatchDialog match={m} compact />}
@@ -128,7 +128,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
     lastCol.current = c;
     const ids = Object.keys(POS).filter((id) => POS[id][0] === c);
     if (!ids.length || !inner.current) return;
-    if (new Set(ids.map((id) => POS[id][2])).size > 1 && !ids.some((id) => id.startsWith("GF"))) return;
+    if (new Set(ids.map((id) => POS[id][2])).size > 1 && !ids.some((id) => id.startsWith("grand-"))) return;
     const y0 = Math.min(...ids.map(top)) - 62;
     const y1 = Math.max(...ids.map(top)) + H;
     const base = inner.current.getBoundingClientRect().top + window.scrollY;
@@ -147,7 +147,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   const fit = fitBox(width, height, scale);
   const lowCol = Math.min(...HEADERS.filter((h) => h.s === "l").map((h) => h.c));
   const midY = (id: string) => top(id) + H / 2;
-  const firstTop = (c: number, s: Half) => Math.min(...Object.keys(POS).filter((id) => !id.startsWith("GF") && POS[id][0] === c && POS[id][2] === s).map(top));
+  const firstTop = (c: number, s: Half) => Math.min(...Object.keys(POS).filter((id) => !id.startsWith("grand-") && POS[id][0] === c && POS[id][2] === s).map(top));
   const wire = (a: string, b: string) => {
     const x1 = col(POS[a][0]) + W;
     const x2 = col(POS[b][0]);
@@ -205,7 +205,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
               opacity={linked.has(a) && linked.has(b) ? 0.9 : 0}
             />
           ))}
-          <path d={`M${col(gfCol) + W / 2} ${top("GF-M1") + H} V${top("GF-M2")}`} strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="3 4" className="in-up" style={v({ "--d": "1.3s", stroke: "var(--gold)" })} />
+          <path d={`M${col(gfCol) + W / 2} ${top("grand-final") + H} V${top("grand-final-reset")}`} strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="3 4" className="in-up" style={v({ "--d": "1.3s", stroke: "var(--gold)" })} />
         </svg>
 
         {!phone && section("u")}
@@ -231,7 +231,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
         })}
         <div
           className="in-drop absolute flex snap-start items-center gap-2 border-b border-gold/20 pb-1 text-xs font-display font-bold text-gold-hi/80"
-          style={{ left: col(gfCol), top: top("GF-M1") - 30, width: W, ...v({ "--d": "0.7s" }) }}
+          style={{ left: col(gfCol), top: top("grand-final") - 30, width: W, ...v({ "--d": "0.7s" }) }}
         >
           <Crown className="size-3.5" /> {t.rounds["Grand Finals"]}
         </div>
@@ -240,7 +240,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
           const m = byId.get(id);
           if (!m) return null;
           const [c] = POS[id];
-          const gf = id.startsWith("GF");
+          const gf = id.startsWith("grand-");
           return (
             <Box
               key={id}

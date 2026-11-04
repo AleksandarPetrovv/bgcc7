@@ -5,8 +5,9 @@ import { roundOf, type Format } from "@/lib/format";
 const pointsFor = (f: Format, id: string) => f.points[roundOf(id)] ?? 0;
 
 export type Seeding = Record<string, readonly [string, string]>;
-export const seedingOf = (matches: Match[]): Seeding =>
-  Object.fromEntries(matches.filter((m) => m.id.startsWith("WB-R1")).map((m) => [m.id, [m.team1.id, m.team2.id] as const]));
+// first-round matches are the ones nothing feeds into
+export const seedingOf = (f: Format, matches: Match[]): Seeding =>
+  Object.fromEntries(matches.filter((m) => f.order.includes(m.id) && !f.feed[m.id]).map((m) => [m.id, [m.team1.id, m.team2.id] as const]));
 export const actualOf = (matches: Match[]): Picks =>
   Object.fromEntries(matches.filter((m) => m.winner).map((m) => [m.id, m.winner === 1 ? m.team1.id : m.team2.id]));
 
@@ -29,12 +30,12 @@ export function resolve(f: Format, picks: Picks, seeded: Seeding) {
   for (const id of f.order) {
     slots[id] = seeded[id] ? [seeded[id][0], seeded[id][1]] : [result(f.feed[id][0].from, f.feed[id][0].take), result(f.feed[id][1].from, f.feed[id][1].take)];
     const [a, b] = slots[id];
-    const live = a && b && (id !== "GF-M2" || clean["GF-M1"] === slots["GF-M1"][1]);
+    const live = a && b && (id !== "grand-final-reset" || clean["grand-final"] === slots["grand-final"][1]);
     if (live && picks[id] && (picks[id] === a || picks[id] === b)) clean[id] = picks[id];
   }
-  const resetLive = !!clean["GF-M1"] && clean["GF-M1"] === slots["GF-M1"][1];
+  const resetLive = !!clean["grand-final"] && clean["grand-final"] === slots["grand-final"][1];
   const total = f.order.length - (resetLive ? 0 : 1);
-  const champion = resetLive ? (clean["GF-M2"] ?? null) : (clean["GF-M1"] ?? null);
+  const champion = resetLive ? (clean["grand-final-reset"] ?? null) : (clean["grand-final"] ?? null);
   return { slots, picks: clean, total, resetLive, champion };
 }
 

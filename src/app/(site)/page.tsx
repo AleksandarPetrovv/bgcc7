@@ -311,8 +311,8 @@ export default async function Home() {
   const big = "px-6 py-3 text-base sm:px-8 sm:py-4 sm:text-xl shadow-[4px_4px_0_0_var(--rose-deep)]";
   const qualPool = phase === "qualifiers" ? visiblePools.find((s) => s.slug === "qualifiers") : undefined;
   const byId = new Map(matches.map((m) => [m.id, m]));
-  const gf1 = byId.get("GF-M1");
-  const gf2 = byId.get("GF-M2");
+  const gf1 = byId.get("grand-final");
+  const gf2 = byId.get("grand-final-reset");
   const champSide = gf2?.winner ? gf2 : gf1?.winner === 1 ? gf1 : null;
   const champ = phase === "finished" && champSide ? teamById(champSide.winner === 1 ? champSide.team1.id : champSide.team2.id) : undefined;
   const runnerUp = champ && champSide ? teamById(champSide.winner === 1 ? champSide.team2.id : champSide.team1.id) : undefined;

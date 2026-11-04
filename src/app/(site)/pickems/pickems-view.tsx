@@ -25,7 +25,7 @@ type Props = { osuId: number | null; saved: Picks | null; leaderboard: LeaderRow
 export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) {
   const t = useDict();
   const { matches, format: f } = useTournament();
-  const seeding = seedingOf(matches);
+  const seeding = seedingOf(f, matches);
   const DRAFT = useIsBGCC6() ? "bgcc7-pickems" : "bgcc7-suiji-pickems";
   const [picks, setPicks] = useState<Picks>(saved ?? {});
   const [dirty, setDirty] = useState(false);
