@@ -23,6 +23,11 @@ export function sourceLabel(f: Format, t: Dict, matches: Match[], id: string, sl
   return src.take === "W" ? t.common.winnerOf(label) : t.common.loserOf(label);
 }
 
+// results eye: a scored match, or one with an mp link that starts within 30 min (or already started)
+export const hasResults = (m: Match, now = Date.now()) =>
+  m.team1.score != null || m.team2.score != null || !!m.winner ||
+  (m.links.length > 0 && !!m.datetime && new Date(m.datetime).getTime() - now < 30 * 60_000);
+
 const STARTED_WINDOW = 3 * 3600_000;
 // live = its page or lobby is open; a lobby run outside the site counts for 3h after the start time once it has an mp link
 export const isLive = (m: Match, now = Date.now()) =>

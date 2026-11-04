@@ -196,6 +196,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
       // the me / scheduling dot sits where the sparkle would
       if (glintRef.current && ((meDot && activeBase === "/me") || (schedDot && activeBase === "/scheduling"))) glintRef.current.style.opacity = "0";
       placed.current = true;
+      navRef.current?.setAttribute("data-placed", "");
     };
     place(true);
     const again = () => place(true);
@@ -272,6 +273,14 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
                   )}
                 >
                   {!active && <span className="absolute inset-x-0.5 inset-y-4 -skew-x-12 scale-90 bg-white/0 transition duration-200 group-hover:scale-100 group-hover:bg-white/40" aria-hidden />}
+                  {/* server-drawn copy of the sliding bar, so a reload never shows the nav without it; hidden once js places the real one */}
+                  {active && (
+                    <span className="pointer-events-none [nav[data-placed]_&]:hidden" aria-hidden>
+                      <span className="absolute inset-x-2 bottom-0 block h-1 translate-x-[3px] -skew-x-[30deg] bg-rose-deep" />
+                      <span className="absolute inset-x-2 bottom-1 block h-1 -skew-x-[30deg] bg-rose" />
+                      {!((meDot && n.base === "/me") || (schedDot && n.base === "/scheduling")) && <Sparkle className="absolute -right-0.5 top-4 size-3.5 text-rose-hi" />}
+                    </span>
+                  )}
                   <span className={cn("relative transition-transform duration-200 group-hover:-translate-y-px", n.hidden && "opacity-40")}>{t.nav[n.key]}</span>
                   {live.includes(n.key) && <LivePill />}
                   {dots.includes(n.key) && <Dot className="absolute right-1 top-5" />}

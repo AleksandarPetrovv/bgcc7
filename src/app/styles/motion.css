@@ -54,7 +54,9 @@
   to { transform: translateX(260%) skewX(-20deg); }
 }
 
-.anim-page {
+/* the sticky sub-nav is part of the header: it stays put while the page content fades in */
+.anim-page > :not(.sub-nav),
+.anim-page-in {
   animation: page-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
