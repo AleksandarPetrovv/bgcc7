@@ -34,6 +34,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: f(t.meta.title), description: f(t.meta.description) };
 }
 
+// css animations stay paused until the streamed html and fonts are in; safari restarted them mid-load (title flashed)
+const BOOT = "var h=document.documentElement;h.setAttribute(\"data-booting\",\"\");addEventListener(\"DOMContentLoaded\",function(){Promise.race([document.fonts.ready,new Promise(function(r){setTimeout(r,1000)})]).then(function(){requestAnimationFrame(function(){h.removeAttribute(\"data-booting\")})})});";
 const LITE = "try{var c=document.createElement(\"canvas\"),g=c.getContext(\"webgl\"),r=\"\";if(g){var e=g.getExtension(\"WEBGL_debug_renderer_info\");r=e?String(g.getParameter(e.UNMASKED_RENDERER_WEBGL)):\"\";var x=g.getExtension(\"WEBGL_lose_context\");x&&x.loseContext()}if(!g||/swiftshader|llvmpipe|software|basic render/i.test(r)){var h=document.documentElement;h.classList.add(\"lite\")}}catch(_){}";
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -43,6 +45,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html lang={lang} className={`${archivo.variable} ${unbounded.variable} ${montserrat.variable} h-full antialiased${dark ? " dark" : ""}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: LITE }} />
+        <script dangerouslySetInnerHTML={{ __html: BOOT }} />
+        {/* safari can paint before the stylesheet applies; stay hidden until it does (globals.css reveals), 2s fallback */}
+        <style>{"body{visibility:hidden;animation:fouc 0s 2s forwards}@keyframes fouc{to{visibility:visible}}"}</style>
       </head>
       <body className="flex min-h-full flex-col">
         <LangProvider lang={lang} edition={settings.edition}>
