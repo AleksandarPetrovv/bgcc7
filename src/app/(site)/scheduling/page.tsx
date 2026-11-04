@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Container, PageTitle } from "@/components/site/page";
 import { getSettings } from "@/db/settings";
 import { getAllTeams } from "@/db/tournament";
-import { mySchedule } from "@/db/schedule";
+import { myCaptainTeam, mySchedule, myTeam } from "@/db/schedule";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { roundName } from "@/lib/i18n/dict";
@@ -12,8 +12,8 @@ import { SchedCard, type Side } from "./sched-card";
 export default async function Scheduling() {
   const [t, v, settings, teams] = await Promise.all([getDict(), getViewer(), getSettings(), getAllTeams()]);
   if (!v || settings.phase !== "playoffs") notFound();
-  const list = await mySchedule(v.osuId);
-  if (!list.length && !teams.some((x) => x.players[0]?.userId === v.osuId)) notFound();
+  const [list, cap, team] = await Promise.all([mySchedule(v.osuId), myCaptainTeam(v.osuId), myTeam(v.osuId)]);
+  if (!team) notFound();
   const side = (id: string): Side => {
     const x = teams.find((tm) => tm.id === id);
     return { id, name: x?.name ?? id, image: x?.image ?? "", players: x?.players.map((p) => p.userId) ?? [] };
@@ -39,6 +39,7 @@ export default async function Scheduling() {
               opp={side(m.opp)}
               week={w ? { deadline: w.deadline.toISOString(), min: w.min, max: w.max } : null}
               open={open}
+              readOnly={!cap}
             />
           ))}
         </div>

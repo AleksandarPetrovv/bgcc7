@@ -25,6 +25,18 @@ export const myCaptainTeam = cache(async (osuId: number) => {
   return ts.find((t) => captainOf(t) === osuId)?.id ?? null;
 });
 
+// any team the player is on, knocked out or not
+export const teamOf = cache(async (osuId: number) => (await getTeams()).find((t) => t.players.some((p) => p.userId === osuId))?.id ?? null);
+
+// null once the team is knocked out (2 losses in double elim), so scheduling disappears for the whole team
+export const myTeam = cache(async (osuId: number) => {
+  const [ts, rows] = await Promise.all([getTeams(), getMatchRows()]);
+  const id = ts.find((t) => t.players.some((p) => p.userId === osuId))?.id ?? null;
+  if (!id) return null;
+  const losses = rows.filter((m) => m.winner != null && (m.winner === 1 ? m.team2Id : m.team1Id) === id).length;
+  return losses >= 2 ? null : id;
+});
+
 export const schedulable = (m: MatchRow) => !!m.team1Id && !!m.team2Id && m.winner == null;
 
 export type SchedMatch = {
@@ -59,7 +71,7 @@ export async function historyOf(ids: string[]) {
 }
 
 export const mySchedule = cache(async (osuId: number): Promise<SchedMatch[]> => {
-  const team = await myCaptainTeam(osuId);
+  const team = await myTeam(osuId);
   if (!team) return [];
   const [rows, weeks] = await Promise.all([getMatchRows(), stageWeeks()]);
   const mine = rows.filter((m) => schedulable(m) && (m.team1Id === team || m.team2Id === team));
@@ -80,15 +92,17 @@ export const mySchedule = cache(async (osuId: number): Promise<SchedMatch[]> => 
 
 export const waitingOnMe = (m: SchedMatch) => isOpen(weekOf(m.week)) && m.history.some((p) => p.status === "pending" && p.teamId === m.opp);
 
+// show = scheduling nav item; discord = red dot on "me" + link popup for every player on a team without a linked discord
 export const schedNav = cache(async (osuId: number | null) => {
   if (!osuId) return null;
-  const s = await getSettings();
-  if (s.phase !== "playoffs") return null;
-  const team = await myCaptainTeam(osuId);
+  const [s, team] = await Promise.all([getSettings(), teamOf(osuId)]);
   if (!team) return null;
-  const list = await mySchedule(osuId);
   const [me] = await safe(() => db.select({ discordId: users.discordId }).from(users).where(eq(users.osuId, osuId)).limit(1), []);
-  return { dot: list.some(waitingOnMe), discord: discordReady() && !me?.discordId };
+  const discord = discordReady() && !me?.discordId;
+  const show = s.phase === "playoffs" && !!(await myTeam(osuId));
+  // teammates get the page read only, so no dot for them
+  const dot = show && !!(await myCaptainTeam(osuId)) && (await mySchedule(osuId)).some(waitingOnMe);
+  return { show, dot, discord };
 });
 
 export async function lockMatch(tx: Parameters<Parameters<typeof db.transaction>[0]>[0], id: string) {
@@ -109,7 +123,7 @@ export async function notifyCaptain(teamId: string, text: (link: string) => stri
   if (!cap) return;
   const [u] = await db.select({ discordId: users.discordId }).from(users).where(eq(users.osuId, cap)).limit(1);
   if (!u?.discordId) return;
-  await dm(u.discordId, text(`${siteUrl()}/scheduling`)).catch((e) => console.error("[discord] dm", e));
+  await dm(u.discordId, text(`<${siteUrl()}/scheduling>`)).catch((e) => console.error("[discord] dm", e));
 }
 
 export const fmtAt = (d: Date) => `${fmtSofia(d, "en-GB")} (BG time)`;
