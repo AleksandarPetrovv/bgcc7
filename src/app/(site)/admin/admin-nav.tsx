@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { CalendarClock, ChevronRight, ClipboardCheck, Download, Dices, DoorOpen, Gauge, LayoutGrid, Layers, Link2, MonitorPlay, Music2, ScrollText, Settings2, Shield, Swords, Trophy, Users } from "lucide-react";
 import { Sparkle } from "@/components/site/graphics";
 import { TwitchLogo } from "@/components/site/twitch-logo";
+import { DiscordLogo } from "@/components/site/discord-logo";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -23,6 +24,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   staff: Shield,
   log: ScrollText,
   settings: Settings2,
+  discord: DiscordLogo,
   format: LayoutGrid,
   refapp: Download,
   stream: TwitchLogo,
