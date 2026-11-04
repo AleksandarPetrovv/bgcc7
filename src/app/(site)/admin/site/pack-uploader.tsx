@@ -228,7 +228,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
       {simple && (
         <div className="grid gap-3 sm:grid-cols-2">
           {lead}
-          <Btn type="button" tone="rose" onClick={generate} disabled={generating || progress !== null} className="h-10 w-full shadow-[3px_3px_0_0_var(--rose-deep)]">
+          <Btn type="button" tone="rose" onClick={generate} disabled={generating || progress !== null} className="h-10 w-full" fill="shadow-[3px_3px_0_0_var(--rose-deep)]">
             <PackagePlus className="size-3.5" /> {t.admin.packGenerate}
           </Btn>
         </div>

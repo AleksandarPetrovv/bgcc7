@@ -86,16 +86,15 @@ export function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onP
           type="button"
           disabled={!choice || busy}
           onClick={() => choice && onPick(choice)}
-          className={cn("sheen heading-slam mt-5 flex min-h-14 w-full -skew-x-12 items-center justify-center text-2xl transition-[transform,opacity,filter,translate,scale,rotate] duration-200 hover:brightness-110 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50", choice ? "text-white" : "text-ash")}
-          style={{
-            background: choice ? col.c : "var(--slate)",
-            boxShadow: choice ? `5px 5px 0 0 ${col.deep}` : undefined,
-          }}
+          className={cn("group heading-slam relative isolate mt-5 flex min-h-14 w-full items-center justify-center gap-2 text-2xl transition-opacity duration-200 disabled:cursor-not-allowed disabled:opacity-50", choice ? "text-white" : "text-ash")}
         >
-          <span className="inline-flex skew-x-12 items-center gap-2">
-            {busy ? <Waiting /> : <Check className="size-6" strokeWidth={3} />}
-            {t.draft.select}
-          </span>
+          <span
+            aria-hidden
+            className="absolute inset-0 -z-10 -skew-x-12 group-hover:brightness-110"
+            style={{ background: choice ? col.c : "var(--slate)", boxShadow: choice ? `5px 5px 0 0 ${col.deep}` : undefined }}
+          />
+          {busy ? <Waiting /> : <Check className="size-6" strokeWidth={3} />}
+          {t.draft.select}
         </button>
       </motion.div>
     </motion.div>

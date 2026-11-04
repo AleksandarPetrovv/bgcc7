@@ -104,7 +104,7 @@ export function VotePicker({ id, mine, mineNote, onDraft }: { id: number; mine: 
             </span>
           </span>
         ) : (
-          <Btn type="button" small tone={ready ? "rose" : "outline"} disabled={!ready || pending} onClick={submit} className={cn("w-24 shrink-0", failed && "bg-rose-deep")}>
+          <Btn type="button" small tone={ready ? "rose" : "outline"} disabled={!ready || pending} onClick={submit} className="w-24 shrink-0" fill={failed ? "bg-rose-deep" : undefined}>
             {pending ? t.admin.saving : saved.n === null ? t.admin.voteBtn : t.admin.updateVote}
           </Btn>
         )}

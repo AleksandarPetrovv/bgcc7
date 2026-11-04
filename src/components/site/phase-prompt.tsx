@@ -67,22 +67,20 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
           <button
             type="button"
             onClick={() => run(() => acceptPhase(next))}
-            className="in-pop lift-sm sheen inline-flex -skew-x-12 items-center justify-center bg-rose px-5 py-3 text-sm font-display font-bold text-white shadow-[3px_3px_0_0_var(--rose-deep)] hover:bg-rose-hi"
+            className="in-pop group relative isolate inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-display font-bold text-white"
             style={v({ "--d": "0.7s" })}
           >
-            <span className="inline-flex skew-x-12 items-center gap-2">
-              <Check className="size-4" /> {t.admin.prompt.yes(name)}
-            </span>
+            <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 bg-rose shadow-[3px_3px_0_0_var(--rose-deep)] group-hover:bg-rose-hi" />
+            <Check className="size-4" /> {t.admin.prompt.yes(name)}
           </button>
           <Link
             href="/admin/phase"
             onClick={() => setOpen(false)}
-            className="in-pop lift-sm inline-flex -skew-x-12 items-center justify-center border border-line px-5 py-3 text-sm font-display font-bold text-paper [--lift:var(--rose)] hover:border-rose"
+            className="in-pop group relative isolate inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-display font-bold text-paper"
             style={v({ "--d": "0.78s" })}
           >
-            <span className="inline-flex skew-x-12 items-center gap-2">
-              {t.admin.prompt.stages} <ArrowRight className="size-4" />
-            </span>
+            <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 border border-line group-hover:border-rose" />
+            {t.admin.prompt.stages} <ArrowRight className="size-4" />
           </Link>
           <button
             type="button"

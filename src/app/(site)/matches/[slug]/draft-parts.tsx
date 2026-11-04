@@ -142,8 +142,10 @@ export function AdminBar({
   const t = useDict();
   const stepText = (u: DraftUndo) =>
     u.kind === "winner" ? t.draft.stepWin(u.slot) : u.kind === "step" ? (u.step.skip ? t.draft.stepSkip : t.draft.stepDo(u.step.kind, u.step.slot)) : u.kind === "choice" ? t.draft.stepChoice : t.draft.stepRolls;
-  const btn = "lift-sm relative inline-flex min-h-8 -skew-x-12 items-center border px-3 text-xs font-display font-bold transition-colors [--lift:var(--rose)] disabled:opacity-50";
-  const idle = "border-line text-paper hover:border-rose";
+  const btn = "group relative isolate inline-flex min-h-8 items-center gap-1.5 px-3 text-xs font-display font-bold disabled:opacity-50";
+  // skewed frame behind untransformed text (skewing the text blurs it)
+  const sk = (c: string) => <span aria-hidden className={cn("absolute inset-0 -z-10 -skew-x-12 border", c)} />;
+  const idle = "border-line group-hover:border-rose";
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
@@ -157,33 +159,36 @@ export function AdminBar({
             type="button"
             onClick={() => onActing(s)}
             aria-pressed={acting === s}
-            className={cn(btn, acting === s ? "border-transparent text-white" : idle)}
+            className={cn(btn, acting === s ? "text-white" : "text-paper")}
           >
-            {acting === s && <motion.span layoutId="dr-acting" className={cn("absolute -inset-px", TEAM[s].bg)} transition={{ type: "spring", stiffness: 500, damping: 36 }} />}
-            <span className="relative inline-block max-w-32 skew-x-12 truncate">{names[s - 1]}</span>
+            {sk(acting === s ? "border-transparent" : idle)}
+            {acting === s && (
+              <motion.span layoutId="dr-acting" className="absolute -inset-px -z-10" transition={{ type: "spring", stiffness: 500, damping: 36 }}>
+                <span className={cn("absolute inset-0 -skew-x-12", TEAM[s].bg)} />
+              </motion.span>
+            )}
+            <span className="inline-block max-w-32 truncate">{names[s - 1]}</span>
           </button>
         ))}
       </div>
       <button
         type="button"
         onClick={onHelp}
-        className={cn(btn, idle)}
+        className={cn(btn, "text-paper")}
       >
-        <span className="inline-flex skew-x-12 items-center gap-1.5">
-          <CircleHelp className="size-3.5" /> {t.lobby.help}
-        </span>
+        {sk(idle)}
+        <CircleHelp className="size-3.5" /> {t.lobby.help}
       </button>
       <button
         type="button"
         disabled={pending}
         aria-pressed={!!d.pausedAt}
         onClick={() => adminAct(() => (d.pausedAt ? resumeDraft(matchId) : holdDraft(matchId)))}
-        className={cn(btn, d.pausedAt ? "border-rose bg-rose text-white" : idle)}
+        className={cn(btn, d.pausedAt ? "text-white" : "text-paper")}
       >
-        <span className="inline-flex skew-x-12 items-center gap-1.5">
-          {d.pausedAt ? <Play className="size-3.5 fill-current" /> : <Pause className="size-3.5 fill-current" />}
-          {d.pausedAt ? t.draft.unhold : t.draft.hold}
-        </span>
+        {sk(d.pausedAt ? "border-rose bg-rose" : idle)}
+        {d.pausedAt ? <Play className="size-3.5 fill-current" /> : <Pause className="size-3.5 fill-current" />}
+        {d.pausedAt ? t.draft.unhold : t.draft.hold}
       </button>
       <span className="flex justify-center gap-2 max-sm:basis-full sm:flex-1 sm:justify-end">
         {([
@@ -195,23 +200,21 @@ export function AdminBar({
             type="button"
             disabled={pending || !u}
             onClick={() => adminAct(fn)}
-            className={cn(btn, idle)}
+            className={cn(btn, "text-paper")}
           >
-            <span className="inline-flex skew-x-12 items-center gap-1.5">
-              <Icon className="size-3.5" /> {k === "undo" ? t.draft.undo : t.draft.redo}
-              {u && <span className="normal-case text-ash">· {stepText(u)}</span>}
-            </span>
+            {sk(idle)}
+            <Icon className="size-3.5" /> {k === "undo" ? t.draft.undo : t.draft.redo}
+            {u && <span className="normal-case text-ash">· {stepText(u)}</span>}
           </button>
         ))}
         <button
           type="button"
           disabled={pending}
           onClick={onReset}
-          className={cn(btn, "border-rose text-rose-hi hover:bg-rose/10")}
+          className={cn(btn, "text-rose-hi")}
         >
-          <span className="inline-flex skew-x-12 items-center gap-1.5">
-            <RotateCcw className="size-3.5" /> {t.draft.reset}
-          </span>
+          {sk("border-rose group-hover:bg-rose/10")}
+          <RotateCcw className="size-3.5" /> {t.draft.reset}
         </button>
       </span>
       {!d.open && (
@@ -375,15 +378,10 @@ export function Rolls({
                         onClick={onRoll}
                         whileHover={{ scale: 1.06 }}
                         whileTap={{ scale: 0.9, rotate: -6 }}
-                        className="lift-sm inline-flex min-h-11 -skew-x-12 items-center px-6 font-display font-bold text-white disabled:opacity-60"
-                        style={{
-                          background: TEAM[s].c,
-                          ["--lift" as string]: TEAM[s].deep,
-                        }}
+                        className="relative isolate inline-flex min-h-11 items-center gap-2 px-6 font-display font-bold text-white disabled:opacity-60"
                       >
-                        <span className="inline-flex skew-x-12 items-center gap-2">
-                          <Dices className={cn("size-5", busy && "animate-spin")} /> {t.draft.roll}
-                        </span>
+                        <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12" style={{ background: TEAM[s].c }} />
+                        <Dices className={cn("size-5", busy && "animate-spin")} /> {t.draft.roll}
                       </motion.button>
                     ) : (val == null && !hold) || turn.kind === "tie" ? (
                       <span className="inline-flex items-center gap-2 text-xs font-display font-bold text-ash">
