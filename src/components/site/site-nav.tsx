@@ -22,7 +22,7 @@ const withSched = (nav: NavItem[]): NavItem[] => {
   return at < 0 ? [...nav, item] : [...nav.slice(0, at + 1), item, ...nav.slice(at + 1)];
 };
 
-const isActive = (path: string, base: string) => (base === "/" ? path === "/" : path === base || path.startsWith(`${base}/`));
+const isActive = (path: string, base: string) => (base === "/" ? path === "/" : path === base || path.startsWith(`${base}/`) || (base === "/matches" && path.startsWith("/results/")));
 
 function AdminCrest({ on }: { on: boolean }) {
   return (

@@ -54,6 +54,7 @@ const ROUTES: [string, Section][] = [
   ...ROUTES_BGCC6,
   ["/mappool", "mappool"],
   ["/matches", "schedule"],
+  ["/results", "schedule"],
   ["/pickems", "pickems"],
   ["/stats", "stats"],
   ["/streams", "streams"],

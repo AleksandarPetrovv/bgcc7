@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { ExternalLink, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -223,6 +223,28 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
         setTimeout(() => setVeil(null), 700);
       });
   };
+
+  // the open popup lives at /results/<slug> so it can be linked (discord #results); back closes it
+  const url = `/results/${slug}`;
+  useEffect(() => {
+    // opening from the url can only happen after mount (no location on the server)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (location.pathname === url) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!open) return;
+    const pushed = location.pathname !== url;
+    if (pushed) history.pushState(null, "", url);
+    const onPop = () => location.pathname !== url && setOpen(false);
+    addEventListener("popstate", onPop);
+    return () => {
+      removeEventListener("popstate", onPop);
+      if (location.pathname !== url) return;
+      if (pushed) history.back();
+      else history.replaceState(null, "", "/matches");
+    };
+  }, [open, url]);
 
   return (
     <>
