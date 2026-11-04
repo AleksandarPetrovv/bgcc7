@@ -167,6 +167,7 @@ export const site: typeof en = {
     finish: "Крайно класиране",
     places: ["1-во", "2-ро", "3-то"],
     outIn: (r: string) => `Отпадна в ${r}`,
+    outNext: (r: string) => `Отборът ти отпадна в ${r}. Благодарим, че игра, успех догодина!`,
     teamPage: "Страница на отбора",
     record: (w: number, l: number) => `${w}П · ${l}З`,
     bestOn: "Най-добра игра",

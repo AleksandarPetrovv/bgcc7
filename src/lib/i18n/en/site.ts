@@ -165,6 +165,7 @@ export const site = {
     finish: "Final placing",
     places: ["1st", "2nd", "3rd"],
     outIn: (r: string) => `Out in ${r}`,
+    outNext: (r: string) => `Your team went out in ${r}. Thanks for playing, good luck next year!`,
     teamPage: "Team page",
     record: (w: number, l: number) => `${w}W · ${l}L`,
     bestOn: "Best play",

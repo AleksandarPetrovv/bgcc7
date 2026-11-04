@@ -17,7 +17,7 @@ import { getPlayerSeeds } from "@/db/seeds";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { myCaptainTeam } from "@/db/schedule";
+import { teamOf } from "@/db/schedule";
 import { discordProfile, discordReady } from "@/lib/discord";
 import { Connections } from "./connections";
 import { MatchRow } from "@/components/site/match-row";
@@ -224,7 +224,7 @@ export default async function Me() {
               </p>
               <div className="flex flex-wrap gap-3">
                 {booking === "open" && (
-                  <SlantButton href="/qualifiers" tone="paper" className="px-8 py-4 text-xl shadow-[4px_4px_0_0_var(--rose-deep)]">
+                  <SlantButton href="/qualifiers" tone="paper" className="px-8 py-4 text-xl" fill="shadow-[4px_4px_0_0_var(--rose-deep)]">
                     {t.me.pickLobby} <ArrowRight className="size-5" />
                   </SlantButton>
                 )}
@@ -273,7 +273,7 @@ export default async function Me() {
     );
 
   const dcRow =
-    discordReady() && (await myCaptainTeam(me))
+    discordReady() && (await teamOf(me))
       ? await db
           .select({ id: users.discordId, name: users.discordName })
           .from(users)
@@ -355,7 +355,13 @@ export default async function Me() {
   }
 
   let nextCard: React.ReactNode;
-  if (!upcomingMatch) {
+  if (path === "out" && lostIn) {
+    nextCard = (
+      <Card title={t.me.path.out} i={1} className="lg:col-span-2">
+        <p className="text-ash">{t.me.outNext(roundName(t, lostIn.round))}</p>
+      </Card>
+    );
+  } else if (!upcomingMatch) {
     nextCard = (
       <Card title={t.me.next} i={1} className="lg:col-span-2" right={pathTag}>
         <p className="text-ash">{t.me.noNext}</p>

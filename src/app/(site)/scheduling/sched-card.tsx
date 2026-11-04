@@ -107,7 +107,7 @@ function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
   );
 }
 
-export function SchedCard({ m, round, me, opp, week, open, n = 0 }: { m: SchedMatch; round: string; me: Side; opp: Side; week: Week; open: boolean; n?: number }) {
+export function SchedCard({ m, round, me, opp, week, open, readOnly = false, n = 0 }: { m: SchedMatch; round: string; me: Side; opp: Side; week: Week; open: boolean; readOnly?: boolean; n?: number }) {
   const t = useDict();
   const ref = useRef<HTMLElement>(null);
   // once the intro is over, parts that mount later (after a refresh) appear without the long delays
@@ -210,7 +210,7 @@ export function SchedCard({ m, round, me, opp, week, open, n = 0 }: { m: SchedMa
           </div>
         )}
 
-        {week && open && (
+        {week && open && !readOnly && (
           <div className="mt-5 flex flex-wrap justify-center gap-3">
             {theirs ? (
               <>
