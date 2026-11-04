@@ -44,6 +44,7 @@ export async function settleFinish(match: Pick<Match, "id" | "referee">, score: 
   try {
     await finishMatch(match.id, score);
     clear(id);
+    void import("./discord-bot").then((d) => d.later("result", () => d.postResult(match.id)));
     return true;
   } catch (e) {
     console.error("[match finish]", match.id, e);

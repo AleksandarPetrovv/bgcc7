@@ -12,6 +12,8 @@ import { lockMatch, staffOverride } from "@/db/schedule";
 import { canRunMatch } from "@/db/drafts";
 import { handOff } from "@/lib/bancho";
 import { matchStamp } from "@/lib/matches";
+import { fmtWhen, later, postResult, teamNote } from "@/db/discord-bot";
+import { getTeams } from "@/db/tournament";
 
 const text = (fd: FormData, k: string, max = 120) => String(fd.get(k) ?? "").trim().slice(0, max) || null;
 const num = (fd: FormData, k: string) => {
@@ -82,6 +84,17 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     if (gone === "stale") return { ok: false, error: "stale" };
     if (gone) return { ok: false, error: "notFound" };
     if (patch.referee !== m.referee) await handOff(id, patch.referee).catch((e) => console.error("[handoff]", e));
+    if (winner && (winner !== m.winner || score1 !== m.score1 || score2 !== m.score2)) later("result", () => postResult(id));
+    const t1 = patch.team1Id;
+    const t2 = patch.team2Id;
+    if (patch.startsAt && t1 && t2 && patch.startsAt.getTime() !== m.startsAt?.getTime()) {
+      const at = patch.startsAt;
+      later("schedule", async () => {
+        const ts = await getTeams();
+        const name = (x: string) => ts.find((t) => t.id === x)?.name ?? x;
+        await teamNote({ [t1]: `Staff set your match against **${name(t2)}** to **${fmtWhen(at)}**.`, [t2]: `Staff set your match against **${name(t1)}** to **${fmtWhen(at)}**.` });
+      });
+    }
     return { id, ...patch };
   });
 }

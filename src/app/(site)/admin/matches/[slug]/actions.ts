@@ -11,6 +11,7 @@ import { forgetScoreboard, getScoreboard } from "@/db/scoreboards";
 import { getMatches, getTeams } from "@/db/tournament";
 import { guard } from "@/lib/admin-action";
 import { canRunMatch } from "@/db/drafts";
+import { later, postResult } from "@/db/discord-bot";
 import type { ActionResult } from "@/lib/roles";
 
 const parseMods = (v: string) => (v.toUpperCase().replace(/[^A-Z]/g, "").match(/.{2}/g) ?? []).filter((m) => m !== "NM").join(",");
@@ -34,6 +35,7 @@ async function sync(matchId: string) {
   });
   // the board above was cached while the old winner was still set; drop it so later games still count
   if (!winner) await forgetScoreboard(matchId);
+  else later("result", () => postResult(matchId));
 }
 
 async function rosterTeam(matchId: string, osuId: number) {

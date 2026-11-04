@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { maps, stages } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
+import { later, postPool } from "@/db/discord-bot";
 import { MODS } from "@/lib/data";
 import { fetchMap, parseBeatmapId } from "@/lib/fetch-map";
 import type { ActionResult } from "@/lib/roles";
@@ -22,6 +23,7 @@ export async function renameStage(id: number, _: ActionResult, fd: FormData) {
 export async function setReleased(id: number, poolReleased: boolean) {
   return guard("poolEdit", "stage.update", async () => {
     await db.update(stages).set({ poolReleased: !!poolReleased }).where(eq(stages.id, id));
+    if (poolReleased) later("pool", () => postPool(id));
     return { id, poolReleased: !!poolReleased };
   });
 }
