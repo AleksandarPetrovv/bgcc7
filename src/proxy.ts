@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { RateLimiterMemory } from "rate-limiter-flexible";
 import { ipOf } from "@/lib/ip";
+import { siteUrl } from "@/lib/links";
 
 const tier = (points: number) => new RateLimiterMemory({ points, duration: 60 });
 
@@ -26,6 +27,10 @@ function bucket(req: NextRequest, path: string): keyof typeof LIMITS {
 
 export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
+  const site = siteUrl();
+  if (site && req.headers.get("host")?.startsWith("www.")) {
+    return NextResponse.redirect(`${site}${path}${req.nextUrl.search}`, 308);
+  }
   const ip = ipOf(req);
   const b = bucket(req, path);
   try {
