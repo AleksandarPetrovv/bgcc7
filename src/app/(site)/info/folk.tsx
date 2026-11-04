@@ -29,7 +29,7 @@ export type FolkProps = {
 
 // every visible text starts typing at the same moment, the boxes around it arrive one by one
 const T = 0;
-const dv = (d: number) => ({ "--d": `${d}s` }) as React.CSSProperties;
+const dv = (d: number) => ({ "--d": `${d * 0.5}s` }) as React.CSSProperties;
 
 const MOD_HEX: Record<string, string> = { NM: "var(--mod-nm)", HD: "var(--mod-hd)", HR: "var(--mod-hr)", DT: "var(--mod-dt)", TB: "var(--mod-tb)" };
 const PLACE = ["text-gold-hi", "text-silver-deep", "text-bronze-hi"];
