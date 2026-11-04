@@ -15,5 +15,6 @@ export async function register() {
     const tick = createHash("sha256").update(`discord-tick:${process.env.AUTH_SECRET}`).digest("hex");
     const url = `http://127.0.0.1:${process.env.PORT ?? 3000}/api/discord/tick`;
     setInterval(() => void fetch(url, { method: "POST", headers: { "x-tick": tick } }).catch(() => {}), 60_000).unref();
+    if (process.env.NODE_ENV === "production") (await import("./lib/discord-gateway")).startGateway(process.env.DISCORD_BOT_TOKEN);
   }
 }
