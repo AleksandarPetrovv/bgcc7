@@ -1,7 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { db } from "./index";
+import { db, isBGCC6 } from "./index";
 import { matches, reschedules, stages, users } from "./schema";
 import { safe } from "./safe";
 import { getAllTeams, getMatchRows, getTeams, type MatchRow } from "./tournament";
@@ -92,13 +92,16 @@ export const mySchedule = cache(async (osuId: number): Promise<SchedMatch[]> => 
 
 export const waitingOnMe = (m: SchedMatch) => isOpen(weekOf(m.week)) && m.history.some((p) => p.status === "pending" && p.teamId === m.opp);
 
-// show = scheduling nav item; discord = red dot on "me" + link popup for every player on a team without a linked discord
+// anyone logged in can link from registration on (linking early is fine; team roles only follow once they're on a team)
+export const canLinkDiscord = () => discordReady() && !isBGCC6();
+
+// show = scheduling nav item; discord = red dot on "me" + link popup for everyone without a linked discord
 export const schedNav = cache(async (osuId: number | null) => {
   if (!osuId) return null;
   const [s, team] = await Promise.all([getSettings(), teamOf(osuId)]);
-  if (!team) return null;
-  const [me] = await safe(() => db.select({ discordId: users.discordId }).from(users).where(eq(users.osuId, osuId)).limit(1), []);
-  const discord = discordReady() && !me?.discordId;
+  const [me] = canLinkDiscord() ? await safe(() => db.select({ discordId: users.discordId }).from(users).where(eq(users.osuId, osuId)).limit(1), []) : [];
+  const discord = canLinkDiscord() && !me?.discordId;
+  if (!team) return { show: false, dot: false, discord };
   const show = s.phase === "playoffs" && !!(await myTeam(osuId));
   // teammates get the page read only, so no dot for them
   const dot = show && !!(await myCaptainTeam(osuId)) && (await mySchedule(osuId)).some(waitingOnMe);

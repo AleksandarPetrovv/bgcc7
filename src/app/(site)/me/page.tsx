@@ -17,8 +17,8 @@ import { getPlayerSeeds } from "@/db/seeds";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { teamOf } from "@/db/schedule";
-import { discordProfile, discordReady } from "@/lib/discord";
+import { canLinkDiscord } from "@/db/schedule";
+import { discordProfile } from "@/lib/discord";
 import { Connections } from "./connections";
 import { MatchRow } from "@/components/site/match-row";
 import { avatarPath } from "@/lib/avatar";
@@ -74,6 +74,26 @@ export default async function Me() {
   const teamById = (id: string) => teams.find((x) => x.id === id);
   const fmt = (d: Date | string) => `${fmtSofia(new Date(d), locale)} ${tzLabel(new Date(d))}`;
 
+  // discord can be linked from registration on, so the connections card shows in every phase
+  const dcRow = canLinkDiscord()
+    ? await db
+        .select({ id: users.discordId, name: users.discordName, username: users.username })
+        .from(users)
+        .where(eq(users.osuId, me))
+        .limit(1)
+        .then((r) => r[0] ?? null)
+        .catch(() => null)
+    : null;
+  const dcProfile = dcRow?.id ? await discordProfile(dcRow.id) : null;
+  const discord = dcRow ? { name: dcRow.id ? (dcProfile?.name ?? dcRow.name ?? dcRow.id) : null, avatar: dcProfile?.avatar ?? null } : undefined;
+  const osuName = team?.players.find((p) => p.userId === me)?.username ?? dcRow?.username ?? String(me);
+  const connCard = (i: number, className?: string) => (
+    <Card title={t.me.connections} i={i} icon={<Link2 className="size-3.5 text-rose" />} className={cn("flex flex-col self-stretch", className)} body="flex-1">
+      <Connections osu={{ id: me, name: osuName, avatar: avatarPath(me) }} discord={discord} />
+    </Card>
+  );
+  const earlyConn = discord && connCard(3);
+
 
   const shell = (children: React.ReactNode) => (
     <Container plain>
@@ -117,6 +137,7 @@ export default async function Me() {
           )}
         </Card>
         {upcoming}
+        {earlyConn}
       </>,
     );
 
@@ -161,6 +182,7 @@ export default async function Me() {
           )}
         </Card>
         {upcoming}
+        {earlyConn}
       </>,
     );
   }
@@ -236,6 +258,7 @@ export default async function Me() {
           )}
         </Card>
         {qualTable}
+        {earlyConn}
       </>,
     );
   }
@@ -269,21 +292,10 @@ export default async function Me() {
           )
         )}
         {qualTable}
+        {earlyConn}
       </>,
     );
 
-  const dcRow =
-    discordReady() && (await teamOf(me))
-      ? await db
-          .select({ id: users.discordId, name: users.discordName })
-          .from(users)
-          .where(eq(users.osuId, me))
-          .limit(1)
-          .then((r) => r[0] ?? { id: null, name: null })
-          .catch(() => ({ id: null, name: null }))
-      : null;
-  const dcProfile = dcRow?.id ? await discordProfile(dcRow.id) : null;
-  const discord = dcRow ? { name: dcRow.id ? (dcProfile?.name ?? dcRow.name ?? dcRow.id) : null, avatar: dcProfile?.avatar ?? null } : undefined;
   const mine = matches.filter((m) => m.team1.id === team.id || m.team2.id === team.id);
   const played = mine.filter((m) => m.winner).sort((a, b) => (a.datetime ?? "").localeCompare(b.datetime ?? ""));
   const usWon = (m: Match) => (m.team1.id === team.id ? m.winner === 1 : m.winner === 2);
@@ -329,9 +341,7 @@ export default async function Me() {
   const columns = (
     <>
       <TeamCard t={t} team={team} me={me} seeds={seeds} stats={pStats} record={record} i={2} />
-      <Card title={t.me.connections} i={3} icon={<Link2 className="size-3.5 text-rose" />} className="flex flex-col self-stretch" body="flex-1">
-        <Connections osu={{ id: me, name: team.players.find((p) => p.userId === me)?.username ?? String(me), avatar: avatarPath(me) }} discord={discord} />
-      </Card>
+      {connCard(3)}
       {historyCard}
     </>
   );
