@@ -92,7 +92,7 @@ async function runSync() {
   };
   // each team: a category named after it with #team (text) and "team vc" (voice)
   for (const t of ts) {
-    const vcName = `${t.name} vc`;
+    const vcName = t.name;
     let r = have.get(t.id);
     if (!r) {
       const role = await createRole(t.name);
