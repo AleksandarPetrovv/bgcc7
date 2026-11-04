@@ -205,7 +205,7 @@ export async function seedTestData() {
   const roster = (teamId: string) => members.filter((m) => m.teamId === teamId).flatMap((m) => who.get(m.osuId) ?? []);
   const pools = await db.select().from(maps);
   const stageId = new Map(mine.map((s) => [s.slug, s.id]));
-  const played = f.order.filter((id) => /^(WB|LB)-R[12]-/.test(id));
+  const played = f.order.filter((id) => /^(winners-round-of-16|winners-quarterfinals|losers-round-[12])-/.test(id));
   for (const id of played) {
     const [m] = await db.select().from(matches).where(eq(matches.id, id)).limit(1);
     if (!m?.team1Id || !m.team2Id) continue;
@@ -244,7 +244,7 @@ export async function seedTestData() {
     commentators: null,
     vodUrl: null,
   }));
-  const seeding = seedingOf(ms);
+  const seeding = seedingOf(f, ms);
   for (const p of people.slice(0, 14)) {
     let picks: Record<string, string> = {};
     for (const id of f.order) {

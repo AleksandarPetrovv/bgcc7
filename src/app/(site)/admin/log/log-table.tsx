@@ -5,6 +5,7 @@ import { Avatar } from "@/components/site/avatar";
 import type { Dict } from "@/lib/i18n/dict";
 import { describe, summarize, type LogCtx } from "@/lib/log-text";
 import { getFormat } from "@/db/edition";
+import { roundOf } from "@/lib/format";
 import { compactLog, type CompactLogEntry } from "@/lib/log-compact";
 import { fmtSofia, fmtSofiaDay, fmtSofiaTime, TZ, tzLabel } from "@/lib/time";
 import { cn } from "@/lib/utils";
@@ -68,9 +69,9 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
     role: (r: string) => t.admin.roles[r] ?? r,
     date: (d: string) => `${fmtSofia(new Date(d), locale)} ${tzLabel(new Date(d))}`,
     match: (id: string) => {
-      const m = id.match(/^(GF|[WL]B-R\d+)-M(\d+)$/);
-      const r = m && getFormat().rounds[m[1]];
-      return r && m ? `${t.rounds[r.name] ?? r.name} - ${m[2]}` : id;
+      const r = getFormat().rounds[roundOf(id)];
+      const n = id.match(/-(\d+)$/)?.[1];
+      return r ? (r.single ? (t.rounds[r.name] ?? r.name) : `${t.rounds[r.name] ?? r.name} - ${n}`) : id;
     },
   };
   const matchName = (id: string) => {

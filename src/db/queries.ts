@@ -16,7 +16,7 @@ export const getPicks = (osuId: number) =>
   safe(async () => {
     const f = getFormat();
     const [[row], ms] = await Promise.all([db.select({ picks: pickems.picks }).from(pickems).where(eq(pickems.osuId, osuId)).limit(1), getMatches()]);
-    return row ? resolve(f, row.picks, seedingOf(ms)).picks : null;
+    return row ? resolve(f, row.picks, seedingOf(f, ms)).picks : null;
   }, null);
 
 export const getBracketOf = (osuId: number) =>
@@ -30,7 +30,7 @@ export const getBracketOf = (osuId: number) =>
       .limit(1);
     if (!row) return null;
     const ms = await getMatches();
-    const picks = row.picks ? resolve(f, row.picks, seedingOf(ms)).picks : null;
+    const picks = row.picks ? resolve(f, row.picks, seedingOf(f, ms)).picks : null;
     return { ...row, picks, ...(picks ? score(f, picks, actualOf(ms)) : { points: 0, correct: 0 }) };
   }, null);
 
@@ -44,7 +44,7 @@ export const getLeaderboard = () =>
         .innerJoin(users, eq(users.osuId, pickems.osuId)),
       getMatches(),
     ]);
-    const seeding = seedingOf(ms);
+    const seeding = seedingOf(f, ms);
     const actual = actualOf(ms);
     return rows
       .map(({ picks, ...u }): LeaderRow => ({ ...u, ...score(f, resolve(f, picks, seeding).picks, actual) }))

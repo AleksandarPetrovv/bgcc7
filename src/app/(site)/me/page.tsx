@@ -290,7 +290,7 @@ export default async function Me() {
   const record: [number, number] = [played.filter(usWon).length, played.filter((m) => !usWon(m)).length];
   const upcomingMatch = mine.filter((m) => !m.winner).sort((a, b) => (a.datetime ?? "9").localeCompare(b.datetime ?? "9"))[0];
   const lostIn = played.find((m) => (m.bracket === "losers" || m.bracket === "grand") && !usWon(m));
-  const lastGf = played.find((m) => m.id === "GF-M2") ?? played.find((m) => m.id === "GF-M1");
+  const lastGf = played.find((m) => m.id === "grand-final-reset") ?? played.find((m) => m.id === "grand-final");
   const champion = !!lastGf && usWon(lastGf) && !upcomingMatch;
   const path = champion ? "champion" : lostIn && !upcomingMatch ? "out" : (upcomingMatch?.bracket ?? played.at(-1)?.bracket ?? "winners");
   const pathTag = (

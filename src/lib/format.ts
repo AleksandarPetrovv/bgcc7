@@ -16,7 +16,8 @@ export type Format = {
   order: string[];
   points: Record<string, number>;
   r1: [number, number][];
-  rounds: Record<string, { name: string; stage: string; slug: string; single?: boolean }>;
+  /** keyed by round slug; a match id is `<round>-<n>`, or just `<round>` when the round is a single match */
+  rounds: Record<string, { name: string; stage: string; single?: boolean }>;
   losersFinal: string;
   winnersFinal: string;
   sectionsOff: string[];
@@ -36,7 +37,7 @@ export type Format = {
 
 const W = (from: string): Src => ({ from, take: "W" });
 const L = (from: string): Src => ({ from, take: "L" });
-const id = (r: string, m: number) => `${r}-M${m}`;
+const id = (r: string, m: number) => `${r}-${m}`;
 const range = (n: number) => Array.from({ length: n }, (_, i) => i + 1);
 
 const formatBGCC6: Format = {
@@ -47,38 +48,39 @@ const formatBGCC6: Format = {
   teamSize: 3,
   teams: 8,
   feed: {
-    "WB-R2-M1": [W("WB-R1-M1"), W("WB-R1-M2")],
-    "WB-R2-M2": [W("WB-R1-M3"), W("WB-R1-M4")],
-    "WB-R3-M1": [W("WB-R2-M1"), W("WB-R2-M2")],
-    "LB-R1-M1": [L("WB-R1-M1"), L("WB-R1-M4")],
-    "LB-R1-M2": [L("WB-R1-M2"), L("WB-R1-M3")],
-    "LB-R2-M1": [L("WB-R2-M2"), W("LB-R1-M1")],
-    "LB-R2-M2": [L("WB-R2-M1"), W("LB-R1-M2")],
-    "LB-R3-M1": [W("LB-R2-M1"), W("LB-R2-M2")],
-    "LB-R4-M1": [L("WB-R3-M1"), W("LB-R3-M1")],
-    "GF-M1": [W("WB-R3-M1"), W("LB-R4-M1")],
-    "GF-M2": [W("GF-M1"), L("GF-M1")],
+    "winners-semifinals-1": [W("winners-quarterfinals-1"), W("winners-quarterfinals-2")],
+    "winners-semifinals-2": [W("winners-quarterfinals-3"), W("winners-quarterfinals-4")],
+    "winners-final": [W("winners-semifinals-1"), W("winners-semifinals-2")],
+    "losers-round-1-1": [L("winners-quarterfinals-1"), L("winners-quarterfinals-4")],
+    "losers-round-1-2": [L("winners-quarterfinals-2"), L("winners-quarterfinals-3")],
+    "losers-round-2-1": [L("winners-semifinals-2"), W("losers-round-1-1")],
+    "losers-round-2-2": [L("winners-semifinals-1"), W("losers-round-1-2")],
+    "losers-round-3": [W("losers-round-2-1"), W("losers-round-2-2")],
+    "losers-final": [L("winners-final"), W("losers-round-3")],
+    "grand-final": [W("winners-final"), W("losers-final")],
+    "grand-final-reset": [W("grand-final"), L("grand-final")],
   },
   order: [
-    "WB-R1-M1", "WB-R1-M2", "WB-R1-M3", "WB-R1-M4",
-    "WB-R2-M1", "WB-R2-M2", "LB-R1-M1", "LB-R1-M2",
-    "WB-R3-M1", "LB-R2-M1", "LB-R2-M2", "LB-R3-M1", "LB-R4-M1",
-    "GF-M1", "GF-M2",
+    "winners-quarterfinals-1", "winners-quarterfinals-2", "winners-quarterfinals-3", "winners-quarterfinals-4",
+    "winners-semifinals-1", "winners-semifinals-2", "losers-round-1-1", "losers-round-1-2",
+    "winners-final", "losers-round-2-1", "losers-round-2-2", "losers-round-3", "losers-final",
+    "grand-final", "grand-final-reset",
   ],
-  points: { "WB-R1": 10, "LB-R1": 10, "WB-R2": 15, "LB-R2": 15, "WB-R3": 25, "LB-R3": 25, "LB-R4": 35, GF: 50 },
+  points: { "winners-quarterfinals": 10, "losers-round-1": 10, "winners-semifinals": 15, "losers-round-2": 15, "winners-final": 25, "losers-round-3": 25, "losers-final": 35, "grand-final": 50, "grand-final-reset": 50 },
   r1: [[1, 8], [4, 5], [2, 7], [3, 6]],
   rounds: {
-    "WB-R1": { name: "Round 1 (Quarter-Finals)", stage: "quarterfinals", slug: "winners-quarterfinals" },
-    "WB-R2": { name: "Round 2 (Semi-Finals)", stage: "semifinals", slug: "winners-semifinals" },
-    "WB-R3": { name: "Winners Finals", stage: "finals", slug: "winners-finals", single: true },
-    "LB-R1": { name: "Losers Round 1", stage: "quarterfinals", slug: "losers-round-1" },
-    "LB-R2": { name: "Losers Round 2", stage: "semifinals", slug: "losers-round-2" },
-    "LB-R3": { name: "Losers Round 3", stage: "finals", slug: "losers-round-3", single: true },
-    "LB-R4": { name: "Losers Finals", stage: "finals", slug: "losers-finals", single: true },
-    GF: { name: "Grand Finals", stage: "grand-finals", slug: "grandfinals" },
+    "winners-quarterfinals": { name: "Round 1 (Quarter-Finals)", stage: "quarterfinals" },
+    "winners-semifinals": { name: "Round 2 (Semi-Finals)", stage: "semifinals" },
+    "winners-final": { name: "Winners Finals", stage: "finals", single: true },
+    "losers-round-1": { name: "Losers Round 1", stage: "quarterfinals" },
+    "losers-round-2": { name: "Losers Round 2", stage: "semifinals" },
+    "losers-round-3": { name: "Losers Round 3", stage: "finals", single: true },
+    "losers-final": { name: "Losers Finals", stage: "finals", single: true },
+    "grand-final": { name: "Grand Finals", stage: "grand-finals", single: true },
+    "grand-final-reset": { name: "Grand Finals", stage: "grand-finals", single: true },
   },
-  losersFinal: "LB-R4-M1",
-  winnersFinal: "WB-R3-M1",
+  losersFinal: "losers-final",
+  winnersFinal: "winners-final",
   sectionsOff: [],
   layout: {
     gfCol: 4,
@@ -89,17 +91,17 @@ const formatBGCC6: Format = {
     box: { g: 28, h: 92, gap: 18, minW: 210 },
     pick: { w: 214, g: 40, h: 78, pitch: 100 },
     pos: {
-      "WB-R1-M1": [0, 0, "u"], "WB-R1-M2": [0, 1, "u"], "WB-R1-M3": [0, 2, "u"], "WB-R1-M4": [0, 3, "u"],
-      "WB-R2-M1": [1, 0.5, "u"], "WB-R2-M2": [1, 2.5, "u"],
-      "WB-R3-M1": [2, 1.5, "u"],
-      "LB-R1-M1": [0, 0, "l"], "LB-R1-M2": [0, 1, "l"],
-      "LB-R2-M1": [1, 0, "l"], "LB-R2-M2": [1, 1, "l"],
-      "LB-R3-M1": [2, 0.5, "l"],
-      "LB-R4-M1": [3, 0.5, "l"],
+      "winners-quarterfinals-1": [0, 0, "u"], "winners-quarterfinals-2": [0, 1, "u"], "winners-quarterfinals-3": [0, 2, "u"], "winners-quarterfinals-4": [0, 3, "u"],
+      "winners-semifinals-1": [1, 0.5, "u"], "winners-semifinals-2": [1, 2.5, "u"],
+      "winners-final": [2, 1.5, "u"],
+      "losers-round-1-1": [0, 0, "l"], "losers-round-1-2": [0, 1, "l"],
+      "losers-round-2-1": [1, 0, "l"], "losers-round-2-2": [1, 1, "l"],
+      "losers-round-3": [2, 0.5, "l"],
+      "losers-final": [3, 0.5, "l"],
     },
     drops: [
-      ["WB-R1-M1", "LB-R1-M1"], ["WB-R1-M4", "LB-R1-M1"], ["WB-R1-M2", "LB-R1-M2"], ["WB-R1-M3", "LB-R1-M2"],
-      ["WB-R2-M2", "LB-R2-M1"], ["WB-R2-M1", "LB-R2-M2"], ["WB-R3-M1", "LB-R4-M1"],
+      ["winners-quarterfinals-1", "losers-round-1-1"], ["winners-quarterfinals-4", "losers-round-1-1"], ["winners-quarterfinals-2", "losers-round-1-2"], ["winners-quarterfinals-3", "losers-round-1-2"],
+      ["winners-semifinals-2", "losers-round-2-1"], ["winners-semifinals-1", "losers-round-2-2"], ["winners-final", "losers-final"],
     ],
     headers: [
       { c: 0, s: "u", t: "Round 1 (Quarter-Finals)" },
@@ -115,48 +117,48 @@ const formatBGCC6: Format = {
 
 function buildFormat(): Format {
   const feed: Record<string, [Src, Src]> = {};
-  for (const k of range(4)) feed[id("WB-R2", k)] = [W(id("WB-R1", 2 * k - 1)), W(id("WB-R1", 2 * k))];
-  for (const k of range(2)) feed[id("WB-R3", k)] = [W(id("WB-R2", 2 * k - 1)), W(id("WB-R2", 2 * k))];
-  feed["WB-R4-M1"] = [W("WB-R3-M1"), W("WB-R3-M2")];
-  for (const k of range(4)) feed[id("LB-R1", k)] = [L(id("WB-R1", 2 * k - 1)), L(id("WB-R1", 2 * k))];
-  for (const k of range(4)) feed[id("LB-R2", k)] = [L(id("WB-R2", 5 - k)), W(id("LB-R1", k))];
-  for (const k of range(2)) feed[id("LB-R3", k)] = [W(id("LB-R2", 2 * k - 1)), W(id("LB-R2", 2 * k))];
-  for (const k of range(2)) feed[id("LB-R4", k)] = [L(id("WB-R3", k)), W(id("LB-R3", k))];
-  feed["LB-R5-M1"] = [W("LB-R4-M1"), W("LB-R4-M2")];
-  feed["LB-R6-M1"] = [L("WB-R4-M1"), W("LB-R5-M1")];
-  feed["GF-M1"] = [W("WB-R4-M1"), W("LB-R6-M1")];
-  feed["GF-M2"] = [W("GF-M1"), L("GF-M1")];
+  for (const k of range(4)) feed[id("winners-quarterfinals", k)] = [W(id("winners-round-of-16", 2 * k - 1)), W(id("winners-round-of-16", 2 * k))];
+  for (const k of range(2)) feed[id("winners-semifinals", k)] = [W(id("winners-quarterfinals", 2 * k - 1)), W(id("winners-quarterfinals", 2 * k))];
+  feed["winners-final"] = [W("winners-semifinals-1"), W("winners-semifinals-2")];
+  for (const k of range(4)) feed[id("losers-round-1", k)] = [L(id("winners-round-of-16", 2 * k - 1)), L(id("winners-round-of-16", 2 * k))];
+  for (const k of range(4)) feed[id("losers-round-2", k)] = [L(id("winners-quarterfinals", 5 - k)), W(id("losers-round-1", k))];
+  for (const k of range(2)) feed[id("losers-round-3", k)] = [W(id("losers-round-2", 2 * k - 1)), W(id("losers-round-2", 2 * k))];
+  for (const k of range(2)) feed[id("losers-round-4", k)] = [L(id("winners-semifinals", k)), W(id("losers-round-3", k))];
+  feed["losers-round-5"] = [W("losers-round-4-1"), W("losers-round-4-2")];
+  feed["losers-final"] = [L("winners-final"), W("losers-round-5")];
+  feed["grand-final"] = [W("winners-final"), W("losers-final")];
+  feed["grand-final-reset"] = [W("grand-final"), L("grand-final")];
 
   const round = (r: string, n: number) => range(n).map((k) => id(r, k));
   const order = [
-    ...round("WB-R1", 8),
-    ...round("LB-R1", 4),
-    ...round("WB-R2", 4),
-    ...round("LB-R2", 4),
-    ...round("WB-R3", 2),
-    ...round("LB-R3", 2),
-    ...round("LB-R4", 2),
-    "WB-R4-M1",
-    "LB-R5-M1",
-    "LB-R6-M1",
-    "GF-M1",
-    "GF-M2",
+    ...round("winners-round-of-16", 8),
+    ...round("losers-round-1", 4),
+    ...round("winners-quarterfinals", 4),
+    ...round("losers-round-2", 4),
+    ...round("winners-semifinals", 2),
+    ...round("losers-round-3", 2),
+    ...round("losers-round-4", 2),
+    "winners-final",
+    "losers-round-5",
+    "losers-final",
+    "grand-final",
+    "grand-final-reset",
   ];
 
   const pos: Format["layout"]["pos"] = {};
-  for (const k of range(8)) pos[id("WB-R1", k)] = [0, k - 1, "u"];
-  for (const k of range(4)) pos[id("WB-R2", k)] = [1, 2 * k - 1.5, "u"];
-  for (const k of range(2)) pos[id("WB-R3", k)] = [2, 4 * k - 2.5, "u"];
-  pos["WB-R4-M1"] = [3, 3.5, "u"];
-  for (const k of range(4)) pos[id("LB-R1", k)] = [0, k - 1, "l"];
-  for (const k of range(4)) pos[id("LB-R2", k)] = [1, k - 1, "l"];
-  for (const k of range(2)) pos[id("LB-R3", k)] = [2, 2 * k - 1.5, "l"];
-  for (const k of range(2)) pos[id("LB-R4", k)] = [3, 2 * k - 1.5, "l"];
-  pos["LB-R5-M1"] = [4, 1.5, "l"];
-  pos["LB-R6-M1"] = [5, 1.5, "l"];
+  for (const k of range(8)) pos[id("winners-round-of-16", k)] = [0, k - 1, "u"];
+  for (const k of range(4)) pos[id("winners-quarterfinals", k)] = [1, 2 * k - 1.5, "u"];
+  for (const k of range(2)) pos[id("winners-semifinals", k)] = [2, 4 * k - 2.5, "u"];
+  pos["winners-final"] = [3, 3.5, "u"];
+  for (const k of range(4)) pos[id("losers-round-1", k)] = [0, k - 1, "l"];
+  for (const k of range(4)) pos[id("losers-round-2", k)] = [1, k - 1, "l"];
+  for (const k of range(2)) pos[id("losers-round-3", k)] = [2, 2 * k - 1.5, "l"];
+  for (const k of range(2)) pos[id("losers-round-4", k)] = [3, 2 * k - 1.5, "l"];
+  pos["losers-round-5"] = [4, 1.5, "l"];
+  pos["losers-final"] = [5, 1.5, "l"];
 
   const drops: [string, string][] = [];
-  for (const [to, srcs] of Object.entries(feed)) if (to.startsWith("LB")) for (const s of srcs) if (s.take === "L") drops.push([s.from, to]);
+  for (const [to, srcs] of Object.entries(feed)) if (to.startsWith("losers-")) for (const s of srcs) if (s.take === "L") drops.push([s.from, to]);
 
   return {
     edition: "bgcc7",
@@ -167,23 +169,24 @@ function buildFormat(): Format {
     teams: 16,
     feed,
     order,
-    points: { "WB-R1": 5, "LB-R1": 5, "WB-R2": 10, "LB-R2": 10, "WB-R3": 15, "LB-R3": 15, "LB-R4": 15, "WB-R4": 25, "LB-R5": 25, "LB-R6": 25, GF: 50 },
+    points: { "winners-round-of-16": 5, "losers-round-1": 5, "winners-quarterfinals": 10, "losers-round-2": 10, "winners-semifinals": 15, "losers-round-3": 15, "losers-round-4": 15, "winners-final": 25, "losers-round-5": 25, "losers-final": 25, "grand-final": 50, "grand-final-reset": 50 },
     r1: [[1, 16], [8, 9], [5, 12], [4, 13], [6, 11], [3, 14], [7, 10], [2, 15]],
     rounds: {
-      "WB-R1": { name: "Round of 16", stage: "round-of-16", slug: "winners-round-of-16" },
-      "WB-R2": { name: "Quarterfinals", stage: "quarterfinals", slug: "winners-quarterfinals" },
-      "WB-R3": { name: "Semifinals", stage: "semifinals", slug: "winners-semifinals" },
-      "WB-R4": { name: "Winners Finals", stage: "finals", slug: "winners-finals", single: true },
-      "LB-R1": { name: "Losers Round 1", stage: "round-of-16", slug: "losers-round-1" },
-      "LB-R2": { name: "Losers Round 2", stage: "quarterfinals", slug: "losers-round-2" },
-      "LB-R3": { name: "Losers Round 3", stage: "semifinals", slug: "losers-round-3" },
-      "LB-R4": { name: "Losers Round 4", stage: "semifinals", slug: "losers-round-4" },
-      "LB-R5": { name: "Losers Round 5", stage: "finals", slug: "losers-round-5", single: true },
-      "LB-R6": { name: "Losers Finals", stage: "finals", slug: "losers-finals", single: true },
-      GF: { name: "Grand Finals", stage: "grand-finals", slug: "grandfinals" },
+      "winners-round-of-16": { name: "Round of 16", stage: "round-of-16" },
+      "winners-quarterfinals": { name: "Quarterfinals", stage: "quarterfinals" },
+      "winners-semifinals": { name: "Semifinals", stage: "semifinals" },
+      "winners-final": { name: "Winners Finals", stage: "finals", single: true },
+      "losers-round-1": { name: "Losers Round 1", stage: "round-of-16" },
+      "losers-round-2": { name: "Losers Round 2", stage: "quarterfinals" },
+      "losers-round-3": { name: "Losers Round 3", stage: "semifinals" },
+      "losers-round-4": { name: "Losers Round 4", stage: "semifinals" },
+      "losers-round-5": { name: "Losers Round 5", stage: "finals", single: true },
+      "losers-final": { name: "Losers Finals", stage: "finals", single: true },
+      "grand-final": { name: "Grand Finals", stage: "grand-finals", single: true },
+      "grand-final-reset": { name: "Grand Finals", stage: "grand-finals", single: true },
     },
-    losersFinal: "LB-R6-M1",
-    winnersFinal: "WB-R4-M1",
+    losersFinal: "losers-final",
+    winnersFinal: "winners-final",
     sectionsOff: ["lobbies", "qualScores", "seeding"],
     layout: {
       gfCol: 6,
@@ -214,42 +217,37 @@ function buildFormat(): Format {
 export const FORMAT = buildFormat();
 export const FORMATS: Record<Edition, Format> = { bgcc6: formatBGCC6, bgcc7: FORMAT };
 
-export const roundOf = (matchId: string) => (matchId.startsWith("GF") ? "GF" : matchId.replace(/-M\d+$/, ""));
+export const GF = "grand-final";
+export const GF_RESET = "grand-final-reset";
+export const isGrand = (matchId: string) => matchId.startsWith("grand-");
+export const isWinners = (matchId: string) => matchId.startsWith("winners-");
+export const isLosers = (matchId: string) => matchId.startsWith("losers-");
+
+const ROUNDS = new Set(Object.values(FORMATS).flatMap((f) => Object.keys(f.rounds)));
+export const roundOf = (matchId: string) => (ROUNDS.has(matchId) ? matchId : matchId.replace(/-\d+$/, ""));
 
 export const winTargets = (f: Format) => {
   const out: Record<string, string> = {};
   for (const [to, srcs] of Object.entries(f.feed)) {
-    if (to === "GF-M2") continue;
+    if (to === GF_RESET) continue;
     for (const s of srcs) if (s.take === "W" && !out[s.from]) out[s.from] = to;
   }
   return out;
 };
 
-export const TEST_MATCH = { id: "TEST-M1", slug: "test-1" } as const;
+export const TEST_MATCH = { id: "test-1", slug: "test-1" } as const;
 export const isTestTeam = (id: string | null | undefined) => !!id?.startsWith("test-");
 
 export const lobbySize =(f: Format) => f.teamSize * 2;
 export const versus = (f: Format) => `${f.teamSize}v${f.teamSize}`;
 export const playerCount = (f: Format) => f.teams * f.teamSize;
 
-export function matchSlug(f: Format, id: string) {
-  if (id === TEST_MATCH.id) return TEST_MATCH.slug;
-  const m = id.match(/^(GF|[WL]B-R\d)-M(\d+)$/);
-  const r = m && f.rounds[m[1]];
-  return m && r ? `${r.slug}-${m[2]}` : id.toLowerCase();
-}
-
-export function matchIdFromSlug(f: Format, slug: string) {
-  if (slug === TEST_MATCH.slug) return TEST_MATCH.id;
-  const m = slug.match(/^([a-z0-9-]+)-([1-9]\d*)$/);
-  if (!m) return "";
-  const round = Object.entries(f.rounds).find(([, r]) => r.slug === m[1])?.[0];
-  const id = round ? `${round}-M${Number(m[2])}` : "";
-  return f.order.includes(id) ? id : "";
-}
+// match ids are their url slugs
+export const matchSlug = (_f: Format, id: string) => id;
+export const matchIdFromSlug = (f: Format, slug: string) => (slug === TEST_MATCH.id || f.order.includes(slug) ? slug : "");
 
 export const bracketRows = (f: Format) =>
   f.order.map((mid, i) => {
     const r = f.rounds[roundOf(mid)];
-    return { id: mid, stageSlug: r.stage, bracket: mid.startsWith("WB") ? "winners" : mid.startsWith("LB") ? "losers" : "grand", round: r.name, order: i + 1 };
+    return { id: mid, stageSlug: r.stage, bracket: isWinners(mid) ? "winners" : isLosers(mid) ? "losers" : "grand", round: r.name, order: i + 1 };
   });
