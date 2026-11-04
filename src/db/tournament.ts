@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { asc, eq } from "drizzle-orm";
 import { db } from "./index";
-import { matches, sponsors, teamMembers, teams, users } from "./schema";
+import { drafts, matches, mpLobbies, sponsors, teamMembers, teams, users } from "./schema";
 import { safe } from "./safe";
 import { mpIds } from "./lobbies";
 import type { Match, Player, Sponsor, Team } from "@/lib/data";
@@ -70,10 +70,21 @@ export const getMatchRows = cache(async () => (await getAllMatchRows()).filter((
 
 export const getMatches = cache(async (): Promise<Match[]> => (await getAllMatches()).filter((m) => m.id !== TEST_MATCH.id));
 
+// matches with an open pick and ban page or an open lobby
+const openMatchIds = () =>
+  safe(async () => {
+    const [d, l] = await Promise.all([
+      db.select({ id: drafts.matchId }).from(drafts).where(eq(drafts.open, true)),
+      db.select({ id: mpLobbies.matchId }).from(mpLobbies).where(eq(mpLobbies.open, true)),
+    ]);
+    return new Set([...d, ...l].map((r) => r.id));
+  }, new Set<string>());
+
 export const getAllMatches = cache(async (): Promise<Match[]> => {
-  const [rows, ts] = await Promise.all([getAllMatchRows(), getAllTeams()]);
+  const [rows, ts, open] = await Promise.all([getAllMatchRows(), getAllTeams(), openMatchIds()]);
   const name = (id: string | null) => ts.find((t) => t.id === id)?.name ?? "TBD";
   return rows.map((m) => ({
+    running: open.has(m.id),
     id: m.id,
     datetime: m.startsAt?.toISOString() ?? null,
     team1: { id: m.team1Id ?? "", name: name(m.team1Id), score: m.score1 },

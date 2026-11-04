@@ -57,6 +57,8 @@ export type Match = {
   team2: MatchSide;
   winner: 1 | 2 | null;
   links: string[];
+  /** pick and ban page or lobby is open */
+  running?: boolean;
   round: string;
   bracket: "winners" | "losers" | "grand";
   stage: string;
