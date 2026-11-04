@@ -6,9 +6,9 @@ import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getViewer } from "@/lib/authz";
-import { teamOf } from "@/db/schedule";
+import { canLinkDiscord } from "@/db/schedule";
 import { later, syncTeams } from "@/db/discord-bot";
-import { discordProfile, discordReady, dm, findMember } from "@/lib/discord";
+import { discordProfile, dm, findMember } from "@/lib/discord";
 
 type Fail = "notFound" | "taken" | "failed" | "forbidden" | "dm" | "wait";
 type Pending = { id: string; name: string; code: string; exp: number; sentAt: number; tries: number };
@@ -22,7 +22,7 @@ const codes = (g.bgccDiscordCodes ??= new Map());
 
 async function player() {
   const v = await getViewer();
-  return v && discordReady() && (await teamOf(v.osuId)) ? v.osuId : null;
+  return v && canLinkDiscord() ? v.osuId : null;
 }
 
 const takenBy = async (discordId: string, osuId: number) =>
@@ -83,7 +83,7 @@ export async function confirmDiscord(code: string): Promise<{ ok: true; name: st
 
 export async function unlinkDiscord(): Promise<{ ok: boolean }> {
   const v = await getViewer();
-  if (!v || !(await teamOf(v.osuId))) return { ok: false };
+  if (!v || !canLinkDiscord()) return { ok: false };
   try {
     await db.update(users).set({ discordId: null, discordName: null }).where(eq(users.osuId, v.osuId));
     later("sync", syncTeams);
