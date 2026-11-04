@@ -9,6 +9,8 @@ import { getSettings } from "@/db/settings";
 import { getAllTeams } from "@/db/tournament";
 import { fmtAt, lockMatch, myCaptainTeam, notifyCaptain, pendingOf, schedulable, stageWeeks } from "@/db/schedule";
 import { getViewer } from "@/lib/authz";
+import { siteUrl } from "@/lib/links";
+import { teamNote } from "@/db/discord-bot";
 import { fromSofiaInput } from "@/lib/time";
 import { inWindow, isOpen, weekOf } from "@/lib/schedule";
 
@@ -51,23 +53,31 @@ export async function propose(matchId: string, input: string): Promise<Res> {
     const { osuId, team } = await captain();
     const at = fromSofiaInput(input);
     const weeks = await stageWeeks();
-    const opp = await db.transaction(async (tx) => {
+    const { opp, counter } = await db.transaction(async (tx) => {
       const m = await lockMatch(tx, matchId);
       if (!m || !schedulable(m) || (m.team1Id !== team && m.team2Id !== team)) throw new Stop("gone");
       const w = weekOf(weeks[m.stageSlug]);
       if (!w || !isOpen(w)) throw new Stop("closed");
       if (!at || !inWindow(w, at)) throw new Stop("window");
-      for (const p of await pendingOf(tx, m.id)) {
+      const open = await pendingOf(tx, m.id);
+      for (const p of open) {
         await tx
           .update(reschedules)
           .set(p.teamId === team ? { status: "withdrawn" } : { status: "rejected", answeredBy: osuId })
           .where(eq(reschedules.id, p.id));
       }
       await tx.insert(reschedules).values({ matchId: m.id, teamId: team, requestedBy: osuId, proposedAt: at });
-      return m.team1Id === team ? m.team2Id! : m.team1Id!;
+      return { opp: m.team1Id === team ? m.team2Id! : m.team1Id!, counter: open.some((p) => p.teamId !== team) };
     });
-    const from = await teamName(team);
-    return () => notifyCaptain(opp, (link) => `**BGCC7 scheduling**: ${from} proposed **${fmtAt(at!)}** for your match. Accept or counter: ${link}`);
+    const [from, to] = [await teamName(team), await teamName(opp)];
+    const verb = counter ? "countered with" : "proposed";
+    return async () => {
+      await notifyCaptain(opp, (link) => `${from} ${verb} **${fmtAt(at!)}** for your match. Accept or counter: ${link}`);
+      await teamNote({
+        [team]: `Your captain ${verb} **${fmtAt(at!)}** for your match against **${to}**. Waiting for their answer.`,
+        [opp]: `**${from}** ${verb} **${fmtAt(at!)}** for your match. Your captain can accept or counter: <${siteUrl()}/scheduling>`,
+      });
+    };
   });
 }
 
@@ -88,8 +98,11 @@ export async function accept(matchId: string, proposalId: number): Promise<Res> 
       await tx.update(matches).set({ startsAt: p.proposedAt }).where(eq(matches.id, m.id));
       return { by: p.teamId, at: p.proposedAt };
     });
-    const from = await teamName(team);
-    return () => notifyCaptain(by, (link) => `**BGCC7 scheduling**: ${from} accepted **${fmtAt(at)}**. Your match is set. ${link}`);
+    const [from, to] = [await teamName(team), await teamName(by)];
+    return async () => {
+      await notifyCaptain(by, (link) => `${from} accepted **${fmtAt(at)}**. Your match is set. ${link}`);
+      await teamNote({ [team]: `Your match against **${to}** is set for **${fmtAt(at)}**.`, [by]: `Your match against **${from}** is set for **${fmtAt(at)}**.` });
+    };
   });
 }
 
@@ -97,7 +110,7 @@ export async function withdraw(matchId: string): Promise<Res> {
   return run(async () => {
     const { osuId, team } = await captain();
     const weeks = await stageWeeks();
-    const opp = await db.transaction(async (tx) => {
+    const { opp, agreed } = await db.transaction(async (tx) => {
       const m = await lockMatch(tx, matchId);
       if (!m || !schedulable(m) || (m.team1Id !== team && m.team2Id !== team)) throw new Stop("gone");
       const w = weekOf(weeks[m.stageSlug]);
@@ -108,9 +121,17 @@ export async function withdraw(matchId: string): Promise<Res> {
         await tx.update(matches).set({ startsAt: null }).where(eq(matches.id, m.id));
         await tx.update(reschedules).set({ status: "cancelled", answeredBy: osuId }).where(and(eq(reschedules.matchId, m.id), eq(reschedules.status, "accepted")));
       } else throw new Stop("gone");
-      return m.team1Id === team ? m.team2Id! : m.team1Id!;
+      return { opp: m.team1Id === team ? m.team2Id! : m.team1Id!, agreed: !mine };
     });
-    const from = await teamName(team);
-    return () => notifyCaptain(opp, (link) => `**BGCC7 scheduling**: ${from} withdrew their scheduling proposal or agreed time. Check the match page: ${link}`);
+    const [from, to] = [await teamName(team), await teamName(opp)];
+    return async () => {
+      await notifyCaptain(opp, (link) => `${from} withdrew their scheduling proposal or agreed time. Check the match page: ${link}`);
+      const link = `<${siteUrl()}/scheduling>`;
+      await teamNote(
+        agreed
+          ? { [team]: `The agreed time for your match against **${to}** was cleared. It's TBD again: ${link}`, [opp]: `The agreed time for your match against **${from}** was cleared. It's TBD again: ${link}` }
+          : { [team]: `Your captain withdrew the proposal for your match against **${to}**.`, [opp]: `**${from}** withdrew their proposal for your match.` },
+      );
+    };
   });
 }
