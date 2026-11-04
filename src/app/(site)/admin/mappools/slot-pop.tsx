@@ -69,7 +69,7 @@ function Pop({ action, title, slot, color, submit, tags, onClose, at, closing }:
       <form action={formAction}>
         <div className="flex items-stretch gap-3 p-4">
           <Field name="beatmap" required autoFocus placeholder={t.admin.pasteMap} aria-label={t.admin.beatmap} className={cn(inputCls, "min-w-0 flex-1 focus-within:!shadow-none")} inputClassName="pr-3" />
-          <Btn type="submit" disabled={pending} className="h-10 min-h-0 shrink-0 px-5 shadow-none hover:shadow-none">
+          <Btn type="submit" disabled={pending} className="h-10 min-h-0 shrink-0 px-5">
             {pending ? t.admin.saving : submit}
           </Btn>
         </div>

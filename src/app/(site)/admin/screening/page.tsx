@@ -40,15 +40,13 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
         </div>
         <Panel title={t.admin.exportPlayers} help={t.admin.exportHelp} className="xl:col-span-2">
           <div className="flex flex-wrap gap-3">
-            <a href="/admin/screening/export" className="lift-sm inline-flex min-h-10 -skew-x-12 items-center bg-balkan px-4 text-sm font-display font-bold text-on-fill hover:bg-paper hover:text-ink">
-              <span className="inline-flex skew-x-12 items-center gap-2">
-                <Download className="size-4" /> {t.admin.exportPlayers}
-              </span>
+            <a href="/admin/screening/export" className="group relative isolate inline-flex min-h-10 items-center gap-2 px-4 text-sm font-display font-bold text-on-fill hover:text-ink">
+              <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 bg-balkan group-hover:bg-paper" />
+              <Download className="size-4" /> {t.admin.exportPlayers}
             </a>
-            <a href="/admin/screening/export?teams=1" className="lift-sm inline-flex min-h-10 -skew-x-12 items-center border border-line px-4 text-sm font-display font-bold text-paper hover:border-rose">
-              <span className="inline-flex skew-x-12 items-center gap-2">
-                <Download className="size-4" /> {t.admin.exportTeams}
-              </span>
+            <a href="/admin/screening/export?teams=1" className="group relative isolate inline-flex min-h-10 items-center gap-2 px-4 text-sm font-display font-bold text-paper">
+              <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 border border-line group-hover:border-rose" />
+              <Download className="size-4" /> {t.admin.exportTeams}
             </a>
           </div>
         </Panel>

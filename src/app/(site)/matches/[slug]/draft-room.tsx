@@ -424,16 +424,11 @@ export function DraftRoom({
                   disabled={busy}
                   onClick={() => act({ act: turn.kind, slot: sel })}
                   whileTap={{ scale: 0.95 }}
-                  className="sheen heading-slam ml-auto inline-flex min-h-12 flex-1 -skew-x-12 items-center justify-center px-6 text-xl text-white disabled:opacity-60 sm:flex-none sm:text-2xl"
-                  style={{
-                    background: TEAM[me].c,
-                    boxShadow: `5px 5px 0 0 ${TEAM[me].deep}`,
-                  }}
+                  className="heading-slam relative isolate ml-auto inline-flex min-h-12 flex-1 items-center justify-center gap-2 px-6 text-xl text-white disabled:opacity-60 sm:flex-none sm:text-2xl"
                 >
-                  <span className="inline-flex skew-x-12 items-center gap-2">
-                    {turn.kind === "ban" ? <Ban className="size-5" /> : <Swords className="size-5" />}
-                    {t.draft.confirm(turn.kind, sel)}
-                  </span>
+                  <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12" style={{ background: TEAM[me].c, boxShadow: `5px 5px 0 0 ${TEAM[me].deep}` }} />
+                  {turn.kind === "ban" ? <Ban className="size-5" /> : <Swords className="size-5" />}
+                  {t.draft.confirm(turn.kind, sel)}
                 </motion.button>
               </div>
             </motion.div>

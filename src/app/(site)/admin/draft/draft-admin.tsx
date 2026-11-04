@@ -121,12 +121,11 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
             href={`/matches/${r.slug}`}
             target="_blank"
             rel="noopener"
-            className="lift-sm sheen group ml-auto inline-flex min-h-9 -skew-x-12 items-center bg-paper px-3 text-xs font-display font-bold text-ink [--lift:var(--balkan)] hover:bg-rose-deep"
+            className="group relative isolate ml-auto inline-flex min-h-9 items-center gap-1.5 px-3 text-xs font-display font-bold text-ink"
           >
-            <span className="inline-flex skew-x-12 items-center gap-1.5">
+            <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 bg-paper group-hover:bg-rose-deep" />
               {t.admin.dr.view}
               <ArrowUpRight className="size-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-            </span>
           </Link>
         ) : !ready ? (
           <span className="text-xs font-display font-bold text-ash">{t.admin.dr.noTeams}</span>
@@ -189,12 +188,11 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
                     href={`/matches/${r.slug}`}
                     target="_blank"
                     rel="noopener"
-                    className="lift-sm sheen group inline-flex min-h-9 -skew-x-12 items-center bg-paper px-3 text-xs font-display font-bold text-ink [--lift:var(--balkan)] hover:bg-rose-deep"
+                    className="group relative isolate inline-flex min-h-9 items-center gap-1.5 px-3 text-xs font-display font-bold text-ink"
                   >
-                    <span className="inline-flex skew-x-12 items-center gap-1.5">
+                    <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 bg-paper group-hover:bg-rose-deep" />
                       {t.admin.dr.view}
                       <ArrowUpRight className="size-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                    </span>
                   </Link>
                 </motion.span>
               )}

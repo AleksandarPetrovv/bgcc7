@@ -12,27 +12,29 @@ export const dateCls = "w-full min-w-0 [&::-webkit-date-and-time-value]:text-lef
 export const labelCls = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 export const checkLabelCls = "flex min-h-10 cursor-pointer items-center gap-2.5 text-sm font-display font-bold";
 
+// [text, skewed background]: the skew lives on an absolute span so the text is never transformed (transformed text goes blurry)
 const TONES = {
-  rose: "bg-rose text-white hover:bg-rose-hi",
-  balkan: "bg-balkan text-on-fill hover:bg-paper hover:text-ink [--lift:var(--balkan-deep)]",
-  outline: "border border-line text-paper hover:border-rose [--lift:var(--rose)]",
-  danger: "border border-rose text-rose-hi hover:bg-rose/10 [--lift:var(--rose)]",
+  rose: ["text-white", "bg-rose group-hover/sk:bg-rose-hi"],
+  balkan: ["text-on-fill hover:text-ink", "bg-balkan group-hover/sk:bg-paper"],
+  outline: ["text-paper", "border border-line group-hover/sk:border-rose"],
+  danger: ["text-rose-hi", "border border-rose group-hover/sk:bg-rose/10"],
 };
 
-type BtnProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { tone?: keyof typeof TONES; small?: boolean };
+type BtnProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { tone?: keyof typeof TONES; small?: boolean; fill?: string };
 
-export function Btn({ tone = "rose", small, className, children, ...props }: BtnProps) {
+export function Btn({ tone = "rose", small, fill, className, children, ...props }: BtnProps) {
   return (
     <button
       {...props}
       className={cn(
-        "lift-sm sheen inline-flex -skew-x-12 items-center justify-center font-display font-bold disabled:pointer-events-none disabled:opacity-50",
+        "group/sk relative isolate inline-flex items-center justify-center gap-1.5 font-display font-bold disabled:pointer-events-none disabled:opacity-50",
         small ? "min-h-10 px-3.5 text-xs" : "min-h-10 px-4 text-sm",
-        TONES[tone],
+        TONES[tone][0],
         className,
       )}
     >
-      <span className="inline-flex skew-x-12 items-center gap-1.5">{children}</span>
+      <span aria-hidden className={cn("absolute inset-0 -z-10 -skew-x-12", TONES[tone][1], fill)} />
+      {children}
     </button>
   );
 }

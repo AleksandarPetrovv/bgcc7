@@ -593,6 +593,7 @@ export function SlantButton({
   type = "button",
   download,
   disabled,
+  fill,
 }: {
   children: React.ReactNode;
   tone?: "rose" | "balkan" | "paper" | "outline";
@@ -602,15 +603,22 @@ export function SlantButton({
   type?: "button" | "submit";
   download?: boolean;
   disabled?: boolean;
+  fill?: string;
 }) {
-  const t = {
-    rose: "bg-rose text-white hover:bg-rose-hi [--lift:var(--rose-deep)]",
-    balkan: "bg-balkan text-on-fill hover:bg-paper hover:text-ink [--lift:var(--balkan-deep)]",
-    paper: "bg-paper text-ink hover:bg-rose-deep [--lift:var(--rose)]",
-    outline: "border border-line text-paper hover:border-rose [--lift:var(--rose)]",
+  // [text, skewed background]: skew on an absolute span so the text is never transformed (blurry otherwise)
+  const [text, bg] = {
+    rose: ["text-white", "bg-rose group-hover/sk:bg-rose-hi"],
+    balkan: ["text-on-fill hover:text-ink", "bg-balkan group-hover/sk:bg-paper"],
+    paper: ["text-ink", "bg-paper group-hover/sk:bg-rose-deep"],
+    outline: ["text-paper", "border border-line group-hover/sk:border-rose"],
   }[tone];
-  const cls = cn("lift-sm sheen inline-flex -skew-x-12 items-center px-4 py-2 text-sm font-display font-bold", t, className);
-  const inner = <span className="inline-flex skew-x-12 items-center gap-2">{children}</span>;
+  const cls = cn("group/sk relative isolate inline-flex items-center gap-2 px-4 py-2 text-sm font-display font-bold", text, className);
+  const inner = (
+    <>
+      <span aria-hidden className={cn("absolute inset-0 -z-10 -skew-x-12", bg, fill)} />
+      {children}
+    </>
+  );
   if (href && download)
     return (
       <a href={href} download className={cls}>

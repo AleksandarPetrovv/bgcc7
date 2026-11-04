@@ -125,7 +125,7 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
                 </motion.span>
               )}
             </AnimatePresence>
-            <Btn type="button" tone="outline" onClick={reset} disabled={resetting} className="bg-ink">
+            <Btn type="button" tone="outline" onClick={reset} disabled={resetting} fill="bg-ink">
               <RotateCcw className="size-3.5" /> {t.admin.fp.reset}
             </Btn>
           </div>

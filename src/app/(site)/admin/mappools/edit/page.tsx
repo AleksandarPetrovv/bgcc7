@@ -113,11 +113,10 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
           <a
             href={`/download/${stage.slug}?v=${stage.pack.at ?? stage.pack.size}`}
             download
-            className="in-left lift-sm mb-6 flex w-fit -skew-x-12 items-center border border-balkan/60 px-4 py-2.5 text-balkan-hi transition-colors hover:bg-balkan hover:text-on-fill [--d:0.2s]"
+            className="in-left group relative isolate mb-6 flex w-fit items-center gap-2 px-4 py-2.5 text-xs font-display font-bold text-balkan-hi hover:text-on-fill [--d:0.2s]"
           >
-            <span className="flex skew-x-12 items-center gap-2 text-xs font-display font-bold">
-              <Download className="size-4" /> {t.admin.packDownload}
-            </span>
+            <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 border border-balkan/60 group-hover:bg-balkan" />
+            <Download className="size-4" /> {t.admin.packDownload}
           </a>
         )
       )}

@@ -48,8 +48,8 @@ export default async function Overlay({ searchParams }: { searchParams: Promise<
         <Panel title={o.link} i={i++}>
           <div className="grid gap-4">
             <CopyLink url={url} />
-            <a href="/overlay/demo" target="_blank" rel="noopener noreferrer" className="lift-sm inline-flex w-fit -skew-x-12 border border-line px-4 py-2 text-sm font-display font-bold text-paper hover:border-rose">
-              <span className="inline-flex skew-x-12 items-center gap-2"><ExternalLink className="size-4" />{o.test}</span>
+            <a href="/overlay/demo" target="_blank" rel="noopener noreferrer" className="group relative isolate inline-flex w-fit items-center gap-2 px-4 py-2 text-sm font-display font-bold text-paper">
+              <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 border border-line group-hover:border-rose" /><ExternalLink className="size-4" />{o.test}
             </a>
           </div>
         </Panel>
