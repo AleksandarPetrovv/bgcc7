@@ -13,7 +13,7 @@ export function SubNav({ items }: { items: { href: string; label: string; hidden
   const path = usePathname();
   const t = useDict();
   return (
-    <div className="sticky top-16 z-30 border-b border-line bg-coal/95 backdrop-blur lg:top-20">
+    <div className="sub-nav sticky top-16 z-30 border-b border-line bg-coal/95 backdrop-blur lg:top-20">
       <nav className="mx-auto flex max-w-page items-stretch gap-1 overflow-x-auto px-2 sm:gap-6 sm:px-4 lg:px-8 2xl:px-12" aria-label={t.nav.section}>
         {items.map((i) => {
           const active = path === i.href || (path.startsWith(`${i.href}/`) && !items.some((o) => o.href.length > i.href.length && (path === o.href || path.startsWith(`${o.href}/`))));

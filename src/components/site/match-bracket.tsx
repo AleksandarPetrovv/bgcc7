@@ -14,6 +14,7 @@ import { fitBox, useFit } from "./use-fit";
 import { roundOf, winTargets, type Format, type Half } from "@/lib/format";
 import { TZ } from "@/lib/time";
 import { roundName } from "@/lib/i18n/dict";
+import { hasResults } from "@/lib/matches";
 import { HEX } from "@/lib/theme";
 
 const TOP = 92;
@@ -82,7 +83,7 @@ function Box({ id, m, live, slim, className, style, onEnter, onLeave }: { id: st
         )}
         <span className="ml-auto flex items-center gap-1">
           {live !== undefined && <LiveDot />}
-          {m.links.length > 0 && <MatchDialog match={m} compact />}
+          {m.links.length > 0 && hasResults(m) && <MatchDialog match={m} compact />}
         </span>
       </div>
       <Line m={m} slot={1} live={live} slim={slim} />
