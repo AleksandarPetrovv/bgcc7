@@ -142,22 +142,24 @@ export function AdminBar({
   const t = useDict();
   const stepText = (u: DraftUndo) =>
     u.kind === "winner" ? t.draft.stepWin(u.slot) : u.kind === "step" ? (u.step.skip ? t.draft.stepSkip : t.draft.stepDo(u.step.kind, u.step.slot)) : u.kind === "choice" ? t.draft.stepChoice : t.draft.stepRolls;
+  const btn = "lift-sm relative inline-flex min-h-8 -skew-x-12 items-center border px-3 text-xs font-display font-bold transition-colors [--lift:var(--rose)] disabled:opacity-50";
+  const idle = "border-line text-paper hover:border-rose";
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mb-5 flex flex-wrap items-center gap-2 border border-dashed border-line bg-coal/80 px-3 py-2 text-xs font-display font-bold"
+      className="mb-5 flex flex-wrap items-center justify-center gap-2 border border-dashed border-line bg-coal/80 px-3 py-2 text-xs font-display font-bold"
     >
-      <div className="flex flex-1 gap-1">
+      <div className="flex justify-center gap-1 max-sm:basis-full sm:flex-1 sm:justify-start">
         {([1, 2] as const).map((s) => (
           <button
             key={s}
             type="button"
             onClick={() => onActing(s)}
             aria-pressed={acting === s}
-            className={cn("relative min-h-8 -skew-x-12 px-3 text-xs font-display font-bold transition-colors", acting === s ? "text-white" : "text-ash hover:text-paper")}
+            className={cn(btn, acting === s ? "border-transparent text-white" : idle)}
           >
-            {acting === s && <motion.span layoutId="dr-acting" className={cn("absolute inset-0", TEAM[s].bg)} transition={{ type: "spring", stiffness: 500, damping: 36 }} />}
+            {acting === s && <motion.span layoutId="dr-acting" className={cn("absolute -inset-px", TEAM[s].bg)} transition={{ type: "spring", stiffness: 500, damping: 36 }} />}
             <span className="relative inline-block max-w-32 skew-x-12 truncate">{names[s - 1]}</span>
           </button>
         ))}
@@ -165,10 +167,10 @@ export function AdminBar({
       <button
         type="button"
         onClick={onHelp}
-        className="lift-sm inline-flex min-h-8 -skew-x-12 items-center bg-gold px-4 text-xs font-display font-bold text-on-fill shadow-[3px_3px_0_0_var(--gold-deep)] transition-colors [--lift:var(--gold)] hover:bg-paper hover:text-ink"
+        className={cn(btn, idle)}
       >
         <span className="inline-flex skew-x-12 items-center gap-1.5">
-          <CircleHelp className="size-3.5" strokeWidth={3} /> {t.lobby.help}
+          <CircleHelp className="size-3.5" /> {t.lobby.help}
         </span>
       </button>
       <button
@@ -176,14 +178,14 @@ export function AdminBar({
         disabled={pending}
         aria-pressed={!!d.pausedAt}
         onClick={() => adminAct(() => (d.pausedAt ? resumeDraft(matchId) : holdDraft(matchId)))}
-        className="lift-sm inline-flex min-h-8 -skew-x-12 items-center bg-rose px-4 text-xs font-display font-bold text-white shadow-[3px_3px_0_0_var(--rose-deep)] transition-colors [--lift:var(--rose)] hover:bg-paper hover:text-ink disabled:opacity-50"
+        className={cn(btn, d.pausedAt ? "border-rose bg-rose text-white" : idle)}
       >
         <span className="inline-flex skew-x-12 items-center gap-1.5">
-          {d.pausedAt ? <Play className="size-3.5 fill-current" strokeWidth={3} /> : <Pause className="size-3.5 fill-current" strokeWidth={3} />}
+          {d.pausedAt ? <Play className="size-3.5 fill-current" /> : <Pause className="size-3.5 fill-current" />}
           {d.pausedAt ? t.draft.unhold : t.draft.hold}
         </span>
       </button>
-      <span className="flex flex-1 justify-end gap-2">
+      <span className="flex justify-center gap-2 max-sm:basis-full sm:flex-1 sm:justify-end">
         {([
           ["undo", d.undo, Undo2, () => undoDraft(matchId)],
           ["redo", d.redo, Redo2, () => redoDraft(matchId)],
@@ -193,7 +195,7 @@ export function AdminBar({
             type="button"
             disabled={pending || !u}
             onClick={() => adminAct(fn)}
-            className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-line px-3 text-xs font-display font-bold text-paper transition-colors [--lift:var(--rose)] hover:border-rose disabled:opacity-50"
+            className={cn(btn, idle)}
           >
             <span className="inline-flex skew-x-12 items-center gap-1.5">
               <Icon className="size-3.5" /> {k === "undo" ? t.draft.undo : t.draft.redo}
@@ -205,7 +207,7 @@ export function AdminBar({
           type="button"
           disabled={pending}
           onClick={onReset}
-          className="lift-sm inline-flex min-h-8 -skew-x-12 items-center border border-rose px-3 text-xs font-display font-bold text-rose-hi transition-colors [--lift:var(--rose)] hover:bg-rose/10 disabled:opacity-50"
+          className={cn(btn, "border-rose text-rose-hi hover:bg-rose/10")}
         >
           <span className="inline-flex skew-x-12 items-center gap-1.5">
             <RotateCcw className="size-3.5" /> {t.draft.reset}
@@ -232,7 +234,7 @@ export function TeamsHeader({ teams, turn, me, score }: { teams: [TeamInfo, Team
         initial={{ opacity: 0, x: s === 1 ? -60 : 60 }}
         animate={{ opacity: idle ? 0.55 : 1, x: 0 }}
         transition={{ duration: 0.8, ease: EASE, delay: 0.05, opacity: { duration: 0.5 } }}
-        className={cn("flex min-w-0 items-center gap-3 sm:gap-5", s === 2 && "flex-row-reverse text-right")}
+        className={cn("flex min-w-0 flex-col items-center gap-2.5 text-center sm:flex-row sm:gap-5 sm:text-left", s === 2 && "sm:flex-row-reverse sm:text-right")}
       >
         {tm.image ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -240,8 +242,8 @@ export function TeamsHeader({ teams, turn, me, score }: { teams: [TeamInfo, Team
         ) : (
           <span className="size-12 shrink-0 -skew-x-6 border-2 bg-slate sm:size-20" style={{ borderColor: TEAM[s].c, boxShadow: `5px 5px 0 0 ${TEAM[s].deep}` }} />
         )}
-        <div className={cn("flex min-w-0 flex-1 flex-col gap-2", s === 2 && "items-end")}>
-          <div className="heading-slam w-full truncate text-lg leading-none text-paper sm:text-3xl">{tm.name}</div>
+        <div className={cn("flex w-full min-w-0 flex-1 flex-col items-center gap-2 sm:items-start", s === 2 && "sm:items-end")}>
+          <div className="heading-slam w-full truncate text-base leading-none text-paper sm:text-3xl">{tm.name}</div>
           <div className={cn("flex w-full items-center gap-2", s === 2 && "flex-row-reverse")}>
             {me === s && (
               <motion.span

@@ -41,9 +41,9 @@ export function Btn({ onClick, disabled, tone = "line", wide, children }: { onCl
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={cn("inline-flex min-h-8 min-w-0 -skew-x-12 items-center border px-3 text-xs font-display font-bold transition-colors disabled:opacity-50", wide && "justify-center px-1.5", cls)}
+      className={cn("inline-flex min-h-8 min-w-0 -skew-x-12 items-center border px-3 text-[0.62rem] font-display font-bold transition-colors disabled:opacity-50 sm:text-xs", wide && "justify-center px-1.5", cls)}
     >
-      <span className="inline-flex min-w-0 skew-x-12 items-center gap-1.5 whitespace-nowrap [&>svg]:shrink-0">{children}</span>
+      <span className="inline-flex min-w-0 skew-x-12 items-center gap-1 whitespace-nowrap max-sm:[&>svg]:size-3 [&>svg]:shrink-0 sm:gap-1.5">{children}</span>
     </button>
   );
 }
