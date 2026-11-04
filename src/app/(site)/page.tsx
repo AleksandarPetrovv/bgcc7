@@ -308,7 +308,8 @@ export default async function Home() {
   const prompt = due && settings.phasePrompts[String(viewer!.osuId)] !== due ? due : null;
   const signup = phase === "registration" || phase === "screening";
   const playing = phase === "seeding" || phase === "playoffs";
-  const big = "px-6 py-3 text-base sm:px-8 sm:py-4 sm:text-xl shadow-[4px_4px_0_0_var(--rose-deep)]";
+  const big = "px-6 py-3 text-base sm:px-8 sm:py-4 sm:text-xl";
+  const bigFill = "shadow-[4px_4px_0_0_var(--rose-deep)]";
   const qualPool = phase === "qualifiers" ? visiblePools.find((s) => s.slug === "qualifiers") : undefined;
   const byId = new Map(matches.map((m) => [m.id, m]));
   const gf1 = byId.get("grand-final");
@@ -421,7 +422,7 @@ export default async function Home() {
                       </span>
                     </span>
                   ) : (
-                    <SlantButton href="/register" tone="paper" className={big}>
+                    <SlantButton href="/register" tone="paper" className={big} fill={bigFill}>
                       {t.home.registerTeam} <ArrowRight className="size-5" />
                     </SlantButton>
                   )}
@@ -429,12 +430,12 @@ export default async function Home() {
               ) : playing ? (
                 <span className="in-pop inline-flex">
                   {me ? (
-                    <SlantButton href="/me" tone="paper" className={big}>
+                    <SlantButton href="/me" tone="paper" className={big} fill={bigFill}>
                       {t.home.myPage} <ArrowRight className="size-5" />
                     </SlantButton>
                   ) : (
                     <form action={login.bind(null, "/me")}>
-                      <SlantButton type="submit" tone="paper" className={big}>
+                      <SlantButton type="submit" tone="paper" className={big} fill={bigFill}>
                         {t.home.login} <ArrowRight className="size-5" />
                       </SlantButton>
                     </form>
@@ -443,7 +444,7 @@ export default async function Home() {
               ) : (
                 ctaOk[phase] && (
                   <span className="in-pop inline-flex">
-                    <SlantButton href={ctaHref[phase]} tone="paper" className={big}>
+                    <SlantButton href={ctaHref[phase]} tone="paper" className={big} fill={bigFill}>
                       {t.home.cta[phase]} <ArrowRight className="size-5" />
                     </SlantButton>
                   </span>
