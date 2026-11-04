@@ -1,5 +1,7 @@
 "use server";
 
+import { getAllTeams } from "@/db/tournament";
+import { teamNote } from "@/db/discord-bot";
 import { after } from "next/server";
 import { and, eq, inArray } from "drizzle-orm";
 import { currentEdition, db, withEdition } from "@/db";
@@ -62,7 +64,16 @@ export async function setTime(id: string, _: ActionResult, fd: FormData) {
   const n = notify as { teams: string[]; at: Date } | null;
   if (res?.ok && n) {
     const ed = currentEdition();
-    after(() => withEdition(ed, () => Promise.all(n.teams.map((team) => notifyCaptain(team, (link) => `**BGCC7 scheduling**: staff set your match to **${fmtAt(n.at)}**. ${link}`).catch(() => {})))));
+    after(() =>
+      withEdition(ed, async () => {
+        await Promise.all(n.teams.map((team) => notifyCaptain(team, (link) => `Staff set your match to **${fmtAt(n.at)}**. ${link}`).catch(() => {})));
+        const [t1, t2] = n.teams;
+        if (!t1 || !t2) return;
+        const ts = await getAllTeams();
+        const name = (x: string) => ts.find((t) => t.id === x)?.name ?? x;
+        await teamNote({ [t1]: `Staff set your match against **${name(t2)}** to **${fmtAt(n.at)}**.`, [t2]: `Staff set your match against **${name(t1)}** to **${fmtAt(n.at)}**.` }).catch(() => {});
+      }),
+    );
   }
   return res;
 }
