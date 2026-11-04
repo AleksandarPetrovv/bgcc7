@@ -79,7 +79,7 @@ function Box({ id, m, live, slim, className, style, onEnter, onLeave }: { id: st
         {id === "grand-final-reset" ? (
           <span className="shrink-0 whitespace-nowrap text-[0.6rem] font-display font-bold text-gold-hi">{t.rounds.reset}</span>
         ) : (
-          !m.datetime && !m.winner && !(m.team1.id && m.team2.id) && <span className="truncate whitespace-nowrap text-[0.6rem] font-display font-bold text-gold-hi">{roundName(t, m.round)}{num ? ` ${num}` : ""}</span>
+          !m.datetime && !m.winner && !(m.team1.id && m.team2.id) && <span className="truncate whitespace-nowrap text-[0.6rem] font-display font-bold text-gold-hi">{roundName(t, m.round)}{num ? ` ${t.nav.match} ${num}` : ""}</span>
         )}
         <span className="ml-auto flex items-center gap-1">
           {live !== undefined && <LiveDot />}
@@ -162,8 +162,11 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
     return `M${x1} ${midY(a)} H${mx} V${midY(b)} H${x2}`;
   };
   const drop = (a: string, b: string) => {
-    const x1 = col(POS[a][0]) + W / 2;
-    const x2 = col(POS[b][0]) + W / 2;
+    // same-column drops (LR1) are straight verticals that overlap each other and read as solid; spread them apart
+    const srcs = POS[a][0] === POS[b][0] ? DROPS.filter(([, to]) => to === b).map(([from]) => from) : [a];
+    const off = (srcs.indexOf(a) - (srcs.length - 1) / 2) * (W / 4);
+    const x1 = col(POS[a][0]) + W / 2 + off;
+    const x2 = col(POS[b][0]) + W / 2 + off;
     const y1 = top(a) + H;
     const y2 = top(b);
     return `M${x1} ${y1} C${x1} ${(y1 + y2) / 2}, ${x2} ${(y1 + y2) / 2}, ${x2} ${y2}`;
