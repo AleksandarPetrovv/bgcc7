@@ -1,6 +1,10 @@
 // keeps the bot "online" in discord: a gateway connection with no intents, only presence + heartbeats
 const URL = "wss://gateway.discord.gg/?v=10&encoding=json";
-const PRESENCE = { since: null, afk: false, status: "online", activities: [{ name: "bgcc7.com", type: 3 }] };
+const PRESENCE = { since: null, afk: false, status: "online", activities: [
+    { name: "Custom Status", type: 4, state: "osu!" },
+    { name: "BGCC7 at https://bgcc7.com", type: 0 },
+  ],
+};
 
 export function startGateway(token: string) {
   let beat: ReturnType<typeof setInterval> | undefined;
