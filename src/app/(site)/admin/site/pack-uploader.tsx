@@ -159,7 +159,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
         <FileArchive data-cascade={!simple || undefined} className={cn("size-5 shrink-0", !simple && "in-spin", pack ? "text-balkan-hi" : "text-ash")} />
         {pack ? (
           <>
-            <span data-cascade={!simple || undefined} className={cn("min-w-0 flex-1", !simple && "in-wipe")}>
+            <span data-cascade={!simple || undefined} className={cn("min-w-[11rem] flex-1", !simple && "in-wipe")}>
               <span className="font-display font-bold">{t.admin.packCurrent}</span>{" "}
               <span className="num text-ash">
                 {mb(pack.size)}
@@ -251,7 +251,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
             </span>
           </span>
         ) : (
-          <span className="min-w-0 flex-1 text-xs text-ash">{t.admin.packGenerateHint}</span>
+          <span className="min-w-[12rem] flex-1 text-xs text-ash">{t.admin.packGenerateHint}</span>
         )}
       </div>
       <input

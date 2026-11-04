@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { cn } from "@/lib/utils";
 
 const TICK = 30_000;
 const subscribe = (cb: () => void) => {
@@ -45,7 +46,7 @@ export function Countdown({ to, from }: { to: string; from?: string }) {
   const pct = now === null || start === null || end <= start ? null : Math.min(1, Math.max(0, (now - start) / (end - start)));
   return (
     <>
-    <time dateTime={to} className="num mt-1 flex w-fit items-baseline gap-x-[0.35em] whitespace-nowrap text-5xl text-paper">
+    <time dateTime={to} className={cn("num mt-1 flex w-fit items-baseline gap-x-[0.35em] whitespace-nowrap text-5xl text-paper", d >= 100 && "max-sm:text-4xl")}>
       {([[d, "d"], [h, "h"], [m, "m"]] as const).map(([n, u], i) => (
         <span key={u} className="inline-flex items-baseline">
           <Roll value={now === null ? "--" : i ? pad(n) : String(n)} />

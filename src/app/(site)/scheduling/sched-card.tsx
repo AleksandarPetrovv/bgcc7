@@ -29,7 +29,7 @@ function useWhen() {
 
 function Team({ s, flip, d }: { s: Side; flip?: boolean; d: number }) {
   return (
-    <div className={cn("flex min-w-0 items-center gap-3", flip && "flex-row-reverse text-right")}>
+    <div className={cn("flex min-w-0 flex-col items-center gap-2 text-center sm:flex-row sm:gap-3 sm:text-left", flip && "sm:flex-row-reverse sm:text-right")}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {s.image ? <img src={s.image} alt="" className={cn("size-12 shrink-0 border-b-[3px] object-cover sm:size-14", flip ? "border-azure" : "border-crimson")} /> : <span className="size-12 shrink-0 bg-slate sm:size-14" />}
       <span className="line-clamp-2 min-w-0 break-words font-display font-black leading-tight sm:text-lg"><Letters text={s.name} d={d} s={0.02} /></span>

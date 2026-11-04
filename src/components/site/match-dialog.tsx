@@ -36,7 +36,7 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
               <span className="truncate">{p.name}</span>
               <MeTag p={p.id} />
             </div>
-            <div className={cn("num flex items-baseline gap-1.5 whitespace-nowrap", flip && "flex-row-reverse")}>
+            <div className={cn("num flex flex-wrap items-baseline gap-x-1.5", flip && "flex-row-reverse")}>
               <span className="text-sm">{fmtNum(p.score)}</span>
               <span className="text-[0.7rem] text-ash">{pct(p.acc)}</span>
             </div>

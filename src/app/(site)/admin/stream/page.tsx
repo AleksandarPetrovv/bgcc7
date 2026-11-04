@@ -27,11 +27,11 @@ export default async function Stream() {
   return (
     <>
       <PageTitle mark="camera">{t.admin.menu.stream}</PageTitle>
-      <Cascade className="grid max-w-4xl gap-6" step={0.06}>
+      <Cascade className="grid max-w-4xl grid-cols-1 gap-6" step={0.06}>
         {list.length === 0 && <p className="text-sm font-bold text-ash">{all ? s.noneAll : s.none}</p>}
         {list.map((m, i) => (
           <Panel key={m.id} title={t.rounds[m.round] ?? m.round} i={i + 1} className={m.mine ? "border-2 border-gold shadow-[6px_6px_0_0_var(--gold-deep)]" : undefined}>
-            <div className="grid gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
                 <span data-cascade className="in-left flex min-w-0 items-center gap-2 text-lg font-display font-black">
                   <span className="h-5 w-1 shrink-0 bg-crimson" aria-hidden />

@@ -22,7 +22,7 @@ import { avatarPath } from "@/lib/avatar";
 import { isBGCC6 } from "@/db";
 import { Cascade } from "@/components/site/cascade";
 
-const bwsGrid = "grid grid-cols-[2rem_minmax(0,1fr)_3rem_5rem] items-center gap-x-3 px-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_6rem_10rem_6rem]";
+const bwsGrid = "grid grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_4rem] items-center gap-x-2 px-2 sm:gap-x-3 sm:px-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_6rem_10rem_6rem]";
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 
 export default async function AdminTeams() {
@@ -77,10 +77,10 @@ export default async function AdminTeams() {
                   return (
                     <li key={p.osuId} data-cascade className={cn(bwsGrid, "in-left py-1.5 text-sm", tier === 0 && "opacity-45")}>
                       <span className={cn("num text-right text-base", tier ? "text-paper" : "text-ash")}>{p.bws === null ? "–" : i + 1}</span>
-                      <span className="flex min-w-0 items-center gap-2.5">
+                      <span className="flex min-w-0 items-center gap-2 sm:gap-2.5">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={p.avatarUrl ?? avatarPath(p.osuId)} alt="" className="size-7 shrink-0" />
-                        <span className="truncate font-display font-bold">{p.username}</span>
+                        <span className="min-w-0 truncate font-display font-bold">{p.username}</span>
                       </span>
                       <span className="flex justify-center">
                         {tier ? (

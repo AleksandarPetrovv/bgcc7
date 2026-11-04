@@ -182,7 +182,7 @@
 .adm-field > input.adm-bare[type="number"] { appearance: textfield; font-variant-numeric: tabular-nums; }
 .adm-field > input.adm-bare::-webkit-inner-spin-button, .adm-field > input.adm-bare::-webkit-outer-spin-button { appearance: none; margin: 0; }
 .adm-field > input.adm-bare::-webkit-calendar-picker-indicator { opacity: 0.7; cursor: pointer; }
-.adm-field > input.adm-bare::-webkit-date-and-time-value { text-align: left; margin: 0; }
+.adm-field > input.adm-bare::-webkit-date-and-time-value { text-align: left; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .adm-field > input.adm-bare:is([type="date"], [type="datetime-local"], [type="time"]) { align-self: center; height: auto; line-height: 1.5; }
 .adm-field > input.adm-bare::-webkit-datetime-edit { color: var(--paper); }
 .adm-field > input.adm-bare::-webkit-datetime-edit-fields-wrapper { color: var(--paper); }

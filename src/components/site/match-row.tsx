@@ -29,7 +29,7 @@ function Side({ id, flip, lost }: { id: string; flip?: boolean; lost?: boolean }
     <div
       {...meT(team?.id)}
       className={cn(
-        "relative flex min-w-0 flex-col items-center justify-start gap-2.5 px-2 py-5 text-center sm:px-4 sm:py-6",
+        "relative flex min-w-0 flex-col items-center justify-start gap-2.5 px-1.5 py-5 text-center sm:px-4 sm:py-6",
         flip ? "in-right-far" : "in-left-far",
       )}
       style={d("0.1s")}
@@ -45,7 +45,7 @@ function Side({ id, flip, lost }: { id: string; flip?: boolean; lost?: boolean }
             <img src={team.image} alt="" className={cn("in-pop size-14 border-b-[3px] object-cover sm:size-20", flip ? "border-azure" : "border-crimson", lost && "opacity-50")} style={d("0.25s")} />
           </Link>
           <span className="flex max-w-full min-w-0 flex-col items-center gap-1.5">
-            <Link href={teamHref(team)} className={cn("line-clamp-2 min-w-0 max-w-full break-words text-sm font-display font-black leading-tight hover:text-rose-hi sm:line-clamp-1 sm:text-lg", lost && "text-ash")}>
+            <Link href={teamHref(team)} className={cn("line-clamp-2 min-w-0 max-w-full break-words text-[0.8rem] font-display font-black leading-tight hover:text-rose-hi sm:line-clamp-1 sm:text-lg", lost && "text-ash")}>
               {team.name}
             </Link>
             <span className="sm:hidden">
@@ -92,7 +92,7 @@ export function MatchRow({ match, live }: { match: Match; live?: [number, number
   return (
     <div
       className={cn(
-        "group/row relative isolate grid grid-cols-[minmax(0,1fr)_7.5rem_minmax(0,1fr)] overflow-hidden border bg-coal sm:grid-cols-[minmax(0,1fr)_11rem_minmax(0,1fr)]",
+        "group/row relative isolate grid grid-cols-[minmax(0,1fr)_6.5rem_minmax(0,1fr)] overflow-hidden border bg-coal sm:grid-cols-[minmax(0,1fr)_11rem_minmax(0,1fr)]",
         live !== undefined ? "border-rose/70" : "border-line",
       )}
     >

@@ -28,7 +28,7 @@ export function ScreeningRow({ p, signedAt, i }: { p: RegRow; signedAt: string; 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {p.avatarUrl && <img src={p.avatarUrl} alt="" className="in-spin size-10 [--d:0.45s]" />}
-        <div className="min-w-0 flex-1">
+        <div className="min-w-[13rem] flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {p.country && <img src={flagUrl(p.country)} alt={p.country} className="h-2.5" />}
