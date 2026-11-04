@@ -226,7 +226,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
     nav.querySelectorAll("a").forEach((a) => ro.observe(a));
     return () => ro.disconnect();
   }, [desk.length, user, register, match]);
-  const compact = fit === null ? "xl:hidden" : fit ? "hidden" : "";
+  const compact = fit === null ? "min-[1700px]:hidden" : fit ? "hidden" : "";
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-field/90 backdrop-blur-md">
       <div ref={rowRef} className="relative flex h-16 items-center gap-2 pr-4 sm:gap-6 lg:h-20 lg:pr-6">
@@ -240,7 +240,8 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
           ref={navRef}
           className={cn(
             "h-full items-stretch",
-            fit === null ? "relative ml-auto hidden xl:flex" : fit ? "absolute left-1/2 top-0 flex -translate-x-1/2" : "pointer-events-none invisible absolute right-0 top-0 flex w-max", // anchored right so it overflows left, which never widens the page on phones
+            // before measuring, guess by width (same centered spot) so the first paint doesn't jump
+            fit === null ? "absolute left-1/2 top-0 hidden -translate-x-1/2 min-[1700px]:flex" : fit ? "absolute left-1/2 top-0 flex -translate-x-1/2" : "pointer-events-none invisible absolute right-0 top-0 flex w-max", // anchored right so it overflows left, which never widens the page on phones
           )}
           aria-label={t.nav.main}
           aria-hidden={fit === false || undefined}
@@ -280,7 +281,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
           })}
         </nav>
 
-        <div ref={rightRef} className={cn("flex items-center gap-2", fit === null ? "ml-auto xl:ml-4" : "ml-auto")}>
+        <div ref={rightRef} className="ml-auto flex items-center gap-2">
           {register && (
           <Link
             href="/register"
