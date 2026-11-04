@@ -6,6 +6,8 @@ export const match = {
     helperPage: "Helper page",
     helperDownload: "Download helper",
     bot: { online: "Bot online", connecting: "Connecting", off: "Bot off" } as Record<"online" | "connecting" | "off", string>,
+    status: { open: "Open", reconnecting: "Reconnecting", none: "No lobby", offline: "Helper offline" },
+    earlier: "Earlier",
     make: "Make lobby",
     again: "New lobby",
     invite: "Invite missing",

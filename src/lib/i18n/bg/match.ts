@@ -8,6 +8,8 @@ export const match: typeof en = {
     helperPage: "Страница на helper-а",
     helperDownload: "Изтегли helper-а",
     bot: { online: "Ботът е онлайн", connecting: "Свързване", off: "Ботът е изключен" },
+    status: { open: "Отворено", reconnecting: "Свързване", none: "Няма лоби", offline: "Помощникът е офлайн" },
+    earlier: "По-стари",
     make: "Направи лоби",
     again: "Ново лоби",
     invite: "Покани липсващите",

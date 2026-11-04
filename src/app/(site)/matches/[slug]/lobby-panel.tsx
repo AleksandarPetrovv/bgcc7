@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowUpDown, Check, Copy, DoorClosed, ExternalLink, Lock, LockOpen, Map as MapIcon, MoveVertical, OctagonX, Play, Plus, RefreshCw, Send, Timer, TimerOff, UserPlus, UserX, Users, WifiOff } from "lucide-react";
+import { ArrowUpDown, Check, CircleDashed, CircleDot, Copy, DoorClosed, ExternalLink, Lock, LockOpen, Map as MapIcon, MoveVertical, OctagonX, Play, Plus, RefreshCw, Send, Timer, TimerOff, Unplug, UserPlus, UserX, Users } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import { useSSE } from "@/components/site/use-sse";
 import { useFormat } from "@/components/site/tournament";
@@ -29,7 +29,6 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
   const [pending, start] = useTransition();
   const [err, setErr] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [joinCopied, setJoinCopied] = useState(false);
   const [picking, setPicking] = useState<{ slot: number; mode: "swap" | "move" } | null>(null);
   const [ask, setAsk] = useState<"start" | "abort" | "close" | null>(null);
   const [noHelper, setNoHelper] = useState(false);
@@ -69,7 +68,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
   if (!v || (readOnly && v.state !== "open")) return null;
   const map = v.mapId ? maps.find((m) => m.id === v.mapId) : undefined;
   const offline = v.bot !== "online";
-  const link = v.mpId ? osuMp(v.mpId) : null;
+  const link = open && v.mpId ? osuMp(v.mpId) : null;
   const base = lobbySize(format);
   const all = Array.from({ length: Math.max(v.size, base + 1) }, (_, i) => v.slots[i] ?? null);
   const targets = (i: number, mode: "swap" | "move") =>
@@ -272,14 +271,25 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
     >
       <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2">
         <span className="heading-slam text-lg">{t.lobby.title}</span>
-        <span title={t.lobby.bot[v.bot]} className={cn("inline-flex items-center", v.bot === "off" ? "text-rose-hi" : "text-gold-hi")}>
-          {v.bot === "online" ? <span className="size-2 rounded-full bg-balkan-deep shadow-[0_0_8px_var(--balkan)]" /> : <WifiOff className="size-3.5" />}
-        </span>
-        {link && (
-          <a href={link} target="_blank" rel="noreferrer" className="num inline-flex items-center gap-1 text-xs font-display font-black text-ash hover:text-paper">
-            mp {v.mpId} <ExternalLink className="size-3" />
-          </a>
-        )}
+        {(() => {
+          const cls = "num inline-flex min-h-6 -skew-x-12 items-center border border-line px-2 text-[0.7rem] font-display font-bold text-paper";
+          const body = (
+            <span className="inline-flex skew-x-12 items-center gap-1.5 whitespace-nowrap">
+              {open ? (v.bot === "online" ? <CircleDot className="size-3" /> : <RefreshCw className="size-3 animate-spin" />) : v.bot === "off" ? <Unplug className="size-3" /> : <CircleDashed className="size-3" />}
+              {open ? (v.bot === "online" ? v.mpId : t.lobby.status.reconnecting) : v.bot === "off" ? t.lobby.status.offline : t.lobby.status.none}
+              {link && <ExternalLink className="size-3" />}
+            </span>
+          );
+          return link ? (
+            <a href={link} target="_blank" rel="noreferrer" title={t.lobby.bot[v.bot]} className={cn(cls, "transition-colors hover:border-rose")}>
+              {body}
+            </a>
+          ) : (
+            <span title={t.lobby.bot[v.bot]} className={cls}>
+              {body}
+            </span>
+          );
+        })()}
         {open && v.password && (
           <button
             type="button"
@@ -291,18 +301,17 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
             {t.lobby.password} <span className="text-paper">{v.password}</span> {copied ? <Check className="size-3 text-balkan-hi" /> : <Copy className="size-3" />}
           </button>
         )}
-        {open && v.mpId && !readOnly && (
-          <button
-            type="button"
-            onClick={() => navigator.clipboard.writeText(`/join #mp_${v.mpId}`).then(() => setJoinCopied(true)).catch(() => {})}
-            onMouseLeave={() => setJoinCopied(false)}
-            className="num inline-flex items-center gap-1 text-xs font-display font-black text-ash hover:text-paper"
-            title={t.lobby.joinHint}
-          >
-            {t.lobby.inGame} <span className="text-paper">/join #mp_{v.mpId}</span> {joinCopied ? <Check className="size-3 text-balkan-hi" /> : <Copy className="size-3" />}
-          </button>
-        )}
         {err && <span className="text-xs font-black text-rose-hi">{t.lobby.failed}</span>}
+        {v.past.length > 0 && (
+          <span className="num order-last flex basis-full flex-wrap items-center gap-x-2 text-[0.7rem] font-display font-bold text-ash/70">
+            {t.lobby.earlier}
+            {v.past.map((mp) => (
+              <a key={mp} href={osuMp(mp)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-paper">
+                {mp} <ExternalLink className="size-2.5" />
+              </a>
+            ))}
+          </span>
+        )}
         {!open && !readOnly && (
           <span className="ml-auto">
             <Btn tone="go" onClick={() => (v.helper === false ? setNoHelper(true) : run({ act: "make" }))} disabled={pending}>
