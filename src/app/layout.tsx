@@ -36,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // css animations stay paused until the streamed html and fonts are in; safari restarted them mid-load (title flashed)
 const BOOT = "var h=document.documentElement;h.setAttribute(\"data-booting\",\"\");addEventListener(\"DOMContentLoaded\",function(){Promise.race([document.fonts.ready,new Promise(function(r){setTimeout(r,1000)})]).then(function(){requestAnimationFrame(function(){h.removeAttribute(\"data-booting\")})})});";
-const LITE = "try{var c=document.createElement(\"canvas\"),g=c.getContext(\"webgl\"),r=\"\";if(g){var e=g.getExtension(\"WEBGL_debug_renderer_info\");r=e?String(g.getParameter(e.UNMASKED_RENDERER_WEBGL)):\"\";var x=g.getExtension(\"WEBGL_lose_context\");x&&x.loseContext()}if(!g||/swiftshader|llvmpipe|software|basic render/i.test(r)){var h=document.documentElement;h.classList.add(\"lite\")}}catch(_){}";
+const LITE = "try{var h=document.documentElement,S=sessionStorage,q=location.search.match(/[?&]lite=([01])/);if(q)S.setItem(\"lite\",q[1]);var v=S.getItem(\"lite\");if(v===null){var c=document.createElement(\"canvas\"),g=c.getContext(\"webgl\"),r=\"\";if(g){var e=g.getExtension(\"WEBGL_debug_renderer_info\");r=e?String(g.getParameter(e.UNMASKED_RENDERER_WEBGL)):\"\";var x=g.getExtension(\"WEBGL_lose_context\");x&&x.loseContext()}v=!g||/swiftshader|llvmpipe|software|basic render/i.test(r)?\"1\":\"0\";S.setItem(\"lite\",v)}if(v===\"1\")h.classList.add(\"lite\")}catch(_){}";
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const [lang, settings, jar] = await Promise.all([getLang(), getSettings(), cookies()]);

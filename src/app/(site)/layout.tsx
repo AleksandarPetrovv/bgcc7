@@ -1,6 +1,5 @@
 import { SiteNav } from "@/components/site/site-nav";
 import { Backdrop } from "@/components/site/backdrop";
-import { LiteSettle } from "@/components/site/lite-settle";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Flash } from "@/components/site/flash";
 import { AlertPopups } from "@/components/site/alert-popups";
@@ -34,7 +33,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     <>
       {meCss && <style dangerouslySetInnerHTML={{ __html: meCss }} />}
       <Backdrop />
-      <LiteSettle />
       <SiteNav user={user} nav={buildNav(vis.sections, vis.staff, vis.off)} register={regOpen} live={live} captain={captain} match={match} sched={sched} />
       <TournamentProvider teams={teams} matches={matches} edition={settings.edition}>
         <main className="flex-1">{children}</main>
