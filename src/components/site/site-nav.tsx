@@ -44,7 +44,7 @@ function AdminCrest({ on }: { on: boolean }) {
   );
 }
 
-type Props = { user: { name: string; image: string | null; admin: boolean } | null; nav: NavItem[]; register: boolean; live: string[]; captain: boolean; match: string | null; sched: { dot: boolean; discord: boolean } | null };
+type Props = { user: { name: string; image: string | null; admin: boolean } | null; nav: NavItem[]; register: boolean; live: string[]; captain: boolean; match: string | null; sched: { show: boolean; dot: boolean; discord: boolean } | null };
 
 type Clock = { end: number | null; pause: boolean; offset: number };
 
@@ -100,17 +100,19 @@ function MatchLink({ slug, path, big, onClick, clock }: { slug: string; path: st
         onClick={onClick}
         aria-current={on ? "page" : undefined}
         className={cn(
-          "group relative inline-flex -skew-x-12 items-center overflow-hidden font-display font-bold text-white",
-          big ? "match-cta heading-slam min-h-12 w-full px-6 text-2xl" : "lift-sm h-9 border border-rose px-2.5 text-[0.8rem] sm:px-3.5 [--lift:var(--rose-deep)]",
-          on ? "bg-rose-deep" : "bg-rose",
+          "group/match relative inline-flex items-center font-display font-bold text-white",
+          big ? "heading-slam min-h-12 w-full px-6 text-2xl" : "h-9 px-2.5 text-[0.8rem] sm:px-3.5",
         )}
       >
-        {!on && (
-          <svg className="pointer-events-none absolute inset-px size-[calc(100%-2px)] overflow-visible" aria-hidden>
-            <rect width="100%" height="100%" fill="none" stroke="white" strokeWidth={2} pathLength={100} strokeDasharray="16 84" className="match-run" />
-          </svg>
-        )}
-        <span className={cn("relative inline-flex skew-x-12 items-center", big ? "gap-2" : "gap-1.5")}>
+        {/* only the background is slanted, so the text isn't skewed twice (that renders it blurry) */}
+        <span className={cn("absolute inset-0 -skew-x-12", big ? "match-cta" : "border border-rose", on ? "bg-rose-deep" : "bg-rose group-hover/match:bg-rose-deep")} aria-hidden>
+          {!on && (
+            <svg className="pointer-events-none absolute inset-px size-[calc(100%-2px)] overflow-visible" aria-hidden>
+              <rect width="100%" height="100%" fill="none" stroke="white" strokeWidth={2} pathLength={100} strokeDasharray="16 84" className="match-run" />
+            </svg>
+          )}
+        </span>
+        <span className={cn("relative inline-flex items-center", big ? "gap-2" : "gap-1.5")}>
           <Swords className={big ? "size-5" : "size-3.5"} strokeWidth={2.6} />
           <span className={cn(!big && "max-sm:sr-only")}>{t.nav.match}</span>
           {!on &&
@@ -147,7 +149,7 @@ function Dot({ className }: { className?: string }) {
 }
 
 export function SiteNav({ user, nav: base, register, live, captain, match: initialMatch, sched }: Props) {
-  const nav = sched ? withSched(base) : base;
+  const nav = sched?.show ? withSched(base) : base;
   const desk: (Omit<NavItem, "key"> & { key: NavItem["key"] | "admin" })[] = user?.admin ? [...nav, { key: "admin", href: "/admin", base: "/admin", hidden: false }] : nav;
   const meDot = !!sched?.discord;
   const schedDot = !!sched?.dot;
@@ -271,10 +273,9 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "group relative flex items-center whitespace-nowrap px-2 text-[0.78rem] font-display font-bold transition-colors",
-                    active ? "text-paper" : "text-paper/70 hover:text-paper",
+                    active ? "text-paper" : "text-paper/70 hover:text-rose-hi",
                   )}
                 >
-                  {!active && <span className="absolute inset-x-0.5 inset-y-4 -skew-x-12 scale-90 bg-white/0 transition duration-200 group-hover:scale-100 group-hover:bg-white/40" aria-hidden />}
                   {/* server-drawn copy of the sliding bar, so a reload never shows the nav without it; hidden once js places the real one */}
                   {active && (
                     <span className="pointer-events-none [nav[data-placed]_&]:hidden" aria-hidden>
@@ -296,29 +297,31 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
           {register && (
           <Link
             href="/register"
-            className="lift-sm sheen hidden h-9 -skew-x-12 items-center bg-paper px-4 text-[0.8rem] font-display font-bold text-ink [--lift:var(--rose)] hover:bg-rose-deep sm:inline-flex"
+            className="group/reg relative hidden h-9 items-center px-4 text-[0.8rem] font-display font-bold text-ink hover:text-white sm:inline-flex"
           >
-            <span className="inline-block skew-x-12">{t.nav.register}</span>
+            <span className="absolute inset-0 -skew-x-12 bg-paper group-hover/reg:bg-rose" aria-hidden />
+            <span className="relative">{t.nav.register}</span>
           </Link>
           )}
           <AnimatePresence>{match && <MatchLink key={match} slug={match} path={path} clock={clock} />}</AnimatePresence>
           {user ? (
-            <div className="hidden h-9 -skew-x-12 items-center border border-line md:flex">
+            <div className="relative hidden h-9 items-center md:flex">
+              <span className="pointer-events-none absolute inset-0 -skew-x-12 border border-line" aria-hidden />
               <Link
                 href="/me"
                 title={t.nav.me}
                 onClick={(e) => {
                   if (!e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) setClicked({ base: "/me", from: path });
                 }}
-                className="flex h-full items-center gap-2.5 pr-3 transition-colors hover:text-rose-hi">
+                className="relative flex h-full items-center gap-2.5 pr-3 hover:text-rose-hi">
                 {user.image && (
-                  <span className="h-full w-10 shrink-0 overflow-hidden">
+                  <span className="h-full w-10 shrink-0 -skew-x-12 overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={user.image} alt="" className="size-full skew-x-12 scale-x-125 object-cover" />
                   </span>
                 )}
-                <span className={cn("max-w-32 skew-x-12 truncate text-[0.8rem] font-display font-black leading-none", !user.image && "pl-3")}>{user.name}</span>
-                {meDot && <Dot className="-ml-1 skew-x-12" />}
+                <span className={cn("max-w-32 truncate text-[0.8rem] font-display font-black leading-none", !user.image && "pl-3")}>{user.name}</span>
+                {meDot && <Dot className="-ml-1" />}
               </Link>
               <button
                 type="button"
@@ -326,9 +329,10 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
                 onClick={() => start(() => logout())}
                 aria-label={t.nav.logout}
                 title={t.nav.logout}
-                className="flex h-full items-center border-l border-line px-2.5 text-ash transition-colors hover:bg-rose hover:text-white"
+                className="group/out relative flex h-full items-center px-2.5 text-ash hover:text-white"
               >
-                <LogOut className="size-4 skew-x-12" />
+                <span className="absolute inset-0 -skew-x-12 border-l border-line group-hover/out:bg-rose" aria-hidden />
+                <LogOut className="relative size-4" />
               </button>
             </div>
           ) : (
@@ -336,9 +340,10 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
               type="button"
               disabled={pending}
               onClick={() => start(() => login(path))}
-              className="lift-sm hidden h-9 -skew-x-12 items-center whitespace-nowrap border border-line px-3.5 text-[0.8rem] font-display font-black text-paper [--lift:var(--rose)] hover:border-rose disabled:opacity-60 md:inline-flex"
+              className="group/in relative hidden h-9 items-center whitespace-nowrap px-3.5 text-[0.8rem] font-display font-black text-paper hover:text-white disabled:opacity-60 md:inline-flex"
             >
-              <span className="inline-block skew-x-12">{t.nav.login}</span>
+              <span className="absolute inset-0 -skew-x-12 border border-line group-hover/in:border-rose group-hover/in:bg-rose" aria-hidden />
+              <span className="relative">{t.nav.login}</span>
             </button>
           )}
           {user?.admin && (
