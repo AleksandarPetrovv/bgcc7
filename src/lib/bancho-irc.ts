@@ -22,6 +22,7 @@ export type LobbyView = {
   bot: "off" | "connecting" | "online";
   state: "none" | "open" | "closed";
   mpId: number | null;
+  past: number[];
   password: string;
   size: number;
   spare?: boolean;
@@ -172,7 +173,8 @@ function newConn(s: State, c: NonNullable<ReturnType<typeof creds>>, owner: numb
   client.on("PART", (m) => {
     if (!m.user.isClient()) return;
     const l = [...s.live.values()].find((v) => v.owner === owner && `#mp_${v.mpId}` === m.channel.name);
-    if (l) void markClosed(l.matchId);
+    // the game client on the same account leaving #mp parts irc too; rejoin, and only a lobby bancho dropped gets closed
+    if (l && client.isConnected()) void rejoin(l);
   });
   return x;
 }
@@ -281,6 +283,7 @@ async function restore(s: State, matchId: string, mpId: number, owner: number) {
   const l: Live = { matchId, owner, mpId, lobby: ch.lobby, members: map, seats, placed: new Set(map.keys()), chat: await history(mpId), names, seen, queue: Promise.resolve(), active: Date.now() };
   attach(l);
   s.live.set(matchId, l);
+  quiet(matchId);
   await ch.lobby.updateSettings();
   ping(matchId);
 }
@@ -288,6 +291,7 @@ async function restore(s: State, matchId: string, mpId: number, owner: number) {
 async function rejoin(l: Live) {
   try {
     await l.lobby.channel.join();
+    quiet(l.matchId);
     await l.lobby.updateSettings();
   } catch (e) {
     await dropIfGone(l.matchId, e);
@@ -315,6 +319,9 @@ const NONCED = /^!mp (map|mods|lock|unlock|size|set|clearhost|close|start|timer|
 const SETTINGS_LINE =/^(Room name:|Beatmap:|Team mode:|Active mods:|Players:|Slot \d+\s)/;
 const synced = new Map<string, { last: number; quietUntil: number; timer?: ReturnType<typeof setTimeout> }>();
 export const syncOf = (matchId: string) => synced.get(matchId) ?? synced.set(matchId, { last: 0, quietUntil: 0 }).get(matchId)!;
+
+// restores and rejoins re-read settings; keep that dump out of the chat
+const quiet = (matchId: string) => void (syncOf(matchId).quietUntil = Date.now() + 5_000);
 
 function runSync(l: Live) {
   const s = syncOf(l.matchId);

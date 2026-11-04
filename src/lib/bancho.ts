@@ -107,7 +107,9 @@ export async function lobbyView(matchId: string, viewer?: number): Promise<Lobby
   const c = state() && who ? conn(who) : null;
   const status: LobbyView["bot"] = !c ? "off" : c.client.isConnected() ? "online" : "connecting";
   const mine = viewer != null && (owner == null || owner === viewer);
-  const base: LobbyView = { bot: status, state: row ? (row.open ? "open" : "closed") : "none", mpId: row?.mpId ?? null, password: row?.password ?? "", size: 0, slots: [], mapId: null, mapName: null, mods: [], freemod: false, playing: false, chat: [], owner, ...(viewer != null ? { mine, helper: canLobby(viewer) } : {}) };
+  const [m] = await db.select({ links: matches.mpLinks }).from(matches).where(eq(matches.id, matchId)).limit(1);
+  const past = [...new Set((m?.links ?? "").split(",").map((x) => Number(x.trim().match(/(\d+)\/?$/)?.[1])).filter((n) => n > 0))].reverse().filter((mp) => !row?.open || mp !== row.mpId);
+  const base: LobbyView = { bot: status, state: row ? (row.open ? "open" : "closed") : "none", mpId: row?.mpId ?? null, past, password: row?.password ?? "", size: 0, slots: [], mapId: null, mapName: null, mods: [], freemod: false, playing: false, chat: [], owner, ...(viewer != null ? { mine, helper: canLobby(viewer) } : {}) };
   const l = g.bgccIrc?.live.get(matchId);
   if (!l || !row?.open) return base;
   const lb = l.lobby;
