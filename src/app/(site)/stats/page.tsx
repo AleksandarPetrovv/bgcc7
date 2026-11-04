@@ -8,6 +8,7 @@ import { getQualResults } from "@/db/qualifiers";
 import { getPoolStages } from "@/db/mappools";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getStageStats } from "@/db/stage-stats";
+import { getScoreboard } from "@/db/scoreboards";
 import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
 import { bySkill, skillColor } from "@/lib/format-plan";
@@ -22,8 +23,18 @@ const TONES = ["bg-rose text-white", "bg-balkan text-on-fill", "border border-li
 export default async function Stats({ searchParams }: { searchParams: Promise<{ stage?: string }> }) {
   await requireSection("stats");
   const [{ stage: wanted }, t, qual, stages, matches, teams, skills] = await Promise.all([searchParams, getDict(), getQualResults(), getPoolStages(), getMatches(), getTeams(), getSkillLayouts()]);
+  // a stage opens once a point is won: saved score, or for a running match the map wins from its mp links
+  const pts = (m: (typeof matches)[number]) => (m.team1.score ?? 0) + (m.team2.score ?? 0);
+  const live = await Promise.all(
+    matches
+      .filter((m) => m.links.length > 0 && !pts(m))
+      .map(async (m) => {
+        const sb = await Promise.race([getScoreboard(m, teams, stages), new Promise<null>((r) => setTimeout(() => r(null), 5000))]).catch(() => null);
+        return sb && sb.score[0] + sb.score[1] > 0 ? m.stage : null;
+      }),
+  );
   const reached = (slug: string) =>
-    slug === "qualifiers" ? qual.players.some((p) => Object.keys(p.perf).length > 0) : matches.some((m) => m.stage === slug && m.links.length > 0 && (m.team1.score ?? 0) + (m.team2.score ?? 0) > 0);
+    slug === "qualifiers" ? qual.players.some((p) => Object.keys(p.perf).length > 0) : live.includes(slug) || matches.some((m) => m.stage === slug && m.links.length > 0 && pts(m) > 0);
   const open = stages.filter((s) => reached(s.slug));
   const current = stages.find((s) => s.slug === wanted && reached(s.slug)) ?? open.at(-1);
   const name = (title: string) => t.rounds[title] ?? title;
