@@ -142,7 +142,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
     const head = 72;
     const room = window.innerHeight - head;
     const y = y1 - y0 <= room ? base + (y0 + y1) / 2 - head - room / 2 : base + y0 - head - 8;
-    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    window.scrollTo({ top: Math.max(0, y), behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   };
 
   const linked = new Set<string>();

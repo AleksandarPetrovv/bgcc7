@@ -189,10 +189,12 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 function useCount(to: number, ms = 900) {
   const [v, setV] = useState(to);
   useEffect(() => {
+    // reduced motion / lite: lands on the final number on the first frame
+    const dur = matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("lite") ? 1 : ms;
     let raf = 0;
     const t0 = performance.now();
     const tick = (now: number) => {
-      const p = Math.min(1, (now - t0) / ms);
+      const p = Math.min(1, (now - t0) / dur);
       setV(to * (1 - Math.pow(1 - p, 4)));
       if (p < 1) raf = requestAnimationFrame(tick);
     };
