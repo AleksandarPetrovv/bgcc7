@@ -18,7 +18,7 @@ export default async function AdminDiscord() {
   if (!discordReady()) {
     return (
       <>
-        <PageTitle mark="bubble">{t.admin.menu.discord}</PageTitle>
+        <PageTitle mark="discord">{t.admin.menu.discord}</PageTitle>
         <p className="text-ash">{d.off}</p>
       </>
     );
@@ -36,7 +36,7 @@ export default async function AdminDiscord() {
 
   return (
     <>
-      <PageTitle mark="bubble">{t.admin.menu.discord}</PageTitle>
+      <PageTitle mark="discord">{t.admin.menu.discord}</PageTitle>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 xl:items-start">
         <Panel title={d.channels} help={d.channelsHelp} i={0}>
           {chans ? (
