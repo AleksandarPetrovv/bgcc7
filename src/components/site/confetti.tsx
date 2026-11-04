@@ -17,6 +17,11 @@ export function Confetti({ duration = 2500, onDone }: { duration?: number; onDon
     const canvas = ref.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
+    // reduced motion, or software rendering where a full-screen canvas stutters: skip straight to the end
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("lite")) {
+      done.current?.();
+      return;
+    }
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     // canvas can't read css vars, so resolve them once
     const root = getComputedStyle(document.documentElement);
