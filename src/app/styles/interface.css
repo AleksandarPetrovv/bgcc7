@@ -249,6 +249,8 @@
   box-shadow: 0 0 8px color-mix(in srgb, var(--gold) 35%, transparent);
   text-shadow: 0 1px 0 color-mix(in srgb, white 35%, transparent);
 }
+/* in match rows "Your team" covered the team name: short "You" (set in meStyle), same foil, text shadow */
+.me-tag.me-tag-plain:is([data-p], [data-t])::after { text-shadow: 0 1px 2px rgb(0 0 0 / 0.45); }
 .me-corner:is([data-p], [data-t]) { display: block; position: absolute; top: 0; right: 0; z-index: 3; pointer-events: none; filter: drop-shadow(0 0 5px color-mix(in srgb, var(--gold) 35%, transparent)); }
 .me-corner::after {
   display: block;
