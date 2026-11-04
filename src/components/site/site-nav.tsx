@@ -157,6 +157,8 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
   const [pending, start] = useTransition();
   const t = useDict();
   const [open, setOpen] = useState(false);
+  // the menu keeps highlighting the page it opened on while it closes over the new one
+  const [menuPath, setMenuPath] = useState(path);
   const navRef = useRef<HTMLElement>(null);
   const barRef = useRef<HTMLSpanElement>(null);
   const shadowRef = useRef<HTMLSpanElement>(null);
@@ -355,12 +357,12 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
               <AdminCrest on={false} />
             </Link>
           )}
-          <Sheet open={open} onOpenChange={setOpen}>
+          <Sheet open={open} onOpenChange={(o) => { if (o) setMenuPath(path); setOpen(o); }}>
             <SheetTrigger data-compact="1" className={cn("relative p-2 text-paper", compact)} aria-label={t.nav.openMenu}>
               <Menu className="size-6" />
               {(live.length > 0 || dots.length > 0 || meDot) && <span className="absolute right-1.5 top-1.5 size-2 animate-pulse rounded-full bg-rose" aria-hidden />}
             </SheetTrigger>
-            <SheetContent side="right" className="flex h-dvh w-full max-w-sm flex-col border-line bg-ink p-0">
+            <SheetContent side="right" className="flex h-dvh w-full max-w-sm flex-col border-line bg-ink p-0 max-lg:data-ending-style:duration-300 max-lg:data-ending-style:ease-[cubic-bezier(0.4,0,0.2,1)]">
               <SheetTitle className="sr-only">{t.nav.menu}</SheetTitle>
               <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-14" aria-label={t.nav.main}>
                 {match && (
@@ -376,10 +378,10 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
                     key={n.href}
                     href={n.href}
                     onClick={() => setOpen(false)}
-                    aria-current={isActive(path, n.base) ? "page" : undefined}
+                    aria-current={isActive(menuPath, n.base) ? "page" : undefined}
                     className={cn(
                       "heading-slam flex min-h-12 items-center border-b border-line px-6 py-2.5 text-2xl",
-                      isActive(path, n.base) ? "bg-rose text-white" : "text-paper hover:bg-slate",
+                      isActive(menuPath, n.base) ? "bg-rose text-white" : "text-paper hover:bg-slate",
                       n.hidden && "opacity-40",
                     )}
                   >
