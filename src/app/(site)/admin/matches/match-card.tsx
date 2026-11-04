@@ -196,7 +196,7 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
             <fieldset className={group}>
               <Legend>{t.admin.secStaff}</Legend>
               <div className="grid grid-cols-2 gap-3">
-                <label className={label}>
+                <label className={cn(label, "col-span-2 sm:col-span-1")}>
                   {t.admin.startsAt}
                   <Field type="datetime-local" name="startsAt" defaultValue={toSofiaInput(m.startsAt)} className={dateCls} />
                 </label>

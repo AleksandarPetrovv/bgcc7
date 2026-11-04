@@ -33,14 +33,14 @@ export default async function AdminScheduling() {
   const Side = ({ id, side }: { id: string | null; side: 0 | 1 }) => {
     const team = teams.find((x) => x.id === id);
     return (
-      <span data-cascade className={cn("flex min-w-0 items-center gap-2.5", side === 1 ? "in-right flex-row-reverse text-right" : "in-left")}>
+      <span data-cascade className={cn("flex min-w-0 items-center gap-1.5 sm:gap-2.5", side === 1 ? "in-right flex-row-reverse text-right" : "in-left")}>
         {team?.image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={team.image} alt="" className={cn("size-9 shrink-0 border-b-[3px] object-cover", side ? "border-azure" : "border-crimson")} />
+          <img src={team.image} alt="" className={cn("size-7 shrink-0 border-b-[3px] object-cover sm:size-9", side ? "border-azure" : "border-crimson")} />
         ) : (
-          <span className={cn("size-9 shrink-0 border-b-[3px] bg-slate", side ? "border-azure" : "border-crimson")} />
+          <span className={cn("size-7 shrink-0 border-b-[3px] bg-slate sm:size-9", side ? "border-azure" : "border-crimson")} />
         )}
-        <span className={cn("min-w-0 truncate font-display font-black", !team && "text-ash")}>{team?.name ?? "TBD"}</span>
+        <span className={cn("min-w-0 truncate text-sm font-display font-black sm:text-base", !team && "text-ash")}>{team?.name ?? "TBD"}</span>
       </span>
     );
   };
@@ -70,9 +70,9 @@ export default async function AdminScheduling() {
                     return (
                       <div key={m.id} data-cascade className="in-up relative border border-line bg-ink/40">
                         <span className={cn("absolute inset-y-0 left-0 w-1", TONE[state].bar)} aria-hidden />
-                        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 py-3 pl-5 pr-4">
+                        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 py-3 pl-4 pr-3 sm:gap-3 sm:pl-5 sm:pr-4">
                           <Side id={m.team1Id} side={0} />
-                          <span data-cascade className="in-pop heading-slam text-lg text-ash">VS</span>
+                          <span data-cascade className="in-pop heading-slam text-sm text-ash sm:text-lg">VS</span>
                           <Side id={m.team2Id} side={1} />
                         </div>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line py-2.5 pl-5 pr-4">

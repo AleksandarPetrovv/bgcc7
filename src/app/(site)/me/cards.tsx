@@ -68,13 +68,13 @@ export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { 
       </div>
       <ul className="mt-2 divide-y divide-line">
         {team.players.map((p, n) => (
-          <li key={p.userId} className="in-left in-slow flex items-center gap-2.5 px-4 py-2.5 sm:gap-3 sm:px-5" style={at(0.45, n, 0.12)}>
+          <li key={p.userId} className="in-left in-slow flex flex-wrap items-center gap-x-2.5 gap-y-1.5 px-4 py-2.5 sm:flex-nowrap sm:gap-3 sm:px-5" style={at(0.45, n, 0.12)}>
             <Avatar src={p.avatar} className="size-8 sm:size-9" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={flagUrl(p.country)} alt="" className="h-3" />
             <PlayerLink id={p.userId} name={p.username} className={cn("min-w-0 truncate font-display font-black", p.userId === me && "text-balkan-hi")} />
             {p.isCaptain && <Crown className="size-3.5 shrink-0 text-gold-hi" aria-label={t.common.captain} />}
-            <span className="ml-auto flex shrink-0 gap-3 text-right sm:gap-4">
+            <span className="ml-auto flex shrink-0 basis-full justify-end gap-3 text-right sm:basis-auto sm:gap-4">
               <span>
                 <span className={cn(label, "in-wipe block")} style={wipe}>{t.me.globalRank}</span>
                 <span className="num text-sm text-paper/80">#{fmtNum(p.rank)}</span>

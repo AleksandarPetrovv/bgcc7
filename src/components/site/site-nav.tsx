@@ -101,7 +101,7 @@ function MatchLink({ slug, path, big, onClick, clock }: { slug: string; path: st
         aria-current={on ? "page" : undefined}
         className={cn(
           "group relative inline-flex -skew-x-12 items-center overflow-hidden font-display font-bold text-white",
-          big ? "match-cta heading-slam min-h-12 w-full px-6 text-2xl" : "lift-sm h-9 border border-rose px-3.5 text-[0.8rem] [--lift:var(--rose-deep)]",
+          big ? "match-cta heading-slam min-h-12 w-full px-6 text-2xl" : "lift-sm h-9 border border-rose px-2.5 text-[0.8rem] sm:px-3.5 [--lift:var(--rose-deep)]",
           on ? "bg-rose-deep" : "bg-rose",
         )}
       >
@@ -112,7 +112,7 @@ function MatchLink({ slug, path, big, onClick, clock }: { slug: string; path: st
         )}
         <span className={cn("relative inline-flex skew-x-12 items-center", big ? "gap-2" : "gap-1.5")}>
           <Swords className={big ? "size-5" : "size-3.5"} strokeWidth={2.6} />
-          {t.nav.match}
+          <span className={cn(!big && "max-sm:sr-only")}>{t.nav.match}</span>
           {!on &&
             (clock.pause ? (
               <span className="ml-0.5 inline-flex items-center gap-1 text-white/85">
@@ -232,11 +232,11 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
   const compact = fit === null ? "min-[1700px]:hidden" : fit ? "hidden" : "";
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-field/90 backdrop-blur-md">
-      <div ref={rowRef} className="relative flex h-16 items-center gap-2 pr-4 sm:gap-6 lg:h-20 lg:pr-6">
-        <Link href="/" className="group flex h-full items-center gap-1 pl-4 lg:pl-6" aria-label={t.nav.homeLabel}>
-          <Wordmark size="md" className="text-paper" />
+      <div ref={rowRef} className="relative flex h-16 items-center gap-1.5 pr-3 sm:gap-6 lg:h-20 lg:pr-6">
+        <Link href="/" className="group flex h-full items-center gap-1 pl-3 sm:pl-4 lg:pl-6" aria-label={t.nav.homeLabel}>
+          <Wordmark size="md" className="text-paper max-sm:text-[1.6rem]" />
         </Link>
-        <EditionView className="ml-1 sm:ml-0" />
+        <EditionView />
         <ThemeToggle />
 
         <nav
@@ -292,7 +292,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
           })}
         </nav>
 
-        <div ref={rightRef} className="ml-auto flex items-center gap-2">
+        <div ref={rightRef} className="ml-auto flex items-center gap-1 sm:gap-2">
           {register && (
           <Link
             href="/register"
@@ -362,9 +362,9 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
               <Menu className="size-6" />
               {(live.length > 0 || dots.length > 0 || meDot) && <span className="absolute right-1.5 top-1.5 size-2 animate-pulse rounded-full bg-rose" aria-hidden />}
             </SheetTrigger>
-            <SheetContent side="right" className="flex h-dvh w-full max-w-sm flex-col border-line bg-ink p-0 max-lg:data-ending-style:duration-300 max-lg:data-ending-style:ease-[cubic-bezier(0.4,0,0.2,1)]">
+            <SheetContent side="right" className="flex h-dvh w-full max-w-sm flex-col overflow-hidden overscroll-none border-line bg-ink p-0 max-lg:data-ending-style:duration-300 max-lg:data-ending-style:ease-[cubic-bezier(0.4,0,0.2,1)]">
               <SheetTitle className="sr-only">{t.nav.menu}</SheetTitle>
-              <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-14" aria-label={t.nav.main}>
+              <nav className="min-h-0 flex-1 touch-pan-y overflow-y-auto overflow-x-hidden overscroll-contain pt-14" aria-label={t.nav.main}>
                 {match && (
                   <div className="border-b border-line px-4 py-3">
                     <MatchLink slug={match} path={path} big clock={clock} onClick={() => setOpen(false)} />
