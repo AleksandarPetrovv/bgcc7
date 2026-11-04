@@ -240,7 +240,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
           ref={navRef}
           className={cn(
             "h-full items-stretch",
-            fit === null ? "relative ml-auto hidden xl:flex" : fit ? "absolute left-1/2 top-0 flex -translate-x-1/2" : "pointer-events-none invisible absolute left-0 top-0 flex",
+            fit === null ? "relative ml-auto hidden xl:flex" : fit ? "absolute left-1/2 top-0 flex -translate-x-1/2" : "pointer-events-none invisible absolute right-0 top-0 flex w-max", // anchored right so it overflows left, which never widens the page on phones
           )}
           aria-label={t.nav.main}
           aria-hidden={fit === false || undefined}
