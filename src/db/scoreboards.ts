@@ -99,7 +99,7 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
 }
 
 export async function getLiveScores(matches: Match[], teams: Team[], stages: PoolStage[]) {
-  const liveOnes = matches.filter(isLive);
+  const liveOnes = matches.filter((m) => isLive(m));
   const out: Record<string, [number, number] | null> = {};
   await Promise.all(
     liveOnes.map(async (m) => {

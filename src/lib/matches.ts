@@ -23,4 +23,8 @@ export function sourceLabel(f: Format, t: Dict, matches: Match[], id: string, sl
   return src.take === "W" ? t.common.winnerOf(label) : t.common.loserOf(label);
 }
 
-export const isLive = (m: Match) => m.links.length > 0 && !m.winner && !!m.team1.id && !!m.team2.id;
+const STARTED_WINDOW = 3 * 3600_000;
+// live = its page or lobby is open; a lobby run outside the site counts for 3h after the start time once it has an mp link
+export const isLive = (m: Match, now = Date.now()) =>
+  !m.winner && !!m.team1.id && !!m.team2.id &&
+  (!!m.running || (m.links.length > 0 && !!m.datetime && now - new Date(m.datetime).getTime() < STARTED_WINDOW && now >= new Date(m.datetime).getTime() - 3600_000));

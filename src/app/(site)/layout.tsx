@@ -29,7 +29,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   const me = viewer?.osuId ?? null;
   const myTeam = me ? (teams.find((x) => x.players.some((p) => p.userId === me))?.id ?? null) : null;
   const meCss = meStyle(me, myTeam, dict.common.meYou, dict.common.meTeam);
-  const live = [...(twitch ? ["streams"] : []), ...(matches.some(isLive) && (vis.sections.schedule || vis.staff) ? ["schedule"] : [])];
+  const live = [...(twitch ? ["streams"] : []), ...(matches.some((m) => isLive(m)) && (vis.sections.schedule || vis.staff) ? ["schedule"] : [])];
   return (
     <>
       {meCss && <style dangerouslySetInnerHTML={{ __html: meCss }} />}
