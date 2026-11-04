@@ -202,6 +202,7 @@ export async function makeLobby(matchId: string, by: number) {
   const known = refNames.length ? await db.select({ osuId: users.osuId }).from(users).where(inArray(sql`lower(${users.username})`, refNames)) : [];
   await lb.addRef([...new Set([by, ...known.map((u) => u.osuId)])].map((id) => `#${id}`)).catch(() => {});
   for (const id of map.keys()) await lb.invitePlayer(`#${id}`).catch(() => {});
+  void import("@/db/discord-bot").then((d) => d.later("invites", () => d.invitesSent(matchId)));
   await lb.updateSettings().catch(() => {});
   ping(matchId);
   return { mpId: lb.id };
