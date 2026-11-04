@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { Sparkle } from "./graphics";
+import { DiscordLogo } from "./discord-logo";
 import { Tabs } from "./tabs";
 import { useBelowFold } from "./motion";
 import { useDict } from "./lang";
@@ -107,6 +108,14 @@ function Bubble() {
       </g>
       <circle cx="13" cy="5" r="2" className="mk-dot fill-paper" />
     </svg>
+  );
+}
+
+function Discord() {
+  return (
+    <span className="mb-[0.1em] block h-[0.62em] w-[0.62em] self-end" aria-hidden>
+      <DiscordLogo className="mk-bubble block size-full overflow-visible text-rose" />
+    </span>
   );
 }
 
@@ -473,7 +482,7 @@ function Log() {
   );
 }
 
-const MARKS = { gears: Gears, blocks: Blocks, streaks: Streaks, dots: Dots, glints: Glints, squiggle: Squiggle, chevrons: Chevrons, bubble: Bubble, people: People, cards: Cards, notes: Notes, tick: Tick, bars: Bars, me: Me, team: Team, users: Users, swords: Swords, clock: Clock, stopwatch: Stopwatch, badge: Badge, whistle: Whistle, draft: Draft, camera: Camera, layers: Layers, plan: Plan, timeline: Timeline, screen: Screen, chain: Chain, log: Log };
+const MARKS = { gears: Gears, blocks: Blocks, streaks: Streaks, dots: Dots, glints: Glints, squiggle: Squiggle, chevrons: Chevrons, bubble: Bubble, discord: Discord, people: People, cards: Cards, notes: Notes, tick: Tick, bars: Bars, me: Me, team: Team, users: Users, swords: Swords, clock: Clock, stopwatch: Stopwatch, badge: Badge, whistle: Whistle, draft: Draft, camera: Camera, layers: Layers, plan: Plan, timeline: Timeline, screen: Screen, chain: Chain, log: Log };
 export type Mark = keyof typeof MARKS;
 const FALLBACK: Mark[] = ["blocks", "streaks", "dots", "glints", "squiggle", "chevrons", "bars"];
 
