@@ -377,3 +377,21 @@ export const drafts = pgTable("drafts", {
   pauseUntil: timestamp("pause_until", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// bot-made role + private channel per team; no FK so rows of deleted teams stay until the sync removes their discord objects
+export const discordTeams = pgTable("discord_teams", {
+  teamId: text("team_id").primaryKey(),
+  roleId: text("role_id").notNull(),
+  channelId: text("channel_id").notNull(),
+  categoryId: text("category_id").notNull().default(""),
+  voiceId: text("voice_id").notNull().default(""),
+});
+
+// sent bot posts (dedupe + delete-previous) and the picked channels ("cfg:*" keys)
+export const discordState = pgTable("discord_state", {
+  key: text("key").primaryKey(),
+  channelId: text("channel_id").notNull().default(""),
+  messageId: text("message_id").notNull().default(""),
+  stamp: text("stamp").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

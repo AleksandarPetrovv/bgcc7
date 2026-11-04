@@ -9,4 +9,11 @@ export async function register() {
   } finally {
     await sql.end().catch(() => {});
   }
+  // discord reminders: a local ping into the app each minute, so the work runs with the normal server code
+  if (process.env.DISCORD_BOT_TOKEN && process.env.AUTH_SECRET) {
+    const { createHash } = await import("node:crypto");
+    const tick = createHash("sha256").update(`discord-tick:${process.env.AUTH_SECRET}`).digest("hex");
+    const url = `http://127.0.0.1:${process.env.PORT ?? 3000}/api/discord/tick`;
+    setInterval(() => void fetch(url, { method: "POST", headers: { "x-tick": tick } }).catch(() => {}), 60_000).unref();
+  }
 }

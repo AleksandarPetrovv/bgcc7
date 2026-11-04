@@ -6,15 +6,75 @@ const guild = () => process.env.DISCORD_GUILD_ID ?? "";
 
 export const discordReady = () => !!token() && !!guild();
 
-async function call<T>(path: string, init?: RequestInit): Promise<T> {
+async function call<T>(path: string, init?: RequestInit, tries = 3): Promise<T> {
   const res = await fetch(`${API}${path}`, {
     ...init,
     headers: { Authorization: `Bot ${token()}`, "Content-Type": "application/json", ...init?.headers },
     signal: AbortSignal.timeout(8000),
   });
+  if (res.status === 429 && tries > 1) {
+    const wait = Number((await res.json().catch(() => ({}))).retry_after ?? 1);
+    await new Promise((r) => setTimeout(r, Math.min(10, wait) * 1000 + 100));
+    return call(path, init, tries - 1);
+  }
   if (!res.ok) throw new Error(`discord ${res.status} ${path.split("?")[0]}`);
-  return res.json() as Promise<T>;
+  return (res.status === 204 ? null : res.json()) as Promise<T>;
 }
+
+export const guildId = guild;
+export const isMissing = (e: unknown) => e instanceof Error && / 404 /.test(e.message);
+
+type Mentions = { parse?: ("everyone" | "roles" | "users")[]; roles?: string[]; users?: string[] };
+export type Embed = { title?: string; description?: string; url?: string; color?: number; fields?: { name: string; value: string; inline?: boolean }[]; footer?: { text: string } };
+
+export async function post(channelId: string, content: string, opts: { mentions?: Mentions; embeds?: Embed[] } = {}) {
+  const m = await call<{ id: string }>(`/channels/${channelId}/messages`, {
+    method: "POST",
+    body: JSON.stringify({ content, embeds: opts.embeds, allowed_mentions: { parse: [], ...opts.mentions } }),
+  });
+  return m.id;
+}
+
+export async function deleteMessage(channelId: string, messageId: string) {
+  await call(`/channels/${channelId}/messages/${messageId}`, { method: "DELETE" }).catch((e) => {
+    if (!isMissing(e)) throw e;
+  });
+}
+
+export const botUser = () => call<{ id: string }>("/users/@me");
+export const guildChannels = () => call<{ id: string; name: string; type: number; parent_id: string | null; position: number }[]>(`/guilds/${guild()}/channels`);
+export const guildRoles = () => call<{ id: string; name: string }[]>(`/guilds/${guild()}/roles`);
+
+// one member's roles; null when they left the server. works without the Server Members intent (listing all members needs it)
+export const memberRoles = (userId: string) =>
+  call<{ roles: string[] }>(`/guilds/${guild()}/members/${userId}`).then(
+    (m) => m.roles,
+    (e) => {
+      if (isMissing(e)) return null;
+      throw e;
+    },
+  );
+
+export const createRole = (name: string) =>
+  call<{ id: string }>(`/guilds/${guild()}/roles`, { method: "POST", body: JSON.stringify({ name, mentionable: true, permissions: "0" }) });
+export const editRole = (id: string, name: string) => call(`/guilds/${guild()}/roles/${id}`, { method: "PATCH", body: JSON.stringify({ name }) });
+export const deleteRole = (id: string) =>
+  call(`/guilds/${guild()}/roles/${id}`, { method: "DELETE" }).catch((e) => {
+    if (!isMissing(e)) throw e;
+  });
+
+export type Overwrite = { id: string; type: 0 | 1; allow?: string; deny?: string };
+export const createChannel = (name: string, type: 0 | 2 | 4, overwrites: Overwrite[], parent?: string) =>
+  call<{ id: string }>(`/guilds/${guild()}/channels`, { method: "POST", body: JSON.stringify({ name, type, parent_id: parent, permission_overwrites: overwrites }) });
+export const editChannel = (id: string, body: { name?: string; parent_id?: string; permission_overwrites?: Overwrite[] }) =>
+  call(`/channels/${id}`, { method: "PATCH", body: JSON.stringify(body) });
+export const deleteChannel = (id: string) =>
+  call(`/channels/${id}`, { method: "DELETE" }).catch((e) => {
+    if (!isMissing(e)) throw e;
+  });
+
+export const addRole = (userId: string, roleId: string) => call(`/guilds/${guild()}/members/${userId}/roles/${roleId}`, { method: "PUT" });
+export const removeRole = (userId: string, roleId: string) => call(`/guilds/${guild()}/members/${userId}/roles/${roleId}`, { method: "DELETE" });
 
 type Member = { user: { id: string; username: string; global_name: string | null; discriminator: string; bot?: boolean }; nick: string | null };
 
