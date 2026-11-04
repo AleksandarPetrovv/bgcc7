@@ -38,7 +38,7 @@ function Side({ id, flip, lost }: { id: string; flip?: boolean; lost?: boolean }
         <>
           {/* on desktop the badge sits above the picture in a slot both sides keep, so nothing below it shifts */}
           <span className="-mb-1 hidden h-4 items-end justify-center sm:flex">
-            <MeTag t={team.id} className="text-[0.65rem]" />
+            <MeTag t={team.id} className="me-tag-plain text-[0.65rem]" />
           </span>
           <Link href={teamHref(team)} className="shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -49,7 +49,7 @@ function Side({ id, flip, lost }: { id: string; flip?: boolean; lost?: boolean }
               {team.name}
             </Link>
             <span className="sm:hidden">
-              <MeTag t={team.id} className="text-[0.55rem]" />
+              <MeTag t={team.id} className="me-tag-plain text-[0.55rem]" />
             </span>
           </span>
           <span className="in-up hidden gap-3 text-[0.6rem] font-display font-bold text-ash sm:flex" style={d("0.5s")}>

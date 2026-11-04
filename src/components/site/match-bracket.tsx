@@ -5,14 +5,15 @@ import { useRouter } from "next/navigation";
 import { ChevronRight, Crown } from "lucide-react";
 import type { Match } from "@/lib/data";
 import { TWITCH_URL } from "@/lib/links";
-import { useTournament } from "./tournament";
+import { useFormat, useTournament } from "./tournament";
 import { useDict, useLang } from "./lang";
 import { MatchDialog } from "./match-dialog";
 import { cn } from "@/lib/utils";
 import { MeTag, meT } from "./me";
 import { fitBox, useFit } from "./use-fit";
-import { winTargets, type Format, type Half } from "@/lib/format";
+import { roundOf, winTargets, type Format, type Half } from "@/lib/format";
 import { TZ } from "@/lib/time";
+import { roundName } from "@/lib/i18n/dict";
 import { HEX } from "@/lib/theme";
 
 const TOP = 92;
@@ -53,7 +54,7 @@ function Line({ m, slot, live, slim }: { m: Match; slot: 1 | 2; live?: [number, 
       <span title={team.name} className={cn("in-wipe min-w-0 flex-1 truncate text-[0.8rem] font-display font-bold", won && "font-display font-black text-paper", leads && "font-display font-black text-rose-hi")} style={v({ "--d": "0.5s" })}>
         {team.name}
       </span>
-      <MeTag t={team.id} className="-mx-1" />
+      <MeTag t={team.id} className="me-tag-plain -mx-1" />
       {score !== null && (
         <span className={cn("in-slam num ml-2 shrink-0 text-right text-base leading-none", won ? "text-balkan-hi" : leads || tie ? "text-rose-hi" : "text-paper/80")} style={v({ "--d": "0.65s" })}>
           {score}
@@ -69,11 +70,16 @@ function Box({ id, m, live, slim, className, style, onEnter, onLeave }: { id: st
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const day = (dt: string) => new Date(dt).toLocaleDateString(locale, { timeZone: TZ, weekday: "short", day: "2-digit", month: "short" });
   const clock = (dt: string) => new Date(dt).toLocaleTimeString("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  const num = useFormat().rounds[roundOf(id)]?.single ? null : id.match(/-(\d+)$/)?.[1];
   return (
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className={cn("flex flex-col overflow-hidden border bg-coal transition-[border-color] duration-200", className)} style={style}>
       <div className="flex h-7 shrink-0 items-center gap-2 border-b border-line bg-ink/70 px-2.5">
         <span className="num truncate text-[0.78rem] text-paper/75">{m.datetime ? `${id === "grand-final-reset" ? new Date(m.datetime).toLocaleDateString(locale, { timeZone: TZ, day: "2-digit", month: "short" }) : day(m.datetime)} · ${clock(m.datetime)}` : m.winner ? "" : m.team1.id && m.team2.id ? t.common.tbd : "—"}</span>
-        {id === "grand-final-reset" && <span className="shrink-0 whitespace-nowrap text-[0.6rem] font-display font-bold text-gold-hi">{t.rounds.reset}</span>}
+        {id === "grand-final-reset" ? (
+          <span className="shrink-0 whitespace-nowrap text-[0.6rem] font-display font-bold text-gold-hi">{t.rounds.reset}</span>
+        ) : (
+          !m.datetime && !m.winner && !(m.team1.id && m.team2.id) && <span className="truncate whitespace-nowrap text-[0.6rem] font-display font-bold text-gold-hi">{roundName(t, m.round)}{num ? ` ${num}` : ""}</span>
+        )}
         <span className="ml-auto flex items-center gap-1">
           {live !== undefined && <LiveDot />}
           {m.links.length > 0 && <MatchDialog match={m} compact />}
