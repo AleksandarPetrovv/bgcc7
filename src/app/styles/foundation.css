@@ -158,6 +158,8 @@
     @apply text-paper;
     caret-color: var(--rose-hi);
     background-color: var(--ink);
+    /* html's clip goes to the viewport, which ios ignores when zooming out; this keeps the page at screen width */
+    overflow-x: clip;
   }
   ::selection {
     background: var(--rose);
