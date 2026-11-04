@@ -148,7 +148,7 @@ export async function seedTestData() {
   }));
   await dbBGCC6.insert(users).values(people).onConflictDoNothing();
   await db.insert(registrations).values(
-    people.map((p, i) => ({ osuId: p.osuId, status: i >= COUNT - 2 ? "denied" : i >= COUNT - 4 ? "pending" : "approved", note: i >= COUNT - 2 ? "test" : null, createdAt: new Date(Date.now() - (COUNT - i) * 3_600_000) })),
+    people.map((p, i) => ({ osuId: p.osuId, rankLock: p.rank, badgesLock: p.badges, status: i >= COUNT - 2 ? "denied" : i >= COUNT - 4 ? "pending" : "approved", note: i >= COUNT - 2 ? "test" : null, createdAt: new Date(Date.now() - (COUNT - i) * 3_600_000) })),
   );
 
   const plan = await getPlan();
@@ -193,7 +193,7 @@ export async function seedTestData() {
   const all = await db.select().from(matches);
   for (const m of all) {
     const w = WEEK_OF[m.stageSlug] ?? 0;
-    const k = Number(m.id.match(/M(\d+)$/)?.[1] ?? 1);
+    const k = Number(m.id.match(/-(\d+)$/)?.[1] ?? 1);
     await db.update(matches).set({ startsAt: day(WEEKS[w], 14 + ((k * 2) % 8) + (m.bracket === "losers" ? 1 : 0)) }).where(eq(matches.id, m.id));
   }
 
