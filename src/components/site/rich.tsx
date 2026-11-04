@@ -30,7 +30,7 @@ export function Words({ text, d = 0, s = 0.04, className }: { text: string; d?: 
       ),
     );
   return (
-    <span className={className} style={{ "--d": `${d}s`, "--s": `${s}s` } as React.CSSProperties}>
+    <span data-letters className={className} style={{ "--d": `${d}s`, "--s": `${s}s` } as React.CSSProperties}>
       {text.split(/(\[\[.+?\]\]|\{\{.+?\}\})/g).map((p, k) =>
         p.startsWith("[[") ? (
           <strong key={k} className="font-bold text-rose-hi">{split(p.slice(2, -2))}</strong>
@@ -69,7 +69,7 @@ export function Letters({ text, d = 0, s = 0.035, plain, className }: { text: st
     );
   const parts = text.split(/(\[\[.+?\]\]|\{\{.+?\}\})/g);
   return (
-    <span className={className} style={{ "--d": `${d}s`, "--s": `${s}s` } as React.CSSProperties}>
+    <span data-letters className={className} style={{ "--d": `${d}s`, "--s": `${s}s` } as React.CSSProperties}>
       <span className="sr-only">{parts.map((p) => (p.startsWith("[[") || p.startsWith("{{") ? p.slice(2, -2) : p)).join("")}</span>
       <span aria-hidden>
         {parts.map((p, k) =>

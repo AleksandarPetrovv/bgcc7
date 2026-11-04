@@ -1,12 +1,40 @@
 "use client";
 
-import { createContext, useContext, useLayoutEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { animate, motion, MotionConfig, useMotionValue, useTransform, type Variants } from "motion/react";
 import { belowFold } from "./in-view";
 
 export const EASE = [0.16, 1, 0.3, 1] as const;
 
+// the boot script only catches known software renderers (firefox often reports the real gpu with acceleration off),
+// so slow frames after load also switch to lite for the rest of the session
+function watchFrames(onLite: () => void) {
+  const gaps: number[] = [];
+  let last = 0;
+  let raf = 0;
+  const tick = (t: number) => {
+    if (last && document.visibilityState === "visible") gaps.push(t - last);
+    last = t;
+    if (gaps.length < 40) raf = requestAnimationFrame(tick);
+    else if ([...gaps].sort((a, b) => a - b)[20] > 24) onLite();
+  };
+  const start = setTimeout(() => (raf = requestAnimationFrame(tick)), 2500);
+  return () => {
+    clearTimeout(start);
+    cancelAnimationFrame(raf);
+  };
+}
+
 export function MotionProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    if (document.documentElement.classList.contains("lite")) return;
+    return watchFrames(() => {
+      document.documentElement.classList.add("lite");
+      try {
+        sessionStorage.setItem("lite", "1");
+      } catch {}
+    });
+  }, []);
   return (
     <MotionConfig reducedMotion="user" transition={{ duration: 0.6, ease: EASE }}>
       {children}

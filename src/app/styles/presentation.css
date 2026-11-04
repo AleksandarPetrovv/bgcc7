@@ -19,7 +19,9 @@
   background-size: 9px 9px;
 }
 html.lite .folk-panel::after {
-  display: none;
+  mix-blend-mode: normal;
+  opacity: 0.07;
+  background-image: url("/noise.png");
 }
 
 .no-intro:is(.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word, .ltr, .in-left-far, .in-right-far, .in-slam, .in-curtain, .in-launch, .in-grow-y, .in-sweep, .in-trace),
@@ -72,39 +74,84 @@ html.lite header {
   background-color: var(--ink);
 }
 
+/* ---- lite: software rendering (no gpu), every frame is painted and blended on the cpu ----
+   goal: same look, far less work per frame.
+   - loops keep running at a low frame rate (steps), so most frames repaint nothing
+   - slide/fade intros stay (opacity costs the same as translate on cpu); only scale/rotate/skew/clip ones become a plain slide
+   - per-letter / per-word text fades in per block
+   - no live blur behind/through layers, grain is a png instead of a live svg filter, no stuck will-change layers */
 html.lite .grain::after {
-  display: none;
+  transform: none;
+  opacity: 0.05;
+  background-image: url("/noise.png");
 }
 
 html.lite [role="dialog"],
 html.lite [role="dialog"] *,
-html.lite .fixed {
+html.lite .fixed,
+html.lite .sub-nav,
+html.lite .backdrop-blur {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
 
 html.lite .fixed.inset-0:not(canvas):not(.pointer-events-none) {
-  background-color: color-mix(in srgb, var(--ink) 92%, transparent);
+  background-color: color-mix(in srgb, black 66%, transparent);
 }
 
-html.lite [role="dialog"] .anim-twinkle {
+/* one page-level intro only: the page wrapper fade is dropped, its sections still rise in */
+html.lite :is(.anim-page > *, .anim-page-in) {
   animation: none !important;
 }
 
-html.lite .anim-page {
-  animation: none !important;
+html.lite :is(.anim-blob-a, .anim-blob-b, .anim-float, .anim-comet, .anim-orbit, .anim-letter, .mk-sweep) {
+  will-change: auto !important;
 }
 
-html.lite:not(.settled) .anim-blob-a,
-html.lite:not(.settled) .anim-blob-b,
-html.lite:not(.settled) .anim-float,
-html.lite:not(.settled) .anim-drift,
-html.lite:not(.settled) .anim-echo,
-html.lite:not(.settled) .anim-twinkle,
-html.lite:not(.settled) .anim-chevron,
-html.lite:not(.settled) .anim-orbit,
-html.lite:not(.settled) .mk-dot {
+html.lite :is(.anim-blob-a, .anim-blob-b) { animation-timing-function: steps(60) !important; }
+html.lite .anim-drift { animation-timing-function: steps(110) !important; }
+html.lite .anim-comet { animation-timing-function: steps(90) !important; }
+html.lite :is(.anim-float, .anim-shine) { animation-timing-function: steps(30) !important; }
+html.lite :is(.anim-echo, .match-run) { animation-timing-function: steps(20) !important; }
+html.lite :is(.anim-orbit, .anim-orbit-in) { animation-timing-function: steps(24) !important; }
+html.lite :is(.match-cta-sheen, .btn-shine, .mdlg-shine) { animation-timing-function: steps(16) !important; }
+html.lite :is(.anim-twinkle, .anim-ping-diamond, .animate-pulse, .adm-crest, .adm-spark, .mk-bubble, .mk-stem, .mk-dot, .mk-pop, .mk-fan,
+    .mk-rise, .mk-bar, .mk-gear, .mk-gear-r, .mk-crowd, .mk-twinkle, .mk-swing-l, .mk-swing-r, .mk-clash, .mk-spark, .mk-hand-h, .mk-hand-m,
+    .mk-pen, .mk-pen-late, .mk-sway, .mk-hang, .mk-show, .mk-toot, .mk-rec, .mk-drift, .mk-ping, .mk-scan) {
+  animation-timing-function: steps(10) !important;
+}
+html.lite :is(.anim-chevron, .anim-bob, .dr-glow, .dr-beads-on, .mdlg-bar) { animation-timing-function: steps(7) !important; }
+html.lite .dr-dots > span { animation-timing-function: steps(4) !important; }
+
+/* resampled intros (scale / rotate / skew / perspective / clip) become the plain slide of the same direction */
+html.lite :is(.in-flip, .in-spin, .in-slam, .in-launch, .in-curtain, .word, .anim-letter) { animation-name: k-up !important; }
+html.lite :is(.in-left-far, .in-wipe) { animation-name: k-left !important; }
+html.lite :is(.in-right-far, .in-wipe-r) { animation-name: k-right !important; }
+html.lite .anim-slam { animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both !important; }
+
+/* Letters / Words: each text block fades in as one element (on cpu every animated element costs style work per frame,
+   so hundreds of letters or words animating at once is what made the info page stutter) */
+html.lite [data-letters] :is(.ltr, .word) {
+  animation: none !important;
+}
+html.lite [data-letters] {
+  animation: lite-fade 0.6s ease-out backwards;
+  animation-delay: var(--d, 0s);
+}
+html.lite .iv:not(.in) [data-letters] {
   animation-play-state: paused;
+}
+@keyframes lite-fade {
+  from { opacity: 0; }
+}
+
+/* blurred thumbnails stay blurred, but no hover zoom that would re-blur every frame */
+html.lite .group\/row img {
+  scale: 1.1 !important;
+  transition: none !important;
+}
+html.lite :is(.lift, .lift-sm):hover {
+  translate: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -137,6 +184,7 @@ html.lite:not(.settled) .mk-dot {
   .anim-twinkle,
   .anim-bob,
   .anim-page,
+  .anim-page-in,
   .anim-slam,
   .anim-letter,
   .anim-grow-x,
@@ -160,6 +208,7 @@ html.lite:not(.settled) .mk-dot {
   .mk-rise,
   .mk-bar,
   .mk-gear,
+  .mk-gear-r,
   .mk-crowd,
   .mk-twinkle,
   .mk-swing-l,

@@ -142,7 +142,7 @@
 
 @keyframes match-run { to { stroke-dashoffset: -100; } }
 .match-run { animation: match-run 2.4s linear infinite; }
-@media (prefers-reduced-motion: reduce) { .match-run { animation-duration: 6s; } }
+@media (prefers-reduced-motion: reduce) { .match-run { animation: none; } }
 
 .adm-field {
   position: relative;
@@ -196,8 +196,8 @@
 .adm-field.adm-tight { height: 2.25rem; }
 .adm-field.adm-tight > input.adm-bare { padding: 0 0.5rem; font-size: 0.8rem; }
 
-@keyframes mdlg-bar { 0%, 100% { height: 30%; opacity: 0.5; } 50% { height: 100%; opacity: 1; } }
-.mdlg-bar { height: 30%; animation: mdlg-bar 0.8s ease-in-out infinite; }
+@keyframes mdlg-bar { 0%, 100% { scale: 1 0.3; opacity: 0.5; } 50% { scale: 1 1; opacity: 1; } }
+.mdlg-bar { height: 100%; transform-origin: bottom; animation: mdlg-bar 0.8s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .mdlg-bar { animation-duration: 2s; } }
 
 @keyframes btn-shine { 0%, 86% { background-position: 130% 0; } 100% { background-position: -30% 0; } }
