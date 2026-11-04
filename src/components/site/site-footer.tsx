@@ -1,7 +1,6 @@
 import { DiscordLogo } from "./discord-logo";
 import { TwitchLogo } from "./twitch-logo";
 import { LangSwitch } from "./lang";
-import { Glyph } from "./graphics";
 import { DISCORD_URL, TWITCH_URL } from "@/lib/links";
 import { getFormat } from "@/db/edition";
 
@@ -13,10 +12,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-dashed border-line">
       <div className="mx-auto flex max-w-page flex-wrap items-center justify-center gap-x-5 gap-y-3 px-4 py-5 sm:px-6 lg:px-10 2xl:px-14">
-        <div className="flex items-center gap-3">
-          <Glyph kind="diamond" className="size-3 opacity-80" />
-          <span className="font-display text-sm font-black lowercase text-ash">{getFormat().name}</span>
-        </div>
+        <span className="font-display text-sm font-black lowercase text-ash">{getFormat().name}</span>
         <span className="size-1 rotate-45 bg-line" aria-hidden />
         <div className="flex items-center gap-1">
           {SOCIALS.map((s) => (
