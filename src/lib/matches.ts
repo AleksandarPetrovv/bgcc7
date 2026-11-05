@@ -8,6 +8,23 @@ export { matchIdFromSlug, matchSlug } from "./format";
 export const matchStamp = (m: { team1Id: string | null; team2Id: string | null; score1: number | null; score2: number | null; winner: number | null; mpLinks: string; startsAt: Date | null }) =>
   JSON.stringify([m.team1Id, m.team2Id, m.score1, m.score2, m.winner, m.mpLinks, m.startsAt?.getTime() ?? null]);
 
+const SHORT: Record<string, string> = {
+  "Round of 16": "RO16",
+  "Round of 32": "RO32",
+  Quarterfinals: "QF",
+  "Round 1 (Quarter-Finals)": "QF",
+  Semifinals: "SF",
+  "Semi-Finals": "SF",
+  "Round 2 (Semi-Finals)": "SF",
+  Finals: "F",
+  "Winners Finals": "WF",
+  "Losers Finals": "LF",
+  "Grand Finals": "GF",
+};
+
+/** short round name for tight spots: RO16, QF, SF, F, GF, Losers R2 */
+export const shortRound = (round: string) => SHORT[round] ?? round.replace(/^Losers Round (\d+)$/, "Losers R$1");
+
 export function matchLabel(t: Dict, matches: Match[], id: string) {
   const m = matches.find((x) => x.id === id);
   if (!m) return t.common.tbd;

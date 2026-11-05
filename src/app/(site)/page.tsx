@@ -1,27 +1,25 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Check, Crown } from "lucide-react";
+import { ArrowRight, Check, Crown } from "lucide-react";
 import { Sparkle } from "@/components/site/graphics";
 import { SlantButton } from "@/components/site/page";
 import { Words } from "@/components/site/rich";
 import { Avatar } from "@/components/site/avatar";
-import { CountUp, Reveal, Stagger, StaggerItem } from "@/components/site/motion";
+import { Reveal } from "@/components/site/motion";
 import { getDict } from "@/lib/i18n/server";
-import { type Dict } from "@/lib/i18n/dict";
+import { roundName, type Dict } from "@/lib/i18n/dict";
+import { shortRound } from "@/lib/matches";
 import { fmtRange, phaseStates, type TimelineRow } from "@/lib/dates";
 import { getFill } from "@/db/copy";
 import { Countdown } from "@/components/site/countdown";
-import { MODS, type Stage, type Team } from "@/lib/data";
+import { type Match, type Team } from "@/lib/data";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getLang } from "@/lib/i18n/server";
-import { fmtSofiaTime, isFuture, windowState } from "@/lib/time";
-import { ResultCard } from "@/components/site/result-card";
-import { getPoolStages, type PoolStage } from "@/db/mappools";
+import { isFuture, windowState } from "@/lib/time";
+import { MatchRow } from "@/components/site/match-row";
+import { RefreshWhileLive } from "./refresh-while-live";
+import { LineIndex } from "@/components/site/line-index";
 import { getRegistrations } from "@/db/registrations";
-import { splitAlive } from "@/lib/alive";
-import { getLobbies, type Lobby } from "@/db/lobbies";
-import { getPublicStaff } from "@/db/admin";
 import { cn } from "@/lib/utils";
-import { modOn } from "@/lib/theme";
 import { getSettings } from "@/db/settings";
 import { getViewer, getVisibility } from "@/lib/authz";
 import { duePhase } from "@/lib/phase-prompt";
@@ -31,8 +29,7 @@ import { currentOsuId } from "@/auth";
 import { login } from "@/app/(site)/pickems/actions";
 import { HeroGate } from "@/components/site/hero-gate";
 import { MeTag } from "@/components/site/me";
-import { slotColor } from "@/lib/format-plan";
-import { getEdition, getFormat } from "@/db/edition";
+import { getEdition } from "@/db/edition";
 import { ShrinkWrap } from "@/components/site/shrink-wrap";
 import { isBGCC6 } from "@/db";
 
@@ -40,7 +37,7 @@ const INK: Record<string, number> = { "6": 0.15, "7": 0.22 };
 
 function HeroLockup({ num }: { num: string }) {
   return (
-    <div className="flex select-none items-end font-display font-black lowercase text-[clamp(4.5rem,15vw,12.5rem)] lg:text-[clamp(6rem,10.5vw,12rem)]">
+    <div className="flex select-none items-end font-display font-black lowercase text-[clamp(4.5rem,15vw,12.5rem)] lg:text-[clamp(5.5rem,9.5vw,11rem)]">
       <div className="whitespace-nowrap leading-[0.8] tracking-[-0.05em] text-paper">
         {"bgcc".split("").map((c, i) => (
           <span key={i} className="anim-letter" style={{ animationDelay: `${0.05 + i * 0.07}s` }}>
@@ -60,87 +57,6 @@ function HeroLockup({ num }: { num: string }) {
           {num}
         </span>
       </span>
-    </div>
-  );
-}
-
-function EntryCard({
-  title,
-  sub,
-  href,
-  className,
-  children,
-}: {
-  title: string;
-  sub: string;
-  href: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link href={href} className={cn("lift group relative flex h-36 flex-col sm:h-44 overflow-hidden border border-line hover:border-paper/30", className)}>
-      <div className="relative min-h-0 flex-1 overflow-hidden transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.03]">
-        {children}
-      </div>
-      <span className="relative flex items-center justify-between gap-3 bg-ink px-4 py-3 text-paper">
-        <span className="min-w-0">
-          <span className="block text-base font-display font-bold leading-tight">{title}</span>
-          <span className="block truncate text-sm text-paper/75">{sub}</span>
-        </span>
-        <ArrowUpRight className="size-5 shrink-0 text-paper/70 transition duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:rotate-12 group-hover:text-rose-hi" />
-      </span>
-    </Link>
-  );
-}
-
-function SignupCount({ n, label }: { n: number; label: string }) {
-  return (
-    <div className="flex h-full items-end gap-3 px-5 pb-4" aria-hidden>
-      <CountUp to={n} className="num text-7xl leading-[0.8] text-paper" />
-      <span className="pb-1 text-sm font-display font-bold text-ash">{label}</span>
-    </div>
-  );
-}
-
-function ModChips({ stage }: { stage: Stage }) {
-  const maps = stage.pools.flatMap((p) => p.maps.map((m) => ({ slot: m.slot, color: /^(NM|HD|HR|DT|FM|EZ|TB)\d*$/.test(m.slot) ? MODS[p.category].color : slotColor(m.slot) })));
-  return (
-    <div className="flex h-full flex-wrap content-center gap-1.5 px-4" aria-hidden>
-      {maps.map((m, i) => (
-        <span
-          key={m.slot}
-          className="anim-rise heading-slam border-l-[3px] bg-slate px-2 py-1 text-lg text-paper/85 transition-colors group-hover:text-paper"
-          style={{ borderColor: m.color, animationDelay: `${0.3 + i * 0.03}s` }}
-        >
-          {m.slot}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-const SHORT: Record<string, string> = { Qualifiers: "QUALS", "Round of 32": "RO32", "Round of 16": "RO16", Quarterfinals: "QF", Semifinals: "SF", Finals: "F", "Grand Finals": "GF" };
-const short = (title: string) => SHORT[title] ?? (title.match(/\b[A-Z0-9]/g)?.join("") || title);
-const STACK_COLORS: Record<string, string> = { QUALS: "var(--mod-tb)", RO32: "var(--mod-tb)", RO16: "var(--mod-nm)", QF: "var(--mod-hd)", SF: "var(--mod-fm)", F: "var(--mod-dt)", GF: "var(--mod-hr)" };
-
-function PoolStack({ stages }: { stages: PoolStage[] }) {
-  return (
-    <div className="flex h-full items-center gap-1.5 px-5" aria-hidden>
-      {stages.map((st, i) => {
-        const bg = STACK_COLORS[short(st.title)] ?? "var(--mod-tb)";
-        return (
-        <span
-          key={st.slug}
-          className={cn(
-            "anim-rise grid h-11 flex-1 -skew-x-12 place-items-center transition-colors sm:h-14",
-            st.released ? "opacity-85 group-hover:opacity-100" : "opacity-45",
-          )}
-          style={{ animationDelay: `${0.3 + i * 0.05}s`, background: bg, color: modOn(bg) }}
-        >
-          <span className="heading-slam skew-x-12 text-base sm:text-2xl">{short(st.title)}</span>
-        </span>
-        );
-      })}
     </div>
   );
 }
@@ -173,83 +89,6 @@ function Champion({ t, team, other }: { t: Dict; team: Team; other?: Team }) {
   );
 }
 
-function TeamMosaic({ teams }: { teams: Team[] }) {
-  return (
-    <div className="grid h-full grid-cols-4 grid-rows-2" aria-hidden>
-      {teams.slice(0, 8).map((t, i) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          key={t.id}
-          src={t.image}
-          alt=""
-          className="size-full object-cover opacity-80 grayscale-[.7] transition duration-500 group-hover:opacity-100 group-hover:grayscale-0"
-          style={{ transitionDelay: `${i * 40}ms` }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function AvatarCloud({ people }: { people: { id: number; avatar: string | null }[] }) {
-  return (
-    <div className="flex h-full flex-wrap content-center items-center gap-2.5 px-5" aria-hidden>
-      {people.slice(0, 18).map((p, i) => (
-        <span key={p.id} className={cn("anim-rise transition-transform duration-300 group-hover:-translate-y-0.5", i >= 12 && "max-sm:hidden")} style={{ animationDelay: `${0.25 + i * 0.04}s`, transitionDelay: `${i * 25}ms` }}>
-          <Avatar src={p.avatar} className="size-8 sm:size-9" />
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function LobbySlots({ lobbies }: { lobbies: Lobby[] }) {
-  return (
-    <div className="flex h-full flex-wrap content-center gap-2 px-4" aria-hidden>
-      {lobbies.slice(0, 8).map((l, i) => {
-        const fill = Math.min(1, l.players.length / l.capacity);
-        return (
-          <span key={l.id} className="anim-rise relative -skew-x-12 overflow-hidden border border-line bg-slate px-3 py-1.5" style={{ animationDelay: `${0.3 + i * 0.05}s` }}>
-            <span className="absolute inset-y-0 left-0 bg-rose/25 transition-[width] duration-700" style={{ width: `${fill * 100}%` }} />
-            <span className="num relative block skew-x-12 text-lg text-paper">{fmtSofiaTime(l.startsAt)}</span>
-          </span>
-        );
-      })}
-    </div>
-  );
-}
-
-function FormatBadge({ tags, teamSize }: { tags: readonly string[]; teamSize: number }) {
-  return (
-    <div className="relative flex h-full items-center gap-5 px-5" aria-hidden>
-      <span className="heading-slam text-7xl leading-none text-paper transition-transform duration-500 group-hover:-rotate-3 group-hover:scale-105">
-        {teamSize}<span className="text-rose">v</span>{teamSize}
-      </span>
-      <span className="flex flex-col gap-1 text-[0.65rem] font-display font-bold text-ash">
-        {tags.map((x) => (
-          <span key={x}>{x}</span>
-        ))}
-      </span>
-      <Sparkle className="right-6 top-5 size-4 text-rose-hi" />
-      <Sparkle className="right-12 top-12 size-2 text-balkan-hi" delay={1.1} />
-    </div>
-  );
-}
-
-function MiniBracket() {
-  const col = (x: number, n: number, gap: number, top: number) =>
-    Array.from({ length: n }, (_, i) => <rect key={`${x}-${i}`} x={x} y={top + i * gap} width={46} height={9} />);
-  return (
-    <svg viewBox="0 0 250 104" className="h-full w-full p-3" aria-hidden>
-      <g className="fill-slate">{[...col(0, 4, 26, 4), ...col(68, 2, 52, 17), ...col(136, 1, 0, 43)]}</g>
-      <g className="stroke-line transition-colors duration-500 group-hover:stroke-rose/70" fill="none" strokeWidth={1.5}>
-        <path d="M46 8.5h11v26H46M57 21.5h11M46 60.5h11v26H46M57 73.5h11M114 21.5h11v52h-11M125 47.5h11" />
-      </g>
-      <rect x={196} y={38} width={46} height={19} className="fill-paper/80 transition-colors duration-500 group-hover:fill-rose" />
-      <path d="M182 47.5h14" className="stroke-paper/60" strokeWidth={1.5} strokeDasharray="3 3" />
-    </svg>
-  );
-}
-
 function Timeline({ t, timeline, locale, states }: { t: Dict; timeline: TimelineRow[]; locale: string; states: ReturnType<typeof phaseStates> }) {
   return (
     <InView as="ol" className="relative mt-6">
@@ -264,9 +103,9 @@ function Timeline({ t, timeline, locale, states }: { t: Dict; timeline: Timeline
               "in-left relative flex items-baseline gap-4 py-2 pl-8 pr-3 font-display font-bold text-[0.95rem] transition-colors",
               current ? "bg-slate font-black text-paper" : done ? "text-ash" : "text-paper/80 hover:text-paper",
             )}
-            style={{ "--d": "0.3s", "--i": i, "--s": "0.08s" } as React.CSSProperties}
+            style={{ "--d": "0.85s", "--i": i, "--s": "0.08s" } as React.CSSProperties}
           >
-            <span className="in-pop absolute left-0 top-1/2 flex size-4 -translate-y-1/2 items-center justify-center" style={{ "--d": "0.45s", "--i": i, "--s": "0.08s" } as React.CSSProperties}>
+            <span className="in-pop absolute left-0 top-1/2 flex size-4 -translate-y-1/2 items-center justify-center" style={{ "--d": "1s", "--i": i, "--s": "0.08s" } as React.CSSProperties}>
               {current ? (
                 <>
                   <span className="anim-ping-diamond absolute size-2.5 bg-rose" aria-hidden />
@@ -277,7 +116,7 @@ function Timeline({ t, timeline, locale, states }: { t: Dict; timeline: Timeline
               )}
             </span>
             <span className="flex-1">{t.timeline[e.key]}</span>
-            <span className="in-wipe num whitespace-nowrap text-base normal-case" style={{ "--d": "0.55s", "--i": i, "--s": "0.08s" } as React.CSSProperties}>{fmtRange(locale, e.from, e.to)}</span>
+            <span className="in-wipe num whitespace-nowrap text-base normal-case" style={{ "--d": "1.1s", "--i": i, "--s": "0.08s" } as React.CSSProperties}>{fmtRange(locale, e.from, e.to)}</span>
           </li>
         );
       })}
@@ -286,31 +125,25 @@ function Timeline({ t, timeline, locale, states }: { t: Dict; timeline: Timeline
 }
 
 export default async function Home() {
-  const [t, lang, settings, vis, pools, teams, matches, regs, lobbies, staff] = await Promise.all([
+  const [t, lang, settings, vis, teams, matches, regs] = await Promise.all([
     getDict(),
     getLang(),
     getSettings(),
     getVisibility(),
-    getPoolStages(),
     getTeams(),
     getMatches(),
     getRegistrations(),
-    getLobbies(),
-    getPublicStaff(),
   ]);
   const [f, me, viewer] = await Promise.all([getFill(), currentOsuId(), getViewer()]);
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const teamById = (id: string) => teams.find((x) => x.id === id);
   const see = (s: keyof typeof vis.sections) => vis.sections[s];
-  const visiblePools = pools.filter((s) => s.pools.length && s.released);
   const phase = settings.phase;
   const due = viewer?.roles.includes("host") ? duePhase(settings.timeline, phase, !isBGCC6()) : null;
   const prompt = due && settings.phasePrompts[String(viewer!.osuId)] !== due ? due : null;
-  const signup = phase === "registration" || phase === "screening";
   const playing = phase === "seeding" || phase === "playoffs";
   const big = "px-6 py-3 text-base sm:px-8 sm:py-4 sm:text-xl";
   const bigFill = "shadow-[4px_4px_0_0_var(--rose-deep)]";
-  const qualPool = phase === "qualifiers" ? visiblePools.find((s) => s.slug === "qualifiers") : undefined;
   const byId = new Map(matches.map((m) => [m.id, m]));
   const gf1 = byId.get("grand-final");
   const gf2 = byId.get("grand-final-reset");
@@ -321,74 +154,33 @@ export default async function Home() {
   const ctaOk: Record<string, boolean> = { screening: see("players"), qualifiers: see("lobbies"), seeding: see("teams"), playoffs: see("schedule"), finished: see("schedule") };
   const regState = windowState(settings.regOpensAt, settings.regClosesAt);
   const regCloses = phase === "registration" && see("register") && regState === "open" && isFuture(settings.regClosesAt) ? settings.regClosesAt!.toISOString() : null;
-  const alive = splitAlive(regs, teams, matches, settings.phase);
-  const players = alive.players;
   const mine = me ? regs.find((r) => r.osuId === me) : undefined;
-  const booking = windowState(settings.bookingOpensAt, settings.bookingClosesAt);
   const featured = matches
     .filter((m) => m.winner)
     .sort((a, b) => (b.datetime ?? "").localeCompare(a.datetime ?? ""))
-    .slice(0, 3);
-
-  const cards = [
-    signup && (see("register") || see("players")) && (
-      <EntryCard
-        key="reg"
-        title={t.home.registration}
-        sub={phase === "screening" ? t.home.regScreening : regState === "open" ? f(t.home.regSub) : regState === "soon" ? f(t.home.regSoon) : t.home.regClosed}
-        href={see("register") ? "/register" : "/teams/players"}
-        className="bg-coal"
-      >
-        <SignupCount n={players.length} label={t.home.signups(players.length)} />
-      </EntryCard>
-    ),
-    phase === "qualifiers" && see("lobbies") && lobbies.length > 0 && (
-      <EntryCard key="lobbies" title={t.home.lobbies} sub={booking === "open" ? t.home.lobbiesSub(lobbies.length) : t.home.lobbiesClosed(lobbies.length)} href="/qualifiers" className="bg-coal">
-        <LobbySlots lobbies={lobbies} />
-      </EntryCard>
-    ),
-    see("mappool") && qualPool && (
-      <EntryCard key="pool" title={t.home.mappool(t.rounds[qualPool.title] ?? qualPool.title)} sub={t.home.mapSub(qualPool.pools.reduce((n, p) => n + p.maps.length, 0))} href="/mappool" className="bg-slate">
-        <ModChips stage={qualPool} />
-      </EntryCard>
-    ),
-    see("mappool") && !qualPool && visiblePools.length > 0 && (
-      <EntryCard key="pools" title={t.home.mappools} sub={t.home.poolsSub(visiblePools.length)} href="/mappool" className="bg-slate">
-        <PoolStack stages={pools.filter((s) => s.pools.length)} />
-      </EntryCard>
-    ),
-    see("teams") && teams.length > 0 && (
-      <EntryCard key="teams" title={t.home.teams} sub={phase === "playoffs" || phase === "finished" ? t.home.teamsDone(teams.length, teams.length * getFormat().teamSize) : t.home.teamsSub(teams.length, teams.length * getFormat().teamSize)} href="/teams" className="bg-coal">
-        <TeamMosaic teams={teams} />
-      </EntryCard>
-    ),
-    see("schedule") && (
-      <EntryCard key="bracket" title={t.home.bracket} sub={phase === "finished" ? t.home.bracketDone : phase === "playoffs" ? t.home.bracketLive : t.home.bracketSub} href="/matches" className="bg-coal">
-        <MiniBracket />
-      </EntryCard>
-    ),
-    see("players") && players.length > 0 && (
-      <EntryCard key="players" title={t.home.players} sub={alive.playoffs ? t.home.playersAliveSub : t.home.playersSub} href="/teams/players" className="bg-coal">
-        <AvatarCloud people={players.map((p) => ({ id: p.osuId, avatar: p.avatarUrl }))} />
-      </EntryCard>
-    ),
-    see("info") && (
-      <EntryCard key="info" title={t.home.info} sub={t.home.infoSub} href="/info" className="bg-coal">
-        <FormatBadge tags={t.home.formatTags} teamSize={getFormat().teamSize} />
-      </EntryCard>
-    ),
-    see("staff") && staff.length > 0 && (
-      <EntryCard key="staff" title={t.home.staff} sub={t.home.staffSub(staff.length)} href="/staff" className="bg-coal">
-        <AvatarCloud people={staff.map((s) => ({ id: s.osuId, avatar: s.avatarUrl }))} />
-      </EntryCard>
-    ),
-  ]
-    .filter(Boolean)
-    .slice(0, 4);
+    .slice(0, 2);
+  // soonest scheduled first, then unscheduled ones with both teams, one team, none
+  const pending = matches.filter((m) => !m.winner);
+  const sides = (m: Match) => +!!m.team1.id + +!!m.team2.id;
+  const upcoming = [
+    ...pending.filter((m) => m.datetime).sort((a, b) => a.datetime!.localeCompare(b.datetime!)),
+    ...[2, 1, 0].flatMap((n) => pending.filter((m) => !m.datetime && sides(m) === n)),
+  ].slice(0, 2);
+  // a live match finishing moves it to previous and pulls the next one in
+  const liveNow = upcoming.some((m) => m.running || (!!m.datetime && !isFuture(new Date(m.datetime))));
+  // full and short round labels; the card shows the short one when the full one doesn't fit
+  const label = (m: Match): [string, string] => {
+    if (m.id === "grand-final") return [t.home.grandFinal, "GF"];
+    if (m.id === "grand-final-reset") return [t.home.gfReset, "GF Reset"];
+    const same = matches.filter((o) => o.round === m.round);
+    const n = same.length > 1 ? ` ${t.nav.match} ${same.indexOf(m) + 1}` : "";
+    return [roundName(t, m.round) + n, shortRound(m.round) + n];
+  };
 
   return (
     <>
       {prompt && <PhasePrompt current={phase} next={prompt} />}
+      <LineIndex />
       <HeroGate className="grain relative overflow-hidden border-b border-line">
         <div className="pointer-events-none absolute inset-y-0 right-0 w-[70%] overflow-hidden [mask-image:linear-gradient(to_left,black,transparent)]" aria-hidden>
           <div className="anim-drift h-full w-[calc(100%+120px)] dark:opacity-25 bg-[repeating-linear-gradient(115deg,transparent_0_52.4px,color-mix(in_srgb,var(--white)_30%,transparent)_52.4px_54.4px)]" />
@@ -400,19 +192,19 @@ export default async function Home() {
         >
           {getEdition().slice(4)}
         </div>
-        <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] gap-8 px-4 pb-10 pt-8 sm:gap-10 sm:px-6 sm:pb-12 sm:pt-10 lg:flex lg:items-center lg:justify-center lg:gap-[clamp(4rem,5vw,7rem)] lg:px-10 lg:pb-16 lg:pt-16 2xl:gap-20 2xl:px-14 2xl:pb-24 2xl:pt-24">
+        <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] gap-8 px-4 pb-10 pt-8 sm:gap-10 sm:px-6 sm:pb-12 sm:pt-10 lg:flex lg:items-center lg:justify-center lg:gap-[clamp(4rem,5vw,7rem)] lg:px-10 lg:pb-10 lg:pt-10 2xl:gap-20 2xl:px-14 2xl:pb-10 2xl:pt-10">
           <div className="min-w-0 lg:shrink-0">
             <HeroLockup num={getEdition().slice(4)} />
           </div>
 
           <ShrinkWrap className="flex min-w-0 flex-col justify-end lg:max-w-[36rem] 2xl:max-w-[40rem]">
-            <h1 className="text-balance text-[clamp(1.8rem,3.2vw,2.9rem)] font-display font-black leading-[1.05] tracking-tight">
-              <Words text={f(phase === "finished" ? t.home.headlineDone : t.home.headline)} d={0.35} s={0.055} />
+            <h1 className="text-balance text-[clamp(1.7rem,2.9vw,2.6rem)] font-display font-black leading-[1.05] tracking-tight">
+              <Words text={f(phase === "finished" ? t.home.headlineDone : t.home.headline)} d={0.25} s={0.045} lines />
             </h1>
             <p className="mt-4 max-w-[48ch] text-pretty text-base text-paper/70 sm:mt-5 sm:text-lg">
-              <Words text={f(phase === "registration" ? t.home.intro : (t.home.introBy[phase] ?? t.home.intro))} d={0.85} s={0.018} />
+              <Words text={f(phase === "registration" ? t.home.intro : (t.home.introBy[phase] ?? t.home.intro))} d={0.6} s={0.014} lines />
             </p>
-            <div className="mt-7 flex flex-wrap items-center gap-3 sm:mt-9 sm:gap-4" style={{ "--d": "1.45s", "--s": "0.1s" } as React.CSSProperties}>
+            <div className="mt-7 flex flex-wrap items-center gap-3 sm:mt-9 sm:gap-4" style={{ "--d": "1s", "--s": "0.08s" } as React.CSSProperties}>
               {phase === "registration" && see("register") && regState === "open" ? (
                 <span className="in-pop inline-flex">
                   {mine && mine.status !== "denied" ? (
@@ -460,46 +252,59 @@ export default async function Home() {
         </div>
       </HeroGate>
 
-      <section className="mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] gap-12 px-4 pt-14 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:px-10 2xl:gap-16 2xl:px-14">
-        <div>
-          <h2 className="heading-slam text-3xl">{t.home.timeline}</h2>
-          <Timeline t={t} timeline={settings.timeline} locale={locale} states={phaseStates(settings.timeline, phase)} />
-          {regCloses && (
-            <Reveal className="relative mt-8 overflow-hidden border border-line bg-coal p-4" delay={0.2}>
-              <div className="text-[0.7rem] font-display font-bold text-ash">{t.home.closesIn}</div>
-              <Countdown to={regCloses} from={settings.regOpensAt?.toISOString()} />
-            </Reveal>
+      <section className="mx-auto max-w-page px-4 pt-14 sm:px-6 lg:px-10 xl:-mb-16 2xl:px-14">
+        {champ && <Champion t={t} team={champ} other={runnerUp} />}
+        {/* intro after the hero: previous, then the timeline, then live / upcoming; each column is its own InView so ones below the fold on phones stay static */}
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,1fr)] 2xl:gap-16">
+          {see("schedule") && featured.length > 0 && (
+            <InView className="order-3 flex flex-col xl:order-none">
+            <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3 xl:flex-nowrap" style={{ "--d": "0.6s" } as React.CSSProperties}>
+              <h2 className="heading-slam whitespace-nowrap text-3xl xl:text-[clamp(1.25rem,1.65vw,1.65rem)]">{t.home.previously}</h2>
+              <Link href="/matches" className="group inline-flex shrink-0 items-center gap-1.5 text-sm font-display font-bold text-ash transition-colors hover:text-paper">
+                {t.home.fullSchedule} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+            </div>
+            <div className="mt-6 flex flex-1 flex-col gap-3">
+              {featured.map((m, i) => (
+                <div key={m.id} className="in-up grid flex-1" style={{ "--d": `${0.7 + i * 0.1}s` } as React.CSSProperties}>
+                  <MatchRow match={m} small label={label(m)} delay={0.75 + i * 0.1} />
+                </div>
+              ))}
+            </div>
+            </InView>
+          )}
+          <InView className="order-1 xl:order-none xl:col-start-2">
+            <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3 xl:flex-nowrap" style={{ "--d": "0.8s" } as React.CSSProperties}>
+              <h2 className="heading-slam whitespace-nowrap text-3xl xl:text-[clamp(1.25rem,1.65vw,1.65rem)]">{t.home.timeline}</h2>
+            </div>
+            <Timeline t={t} timeline={settings.timeline} locale={locale} states={phaseStates(settings.timeline, phase)} />
+            {regCloses && (
+              <Reveal className="relative mt-8 overflow-hidden border border-line bg-coal p-4" delay={0.2}>
+                <div className="text-[0.7rem] font-display font-bold text-ash">{t.home.closesIn}</div>
+                <Countdown to={regCloses} from={settings.regOpensAt?.toISOString()} />
+              </Reveal>
+            )}
+          </InView>
+          {see("schedule") && upcoming.length > 0 && (
+            <InView className="order-2 flex flex-col xl:order-none xl:col-start-3">
+            <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3 xl:flex-nowrap" style={{ "--d": "1.3s" } as React.CSSProperties}>
+              <h2 className="heading-slam whitespace-nowrap text-3xl xl:text-[clamp(1.25rem,1.65vw,1.65rem)]">{t.home.upcoming}</h2>
+              <Link href="/matches" className="group inline-flex shrink-0 items-center gap-1.5 text-sm font-display font-bold text-ash transition-colors hover:text-paper">
+                {t.home.fullSchedule} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+            </div>
+            <div className="mt-6 flex flex-1 flex-col gap-3">
+              {upcoming.map((m, i) => (
+                <div key={m.id} className="in-up grid flex-1" style={{ "--d": `${1.4 + i * 0.1}s` } as React.CSSProperties}>
+                  <MatchRow match={m} small label={label(m)} live={m.running ? null : undefined} delay={1.45 + i * 0.1} />
+                </div>
+              ))}
+            </div>
+            </InView>
           )}
         </div>
-
-        <div className="content-start">
-          {champ && <Champion t={t} team={champ} other={runnerUp} />}
-          <Stagger className="grid grid-cols-1 gap-5 sm:grid-cols-2" gap={0.08}>
-            {cards.map((c, i) => (
-              <StaggerItem key={i}>{c}</StaggerItem>
-            ))}
-          </Stagger>
-
-        </div>
+        {liveNow && <RefreshWhileLive />}
       </section>
-
-      {see("schedule") && featured.length > 0 && (
-        <section className="mx-auto max-w-page px-4 pt-14 sm:px-6 sm:pt-20 lg:px-10 2xl:px-14">
-          <Reveal className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3">
-            <h2 className="heading-slam text-3xl sm:text-4xl">{t.home.previously}</h2>
-            <Link href="/matches" className="group inline-flex items-center gap-1.5 text-sm font-display font-bold text-ash transition-colors hover:text-paper">
-              {t.home.fullSchedule} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Link>
-          </Reveal>
-          <Stagger className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3" gap={0.1}>
-            {featured.map((m, fi) => (
-              <StaggerItem key={m.id} className={cn(fi === 2 && "hidden lg:block")}>
-                <ResultCard m={m} />
-              </StaggerItem>
-            ))}
-          </Stagger>
-        </section>
-      )}
     </>
   );
 }
