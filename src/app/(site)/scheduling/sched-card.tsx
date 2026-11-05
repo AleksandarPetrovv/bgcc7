@@ -13,6 +13,7 @@ import type { SchedMatch } from "@/db/schedule";
 import { cn } from "@/lib/utils";
 import { at, Letters } from "@/components/site/rich";
 import { belowFold } from "@/components/site/in-view";
+import { RuleDiamond } from "@/components/site/rule";
 import { accept, propose, withdraw } from "./actions";
 
 export type Side = { id: string; name: string; image: string; players: number[] };
@@ -90,11 +91,11 @@ function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
     p.status === "rejected" ? st.rejected(other(p.teamId)) : p.status === "cancelled" ? (p.staff || p.answeredBy == null ? st.staff : st.cancelled(of(p.answeredBy))) : p.status === "staff" ? st.set : st[p.status];
   if (!list.length) return null;
   return (
-    <details className="group border-t border-line" open>
-      <summary style={at(1.5)} className="in-up in-slow flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-[0.7rem] font-display font-bold text-ash hover:text-paper sm:px-5">
+    <details className="group border-t-2 border-dashed border-line" open>
+      <summary style={at(1.5)} className="in-up in-slow flex cursor-pointer list-none items-center gap-2 py-3 text-[0.7rem] font-display font-bold text-ash hover:text-paper sm:px-5">
         {t.sched.history} <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
       </summary>
-      <ol className="grid gap-1.5 px-4 pb-4 sm:px-5">
+      <ol className="grid gap-1.5 pb-4">
         {list.map((p, k) => (
           <li key={p.id} style={at(1.6, k, 0.08)} className="in-left in-slow flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-sm">
             <span className={cn("num", p.status === "rejected" || p.status === "cancelled" ? "text-ash line-through" : "text-paper")}>{w.full(p.at)}</span>
@@ -163,10 +164,12 @@ export function SchedCard({ m, round, me, opp, week, open, readOnly = false, n =
   return (
     <article
       ref={ref}
-      className={cn("in-up in-slow overflow-hidden border border-line bg-coal", settled && "no-intro")}
+      className={cn("in-up in-slow relative border-b-2 border-dashed border-line pb-2", settled && "no-intro")}
       style={{ "--d": "0s", "--i": n, "--s": "0.15s", "--cd": `${n * 0.15}s` } as React.CSSProperties}
     >
-      <div style={at(0.15)} className="in-up in-slow flex items-center gap-3 border-b border-line bg-ink/60 px-4 py-2.5 sm:px-5">
+      <RuleDiamond />
+      <div style={at(0.15)} className="in-up in-slow flex items-center gap-3 border-b border-line pb-2.5">
+        <span className="size-2 shrink-0 rotate-45 bg-rose" aria-hidden />
         <Letters text={round} d={L} className="text-xs font-display font-bold text-rose-hi" />
         {agreed && (
           <span className="ml-auto inline-flex items-center gap-1 text-[0.68rem] font-display font-bold text-balkan-hi">
@@ -174,7 +177,7 @@ export function SchedCard({ m, round, me, opp, week, open, readOnly = false, n =
           </span>
         )}
       </div>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4 py-5 sm:gap-5 sm:px-5">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 py-5 sm:gap-5">
         <div style={at(0.3)} className="in-left-far in-slow min-w-0">
           <Team s={me} d={L} />
         </div>
@@ -184,7 +187,7 @@ export function SchedCard({ m, round, me, opp, week, open, readOnly = false, n =
         </div>
       </div>
 
-      <div className="border-t border-line px-4 py-5 text-center sm:px-5">
+      <div className="border-t-2 border-dashed border-line py-5 text-center">
         <p className={cn("num text-paper", agreed ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl")}><Letters text={agreed ? w.full(agreed) : t.common.tbd} d={L} s={0.02} /></p>
 
         {!week ? (

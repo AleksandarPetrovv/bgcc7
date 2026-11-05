@@ -6,6 +6,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { type Team, fmtNum, flagUrl, teamHref } from "@/lib/data";
 import { useDict } from "./lang";
 import { MeTag, meP, meT } from "./me";
+import { RuleDiamond } from "./rule";
 
 export function Roster({ team }: { team: Team }) {
   return (
@@ -37,9 +38,11 @@ export function TeamCard({ team }: { team: Team }) {
         delay={0}
         closeDelay={0}
         render={
-          <Link href={teamHref(team)} {...meT(team.id)} className="lift group relative flex overflow-hidden border sm:block border-line bg-coal outline-offset-4 [--lift:var(--balkan)] hover:border-balkan">
+          // no box: the picture fades into the page, a dashed rule with a diamond closes the card
+          <Link href={teamHref(team)} {...meT(team.id)} className="group relative flex border-b-2 border-dashed border-line outline-offset-4 transition-colors hover:border-balkan sm:block">
             <MeTag t={team.id} corner className="me-corner-lg" />
-            <div className="relative w-24 shrink-0 overflow-hidden bg-ink sm:h-32 sm:w-auto">
+            <RuleDiamond className="transition-colors group-hover:bg-balkan" />
+            <div className="relative w-24 shrink-0 overflow-hidden sm:h-32 sm:w-auto [mask-image:linear-gradient(to_right,black_60%,transparent)] sm:[mask-image:linear-gradient(to_bottom,black_55%,transparent)]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={team.image} alt="" className="in-wipe absolute inset-0 size-full object-cover sm:static transition duration-500 group-hover:scale-105 [--d:0.1s]" />
               <span className="in-pop num absolute bottom-0 left-0 flex size-8 origin-bottom-left items-center justify-center bg-ink text-lg sm:size-10 sm:text-2xl text-paper [--d:0.45s]" aria-label={`${t.common.seed} ${team.seed}`}>

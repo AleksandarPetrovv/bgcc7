@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarClock, Crown, ExternalLink, Flag, Link2, Mic, Swords, Tv, Video } from "lucide-react";
+import { ArrowRight, CalendarClock, Crown, ExternalLink, Flag, Mic, Tv, Video } from "lucide-react";
 import { Container, PageTitle, SlantButton, Tag } from "@/components/site/page";
 import { Avatar } from "@/components/site/avatar";
 import { Countdown } from "@/components/site/countdown";
@@ -23,11 +23,12 @@ import { Connections } from "./connections";
 import { MatchRow } from "@/components/site/match-row";
 import { avatarPath } from "@/lib/avatar";
 import { getScoreboard } from "@/db/scoreboards";
-import { fmtRange, phaseStates } from "@/lib/dates";
+import { phaseStates } from "@/lib/dates";
+import { Timeline } from "@/components/site/timeline";
 import { fmtSofia, fmtSofiaTime, isFuture, windowState, tzLabel } from "@/lib/time";
 import { fmtNum, type Match } from "@/lib/data";
 import { rankBws } from "@/lib/bws";
-import { sourceLabel, isLive } from "@/lib/matches";
+import { cardLabels, sourceLabel, isLive } from "@/lib/matches";
 import { getFormat } from "@/db/edition";
 import { TWITCH_URL, osuMatch } from "@/lib/links";
 import { cn } from "@/lib/utils";
@@ -88,7 +89,7 @@ export default async function Me() {
   const discord = dcRow ? { name: dcRow.id ? (dcProfile?.name ?? dcRow.name ?? dcRow.id) : null, avatar: dcProfile?.avatar ?? null } : isBGCC6() ? { name: null, avatar: null } : undefined;
   const osuName = team?.players.find((p) => p.userId === me)?.username ?? dcRow?.username ?? String(me);
   const connCard = (i: number, className?: string) => (
-    <Card title={t.me.connections} i={i} icon={<Link2 className="size-3.5 text-rose" />} className={cn("flex flex-col self-stretch", className)} body="flex-1">
+    <Card title={t.me.connections} i={i} className={cn("flex flex-col self-stretch", className)} body="flex-1">
       <Connections osu={{ id: me, name: osuName, avatar: avatarPath(me) }} discord={discord} canLink={!isBGCC6()} />
     </Card>
   );
@@ -98,30 +99,14 @@ export default async function Me() {
   const shell = (children: React.ReactNode) => (
     <Container plain>
       <PageTitle mark="me">{t.me.title}</PageTitle>
-      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2 2xl:gap-8">{children}</div>
+      <div className="grid grid-cols-1 items-start gap-x-12 gap-y-14 pt-2 lg:grid-cols-2 2xl:gap-x-16">{children}</div>
     </Container>
   );
 
   const states = phaseStates(settings.timeline, phase);
   const upcoming = (
-    <Card title={t.me.whatsNext} i={2}>
-      <ol className="space-y-1">
-        {settings.timeline.map((e, i) => (
-          <li
-            key={e.key}
-            style={at(0.3, i, 0.08)}
-            className={cn(
-              "in-left in-slow relative flex items-baseline gap-3 py-1.5 pl-3 font-display font-bold text-sm",
-              states[i] === "now" ? "bg-slate font-black text-paper" : states[i] === "done" ? "text-ash" : "text-paper/80",
-            )}
-          >
-            {states[i] === "now" && <span className="absolute inset-y-0 left-0 w-0.5 bg-rose" />}
-            <span className={cn("size-2 shrink-0 rotate-45", states[i] === "now" ? "bg-rose" : states[i] === "done" ? "bg-ash" : "border border-paper/60")} />
-            <span className="flex-1">{t.timeline[e.key]}</span>
-            <span className="num pr-2 normal-case">{fmtRange(locale, e.from, e.to)}</span>
-          </li>
-        ))}
-      </ol>
+    <Card title={t.me.whatsNext} i={2} body="pt-0">
+      <Timeline t={t} timeline={settings.timeline} locale={locale} states={states} d={0.3} className="mt-4" />
     </Card>
   );
 
@@ -325,13 +310,14 @@ export default async function Me() {
   );
 
   const historyCard = (
-    <Card title={t.me.history} i={4} flush icon={<Swords className="size-3.5 text-rose" />} className="mx-auto w-full max-w-4xl lg:col-span-2">
+    <Card title={t.me.history} i={4} className="lg:col-span-2">
       {played.length === 0 ? (
-        <p className="px-5 pb-5 text-sm text-ash">—</p>
+        <p className="text-sm text-ash">—</p>
       ) : (
-        <div className="space-y-4 px-4 pb-4 sm:px-5 sm:pb-5">
-          {played.map((m) => (
-            <MatchRow key={m.id} match={m} />
+        // the home page's small cards, newest on top
+        <div className="mx-auto flex max-w-2xl flex-col gap-4">
+          {played.toReversed().map((m, n) => (
+            <MatchRow key={m.id} match={m} small label={cardLabels(t, matches, m)} delay={0.3 + n * 0.08} />
           ))}
         </div>
       )}
@@ -384,8 +370,8 @@ export default async function Me() {
     const live = isLive(m);
     const stage = stages.find((s) => s.slug === m.stage);
     nextCard = (
-      <Card title={t.me.next} i={1} className="lg:col-span-2" right={pathTag} flush>
-        <div className="px-4 sm:px-5">
+      <Card title={t.me.next} i={1} className="lg:col-span-2" right={pathTag}>
+        <div>
           <div className="in-up in-slow flex items-center gap-3" style={at(0.15)}>
             <span className="text-xs font-display font-bold text-rose-hi">{roundName(t, m.round)}</span>
             {live && (
@@ -408,13 +394,13 @@ export default async function Me() {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2 border-y border-line bg-ink sm:grid-cols-4 sm:divide-x sm:divide-line">
+        <div className="grid grid-cols-2 border-y-2 border-dashed border-line sm:grid-cols-4">
           <Info icon={CalendarClock} k={t.me.when} n={m.datetime ? fmt(m.datetime) : t.common.tbd} i={0} />
           <Info icon={Flag} k={t.me.referee} n={m.referee ?? t.common.tbd} i={1} />
           <Info icon={Video} k={t.me.stream} n={m.streamer ?? t.common.tbd} i={2} />
           <Info icon={Mic} k={t.me.casters} n={m.commentators ?? t.common.tbd} i={3} />
         </div>
-        <div className="grid grid-cols-2 gap-3 p-4 sm:flex sm:flex-wrap sm:items-center sm:p-5">
+        <div className="grid grid-cols-2 gap-3 pt-5 sm:flex sm:flex-wrap sm:items-center">
           {stage?.released && (
             <span className="in-up in-slow col-span-2 grid" style={at(1.3, 0)}>
               <SlantButton href={`/mappool/${m.stage}`} tone="paper" className="justify-center px-6 py-3 text-sm sm:text-base">

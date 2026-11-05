@@ -34,7 +34,7 @@ export default async function Players() {
       target="_blank"
       rel="noreferrer"
       className={cn(
-        "me-ring iv iv-self in-up lift group relative flex items-center gap-2.5 overflow-hidden border border-line bg-gradient-to-br from-coal to-ink/60 py-3 pl-3.5 pr-4 [--lift:var(--balkan)] hover:border-balkan/60",
+        "me-ring iv iv-self in-up group relative flex items-center gap-2.5 border-b-2 border-dashed border-line py-3 pl-2 pr-2 transition-colors hover:border-balkan/60",
         out && "opacity-45 grayscale transition-[opacity,filter] duration-300 hover:opacity-80 hover:grayscale-0",
       )}
     >
@@ -97,15 +97,17 @@ export default async function Players() {
       </PageTitle>
       {playoffs && <p className="-mt-3 mb-6 text-sm font-bold text-ash">{t.teams.playersAlive}</p>}
       {players.length === 0 && <p className="py-10 text-center text-ash">{t.teams.playersEmpty}</p>}
-      <Cascade className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4" step={0.045}>
+      <Cascade className="grid grid-cols-1 gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4" step={0.045}>
         {players.map((p) => card(p))}
       </Cascade>
       {out.length > 0 && (
         <>
           <h2 className="heading-slam mb-4 mt-12 flex items-center gap-3 text-2xl text-ash sm:text-3xl">
             {t.teams.knockedOut}
+            <span className="h-px flex-1 border-t-2 border-dashed border-line" aria-hidden />
+            <span className="size-2 shrink-0 rotate-45 bg-ash" aria-hidden />
           </h2>
-          <Cascade className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4" step={0.03}>
+          <Cascade className="grid grid-cols-1 gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4" step={0.03}>
             {out.map((p) => card(p, true))}
           </Cascade>
         </>

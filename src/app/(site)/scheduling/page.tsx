@@ -28,7 +28,7 @@ export default async function Scheduling() {
     <Container plain>
       <PageTitle mark="clock">{t.sched.title}</PageTitle>
       {rows.length ? (
-        <div className="mx-auto grid max-w-3xl gap-6 pb-16">
+        <div className="mx-auto grid max-w-3xl gap-14 pb-16">
           {rows.map(({ m, w, open }, n) => (
             <SchedCard
               key={m.id}

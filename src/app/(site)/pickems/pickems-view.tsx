@@ -97,9 +97,9 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
       </PageTitle>
 
       <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:gap-4 lg:grid-cols-[2fr_1fr]">
-        <div className="grid grid-cols-3 gap-px border border-line bg-line sm:grid-cols-5">
+        <div className="grid grid-cols-3 border-b-2 border-dashed border-line sm:grid-cols-5">
           {points.map(([k, v], i) => (
-            <div key={k} className="in-flip bg-coal p-2.5 last:col-span-2 sm:p-3 sm:last:col-span-1" style={{ "--i": i, "--s": "0.08s", "--d": "0.15s" } as React.CSSProperties}>
+            <div key={k} className="in-flip p-2.5 pl-0 last:col-span-2 sm:p-3 sm:pl-0 sm:last:col-span-1" style={{ "--i": i, "--s": "0.08s", "--d": "0.15s" } as React.CSSProperties}>
               <div className="min-h-[2lh] text-[0.6rem] font-display font-bold leading-tight text-ash sm:text-[0.65rem]">{k}</div>
               <div className="in-pop num origin-left text-2xl sm:text-3xl text-balkan-hi [--d:0.45s]">
                 {v}
@@ -108,7 +108,8 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
             </div>
           ))}
         </div>
-        <div className="in-right flex flex-wrap items-center gap-4 border border-line bg-coal p-4 [--d:0.3s]">
+        <div className="in-right relative flex flex-wrap items-center gap-4 border-b-2 border-dashed border-line py-4 [--d:0.3s]">
+          <span className="absolute -bottom-[7px] left-0 size-2.5 rotate-45 bg-rose shadow-[0_0_0_3px_var(--ink)]" aria-hidden />
           <div>
             <div className="text-[0.65rem] font-display font-bold text-rose-hi">{t.pickems.yourPicks}</div>
             <div className="in-pop num origin-left text-3xl [--d:0.55s]">
@@ -134,21 +135,18 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
         <PickemsBracket picks={clean} onPick={open ? pick : undefined} locked={locked} />
       </Wide>
 
-      <div className="mt-14">
+      {/* one column, centred under the bracket; rows come in once the bracket has */}
+      <div className="mx-auto mt-14 max-w-3xl">
         <SectionHeading>{t.pickems.leaderboard}</SectionHeading>
-      </div>
       {leaderboard.length ? (
-        <InView
-          className="divide-y divide-line border border-line bg-coal 2xl:grid 2xl:grid-flow-col 2xl:grid-cols-2 2xl:grid-rows-[repeat(var(--rows),auto)] 2xl:gap-px 2xl:divide-y-0 2xl:bg-line"
-          style={{ "--rows": Math.ceil(leaderboard.length / 2) } as React.CSSProperties}
-        >
+        <InView className="divide-y-2 divide-dashed divide-line">
           {leaderboard.map((e, i) => (
             <div
               key={e.osuId}
-              style={{ "--i": Math.min(i, 15), "--s": "0.05s" } as React.CSSProperties}
+              style={{ "--i": Math.min(i, 15), "--s": "0.05s", "--d": "1.1s" } as React.CSSProperties}
               className={cn(
-                "in-left grid min-h-14 bg-coal grid-cols-[48px_1fr_auto] items-center gap-x-4 px-4 sm:grid-cols-[64px_1fr_110px_70px_160px]",
-                e.osuId === osuId && "bg-[color-mix(in_oklab,var(--balkan)_22%,var(--coal))] shadow-[inset_3px_0_0_0_var(--balkan)]",
+                "in-left grid min-h-14 grid-cols-[48px_1fr_auto] items-center gap-x-4 px-2 sm:grid-cols-[64px_1fr_auto_56px_auto] sm:gap-x-6",
+                e.osuId === osuId && "bg-[color-mix(in_oklab,var(--balkan)_14%,transparent)] shadow-[inset_3px_0_0_0_var(--balkan)]",
               )}
             >
               <span className={cn("in-pop num text-2xl leading-none [--d:0.2s]", MEDAL[i] ?? "text-ash")}>#{i + 1}</span>
@@ -160,7 +158,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
                 </a>
                 <MeTag p={e.osuId} />
               </span>
-              <span className="num text-right text-2xl leading-none text-balkan-hi">
+              <span className="num whitespace-nowrap text-right text-2xl leading-none text-balkan-hi">
                 {e.points} <span className="text-base text-ash">{t.common.pts}</span>
               </span>
               <span className="num hidden items-center justify-end gap-1 text-lg leading-none text-paper/70 sm:flex">
@@ -179,8 +177,9 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
           ))}
         </InView>
       ) : (
-        <p className="border border-dashed border-line py-10 text-center text-ash">{t.pickems.noEntries}</p>
+        <p className="py-10 text-center text-ash">{t.pickems.noEntries}</p>
       )}
+      </div>
     </Container>
   );
 }

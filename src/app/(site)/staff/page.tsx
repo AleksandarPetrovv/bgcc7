@@ -25,15 +25,16 @@ export default async function Staff() {
         {t.staff.title}
       </PageTitle>
 
-      <Stagger className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3 2xl:gap-6">
+      <Stagger className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3 2xl:gap-x-10 2xl:gap-y-8">
         {list.map((p, i) => (
-          <StaggerItem as="article" key={p.username} className="lift group flex border border-line bg-coal hover:border-paper/30">
-            <div className="flex shrink-0 items-center justify-center p-3 pr-1 sm:p-5" style={{ "--i": i, "--s": "0.08s", "--d": "0.2s" } as React.CSSProperties}>
+          <StaggerItem as="article" key={p.username} className="group relative flex border-b-2 border-dashed border-line transition-colors hover:border-paper/30">
+            <span className="pointer-events-none absolute -bottom-[7px] left-1/2 size-2.5 -translate-x-1/2 rotate-45 bg-rose shadow-[0_0_0_3px_var(--ink)]" aria-hidden />
+            <div className="flex shrink-0 items-center justify-center py-3 pr-1 sm:py-5 sm:pr-2" style={{ "--i": i, "--s": "0.08s", "--d": "0.2s" } as React.CSSProperties}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={p.avatar}
                 alt=""
-                className="in-spin size-14 rounded-full object-cover ring-2 ring-rose/40 ring-offset-2 sm:ring-offset-4 ring-offset-coal transition-transform duration-500 group-hover:rotate-[-4deg] group-hover:scale-105 sm:size-24"
+                className="in-spin size-14 rounded-full object-cover ring-2 ring-rose/40 ring-offset-2 sm:ring-offset-4 ring-offset-ink transition-transform duration-500 group-hover:rotate-[-4deg] group-hover:scale-105 sm:size-24"
               />
             </div>
             <div className="flex min-w-0 flex-1 flex-col justify-between gap-2.5 p-3 sm:gap-3 sm:p-4">

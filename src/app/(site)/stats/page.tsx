@@ -18,7 +18,7 @@ import { InView } from "@/components/site/in-view";
 import { MeTag, meP } from "@/components/site/me";
 import { MEDAL, modHi } from "@/lib/theme";
 
-const TONES = ["bg-rose text-white", "bg-balkan text-on-fill", "border border-line bg-coal", "border border-line bg-coal"];
+const TONES = ["bg-rose text-white", "bg-balkan text-on-fill", "border-b-2 border-dashed border-line", "border-b-2 border-dashed border-line"];
 
 export default async function Stats({ searchParams }: { searchParams: Promise<{ stage?: string }> }) {
   await requireSection("stats");
@@ -97,25 +97,26 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
       </div>
 
       <SectionHeading>{t.stats.avgPerMap}</SectionHeading>
-      <InView key={`c-${current!.slug}`} className="border border-line bg-coal p-5">
+      <InView key={`c-${current!.slug}`} className="relative border-b-2 border-dashed border-line pb-6">
+        <span className="pointer-events-none absolute -bottom-[7px] left-1/2 size-2.5 -translate-x-1/2 rotate-45 bg-rose shadow-[0_0_0_3px_var(--ink)]" aria-hidden />
         <MapDifficultyChart qualifiers={data} />
       </InView>
 
       <SectionHeading>{t.stats.mapLeaders}</SectionHeading>
-      <InView key={`l-${current!.slug}`} className="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
+      <InView key={`l-${current!.slug}`} className="grid grid-cols-1 gap-x-8 gap-y-2 md:grid-cols-2 2xl:grid-cols-3">
         {data.maps.filter((m) => data.players.some((p) => p.perf[m.id])).map((m, k) => {
           const top = data.players
             .filter((p) => p.perf[m.id])
             .sort((a, b) => b.perf[m.id].score - a.perf[m.id].score)
             .slice(0, 3);
           return (
-            <div key={m.id} className={cn("flex items-stretch border border-line bg-coal", k % 2 ? "in-right" : "in-left")} style={{ "--i": k, "--s": "0.06s" } as React.CSSProperties}>
+            <div key={m.id} className={cn("flex items-stretch border-b-2 border-dashed border-line", k % 2 ? "in-right" : "in-left")} style={{ "--i": k, "--s": "0.06s" } as React.CSSProperties}>
               <div className="relative w-28 shrink-0 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={m.cover} alt="" className="absolute inset-0 size-full object-cover opacity-35" />
-                <span className="in-pop heading-slam relative flex h-full min-h-16 items-center justify-center px-0 mx-0 -translate-x-[0.1em] text-lg sm:text-xl [text-shadow:0_0_8px_var(--coal),0_0_2px_var(--coal)]" style={{ "--d": "0.25s", color: modHi(skillColor(m.slot)) } as React.CSSProperties}>{m.slot}</span>
+                <img src={m.cover} alt="" className="absolute inset-0 size-full object-cover opacity-35 [mask-image:linear-gradient(to_right,black_40%,transparent)]" />
+                <span className="in-pop heading-slam relative flex h-full min-h-16 items-center justify-center px-0 mx-0 -translate-x-[0.1em] text-lg sm:text-xl [text-shadow:0_0_8px_var(--ink),0_0_2px_var(--ink)]" style={{ "--d": "0.25s", color: modHi(skillColor(m.slot)) } as React.CSSProperties}>{m.slot}</span>
               </div>
-              <ol className="flex-1 divide-y divide-line">
+              <ol className="flex-1 divide-y divide-dashed divide-line">
                 {top.map((p, i) => (
                   <li key={p.id} {...meP(p.id)} className="me-hl flex items-center gap-2 px-3 py-1.5 text-sm">
                     <span className={cn("num w-5", MEDAL[i])}>{i + 1}</span>

@@ -9,7 +9,6 @@ import { useTournament } from "./tournament";
 
 export type { Picks };
 import { cn } from "@/lib/utils";
-import { MeTag, meP, meT } from "./me";
 import { fitBox, useFit } from "./use-fit";
 import { HEX } from "@/lib/theme";
 
@@ -19,7 +18,9 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
   const { teamById, matches, format: f } = useTournament();
   const { ref, avail } = useFit(0);
   const { box, gfCol: cols } = f.layout;
-  const fill = avail >= 640 ? Math.floor(Math.min(290, Math.max(box.minW, (avail - cols * box.g - 8) / (cols + 1)))) : undefined;
+  // same first guess as the matches bracket so the intro does not jump once the width is measured
+  const seen = avail || 1500;
+  const fill = seen >= 640 ? Math.floor(Math.min(290, Math.max(box.minW, (seen - cols * box.g - 8) / (cols + 1)))) : undefined;
   const { W, G, H, x, LB, POS, WIN, HEADERS, gfCol, width, height } = pickLayout(f, fill);
   const fit = fitBox(width, height, 1);
   const { slots, picks: clean, resetLive, champion } = resolve(f, picks, seedingOf(f, matches));
@@ -55,7 +56,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
           <div
             key={h.t}
             className={cn("in-drop absolute truncate whitespace-nowrap text-center text-xs font-display font-bold", h.gold ? "text-gold-hi" : "text-ash")}
-            style={{ left: x(h.c), top: h.y, width: W, "--i": h.c, "--s": "0.14s", "--d": "0.1s" } as React.CSSProperties}
+            style={{ left: x(h.c), top: h.y, width: W, "--i": h.c, "--s": "0.12s", "--d": h.y >= LB - 100 ? "0.45s" : "0.15s" } as React.CSSProperties}
           >
             {t.rounds[h.t] ?? h.t}
           </div>
@@ -65,7 +66,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
         </div>
 
         {champ && (
-          <div key={champ.id} className="anim-rise absolute border border-gold/40 bg-coal" style={{ left: x(gfCol), top: POS["grand-final-reset"][1] + H + 30, width: W }}>
+          <div key={champ.id} className="in-up absolute border border-gold/40 bg-coal [--d:1.3s]" style={{ left: x(gfCol), top: POS["grand-final-reset"][1] + H + 30, width: W }}>
             <div className="flex items-center gap-1.5 bg-gold px-2.5 py-1 text-[0.7rem] font-display font-bold text-on-fill">
               <Crown className="size-3.5" /> {t.pickems.champion}
             </div>
@@ -74,18 +75,16 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
               <img src={champ.image} alt="" className="size-16 shrink-0 object-cover" />
               <div className="min-w-0 flex-1 break-words text-center text-lg font-display font-black leading-tight">
                 {champ.name}
-                <MeTag t={champ.id} />
               </div>
             </div>
             <ul className="space-y-1.5 border-t border-line px-2.5 py-2.5">
               {champ.players.map((p) => (
-                <li key={p.userId} {...meP(p.userId)} className="flex items-center gap-2 px-1 py-0.5 text-sm">
+                <li key={p.userId} className="flex items-center gap-2 px-1 py-0.5 text-sm">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={p.avatar} alt="" className="size-6 shrink-0" />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={flagUrl(p.country)} alt="" className="h-2.5 shrink-0" />
                   <span className="truncate font-display font-bold">{p.username}</span>
-                  <MeTag p={p.userId} />
                   {p.isCaptain && <Crown className="size-3.5 shrink-0 -translate-y-px text-gold-hi" aria-label={t.common.captain} />}
                   <span className="num ml-auto text-ash">#{fmtNum(p.rank)}</span>
                 </li>
@@ -101,8 +100,8 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
           return (
             <div
               key={id}
-              className={cn("in-left absolute flex flex-col divide-y divide-line border bg-coal", isGf ? "border-gold/70" : "border-line")}
-              style={{ left: x(c), top: y, width: W, height: H, "--i": c, "--s": "0.14s", "--d": `${0.15 + (y % 400) / 2500}s` } as React.CSSProperties}
+              className={cn("in-left-far absolute flex flex-col divide-y divide-line border bg-coal", isGf ? "border-gold/70" : "border-line")}
+              style={{ left: x(c), top: y, width: W, height: H, "--i": c, "--s": "0.14s", "--d": `${(y >= LB ? 0.5 : 0.2) + (y % 400) / 2500}s` } as React.CSSProperties}
             >
               {pair.map((tid, i) => {
                 const team = tid ? teamById(tid) : undefined;
@@ -117,7 +116,6 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
                     type="button"
                     disabled={readOnly || locked.includes(id) || !team || !pair[0] || !pair[1]}
                     onClick={() => team && onPick?.(id, team.id)}
-                    {...meT(team?.id)}
                     className={cn(
                       "flex min-h-0 flex-1 items-center gap-2 px-2 text-left text-[0.82rem] transition-colors",
                       right ? "bg-[color-mix(in_oklab,var(--balkan)_14%,var(--coal))] font-display font-black text-balkan-hi" : miss ? "bg-rose/15 font-display font-black text-rose-hi" : picked ? "bg-coal/55 font-display font-black text-paper" : "font-display font-bold enabled:hover:bg-slate",
@@ -130,7 +128,6 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={team.image} alt="" className={cn("size-5 object-cover", (lost || miss) && "opacity-50")} />
                         <span className="min-w-0 flex-1 truncate">{team.name}</span>
-                        <MeTag t={team.id} className="-mx-1" />
                       </>
                     )}
                     {miss ? (

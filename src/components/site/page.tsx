@@ -547,7 +547,8 @@ export function SectionHeading({ children, mark = "glints" }: { children: React.
           <M />
         </span>
         <span className="min-w-0 break-words">{children}</span>
-        <span className="h-px flex-1 border-t border-dashed border-line" aria-hidden />
+        <span className="h-px flex-1 border-t-2 border-dashed border-line" aria-hidden />
+        <span className="size-2 shrink-0 rotate-45 bg-rose" aria-hidden />
       </h2>
     );
   return (
@@ -565,9 +566,15 @@ export function SectionHeading({ children, mark = "glints" }: { children: React.
         {children}
       </motion.span>
       <motion.span
-        className="h-px flex-1 origin-left border-t border-dashed border-line"
+        className="h-px flex-1 origin-left border-t-2 border-dashed border-line"
         variants={{ hidden: { scaleX: 0 }, show: { scaleX: 1 } }}
         transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+        aria-hidden
+      />
+      <motion.span
+        className="size-2 shrink-0 rotate-45 bg-rose"
+        variants={{ hidden: { opacity: 0, scale: 0 }, show: { opacity: 1, scale: 1 } }}
+        transition={{ duration: 0.4, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
         aria-hidden
       />
     </motion.h2>

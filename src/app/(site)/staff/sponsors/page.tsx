@@ -11,9 +11,10 @@ export default async function Sponsors() {
   return (
     <Container>
       <PageTitle mark="glints">{t.staff.sponsorsTitle}</PageTitle>
-      <Stagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3" gap={0.08}>
+      <Stagger className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3" gap={0.08}>
         {sponsors.map((s) => (
-          <StaggerItem key={s.id} className="lift group flex items-center gap-4 border border-line bg-coal p-4 hover:border-paper/30 sm:gap-5 sm:p-5">
+          <StaggerItem key={s.id} className="group relative flex items-center gap-4 border-b-2 border-dashed border-line py-4 transition-colors hover:border-paper/30 sm:gap-5 sm:py-5">
+            <span className="pointer-events-none absolute -bottom-[7px] left-1/2 size-2.5 -translate-x-1/2 rotate-45 bg-rose shadow-[0_0_0_3px_var(--ink)]" aria-hidden />
             <Avatar src={s.image} className="in-spin size-16 ring-offset-4 transition-transform duration-500 group-hover:rotate-[-4deg] group-hover:scale-105 sm:size-20" />
             <div className="min-w-0">
               <div className="truncate text-xl font-display font-black sm:text-2xl">

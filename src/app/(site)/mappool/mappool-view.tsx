@@ -9,6 +9,7 @@ import { MODS, fmtLen, type Stage } from "@/lib/data";
 import { osuMap } from "@/lib/links";
 import { modHi, modOn } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { RuleDiamond } from "@/components/site/rule";
 
 export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: string }) {
   const t = useDict();
@@ -86,7 +87,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 >
-                <div className="mt-2 space-y-2 sm:pl-10">
+                <div className="mt-2 space-y-1 sm:pl-10">
                   {p.maps.map((m, k) => {
                     const mc = skill ? mod.color : (MODS[m.mod]?.color ?? mod.color);
                     const ml = modOn(mc) === "var(--on-fill)";
@@ -95,11 +96,11 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                       initial={{ opacity: 0, x: -14 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.45, delay: 0.05 + k * 0.04, ease: [0.16, 1, 0.3, 1] }}
-                      key={m.slot} className="lift group relative flex items-stretch overflow-hidden border border-line bg-coal hover:border-rose/50"
+                      key={m.slot} className="group relative flex items-stretch overflow-hidden border-b-2 border-dashed border-line transition-colors hover:border-[var(--lift)]"
                       style={{ "--lift": modHi(mc), "--i": pi + k, "--s": "0.05s" } as React.CSSProperties}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-45 saturate-[1.15] transition duration-500 group-hover:scale-105 group-hover:opacity-60 dark:opacity-25 dark:group-hover:opacity-35 [--d:0.15s]" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-coal via-coal/85 to-coal/5" />
+                      <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-45 saturate-[1.15] [mask-image:linear-gradient(to_left,black,transparent_85%)] transition duration-500 group-hover:scale-105 group-hover:opacity-60 dark:opacity-25 dark:group-hover:opacity-35 [--d:0.15s]" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-ink/0" />
                       <div className="relative grid min-w-0 flex-1 grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 gap-y-3 p-3 sm:gap-x-5 sm:p-4 xl:flex xl:gap-6">
                       <span className="in-pop heading-slam shrink-0 text-lg sm:text-2xl [--d:0.3s]" style={{ color: modHi(mc) }}>
                         {m.slot}
@@ -236,12 +237,13 @@ function StageStrip({ stage, info }: { stage: Stage; info: { firstTo: number; ba
   ];
 
   return (
-    <motion.div className="mb-5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <div className="grid grid-cols-3 gap-px bg-line">
+    <motion.div className="mb-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+      <div className="relative grid grid-cols-3 divide-x-2 divide-dashed divide-line border-b-2 border-dashed border-line">
+        <RuleDiamond />
         {cells.map((c, k) => (
           <motion.div
             key={c.label}
-            className="group relative flex flex-col justify-center overflow-hidden bg-coal px-3 py-3 sm:px-5 sm:py-4"
+            className="group relative flex flex-col justify-center overflow-hidden px-3 py-3 sm:px-5 sm:py-4"
             initial={{ y: 16, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: k * 0.08, ease: EASE }}
