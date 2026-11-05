@@ -1,6 +1,6 @@
 import type { Match } from "./data";
 import type { Format } from "./format";
-import type { Dict } from "./i18n/dict";
+import { roundName, type Dict } from "./i18n/dict";
 
 export { matchIdFromSlug, matchSlug } from "./format";
 
@@ -50,3 +50,13 @@ const STARTED_WINDOW = 3 * 3600_000;
 export const isLive = (m: Match, now = Date.now()) =>
   !m.winner && !!m.team1.id && !!m.team2.id &&
   (!!m.running || (m.links.length > 0 && !!m.datetime && now - new Date(m.datetime).getTime() < STARTED_WINDOW && now >= new Date(m.datetime).getTime() - 3600_000));
+
+// round labels, longest first; a card takes the first one that fits (Losers Round 2 Match 3 > Losers R2 Match 3 > Losers R2 M3)
+export function cardLabels(t: Dict, matches: Match[], m: Match): string[] {
+  if (m.id === "grand-final") return [t.home.grandFinal, "GF"];
+  if (m.id === "grand-final-reset") return [t.home.gfReset, "GF Reset", "GFR"];
+  const same = matches.filter((o) => o.round === m.round);
+  const k = same.findIndex((o) => o.id === m.id) + 1;
+  if (same.length < 2) return [roundName(t, m.round), shortRound(m.round)];
+  return [`${roundName(t, m.round)} ${t.nav.match} ${k}`, `${shortRound(m.round)} ${t.nav.match} ${k}`, `${shortRound(m.round)} ${t.nav.match[0]}${k}`];
+}

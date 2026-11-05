@@ -394,7 +394,7 @@
 @keyframes k-launch { 0% { opacity: 0; transform: translate3d(0, 90px, 0) rotate(5deg) scale(0.85); } 55% { opacity: 1; transform: translate3d(0, -8px, 0) rotate(-1.5deg) scale(1.03); } 80% { transform: translate3d(0, 2px, 0) rotate(0.4deg) scale(0.995); } }
 @keyframes k-grow-y { from { transform: scaleY(0); } }
 @keyframes k-sweep { from { opacity: 1; transform: translateX(-120%); } to { opacity: 1; transform: translateX(420%); } }
-.in-left-far, .in-right-far, .in-slam, .in-curtain, .in-launch, .in-grow-y, .in-sweep {
+.in-left-far, .in-right-far, .in-slam, .in-curtain, .in-launch, .in-grow-y, .in-stitch, .in-sweep {
   animation-duration: 0.8s;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   animation-fill-mode: backwards;
@@ -405,9 +405,11 @@
 .in-slam { animation-name: k-slam; animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1); }
 .in-curtain { animation-name: k-curtain; animation-duration: 0.9s; }
 .in-launch { animation-name: k-launch; animation-duration: 1.1s; animation-timing-function: cubic-bezier(0.25, 0.8, 0.3, 1); transform-origin: 50% 100%; }
+@keyframes k-stitch { from { clip-path: inset(0 0 100% 0); } }
+.in-stitch { animation-name: k-stitch; animation-timing-function: linear; }
 .in-grow-y { animation-name: k-grow-y; animation-duration: 1s; transform-box: fill-box; transform-origin: 50% 100%; }
 .in-sweep { animation-name: k-sweep; animation-duration: 1.1s; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
-.iv:not(.in) :is(.in-left-far, .in-right-far, .in-slam, .in-curtain, .in-launch, .in-grow-y, .in-sweep),
+.iv:not(.in) :is(.in-left-far, .in-right-far, .in-slam, .in-curtain, .in-launch, .in-grow-y, .in-stitch, .in-sweep),
 .iv.iv-self:not(.in) {
   animation-play-state: paused;
 }
