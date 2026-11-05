@@ -85,11 +85,11 @@ export default async function Me() {
         .catch(() => null)
     : null;
   const dcProfile = dcRow?.id ? await discordProfile(dcRow.id) : null;
-  const discord = dcRow ? { name: dcRow.id ? (dcProfile?.name ?? dcRow.name ?? dcRow.id) : null, avatar: dcProfile?.avatar ?? null } : undefined;
+  const discord = dcRow ? { name: dcRow.id ? (dcProfile?.name ?? dcRow.name ?? dcRow.id) : null, avatar: dcProfile?.avatar ?? null } : isBGCC6() ? { name: null, avatar: null } : undefined;
   const osuName = team?.players.find((p) => p.userId === me)?.username ?? dcRow?.username ?? String(me);
   const connCard = (i: number, className?: string) => (
     <Card title={t.me.connections} i={i} icon={<Link2 className="size-3.5 text-rose" />} className={cn("flex flex-col self-stretch", className)} body="flex-1">
-      <Connections osu={{ id: me, name: osuName, avatar: avatarPath(me) }} discord={discord} />
+      <Connections osu={{ id: me, name: osuName, avatar: avatarPath(me) }} discord={discord} canLink={!isBGCC6()} />
     </Card>
   );
   const earlyConn = discord && connCard(3);
@@ -443,7 +443,7 @@ export default async function Me() {
     <>
       {nextCard}
       {columns}
-      {placementCard(5)}
+      {!isBGCC6() && placementCard(5)}
     </>,
   );
 }
