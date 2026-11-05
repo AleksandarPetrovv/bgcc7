@@ -2,19 +2,18 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ExternalLink, LogOut, Pencil, Unlink } from "lucide-react";
+import { ExternalLink, Link2, LogOut, Pencil, Unlink } from "lucide-react";
 import { SlantButton } from "@/components/site/page";
 import { DiscordLogo } from "@/components/site/discord-logo";
 import { OsuLogo } from "@/components/site/osu-logo";
 import { useDict } from "@/components/site/lang";
 import { logout } from "@/app/(site)/pickems/actions";
-import { osuUser } from "@/lib/links";
-import { cn } from "@/lib/utils";
+import { DISCORD_URL, osuUser } from "@/lib/links";
 import { at } from "@/components/site/rich";
 import { unlinkDiscord } from "./discord-actions";
 import { DiscordPrompt } from "./discord-prompt";
 
-function Row({ avatar, edge, platform, name, n, children }: { avatar: string | null; edge: string; platform: React.ReactNode; name: React.ReactNode; n: number; children: React.ReactNode }) {
+function Row({ avatar, platform, name, n, children }: { avatar: string | null; platform: React.ReactNode; name: React.ReactNode; n: number; children: React.ReactNode }) {
   return (
     <div style={at(0.3, n, 0.15)} className="in-left in-slow relative flex grow flex-wrap items-center gap-x-4 gap-y-3 overflow-hidden border border-line bg-ink p-4">
       {avatar && (
@@ -23,9 +22,9 @@ function Row({ avatar, edge, platform, name, n, children }: { avatar: string | n
       )}
       {avatar ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={avatar} alt="" className={cn("relative size-14 shrink-0 border-b-[3px] object-cover", edge)} />
+        <img src={avatar} alt="" className="relative size-14 shrink-0 object-cover" />
       ) : (
-        <span className={cn("relative size-14 shrink-0 border-b-[3px] border-dashed bg-slate", edge)} />
+        <span className="relative flex size-14 shrink-0 items-center justify-center bg-slate"><span className="heading-slam pr-1 text-3xl italic text-ash">?</span></span>
       )}
       <div className="relative min-w-0 flex-1">
         <div className="flex items-center gap-1.5 text-[0.65rem] font-display font-bold text-ash">{platform}</div>
@@ -36,7 +35,7 @@ function Row({ avatar, edge, platform, name, n, children }: { avatar: string | n
   );
 }
 
-export function Connections({ osu, discord }: { osu: { id: number; name: string; avatar: string }; discord?: { name: string | null; avatar: string | null } }) {
+export function Connections({ osu, discord, canLink = true }: { osu: { id: number; name: string; avatar: string }; discord?: { name: string | null; avatar: string | null }; canLink?: boolean }) {
   const t = useDict();
   const d = t.sched.dc;
   const router = useRouter();
@@ -48,7 +47,6 @@ export function Connections({ osu, discord }: { osu: { id: number; name: string;
     <div className="flex h-full flex-col gap-3">
       <Row
         avatar={osu.avatar}
-        edge="border-rose"
         n={0}
         platform={
           <>
@@ -67,7 +65,6 @@ export function Connections({ osu, discord }: { osu: { id: number; name: string;
       {discord && (
         <Row
           avatar={discord.avatar}
-          edge="border-azure"
           n={1}
           platform={
             <>
@@ -76,11 +73,16 @@ export function Connections({ osu, discord }: { osu: { id: number; name: string;
           }
           name={discord.name ?? <span className="text-ash">{t.me.notLinked}</span>}
         >
-          <SlantButton tone={discord.name ? "outline" : "balkan"} onClick={() => {
+          {!discord.name && (
+            <SlantButton tone="outline" href={DISCORD_URL} className={btn}>
+              {d.join} <DiscordLogo className="size-3.5" />
+            </SlantButton>
+          )}
+          <SlantButton tone={discord.name ? "outline" : "balkan"} disabled={!canLink} onClick={() => {
             setN((k) => k + 1);
             setOpen(true);
           }} className={btn}>
-            {discord.name ? d.change : d.missing} <Pencil className="size-3.5" />
+            {discord.name ? <>{d.change} <Pencil className="size-3.5" /></> : <>{d.link} <Link2 className="size-3.5" /></>}
           </SlantButton>
           {discord.name && (
             <SlantButton
