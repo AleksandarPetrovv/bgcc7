@@ -7,11 +7,20 @@ import { Avatar } from "@/components/site/avatar";
 import { Reveal } from "@/components/site/motion";
 import { getDict } from "@/lib/i18n/server";
 import { roundName, type Dict } from "@/lib/i18n/dict";
-import { shortRound } from "@/lib/matches";
-import { fmtRange, phaseStates, type TimelineRow } from "@/lib/dates";
+import { cardLabels } from "@/lib/matches";
+import { phaseStates } from "@/lib/dates";
+import { Timeline } from "@/components/site/timeline";
 import { getFill } from "@/db/copy";
 import { Countdown } from "@/components/site/countdown";
-import { type Match, type Team } from "@/lib/data";
+import { MODS, fmtNum, teamHref, type Match, type Team } from "@/lib/data";
+import { getPoolStages, type PoolStage } from "@/db/mappools";
+import { getSkillLayouts } from "@/db/format-plan";
+import { bySkill } from "@/lib/format-plan";
+import { PoolPager } from "@/components/site/pool-pager";
+import { getStageStats, mergeCosts, type TopCost } from "@/db/stage-stats";
+import { MEDAL } from "@/lib/theme";
+import { osuMap } from "@/lib/links";
+import { modOn } from "@/lib/theme";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getLang } from "@/lib/i18n/server";
 import { isFuture, windowState } from "@/lib/time";
@@ -89,43 +98,133 @@ function Champion({ t, team, other }: { t: Dict; team: Team; other?: Team }) {
   );
 }
 
-function Timeline({ t, timeline, locale, states }: { t: Dict; timeline: TimelineRow[]; locale: string; states: ReturnType<typeof phaseStates> }) {
+function TopList({ t, top, teams }: { t: Dict; top: TopCost[]; teams: Team[] }) {
+  const stat = (k: string, v: string, cls?: string) => (
+    <span className={cn("flex-col items-end gap-1", cls ?? "flex")}>
+      <span className="num text-lg italic leading-none text-paper/80">{v}</span>
+      <span className="whitespace-nowrap text-[0.65rem] font-display font-bold text-ash">{k}</span>
+    </span>
+  );
   return (
-    <InView as="ol" className="relative mt-6">
-      <span className="absolute bottom-3 left-0 top-3 flex w-4 justify-center" aria-hidden><span className="anim-stitch border-l-2 border-dashed border-line" /></span>
-      {timeline.map((e, i) => {
-        const current = states[i] === "now";
-        const done = states[i] === "done";
+    <ol>
+      {top.map((p, i) => {
+        const team = teams.find((x) => x.players.some((pl) => pl.userId === p.id));
         return (
           <li
-            key={e.key}
-            className={cn(
-              "in-left relative flex items-baseline gap-4 py-2 pl-8 pr-3 font-display font-bold text-[0.95rem] transition-colors",
-              current ? "bg-slate font-black text-paper" : done ? "text-ash" : "text-paper/80 hover:text-paper",
-            )}
-            style={{ "--d": "0.85s", "--i": i, "--s": "0.08s" } as React.CSSProperties}
+            key={p.id}
+            className="in-up flex items-center gap-3 border-b-2 border-dashed border-line py-3 first:pt-1 last:border-b-0 sm:gap-4"
+            style={{ "--d": `${1.65 + i * 0.08}s` } as React.CSSProperties}
           >
-            <span className="in-pop absolute left-0 top-1/2 flex size-4 -translate-y-1/2 items-center justify-center" style={{ "--d": "1s", "--i": i, "--s": "0.08s" } as React.CSSProperties}>
-              {current ? (
-                <>
-                  <span className="anim-ping-diamond absolute size-2.5 bg-rose" aria-hidden />
-                  <span className="size-2.5 rotate-45 bg-rose" />
-                </>
-              ) : (
-                <span className={cn("size-2 rotate-45", done ? "bg-ash" : "border border-paper/60 bg-ink")} />
+            <span className={cn("num w-7 shrink-0 text-center text-3xl italic leading-none", MEDAL[i])}>{i + 1}</span>
+            <span className="relative shrink-0">
+              <Avatar src={p.avatar} className={cn("size-11", i === 0 && "ring-gold")} />
+              {i === 0 && <Crown className="absolute -top-3 left-1/2 size-4 -translate-x-1/2 -rotate-12 fill-gold text-gold-hi" aria-hidden />}
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate font-display font-black leading-tight">{p.username}</span>
+              {team && team.name !== p.username && (
+                <Link href={teamHref(team)} className="truncate text-xs text-ash transition-colors hover:text-paper">
+                  {team.name}
+                </Link>
               )}
             </span>
-            <span className="flex-1">{t.timeline[e.key]}</span>
-            <span className="in-wipe num whitespace-nowrap text-base normal-case" style={{ "--d": "1.1s", "--i": i, "--s": "0.08s" } as React.CSSProperties}>{fmtRange(locale, e.from, e.to)}</span>
+            <span className="flex shrink-0 items-end gap-4 sm:gap-6">
+              {stat(t.home.avgScore, fmtNum(Math.round(p.score)), "hidden sm:flex")}
+              {stat(t.home.avgAcc, `${p.acc.toFixed(2)}%`, "hidden min-[420px]:flex")}
+              {stat(t.home.maps, String(p.maps))}
+              <span className="flex flex-col items-end gap-1">
+                <span className={cn("num text-2xl italic leading-none", i === 0 ? "text-paper" : "text-paper/80")}>{p.cost.toFixed(2)}</span>
+                <span className="whitespace-nowrap text-[0.65rem] font-display font-bold text-ash">{t.home.matchCost}</span>
+              </span>
+            </span>
           </li>
         );
       })}
+    </ol>
+  );
+}
+
+// same pager as the pool so both tab bars line up: the whole tournament first, then each played round
+function TopPerformers({ t, pages, teams }: { t: Dict; pages: { name: string; top: TopCost[] }[]; teams: Team[] }) {
+  return (
+    <InView>
+      <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3" style={{ "--d": "1.5s" } as React.CSSProperties}>
+        <h2 className="heading-slam text-2xl sm:whitespace-nowrap sm:text-3xl xl:text-[clamp(1.25rem,1.65vw,1.65rem)]">{t.home.topPerformers}</h2>
+        <Link href="/stats" className="group inline-flex shrink-0 items-center gap-1.5 text-sm font-display font-bold text-ash transition-colors hover:text-paper">
+          {t.home.allStats} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+        </Link>
+      </div>
+      <PoolPager pages={pages.map((p, i) => ({ name: p.name, color: i ? "var(--rose)" : "var(--gold)", node: <TopList t={t} top={p.top} teams={teams} /> }))} />
+    </InView>
+  );
+}
+
+function PoolRow({ t, stage, split }: { t: Dict; stage: Omit<PoolStage, "pools"> & { pools: (PoolStage["pools"][number] & { color?: string })[] }; split?: boolean }) {
+  // skill pools carry their group colour, like the mappool page
+  const groups: { name: string; color: string; maps: (PoolStage["pools"][number]["maps"][number] & { color: string })[] }[] = [];
+  for (const p of stage.pools) {
+    const maps = p.maps.map((m) => ({ ...m, color: p.color ?? MODS[m.mod]?.color ?? "var(--rose)" }));
+    groups.push({ name: p.category, color: maps[0]?.color ?? "var(--rose)", maps });
+  }
+  return (
+    // alone: two thirds wide and centred; next to top performers: the left half
+    <InView className={cn(!split && "xl:mx-auto xl:w-2/3")}>
+      <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3" style={{ "--d": "1.5s" } as React.CSSProperties}>
+        <h2 className="heading-slam text-2xl sm:whitespace-nowrap sm:text-3xl xl:text-[clamp(1.25rem,1.65vw,1.65rem)]">{roundName(t, stage.title)}</h2>
+        <Link href={`/mappool/${stage.slug}`} className="group inline-flex shrink-0 items-center gap-1.5 text-sm font-display font-bold text-ash transition-colors hover:text-paper">
+          {t.home.fullPool} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+        </Link>
+      </div>
+      <PoolPager
+        pages={groups.map((g) => ({
+          name: g.name,
+          color: g.color,
+          node: (
+      <div className={cn("grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4", split && "xl:grid-cols-3 2xl:grid-cols-4")}>
+        {g.maps.map((m, i) => {
+          const mod = m.mod !== "Tiebreaker" ? MODS[m.mod] : undefined;
+          return (
+            <a
+              key={m.rowId}
+              href={osuMap(m.id)}
+              target="_blank"
+              rel="noreferrer"
+              className="in-up group relative isolate flex h-24 flex-col justify-between overflow-hidden border border-line bg-coal p-3 transition-colors hover:border-[var(--c)] sm:h-28"
+              style={{ "--d": `${1.6 + i * 0.03}s`, "--c": m.color } as React.CSSProperties}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={m.cover} alt="" loading="lazy" className="absolute inset-0 -z-10 size-full object-cover opacity-40 saturate-[1.15] transition duration-500 group-hover:scale-105 group-hover:opacity-55 dark:opacity-25 dark:group-hover:opacity-40" />
+              <span className="absolute inset-0 -z-10 bg-gradient-to-t from-coal via-coal/70 to-coal/10" aria-hidden />
+              <span className="flex items-start justify-between gap-2">
+                <span className="-skew-x-12 px-2 py-1" style={{ background: m.color }}>
+                  <span className="heading-slam block skew-x-12 text-base leading-none sm:text-lg" style={{ color: modOn(m.color) }}>{m.slot}</span>
+                </span>
+                <span className="flex flex-col items-stretch gap-1">
+                  <span className="num text-xs italic leading-none text-paper/80">{m.sr.toFixed(2)}★</span>
+                  {mod && (
+                    <span className="-skew-x-12 py-0.5 text-center" style={{ background: mod.color }}>
+                      <span className="block skew-x-12 font-display text-[0.65rem] font-black leading-none" style={{ color: modOn(mod.color) }}>{mod.short}</span>
+                    </span>
+                  )}
+                </span>
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-display font-black leading-tight">{m.title}</span>
+                <span className="block truncate text-xs text-ash">[{m.version}]</span>
+              </span>
+            </a>
+          );
+        })}
+      </div>
+          ),
+        }))}
+      />
     </InView>
   );
 }
 
 export default async function Home() {
-  const [t, lang, settings, vis, teams, matches, regs] = await Promise.all([
+  const [t, lang, settings, vis, teams, matches, regs, stages] = await Promise.all([
     getDict(),
     getLang(),
     getSettings(),
@@ -133,7 +232,9 @@ export default async function Home() {
     getTeams(),
     getMatches(),
     getRegistrations(),
+    getPoolStages(),
   ]);
+  const skills = await getSkillLayouts();
   const [f, me, viewer] = await Promise.all([getFill(), currentOsuId(), getViewer()]);
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const teamById = (id: string) => teams.find((x) => x.id === id);
@@ -168,14 +269,14 @@ export default async function Home() {
   ].slice(0, 2);
   // a live match finishing moves it to previous and pulls the next one in
   const liveNow = upcoming.some((m) => m.running || (!!m.datetime && !isFuture(new Date(m.datetime))));
-  // full and short round labels; the card shows the short one when the full one doesn't fit
-  const label = (m: Match): [string, string] => {
-    if (m.id === "grand-final") return [t.home.grandFinal, "GF"];
-    if (m.id === "grand-final-reset") return [t.home.gfReset, "GF Reset"];
-    const same = matches.filter((o) => o.round === m.round);
-    const n = same.length > 1 ? ` ${t.nav.match} ${same.indexOf(m) + 1}` : "";
-    return [roundName(t, m.round) + n, shortRound(m.round) + n];
-  };
+  // the round being played: the next match's pool when it's out, else the latest released one
+  const released = stages.filter((s) => s.released && s.slug !== "qualifiers" && s.pools.length);
+  const cur = phase === "playoffs" && see("mappool") ? (released.find((s) => s.slug === upcoming[0]?.stage) ?? released.at(-1)) : undefined;
+  const pool = cur && bySkill(cur, skills?.[cur.slug]);
+  // top 3 by match cost: the whole tournament, then every round with results
+  const played = cur && see("stats") ? (await Promise.all(released.map(async (s) => ({ s, costs: (await getStageStats(bySkill(s, skills?.[s.slug]), matches, teams, stages)).costs })))).filter((x) => x.costs.length) : [];
+  const top = played.length ? [{ name: t.home.total, top: mergeCosts(played.map((x) => x.costs)).slice(0, 3) }, ...played.map((x) => ({ name: roundName(t, x.s.title), top: x.costs.slice(0, 3) }))] : undefined;
+  const label = (m: Match) => cardLabels(t, matches, m);
 
   return (
     <>
@@ -303,6 +404,12 @@ export default async function Home() {
             </InView>
           )}
         </div>
+        {pool && (
+          <div className={cn("mt-16 2xl:mt-20", top && "grid grid-cols-[minmax(0,1fr)] gap-12 xl:grid-cols-2 2xl:gap-16")}>
+            <PoolRow t={t} stage={pool} split={!!top} />
+            {top && <TopPerformers t={t} pages={top} teams={teams} />}
+          </div>
+        )}
         {liveNow && <RefreshWhileLive />}
       </section>
     </>

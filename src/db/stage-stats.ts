@@ -4,7 +4,35 @@ import type { PoolStage } from "./mappools";
 import { getScoreboard } from "./scoreboards";
 import { matchCosts } from "@/lib/match-cost";
 
-export type StageStats = { maps: QualMap[]; players: QualPlayer[]; plays: number; matches: number; topCost?: { username: string; cost: number } };
+export type StageStats = { maps: QualMap[]; players: QualPlayer[]; plays: number; matches: number; topCost?: { username: string; cost: number }; topCosts: TopCost[]; costs: TopCost[] };
+// acc/score: averages over the pool maps they played (plays of them)
+export type TopCost = { id: number; username: string; avatar: string; cost: number; matches: number; maps: number; acc: number; score: number; plays: number };
+
+// equal cost at two decimals: more maps played ranks higher
+export const rankCosts = (xs: TopCost[]) => xs.sort((a, b) => Math.round(b.cost * 100) - Math.round(a.cost * 100) || b.maps - a.maps);
+
+// several rounds into one: cost weighted by matches, acc/score by plays
+export function mergeCosts(lists: TopCost[][]): TopCost[] {
+  const all = new Map<number, TopCost>();
+  for (const c of lists.flat()) {
+    const o = all.get(c.id);
+    if (!o) {
+      all.set(c.id, { ...c });
+      continue;
+    }
+    const n = o.matches + c.matches;
+    const k = o.plays + c.plays;
+    o.cost = (o.cost * o.matches + c.cost * c.matches) / n;
+    if (k) {
+      o.acc = (o.acc * o.plays + c.acc * c.plays) / k;
+      o.score = (o.score * o.plays + c.score * c.plays) / k;
+    }
+    o.matches = n;
+    o.maps += c.maps;
+    o.plays = k;
+  }
+  return rankCosts([...all.values()]);
+}
 
 export async function getStageStats(stage: PoolStage, matches: Match[], teams: Team[], stages: PoolStage[]): Promise<StageStats> {
   const maps: QualMap[] = stage.pools.flatMap((p) =>
@@ -19,13 +47,14 @@ export async function getStageStats(stage: PoolStage, matches: Match[], teams: T
   const byPlayer = new Map<number, QualPlayer & { accSum: number; scoreSum: number; n: number }>();
   let plays = 0;
   let played = 0;
-  const costs = new Map<number, { username: string; sum: number; n: number }>();
+  const costs = new Map<number, { username: string; avatar: string; sum: number; n: number; maps: number }>();
   for (const sb of boards) {
     if (!sb) continue;
     for (const c of matchCosts(sb, true)) {
-      const cur = costs.get(c.id) ?? { username: c.name, sum: 0, n: 0 };
+      const cur = costs.get(c.id) ?? { username: c.name, avatar: c.avatar, sum: 0, n: 0, maps: 0 };
       cur.sum += c.cost;
       cur.n++;
+      cur.maps += c.maps;
       costs.set(c.id, cur);
     }
     let any = false;
@@ -52,6 +81,11 @@ export async function getStageStats(stage: PoolStage, matches: Match[], teams: T
   const players: QualPlayer[] = [...byPlayer.values()]
     .map(({ accSum, scoreSum, n, ...p }) => ({ ...p, avgAcc: n ? accSum / n : 0, avgScore: n ? scoreSum / n : 0, zSum: scoreSum }))
     .sort((a, b) => b.zSum - a.zSum);
-  const topCost = [...costs.values()].map((c) => ({ username: c.username, cost: c.sum / c.n })).sort((a, b) => b.cost - a.cost)[0];
-  return { maps, players, plays, matches: played, topCost };
+  const topCosts = rankCosts(
+    [...costs.entries()].map(([id, c]) => {
+      const p = byPlayer.get(id);
+      return { id, username: c.username, avatar: c.avatar, cost: c.sum / c.n, matches: c.n, maps: c.maps, acc: p?.n ? p.accSum / p.n : 0, score: p?.n ? p.scoreSum / p.n : 0, plays: p?.n ?? 0 };
+    }),
+  );
+  return { maps, players, plays, matches: played, topCost: topCosts[0], topCosts: topCosts.slice(0, 3), costs: topCosts };
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useLayoutEffect, useRef, useState } from "react";
+import { Eye } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { type Match, fmtNum, teamHref } from "@/lib/data";
 import { useTournament } from "./tournament";
 import { useDict, useLang } from "./lang";
@@ -22,7 +23,7 @@ function Side({ id, flip, lost, small, at }: { id: string; flip?: boolean; lost?
       {...meT(team?.id)}
       className={cn(
         "relative flex min-w-0 flex-col items-center px-1.5 text-center sm:px-4",
-        small ? "justify-center gap-1.5 py-2" : "justify-start gap-2.5 py-5 sm:py-6",
+        small ? cn("row-span-full justify-center gap-1.5 py-2", flip ? "col-start-3" : "col-start-1") : "justify-start gap-2.5 py-5 sm:py-6",
         flip ? "in-right-far" : "in-left-far",
       )}
       style={at(0.1)}
@@ -37,7 +38,7 @@ function Side({ id, flip, lost, small, at }: { id: string; flip?: boolean; lost?
           )}
           <Link href={teamHref(team)} className="shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={team.image} alt="" className={cn("in-pop border border-dashed border-paper/25 object-cover", small ? "size-10" : "size-14 sm:size-20", lost && "opacity-50")} style={at(0.25)} />
+            <img src={team.image} alt="" className={cn("in-pop object-cover", small ? "size-10 rounded-full" : "size-14 border border-dashed border-paper/25 sm:size-20", lost && "opacity-50")} style={at(0.25)} />
           </Link>
           <span className="flex max-w-full min-w-0 flex-col items-center gap-1.5">
             <Link href={teamHref(team)} className={cn("min-w-0 max-w-full font-display font-black leading-tight hover:text-rose-hi", small ? "truncate text-xs" : "line-clamp-2 break-words text-[0.8rem] sm:line-clamp-1 sm:text-lg", lost && "text-ash")}>
@@ -61,7 +62,7 @@ function Side({ id, flip, lost, small, at }: { id: string; flip?: boolean; lost?
       ) : (
         <>
           {!small && <span className="-mb-1 hidden h-4 sm:block" />}
-          <span className={cn("border border-dashed border-paper/25 bg-slate", small ? "size-10" : "size-14 sm:size-20")} />
+          <span className={cn("bg-slate", small ? "size-10 rounded-full" : "size-14 border border-dashed border-paper/25 sm:size-20")} />
           <span className={cn("font-display font-bold text-ash", small ? "text-xs" : "text-sm")}>{t.common.tbd}</span>
         </>
       )}
@@ -79,18 +80,27 @@ export function LiveTag({ className }: { className?: string }) {
   );
 }
 
-// small: the home page size, with the round name next to the date (label = [full, short]); delay shifts the whole intro
-export function MatchRow({ match, live, small, label, delay = 0 }: { match: Match; live?: [number, number] | null; small?: boolean; label?: [string, string]; delay?: number }) {
+// small: the home page size; the round name gets the top line (label = longest to shortest), the date sits under the score unless the results eye is there; delay shifts the whole intro
+export function MatchRow({ match, live, small, label, delay = 0 }: { match: Match; live?: [number, number] | null; small?: boolean; label?: string[]; delay?: number }) {
   const lbl = useRef<HTMLSpanElement>(null);
-  const [short, setShort] = useState(false);
-  // shortcut: measured on mount and once fonts load, not on resize (the middle column has a fixed width)
+  const [level, setLevel] = useState(0);
+  const [fonts, recheck] = useState(0);
+  // steps to the next shorter label while it overflows; shortcut: rechecked once fonts load, not on resize
   useLayoutEffect(() => {
-    const fit = () => {
-      const el = lbl.current;
-      if (el && el.scrollWidth > el.clientWidth + 1) setShort(true);
-    };
-    fit();
-    document.fonts?.ready.then(fit);
+    const el = lbl.current;
+    if (!el || !label || level >= label.length - 1) return;
+    // text width vs the span's content box: scrollWidth rounds and misses sub-pixel overflow that still shows an ellipsis
+    const r = document.createRange();
+    r.selectNodeContents(el);
+    if (r.getBoundingClientRect().width > el.getBoundingClientRect().width - parseFloat(getComputedStyle(el).paddingRight) + 0.5) setLevel(level + 1);
+  }, [label, level, fonts]);
+  useEffect(() => {
+    const f = document.fonts;
+    if (!f) return;
+    const bump = () => recheck((n) => n + 1);
+    f.ready.then(bump);
+    f.addEventListener("loadingdone", bump);
+    return () => f.removeEventListener("loadingdone", bump);
   }, []);
   const t = useDict();
   const lang = useLang();
@@ -99,14 +109,35 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
   const played = match.winner !== null;
   const { teamById } = useTournament();
   const teams = [teamById(match.team1.id), teamById(match.team2.id)];
-  return (
+  const eye = match.links.length > 0 && hasResults(match);
+  const when = w ? w : small || (match.team1.id && match.team2.id) ? t.common.tbd : "—";
+  const dateCls = "num flex h-5 max-w-full items-center gap-2 whitespace-nowrap px-2 text-[0.7rem] italic leading-none text-paper/70 sm:text-[0.8rem]";
+  const dateLine = (
+    <div className={cn("in-drop", dateCls)} style={at(small ? 0.5 : 0.05)}>
+      {label && (
+        <span ref={lbl} className="min-w-0 truncate font-display text-xs font-bold text-rose-hi">
+          {label[level]}
+        </span>
+      )}
+      {!small && when}
+    </div>
+  );
+  const card = (
     <div
       className={cn(
-        "group/row relative isolate grid grid-cols-[minmax(0,1fr)_6.5rem_minmax(0,1fr)] overflow-hidden border bg-coal",
-        small ? "sm:grid-cols-[minmax(0,1fr)_11rem_minmax(0,1fr)]" : "sm:grid-cols-[minmax(0,1fr)_11rem_minmax(0,1fr)]",
-        live !== undefined ? "border-rose/70" : "border-line",
+        // small: no box, only a dashed rule underneath with a diamond in the middle (like the timeline)
+        "group/row relative isolate grid",
+        small ? "border-b-2 border-dashed" : "overflow-hidden border bg-coal",
+        // small: the label line spans the card (row 2) and stops 2rem short of the pictures, label + score stay centred together
+        small
+          ? "grid-cols-[minmax(0,1fr)_var(--mid)_minmax(0,1fr)] grid-rows-[1fr_auto_auto_1fr] [--mid:6.5rem] sm:[--mid:11rem]"
+          : "grid-cols-[minmax(0,1fr)_6.5rem_minmax(0,1fr)] sm:grid-cols-[minmax(0,1fr)_11rem_minmax(0,1fr)]",
+        live !== undefined ? "border-rose/70" : cn("border-line", small && "transition-colors hover:border-rose/60"),
       )}
     >
+      {small ? (
+        <span className="pointer-events-none absolute -bottom-[7px] left-1/2 size-2.5 -translate-x-1/2 rotate-45 bg-rose shadow-[0_0_0_3px_var(--ink)]" aria-hidden />
+      ) : (
       <div className="pointer-events-none absolute inset-0 -z-10 flex" aria-hidden>
         {teams.map((team, i) => (
           <div key={i} className="relative w-1/2 overflow-hidden">
@@ -118,30 +149,21 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
                 className={cn(
                   "size-full scale-110 object-cover blur-[1px] transition-transform duration-700 ease-out group-hover/row:scale-125 motion-reduce:transition-none",
                   i ? "[mask-image:linear-gradient(to_left,black_10%,transparent_85%)]" : "[mask-image:linear-gradient(to_right,black_10%,transparent_85%)]",
-                  played && match.winner === i + 1 ? "opacity-20 grayscale-[40%]" : "opacity-10 grayscale",
+                  // light: multiplied in so the picture darkens the card like ink instead of washing it out
+                  "mix-blend-multiply contrast-125 dark:mix-blend-normal dark:contrast-100",
+                  played && match.winner === i + 1 ? "opacity-35 grayscale-[30%] dark:opacity-20 dark:grayscale-[40%]" : "opacity-25 grayscale dark:opacity-10",
                 )}
               />
             )}
           </div>
         ))}
       </div>
+      )}
       <Side id={match.team1.id} lost={played && match.winner !== 1} small={small} at={at} />
-      <div>
-        <div className={cn("flex h-full flex-col items-center justify-center", small ? "gap-1 py-2" : "gap-3 py-3")}>
-          <div className="in-drop num flex h-5 items-center gap-2 whitespace-nowrap px-2 text-[0.7rem] italic leading-none text-paper/70 sm:text-[0.8rem]" style={at(0.05)}>
-            {label && (
-              <span ref={lbl} className="min-w-0 truncate font-display text-xs font-bold text-rose-hi">
-                {short ? label[1] : label[0]}
-              </span>
-            )}
-            {w ? (
-              w
-            ) : small || (match.team1.id && match.team2.id) ? (
-              t.common.tbd
-            ) : (
-              "—"
-            )}
-          </div>
+      {small && <div className="col-span-full row-start-2 flex min-w-0 justify-center pt-2" style={{ paddingInline: "calc((100% - var(--mid)) / 4 + 2rem)" }}>{dateLine}</div>}
+      <div className={cn(small && "col-start-2 row-start-3")}>
+        <div className={cn("flex h-full flex-col items-center justify-center", small ? "gap-1 pb-2 pt-1" : "gap-3 py-3")}>
+          {!small && dateLine}
           <div className="in-slam flex flex-col items-center gap-1" style={at(0.4)}>
             {live !== undefined ? (
               <>
@@ -164,10 +186,19 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
               <span className={cn("heading-slam leading-none text-paper", small ? "text-2xl" : "text-3xl sm:text-4xl")}>{t.common.vs}</span>
             )}
           </div>
-          {match.links.length > 0 && hasResults(match) ? (
+          {eye && small ? (
+            // bare pink eye, grows on hover
+            <MatchDialog match={match} className="group flex h-6 items-center justify-center">
+              <span className="flex size-6 items-center justify-center text-rose transition-[color,scale] duration-200 group-hover:scale-125 group-hover:text-rose-hi">
+                <Eye className="size-[18px]" strokeWidth={2.25} aria-hidden />
+              </span>
+            </MatchDialog>
+          ) : eye ? (
             <MatchDialog match={match} className="group flex h-5 items-center justify-center">
               <DetailsChip />
             </MatchDialog>
+          ) : small ? (
+            <span className={cn("in-drop", dateCls)} style={at(0.55)}>{when}</span>
           ) : (
             <span className="h-5" aria-hidden />
           )}
@@ -176,4 +207,5 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
       <Side id={match.team2.id} flip lost={played && match.winner !== 2} small={small} at={at} />
     </div>
   );
+  return card;
 }

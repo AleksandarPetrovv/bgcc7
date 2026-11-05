@@ -24,8 +24,8 @@ html.lite .folk-panel::after {
   background-image: url("/noise.png");
 }
 
-.no-intro:is(.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word, .ltr, .in-left-far, .in-right-far, .in-slam, .in-curtain, .in-launch, .in-grow-y, .in-sweep, .in-trace),
-.no-intro :is(.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word, .ltr, .in-left-far, .in-right-far, .in-slam, .in-curtain, .in-launch, .in-grow-y, .in-sweep, .in-trace) {
+.no-intro:is(.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word, .ltr, .in-left-far, .in-right-far, .in-slam, .in-curtain, .in-launch, .in-grow-y, .in-stitch, .in-sweep, .in-trace),
+.no-intro :is(.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word, .ltr, .in-left-far, .in-right-far, .in-slam, .in-curtain, .in-launch, .in-grow-y, .in-stitch, .in-sweep, .in-trace) {
   animation: none !important;
 }
 
@@ -186,6 +186,7 @@ html.lite :is(.lift, .lift-sm):hover {
   .in-curtain,
   .in-launch,
   .in-grow-y,
+  .in-stitch,
   .in-sweep,
   .in-up,
   .in-left,

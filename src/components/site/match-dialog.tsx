@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { ExternalLink, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useDict } from "./lang";
+import { useDict, useLang } from "./lang";
+import { fmtSofia } from "@/lib/time";
 import { MODS, fmtNum, type Match } from "@/lib/data";
 import { slotColor } from "@/lib/format-plan";
 import { useFormat, useTournament } from "./tournament";
@@ -194,20 +194,29 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
   const teams = [teamById(match.team1.id), teamById(match.team2.id)];
   const names = [teams[0]?.name ?? match.team1.name, teams[1]?.name ?? match.team2.name];
   const score = data && data !== "error" ? data.score : [match.team1.score ?? 0, match.team2.score ?? 0];
+  const lang = useLang();
+  const when = match.datetime ? fmtSofia(new Date(match.datetime), lang === "bg" ? "bg-BG" : "en-GB") : null;
 
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [veil, setVeil] = useState<"in" | "out" | null>(null);
 
+  // no loading screen: open as soon as the maps are in, or after a short wait with the header we already have (maps fill in)
   const load = () => {
     const hit = cache.get(slug);
+    let shown = !!hit;
+    const show = () => {
+      if (shown) return;
+      shown = true;
+      setBusy(false);
+      setOpen(true);
+    };
     if (hit) {
       setData(hit);
       setOpen(true);
       if (match.winner) return;
     } else {
       setBusy(true);
-      setVeil("in");
+      setTimeout(show, 350);
     }
     fetch(`/api/matches/${slug}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
@@ -216,12 +225,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
         setData(d);
       })
       .catch(() => !hit && setData("error"))
-      .finally(() => {
-        setBusy(false);
-        setOpen(true);
-        setVeil((v) => (v ? "out" : null));
-        setTimeout(() => setVeil(null), 700);
-      });
+      .finally(show);
   };
 
   // the open popup lives at /results/<slug> so it can be linked (discord #results); back closes it
@@ -263,8 +267,9 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
         >
           {children ?? <DetailsChip />}
         </DialogTrigger>
-        <DialogContent className="mdlg max-h-[88dvh] grid-cols-[minmax(0,1fr)] content-start gap-0 overflow-y-auto [-webkit-overflow-scrolling:touch] [touch-action:pan-y] rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
-          <div className="sticky top-0 z-10 min-w-0 border-b border-line bg-ink px-3 py-3 sm:px-5 sm:py-4">
+        <DialogContent className="mdlg max-h-[88dvh] grid-cols-[minmax(0,1fr)] content-start gap-0 overflow-y-auto overflow-x-hidden [-webkit-overflow-scrolling:touch] [touch-action:pan-y] rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
+          {/* -top-px + the upward shadow close the sliver that let scrolled maps peek above the header */}
+          <div className="sticky -top-px z-10 min-w-0 border-b border-line bg-ink px-3 py-3 shadow-[0_-8px_0_0_var(--ink)] sm:px-5 sm:py-4">
             <DialogTitle className="in-wipe pr-8 text-xs font-display font-bold text-rose-hi" style={v({ "--d": "0.1s" })}>
               {roundName(t, match.round)}
             </DialogTitle>
@@ -282,10 +287,13 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
                   </span>
                 </div>
               ))}
-              <span className="in-slam num order-2 whitespace-nowrap text-2xl sm:text-4xl" style={v({ "--d": "0.25s" })}>
-                <span className={match.winner === 2 ? "text-ash" : "text-paper"}>{score[0]}</span>
-                <span className="text-ash">-</span>
-                <span className={match.winner === 1 ? "text-ash" : "text-paper"}>{score[1]}</span>
+              <span className="in-slam order-2 flex flex-col items-center gap-1.5" style={v({ "--d": "0.25s" })}>
+                <span className="num whitespace-nowrap text-2xl leading-none sm:text-4xl">
+                  <span className={match.winner === 2 ? "text-ash" : "text-paper"}>{score[0]}</span>
+                  <span className="mx-2 text-ash sm:mx-3">–</span>
+                  <span className={match.winner === 1 ? "text-ash" : "text-paper"}>{score[1]}</span>
+                </span>
+                {when && <span className="num whitespace-nowrap text-[0.7rem] italic leading-none text-paper/70 sm:text-[0.8rem]">{when}</span>}
               </span>
             </div>
             {match.links.length > 0 && (
@@ -306,7 +314,6 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
           </div>
           {data === null ? (
             <div className="space-y-4 p-3 sm:p-5" aria-busy>
-              <p className="text-center text-xs font-display font-bold text-ash">{t.match.loading}</p>
               {[0, 1, 2].map((k) => (
                 <div key={k} className="in-up relative h-40 overflow-hidden border border-line bg-coal" style={v({ "--i": k, "--s": "0.1s" })}>
                   <span className="mdlg-shine absolute inset-0" style={{ animationDelay: `${k * 0.15}s` }} />
@@ -326,7 +333,6 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
           )}
         </DialogContent>
       </Dialog>
-      {veil && <LoadingVeil out={veil === "out"} />}
     </>
   );
 }
@@ -336,26 +342,5 @@ export function DetailsChip() {
     <span className="relative inline-flex h-5 w-[30px] -skew-x-12 items-center justify-center overflow-hidden bg-rose text-white shadow-[2px_2px_0_0_var(--rose-deep)] transition-[background-color,transform,box-shadow,translate,scale,rotate] duration-200 group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 group-hover:bg-rose-hi group-hover:shadow-[4px_4px_0_0_var(--rose-deep)]">
       <Eye className="size-[15px] skew-x-12" strokeWidth={2} aria-hidden />
     </span>
-  );
-}
-
-function LoadingVeil({ out }: { out: boolean }) {
-  const t = useDict();
-  return createPortal(
-    <div
-      className={cn("fixed inset-0 z-[60] flex animate-in items-center justify-center bg-black/55 backdrop-blur-sm fade-in-0 transition-opacity duration-700 ease-out", out && "pointer-events-none opacity-0")}
-      role="status"
-      aria-live="polite"
-    >
-      <div className="flex flex-col items-center gap-4">
-        <div className="flex h-10 items-end gap-1.5" aria-hidden>
-          {[0, 1, 2, 3, 4].map((i) => (
-            <span key={i} className="mdlg-bar w-2 -skew-x-12 bg-rose" style={{ animationDelay: `${i * 0.09}s` }} />
-          ))}
-        </div>
-        <span className="text-xs font-display font-bold text-paper">{t.match.loading}</span>
-      </div>
-    </div>,
-    document.body,
   );
 }
