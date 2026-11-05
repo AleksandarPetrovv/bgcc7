@@ -86,13 +86,23 @@ html.lite .grain::after {
   background-image: url("/noise.png");
 }
 
-html.lite [role="dialog"],
-html.lite [role="dialog"] *,
-html.lite .fixed,
-html.lite .sub-nav,
-html.lite .backdrop-blur {
+/* no -webkit- twin here: the minifier dropped the whole declaration pair, which left this rule empty */
+html.lite :is([role="dialog"], [role="dialog"] *, .fixed, .sub-nav, .backdrop-blur, [data-slot="dialog-overlay"]) {
   backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+}
+
+/* results popup: short slide + fade instead of the 0.8s skew/scale entrance (every frame re-blends the whole popup on cpu) */
+html.lite .mdlg[data-open] {
+  animation: lite-pop-in 0.22s ease-out both !important;
+}
+html.lite .mdlg[data-closed] {
+  animation: lite-fade-out 0.12s ease-in both !important;
+}
+@keyframes lite-pop-in {
+  from { opacity: 0; transform: translateY(12px); }
+}
+@keyframes lite-fade-out {
+  to { opacity: 0; }
 }
 
 html.lite .fixed.inset-0:not(canvas):not(.pointer-events-none) {
@@ -111,7 +121,7 @@ html.lite :is(.anim-blob-a, .anim-blob-b, .anim-float, .anim-comet, .anim-orbit,
 html.lite :is(.anim-blob-a, .anim-blob-b) { animation-timing-function: steps(60) !important; }
 html.lite .anim-drift { animation-timing-function: steps(110) !important; }
 html.lite .anim-comet { animation-timing-function: steps(90) !important; }
-html.lite :is(.anim-float, .anim-shine) { animation-timing-function: steps(30) !important; }
+html.lite .anim-float { animation-timing-function: steps(30) !important; }
 html.lite :is(.anim-echo, .match-run) { animation-timing-function: steps(20) !important; }
 html.lite :is(.anim-orbit, .anim-orbit-in) { animation-timing-function: steps(24) !important; }
 html.lite :is(.match-cta-sheen, .btn-shine, .mdlg-shine) { animation-timing-function: steps(16) !important; }
@@ -127,7 +137,8 @@ html.lite .dr-dots > span { animation-timing-function: steps(4) !important; }
 html.lite :is(.in-flip, .in-spin, .in-slam, .in-launch, .in-curtain, .word, .anim-letter) { animation-name: k-up !important; }
 html.lite :is(.in-left-far, .in-wipe) { animation-name: k-left !important; }
 html.lite :is(.in-right-far, .in-wipe-r) { animation-name: k-right !important; }
-html.lite .anim-slam { animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both !important; }
+/* longhands only: the shorthand would reset the inline delay and the hero gate's pause */
+html.lite .anim-slam { animation-name: rise !important; animation-duration: 0.7s !important; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important; }
 
 /* Letters / Words: each text block fades in as one element (on cpu every animated element costs style work per frame,
    so hundreds of letters or words animating at once is what made the info page stutter) */
@@ -138,11 +149,23 @@ html.lite [data-letters] {
   animation: lite-fade 0.6s ease-out backwards;
   animation-delay: var(--d, 0s);
 }
+/* hero text: one fade per line, --ln set by LineIndex once the fonts are in */
+html.lite [data-lines] {
+  animation: none !important;
+}
+/* color, not opacity: opacity puts each word on its own layer and the text snaps a little when that layer goes away */
+html.lite [data-lines] .word {
+  animation: lite-ink 0.5s ease-out backwards !important;
+  animation-delay: calc(var(--d, 0s) + var(--ln, 0) * 0.12s) !important;
+}
 html.lite .iv:not(.in) [data-letters] {
   animation-play-state: paused;
 }
 @keyframes lite-fade {
   from { opacity: 0; }
+}
+@keyframes lite-ink {
+  from { color: transparent; }
 }
 
 /* blurred thumbnails stay blurred, but no hover zoom that would re-blur every frame */
