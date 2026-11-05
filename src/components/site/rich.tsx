@@ -17,7 +17,8 @@ export function Rich({ text, plain }: { text: string; plain?: boolean }) {
   );
 }
 
-export function Words({ text, d = 0, s = 0.04, className }: { text: string; d?: number; s?: number; className?: string }) {
+// lines: in lite mode the text fades in line by line (LineIndex numbers the lines) instead of as one block
+export function Words({ text, d = 0, s = 0.04, className, lines }: { text: string; d?: number; s?: number; className?: string; lines?: boolean }) {
   let i = 0;
   const split = (str: string) =>
     str.split(/(\s+)/).map((w, k) =>
@@ -30,7 +31,7 @@ export function Words({ text, d = 0, s = 0.04, className }: { text: string; d?: 
       ),
     );
   return (
-    <span data-letters className={className} style={{ "--d": `${d}s`, "--s": `${s}s` } as React.CSSProperties}>
+    <span data-letters data-lines={lines || undefined} className={className} style={{ "--d": `${d}s`, "--s": `${s}s` } as React.CSSProperties}>
       {text.split(/(\[\[.+?\]\]|\{\{.+?\}\})/g).map((p, k) =>
         p.startsWith("[[") ? (
           <strong key={k} className="font-bold text-rose-hi">{split(p.slice(2, -2))}</strong>
