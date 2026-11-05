@@ -63,6 +63,8 @@ export const schedule = {
       linked: (n: string) => `Discord: ${n}`,
       change: "Change",
       unlink: "Unlink",
+      join: "Join",
+      link: "Link",
       missing: "Link your Discord",
     },
     admin: {

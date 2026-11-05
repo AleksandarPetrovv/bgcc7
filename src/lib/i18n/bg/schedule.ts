@@ -65,6 +65,8 @@ export const schedule: typeof en = {
       linked: (n: string) => `Discord: ${n}`,
       change: "Промени",
       unlink: "Премахни",
+      join: "Влез",
+      link: "Свържи",
       missing: "Свържи Discord",
     },
     admin: {
