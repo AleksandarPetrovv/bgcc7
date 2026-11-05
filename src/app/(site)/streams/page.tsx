@@ -52,13 +52,13 @@ export default async function Streams() {
           <div className="in-drop" style={{ "--d": "0.25s" } as React.CSSProperties}>
             <SubHeading>{t.streams.schedule}</SubHeading>
           </div>
-          <div className="space-y-2">
-            {upcoming.length === 0 && <p className="in-right border border-line bg-coal p-4 text-sm text-ash" style={{ "--d": "0.35s" } as React.CSSProperties}>{t.streams.noUpcoming}</p>}
+          <div>
+            {upcoming.length === 0 && <p className="in-right py-4 text-sm text-ash" style={{ "--d": "0.35s" } as React.CSSProperties}>{t.streams.noUpcoming}</p>}
             {upcoming.map((m, i) => {
               const a = teamById(m.team1.id);
               const b = teamById(m.team2.id);
               return (
-                <div key={m.id} {...meT(a?.id)} className="in-right border border-line bg-coal p-3" style={{ "--i": Math.min(i, 8), "--s": "0.08s", "--d": "0.35s" } as React.CSSProperties}>
+                <div key={m.id} {...meT(a?.id)} className="in-right border-b-2 border-dashed border-line py-3 last:border-b-0" style={{ "--i": Math.min(i, 8), "--s": "0.08s", "--d": "0.35s" } as React.CSSProperties}>
                   <div className="flex items-center justify-between text-xs font-display font-bold">
                     <span className="text-rose-hi">{roundName(t, m.round)}</span>
                     <span className="num text-sm text-paper">{fmtSofia(new Date(m.datetime!), lang === "bg" ? "bg-BG" : "en-GB")}</span>

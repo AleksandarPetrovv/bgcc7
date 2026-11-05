@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowRight, Crown, Flag } from "lucide-react";
-import { Glyph } from "@/components/site/graphics";
 import { Avatar } from "@/components/site/avatar";
 import { RecordText } from "@/components/site/record";
 import type { Dict } from "@/lib/i18n/dict";
@@ -13,22 +12,29 @@ export const v = (o: Record<string, string | number>) => o as React.CSSPropertie
 const pct = (a?: number | null) => (a == null ? "—" : `${(a * 100).toFixed(2)}%`);
 export const label = "text-[0.65rem] font-display font-bold text-ash";
 
-export function Card({ title, children, className, i = 0, right, flush, body, icon }: { title: string; children: React.ReactNode; className?: string; i?: number; right?: React.ReactNode; flush?: boolean; body?: string; icon?: React.ReactNode }) {
+// no box: a heading over a rule like the home sections, the content sits straight on the page
+export function Heading({ children, right, className }: { children: React.ReactNode; right?: React.ReactNode; className?: string }) {
   return (
-    <section className={cn("in-up in-slow relative overflow-hidden border border-line bg-coal", className)} style={v({ "--i": i, "--s": "0.12s", "--d": "0s", "--cd": `${i * 0.12}s` })}>
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-4 pb-1 pt-4 sm:px-5">
-        {icon ?? <Glyph kind="spark" className="size-3" />}
-        <h2 className="heading-slam text-lg">{title}</h2>
-        {right && <div className="ml-auto">{right}</div>}
-      </div>
-      <div className={cn(flush ? "pt-3" : "p-4 pt-3 sm:p-5 sm:pt-3", body)}>{children}</div>
+    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line pb-3", className)}>
+      <span className="size-2 shrink-0 rotate-45 bg-rose" aria-hidden />
+      <h2 className="heading-slam text-2xl sm:text-3xl">{children}</h2>
+      {right && <div className="ml-auto">{right}</div>}
+    </div>
+  );
+}
+
+export function Card({ title, children, className, i = 0, right, body }: { title: string; children: React.ReactNode; className?: string; i?: number; right?: React.ReactNode; body?: string }) {
+  return (
+    <section className={cn("in-up in-slow relative min-w-0", className)} style={v({ "--i": i, "--s": "0.12s", "--d": "0s", "--cd": `${i * 0.12}s` })}>
+      <Heading right={right}>{title}</Heading>
+      <div className={cn("pt-4", body)}>{children}</div>
     </section>
   );
 }
 
 export function Stat({ k, n, className }: { k: string; n: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("border-l-2 border-line pl-3", className)}>
+    <div className={cn("border-l-2 border-dashed border-line pl-3", className)}>
       <div className={label}>{k}</div>
       <div className="num mt-1 text-2xl leading-none sm:text-3xl">{n}</div>
     </div>
@@ -49,10 +55,10 @@ export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { 
   const wipe = v({ "--d": "calc(var(--cd, 0s) + 0.4s)" });
   const avg = Math.round(team.players.reduce((n, p) => n + p.rank, 0) / Math.max(1, team.players.length));
   return (
-    <Card title={t.me.team} i={i} flush className={className} icon={<Glyph kind="people" className="size-4" />}>
-      <div className="in-up in-slow relative mx-4 flex items-center gap-3 overflow-hidden border border-line bg-ink p-3 sm:mx-5 sm:gap-4" style={at(0.2)}>
+    <Card title={t.me.team} i={i} className={className}>
+      <div className="in-up in-slow relative flex items-center gap-3 overflow-hidden py-2 sm:gap-4" style={at(0.2)}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={team.image} alt="" className="pointer-events-none absolute inset-0 size-full scale-110 object-cover opacity-15 blur-md" aria-hidden />
+        <img src={team.image} alt="" className="pointer-events-none absolute inset-0 size-full scale-110 object-cover opacity-20 blur-md [mask-image:linear-gradient(to_right,black,transparent_80%)]" aria-hidden />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={team.image} alt="" className="relative size-12 shrink-0 object-cover sm:size-16" />
         <div className="relative min-w-0 flex-1">
@@ -66,9 +72,9 @@ export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { 
           </div>
         </div>
       </div>
-      <ul className="mt-2 divide-y divide-line">
+      <ul className="mt-3 divide-y-2 divide-dashed divide-line border-t-2 border-dashed border-line">
         {team.players.map((p, n) => (
-          <li key={p.userId} className="in-left in-slow flex flex-wrap items-center gap-x-2.5 gap-y-1.5 px-4 py-2.5 sm:flex-nowrap sm:gap-3 sm:px-5" style={at(0.45, n, 0.12)}>
+          <li key={p.userId} className="in-left in-slow flex flex-wrap items-center gap-x-2.5 gap-y-1.5 py-2.5 sm:flex-nowrap sm:gap-3" style={at(0.45, n, 0.12)}>
             <Avatar src={p.avatar} className="size-8 sm:size-9" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={flagUrl(p.country)} alt="" className="h-3" />
@@ -101,7 +107,7 @@ export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { 
           </li>
         ))}
       </ul>
-      <div className="in-up in-slow border-t border-line px-4 py-3 sm:px-5" style={at(0.6, team.players.length, 0.12)}>
+      <div className="in-up in-slow border-t-2 border-dashed border-line pt-3" style={at(0.6, team.players.length, 0.12)}>
         <Link href={teamHref(team)} className="inline-flex items-center gap-1.5 text-xs font-display font-bold text-ash transition-colors hover:text-paper">
           {t.me.teamPage} <ArrowRight className="size-3.5" />
         </Link>
@@ -135,7 +141,7 @@ export function Side({ team, flip, fallback }: { team?: Team; flip?: boolean; fa
 
 export function Info({ icon: Icon, k, n, i = 0 }: { icon: typeof Flag; k: string; n: string; i?: number }) {
   return (
-    <div className="in-up in-slow flex min-w-0 items-center gap-3 px-4 py-3" style={at(0.85, i, 0.12)}>
+    <div className="in-up in-slow flex min-w-0 items-center gap-3 py-3 pr-4" style={at(0.85, i, 0.12)}>
       <Icon className="size-4 shrink-0 text-rose-hi" />
       <div className="min-w-0">
         <div className={label}>{k}</div>

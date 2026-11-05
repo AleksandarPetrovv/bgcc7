@@ -3,6 +3,7 @@ import { Words } from "@/components/site/rich";
 import { Crown } from "lucide-react";
 import { Container, SectionHeading, Tag } from "@/components/site/page";
 import { MatchRow } from "@/components/site/match-row";
+import { cardLabels } from "@/lib/matches";
 import { RecordText } from "@/components/site/record";
 import { getDict } from "@/lib/i18n/server";
 import { fmtNum, flagUrl } from "@/lib/data";
@@ -63,12 +64,12 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
       <Container className="xl:grid xl:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] xl:items-start xl:gap-12">
         <div>
         <SectionHeading>{t.teams.roster}</SectionHeading>
-        <div className={team.players.length === 2 ? "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-1" : "grid grid-cols-1 gap-4 sm:grid-cols-3 xl:grid-cols-1"}>
+        <div className={team.players.length === 2 ? "grid grid-cols-1 gap-x-8 sm:grid-cols-2 xl:grid-cols-1" : "grid grid-cols-1 gap-x-8 sm:grid-cols-3 xl:grid-cols-1"}>
           {team.players.map((p) => (
-            <div key={p.userId} {...meP(p.userId)} className="me-hl relative flex border border-line bg-coal">
+            <div key={p.userId} {...meP(p.userId)} className="me-hl relative flex items-center gap-1 overflow-hidden border-b-2 border-dashed border-line py-3">
               <MeTag p={p.userId} corner />
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.avatar} alt="" className="size-24 object-cover" />
+              <img src={p.avatar} alt="" className="size-20 shrink-0 object-cover" />
               <div className="flex-1 p-3">
                 <div className="flex items-center gap-2 font-display font-black">
                   <a href={osuUser(p.userId)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">
@@ -91,7 +92,16 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
 
         <div className="mt-14 xl:mt-0">
         <SectionHeading mark="chevrons">{t.teams.matches}</SectionHeading>
-        <div className="space-y-4">{matches.length ? matches.map((m) => <MatchRow key={m.id} match={m} />) : <p className="text-sm text-ash">{t.teams.noMatches}</p>}</div>
+        {matches.length ? (
+          // the home page's small cards
+          <div className="grid grid-cols-1 gap-x-10 gap-y-4 md:grid-cols-2">
+            {matches.map((m, n) => (
+              <MatchRow key={m.id} match={m} small label={cardLabels(t, allMatches, m)} delay={0.2 + n * 0.06} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-ash">{t.teams.noMatches}</p>
+        )}
         </div>
       </Container>
     </>
