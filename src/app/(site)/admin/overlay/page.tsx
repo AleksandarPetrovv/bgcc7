@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
-import { Download, ExternalLink } from "lucide-react";
+import { Download, ExternalLink, Link2, Unlink } from "lucide-react";
 import { PageTitle, SlantButton } from "@/components/site/page";
 import { ActionForm, Field, Panel, labelCls } from "@/components/admin/form";
 import { CopyLink } from "@/components/admin/copy-link";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
-import { appOf, relayOnline } from "@/lib/relay";
+import { appOf, appRunning } from "@/lib/relay";
 import { userPath } from "@/lib/data";
 import { fill } from "@/lib/dates";
 import { siteUrl } from "@/lib/links";
@@ -14,14 +14,16 @@ import { cn } from "@/lib/utils";
 import { getFormat } from "@/db/edition";
 import { overlayName } from "@/db/stream";
 import { linkHelper, unlinkHelper } from "./actions";
+import { HelperPoll, LinkGate } from "../refapp/link-gate";
+import { helperSig } from "@/lib/helper-sig";
 
 export const dynamic = "force-dynamic";
 
 export default async function Overlay() {
   const [t, viewer] = await Promise.all([getDict(), getViewer()]);
   if (!viewer || !can(viewer.roles, "overlay")) notFound();
-  const [app, name] = await Promise.all([appOf(viewer.osuId), overlayName(viewer.osuId)]);
-  const online = relayOnline(viewer.osuId);
+  const [app, name, sig] = await Promise.all([appOf(viewer.osuId), overlayName(viewer.osuId), helperSig(viewer.osuId)]);
+  const online = appRunning(viewer.osuId);
   const o = t.admin.overlay;
   const r = t.admin.refApp;
   const url = `${siteUrl()}/overlay/${userPath(name ?? String(viewer.osuId))}`;
@@ -30,15 +32,18 @@ export default async function Overlay() {
   return (
     <>
       <PageTitle mark="layers">{t.admin.menu.overlay}</PageTitle>
+      <HelperPoll sig={sig} />
       <div className="grid max-w-3xl gap-6">
-        <Panel title={r.linkTitle} i={i++}>
-          <ActionForm action={linkHelper.bind(null, "overlay")} submit={r.link} className="flex flex-wrap items-end gap-3">
-            <label className={labelCls}>
-              {r.linkCode}
-              <Field name="code" required maxLength={64} autoComplete="off" spellCheck={false} placeholder={r.linkCodePh} className="w-64" />
-            </label>
-          </ActionForm>
-        </Panel>
+        <LinkGate linked={!!app}>
+          <Panel title={r.linkTitle} i={i++}>
+            <ActionForm action={linkHelper.bind(null, "overlay")} submit={r.link} icon={<Link2 className="size-4" />} className="flex flex-wrap items-end gap-3">
+              <label className={labelCls}>
+                {r.linkCode}
+                <Field name="code" required maxLength={64} autoComplete="off" spellCheck={false} className="w-64" />
+              </label>
+            </ActionForm>
+          </Panel>
+        </LinkGate>
         <Panel title={o.link} i={i++}>
           <div className="grid gap-4">
             <CopyLink url={url} />
@@ -54,10 +59,10 @@ export default async function Overlay() {
               <span className={online ? "text-paper" : "text-ash"}>{online ? r.online : app ? r.offline : r.none}</span>
             </span>
             <span className="ml-auto flex flex-wrap items-center gap-3">
-              <SlantButton href="/download/helper" download tone="paper">
+              <SlantButton href="/download/helper" download tone="rose">
                 <Download className="size-4" /> {r.download}
               </SlantButton>
-              {app && <ActionForm action={unlinkHelper} submit={r.unlink} ghost confirm={r.unlinkAsk} />}
+              {app && <ActionForm action={unlinkHelper} submit={r.unlink} ghost confirm={r.unlinkAsk} icon={<Unlink className="size-3.5" />} />}
             </span>
           </div>
         </Panel>
