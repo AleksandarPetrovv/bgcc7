@@ -52,10 +52,10 @@ export function Connections({ osu, discord, canLink = true }: { osu: { id: numbe
         name={osu.name}
       >
         <SlantButton tone="outline" href={osuUser(osu.id)} className={btn}>
-          {t.me.open} <ExternalLink className="size-3.5" />
+          <ExternalLink className="size-3.5" /> {t.me.open}
         </SlantButton>
         <SlantButton tone="outline" disabled={pending} onClick={() => start(() => logout())} className={btn}>
-          {t.nav.logout} <LogOut className="size-3.5" />
+          <LogOut className="size-3.5" /> {t.nav.logout}
         </SlantButton>
       </Row>
       {discord && (
@@ -71,14 +71,14 @@ export function Connections({ osu, discord, canLink = true }: { osu: { id: numbe
         >
           {!discord.name && (
             <SlantButton tone="outline" href={DISCORD_URL} className={btn}>
-              {d.join} <DiscordLogo className="size-3.5" />
+              <DiscordLogo className="size-3.5" /> {d.join}
             </SlantButton>
           )}
           <SlantButton tone={discord.name ? "outline" : "balkan"} disabled={!canLink} onClick={() => {
             setN((k) => k + 1);
             setOpen(true);
           }} className={btn}>
-            {discord.name ? <>{d.change} <Pencil className="size-3.5" /></> : <>{d.link} <Link2 className="size-3.5" /></>}
+            {discord.name ? <><Pencil className="size-3.5" /> {d.change}</> : <><Link2 className="size-3.5" /> {d.link}</>}
           </SlantButton>
           {discord.name && (
             <SlantButton
@@ -92,7 +92,7 @@ export function Connections({ osu, discord, canLink = true }: { osu: { id: numbe
               }
               className={btn}
             >
-              {d.unlink} <Unlink className="size-3.5" />
+              <Unlink className="size-3.5" /> {d.unlink}
             </SlantButton>
           )}
         </Row>

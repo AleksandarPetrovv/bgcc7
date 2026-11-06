@@ -1,14 +1,13 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { guard } from "@/lib/admin-action";
-import type { ActionResult } from "@/lib/roles";
+import { getViewer } from "@/lib/authz";
+import { can, type ActionResult } from "@/lib/roles";
 import { linkResult, unpair } from "@/lib/relay";
+import { helperSig } from "@/lib/helper-sig";
 
 export async function linkApp(_: ActionResult, fd: FormData) {
-  const res = await guard("matches", "refapp.link", async (osuId) => linkResult(fd, osuId));
-  if (res?.ok) redirect("/admin/refapp");
-  return res;
+  return guard("matches", "refapp.link", async (osuId) => linkResult(fd, osuId));
 }
 
 export async function unlinkApp() {
@@ -16,4 +15,10 @@ export async function unlinkApp() {
     await unpair(osuId);
     return { unlinked: true };
   });
+}
+
+export async function helperState() {
+  const v = await getViewer();
+  if (!v || !(can(v.roles, "matches") || can(v.roles, "overlay"))) return null;
+  return helperSig(v.osuId);
 }

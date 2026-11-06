@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
-import { Download } from "lucide-react";
+import { Download, Link2, Unlink } from "lucide-react";
+import { helperSig } from "@/lib/helper-sig";
+import { HelperPoll, LinkGate } from "./link-gate";
 import { PageTitle, SlantButton } from "@/components/site/page";
 import { ActionForm, Field, Panel, labelCls } from "@/components/admin/form";
 import { getViewer } from "@/lib/authz";
@@ -26,7 +28,7 @@ export default async function RefApp() {
   const irc = relayOnline(viewer.osuId);
   const r = t.admin.refApp;
   const streamer = can(viewer.roles, "overlay");
-  const [match, lang] = await Promise.all([streamer ? currentStreamMatch(viewer.osuId) : null, getLang()]);
+  const [match, lang, sig] = await Promise.all([streamer ? currentStreamMatch(viewer.osuId) : null, getLang(), helperSig(viewer.osuId)]);
   const live = match ? getLive(match.id) : null;
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const tile = "in-up flex min-w-0 flex-col gap-1.5 border border-line bg-ink/50 px-4 py-3";
@@ -35,31 +37,35 @@ export default async function RefApp() {
   return (
     <>
       <PageTitle mark="whistle">{t.admin.menu.refapp}</PageTitle>
+      <HelperPoll sig={sig} />
       <Cascade className="grid max-w-3xl gap-6 [--d:0.35s]" step={0.08}>
-        <Panel title={r.linkTitle} i={1}>
-          <ActionForm action={ref ? linkApp : linkHelper.bind(null, "refapp")} submit={r.link} className="flex flex-wrap items-end gap-3">
-            <label className={labelCls}>
-              {r.linkCode}
-              <Field name="code" required maxLength={64} autoComplete="off" spellCheck={false} placeholder={r.linkCodePh} className="w-64" />
-            </label>
-          </ActionForm>
-        </Panel>
-        <Panel title={t.admin.menu.refapp} i={2}>
-          <div className="flex flex-wrap items-center gap-4">
-            <span data-cascade className="in-left flex items-center gap-2.5 text-sm font-display font-bold">
-              <span className={cn("in-spin size-2.5 rotate-45", online ? "bg-balkan" : app ? "bg-gold" : "bg-line")} aria-hidden />
-              <span className={online ? "text-paper" : "text-ash"}>{online ? r.online : app ? r.offline : r.none}</span>
-            </span>
-            <span className="ml-auto flex flex-wrap items-center gap-3">
-              <span data-cascade className="in-right">
-                <SlantButton href="/download/helper" download tone="paper">
-                  <Download className="size-4" /> {r.download}
-                </SlantButton>
-              </span>
-              {app && <span data-cascade className="in-right"><ActionForm action={ref ? unlinkApp : unlinkHelper} submit={r.unlink} ghost confirm={r.unlinkAsk} /></span>}
-            </span>
-          </div>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <LinkGate linked={!!app}>
+          <Panel title={r.linkTitle} i={1}>
+            <ActionForm action={ref ? linkApp : linkHelper.bind(null, "refapp")} submit={r.link} icon={<Link2 className="size-4" />} className="flex flex-wrap items-end gap-3">
+              <label className={labelCls}>
+                {r.linkCode}
+                <Field name="code" required maxLength={64} autoComplete="off" spellCheck={false} className="w-64" />
+              </label>
+            </ActionForm>
+          </Panel>
+        </LinkGate>
+        <Panel
+          title={t.admin.menu.refapp}
+          i={2}
+          aside={
+            <>
+              <SlantButton href="/download/helper" download tone="rose">
+                <Download className="size-4" /> {r.download}
+              </SlantButton>
+              {app && <ActionForm action={ref ? unlinkApp : unlinkHelper} submit={r.unlink} ghost confirm={r.unlinkAsk} icon={<Unlink className="size-3.5" />} />}
+            </>
+          }
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div data-cascade className={tile}>
+              <span data-cascade className={k}>{r.status}</span>
+              <span className={cn("text-base font-display font-black", online ? "text-balkan-hi" : "text-ash")}>{online ? r.online : app ? r.offline : r.none}</span>
+            </div>
             <div data-cascade className={tile}>
               <span data-cascade className={k}>{r.account}</span>
               <span className="truncate text-base font-display font-black">{app?.ircName.replace(/_/g, " ") ?? "—"}</span>
@@ -74,7 +80,7 @@ export default async function RefApp() {
             </div>
             <div data-cascade className={tile}>
               <span data-cascade className={k}>{r.lastSeen}</span>
-              <span className="num text-base font-display font-black">{online ? r.online : app?.seenAt ? fmtSofia(app.seenAt, locale) : r.never}</span>
+              <span className="num text-base font-display font-black">{online ? r.now : app?.seenAt ? fmtSofia(app.seenAt, locale) : r.never}</span>
             </div>
             {ref && (
               <div data-cascade className={tile}>

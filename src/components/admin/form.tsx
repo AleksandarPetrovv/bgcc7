@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { useActionState, useRef, useState, useTransition } from "react";
 import { Flash } from "./flash";
+import { Modal } from "@/components/site/modal";
 import { Sparkle } from "@/components/site/graphics";
 import { useDict } from "@/components/site/lang";
 import type { ActionResult } from "@/lib/roles";
@@ -46,11 +47,15 @@ type Props = {
   submit?: string;
   ghost?: boolean;
   confirm?: string;
+  icon?: React.ReactNode;
 };
 
-export function ActionForm({ action, children, className, submit, ghost, confirm }: Props) {
+export function ActionForm({ action, children, className, submit, ghost, confirm, icon }: Props) {
   const t = useDict();
   const [state, formAction, pending] = useActionState(action, null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const confirmed = useRef(false);
+  const [ask, setAsk] = useState(false);
   const msg =
     state &&
     (state.ok
@@ -71,10 +76,26 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
                     ? t.admin.refApp.locked
                     : t.admin.error);
   return (
-    <form action={formAction} className={className} onSubmit={confirm ? (e) => !window.confirm(confirm) && e.preventDefault() : undefined}>
+    <form
+      ref={formRef}
+      action={formAction}
+      className={className}
+      onSubmit={
+        confirm
+          ? (e) => {
+              if (confirmed.current) confirmed.current = false;
+              else {
+                e.preventDefault();
+                setAsk(true);
+              }
+            }
+          : undefined
+      }
+    >
       {children}
       <div className="flex flex-wrap items-center gap-3">
         <Btn type="submit" disabled={pending} tone={ghost ? "outline" : "rose"} small={ghost}>
+          {icon}
           {pending ? t.admin.saving : (submit ?? t.admin.save)}
         </Btn>
         {msg &&
@@ -87,20 +108,33 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
             </span>
           ))}
       </div>
+      {confirm && (
+        <Confirm
+          open={ask}
+          text={confirm}
+          yes={submit ?? t.admin.save}
+          onYes={() => {
+            confirmed.current = true;
+            formRef.current?.requestSubmit();
+          }}
+          onClose={() => setAsk(false)}
+        />
+      )}
     </form>
   );
 }
 
-export function Panel({ title, help, children, className, i = 0 }: { title: string; help?: string; children: React.ReactNode; className?: string; i?: number }) {
+export function Panel({ title, help, aside, children, className, i = 0 }: { title: string; help?: string; aside?: React.ReactNode; children: React.ReactNode; className?: string; i?: number }) {
   return (
     <section className={cn("in-up relative", className)} style={{ "--i": i, "--s": "0.1s", "--d": "0.1s" } as React.CSSProperties}>
-      <div className="border-b border-line pb-3">
+      <div className={cn("border-b border-line pb-3", aside && "flex flex-wrap items-center gap-x-4 gap-y-3")}>
         <h2 className="heading-slam flex items-center gap-3 text-xl sm:text-2xl">
           <span className="in-left-far relative inline-flex size-3.5 shrink-0 [--d:0.25s]">
             <Sparkle className={cn("inset-0 size-full", ["text-rose-hi", "text-balkan-hi", "text-paper/60"][i % 3])} delay={i * 0.2} />
           </span>
           <span className="in-wipe min-w-0 break-words [--d:0.3s]">{title}</span>
         </h2>
+        {aside && <div className="in-right ml-auto flex flex-wrap items-center gap-3 [--d:0.35s]">{aside}</div>}
         {help && <p className="in-up mt-1 text-sm text-ash [--d:0.4s]">{help}</p>}
       </div>
       <div className="in-up pt-4 [--d:0.45s]">{children}</div>
@@ -132,29 +166,63 @@ export function IconAction({
   children: React.ReactNode;
 }) {
   const [pending, start] = useTransition();
+  const [ask, setAsk] = useState(false);
+  const run = () =>
+    start(async () => {
+      try {
+        await action();
+      } catch {
+        window.location.reload();
+      }
+    });
   return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      disabled={pending}
-      onClick={() => {
-        if (confirm && !window.confirm(confirm)) return;
-        start(async () => {
-          try {
-            await action();
-          } catch {
-            window.location.reload();
-          }
-        });
-      }}
-      className={cn(
-        "group inline-flex size-10 -skew-x-12 items-center justify-center border transition-[color,border-color,background-color,transform,translate,scale,rotate] duration-200 hover:-translate-y-0.5 disabled:opacity-50",
-        danger ? "border-rose/50 text-rose-hi hover:border-rose hover:bg-rose hover:text-white" : "border-line text-ash hover:border-paper/40 hover:bg-slate hover:text-paper",
-        bare && "border-transparent",
-      )}
-    >
-      <span className={cn("skew-x-12 transition-transform duration-200", pending && "animate-pulse")}>{children}</span>
-    </button>
+    <>
+      <button
+        type="button"
+        aria-label={label}
+        title={label}
+        disabled={pending}
+        onClick={() => (confirm ? setAsk(true) : run())}
+        className={cn(
+          "group relative isolate inline-flex size-10 items-center justify-center transition-[color,translate] duration-200 hover:-translate-y-0.5 disabled:opacity-50",
+          danger ? "text-rose-hi hover:text-white" : "text-ash hover:text-paper",
+        )}
+      >
+        <span
+          aria-hidden
+          className={cn(
+            "absolute inset-0 -z-10 -skew-x-12 border transition-[border-color,background-color] duration-200",
+            danger ? "border-rose/50 group-hover:border-rose group-hover:bg-rose" : "border-line group-hover:border-paper/40 group-hover:bg-slate",
+            bare && "border-transparent",
+          )}
+        />
+        <span className={cn(pending && "animate-pulse")}>{children}</span>
+      </button>
+      {confirm && <Confirm open={ask} text={confirm} yes={label} onYes={run} onClose={() => setAsk(false)} />}
+    </>
+  );
+}
+
+// centered in-site confirm instead of the browser's window.confirm
+function Confirm({ open, text, yes, onYes, onClose }: { open: boolean; text: string; yes: string; onYes: () => void; onClose: () => void }) {
+  const t = useDict();
+  return (
+    <Modal open={open} onClose={onClose}>
+      <p className="pr-8 text-base font-display font-black leading-snug text-paper">{text}</p>
+      <div className="mt-5 flex flex-wrap gap-3">
+        <Btn
+          type="button"
+          onClick={() => {
+            onClose();
+            onYes();
+          }}
+        >
+          {yes}
+        </Btn>
+        <Btn type="button" tone="outline" onClick={onClose}>
+          {t.sched.cancel}
+        </Btn>
+      </div>
+    </Modal>
   );
 }
