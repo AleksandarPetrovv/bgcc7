@@ -1,6 +1,6 @@
 import "server-only";
 import { isScene, type Scene } from "@/lib/scenes";
-import { type OverlayFeed, type FeedStep, type LiveScore } from "@/lib/overlay-types";
+import { type OverlayFeed, type FeedStep, type FeedTurn, type LiveScore } from "@/lib/overlay-types";
 import { sse } from "@/lib/sse";
 import { getPoolStages } from "@/db/mappools";
 import { poolFeed, scheduleFeed } from "@/lib/overlay-feed";
@@ -11,7 +11,7 @@ const TEAMS = [
   {
     id: "demo-1",
     name: "Shopska Salad",
-    image: "",
+    image: "https://a.ppy.sh/124493",
     players: [
       { id: 2, name: "peppy", avatar: "https://a.ppy.sh/2", rank: 1240, country: "AU" },
       { id: 124493, name: "Cookiezi", avatar: "https://a.ppy.sh/124493", rank: 312, country: "KR" },
@@ -20,7 +20,7 @@ const TEAMS = [
   {
     id: "demo-2",
     name: "Banitsa Gang",
-    image: "",
+    image: "https://a.ppy.sh/7562902",
     players: [
       { id: 4504101, name: "WhiteCat", avatar: "https://a.ppy.sh/4504101", rank: 58, country: "DE" },
       { id: 7562902, name: "mrekk", avatar: "https://a.ppy.sh/7562902", rank: 1, country: "AU" },
@@ -119,6 +119,7 @@ function demo(pin: Scene | null, startedAt: number): OverlayFeed {
   let winner: 1 | 2 | null = null;
   let rolls: [number | null, number | null] = [73, 41];
   let choice: "pick" | "ban" | null = "pick";
+  let turn: FeedTurn = null;
 
   if (scene === "intro") {
     rolls = [local >= 2 ? 73 : null, local >= 4.5 ? 41 : null];
@@ -129,6 +130,8 @@ function demo(pin: Scene | null, startedAt: number): OverlayFeed {
     const last = steps.at(-1);
     if (last?.kind === "pick" && last.winner === null) current = POOL.find((m) => m.slot === last.slot) ?? null;
     score = [steps.filter((x) => x.winner === 1).length, steps.filter((x) => x.winner === 2).length];
+    const next = STEPS[steps.length];
+    turn = next ? { kind: next.kind, team: next.team } : null;
   } else if (scene === "gameplay") {
     steps = STEPS;
     score = [1, 1];
@@ -162,6 +165,7 @@ function demo(pin: Scene | null, startedAt: number): OverlayFeed {
     steps,
     rolls,
     choice,
+    turn,
     current,
     live,
     scene,
