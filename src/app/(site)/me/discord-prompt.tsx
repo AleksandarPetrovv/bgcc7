@@ -67,42 +67,30 @@ export function DiscordPrompt({ open: ctl, onClose }: { open?: boolean; onClose?
             className="mt-5 flex flex-col items-center gap-4"
             onSubmit={(e) => {
               e.preventDefault();
-              if (code.length === 6 && !pending) verify(step.name);
+              if (code.trim() && !pending) verify(step.name);
             }}
           >
             <label className="sr-only" htmlFor="dc-code">
               {d.codeLabel}
             </label>
-            {/* one real input under 6 drawn boxes, so paste and one-time-code autofill keep working */}
-            <div className="group relative flex gap-2 px-2">
+            <span className={cn(wrap, "w-full", step.wrong && "border-rose")}>
               <input
                 id="dc-code"
                 value={code}
                 onChange={(e) => {
-                  setCode(e.target.value.replace(/\D/g, "").slice(0, 6));
+                  setCode(e.target.value);
                   if (step.wrong) setStep({ ...step, wrong: false });
                 }}
-                inputMode="numeric"
-                autoComplete="one-time-code"
+                placeholder="hvick225_595"
+                autoComplete="off"
+                autoCapitalize="off"
+                spellCheck={false}
                 autoFocus
-                maxLength={6}
-                className="peer absolute inset-0 z-10 w-full cursor-text opacity-0"
+                maxLength={64}
+                className={field}
               />
-              {Array.from({ length: 6 }, (_, i) => (
-                <span
-                  key={i}
-                  aria-hidden
-                  className={cn(
-                    "grid h-14 w-11 -skew-x-12 place-items-center border bg-ink transition-colors",
-                    step.wrong ? "border-rose" : "border-line",
-                    i === Math.min(code.length, 5) && "peer-focus:border-balkan",
-                  )}
-                >
-                  <span className="skew-x-12 font-display text-2xl font-black text-paper">{code[i] ?? ""}</span>
-                </span>
-              ))}
-            </div>
-            <SlantButton type="submit" tone="balkan" disabled={pending || code.length !== 6} className="px-8 py-2.5">
+            </span>
+            <SlantButton type="submit" tone="balkan" disabled={pending || !code.trim()} className="px-8 py-2.5">
               {pending ? d.checking : d.verify}
             </SlantButton>
           </form>
