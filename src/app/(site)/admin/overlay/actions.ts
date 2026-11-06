@@ -2,10 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { guard } from "@/lib/admin-action";
-import { confirmLink, unpair } from "@/lib/relay";
+import type { ActionResult } from "@/lib/roles";
+import { linkResult, unpair } from "@/lib/relay";
 
-export async function linkHelper(state: string, back: "refapp" | "overlay" = "refapp") {
-  const res = await guard("overlay", "overlay.link", async (osuId) => (confirmLink(state, osuId) ? { linked: true } : { ok: false, error: "invalid" }));
+export async function linkHelper(back: "refapp" | "overlay", _: ActionResult, fd: FormData) {
+  const res = await guard("overlay", "overlay.link", async (osuId) => linkResult(fd, osuId));
   if (res?.ok) redirect(back === "overlay" ? "/admin/overlay" : "/admin/refapp");
   return res;
 }

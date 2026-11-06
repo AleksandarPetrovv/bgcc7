@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import { Download, ExternalLink } from "lucide-react";
 import { PageTitle, SlantButton } from "@/components/site/page";
-import { ActionForm, Panel } from "@/components/admin/form";
+import { ActionForm, Field, Panel, labelCls } from "@/components/admin/form";
 import { CopyLink } from "@/components/admin/copy-link";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
-import { appOf, linkWord, relayOnline, validState } from "@/lib/relay";
+import { appOf, relayOnline } from "@/lib/relay";
 import { userPath } from "@/lib/data";
 import { fill } from "@/lib/dates";
 import { siteUrl } from "@/lib/links";
@@ -17,10 +17,9 @@ import { linkHelper, unlinkHelper } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function Overlay({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const [t, viewer, { link }] = await Promise.all([getDict(), getViewer(), searchParams]);
+export default async function Overlay() {
+  const [t, viewer] = await Promise.all([getDict(), getViewer()]);
   if (!viewer || !can(viewer.roles, "overlay")) notFound();
-  const st = typeof link === "string" && validState(link) ? link : null;
   const [app, name] = await Promise.all([appOf(viewer.osuId), overlayName(viewer.osuId)]);
   const online = relayOnline(viewer.osuId);
   const o = t.admin.overlay;
@@ -32,19 +31,14 @@ export default async function Overlay({ searchParams }: { searchParams: Promise<
     <>
       <PageTitle mark="layers">{t.admin.menu.overlay}</PageTitle>
       <div className="grid max-w-3xl gap-6">
-        {st && (
-          <Panel title={r.linkTitle} i={i++}>
-            <div className="space-y-5">
-              <div className="flex flex-wrap items-center gap-4">
-                <span className="in-pop inline-flex -skew-x-12 border border-rose bg-rose/10 px-5 py-2 shadow-[4px_4px_0_0_var(--rose-deep)]">
-                  <span className="num inline-block skew-x-12 text-4xl tracking-[0.2em] text-paper">{linkWord(st)}</span>
-                </span>
-                <span className="text-sm font-bold text-ash">{r.linkCode}</span>
-              </div>
-              <ActionForm action={linkHelper.bind(null, st, "overlay")} submit={r.link} />
-            </div>
-          </Panel>
-        )}
+        <Panel title={r.linkTitle} i={i++}>
+          <ActionForm action={linkHelper.bind(null, "overlay")} submit={r.link} className="flex flex-wrap items-end gap-3">
+            <label className={labelCls}>
+              {r.linkCode}
+              <Field name="code" required maxLength={64} autoComplete="off" spellCheck={false} placeholder={r.linkCodePh} className="w-64" />
+            </label>
+          </ActionForm>
+        </Panel>
         <Panel title={o.link} i={i++}>
           <div className="grid gap-4">
             <CopyLink url={url} />

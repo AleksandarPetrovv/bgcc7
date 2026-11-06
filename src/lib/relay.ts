@@ -1,5 +1,6 @@
 import "server-only";
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, randomInt } from "node:crypto";
+import { LINK_NAMES } from "./link-names";
 import { EventEmitter } from "node:events";
 import { and, eq } from "drizzle-orm";
 import { db, withEdition } from "@/db";
@@ -57,17 +58,60 @@ const store = () => (g.bgccRelay ??= { relays: new Map(), codes: new Map(), bus:
 const hash = (t: string) => createHash("sha256").update(t).digest("hex");
 export const ircKey = (n: string) => n.trim().toLowerCase().replace(/ /g, "_");
 
-const ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
 export const validState = (st: string) => /^[A-Za-z0-9_-]{32,64}$/.test(st);
-export const linkWord = (st: string) => [...createHash("sha256").update(st).digest().subarray(0, 4)].map((x) => ALPHA[x % 32]).join("");
 
-export function confirmLink(st: string, osuId: number) {
-  const { codes } = store();
-  for (const [k, v] of codes) if (v.exp < Date.now()) codes.delete(k);
-  if (!validState(st)) return false;
-  codes.set(st, { osuId, exp: Date.now() + 10 * 60_000 });
-  return true;
+// pairing: the helper asks for a short code, the staff member types it on the site. no link carries the state,
+// so nobody can send a ready-made "click to link" url. the secret state never leaves the helper except to us
+const LINK_TTL = 10 * 60_000;
+const MAX_PENDING = 2000;
+const MAX_FAILS = 5;
+type Pending = { state: string; code: string; exp: number };
+const gp = globalThis as unknown as { bgccLinkPending?: Map<string, Pending>; bgccLinkFails?: Map<number, { n: number; until: number }> };
+const pending = () => (gp.bgccLinkPending ??= new Map());
+const fails = () => (gp.bgccLinkFails ??= new Map());
+const codeKey = (c: string) => c.trim().toLowerCase();
+
+const sweep = () => {
+  const now = Date.now();
+  for (const [k, v] of pending()) if (v.exp < now) pending().delete(k);
+  for (const [k, v] of store().codes) if (v.exp < now) store().codes.delete(k);
+};
+
+export function startLink(st: string) {
+  if (!validState(st)) return null;
+  sweep();
+  for (const p of pending().values()) if (p.state === st) return p.code;
+  if (pending().size >= MAX_PENDING) return null;
+  for (let i = 0; i < 50; i++) {
+    const code = `${LINK_NAMES[randomInt(LINK_NAMES.length)]}_${String(randomInt(1000)).padStart(3, "0")}`;
+    if (pending().has(codeKey(code))) continue;
+    pending().set(codeKey(code), { state: st, code, exp: Date.now() + LINK_TTL });
+    return code;
+  }
+  return null;
+}
+
+export function linkResult(fd: FormData, osuId: number) {
+  const r = confirmCode(String(fd.get("code") ?? ""), osuId);
+  return r === "ok" ? { linked: true } : { ok: false, error: r === "locked" ? ("locked" as const) : ("wrongCode" as const) };
+}
+
+export function confirmCode(input: string, osuId: number): "ok" | "wrong" | "locked" {
+  const now = Date.now();
+  const f = fails().get(osuId) ?? { n: 0, until: 0 };
+  if (f.until > now) return "locked";
+  sweep();
+  const key = codeKey(String(input).slice(0, 64));
+  const hit = pending().get(key);
+  if (!hit) {
+    if (++f.n >= MAX_FAILS) Object.assign(f, { n: 0, until: now + LINK_TTL });
+    fails().set(osuId, f);
+    return f.until > now ? "locked" : "wrong";
+  }
+  pending().delete(key);
+  fails().delete(osuId);
+  store().codes.set(hit.state, { osuId, exp: Date.now() + LINK_TTL });
+  return "ok";
 }
 
 export async function claim(st: string, irc: string | null) {

@@ -5,6 +5,7 @@ export const ERR: Record<string, string> = {
   keyring: "Couldn't save the password on this PC; try again",
   wrongname: "That osu! account doesn't match the username you entered",
   timeout: "Took too long; try linking again",
+  nosite: "Couldn't reach the site; check your internet and try again",
   unpaired: "Link your osu! account again",
   noref: "This account has no ref role",
   nostream: "This account has no streaming role",
