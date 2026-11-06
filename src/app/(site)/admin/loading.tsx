@@ -7,7 +7,7 @@ export default function AdminLoading() {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         {[0, 1, 2, 3].map((i) => (
           <div key={i}>
-            <div className="border-b-2 border-dashed border-line pb-3">
+            <div className="border-b border-line pb-3">
               <div className="h-6 w-40 -skew-x-12 bg-slate" />
             </div>
             <div className="space-y-3 pt-4">

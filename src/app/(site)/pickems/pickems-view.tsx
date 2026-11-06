@@ -97,7 +97,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
       </PageTitle>
 
       <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:gap-4 lg:grid-cols-[2fr_1fr]">
-        <div className="grid grid-cols-3 border-b-2 border-dashed border-line sm:grid-cols-5">
+        <div className="grid grid-cols-3 border-b border-line sm:grid-cols-5">
           {points.map(([k, v], i) => (
             <div key={k} className="in-flip p-2.5 pl-0 last:col-span-2 sm:p-3 sm:pl-0 sm:last:col-span-1" style={{ "--i": i, "--s": "0.08s", "--d": "0.15s" } as React.CSSProperties}>
               <div className="min-h-[2lh] text-[0.6rem] font-display font-bold leading-tight text-ash sm:text-[0.65rem]">{k}</div>
@@ -108,7 +108,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
             </div>
           ))}
         </div>
-        <div className="in-right relative flex flex-wrap items-center gap-4 border-b-2 border-dashed border-line py-4 [--d:0.3s]">
+        <div className="in-right relative flex flex-wrap items-center gap-4 border-b border-line py-4 [--d:0.3s]">
           <span className="absolute -bottom-[7px] left-0 size-2.5 rotate-45 bg-rose shadow-[0_0_0_3px_var(--ink)]" aria-hidden />
           <div>
             <div className="text-[0.65rem] font-display font-bold text-rose-hi">{t.pickems.yourPicks}</div>
@@ -139,7 +139,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
       <div className="mx-auto mt-14 max-w-3xl">
         <SectionHeading>{t.pickems.leaderboard}</SectionHeading>
       {leaderboard.length ? (
-        <InView className="divide-y-2 divide-dashed divide-line">
+        <InView className="divide-y divide-line">
           {leaderboard.map((e, i) => (
             <div
               key={e.osuId}

@@ -34,7 +34,7 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
             <Field name="q" required maxLength={32} placeholder={t.admin.addPlaceholder} aria-label={t.admin.addPlaceholder} className={cn(inputCls, "flex-1 sm:max-w-sm")} />
           </ActionForm>
         </Panel>
-        <div className="in-right flex flex-col justify-center gap-3 border-l-2 border-dashed border-line xl:w-80 xl:pl-5 [--d:0.3s]">
+        <div className="in-right flex flex-col justify-center gap-3 border-l border-line xl:w-80 xl:pl-5 [--d:0.3s]">
           <ActionForm action={approveAllPending} submit={t.admin.approveAll} confirm={t.admin.confirmApproveAll} className="[&>div]:w-full [&_button]:min-h-14 [&_button]:w-full [&_button]:text-base" />
           <ActionForm action={refreshStats} submit={t.admin.refreshStats} ghost className="[&>div]:w-full [&_button]:min-h-14 [&_button]:w-full [&_button]:text-base" />
         </div>
@@ -67,13 +67,13 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
       />
 
       {shown.length ? (
-        <div className="border-t-2 border-dashed border-line">
+        <div className="border-t border-line">
           {shown.map((p, i) => (
             <ScreeningRow key={`${p.osuId}-${p.status}`} p={p} i={i} signedAt={fmtSofia(p.createdAt, locale)} />
           ))}
         </div>
       ) : (
-        <p className="border-y-2 border-dashed border-line py-4 text-sm text-ash">{t.admin.noRegs}</p>
+        <p className="border-y border-line py-4 text-sm text-ash">{t.admin.noRegs}</p>
       )}
     </>
   );

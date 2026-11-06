@@ -58,7 +58,7 @@ export default async function Streams() {
               const a = teamById(m.team1.id);
               const b = teamById(m.team2.id);
               return (
-                <div key={m.id} {...meT(a?.id)} className="in-right border-b-2 border-dashed border-line py-3 last:border-b-0" style={{ "--i": Math.min(i, 8), "--s": "0.08s", "--d": "0.35s" } as React.CSSProperties}>
+                <div key={m.id} {...meT(a?.id)} className="in-right border-b border-line py-3 last:border-b-0" style={{ "--i": Math.min(i, 8), "--s": "0.08s", "--d": "0.35s" } as React.CSSProperties}>
                   <div className="flex items-center justify-between text-xs font-display font-bold">
                     <span className="text-rose-hi">{roundName(t, m.round)}</span>
                     <span className="num text-sm text-paper">{fmtSofia(new Date(m.datetime!), lang === "bg" ? "bg-BG" : "en-GB")}</span>

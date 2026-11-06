@@ -63,7 +63,7 @@ export default async function Lobbies() {
                     <span className="in-pop num text-4xl leading-none" style={dv(base + 0.25)}>{fmtSofiaTime(l.startsAt)}</span>
                     <span className="mt-1 text-[0.65rem] font-display font-bold">{tzLabel(l.startsAt)}</span>
                   </div>
-                  <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 border-l-2 border-dashed border-ink px-4 py-3">
+                  <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 border-l border-ink px-4 py-3">
                     <div className="flex items-baseline justify-between gap-3">
                       <h3 className="heading-slam min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-2xl">
                         <Letters text={l.name} d={base + 0.3} />

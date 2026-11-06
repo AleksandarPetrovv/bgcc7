@@ -24,7 +24,7 @@ export function ScreeningRow({ p, signedAt, i }: { p: RegRow; signedAt: string; 
     p.accuracy !== null && `${p.accuracy.toFixed(2)}%`,
   ].filter(Boolean);
   return (
-    <InView self className="in-left-far border-b-2 border-dashed border-line" style={{ "--i": i < 12 ? i : 0, "--s": "0.05s", "--d": "0.35s" } as React.CSSProperties}>
+    <InView self className="in-left-far border-b border-line" style={{ "--i": i < 12 ? i : 0, "--s": "0.05s", "--d": "0.35s" } as React.CSSProperties}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {p.avatarUrl && <img src={p.avatarUrl} alt="" className="in-spin size-10 [--d:0.45s]" />}
@@ -46,7 +46,7 @@ export function ScreeningRow({ p, signedAt, i }: { p: RegRow; signedAt: string; 
         </div>
         <ActionForm action={removeRegistration.bind(null, p.osuId)} submit={t.admin.removeReg} ghost confirm={t.admin.confirmRemoveReg} className="ml-auto" />
       </div>
-      <form action={action} className={cn("in-up flex flex-wrap items-center gap-2 border-t border-dashed border-line py-2.5 [--d:0.65s]", pending && "opacity-60")}>
+      <form action={action} className={cn("in-up flex flex-wrap items-center gap-2 border-t border-line py-2.5 [--d:0.65s]", pending && "opacity-60")}>
         <Field name="note" defaultValue={p.note ?? ""} maxLength={300} placeholder={t.admin.note} aria-label={t.admin.note} className={cn(inputCls, "w-full sm:w-auto sm:min-w-40 sm:flex-1")} />
         <Btn name="status" value={p.status} disabled={pending} tone="outline" small>
           {t.admin.save}

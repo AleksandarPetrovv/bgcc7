@@ -147,7 +147,7 @@ export function DiscordPrompt({ open: ctl, onClose }: { open?: boolean; onClose?
               {pending ? d.checking : d.check}
             </SlantButton>
           </form>
-          <div className="mt-6 flex flex-col items-center gap-2.5 border-t border-dashed border-line pt-5 text-center">
+          <div className="mt-6 flex flex-col items-center gap-2.5 border-t border-line pt-5 text-center">
             <p className="text-xs font-display font-bold text-paper">{d.need}</p>
             <SlantButton tone="balkan" href={DISCORD_URL}>
               {t.common.discord}

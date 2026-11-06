@@ -66,7 +66,7 @@ export default async function AdminLobbies() {
       </Panel>
 
       {free.length > 0 && (
-        <p className="in-left mb-4 border-y-2 border-dashed border-line py-3 text-sm [--d:0.35s]">
+        <p className="in-left mb-4 border-y border-line py-3 text-sm [--d:0.35s]">
           <span className="font-black text-rose-hi">{t.admin.notBooked(free.length)}:</span>{" "}
           <span className="text-ash">{free.map((r) => r.username).join(", ")}</span>
         </p>
@@ -74,7 +74,7 @@ export default async function AdminLobbies() {
 
       <div className="space-y-8">
         {lobbies.map((l, n) => (
-          <InView as="section" self scrub key={l.id} className="sr in-up relative border-b-2 border-dashed border-line" style={{ "--i": n < 6 ? n : 0, "--s": "0.1s", "--d": "0.3s" } as React.CSSProperties}>
+          <InView as="section" self scrub key={l.id} className="sr in-up relative border-b border-line" style={{ "--i": n < 6 ? n : 0, "--s": "0.1s", "--d": "0.3s" } as React.CSSProperties}>
             <RuleDiamond />
             <div className="flex flex-wrap items-center gap-3 border-b border-line pb-3">
               <span className="sr in-wipe heading-slam text-2xl [--d:0.45s]">{l.name}</span>
@@ -91,7 +91,7 @@ export default async function AdminLobbies() {
               </ActionForm>
 
               {l.players.length > 0 && (
-                <ul className="divide-y divide-dashed divide-line border-y-2 border-dashed border-line">
+                <ul className="divide-y divide-line border-y border-line">
                   {l.players.map((p, k) => (
                     <li key={p.osuId} style={{ "--i": k, "--s": "0.05s", "--d": "0.7s" } as React.CSSProperties} className="sr in-left flex flex-wrap items-center gap-3 py-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}

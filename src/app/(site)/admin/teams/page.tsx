@@ -63,8 +63,8 @@ export default async function AdminTeams() {
           {ranked.length === 0 ? (
             <p className="text-sm text-ash">{t.admin.noRegs}</p>
           ) : (
-            <Cascade className="border-y-2 border-dashed border-line" step={0.03}>
-              <div className={cn(bwsGrid, "border-b-2 border-dashed border-line py-2 text-[0.62rem] font-display font-bold text-ash")}>
+            <Cascade className="border-y border-line" step={0.03}>
+              <div className={cn(bwsGrid, "border-b border-line py-2 text-[0.62rem] font-display font-bold text-ash")}>
                 <span className="text-right">#</span>
                 <span>{t.admin.player}</span>
                 <span className="text-center">{t.admin.tierCol}</span>
@@ -72,7 +72,7 @@ export default async function AdminTeams() {
                 <span className="hidden text-center sm:block">{t.admin.badges}</span>
                 <span className="text-center">BWS</span>
               </div>
-              <ol className="divide-y divide-dashed divide-line">
+              <ol className="divide-y divide-line">
                 {ranked.map((p, i) => {
                   const tier = p.bws === null || i >= need ? 0 : i < f.teams ? 1 : 2;
                   return (
@@ -138,10 +138,10 @@ export default async function AdminTeams() {
         </Panel>
       </div>
 
-      {teams.length === 0 && <p className="border-b-2 border-dashed border-line py-4 text-sm text-ash">{t.admin.noTeams}</p>}
+      {teams.length === 0 && <p className="border-b border-line py-4 text-sm text-ash">{t.admin.noTeams}</p>}
       <div className="grid grid-cols-1 gap-x-8 gap-y-8 2xl:grid-cols-2">
         {teams.map((team, n) => (
-          <section key={team.id} className="in-up relative border-b-2 border-dashed border-line" style={{ "--i": Math.min(n, 16), "--s": "0.07s", "--d": "0.2s" } as React.CSSProperties}>
+          <section key={team.id} className="in-up relative border-b border-line" style={{ "--i": Math.min(n, 16), "--s": "0.07s", "--d": "0.2s" } as React.CSSProperties}>
             <RuleDiamond />
             <div className="flex items-center gap-3 border-b border-line pb-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -193,7 +193,7 @@ export default async function AdminTeams() {
                 )}
               </ActionForm>
 
-              <ul className="divide-y divide-dashed divide-line border-y-2 border-dashed border-line">
+              <ul className="divide-y divide-line border-y border-line">
                 {team.players.map((p) => (
                   <li key={p.userId} className="flex flex-wrap items-center gap-2 py-2 text-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}

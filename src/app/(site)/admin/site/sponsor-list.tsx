@@ -24,7 +24,7 @@ function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
       layout="position"
       whileDrag={{ scale: 1.02, boxShadow: "6px 6px 0 0 var(--rose-deep)", zIndex: 10 }}
       data-cascade
-      className="in-left relative border-b-2 border-dashed border-line bg-ink"
+      className="in-left relative border-b border-line bg-ink"
     >
       <div className="flex items-center gap-3 py-2.5">
         <button
@@ -74,7 +74,7 @@ function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
-            <ActionForm action={updateSponsor.bind(null, s.id)} className="flex items-center gap-3 border-t border-dashed border-line py-3">
+            <ActionForm action={updateSponsor.bind(null, s.id)} className="flex items-center gap-3 border-t border-line py-3">
               <Field name="q" required defaultValue={s.url ?? s.name} aria-label={t.admin.sponsorQ} className={cn(inputCls, "flex-1")} />
             </ActionForm>
           </motion.div>
@@ -110,7 +110,7 @@ export function SponsorList({ sponsors }: { sponsors: Sponsor[] }) {
           latest.current = v;
           setItems(v);
         }}
-        className={cn("border-t-2 border-dashed border-line", pending && "opacity-70")}
+        className={cn("border-t border-line", pending && "opacity-70")}
       >
         {items.map((s, i) => (
           <Row key={s.id} s={s} i={i} onDrop={commit} />

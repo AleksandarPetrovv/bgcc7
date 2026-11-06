@@ -14,7 +14,12 @@ import { cn } from "@/lib/utils";
 import { at, Letters } from "@/components/site/rich";
 import { belowFold } from "@/components/site/in-view";
 import { RuleDiamond } from "@/components/site/rule";
+import { AnimatePresence, motion } from "motion/react";
+import { EASE } from "@/components/site/motion";
 import { accept, propose, withdraw } from "./actions";
+
+const reveal = { initial: { height: 0, opacity: 0 }, animate: { height: "auto", opacity: 1 }, exit: { height: 0, opacity: 0 }, transition: { duration: 0.4, ease: EASE } };
+const fade = { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -8 }, transition: { duration: 0.25, ease: EASE } };
 
 export type Side = { id: string; name: string; image: string; players: number[] };
 type Week = { deadline: string; min: string; max: string } | null;
@@ -63,10 +68,16 @@ function Picker({ open, onClose, week, title, onSend }: { open: boolean; onClose
             max={week.max}
             step={300}
             onChange={(e) => setVal(e.target.value)}
-            className="w-full min-w-0 skew-x-12 border-0 bg-transparent px-4 text-base text-paper outline-none [color-scheme:light]"
+            className="num w-full min-w-0 skew-x-12 border-0 bg-transparent px-4 text-base text-paper outline-none [color-scheme:light] [&::-webkit-datetime-edit-fields-wrapper]:p-0 [&::-webkit-datetime-edit-text]:px-px"
           />
         </span>
-        {err && <p className="text-sm font-bold text-rose-hi">{err}</p>}
+        <AnimatePresence initial={false}>
+          {err && (
+            <motion.p key={err} {...reveal} className="overflow-hidden text-sm font-bold text-rose-hi">
+              {err}
+            </motion.p>
+          )}
+        </AnimatePresence>
         <div className="flex flex-wrap gap-3">
           <SlantButton type="submit" disabled={pending} className="px-6 py-2.5">
             {pending ? "…" : t.sched.send}
@@ -89,22 +100,39 @@ function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
   const of = (osu: number | null) => (osu == null ? "" : me.players.includes(osu) ? me.name : opp.name);
   const label = (p: Proposal) =>
     p.status === "rejected" ? st.rejected(other(p.teamId)) : p.status === "cancelled" ? (p.staff || p.answeredBy == null ? st.staff : st.cancelled(of(p.answeredBy))) : p.status === "staff" ? st.set : st[p.status];
+  const [open, setOpen] = useState(true);
   if (!list.length) return null;
   return (
-    <details className="group border-t-2 border-dashed border-line" open>
-      <summary style={at(1.5)} className="in-up in-slow flex cursor-pointer list-none items-center gap-2 py-3 text-[0.7rem] font-display font-bold text-ash hover:text-paper sm:px-5">
-        {t.sched.history} <ChevronDown className="size-3.5 transition-transform group-open:rotate-180" />
-      </summary>
-      <ol className="grid gap-1.5 pb-4">
-        {list.map((p, k) => (
-          <li key={p.id} style={at(1.6, k, 0.08)} className="in-left in-slow flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-sm">
-            <span className={cn("num", p.status === "rejected" || p.status === "cancelled" ? "text-ash line-through" : "text-paper")}>{w.full(p.at)}</span>
-            <span className="font-display text-sm font-bold text-ash">{team(p.teamId)}</span>
-            <span className={cn("ml-auto text-[0.68rem] font-display font-bold", p.status === "accepted" ? "text-balkan-hi" : p.status === "pending" ? "text-gold-hi" : "text-rose-hi/80")}>{label(p)}</span>
-          </li>
-        ))}
-      </ol>
-    </details>
+    <div className="border-t border-line">
+      <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} style={at(1.5)} className="in-up in-slow flex items-center gap-2 py-3 text-[0.7rem] font-display font-bold text-ash hover:text-paper">
+        {t.sched.history} <ChevronDown className={cn("size-3.5 transition-transform duration-300", open && "rotate-180")} />
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div {...reveal} className="overflow-hidden">
+            <ol className="grid gap-1.5 pb-4">
+              <AnimatePresence initial={false}>
+                {list.map((p, k) => (
+                  <motion.li
+                    key={p.id}
+                    layout="position"
+                    initial={{ opacity: 0, x: -16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, ease: EASE }}
+                    style={at(1.6, k, 0.08)}
+                    className="in-left in-slow flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-sm"
+                  >
+                    <span className={cn("num transition-colors duration-500", p.status === "rejected" || p.status === "cancelled" ? "text-ash line-through" : "text-paper")}>{w.full(p.at)}</span>
+                    <span className="font-display text-sm font-bold text-ash">{team(p.teamId)}</span>
+                    <span className={cn("ml-auto text-[0.68rem] font-display font-bold transition-colors duration-500", p.status === "accepted" ? "text-balkan-hi" : p.status === "pending" ? "text-gold-hi" : "text-rose-hi/80")}>{label(p)}</span>
+                  </motion.li>
+                ))}
+              </AnimatePresence>
+            </ol>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -164,18 +192,20 @@ export function SchedCard({ m, round, me, opp, week, open, readOnly = false, n =
   return (
     <article
       ref={ref}
-      className={cn("in-up in-slow relative border-b-2 border-dashed border-line pb-2", settled && "no-intro")}
+      className={cn("in-up in-slow relative border-b-2 border-dashed border-line", settled && "no-intro")}
       style={{ "--d": "0s", "--i": n, "--s": "0.15s", "--cd": `${n * 0.15}s` } as React.CSSProperties}
     >
       <RuleDiamond />
       <div style={at(0.15)} className="in-up in-slow flex items-center gap-3 border-b border-line pb-2.5">
         <span className="size-2 shrink-0 rotate-45 bg-rose" aria-hidden />
         <Letters text={round} d={L} className="text-xs font-display font-bold text-rose-hi" />
-        {agreed && (
-          <span className="ml-auto inline-flex items-center gap-1 text-[0.68rem] font-display font-bold text-balkan-hi">
-            <Check className="size-3.5" strokeWidth={3} /> {t.sched.agreed}
-          </span>
-        )}
+        <AnimatePresence initial={false}>
+          {agreed && (
+            <motion.span key="ok" {...fade} className="ml-auto inline-flex items-center gap-1 text-[0.68rem] font-display font-bold text-balkan-hi">
+              <Check className="size-3.5" strokeWidth={3} /> {t.sched.agreed}
+            </motion.span>
+          )}
+        </AnimatePresence>
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 py-5 sm:gap-5">
         <div style={at(0.3)} className="in-left-far in-slow min-w-0">
@@ -187,8 +217,10 @@ export function SchedCard({ m, round, me, opp, week, open, readOnly = false, n =
         </div>
       </div>
 
-      <div className="border-t-2 border-dashed border-line py-5 text-center">
-        <p className={cn("num text-paper", agreed ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl")}><Letters text={agreed ? w.full(agreed) : t.common.tbd} d={L} s={0.02} /></p>
+      <div className="border-t border-line py-5 text-center">
+        <AnimatePresence initial={false} mode="wait">
+          <motion.p key={agreed ?? "tbd"} {...fade} className={cn("num text-paper", agreed ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl")}><Letters text={agreed ? w.full(agreed) : t.common.tbd} d={L} s={0.02} /></motion.p>
+        </AnimatePresence>
 
         {!week ? (
           <p className="mt-4 text-sm font-display font-bold text-ash"><Letters text={t.sched.noWeek} d={L} s={0.01} /></p>
@@ -202,19 +234,24 @@ export function SchedCard({ m, round, me, opp, week, open, readOnly = false, n =
             <div style={at(0.1)} className="in-up mt-1 flex justify-center">
               <Countdown to={week.deadline} />
             </div>
-            <p className="mt-1 text-xs font-display font-bold text-ash"><Letters text={w.full(week.deadline)} d={L} s={0.01} /></p>
+            <p className="mt-4 text-xs font-display font-bold text-ash"><Letters text={w.full(week.deadline)} d={L} s={0.01} /></p>
           </div>
         )}
 
-        {week && open && pend && (
-          <div style={at(1.1)} className={cn("in-up in-slow mx-auto mt-5 max-w-md border px-4 py-3", theirs ? "border-gold bg-gold/10" : "border-line")}>
-            <p className="text-xs font-display font-bold text-ash">{theirs ? t.sched.proposed(opp.name) : t.sched.waitingOn(opp.name)}</p>
-            <p className="num mt-1 text-2xl text-paper">{w.full(pend.at)}</p>
-          </div>
-        )}
+        <AnimatePresence initial={false}>
+          {week && open && pend && (
+            <motion.div key={pend.id} {...reveal} className="overflow-hidden">
+              <div style={at(1.1)} className={cn("in-up in-slow mx-auto mt-5 max-w-md border px-4 py-3 transition-colors duration-500", theirs ? "border-gold bg-gold/10" : "border-line")}>
+                <p className="text-xs font-display font-bold text-ash">{theirs ? t.sched.proposed(opp.name) : t.sched.waitingOn(opp.name)}</p>
+                <p className="num mt-1 text-2xl text-paper">{w.full(pend.at)}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {week && open && !readOnly && (
-          <div className="mt-5 flex flex-wrap justify-center gap-3">
+          <AnimatePresence initial={false} mode="wait">
+          <motion.div key={theirs ? "t" : agreed ? (pend ? "ap" : "a") : pend ? "p" : "n"} {...fade} className="mt-5 flex flex-wrap justify-center gap-3">
             {theirs ? (
               <>
                 <span className="in-up in-slow inline-flex" style={at(1.25, 0, 0.1)}>
@@ -255,9 +292,16 @@ export function SchedCard({ m, round, me, opp, week, open, readOnly = false, n =
                 </SlantButton>
               </span>
             )}
-          </div>
+          </motion.div>
+          </AnimatePresence>
         )}
-        {err && <p className="mt-3 text-sm font-bold text-rose-hi">{err}</p>}
+        <AnimatePresence initial={false}>
+          {err && (
+            <motion.p key={err} {...reveal} className="overflow-hidden text-sm font-bold text-rose-hi">
+              <span className="block pt-3">{err}</span>
+            </motion.p>
+          )}
+        </AnimatePresence>
       </div>
 
       <History list={m.history} me={me} opp={opp} />

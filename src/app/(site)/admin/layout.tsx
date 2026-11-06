@@ -29,9 +29,9 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
     <div className="adm mx-auto flex w-full max-w-page flex-col gap-6 px-4 pb-16 pt-6 sm:px-6 lg:flex-row lg:gap-10 lg:px-10 lg:pt-10 2xl:gap-14 2xl:px-14">
       <aside className="shrink-0 lg:sticky lg:top-[104px] lg:max-h-[calc(100dvh-128px)] lg:w-72 lg:self-start lg:overflow-y-auto lg:overscroll-contain">
-        <div className="relative border-b-2 border-dashed border-line pb-2">
+        <div className="relative border-b border-line pb-2">
           <RuleDiamond />
-          <div className="relative hidden border-b-2 border-dashed border-line pb-5 pt-1 lg:block">
+          <div className="relative hidden border-b border-line pb-5 pt-1 lg:block">
             <span className="anim-twinkle absolute right-5 top-4 text-lg text-rose-hi" aria-hidden>
               ✦
             </span>

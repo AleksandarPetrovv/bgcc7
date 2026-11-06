@@ -15,7 +15,7 @@ import { clearCache, saveMatch } from "./actions";
 import { osuMp } from "@/lib/links";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
-const group = "relative border-t-2 border-dashed border-line pt-5";
+const group = "relative border-t border-line pt-5";
 
 function Legend({ children }: { children: React.ReactNode }) {
   return (
@@ -65,7 +65,7 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
   return (
     <details
       data-cascade
-      className="adm-match group in-left relative border-b-2 border-dashed border-line transition-colors duration-200 hover:border-paper/25 open:border-paper/30"
+      className="adm-match group in-left relative border-b border-line transition-colors duration-200 hover:border-paper/25 open:border-paper/30"
     >
       <summary className="relative flex cursor-pointer list-none items-center gap-3 py-3 pl-4 pr-3 [&::-webkit-details-marker]:hidden">
         <span className={cn("absolute inset-y-0 left-0 w-1", tone)} aria-hidden />
@@ -144,7 +144,7 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
         </span>
       </summary>
 
-      <div className="border-t border-dashed border-line pb-5 pl-4 pt-6">
+      <div className="border-t border-line pb-5 pl-4 pt-6">
         <ActionForm key={JSON.stringify(m)} action={saveMatch.bind(null, m.id)} className="space-y-5">
           <input type="hidden" name="stamp" value={matchStamp(m)} />
           <div className="grid gap-5 lg:grid-cols-[1.25fr_1fr]">
@@ -241,7 +241,7 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
         </ActionForm>
 
         {mp.length > 0 && (
-          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-dashed border-line pt-4">
+          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
             <Link
               href={`/admin/matches/${matchSlug(f, m.id)}`}
               className="group relative isolate inline-flex min-h-10 items-center px-4 text-xs font-display font-bold text-on-fill hover:text-ink"

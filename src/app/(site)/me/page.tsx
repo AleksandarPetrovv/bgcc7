@@ -394,7 +394,7 @@ export default async function Me() {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2 border-y-2 border-dashed border-line sm:grid-cols-4">
+        <div className="grid grid-cols-2 border-y border-line sm:grid-cols-4">
           <Info icon={CalendarClock} k={t.me.when} n={m.datetime ? fmt(m.datetime) : t.common.tbd} i={0} />
           <Info icon={Flag} k={t.me.referee} n={m.referee ?? t.common.tbd} i={1} />
           <Info icon={Video} k={t.me.stream} n={m.streamer ?? t.common.tbd} i={2} />

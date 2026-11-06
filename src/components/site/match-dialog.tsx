@@ -132,7 +132,7 @@ export function Costs({ data, names, finished }: { data: Scoreboard; names: (str
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {([1, 2] as const).map((k) => (
           <div key={k} className={cn("border-l-[3px] pl-3", TEAM[k - 1])}>
-            <div className={cn("flex items-center gap-2 border-b-2 border-dashed border-line pb-2 text-xs font-display font-black", TEAM_TEXT[k - 1])}>
+            <div className={cn("flex items-center gap-2 border-b border-line pb-2 text-xs font-display font-black", TEAM_TEXT[k - 1])}>
               <span className="size-2 shrink-0 rotate-45 bg-current" aria-hidden />
               {names[k - 1]}
             </div>
@@ -143,7 +143,7 @@ export function Costs({ data, names, finished }: { data: Scoreboard; names: (str
                   <li
                     key={r.id}
                     {...meP(r.id)}
-                    className={cn("flex items-center gap-3 border-b border-dashed border-line py-2 last:border-b-0", k === 1 ? "in-left" : "in-right")}
+                    className={cn("flex items-center gap-3 border-b border-line py-2 last:border-b-0", k === 1 ? "in-left" : "in-right")}
                     style={v({ "--i": n, "--s": "0.07s", "--d": "0.55s" })}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -180,7 +180,7 @@ function Board({ match, data, names }: { match: Match; data: Scoreboard; names: 
           {data.lobbies.length > 1 && (i === 0 || played[i - 1].lobby !== m.lobby) && (
             <div className="mb-3 mt-1 flex items-center gap-3 text-xs font-display font-bold text-ash">
               {t.match.lobby(m.lobby + 1)}
-              <span className="h-px flex-1 border-t-2 border-dashed border-line" />
+              <span className="h-px flex-1 border-t border-line" />
               <span className="size-2 shrink-0 rotate-45 bg-rose" aria-hidden />
             </div>
           )}
@@ -275,7 +275,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
         </DialogTrigger>
         <DialogContent className="mdlg max-h-[88dvh] grid-cols-[minmax(0,1fr)] content-start gap-0 overflow-y-auto overflow-x-hidden [-webkit-overflow-scrolling:touch] [touch-action:pan-y] rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
           {/* -top-px + the upward shadow close the sliver that let scrolled maps peek above the header */}
-          <div className="sticky -top-px z-10 min-w-0 border-b-2 border-dashed border-line bg-ink px-3 py-3 shadow-[0_-8px_0_0_var(--ink)] sm:px-5 sm:py-4">
+          <div className="sticky -top-px z-10 min-w-0 border-b border-line bg-ink px-3 py-3 shadow-[0_-8px_0_0_var(--ink)] sm:px-5 sm:py-4">
             <DialogTitle className="in-wipe pr-8 text-xs font-display font-bold text-rose-hi" style={v({ "--d": "0.1s" })}>
               {roundName(t, match.round)}
             </DialogTitle>
@@ -321,7 +321,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
           {data === null ? (
             <div className="space-y-4 p-3 sm:p-5" aria-busy>
               {[0, 1, 2].map((k) => (
-                <div key={k} className="in-up relative h-40 overflow-hidden border-b-2 border-dashed border-line" style={v({ "--i": k, "--s": "0.1s" })}>
+                <div key={k} className="in-up relative h-40 overflow-hidden border-b border-line" style={v({ "--i": k, "--s": "0.1s" })}>
                   <span className="mdlg-shine absolute inset-0" style={{ animationDelay: `${k * 0.15}s` }} />
                   <span className="absolute left-3.5 top-3 h-6 w-12 -skew-x-12 bg-slate" />
                   <span className="absolute left-20 top-3.5 h-3 w-1/2 bg-slate" />

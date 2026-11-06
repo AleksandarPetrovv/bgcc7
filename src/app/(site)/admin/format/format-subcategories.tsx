@@ -18,7 +18,7 @@ function SubRow({ item, group, onName, onRemove }: { item: SubItem; group: strin
   const drag = useDragControls();
   const fresh = useFresh();
   return (
-    <Reorder.Item value={item} data-cascade={fresh || undefined} dragListener={false} dragControls={drag} whileDrag={{ scale: 1.02, boxShadow: "4px 4px 0 0 var(--rose-deep)", zIndex: 10 }} className={cn("relative flex items-center border-b border-dashed border-line bg-ink", fresh && "in-left")}>
+    <Reorder.Item value={item} data-cascade={fresh || undefined} dragListener={false} dragControls={drag} whileDrag={{ scale: 1.02, boxShadow: "4px 4px 0 0 var(--rose-deep)", zIndex: 10 }} className={cn("relative flex items-center border-b border-line bg-ink", fresh && "in-left")}>
       <input value={item.name} readOnly={!edit} maxLength={80} aria-label={`${group}: ${t.admin.fp.subcategory}`} onChange={(e) => onName(e.target.value)} className="min-w-0 flex-1 bg-transparent px-2 py-2 text-xs font-display font-semibold outline-none focus:text-rose-hi" />
       {edit && (
         <>
@@ -43,9 +43,9 @@ export function SubcategoryEditor({ groups, onChange }: { groups: SubcategoryGro
     onChange(groups.filter((g) => g.id !== group.id));
   };
   const intro = useIntroWindow();
-  return <Intro.Provider value={intro}><Cascade step={0.01} className="[--d:0.2s]"><section className="relative border-b-2 border-dashed border-line">
+  return <Intro.Provider value={intro}><Cascade step={0.01} className="[--d:0.2s]"><section className="relative border-b border-line">
     <RuleDiamond />
-    <header className="flex flex-wrap items-center gap-3 border-b-2 border-dashed border-line pb-3">
+    <header className="flex flex-wrap items-center gap-3 border-b border-line pb-3">
       <h2 data-cascade className="in-wipe heading-slam flex-1 text-2xl">{t.admin.fp.subcategories}</h2>
       {edit && groups.length < 16 && (
         <button

@@ -219,7 +219,7 @@ export function LobbyHelp({ onClose }: { onClose: () => void }) {
               </motion.li>
             ))}
           </ul>
-          <div className="mt-7 border-t border-dashed border-line pt-5">
+          <div className="mt-7 border-t border-line pt-5">
             <div className="text-[0.7rem] font-display font-bold text-ash">{t.lobby.helpExtra}</div>
             <ul className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
               {t.lobby.helpCmds.map(([cmd, what]) => (

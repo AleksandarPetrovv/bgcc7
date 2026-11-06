@@ -15,7 +15,7 @@ import { DiscordPrompt } from "./discord-prompt";
 
 function Row({ avatar, platform, name, n, children }: { avatar: string | null; platform: React.ReactNode; name: React.ReactNode; n: number; children: React.ReactNode }) {
   return (
-    <div style={at(0.3, n, 0.15)} className="in-left in-slow relative flex grow flex-wrap items-center gap-x-4 gap-y-3 overflow-hidden border-b-2 border-dashed border-line py-4 last:border-b-0">
+    <div style={at(0.3, n, 0.15)} className="in-left in-slow relative flex grow flex-wrap items-center gap-x-4 gap-y-3 overflow-hidden border-b border-line py-4 last:border-b-0">
       {avatar ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={avatar} alt="" className="relative size-14 shrink-0 object-cover" />
