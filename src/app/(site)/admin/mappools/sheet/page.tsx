@@ -79,7 +79,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
         version={version}
         mods={
           skill
-            ? skill.groups.map((g) => ({ key: g.id, short: g.name, color: g.color, count: g.slots.length }))
+            ? skill.groups.map((g) => ({ key: g.id, short: g.name.charAt(0).toUpperCase() + g.name.slice(1).toLowerCase(), color: g.color, count: g.slots.length }))
             : MOD_ORDER.filter((k) => sheet.slots.some((s) => s.mod === k)).map((k) => ({
                 key: k,
                 short: MODS[k].label,

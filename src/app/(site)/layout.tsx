@@ -2,6 +2,7 @@ import { SiteNav } from "@/components/site/site-nav";
 import { Backdrop } from "@/components/site/backdrop";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Flash } from "@/components/site/flash";
+import { DetailsMotion } from "@/components/site/details-motion";
 import { AlertPopups } from "@/components/site/alert-popups";
 import { TournamentProvider } from "@/components/site/tournament";
 import { meStyle } from "@/components/site/me";
@@ -40,6 +41,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       </TournamentProvider>
       <SiteFooter />
       <Flash />
+      <DetailsMotion />
       {viewer?.roles.length ? <AlertPopups /> : null}
     </>
   );
