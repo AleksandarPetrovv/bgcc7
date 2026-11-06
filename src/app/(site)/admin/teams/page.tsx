@@ -21,6 +21,7 @@ import { RemoveMember } from "./remove-member";
 import { avatarPath } from "@/lib/avatar";
 import { isBGCC6 } from "@/db";
 import { Cascade } from "@/components/site/cascade";
+import { RuleDiamond } from "@/components/site/rule";
 
 const bwsGrid = "grid grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_4rem] items-center gap-x-2 px-2 sm:gap-x-3 sm:px-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_6rem_10rem_6rem]";
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
@@ -62,8 +63,8 @@ export default async function AdminTeams() {
           {ranked.length === 0 ? (
             <p className="text-sm text-ash">{t.admin.noRegs}</p>
           ) : (
-            <Cascade className="border border-line" step={0.03}>
-              <div className={cn(bwsGrid, "border-b border-line bg-ink/60 py-2 text-[0.62rem] font-display font-bold text-ash")}>
+            <Cascade className="border-y-2 border-dashed border-line" step={0.03}>
+              <div className={cn(bwsGrid, "border-b-2 border-dashed border-line py-2 text-[0.62rem] font-display font-bold text-ash")}>
                 <span className="text-right">#</span>
                 <span>{t.admin.player}</span>
                 <span className="text-center">{t.admin.tierCol}</span>
@@ -71,7 +72,7 @@ export default async function AdminTeams() {
                 <span className="hidden text-center sm:block">{t.admin.badges}</span>
                 <span className="text-center">BWS</span>
               </div>
-              <ol className="divide-y divide-line">
+              <ol className="divide-y divide-dashed divide-line">
                 {ranked.map((p, i) => {
                   const tier = p.bws === null || i >= need ? 0 : i < f.teams ? 1 : 2;
                   return (
@@ -137,11 +138,12 @@ export default async function AdminTeams() {
         </Panel>
       </div>
 
-      {teams.length === 0 && <p className="border border-line bg-coal p-4 text-sm text-ash">{t.admin.noTeams}</p>}
-      <div className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
+      {teams.length === 0 && <p className="border-b-2 border-dashed border-line py-4 text-sm text-ash">{t.admin.noTeams}</p>}
+      <div className="grid grid-cols-1 gap-x-8 gap-y-8 2xl:grid-cols-2">
         {teams.map((team, n) => (
-          <section key={team.id} className="in-up border border-line bg-coal" style={{ "--i": Math.min(n, 16), "--s": "0.07s", "--d": "0.2s" } as React.CSSProperties}>
-            <div className="flex items-center gap-3 border-b border-line px-4 py-3">
+          <section key={team.id} className="in-up relative border-b-2 border-dashed border-line" style={{ "--i": Math.min(n, 16), "--s": "0.07s", "--d": "0.2s" } as React.CSSProperties}>
+            <RuleDiamond />
+            <div className="flex items-center gap-3 border-b border-line pb-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {team.image && <img src={team.image} alt="" className="size-9 object-cover" />}
               <span className="num text-xl text-balkan-hi">#{team.seed}</span>
@@ -155,7 +157,7 @@ export default async function AdminTeams() {
                 {team.players.length}/{f.teamSize}
               </span>
             </div>
-            <div className="space-y-4 p-4">
+            <div className="space-y-4 py-4">
               <ActionForm key={`${team.id}-${team.name}-${team.seed}-${team.players.map((p) => p.userId + String(p.isCaptain)).join()}`} action={updateTeam.bind(null, team.id)} className="space-y-3">
                 <div className="grid gap-2">
                   <label className={label}>
@@ -191,9 +193,9 @@ export default async function AdminTeams() {
                 )}
               </ActionForm>
 
-              <ul className="divide-y divide-line border border-line">
+              <ul className="divide-y divide-dashed divide-line border-y-2 border-dashed border-line">
                 {team.players.map((p) => (
-                  <li key={p.userId} className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
+                  <li key={p.userId} className="flex flex-wrap items-center gap-2 py-2 text-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.avatar} alt="" className="size-7" />
                     <span className="font-display font-bold">{p.username}</span>

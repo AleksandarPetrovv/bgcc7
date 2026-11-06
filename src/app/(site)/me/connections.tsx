@@ -38,7 +38,7 @@ export function Connections({ osu, discord, canLink = true }: { osu: { id: numbe
   const [open, setOpen] = useState(false);
   const [n, setN] = useState(0);
   const [pending, start] = useTransition();
-  const btn = "w-28 justify-center px-3 py-1.5 text-xs";
+  const btn = "min-w-28 justify-center whitespace-nowrap px-3 py-1.5 text-xs";
   return (
     <div className="flex h-full flex-col">
       <Row

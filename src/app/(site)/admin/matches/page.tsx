@@ -42,7 +42,7 @@ export default async function AdminMatches() {
                       </span>
                       <span className="h-px flex-1 bg-line" aria-hidden />
                     </h3>
-                    <div className="space-y-2">
+                    <div className="border-t-2 border-dashed border-line">
                       {list.map((m) => (
                         <MatchCard key={m.id} m={m} t={t} locale={locale} teams={teams} refs={refs} pools={bracketStages.filter((x) => x.pools.length).map((x) => ({ slug: x.slug, title: t.rounds[x.title] ?? x.title }))} live={m.winner ? undefined : live.get(m.id)} />
                       ))}

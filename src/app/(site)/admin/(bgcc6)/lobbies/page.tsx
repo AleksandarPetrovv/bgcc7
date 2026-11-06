@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { InView } from "@/components/site/in-view";
 import { PageTitle } from "@/components/site/page";
+import { RuleDiamond } from "@/components/site/rule";
 import { ActionForm, dateCls, inputCls, Panel, Field } from "@/components/admin/form";
 import { getLobbies, type Lobby } from "@/db/lobbies";
 import { getRegistrations } from "@/db/registrations";
@@ -65,16 +66,17 @@ export default async function AdminLobbies() {
       </Panel>
 
       {free.length > 0 && (
-        <p className="in-left mb-4 border border-line bg-coal px-4 py-3 text-sm [--d:0.35s]">
+        <p className="in-left mb-4 border-y-2 border-dashed border-line py-3 text-sm [--d:0.35s]">
           <span className="font-black text-rose-hi">{t.admin.notBooked(free.length)}:</span>{" "}
           <span className="text-ash">{free.map((r) => r.username).join(", ")}</span>
         </p>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-8">
         {lobbies.map((l, n) => (
-          <InView as="section" self scrub key={l.id} className="sr in-up border border-line bg-coal" style={{ "--i": n < 6 ? n : 0, "--s": "0.1s", "--d": "0.3s" } as React.CSSProperties}>
-            <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3">
+          <InView as="section" self scrub key={l.id} className="sr in-up relative border-b-2 border-dashed border-line" style={{ "--i": n < 6 ? n : 0, "--s": "0.1s", "--d": "0.3s" } as React.CSSProperties}>
+            <RuleDiamond />
+            <div className="flex flex-wrap items-center gap-3 border-b border-line pb-3">
               <span className="sr in-wipe heading-slam text-2xl [--d:0.45s]">{l.name}</span>
               <span className="sr in-drop num text-sm text-ash [--d:0.55s]">
                 {fmtSofiaDay(l.startsAt, locale)} · {fmtSofiaTime(l.startsAt)}
@@ -83,15 +85,15 @@ export default async function AdminLobbies() {
                 {l.players.length}/{l.capacity}
               </span>
             </div>
-            <div className="space-y-4 p-4">
+            <div className="space-y-4 py-4">
               <ActionForm key={`${l.id}-${l.startsAt.getTime()}-${l.mpLinks}`} action={updateLobby.bind(null, l.id)} className="space-y-3">
                 <LobbyFields t={t} l={l} />
               </ActionForm>
 
               {l.players.length > 0 && (
-                <ul className="divide-y divide-line border border-line">
+                <ul className="divide-y divide-dashed divide-line border-y-2 border-dashed border-line">
                   {l.players.map((p, k) => (
-                    <li key={p.osuId} style={{ "--i": k, "--s": "0.05s", "--d": "0.7s" } as React.CSSProperties} className="sr in-left flex flex-wrap items-center gap-3 px-3 py-2">
+                    <li key={p.osuId} style={{ "--i": k, "--s": "0.05s", "--d": "0.7s" } as React.CSSProperties} className="sr in-left flex flex-wrap items-center gap-3 py-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       {p.avatarUrl && <img src={p.avatarUrl} alt="" className="sr in-pop size-7 [--d:0.8s]" />}
                       <span className="min-w-0 truncate font-display font-bold">{p.username}</span>

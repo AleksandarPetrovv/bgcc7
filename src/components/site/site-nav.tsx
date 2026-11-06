@@ -170,6 +170,8 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
   const rightRef = useRef<HTMLDivElement>(null);
   // null until measured: css decides (xl), then the full nav only shows when it fits with room to spare
   const [fit, setFit] = useState<boolean | null>(null);
+  // null = centered; a number = left offset when only the spot right after the theme toggle has room
+  const [shift, setShift] = useState<number | null>(null);
   const [clicked, setClicked] = useState<{ base: string; from: string } | null>(null);
   // a nav click only highlights early until the route changes; otherwise returning to `from` (e.g. via the logo) revives it
   if (clicked && clicked.from !== path) setClicked(null);
@@ -222,7 +224,11 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
       const r = row.getBoundingClientRect();
       const start = r.left + (r.width - nav.offsetWidth) / 2;
       const end = r.right - (parseFloat(getComputedStyle(row).paddingRight) || 0) - rightW;
-      setFit(window.innerWidth >= 1024 && start - left >= rowGap + 8 && end - (start + nav.offsetWidth) >= rowGap + 8);
+      const centered = start - left >= rowGap + 8 && end - (start + nav.offsetWidth) >= rowGap + 8;
+      const flowStart = left + rowGap;
+      const flows = end - (flowStart + nav.offsetWidth) >= rowGap + 8;
+      setFit(window.innerWidth >= 1024 && (centered || flows));
+      setShift(centered ? null : flowStart - r.left);
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -246,8 +252,9 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
           className={cn(
             "h-full items-stretch",
             // before measuring, guess by width (same centered spot) so the first paint doesn't jump
-            fit === null ? "absolute left-1/2 top-0 hidden -translate-x-1/2 min-[1700px]:flex" : fit ? "absolute left-1/2 top-0 flex -translate-x-1/2" : "pointer-events-none invisible absolute right-0 top-0 flex w-max", // anchored right so it overflows left, which never widens the page on phones
+            fit === null ? "absolute left-1/2 top-0 hidden -translate-x-1/2 min-[1700px]:flex" : fit ? (shift === null ? "absolute left-1/2 top-0 flex -translate-x-1/2" : "absolute top-0 flex") : "pointer-events-none invisible absolute right-0 top-0 flex w-max", // anchored right so it overflows left, which never widens the page on phones
           )}
+          style={fit && shift !== null ? { left: shift } : undefined}
           aria-label={t.nav.main}
           aria-hidden={fit === false || undefined}
         >
@@ -272,7 +279,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
                   }}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "group relative flex items-center whitespace-nowrap px-2 text-[0.78rem] font-display font-bold transition-colors",
+                    "group relative flex items-center whitespace-nowrap px-2 text-[0.78rem] font-display font-bold transition-colors max-[1799px]:px-1.5 max-[1799px]:text-[0.72rem]",
                     active ? "text-paper" : "text-paper/70 hover:text-rose-hi",
                   )}
                 >

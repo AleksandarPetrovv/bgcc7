@@ -9,6 +9,7 @@ import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { isBGCC6 } from "@/db";
+import { RuleDiamond } from "@/components/site/rule";
 
 export default async function MappoolsHub() {
   const [t, viewer, stages] = await Promise.all([getDict(), getViewer(), getPoolStages()]);
@@ -33,7 +34,7 @@ export default async function MappoolsHub() {
   return (
     <>
       <PageTitle mark="notes">{t.admin.menu.mappools}</PageTitle>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
         {tiles.map(({ href, Icon, title, sub, hot }, i) => (
           <div
             key={href}
@@ -42,10 +43,11 @@ export default async function MappoolsHub() {
           >
             <Link
               href={href}
-              className="group relative flex h-full min-h-48 flex-col justify-between overflow-hidden border border-line bg-coal p-6 transition-[border-color,box-shadow,transform,translate,scale,rotate] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform hover:-translate-x-1 hover:-translate-y-1 hover:border-rose hover:shadow-[6px_6px_0_0_var(--rose-deep)] sm:min-h-60 sm:p-8"
+              className="group relative flex h-full min-h-48 flex-col justify-between border-b-2 border-dashed border-line py-6 transition-colors duration-300 hover:border-rose sm:min-h-60 sm:py-8"
             >
+              <RuleDiamond />
               <Icon
-                className="pointer-events-none absolute -bottom-6 -right-6 size-44 text-paper/[0.04] transition-[color,transform,translate,scale,rotate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-rotate-6 group-hover:scale-110 group-hover:text-rose/10"
+                className="pointer-events-none absolute bottom-2 right-0 size-40 text-paper/[0.04] transition-[color,transform,translate,scale,rotate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-rotate-6 group-hover:scale-110 group-hover:text-rose/10"
                 strokeWidth={1.25}
                 aria-hidden
               />

@@ -1,6 +1,7 @@
 import { LinkTabs } from "@/components/site/tabs";
 import { InView } from "@/components/site/in-view";
 import { PageTitle } from "@/components/site/page";
+import { RuleDiamond } from "@/components/site/rule";
 import { notFound } from "next/navigation";
 import { ArrowDown, ArrowUp, Download, Star, Trash2 } from "lucide-react";
 import { ActionForm, inputCls, Panel, Field, IconAction } from "@/components/admin/form";
@@ -91,8 +92,8 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                 { k: t.admin.poolStatMaps, v: String(poolMaps.length) },
                 { k: t.admin.poolStatSr, v: poolMaps.length ? `${(poolMaps.reduce((n, m) => n + m.sr, 0) / poolMaps.length).toFixed(2)}★` : "–" },
               ].map((s) => (
-                <div key={s.k} className="-skew-x-12 border border-line bg-ink/50 px-4 py-2.5">
-                  <div className="skew-x-12">
+                <div key={s.k} className="border-l-2 border-dashed border-line pl-3">
+                  <div>
                     <div className="text-[0.62rem] font-display font-bold text-ash">{s.k}</div>
                     <div className="num text-2xl text-paper">{s.v}</div>
                   </div>
@@ -122,7 +123,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
       )}
 
       {sections.length === 0 && (
-        <p className="flex flex-wrap items-center gap-3 border border-dashed border-line bg-coal p-4 text-sm text-ash">
+        <p className="flex flex-wrap items-center gap-3 border-y-2 border-dashed border-line py-4 text-sm text-ash">
           {t.admin.noLayout}
           {host && (
             <Link href={`/admin/mappools/create?stage=${stage.slug}`} className="font-display font-bold text-rose-hi hover:text-paper">
@@ -131,7 +132,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
           )}
         </p>
       )}
-      <div className="space-y-4">
+      <div className="space-y-8">
         {sections.map(({ key, title, color: accent, items }, pi) => {
           const filled = items.filter((x) => !x.out && mapsOf(x.mod).some((m) => m.order === x.slot)).length;
           const total = items.filter((x) => !x.out).length;
@@ -141,11 +142,12 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
               self
               scrub
               key={key}
-              className="sr in-up relative overflow-clip border border-line bg-coal"
+              className="sr in-up relative overflow-x-clip border-b-2 border-dashed border-line"
               style={{ "--i": pi < 5 ? pi : 0, "--s": "0.08s", "--d": "0.15s" } as React.CSSProperties}
             >
-              <span className="sr in-grow absolute inset-x-0 top-0 h-0.5 [--d:0.25s]" style={{ background: accent }} aria-hidden />
-              <h2 className="flex items-center gap-3 border-b border-line px-4 py-2 text-sm font-display font-bold" style={{ color: modHi(accent) }}>
+              <RuleDiamond />
+              <h2 className="flex items-center gap-3 border-b border-line pb-2 text-sm font-display font-bold" style={{ color: modHi(accent) }}>
+                <span className="size-2 shrink-0 rotate-45" style={{ background: accent }} aria-hidden />
                 <span className="sr in-wipe inline-block [--d:0.25s]">{title}</span>
                 {total > 0 && (
                   <span className="num text-xs text-ash">
@@ -153,7 +155,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                   </span>
                 )}
               </h2>
-              <ul className="divide-y divide-line">
+              <ul className="divide-y divide-dashed divide-line">
                 {items.map(({ mod, slot, out, note, label: tagLabel }, i) => {
                   const color = skill && !out ? accent : MODS[mod].color;
                   const chip = skill && mod !== "Tiebreaker" ? (

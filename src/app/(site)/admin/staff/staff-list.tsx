@@ -10,6 +10,7 @@ import { flagUrl } from "@/lib/data";
 import { ROLES, titleOnly, type Role } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
+import { RuleDiamond } from "@/components/site/rule";
 import { removeStaff, reorderStaff, updateStaff } from "./actions";
 
 export type StaffRow = {
@@ -33,9 +34,10 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
       layout="position"
       whileDrag={{ scale: 1.01, boxShadow: "6px 6px 0 0 var(--rose-deep)", zIndex: 10 }}
       data-cascade
-      className="in-up relative border border-line bg-coal"
+      className="in-up relative border-b-2 border-dashed border-line bg-ink"
     >
-      <div className="flex items-center gap-3 border-b border-line px-3 py-3 sm:px-4">
+      <RuleDiamond />
+      <div className="flex items-center gap-3 border-b border-line py-3">
         <button
           type="button"
           onPointerDown={(e) => controls.start(e)}
@@ -61,7 +63,7 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
           <TriangleAlert className="mt-0.5 size-4 shrink-0" /> {t.admin.staffPlays}
         </p>
       )}
-      <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-end">
+      <div className="flex flex-col gap-4 py-4 lg:flex-row lg:items-end">
         <ActionForm action={updateStaff.bind(null, s.osuId)} className="flex flex-1 flex-col gap-4">
           <PermPicker initial={s.permRoles} />
         </ActionForm>
@@ -156,7 +158,7 @@ export function StaffList({ rows }: { rows: StaffRow[] }) {
           latest.current = v;
           setItems(v);
         }}
-        className={cn("space-y-3", pending && "opacity-70")}
+        className={cn("space-y-6", pending && "opacity-70")}
       >
         {items.map((s, i) => (
           <Row key={s.osuId} s={s} i={i} onDrop={commit} />
