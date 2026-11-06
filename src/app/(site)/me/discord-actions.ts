@@ -7,7 +7,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getViewer } from "@/lib/authz";
 import { canLinkDiscord } from "@/db/schedule";
-import { later, syncTeams } from "@/db/discord-bot";
+import { dropTeamRoles, later, syncTeams } from "@/db/discord-bot";
 import { discordProfile, dm, findMember } from "@/lib/discord";
 
 type Fail = "notFound" | "taken" | "failed" | "forbidden" | "dm" | "wait";
@@ -25,7 +25,9 @@ async function player() {
   return v && canLinkDiscord() ? v.osuId : null;
 }
 
-const takenBy = async (discordId: string, osuId: number) =>
+const linkedId = async (osuId: number) => (await db.select({ d: users.discordId }).from(users).where(eq(users.osuId, osuId)).limit(1))[0]?.d ?? null;
+
+const takenBy =async (discordId: string, osuId: number) =>
   !!(await db.select({ id: users.osuId }).from(users).where(and(eq(users.discordId, discordId), ne(users.osuId, osuId))).limit(1))[0];
 
 export async function linkDiscord(name: string): Promise<{ ok: true; name: string } | { ok: false; error: Fail }> {
@@ -69,7 +71,9 @@ export async function confirmDiscord(code: string): Promise<{ ok: true; name: st
   codes.delete(osuId);
   try {
     if (await takenBy(p.id, osuId)) return { ok: false, error: "taken" };
+    const old = await linkedId(osuId);
     await db.update(users).set({ discordId: p.id, discordName: p.name }).where(eq(users.osuId, osuId));
+    if (old && old !== p.id) later("relink roles", () => dropTeamRoles(old));
     await discordProfile(p.id, true);
     later("sync", syncTeams);
     revalidatePath("/", "layout");
@@ -85,7 +89,9 @@ export async function unlinkDiscord(): Promise<{ ok: boolean }> {
   const v = await getViewer();
   if (!v || !canLinkDiscord()) return { ok: false };
   try {
+    const old = await linkedId(v.osuId);
     await db.update(users).set({ discordId: null, discordName: null }).where(eq(users.osuId, v.osuId));
+    if (old) later("unlink roles", () => dropTeamRoles(old));
     later("sync", syncTeams);
     revalidatePath("/", "layout");
     return { ok: true };
