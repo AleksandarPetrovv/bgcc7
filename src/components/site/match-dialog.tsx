@@ -16,6 +16,7 @@ import { matchCosts, MEDAL } from "@/lib/match-cost";
 import { MeTag, meP } from "./me";
 import { modHi, TEAM as TEAMS } from "@/lib/theme";
 import { osuMatch } from "@/lib/links";
+import { RuleDiamond } from "./rule";
 
 const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
@@ -55,9 +56,10 @@ export function MapCard({ m, i }: { m: MapResult; i: number }) {
   const share = sum ? (m.team1 / sum) * 100 : 50;
   return (
     <article
-      className={cn("in-up relative overflow-hidden border border-line bg-coal", m.note && "opacity-50")}
+      className={cn("in-up relative border-b-2 border-dashed border-line", m.note && "opacity-50")}
       style={v({ "--i": Math.min(i, 6), "--s": "0.08s", "--d": "0.12s" })}
     >
+      <RuleDiamond />
       {m.cover && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -68,7 +70,7 @@ export function MapCard({ m, i }: { m: MapResult; i: number }) {
           className="pointer-events-none absolute inset-x-0 top-0 h-24 w-full object-cover opacity-20 [mask-image:linear-gradient(to_bottom,black,transparent)]"
         />
       )}
-      <header className="relative flex items-start gap-3 px-3.5 pt-3">
+      <header className="relative flex items-start gap-3 pt-3">
         <span className="in-slam heading-slam shrink-0 text-2xl leading-none" style={{ color: color ?? "var(--ash)", ...v({ "--d": "0.22s" }) }}>
           {m.slot ?? "—"}
         </span>
@@ -89,7 +91,7 @@ export function MapCard({ m, i }: { m: MapResult; i: number }) {
         )}
       </header>
       {!m.note && (
-        <div className="relative px-3.5 pb-3.5 pt-3">
+        <div className="relative pb-4 pt-3">
           <div className="flex items-end justify-between gap-3">
             <span className={cn("in-left num text-xl leading-none", m.winner === 1 ? "text-crimson-hi" : "text-ash")} style={v({ "--d": "0.3s" })}>
               {fmtNum(m.team1)}
@@ -129,8 +131,11 @@ export function Costs({ data, names, finished }: { data: Scoreboard; names: (str
       </h3>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {([1, 2] as const).map((k) => (
-          <div key={k} className={cn("border border-l-[3px] border-line bg-coal", TEAM[k - 1])}>
-            <div className={cn("border-b border-line px-3 py-2 text-xs font-display font-black", TEAM_TEXT[k - 1])}>{names[k - 1]}</div>
+          <div key={k} className={cn("border-l-[3px] pl-3", TEAM[k - 1])}>
+            <div className={cn("flex items-center gap-2 border-b-2 border-dashed border-line pb-2 text-xs font-display font-black", TEAM_TEXT[k - 1])}>
+              <span className="size-2 shrink-0 rotate-45 bg-current" aria-hidden />
+              {names[k - 1]}
+            </div>
             <ul>
               {rows
                 .filter((r) => r.team === k)
@@ -138,7 +143,7 @@ export function Costs({ data, names, finished }: { data: Scoreboard; names: (str
                   <li
                     key={r.id}
                     {...meP(r.id)}
-                    className={cn("flex items-center gap-3 border-b border-line px-3 py-2 last:border-b-0", k === 1 ? "in-left" : "in-right")}
+                    className={cn("flex items-center gap-3 border-b border-dashed border-line py-2 last:border-b-0", k === 1 ? "in-left" : "in-right")}
                     style={v({ "--i": n, "--s": "0.07s", "--d": "0.55s" })}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -169,13 +174,14 @@ function Board({ match, data, names }: { match: Match; data: Scoreboard; names: 
   const t = useDict();
   const played = data.maps.filter((m) => !m.note);
   return (
-    <div className="min-w-0 space-y-4 p-3 sm:space-y-5 sm:p-5">
+    <div className="min-w-0 space-y-5 p-3 sm:space-y-6 sm:p-5">
       {played.map((m, i) => (
         <div key={`${m.lobby}-${i}`}>
           {data.lobbies.length > 1 && (i === 0 || played[i - 1].lobby !== m.lobby) && (
             <div className="mb-3 mt-1 flex items-center gap-3 text-xs font-display font-bold text-ash">
               {t.match.lobby(m.lobby + 1)}
-              <span className="h-px flex-1 border-t border-dashed border-line" />
+              <span className="h-px flex-1 border-t-2 border-dashed border-line" />
+              <span className="size-2 shrink-0 rotate-45 bg-rose" aria-hidden />
             </div>
           )}
           <MapCard m={m} i={i} />
@@ -269,7 +275,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
         </DialogTrigger>
         <DialogContent className="mdlg max-h-[88dvh] grid-cols-[minmax(0,1fr)] content-start gap-0 overflow-y-auto overflow-x-hidden [-webkit-overflow-scrolling:touch] [touch-action:pan-y] rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
           {/* -top-px + the upward shadow close the sliver that let scrolled maps peek above the header */}
-          <div className="sticky -top-px z-10 min-w-0 border-b border-line bg-ink px-3 py-3 shadow-[0_-8px_0_0_var(--ink)] sm:px-5 sm:py-4">
+          <div className="sticky -top-px z-10 min-w-0 border-b-2 border-dashed border-line bg-ink px-3 py-3 shadow-[0_-8px_0_0_var(--ink)] sm:px-5 sm:py-4">
             <DialogTitle className="in-wipe pr-8 text-xs font-display font-bold text-rose-hi" style={v({ "--d": "0.1s" })}>
               {roundName(t, match.round)}
             </DialogTitle>
@@ -315,7 +321,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
           {data === null ? (
             <div className="space-y-4 p-3 sm:p-5" aria-busy>
               {[0, 1, 2].map((k) => (
-                <div key={k} className="in-up relative h-40 overflow-hidden border border-line bg-coal" style={v({ "--i": k, "--s": "0.1s" })}>
+                <div key={k} className="in-up relative h-40 overflow-hidden border-b-2 border-dashed border-line" style={v({ "--i": k, "--s": "0.1s" })}>
                   <span className="mdlg-shine absolute inset-0" style={{ animationDelay: `${k * 0.15}s` }} />
                   <span className="absolute left-3.5 top-3 h-6 w-12 -skew-x-12 bg-slate" />
                   <span className="absolute left-20 top-3.5 h-3 w-1/2 bg-slate" />

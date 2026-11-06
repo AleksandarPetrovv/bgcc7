@@ -71,7 +71,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
         }))}
       />
 
-      {sheet.slots.length === 0 && <p className="in-up border border-dashed border-line bg-coal p-4 text-sm text-ash [--d:0.3s]">{t.admin.noLayout}</p>}
+      {sheet.slots.length === 0 && <p className="in-up border-y-2 border-dashed border-line py-4 text-sm text-ash [--d:0.3s]">{t.admin.noLayout}</p>}
 
       <SheetView
         key={stage.id}

@@ -15,11 +15,11 @@ import { clearCache, saveMatch } from "./actions";
 import { osuMp } from "@/lib/links";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
-const group = "relative border border-line bg-coal/60 p-3.5 pt-5";
+const group = "relative border-t-2 border-dashed border-line pt-5";
 
 function Legend({ children }: { children: React.ReactNode }) {
   return (
-    <span className="absolute -top-2.5 left-3 -skew-x-12 border border-line bg-ink px-2 py-0.5 text-[0.62rem] font-display font-bold text-paper/80">
+    <span className="absolute -top-3 left-0 -skew-x-12 border border-line bg-ink px-2 py-0.5 text-[0.62rem] font-display font-bold text-paper/80">
       <span className="inline-block skew-x-12">{children}</span>
     </span>
   );
@@ -65,7 +65,7 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
   return (
     <details
       data-cascade
-      className="adm-match group in-left relative border border-line bg-ink transition-[border-color,box-shadow] duration-200 hover:border-paper/25 open:border-paper/30 open:shadow-[4px_4px_0_0_var(--rose-deep)]"
+      className="adm-match group in-left relative border-b-2 border-dashed border-line transition-colors duration-200 hover:border-paper/25 open:border-paper/30"
     >
       <summary className="relative flex cursor-pointer list-none items-center gap-3 py-3 pl-4 pr-3 [&::-webkit-details-marker]:hidden">
         <span className={cn("absolute inset-y-0 left-0 w-1", tone)} aria-hidden />
@@ -144,7 +144,7 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
         </span>
       </summary>
 
-      <div className="border-t border-line bg-[linear-gradient(180deg,var(--field),transparent)] p-3.5 sm:p-4">
+      <div className="border-t border-dashed border-line pb-5 pl-4 pt-6">
         <ActionForm key={JSON.stringify(m)} action={saveMatch.bind(null, m.id)} className="space-y-5">
           <input type="hidden" name="stamp" value={matchStamp(m)} />
           <div className="grid gap-5 lg:grid-cols-[1.25fr_1fr]">

@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { InView } from "@/components/site/in-view";
+import { RuleDiamond } from "@/components/site/rule";
 import { useDict } from "@/components/site/lang";
 import { modHi, modOn } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -129,14 +130,15 @@ export function SlotBox({
               as="section"
               self
               scrub
-              className={cn("sr in-up relative overflow-clip border bg-coal", picked ? "border-balkan/50" : "border-line")}
+              className={cn("sr in-up relative overflow-x-clip border-b-2 border-dashed", picked ? "border-balkan/50" : "border-line")}
               style={{ "--i": i < 5 ? i : 0, "--s": "0.1s", "--d": "0.4s" } as React.CSSProperties}
             >
+              <RuleDiamond />
               <span className="sr in-grow absolute inset-x-0 top-0 h-0.5 [--d:0.55s]" style={{ background: color }} aria-hidden />
               <header
                 onClick={(e) => !empty && !(e.target as Element).closest("a,button,input,label,form") && toggle()}
                 className={cn(
-                  "relative flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 transition-[border-color,background-color] duration-200",
+                  "relative flex flex-wrap items-center gap-x-4 gap-y-2 py-2.5 transition-[border-color,background-color] duration-200",
                   !empty && "cursor-pointer pr-16 hover:bg-paper/[0.03]",
                   open && !empty ? "border-b border-line" : "border-b border-transparent",
                 )}
@@ -149,7 +151,7 @@ export function SlotBox({
                     aria-expanded={open}
                     aria-label={open ? t.admin.collapse : t.admin.expand}
                     title={open ? t.admin.collapse : t.admin.expand}
-                    className="absolute right-4 top-1/2 grid size-10 -translate-y-1/2 -skew-x-12 place-items-center border border-line text-ash transition-colors hover:border-paper/40 hover:text-paper"
+                    className="absolute right-1 top-1/2 grid size-10 -translate-y-1/2 -skew-x-12 place-items-center border border-line text-ash transition-colors hover:border-paper/40 hover:text-paper"
                   >
                     <ChevronDown className={cn("size-4 skew-x-12 transition-transform duration-300", !open && "-rotate-90")} />
                   </button>

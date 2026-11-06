@@ -164,7 +164,7 @@ const bg: Deep<Dict> = {
       { stage: "Четвъртфинали", format: "Best of %bo.quarterfinals% · 1 бан", when: "" },
       { stage: "Полуфинали", format: "Best of %bo.semifinals% · 2 бана", when: "" },
       { stage: "Финали", format: "Best of %bo.finals% · 2 бана", when: "" },
-      { stage: "Голям финал", format: "Best of %bo.grand-finals% · 2 бана", when: "" },
+      { stage: "Гранд Финал", format: "Best of %bo.grand-finals% · 2 бана", when: "" },
     ],
     facts: [
       ["Формат", "3v3 Team VS · ScoreV2"],

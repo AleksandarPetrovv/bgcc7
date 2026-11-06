@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Check, Crown } from "lucide-react";
 import { Sparkle } from "@/components/site/graphics";
 import { SlantButton } from "@/components/site/page";
+import { RuleDiamond } from "@/components/site/rule";
 import { Words } from "@/components/site/rich";
 import { Avatar } from "@/components/site/avatar";
 import { Reveal } from "@/components/site/motion";
@@ -359,7 +360,7 @@ export default async function Home() {
         <div className="grid grid-cols-[minmax(0,1fr)] gap-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,1fr)] 2xl:gap-16">
           {see("schedule") && featured.length > 0 && (
             <InView className="order-3 flex flex-col xl:order-none">
-            <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3 xl:flex-nowrap" style={{ "--d": "0.6s" } as React.CSSProperties}>
+            <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3" style={{ "--d": "0.6s" } as React.CSSProperties}>
               <h2 className="heading-slam whitespace-nowrap text-3xl xl:text-[clamp(1.25rem,1.65vw,1.65rem)]">{t.home.previously}</h2>
               <Link href="/matches" className="group inline-flex shrink-0 items-center gap-1.5 text-sm font-display font-bold text-ash transition-colors hover:text-paper">
                 {t.home.fullSchedule} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -375,12 +376,13 @@ export default async function Home() {
             </InView>
           )}
           <InView className="order-1 xl:order-none xl:col-start-2">
-            <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3 xl:flex-nowrap" style={{ "--d": "0.8s" } as React.CSSProperties}>
+            <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3" style={{ "--d": "0.8s" } as React.CSSProperties}>
               <h2 className="heading-slam whitespace-nowrap text-3xl xl:text-[clamp(1.25rem,1.65vw,1.65rem)]">{t.home.timeline}</h2>
             </div>
             <Timeline t={t} timeline={settings.timeline} locale={locale} states={phaseStates(settings.timeline, phase)} />
             {regCloses && (
-              <Reveal className="relative mt-8 overflow-hidden border border-line bg-coal p-4" delay={0.2}>
+              <Reveal className="relative mt-8 border-b-2 border-dashed border-line pb-4" delay={0.2}>
+                <RuleDiamond />
                 <div className="text-[0.7rem] font-display font-bold text-ash">{t.home.closesIn}</div>
                 <Countdown to={regCloses} from={settings.regOpensAt?.toISOString()} />
               </Reveal>
@@ -388,7 +390,7 @@ export default async function Home() {
           </InView>
           {see("schedule") && upcoming.length > 0 && (
             <InView className="order-2 flex flex-col xl:order-none xl:col-start-3">
-            <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3 xl:flex-nowrap" style={{ "--d": "1.3s" } as React.CSSProperties}>
+            <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3" style={{ "--d": "1.3s" } as React.CSSProperties}>
               <h2 className="heading-slam whitespace-nowrap text-3xl xl:text-[clamp(1.25rem,1.65vw,1.65rem)]">{t.home.upcoming}</h2>
               <Link href="/matches" className="group inline-flex shrink-0 items-center gap-1.5 text-sm font-display font-bold text-ash transition-colors hover:text-paper">
                 {t.home.fullSchedule} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />

@@ -31,9 +31,9 @@ export default async function AdminQualifiers() {
 
       <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Panel title={t.admin.importTitle} help={t.admin.importHelp}>
-          <ul className="mb-4 divide-y divide-line border border-line">
+          <ul className="mb-4 divide-y divide-dashed divide-line border-y-2 border-dashed border-line">
             {lobbies.map((l, k) => (
-              <li key={l.id} style={{ "--i": k, "--s": "0.06s", "--d": "0.55s" } as React.CSSProperties} className="in-left flex flex-wrap items-center gap-3 px-3 py-2">
+              <li key={l.id} style={{ "--i": k, "--s": "0.06s", "--d": "0.55s" } as React.CSSProperties} className="in-left flex flex-wrap items-center gap-3 py-2">
                 <span className="font-display font-bold">{l.name}</span>
                 <span className="num text-xs text-ash">{mpIds(l.mpLinks).join(", ") || t.admin.noMp}</span>
                 {mpIds(l.mpLinks).length > 0 && <ActionForm action={importOne.bind(null, l.id)} submit={t.admin.import} ghost className="ml-auto" />}
@@ -74,12 +74,12 @@ export default async function AdminQualifiers() {
       <div className="in-left [--d:0.4s]">
         <SubHeading>{t.admin.ranking(settings.qualifyCount)}</SubHeading>
       </div>
-      {results.players.length === 0 && <p className="border border-line bg-coal p-4 text-sm text-ash">{t.admin.noScores}</p>}
-      <InView className="space-y-1.5">
+      {results.players.length === 0 && <p className="border-y-2 border-dashed border-line py-4 text-sm text-ash">{t.admin.noScores}</p>}
+      <InView className="border-t-2 border-dashed border-line">
         {results.players.map((p, i) => {
           const own = rows.filter((r) => r.osuId === p.id).sort((a, b) => (slotOf.get(a.beatmapId) ?? "").localeCompare(slotOf.get(b.beatmapId) ?? ""));
           return (
-            <details key={p.id} style={{ "--i": Math.min(i, 24), "--s": "0.03s", "--d": "0.45s" } as React.CSSProperties} className={cn("group in-left-far border border-line bg-coal", i >= settings.qualifyCount && "opacity-60")}>
+            <details key={p.id} style={{ "--i": Math.min(i, 24), "--s": "0.03s", "--d": "0.45s" } as React.CSSProperties} className={cn("group in-left-far border-b border-dashed border-line", i >= settings.qualifyCount && "opacity-60")}>
               <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-2">
                 <span className={cn("in-slam num w-10 text-center text-lg [--d:0.6s]", i < settings.qualifyCount ? "text-balkan-hi" : "text-ash")}>#{i + 1}</span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -89,10 +89,10 @@ export default async function AdminQualifiers() {
                 <span className="num hidden w-28 text-right text-sm text-ash sm:block">{t.admin.mapsPlayed(Object.keys(p.perf).length, results.maps.length)}</span>
                 <ChevronDown className="size-4 shrink-0 text-ash transition-transform duration-300 group-open:rotate-180 group-hover:text-paper" aria-hidden />
               </summary>
-              <div className="border-t border-line p-3">
+              <div className="border-t border-dashed border-line py-3 pl-3">
                 <ul className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-3">
                   {own.map((r) => (
-                    <li key={r.id} className="flex items-center gap-2 border border-line bg-ink/50 p-2">
+                    <li key={r.id} className="flex items-center gap-2 border-l-2 border-dashed border-line py-1 pl-2">
                       <span className="w-10 shrink-0 text-sm font-display font-black">{slotOf.get(r.beatmapId) ?? "?"}</span>
                       <ActionForm key={`${r.id}-${r.score}-${r.acc}-${r.mods}`} action={updateScore.bind(null, r.id)} submit="✓" ghost className="flex min-w-0 flex-1 items-center gap-1.5">
                         <Field name="score" inputMode="numeric" required defaultValue={r.score} aria-label={t.admin.scoreLabel} className={cn(inputCls, "adm-tight num w-0 flex-[3]")} />
