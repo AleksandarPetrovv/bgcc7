@@ -1,6 +1,7 @@
 "use server";
 
-import { randomInt, timingSafeEqual } from "node:crypto";
+import { createHash, randomInt, timingSafeEqual } from "node:crypto";
+import { LINK_NAMES } from "@/lib/link-names";
 import { revalidatePath } from "next/cache";
 import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
@@ -42,9 +43,9 @@ export async function linkDiscord(name: string): Promise<{ ok: true; name: strin
     const m = await findMember(String(name).slice(0, 40));
     if (!m) return { ok: false, error: "notFound" };
     if (await takenBy(m.id, osuId)) return { ok: false, error: "taken" };
-    const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
+    const code = `${LINK_NAMES[randomInt(LINK_NAMES.length)]}_${String(randomInt(1000)).padStart(3, "0")}`;
     try {
-      await dm(m.id, `Your BGCC7 verification code is **${code}**. It expires in 10 minutes. If you didn't ask for this, ignore it.`);
+      await dm(m.id, `Your BGCC7 verification code is \`${code}\`. It expires in 10 minutes. If you didn't ask for this, ignore it.`);
     } catch (e) {
       console.error("[discord] code dm", e);
       return { ok: false, error: "dm" };
@@ -66,8 +67,9 @@ export async function confirmDiscord(code: string): Promise<{ ok: true; name: st
     return { ok: false, error: "expired" };
   }
   p.tries++;
-  const given = Buffer.from(String(code).replace(/\D/g, "").slice(0, 6).padEnd(6, "x"));
-  if (!timingSafeEqual(given, Buffer.from(p.code))) return { ok: false, error: p.tries >= MAX_TRIES ? "expired" : "wrong" };
+  const want = createHash("sha256").update(p.code.toLowerCase()).digest();
+  const given = createHash("sha256").update(String(code).trim().toLowerCase().slice(0, 64)).digest();
+  if (!timingSafeEqual(given, want)) return { ok: false, error: p.tries >= MAX_TRIES ? "expired" : "wrong" };
   codes.delete(osuId);
   try {
     if (await takenBy(p.id, osuId)) return { ok: false, error: "taken" };
