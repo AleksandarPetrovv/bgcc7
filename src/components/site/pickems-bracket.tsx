@@ -3,7 +3,7 @@
 import { Check, Crown, X } from "lucide-react";
 import { pickLayout } from "./bracket-layout";
 import { useDict } from "./lang";
-import { flagUrl, fmtNum } from "@/lib/data";
+import { flagUrl } from "@/lib/data";
 import { resolve, seedingOf, type Picks } from "@/lib/pickems";
 import { useTournament } from "./tournament";
 
@@ -85,9 +85,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={flagUrl(p.country)} alt="" className="h-2.5 shrink-0" />
                   <span className="truncate font-display font-bold">{p.username}</span>
-                  {p.isCaptain && <Crown className="size-3.5 shrink-0 -translate-y-px text-gold-hi" aria-label={t.common.captain} />}
-                  <span className="num ml-auto text-ash">#{fmtNum(p.rank)}</span>
-                </li>
+                  {p.isCaptain && <Crown className="size-3.5 shrink-0 -translate-y-px text-gold-hi" aria-label={t.common.captain} />}                </li>
               ))}
             </ul>
           </div>
