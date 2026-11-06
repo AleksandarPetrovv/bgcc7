@@ -65,7 +65,11 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
               ? t.admin.oneEach
               : state.error === "stale"
                 ? t.admin.stale
-                : t.admin.error);
+                : state.error === "wrongCode"
+                  ? t.admin.refApp.wrongCode
+                  : state.error === "locked"
+                    ? t.admin.refApp.locked
+                    : t.admin.error);
   return (
     <form action={formAction} className={className} onSubmit={confirm ? (e) => !window.confirm(confirm) && e.preventDefault() : undefined}>
       {children}

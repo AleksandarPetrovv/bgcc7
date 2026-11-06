@@ -2,10 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { guard } from "@/lib/admin-action";
-import { confirmLink, unpair } from "@/lib/relay";
+import type { ActionResult } from "@/lib/roles";
+import { linkResult, unpair } from "@/lib/relay";
 
-export async function linkApp(state: string) {
-  const res = await guard("matches", "refapp.link", async (osuId) => (confirmLink(state, osuId) ? { linked: true } : { ok: false, error: "invalid" }));
+export async function linkApp(_: ActionResult, fd: FormData) {
+  const res = await guard("matches", "refapp.link", async (osuId) => linkResult(fd, osuId));
   if (res?.ok) redirect("/admin/refapp");
   return res;
 }

@@ -110,8 +110,11 @@ export const adminSetup = {
   },
   refApp: {
     link: "Link",
-    linkTitle: "Link the app on this pc",
-    linkCode: "Same code as in the app?",
+    linkTitle: "Link the app",
+    linkCode: "Code from the app",
+    linkCodePh: "hvick225_595",
+    wrongCode: "Wrong or expired code.",
+    locked: "Too many wrong codes. Try again in 10 minutes.",
     online: "App running",
     offline: "App linked, not running",
     none: "Not linked",

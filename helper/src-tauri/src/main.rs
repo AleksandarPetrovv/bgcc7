@@ -8,7 +8,6 @@ mod streaming;
 use base64::Engine;
 use rand::RngCore;
 use relay::{Entry, Shared, Status};
-use sha2::{Digest, Sha256};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use store::{Config, Store};
@@ -21,7 +20,6 @@ use tokio::sync::watch;
 
 pub const SITE: &str = env!("BGCC_SITE");
 const IRC_PAGE: &str = "https://osu.ppy.sh/home/account/edit#legacy-api";
-const ALPHA: &[u8] = b"ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
 struct Ctl {
     shared: Arc<Shared>,
@@ -29,10 +27,6 @@ struct Ctl {
     linking: Mutex<Option<watch::Sender<bool>>>,
     streaming: Mutex<Option<watch::Sender<bool>>>,
     auth: Mutex<Option<watch::Sender<bool>>>,
-}
-
-fn link_word(state: &str) -> String {
-    Sha256::digest(state.as_bytes())[..4].iter().map(|b| ALPHA[(*b % 32) as usize] as char).collect()
 }
 
 fn start_relay(ctl: &Ctl) {
@@ -312,8 +306,15 @@ async fn link(app: AppHandle, ctl: State<'_, Ctl>) -> Result<String, String> {
     let mut raw = [0u8; 32];
     rand::thread_rng().fill_bytes(&mut raw);
     let state = base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(raw);
-    let word = link_word(&state);
-    let _ = app.opener().open_url(format!("{SITE}/admin/refapp?link={state}"), None::<&str>);
+    // the site hands out a short code to type on /admin/refapp; the state itself never goes into a url
+    let start = reqwest::Client::builder().timeout(Duration::from_secs(15)).build().map_err(|e| e.to_string())?
+        .post(format!("{SITE}/api/relay/start")).json(&serde_json::json!({ "state": state })).send().await
+        .map_err(|_| "nosite".to_string())?;
+    if !start.status().is_success() { return Err("nosite".into()); }
+    let word = start.json::<serde_json::Value>().await.ok()
+        .and_then(|v| v["code"].as_str().map(str::to_string))
+        .ok_or_else(|| "nosite".to_string())?;
+    let _ = app.opener().open_url(format!("{SITE}/admin/refapp"), None::<&str>);
 
     let (tx, mut rx) = watch::channel(false);
     if let Some(old) = ctl.linking.lock().unwrap().replace(tx) {

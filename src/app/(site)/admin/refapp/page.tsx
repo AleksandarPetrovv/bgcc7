@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 import { Download } from "lucide-react";
 import { PageTitle, SlantButton } from "@/components/site/page";
-import { ActionForm, Panel } from "@/components/admin/form";
+import { ActionForm, Field, Panel, labelCls } from "@/components/admin/form";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
-import { appOf, appRunning, linkWord, relayOnline, validState } from "@/lib/relay";
+import { appOf, appRunning, relayOnline } from "@/lib/relay";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
 import { linkApp, unlinkApp } from "./actions";
@@ -17,9 +17,8 @@ import { fmtSofia } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
 
-export default async function RefApp({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const [t, viewer, { link }] = await Promise.all([getDict(), getViewer(), searchParams]);
-  const st = typeof link === "string" && validState(link) ? link : null;
+export default async function RefApp() {
+  const [t, viewer] = await Promise.all([getDict(), getViewer()]);
   if (!viewer || !(can(viewer.roles, "matches") || can(viewer.roles, "overlay"))) notFound();
   const ref = can(viewer.roles, "matches");
   const app = await appOf(viewer.osuId);
@@ -37,20 +36,15 @@ export default async function RefApp({ searchParams }: { searchParams: Promise<R
     <>
       <PageTitle mark="whistle">{t.admin.menu.refapp}</PageTitle>
       <Cascade className="grid max-w-3xl gap-6 [--d:0.35s]" step={0.08}>
-        {st && (
-          <Panel title={r.linkTitle} i={1}>
-            <div className="space-y-5">
-              <div className="flex flex-wrap items-center gap-4">
-                <span data-cascade className="in-pop inline-flex -skew-x-12 border border-rose bg-rose/10 px-5 py-2 shadow-[4px_4px_0_0_var(--rose-deep)]">
-                  <span className="num inline-block skew-x-12 text-4xl tracking-[0.2em] text-paper">{linkWord(st)}</span>
-                </span>
-                <span data-cascade className="in-wipe text-sm font-display font-bold text-ash">{r.linkCode}</span>
-              </div>
-              <ActionForm action={(ref ? linkApp.bind(null, st) : linkHelper.bind(null, st, "refapp"))} submit={r.link} />
-            </div>
-          </Panel>
-        )}
-        <Panel title={t.admin.menu.refapp} i={st ? 2 : 1}>
+        <Panel title={r.linkTitle} i={1}>
+          <ActionForm action={ref ? linkApp : linkHelper.bind(null, "refapp")} submit={r.link} className="flex flex-wrap items-end gap-3">
+            <label className={labelCls}>
+              {r.linkCode}
+              <Field name="code" required maxLength={64} autoComplete="off" spellCheck={false} placeholder={r.linkCodePh} className="w-64" />
+            </label>
+          </ActionForm>
+        </Panel>
+        <Panel title={t.admin.menu.refapp} i={2}>
           <div className="flex flex-wrap items-center gap-4">
             <span data-cascade className="in-left flex items-center gap-2.5 text-sm font-display font-bold">
               <span className={cn("in-spin size-2.5 rotate-45", online ? "bg-balkan" : app ? "bg-gold" : "bg-line")} aria-hidden />

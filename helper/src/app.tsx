@@ -366,9 +366,9 @@ export function App() {
           </section>
 
           <section key={screenKey("s-wait")} className={screenCls("s-wait")} inert={screen !== "s-wait"}>
-            <div className="heading in" style={stagger(0)}>Confirm on the site</div>
-            <div className="anim-pop inline-flex -skew-x-12 self-start border border-rose bg-rose/10 px-[22px] py-2.5 shadow-[4px_4px_0_0_var(--rose-deep)]">
-              <span className="num inline-block skew-x-12 text-[40px] tracking-[0.2em]">{word}</span>
+            <div className="heading in" style={stagger(0)}>Type this code on the site</div>
+            <div className="anim-pop inline-flex max-w-full -skew-x-12 self-start border border-rose bg-rose/10 px-[22px] py-2.5 shadow-[4px_4px_0_0_var(--rose-deep)]">
+              <span className="num inline-block skew-x-12 select-text break-all text-[30px]">{word}</span>
             </div>
             <div className="beads in" style={stagger(1)} aria-hidden="true" />
             <Err text={err.wait} />
