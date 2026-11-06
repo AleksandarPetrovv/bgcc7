@@ -6,7 +6,7 @@
     "predev": "node ../scripts/palette.mjs",
     "dev": "tauri dev",
     "prebuild": "node ../scripts/palette.mjs",
-    "build": "tauri build --no-bundle",
+    "build": "tauri build",
     "ui": "vite",
     "ui:build": "tsc && vite build",
     "icon": "tauri icon icon.svg"

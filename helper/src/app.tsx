@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -41,13 +41,7 @@ const sentence = (t: string) => (/^(osu!|[!#])/.test(t) ? t : t.charAt(0).toUppe
 const cn = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(" ");
 const stagger = (i: number) => ({ "--i": i }) as React.CSSProperties;
 
-const Trash = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
-    <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
-  </svg>
-);
-
-function Btn({ kind = "outline", size, className, children, ...rest }: React.ButtonHTMLAttributes<HTMLButtonElement> & { kind?: "rose" | "outline" | "danger"; size?: "sm" | "big" }) {
+function Btn({ kind = "outline", size, className, children, ...rest }: React.ButtonHTMLAttributes<HTMLButtonElement> & { kind?: "rose" | "outline"; size?: "sm" | "big" }) {
   return (
     <button type="button" className={cn("btn", `btn-${kind}`, size && `btn-${size}`, className)} {...rest}>
       <span>{children}</span>
@@ -67,16 +61,72 @@ function Toggle({ on, className, children, ...rest }: React.ButtonHTMLAttributes
 const Err = ({ text, id }: { text: string; id?: string }) => (text ? <div id={id} role="alert" className="min-h-[18px] text-[12.5px] font-extrabold text-rose-hi">{text}</div> : null);
 const Help = ({ text, role }: { text: string; role?: string }) => (text ? <p role={role} className="text-[12.5px] leading-normal text-ash">{text}</p> : null);
 const Chip = ({ text }: { text: string }) => (
-  <span className="-skew-x-12 border-l-[3px] border-rose bg-slate px-2 py-[3px]">
-    <span className="inline-block skew-x-12 font-display text-xs font-black">{text}</span>
-  </span>
+  <span className="slant px-2 py-[3px] font-display text-xs font-black [--sl-bg:var(--slate)] [--sl-shadow:inset_3px_0_0_var(--rose)]">{text}</span>
 );
 const Stat = ({ k, children }: { k: string; children: React.ReactNode }) => (
-  <div className="relative flex flex-col gap-1.5 border border-line bg-coal px-3.5 py-3">
+  <div className="flex min-w-0 flex-col gap-1.5">
     <span className="font-display text-[10px] font-bold text-ash">{k}</span>
     {children}
   </div>
 );
+const rule = "border-b border-line pb-4";
+// segmented trapezoid like the site's EN/BG and theme switches
+function Seg({ on, label, disabled, onPick }: { on: boolean; label: string; disabled?: boolean; onPick: (on: boolean) => void }) {
+  return (
+    <div className={cn("slant flex h-8 shrink-0 font-display text-[11px] font-black [--sl-line:var(--line)]", disabled && "opacity-60")} role="group" aria-label={label}>
+      {[false, true].map((v) => (
+        <button
+          key={String(v)}
+          type="button"
+          aria-pressed={on === v}
+          disabled={disabled}
+          onClick={() => on !== v && onPick(v)}
+          className={cn("slant px-3 transition-colors", on === v ? (v ? "text-ink [--sl-bg:var(--balkan)]" : "text-ink [--sl-bg:var(--paper)]") : "text-ash hover:text-paper")}
+        >
+          {v ? "On" : "Off"}
+        </button>
+      ))}
+    </div>
+  );
+}
+const LOG_DOT: Record<string, string> = { ok: "bg-balkan", warn: "bg-gold", err: "bg-rose", cmd: "bg-paper" };
+
+function Tabs({ tabs, current, onPick }: { tabs: readonly Tab[]; current?: Tab; onPick: (t: Tab) => void }) {
+  const refs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({});
+  const [bar, setBar] = useState({ l: 0, w: 0 });
+  useLayoutEffect(() => {
+    const measure = () => {
+      const b = current && refs.current[current];
+      if (b) setBar({ l: b.offsetLeft, w: b.offsetWidth });
+    };
+    measure();
+    document.fonts?.ready.then(measure);
+  }, [current, tabs]);
+  return (
+    <div role="tablist" className="relative flex gap-x-6">
+      {tabs.map((t) => (
+        <button
+          key={t}
+          ref={(el) => {
+            refs.current[t] = el;
+          }}
+          type="button"
+          role="tab"
+          aria-selected={current === t}
+          onClick={() => onPick(t)}
+          className={cn("pb-2 font-display text-sm font-black transition-colors duration-300", current === t ? "text-paper" : "text-ash hover:text-paper/80")}
+        >
+          {t === "ref" ? "Referee" : "Streamer"}
+        </button>
+      ))}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-0 left-0 h-[3px] -skew-x-12 transition-[translate,width,background-color] duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]"
+        style={{ width: bar.w, translate: `${bar.l}px 0`, background: current === "stream" ? "var(--balkan)" : "var(--rose)" }}
+      />
+    </div>
+  );
+}
 const Value = ({ dot, text }: { dot: string; text: React.ReactNode }) => (
   <span className="flex items-center gap-[9px] font-display text-[15px] font-bold [overflow-wrap:anywhere]">
     <i className={cn("dia", dot)} />
@@ -89,7 +139,7 @@ export function App() {
   const [screen, setScreen] = useState<Screen>("s-login");
   const [visits, setVisits] = useState(0);
   const [word, setWord] = useState("····");
-  const [err, setErr] = useState({ login: "", wait: "", run: "", pass: "", stream: "", un: "" });
+  const [err, setErr] = useState({ login: "", wait: "", run: "", pass: "", stream: "" });
   const [passNote, setPassNote] = useState("");
   const [pass, setPass] = useState("");
   const [tab, setTab] = useState<Tab | null>(savedTab);
@@ -98,7 +148,6 @@ export function App() {
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [auto, setAuto] = useState(false);
   const [logs, setLogs] = useState<Entry[]>([]);
-  const [modal, setModal] = useState(false);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [avatarOk, setAvatarOk] = useState(false);
   const alertRev = useRef(0);
@@ -325,13 +374,11 @@ export function App() {
               <span className="num7-shine pointer-events-none absolute -left-[0.3em] -top-[0.3em] py-[0.3em] pl-[0.3em] pr-[0.7em] text-transparent" aria-hidden="true">7</span>
             </span>
           </div>
-          <span className="anim-pop relative mt-2.5 inline-flex -skew-x-12 bg-rose px-2.5 py-1 [animation-delay:0.8s]">
-            <span className="inline-block skew-x-12 font-display text-[11px] font-bold text-white">Helper</span>
-          </span>
+          <span className="anim-pop slant mt-2.5 inline-flex px-2.5 py-1 font-display text-[11px] font-bold text-white [--sl-bg:var(--rose)] [animation-delay:0.8s]">Helper</span>
         </section>
 
         <div className="flex shrink-0 justify-center pt-3">
-          <div className="flex h-7 -skew-x-12 border border-line" role="group" aria-label="Theme">
+          <div className="slant flex h-7 [--sl-line:var(--line)]" role="group" aria-label="Theme">
             {[false, true].map((on) => (
               <button
                 key={String(on)}
@@ -340,9 +387,9 @@ export function App() {
                 aria-label={on ? "Dark mode" : "Light mode"}
                 title={on ? "Dark mode" : "Light mode"}
                 onClick={() => setTheme(on)}
-                className={cn("grid w-9 place-items-center transition-colors", dark === on ? "bg-paper text-ink" : "text-ash hover:text-paper")}
+                className={cn("slant grid w-9 place-items-center transition-colors", dark === on ? "text-ink [--sl-bg:var(--paper)]" : "text-ash hover:text-paper")}
               >
-                {on ? <svg viewBox="0 0 24 24" className="size-[13px] skew-x-12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinejoin="round"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11Z" /></svg> : <svg viewBox="0 0 24 24" className="size-[13px] skew-x-12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>}
+                {on ? <svg viewBox="0 0 24 24" className="size-[13px]" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinejoin="round"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11Z" /></svg> : <svg viewBox="0 0 24 24" className="size-[13px]" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>}
               </button>
             ))}
           </div>
@@ -359,16 +406,12 @@ export function App() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
               </Btn>
             </div>
-            <div className="in mt-auto flex flex-wrap items-center gap-3 pt-1.5" style={stagger(5)}>
-              <span className="flex-1" />
-              <Btn kind="danger" size="sm" onClick={() => setModal(true)}>{Trash} Uninstall</Btn>
-            </div>
           </section>
 
           <section key={screenKey("s-wait")} className={screenCls("s-wait")} inert={screen !== "s-wait"}>
             <div className="heading in" style={stagger(0)}>Type this code on the site</div>
-            <div className="anim-pop inline-flex max-w-full -skew-x-12 self-start border border-rose bg-rose/10 px-[22px] py-2.5 shadow-[4px_4px_0_0_var(--rose-deep)]">
-              <span className="num inline-block skew-x-12 select-text break-all text-[30px]">{word}</span>
+            <div className={cn("in pt-1", rule)} style={stagger(1)}>
+              <span className="num block select-text break-all text-[30px] text-paper">{word}</span>
             </div>
             <div className="beads in" style={stagger(1)} aria-hidden="true" />
             <Err text={err.wait} />
@@ -386,52 +429,36 @@ export function App() {
           </section>
 
           <section key={screenKey("s-run")} className={screenCls("s-run")} inert={screen !== "s-run"}>
-            <div className="in relative flex items-center gap-3.5 overflow-hidden border border-line bg-coal px-4 py-3 before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-rose" style={stagger(0)}>
-              <span className="anim-spin-in relative grid size-[50px] shrink-0 place-items-center overflow-hidden rounded-full bg-slate shadow-[0_0_0_2px_var(--coal),0_0_0_4px_color-mix(in_srgb,var(--rose)_45%,transparent)]">
+            <div className={cn("in flex items-center gap-3.5", rule)} style={stagger(0)}>
+              <span className="anim-spin-in relative grid size-[50px] shrink-0 place-items-center overflow-hidden rounded-full bg-slate shadow-[0_0_0_2px_var(--ink),0_0_0_4px_color-mix(in_srgb,var(--rose)_45%,transparent)]">
                 <b className="font-display text-xl font-black text-ash">{(s?.name?.[0] ?? "?").toLowerCase()}</b>
                 {avatar && <img key={avatar} src={avatar} alt="" onLoad={() => setAvatarOk(true)} className={cn("absolute inset-0 size-full object-cover transition-opacity duration-400", avatarOk ? "opacity-100" : "opacity-0")} />}
               </span>
-              <span className="flex min-w-0 flex-col gap-[5px]">
+              <span className="flex min-w-0 flex-1 flex-col gap-[5px]">
                 <span className="font-display text-[10px] font-bold text-ash">Linked account</span>
                 <span className="heading truncate !text-[26px]">{s?.name ?? "—"}</span>
+              </span>
+              <span className="flex shrink-0 flex-col items-end gap-[5px]">
+                <span className="font-display text-[10px] font-bold text-ash">Site</span>
+                <Value dot={siteDot} text={siteText} />
               </span>
             </div>
             <Help role="status" text={!s?.roles_ready ? "Checking account roles…" : ""} />
             {s?.roles_ready && !tabs.length && (
-              <div className="flex flex-col gap-1.5 border border-dashed border-line p-3.5">
+              <div className="flex flex-col gap-1.5">
                 <span className="font-display text-[13px] font-bold text-rose-hi">No roles yet</span>
                 <Help text="This account has no referee or streamer role. Ask tournament staff to assign one on the site, it shows up here by itself." />
               </div>
             )}
             {tabs.length > 1 && (
-            <div className="in grid grid-cols-2 gap-2" style={stagger(1)} role="tablist">
-              {tabs.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  role="tab"
-                  aria-selected={current === t}
-                  onClick={() => pickTab(t)}
-                  className={cn(
-                    "flex h-10 -skew-x-12 items-center justify-center border font-display text-xs font-bold transition-[background-color,color,border-color,box-shadow] duration-200",
-                    current === t ? "border-rose bg-rose text-white shadow-[4px_4px_0_0_var(--rose-deep)]" : "border-line bg-field text-ash hover:border-paper/30 hover:text-paper",
-                  )}
-                >
-                  <span className="skew-x-12">{t === "ref" ? "Referee" : "Streamer"}</span>
-                </button>
-              ))}
-            </div>
+              <div className="in" style={stagger(1)}>
+                <Tabs tabs={tabs} current={current} onPick={pickTab} />
+              </div>
             )}
-            <div className="grid grid-cols-1 gap-2">
-              <Stat k="Site">
-                <Value dot={siteDot} text={siteText} />
-              </Stat>
-            </div>
 
             {s && current === "ref" && (
-              <section className="flex min-w-0 flex-col gap-3 pt-1">
-                <div className="sec">Referee</div>
-                <div className="grid grid-cols-2 gap-2">
+              <section className="flex min-w-0 flex-col pt-1">
+                <div className="in grid grid-cols-3 gap-3 pb-4" style={stagger(0)}>
                   <Stat k="osu! IRC">
                     <Value dot={ircDot} text={s.irc === "online" && s.lobbies.length ? "In lobby" : ircText} />
                   </Stat>
@@ -444,52 +471,52 @@ export function App() {
                     <span className="num text-[30px] leading-[0.9]">{s.sent}</span>
                   </Stat>
                 </div>
-                <form className="flex min-w-0 flex-col gap-3 border-t border-line pt-3" onSubmit={savePass}>
-                  <Help
-                    text={
-                      s.irc === "online"
-                        ? "IRC is online. Use this form if you need to replace your saved password."
-                        : s.irc === "connecting"
-                          ? "Connecting to IRC with the saved password…"
-                          : "If no password is saved, enter it here to start the ref relay without linking again."
-                    }
-                  />
-                  <label className="flex flex-col gap-[7px] font-display text-[10.5px] font-bold text-ash transition-colors focus-within:text-paper">
+                {/* only while no working password is saved; collapses with its separator once IRC accepts it */}
+                <div className={cn("collapse-y", s.irc !== "badpass" && "shut")} inert={s.irc !== "badpass"}>
+                <div>
+                <form className="flex min-w-0 flex-col gap-3 border-t border-line pb-2 pt-4" onSubmit={savePass}>
+                  <div className="in" style={stagger(1)}>
+                    <Help text="Save your IRC password to run lobbies from the site." />
+                  </div>
+                  <label style={stagger(2)} className="in flex flex-col gap-[7px] font-display text-[10.5px] font-bold text-ash transition-colors focus-within:text-paper">
                     IRC password
                     <span className="field">
-                      <input type="password" autoComplete="off" value={pass} onChange={(e) => setPass(e.target.value)} className="w-full skew-x-12 select-text border-0 bg-transparent px-3.5 font-display text-sm font-semibold text-paper outline-0" />
+                      <input type="password" autoComplete="off" value={pass} onChange={(e) => setPass(e.target.value)} className="w-full select-text border-0 bg-transparent px-3.5 font-display text-sm font-semibold text-paper outline-0" />
                     </span>
                   </label>
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="in flex flex-wrap items-center gap-3" style={stagger(3)}>
                     <Btn size="sm" type="submit" disabled={busy["save-pass"]}>Save IRC password</Btn>
                     <button type="button" disabled={busy["linked-getirc"]} onClick={() => action("linked-getirc", "open", { what: "irc" }, "pass")} className="self-center font-display text-[11.5px] font-bold text-ash underline decoration-line underline-offset-[3px] transition-colors hover:text-rose-hi hover:decoration-rose-hi">
                       Get your IRC password
                     </button>
                   </div>
-                  <Help role="status" text={passNote} />
                   <Err text={err.pass} />
                 </form>
+                </div>
+                </div>
+                {passNote && (
+                  <div className="in pt-1">
+                    <Help role="status" text={passNote} />
+                  </div>
+                )}
               </section>
             )}
 
             {s && current === "stream" && (
               <section className="flex min-w-0 flex-col gap-3 pt-1">
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="sec flex-1">Streaming</div>
-                  <Toggle on={s.streaming === true} disabled={streamBusy} onClick={toggleStream}>
-                    {streamBusy ? "Saving…" : s.streaming ? "Streaming on" : "Streaming off"}
-                  </Toggle>
-                </div>
-                <div className="relative flex flex-col gap-1.5 border border-line bg-coal px-3.5 py-3">
-                  <Value dot={streamDot} text={streamText} />
-                  <Help text={streamNote} />
+                <div className="in flex items-center gap-3" style={stagger(0)}>
+                  <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                    <Value dot={streamDot} text={streamText} />
+                    <Help text={streamNote} />
+                  </div>
+                  <Seg label="Streaming" on={s.streaming === true} disabled={streamBusy} onPick={() => toggleStream()} />
                 </div>
                 <dl className="flex flex-col gap-2 text-xs">
                   {[
                     ["Assigned match", s.stream_match ?? "—"],
                     ["Clients detected", String(s.stream_clients ?? 0)],
-                  ].map(([k, v]) => (
-                    <div key={k} className="flex flex-wrap justify-between gap-2">
+                  ].map(([k, v], i) => (
+                    <div key={k} className="in flex flex-wrap justify-between gap-2" style={stagger(i + 1)}>
                       <dt className="font-display font-bold text-ash">{k}</dt>
                       <dd className="num min-w-0 select-text [overflow-wrap:anywhere]">{v}</dd>
                     </div>
@@ -499,16 +526,11 @@ export function App() {
               </section>
             )}
 
-            <div className="sec in" style={stagger(5)}>Activity</div>
-            <ul className="thin-scroll flex max-h-[180px] min-h-[70px] flex-col gap-1 overflow-y-auto">
+            <div className="sec in mt-3" style={stagger(5)}>Activity</div>
+            <ul className="thin-scroll flex max-h-[180px] min-h-[70px] flex-col gap-0.5 overflow-y-auto">
               {logs.map((e, i) => (
-                <li
-                  key={`${e.at}-${i}-${e.text}`}
-                  className={cn(
-                    "anim-left flex gap-2.5 border-l-[3px] bg-coal/70 px-2.5 py-1.5 text-[12.5px]",
-                    e.kind === "ok" ? "border-balkan-deep" : e.kind === "warn" ? "border-gold-deep" : e.kind === "err" ? "border-rose" : e.kind === "cmd" ? "border-paper" : "border-line",
-                  )}
-                >
+                <li key={`${e.at}-${i}-${e.text}`} className="anim-left flex items-center gap-2.5 py-1 text-[12.5px]">
+                  <i aria-hidden="true" className={cn("size-[7px] shrink-0 rotate-45", LOG_DOT[e.kind] ?? "bg-line")} />
                   <span className="num shrink-0 text-ash">{hhmm(e.at)}</span>
                   <span title={sentence(e.text)} className={cn("min-w-0 select-text truncate", e.kind === "cmd" ? "font-extrabold" : "font-semibold")}>
                     {sentence(e.text)}
@@ -524,29 +546,12 @@ export function App() {
               <Btn size="sm" disabled={busy.site} onClick={() => action("site", "open", { what: "site" })}>Open BGCC</Btn>
               <Btn size="sm" disabled={busy.unlink} onClick={unlink}>{unlinkBusy ? "Unlinking…" : "Log out"}</Btn>
             </div>
-            <div className="in flex justify-end" style={stagger(7)}>
-              <Btn kind="danger" size="sm" onClick={() => setModal(true)}>{Trash} Uninstall</Btn>
-            </div>
             <Err text={err.run} />
           </section>
         </main>
       </div>
 
       <Alerts alerts={alerts} />
-
-      {modal && (
-        <div className="anim-fade fixed inset-0 z-10 grid place-items-center bg-ink/80 p-[22px] backdrop-blur-[3px]" onClick={(e) => e.target === e.currentTarget && setModal(false)}>
-          <div role="dialog" aria-modal="true" className="anim-modal flex w-full flex-col gap-3.5 border border-rose bg-coal p-[22px] shadow-[6px_6px_0_0_var(--rose-deep)]">
-            <div className="heading">Uninstall BGCC7 Helper?</div>
-            <p className="text-[13px] font-semibold leading-[1.45] text-paper/75">Removes the app, your saved login, autostart and the link to the site.</p>
-            <div className="flex flex-wrap items-center gap-3">
-              <Btn kind="rose" disabled={busy["un-yes"]} onClick={() => action("un-yes", "uninstall", undefined, "un")}>Uninstall</Btn>
-              <Btn onClick={() => setModal(false)}>Cancel</Btn>
-            </div>
-            <Err text={err.un} />
-          </div>
-        </div>
-      )}
     </>
   );
 }

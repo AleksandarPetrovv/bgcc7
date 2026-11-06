@@ -141,6 +141,13 @@ const seen = () => (gs.bgccHelperSeen ??= new Map());
 // the helper pings /api/relay/me every 20s, so this covers streamers that never open the irc relay
 export const appRunning = (osuId: number) => relayOnline(osuId) || Date.now() - (seen().get(osuId) ?? 0) < 45_000;
 
+// the helper says bye on quit, so the site shows it closed at once instead of after the 45s window
+export async function appClosed(osuId: number) {
+  seen().delete(osuId);
+  drop(osuId);
+  await db.update(refApps).set({ seenAt: new Date() }).where(eq(refApps.osuId, osuId));
+}
+
 export async function unpair(osuId: number) {
   await db.delete(refApps).where(eq(refApps.osuId, osuId));
   drop(osuId);
