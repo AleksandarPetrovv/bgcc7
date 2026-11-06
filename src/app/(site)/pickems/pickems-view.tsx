@@ -109,7 +109,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
           ))}
         </div>
         <div className="in-right relative flex flex-wrap items-center gap-4 border-b border-line py-4 [--d:0.3s]">
-          <span className="absolute -bottom-[7px] left-0 size-2.5 rotate-45 bg-rose shadow-[0_0_0_3px_var(--ink)]" aria-hidden />
+          <span className="absolute -bottom-[7px] left-0 size-2.5 rotate-45 bg-rose" aria-hidden />
           <div>
             <div className="text-[0.65rem] font-display font-bold text-rose-hi">{t.pickems.yourPicks}</div>
             <div className="in-pop num origin-left text-3xl [--d:0.55s]">

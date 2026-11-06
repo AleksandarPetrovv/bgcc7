@@ -30,7 +30,7 @@ export function BestScore({ score, acc, combo, miss, mods, rank, map }: Props) {
           </span>
         }
       />
-      <HoverCardContent side="top" align="start" className="w-[300px] rounded-none border border-balkan bg-ink p-0 text-paper shadow-2xl shadow-black/60 ring-0">
+      <HoverCardContent side="top" align="start" className="w-[18.75rem] rounded-none border border-balkan bg-ink p-0 text-paper shadow-2xl shadow-black/60 ring-0">
         <div className="relative h-16 overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={map.cover} alt="" className="absolute inset-0 size-full object-cover opacity-50" />

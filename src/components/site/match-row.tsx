@@ -136,7 +136,7 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
       )}
     >
       {small ? (
-        <span className="pointer-events-none absolute -bottom-[7px] left-1/2 size-2.5 -translate-x-1/2 rotate-45 bg-rose shadow-[0_0_0_3px_var(--ink)]" aria-hidden />
+        <span className="pointer-events-none absolute -bottom-[7px] left-1/2 size-2.5 -translate-x-1/2 rotate-45 bg-rose" aria-hidden />
       ) : (
       <div className="pointer-events-none absolute inset-0 -z-10 flex" aria-hidden>
         {teams.map((team, i) => (

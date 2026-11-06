@@ -62,7 +62,7 @@ export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]
       </div>
 
       <div className="overflow-x-auto border border-line" onScroll={close}>
-        <table className="w-full min-w-[1100px] border-collapse text-sm">
+        <table className="w-full min-w-[68.75rem] border-collapse text-sm">
           <thead>
             <tr className="bg-slate text-left text-[0.7rem] font-display font-bold text-ash">
               <th className="sticky left-0 z-10 bg-slate px-3 py-3">{t.qual.cols[0]}</th>

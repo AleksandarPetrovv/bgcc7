@@ -270,7 +270,8 @@ export function SchedCard({ m, round, me, opp, week, open, readOnly = false, n =
       style={{ "--d": "0s", "--i": n, "--s": "0.15s", "--cd": `${n * 0.15}s` } as React.CSSProperties}
     >
       <RuleDiamond />
-      <div style={at(0.15)} className="in-up in-slow flex items-center gap-3 border-b border-line pb-2.5">
+      <div style={at(0.15)} className="in-up in-slow relative flex items-center gap-3 border-b-2 border-dashed border-line pb-2.5">
+        <RuleDiamond />
         <span className="size-2 shrink-0 rotate-45 bg-rose" aria-hidden />
         <Letters text={round} d={L} className="text-xs font-display font-bold text-rose-hi" />
         <AnimatePresence initial={false}>
@@ -291,7 +292,7 @@ export function SchedCard({ m, round, me, opp, week, open, readOnly = false, n =
         </div>
       </div>
 
-      <div className="border-t border-line py-5 text-center">
+      <div className="pb-5 text-center">
         <AnimatePresence initial={false} mode="wait">
           <motion.p key={agreed ?? "tbd"} {...fade} className={cn("num text-paper", agreed ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl")}><Letters text={agreed ? w.full(agreed) : t.common.tbd} d={L} s={0.02} /></motion.p>
         </AnimatePresence>
