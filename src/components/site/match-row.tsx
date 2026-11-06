@@ -81,7 +81,8 @@ export function LiveTag({ className }: { className?: string }) {
 }
 
 // small: the home page size; the round name gets the top line (label = longest to shortest), the date sits under the score unless the results eye is there; delay shifts the whole intro
-export function MatchRow({ match, live, small, label, delay = 0 }: { match: Match; live?: [number, number] | null; small?: boolean; label?: string[]; delay?: number }) {
+// plain: no results eye, the date always shows (stream overlay)
+export function MatchRow({ match, live, small, label, delay = 0, plain }: { match: Match; live?: [number, number] | null; small?: boolean; label?: string[]; delay?: number; plain?: boolean }) {
   const lbl = useRef<HTMLSpanElement>(null);
   const [level, setLevel] = useState(0);
   const [fonts, recheck] = useState(0);
@@ -109,7 +110,7 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
   const played = match.winner !== null;
   const { teamById } = useTournament();
   const teams = [teamById(match.team1.id), teamById(match.team2.id)];
-  const eye = match.links.length > 0 && hasResults(match);
+  const eye = !plain && match.links.length > 0 && hasResults(match);
   const when = w ? w : small || (match.team1.id && match.team2.id) ? t.common.tbd : "—";
   const dateCls = "num flex h-5 max-w-full items-center gap-2 whitespace-nowrap px-2 text-[0.7rem] italic leading-none text-paper/70 sm:text-[0.8rem]";
   const dateLine = (

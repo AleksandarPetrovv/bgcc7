@@ -65,7 +65,7 @@ function Line({ m, slot, live, slim }: { m: Match; slot: 1 | 2; live?: [number, 
   );
 }
 
-function Box({ id, m, live, slim, className, style, onEnter, onLeave }: { id: string; m: Match; live?: [number, number] | null; slim?: boolean; className?: string; style?: React.CSSProperties; onEnter?: () => void; onLeave?: () => void }) {
+function Box({ id, m, live, slim, plain, className, style, onEnter, onLeave }: { id: string; m: Match; live?: [number, number] | null; slim?: boolean; plain?: boolean; className?: string; style?: React.CSSProperties; onEnter?: () => void; onLeave?: () => void }) {
   const t = useDict();
   const lang = useLang();
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
@@ -79,11 +79,11 @@ function Box({ id, m, live, slim, className, style, onEnter, onLeave }: { id: st
         {id === "grand-final-reset" ? (
           <span className="shrink-0 whitespace-nowrap text-[9.6px] font-display font-bold text-gold-hi">{t.rounds.reset}</span>
         ) : (
-          !m.datetime && !m.winner && !(m.team1.id && m.team2.id) && <span className="truncate whitespace-nowrap text-[9.6px] font-display font-bold text-gold-hi">{roundName(t, m.round)}{num ? ` ${t.nav.match} ${num}` : ""}</span>
+          !m.datetime && !m.winner && !(m.team1.id && m.team2.id) && <span className={cn("truncate whitespace-nowrap text-[12.5px]", id.startsWith("grand-") ? "font-display font-bold text-gold-hi" : "num text-paper/75")}>{roundName(t, m.round)}{num ? ` ${t.nav.match} ${num}` : ""}</span>
         )}
         <span className="ml-auto flex items-center gap-1">
           {live !== undefined && <LiveDot />}
-          {m.links.length > 0 && hasResults(m) && <MatchDialog match={m} compact />}
+          {!plain && m.links.length > 0 && hasResults(m) && <MatchDialog match={m} compact />}
         </span>
       </div>
       <Line m={m} slot={1} live={live} slim={slim} />
@@ -103,7 +103,8 @@ function LiveDot() {
   );
 }
 
-export function MatchBracket({ live = {} }: { live?: Record<string, [number, number] | null> }) {
+// overlay: maxH caps the scale so the whole bracket fits, reset=false hides the grand final reset, plain drops the results eyes
+export function MatchBracket({ live = {}, maxH, reset = true, plain }: { live?: Record<string, [number, number] | null>; maxH?: number; reset?: boolean; plain?: boolean }) {
   const t = useDict();
   const router = useRouter();
   const { matches, format } = useTournament();
@@ -121,7 +122,10 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
 
   const phone = seen > 0 && seen < 640;
   const gap = phone ? 44 : G;
-  const W = phone ? Math.round(avail - gap) : Math.floor(Math.min(290, Math.max(minW, (avail - gfCol * G - 8) / (gfCol + 1))));
+  const height = LOW + (lowRows - 1) * P + H + 12;
+  // overlay: the height sets the scale, then the columns widen to fill the width at that scale
+  const fill = maxH && !phone ? Math.min(2, maxH / height) : 0;
+  const W = phone ? Math.round(avail - gap) : fill ? Math.floor(Math.max(minW, (avail / fill - gfCol * G - 8) / (gfCol + 1))) : Math.floor(Math.min(290, Math.max(minW, (avail - gfCol * G - 8) / (gfCol + 1))));
   const col = (c: number) => c * (W + gap);
   const byId = new Map(matches.map((m) => [m.id, m]));
   const inner = useRef<HTMLDivElement>(null);
@@ -149,8 +153,8 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   if (hover) for (const [a, b] of DROPS) if (a === hover || b === hover) linked.add(a).add(b);
 
   const width = col(gfCol) + W + (phone ? gap : 0);
-  const height = LOW + (lowRows - 1) * P + H + 12;
-  const scale = shrink < 1 ? shrink : seen >= 1280 && width < seen ? Math.min(2, seen / width) : 1;
+  const fitW = shrink < 1 ? shrink : seen >= 1280 && width < seen ? Math.min(2, seen / width) : 1;
+  const scale = maxH ? Math.min(fitW, maxH / height) : fitW;
   const fit = fitBox(width, height, scale);
   const lowCol = Math.min(...HEADERS.filter((h) => h.s === "l").map((h) => h.c));
   const midY = (id: string) => top(id) + H / 2;
@@ -174,7 +178,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
 
   const section = (s: "u" | "l") => (
     <div className="pointer-events-none absolute flex items-center gap-3" style={{ left: s === "u" ? 0 : col(lowCol), top: s === "u" ? 0 : LOW - 100 }}>
-      <span className={cn("in-wipe heading-slam whitespace-nowrap text-xl sm:text-3xl", s === "l" && "text-rose-hi")} style={v({ "--d": s === "u" ? "0.1s" : "0.4s" })}>
+      <span className={cn("in-wipe heading-slam whitespace-nowrap text-xl sm:text-3xl", (plain ? s === "u" : s === "l") && "text-rose-hi")} style={v({ "--d": s === "u" ? "0.1s" : "0.4s" })}>
         {s === "u" ? t.schedule.upper : t.schedule.lower}
       </span>
     </div>
@@ -215,7 +219,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
               opacity={linked.has(a) && linked.has(b) ? 0.9 : 0}
             />
           ))}
-          <path d={`M${col(gfCol) + W / 2} ${top("grand-final") + H} V${top("grand-final-reset")}`} strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="3 4" className="in-up" style={v({ "--d": "1.3s", stroke: "var(--gold)" })} />
+          {reset && <path d={`M${col(gfCol) + W / 2} ${top("grand-final") + H} V${top("grand-final-reset")}`} strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="3 4" className="in-up" style={v({ "--d": "1.3s", stroke: "var(--gold)" })} />}
         </svg>
 
         {!phone && section("u")}
@@ -248,7 +252,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
 
         {Object.keys(POS).map((id) => {
           const m = byId.get(id);
-          if (!m) return null;
+          if (!m || (!reset && id === "grand-final-reset")) return null;
           const [c] = POS[id];
           const gf = id.startsWith("grand-");
           return (
@@ -258,6 +262,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
               m={m}
               live={id in live ? live[id] : undefined}
               slim={W < 200}
+              plain={plain}
               onEnter={() => setHover(id)}
               onLeave={() => setHover(null)}
               className={cn("in-left-far absolute", gf ? "border-gold/70" : "border-line hover:border-paper/30", linked.has(id) && "z-10 border-rose shadow-[0_0_14px_-3px_var(--rose)]")}
