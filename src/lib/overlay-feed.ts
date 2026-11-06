@@ -14,7 +14,8 @@ import { getLive, IPC_PLAYING } from "@/lib/live-scores";
 import { overlayUser, currentStreamMatch } from "@/db/stream";
 import { isScene, type Scene } from "@/lib/scenes";
 import { getCue, PLAY_LEAD } from "@/lib/overlay-cues";
-import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup, FeedMatch, LiveScore } from "./overlay-types";
+import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup, FeedMatch, FeedTurn, LiveScore } from "./overlay-types";
+import { tbDue, turnOf, type DraftView } from "@/lib/draft";
 import { TEST_MATCH } from "@/lib/format";
 import { canSee } from "@/lib/authz";
 
@@ -103,6 +104,13 @@ export async function resolveOverlay(key: string): Promise<{ found: boolean; mat
 
   const m = await currentStreamMatch(u.osuId);
   return { found: true, matchId: m?.id ?? null };
+}
+
+function feedTurn(draft: DraftView | null | undefined, pool: FeedMap[]): FeedTurn {
+  if (!draft?.open) return null;
+  if (tbDue(draft)) return { kind: "tb" };
+  const t = turnOf(draft, pool.map((p) => p.slot));
+  return t.kind === "pick" || t.kind === "ban" ? { kind: t.kind, team: t.team } : null;
 }
 
 export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
@@ -229,6 +237,7 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
     steps: stage?.released ? steps : [],
     rolls: [draft?.roll1 ?? null, draft?.roll2 ?? null],
     choice: draft?.choice === "pick" || draft?.choice === "ban" ? draft.choice : null,
+    turn: stage?.released ? feedTurn(draft, pool) : null,
     current,
     live: stage?.released ? shownLive : null,
     scene,
