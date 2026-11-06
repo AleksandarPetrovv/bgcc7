@@ -6,10 +6,8 @@ import { auth } from "@/auth";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can, hasAdmin } from "@/lib/roles";
-import { siteEdition } from "@/db";
 import { getHosts } from "@/db/admin";
 import type { Role } from "@/lib/roles";
-import { EditionSwitch } from "./edition-bgcc6/edition-switch";
 import { adminMenu } from "./menu";
 import { avatarPath } from "@/lib/avatar";
 import { RuleDiamond } from "@/components/site/rule";
@@ -60,7 +58,6 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
             </div>
           </div>
           <AdminNav items={items} />
-          {viewer.roles.includes("host") && <EditionSwitch edition={siteEdition()} />}
         </div>
       </aside>
       <div className="min-w-0 flex-1">{children}</div>
