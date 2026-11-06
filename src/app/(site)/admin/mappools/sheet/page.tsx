@@ -154,7 +154,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                     <li
                       key={m.id}
                       style={{ "--i": i, "--s": "0.04s", "--d": "0.25s" } as React.CSSProperties}
-                      className={cn("sr in-left relative flex flex-wrap items-center gap-3 py-3.5 pl-4 pr-3", green && "bg-balkan/[0.07]")}
+                      className={cn("sr in-left relative flex flex-wrap items-center gap-3 py-3.5 pl-4 pr-3 max-sm:pb-8", green && "bg-balkan/[0.07]")}
                     >
                       {(green || lead) && <span className={cn("absolute inset-y-0 left-0 w-1", green ? "bg-balkan" : "bg-rose")} aria-hidden />}
                       <span

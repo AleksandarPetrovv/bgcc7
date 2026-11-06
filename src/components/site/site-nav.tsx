@@ -217,11 +217,13 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
     const row = rowRef.current, nav = navRef.current, right = rightRef.current;
     if (!row || !nav || !right) return;
     const measure = () => {
-      const left = nav.previousElementSibling?.getBoundingClientRect().right ?? 0;
+      const rowGap = parseFloat(getComputedStyle(row).columnGap) || 0;
+      // where the toggle ends when it sits in the row (it's centered while the menu button shows)
+      const toggle = nav.previousElementSibling as HTMLElement | null;
+      const left = (toggle?.previousElementSibling?.getBoundingClientRect().right ?? 0) + rowGap + (toggle?.offsetWidth ?? 0);
       const kids = [...right.children].filter((k) => !(k as HTMLElement).dataset.compact && k.getBoundingClientRect().width > 0);
       const gap = parseFloat(getComputedStyle(right).columnGap) || 0;
       const rightW = kids.reduce((s, k) => s + k.getBoundingClientRect().width, 0) + gap * Math.max(0, kids.length - 1);
-      const rowGap = parseFloat(getComputedStyle(row).columnGap) || 0;
       const r = row.getBoundingClientRect();
       const end = r.right - (parseFloat(getComputedStyle(row).paddingRight) || 0) - rightW;
       const flowStart = left + rowGap;
@@ -253,7 +255,8 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
         <Link href="/" className="group flex h-full items-center gap-1 pl-3 sm:pl-4 lg:pl-6" aria-label={t.nav.homeLabel}>
           <Wordmark size="md" className="text-paper max-sm:text-[1.6rem]" />
         </Link>
-        <ThemeToggle />
+        {/* with the menu button instead of the nav, the toggle sits in the middle of the bar */}
+        <ThemeToggle className={fit === null ? "max-[1699px]:absolute max-[1699px]:left-1/2 max-[1699px]:-translate-x-1/2" : fit ? undefined : "absolute left-1/2 -translate-x-1/2"} />
 
         <nav
           ref={navRef}

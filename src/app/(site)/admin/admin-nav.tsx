@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { CalendarClock, ChevronRight, ClipboardCheck, Download, Dices, DoorOpen, Gauge, LayoutGrid, Layers, Link2, MonitorPlay, Music2, ScrollText, Settings2, Shield, Swords, Trophy, Users } from "lucide-react";
 import { TwitchLogo } from "@/components/site/twitch-logo";
 import { DiscordLogo } from "@/components/site/discord-logo";
+import { Sparkle } from "@/components/site/graphics";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -57,6 +58,9 @@ export function AdminNav({ items }: { items: { href: string; label: string }[] }
               <>
                 {/* the main nav's underline, stood on its side on desktop */}
                 <motion.span layoutId="admin-nav-active" transition={spring} className="absolute inset-x-1 bottom-0 h-[3px] -skew-x-12 bg-rose lg:inset-x-auto lg:inset-y-1.5 lg:left-0 lg:h-auto lg:w-[3px] lg:skew-x-0 lg:-skew-y-12" aria-hidden />
+                <motion.span layoutId="admin-nav-spark" transition={spring} className="absolute right-0.5 top-0 size-3 lg:hidden" aria-hidden>
+                  <Sparkle className="inset-0 size-full text-rose-hi" />
+                </motion.span>
               </>
             )}
             <span

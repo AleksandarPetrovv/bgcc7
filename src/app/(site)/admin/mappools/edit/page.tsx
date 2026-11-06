@@ -44,7 +44,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
   const extras = (mod: string): Item[] => mapsOf(mod).filter((m) => m.order >= countOf(mod)).map((m) => ({ mod, slot: m.order, out: true }));
   const sections: { key: string; title: string; color: string; items: Item[] }[] = skill
     ? [
-        ...skill.groups.map((g) => ({ key: g.id, title: g.name, color: g.color, items: g.slots.map((x) => ({ ...x, out: false })) })),
+        ...skill.groups.map((g) => ({ key: g.id, title: g.name.charAt(0).toUpperCase() + g.name.slice(1).toLowerCase(), color: g.color, items: g.slots.map((x) => ({ ...x, out: false })) })),
         { key: "out", title: t.admin.outsideLayout, color: "var(--rose)", items: MOD_ORDER.flatMap(extras) },
       ].filter((x) => x.items.length)
     : MOD_ORDER.filter((mod) => countOf(mod) > 0 || mapsOf(mod).length).map((mod) => ({
@@ -197,7 +197,8 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                       {chip}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={cardCover(m.cover)} alt="" loading="lazy" decoding="async" className="sr in-wipe hidden h-10 w-24 object-cover sm:block [--d:0.35s]" />
-                      <div className="min-w-0 flex-1">
+                      {/* phones: slot + buttons on top, the map under them at full width */}
+                      <div className="min-w-0 basis-full max-sm:order-last sm:flex-1 sm:basis-0">
                         <a
                           href={osuMap(m.id)}
                           target="_blank"
@@ -222,7 +223,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                         </div>
                       </div>
                       {edit && (
-                        <div className="flex w-full items-center justify-end gap-1.5 sm:w-auto">
+                        <div className="ml-auto flex items-center gap-1.5">
                           {skill ? null : !out && slot > 0 ? (
                             <IconAction action={moveMap.bind(null, m.rowId, -1)} label={t.admin.up}>
                               <ArrowUp className="size-4 transition-transform group-hover:-translate-y-0.5" strokeWidth={2.5} />

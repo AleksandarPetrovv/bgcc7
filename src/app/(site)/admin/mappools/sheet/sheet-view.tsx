@@ -153,7 +153,7 @@ export function SlotBox({
                 )}
               </header>
               {!empty && (
-                <div className={cn("grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]", open ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
+                <div className={cn("grid grid-cols-[minmax(0,1fr)] transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]", open ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
                   <div className="min-h-0 overflow-clip">{children}</div>
                 </div>
               )}
