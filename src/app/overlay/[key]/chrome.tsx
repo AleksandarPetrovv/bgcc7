@@ -19,8 +19,6 @@ export function Img({ src, className, style }: { src: string; className?: string
   return <img src={src} alt="" className={className} style={style} decoding="async" onError={() => setFailed(src)} />;
 }
 
-export const SLAB = "color-mix(in srgb, var(--rose-deep) 42%, transparent)";
-
 export const LABEL = "text-[15px] font-display font-bold text-ash";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -120,90 +118,169 @@ export function Backdrop({ num, tint }: { num: string; tint?: string }) {
   );
 }
 
-export function TopBar({ feed, invert }: { feed: OverlayFeed; invert?: boolean }) {
+export function TopBar({ feed }: { feed: OverlayFeed }) {
   return (
     <motion.header
       className="absolute inset-x-[72px] top-[52px] flex items-center justify-between"
-      initial={{ opacity: 0, y: -24 }}
+      initial={{ opacity: 0, y: -16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: EASE }}
     >
-      <div className="flex items-center gap-5">
-        <Lockup num={editionNum(feed)} size={38} invert={invert} />
-      </div>
-      <div className="flex items-center gap-4">
-        <span className="text-[17px] font-display font-bold text-ash">First to {feed.match.firstTo}</span>
-        <span className="inline-flex -skew-x-12 border border-line bg-coal/90 px-6 py-2.5 shadow-[5px_5px_0_0_color-mix(in_srgb,var(--rose-deep)_42%,transparent)]">
-          <span className="skew-x-12 text-[20px] font-display font-bold text-paper">{feed.match.round}</span>
-        </span>
-      </div>
+      <Lockup num={editionNum(feed)} size={38} />
+      <span className="text-[22px] font-display font-bold text-rose-hi">{feed.match.round}</span>
     </motion.header>
   );
 }
 
+// the site's match-card underline: team picture with a team-coloured bottom edge
+export function TeamPic({ src, side, size, className }: { src: string; side: 0 | 1 | null; size: number; className?: string }) {
+  if (!src.trim()) return null;
+  return (
+    <span className={cn("inline-flex shrink-0 overflow-hidden bg-slate", className)} style={{ width: size, height: size, borderBottom: `${Math.max(3, Math.round(size / 28))}px solid ${side === null ? "var(--gold)" : TEAM[side].c}` }}>
+      <Img src={src} className="size-full object-cover" />
+    </span>
+  );
+}
+
 export function TeamPlate({ team, side, big, className }: { team: FeedTeam; side: 0 | 1; big?: boolean; className?: string }) {
+  return (
+    <div className={cn("flex min-w-0 items-center gap-4", side === 1 && "flex-row-reverse text-right", className)}>
+      <TeamPic src={team.image} side={side} size={big ? 72 : 48} />
+      <span className={cn("min-w-0 truncate font-display font-black leading-none", big ? "text-[44px]" : "text-[30px]")}>{team.name}</span>
+    </div>
+  );
+}
+
+// slanted box where only the background layer is skewed, so the text inside stays crisp
+export function Slant({ className, layer, style, children }: { className?: string; layer?: string; style?: React.CSSProperties; children: React.ReactNode }) {
+  return (
+    <span className={cn("relative isolate inline-flex", className)}>
+      <span className={cn("absolute inset-0 -z-10 -skew-x-12", layer)} style={style} aria-hidden />
+      {children}
+    </span>
+  );
+}
+
+// the boxed, team-outlined plate used in the mappool and gameplay headers
+export function SlabPlate({ team, side, className }: { team: FeedTeam; side: 0 | 1; className?: string }) {
   const c = TEAM[side];
   return (
-    <div
-      className={cn("inline-flex min-w-0 -skew-x-12 items-center border-2 bg-coal/95", big ? "px-10 py-5" : "px-7 py-3", className)}
-      style={{ borderColor: c.c, boxShadow: `7px 7px 0 0 ${c.deep}` }}
-    >
-      <div className={cn("flex min-w-0 skew-x-12 items-center gap-4", side === 1 && "flex-row-reverse")}>
-        {team.image.trim() && <Img src={team.image} className={cn("shrink-0 object-cover", big ? "size-[64px]" : "size-[44px]")} />}
-        <span className={cn("min-w-0 truncate font-display font-black leading-none", big ? "text-[44px]" : "text-[30px]")}>{team.name}</span>
+    <Slant className={cn("min-w-0 shrink items-center px-5 py-2", className)} layer="border-2 bg-coal/95" style={{ borderColor: c.c, boxShadow: `6px 6px 0 0 ${c.deep}` }}>
+      <span className={cn("flex min-w-0 items-center gap-3", side === 1 && "flex-row-reverse")}>
+        {team.image.trim() && <Img src={team.image} className="size-[40px] shrink-0 object-cover" />}
+        <span className="min-w-0 truncate font-display text-[28px] font-black leading-none">{team.name}</span>
+      </span>
+    </Slant>
+  );
+}
+
+// one diamond per point needed, filled as maps are won
+export function Points({ score, firstTo, side }: { score: number; firstTo: number; side: 0 | 1 }) {
+  return (
+    <span className={cn("flex items-center gap-2", side === 1 && "flex-row-reverse")} aria-label={`${score} of ${firstTo}`}>
+      {Array.from({ length: firstTo }, (_, i) => (
+        <span key={i} className="relative size-[19px] rotate-45 border-[3px]" style={{ borderColor: TEAM[side].c }}>
+          {i < score && (
+            <motion.span
+              className="absolute inset-0"
+              style={{ background: TEAM[side].c }}
+              initial={{ scale: 0.3, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 16 }}
+            />
+          )}
+          {i === score - 1 && (
+            <motion.span
+              key={`ring${score}`}
+              className="absolute -inset-1 border-2"
+              style={{ borderColor: TEAM[side].hi }}
+              initial={{ scale: 1, opacity: 1 }}
+              animate={{ scale: 2.6, opacity: 0 }}
+              transition={{ duration: 0.9, ease: "easeOut" }}
+            />
+          )}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+// plate at the outer edge, the diamonds centred in whatever room is left before the middle column
+export function HeaderSide({ team, side, score, firstTo }: { team: FeedTeam; side: 0 | 1; score: number; firstTo: number }) {
+  return (
+    <div className={cn("flex min-w-0 items-center gap-6", side === 1 && "flex-row-reverse")}>
+      <SlabPlate team={team} side={side} className="max-w-[440px]" />
+      <div className="flex min-w-0 flex-1 justify-center">
+        <Points score={score} firstTo={firstTo} side={side} />
       </div>
+    </div>
+  );
+}
+
+// both team pictures fading in from the outer edges, like the big match cards on the site
+export function Blend({ teams, winner }: { teams: FeedTeam[]; winner?: 1 | 2 | null }) {
+  return (
+    // each picture fills its whole half and only fades where the two meet in the middle; heavy blur, low opacity so it stays a backdrop
+    <div className="pointer-events-none absolute inset-0 flex" aria-hidden>
+      {teams.map((team, i) => (
+        <div key={i} className="relative w-1/2 overflow-hidden">
+          <Img
+            src={team.image}
+            className={cn(
+              "size-full scale-125 object-cover blur-[28px] mix-blend-multiply",
+              i ? "[mask-image:linear-gradient(to_left,black_65%,transparent)]" : "[mask-image:linear-gradient(to_right,black_65%,transparent)]",
+              winner && winner !== i + 1 ? "opacity-[0.04] grayscale" : "opacity-[0.09] grayscale-[40%]",
+            )}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// the site's section rule: a line with one pink diamond in the middle
+export function Rule({ className }: { className?: string }) {
+  return (
+    <div className={cn("relative h-px bg-line", className)} aria-hidden>
+      <span className="absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rotate-45 bg-rose" />
     </div>
   );
 }
 
 export function Versus({ size = 72 }: { size?: number }) {
   return (
-    <span className="relative shrink-0 font-display font-black italic leading-none text-paper" style={{ fontSize: size }}>
-      <span className="absolute left-[0.06em] top-[0.05em] text-transparent [-webkit-text-stroke:2px_color-mix(in_srgb,var(--rose-deep)_45%,transparent)]" aria-hidden>
-        VS
-      </span>
-      <span className="relative">VS</span>
+    <span className="heading-slam shrink-0 leading-none text-paper" style={{ fontSize: size }}>
+      VS
     </span>
   );
 }
 
 export function Echo({ text, className, color = "var(--paper)" }: { text: React.ReactNode; className?: string; color?: string }) {
   return (
-    <span className={cn("relative inline-block whitespace-nowrap font-display font-black italic leading-[0.9]", className)}>
-      <span className="absolute left-[0.04em] top-[0.04em] text-transparent [-webkit-text-stroke:2px_color-mix(in_srgb,var(--rose-deep)_45%,transparent)]" aria-hidden>
-        {text}
-      </span>
-      <span className="relative" style={{ color }}>
-        {text}
-      </span>
+    <span className={cn("heading-slam inline-block whitespace-nowrap leading-[0.9]", className)} style={{ color }}>
+      {text}
     </span>
   );
 }
 
-export function PlayerCard({ p, color, deep, fg = "var(--white)", size = 150, delay = 0 }: { p: FeedTeam["players"][number]; color: string; deep: string; fg?: string; size?: number; delay?: number }) {
+export function PlayerCard({ p, side, size = 150, delay = 0 }: { p: FeedTeam["players"][number]; side: 0 | 1 | null; size?: number; delay?: number }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 34, rotate: -4 }}
-      animate={{ opacity: 1, y: 0, rotate: 0 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay, ease: EASE }}
-      className="flex flex-col items-center gap-3"
-      style={{ minWidth: size + 60, maxWidth: size + 160 }}
+      className="flex flex-col items-center gap-2"
+      style={{ minWidth: size + 40, maxWidth: size + 140 }}
     >
-      <span className="relative inline-flex">
-        <span className="inline-flex shrink-0 -skew-x-12 overflow-hidden border-[3px] bg-ink" style={{ borderColor: color, boxShadow: `9px 9px 0 0 ${deep}` }}>
-          <Img src={p.avatar} className="skew-x-12 scale-[1.25] object-cover" style={{ width: size, height: size }} />
-        </span>
+      <TeamPic src={p.avatar} side={side} size={size} />
+      <span className="mt-1 max-w-full truncate px-1 font-display text-[26px] font-black leading-tight">{p.name}</span>
+      <span className="flex items-center gap-2">
         {p.country && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={`https://flagcdn.com/w80/${p.country.toLowerCase()}.png`} alt="" className="absolute -bottom-3 -left-5 h-[28px] border-2 border-ink shadow-[3px_3px_0_0_color-mix(in_srgb,var(--rose-deep)_42%,transparent)]" />
+          <img src={`https://flagcdn.com/w80/${p.country.toLowerCase()}.png`} alt="" className="h-[16px]" />
         )}
+        {p.rank ? <span className="num text-[18px] text-ash">#{p.rank.toLocaleString("en-US")}</span> : null}
       </span>
-      <span className="mt-3 max-w-full truncate px-1 font-display text-[28px] font-black leading-tight">{p.name}</span>
-      {p.rank ? (
-        <span className="inline-flex -skew-x-12 px-3 py-0.5" style={{ background: color }}>
-          <span className="num skew-x-12 text-[17px] font-black" style={{ color: fg }}>#{p.rank.toLocaleString("en-US")}</span>
-        </span>
-      ) : null}
     </motion.div>
   );
 }

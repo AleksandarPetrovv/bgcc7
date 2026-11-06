@@ -1,12 +1,14 @@
 "use client";
 
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Notes } from "@/components/site/page";
 import { MODS } from "@/lib/data";
-import { modHi, modOn } from "@/lib/theme";
+import { slotColor } from "@/lib/format-plan";
+import { modHi } from "@/lib/theme";
 import type { FeedMap, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
-import { Backdrop, editionNum, LABEL, Lockup, ScoreNum, TEAM, TeamPlate } from "./chrome";
+import { Backdrop, editionNum, HeaderSide, LABEL, Lockup, Rule, Slant, TEAM } from "./chrome";
 
 const GROUPS = ["NoMod", "Hidden", "HardRock", "DoubleTime", "Tiebreaker"] as const;
 const norm = (v: string) => v.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -17,6 +19,44 @@ function groupFor(map: FeedMap) {
   if (hit) return hit;
   const prefix = map.slot.trim().match(/^[a-z]+/i)?.[0].toLowerCase();
   return GROUPS.find((k) => MODS[k].short.toLowerCase() === prefix);
+}
+
+const SWAP = { initial: { opacity: 0, y: 14, filter: "blur(4px)" }, animate: { opacity: 1, y: 0, filter: "blur(0px)" }, exit: { opacity: 0, y: -14, filter: "blur(4px)" }, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } } as const;
+
+// the middle of the header: which side acts next, with an arrow leaning toward that team's plate
+function Turn({ feed }: { feed: OverlayFeed }) {
+  const t = feed.turn;
+  const key = t ? (t.kind === "tb" ? "tb" : `${t.kind}${t.team}${feed.steps.length}`) : feed.current ? `now${feed.current.slot}` : "none";
+  return (
+    <div className="relative flex h-full items-center justify-center">
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.div key={key} {...SWAP} className="flex flex-col items-center gap-1.5">
+          {t && t.kind !== "tb" ? (
+            <>
+              {/* the arrow hangs off the side so the name stays centred over "picks" */}
+              <span className="relative" style={{ color: TEAM[t.team - 1].hi }}>
+                <span className="heading-slam text-[56px] leading-none">{t.team === 1 ? "Red" : "Blue"}</span>
+                <motion.span animate={{ x: t.team === 1 ? [0, -7, 0] : [0, 7, 0] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }} className={cn("absolute top-1/2 flex -translate-y-1/2", t.team === 1 ? "right-full mr-3" : "left-full ml-3")}>
+                  {t.team === 1 ? <ArrowLeft className="size-9" strokeWidth={3} /> : <ArrowRight className="size-9" strokeWidth={3} />}
+                </motion.span>
+              </span>
+              <span className="relative px-1 text-[20px] font-display font-bold text-paper">
+                {t.kind === "pick" ? "picks" : "bans"}
+                <motion.span className="absolute inset-x-0 -bottom-1.5 h-[3px] origin-center" style={{ background: TEAM[t.team - 1].c }} initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.5, delay: 0.15, ease: [0.16, 1, 0.3, 1] }} />
+              </span>
+            </>
+          ) : t?.kind === "tb" ? (
+            <span className="heading-slam text-[48px] leading-none text-gold-hi">Tiebreaker</span>
+          ) : feed.current ? (
+            <>
+              <span className={LABEL}>Up next</span>
+              <span className="heading-slam text-[48px] leading-none" style={{ color: modHi(slotColor(feed.current.slot.toUpperCase())) }}>{feed.current.slot}</span>
+            </>
+          ) : null}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
 }
 
 export function MappoolScene({ feed }: { feed: OverlayFeed }) {
@@ -38,22 +78,14 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
     <div className="absolute inset-0 overflow-hidden text-paper">
       <Backdrop num={editionNum(feed)} tint="var(--rose)" />
 
-      <header className="absolute inset-x-[72px] top-[44px] grid grid-cols-[1fr_auto_1fr] items-center gap-8">
-        <TeamPlate team={feed.teams[0]} side={0} className="max-w-[640px] justify-self-start" />
-        <div className="flex flex-col items-center gap-2">
-          <div className="flex items-center gap-4">
-            {[0, 1].map((i) => (
-              <span key={i} className="inline-flex -skew-x-12 px-5 py-1" style={{ background: TEAM[i].c, boxShadow: `6px 6px 0 0 ${TEAM[i].deep}` }}>
-                <ScoreNum value={feed.match.score[i]} side={i as 0 | 1} className="num skew-x-12 font-display text-[64px] font-black leading-none text-white" />
-              </span>
-            ))}
-          </div>
-          <span className={LABEL}>First to {feed.match.firstTo}</span>
-        </div>
-        <TeamPlate team={feed.teams[1]} side={1} className="max-w-[640px] justify-self-end" />
+      <header className="absolute inset-x-[72px] top-[36px] grid h-[120px] grid-cols-[minmax(0,1fr)_360px_minmax(0,1fr)] items-center gap-6">
+        <HeaderSide team={feed.teams[0]} side={0} score={feed.match.score[0]} firstTo={feed.match.firstTo} />
+        <Turn feed={feed} />
+        <HeaderSide team={feed.teams[1]} side={1} score={feed.match.score[1]} firstTo={feed.match.firstTo} />
       </header>
 
-      <div className="absolute inset-x-[72px] top-[205px] flex items-end justify-between border-b border-line pb-4">
+      <div className="absolute inset-x-[72px] top-[205px] flex items-end justify-between pb-4">
+        <Rule className="absolute inset-x-0 bottom-0" />
         <div className="flex items-center gap-5">
           <span className="flex text-[72px] leading-none"><Notes /></span>
           <h1 className="font-display text-[48px] font-black italic uppercase leading-none">Mappool</h1>
@@ -64,10 +96,8 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
       <div className="absolute inset-x-[72px] top-[300px] grid gap-5" style={{ gridTemplateColumns: `repeat(${Math.max(1, spans.reduce((a, b) => a + b, 0))}, minmax(0, 1fr))` }}>
         {groups.map((g, gi) => (
           <section key={g.key} className="flex min-w-0 flex-col gap-3" style={{ gridColumn: `span ${spans[gi]}` }}>
-            <h2 className="flex items-center gap-3 pb-1">
-              <span className="inline-flex -skew-x-12 px-3 py-0.5" style={{ background: g.color }}>
-                <span className="skew-x-12 text-[18px] font-black" style={{ color: modOn(g.color) }}>{g.short}</span>
-              </span>
+            <h2 className="flex items-baseline gap-3 border-b-[3px] pb-1.5" style={{ borderColor: g.color }}>
+              <span className="text-[20px] font-display font-black" style={{ color: modHi(g.color) }}>{g.short}</span>
               {g.label && <span className={LABEL}>{g.label}</span>}
             </h2>
             <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${spans[gi]}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${rows}, ${cardH}px)`, gridAutoFlow: "column" }}>
@@ -117,8 +147,8 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
                     <motion.div
                       key={stamp.word}
                       className="absolute inset-0 z-20 flex items-center justify-center"
-                      initial={{ scale: 2.2, opacity: 0, rotate: -20 }}
-                      animate={{ scale: 1, opacity: 1, rotate: -8 }}
+                      initial={{ scale: 2.2, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
                       transition={{ type: "spring", stiffness: 420, damping: 18 }}
                     >
                       <span className="flex flex-col items-center border-[3px] bg-ink/85 px-4 py-1" style={{ borderColor: stamp.side.c, boxShadow: `4px 4px 0 0 ${stamp.side.deep}` }}>
@@ -146,9 +176,9 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
                         {map.slot}
                       </span>
                       {skill && mk && mk !== "Tiebreaker" && (
-                        <span className="absolute right-2.5 top-2 -skew-x-12 border px-1.5 text-[13px] font-display font-black leading-5" style={{ borderColor: modHi(MODS[mk].color), color: modHi(MODS[mk].color) }}>
-                          <span className="inline-block skew-x-12">{MODS[mk].short}</span>
-                        </span>
+                        <Slant className="absolute right-2.5 top-2 px-1.5 text-[13px] font-display font-black leading-5" layer="border" style={{ borderColor: modHi(MODS[mk].color) }}>
+                          <span style={{ color: modHi(MODS[mk].color) }}>{MODS[mk].short}</span>
+                        </Slant>
                       )}
                     </div>
                     <h3 className="truncate text-[19px] font-black leading-tight">{map.title}</h3>

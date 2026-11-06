@@ -6,7 +6,7 @@ import { slotColor } from "@/lib/format-plan";
 import { modOn } from "@/lib/theme";
 import type { LiveClient, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
-import { editionNum, FlagBar, Img, LABEL, Lockup, TEAM } from "./chrome";
+import { editionNum, FlagBar, HeaderSide, Img, LABEL, Lockup, Slant, TEAM } from "./chrome";
 
 const integer = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const decimal = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -43,36 +43,6 @@ const Count = memo(function Count({ value, decimals = false, reduced, signed = f
   }, [value, decimals, reduced, signed]);
   return <span ref={node}>{initial}</span>;
 });
-
-function Points({ score, firstTo, side }: { score: number; firstTo: number; side: 0 | 1 }) {
-  return (
-    <span className={cn("flex items-center gap-2", side === 1 && "flex-row-reverse")} aria-label={`${score} of ${firstTo}`}>
-      {Array.from({ length: firstTo }, (_, i) => (
-        <span key={i} className="relative size-[19px] rotate-45 border-[3px]" style={{ borderColor: TEAM[side].c }}>
-          {i < score && (
-            <motion.span
-              className="absolute inset-0"
-              style={{ background: TEAM[side].c }}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 500, damping: 14 }}
-            />
-          )}
-          {i === score - 1 && (
-            <motion.span
-              key={`ring${score}`}
-              className="absolute -inset-1 border-2"
-              style={{ borderColor: TEAM[side].hi }}
-              initial={{ scale: 1, opacity: 1 }}
-              animate={{ scale: 2.6, opacity: 0 }}
-              transition={{ duration: 0.9, ease: "easeOut" }}
-            />
-          )}
-        </span>
-      ))}
-    </span>
-  );
-}
 
 // four 4:3 tourney clients in a 2x2 block, team 1 on the left. "stream layout.ps1" sizes and places
 // the client windows to match, so one display capture of the manager area lines up 1:1.
@@ -129,16 +99,14 @@ function Player({ c, p, side, reduced }: { c?: LiveClient; p?: OverlayFeed["team
           <span className="num font-display text-[54px] font-black leading-none" style={{ color: t.hi }}>
             <Count value={c.score} reduced={reduced} />
           </span>
-          <div className="flex gap-3">
+          <div className="flex gap-6">
             {[
               [<Count key="a" value={c.accuracy} decimals reduced={reduced} />, "%"],
               [<Count key="c" value={c.combo} reduced={reduced} />, "x"],
             ].map(([v, unit], i) => (
-              <span key={i} className="inline-flex -skew-x-12 border border-line bg-coal px-3 py-1">
-                <span className="num skew-x-12 text-[22px] font-black">
-                  {v}
-                  <span className="text-ash">{unit}</span>
-                </span>
+              <span key={i} className="num text-[24px] font-black">
+                {v}
+                <span className="text-ash">{unit}</span>
               </span>
             ))}
           </div>
@@ -226,18 +194,9 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
         <div className="grid h-full grid-cols-[1fr_520px_1fr] items-center gap-6 px-[var(--gp-side)] pb-1">
           {[0, 1].map((i) => {
             const side = i as 0 | 1;
-            const team = feed.teams[side];
             return (
-              <div key={side} className={cn("flex min-w-0 flex-col", side === 1 && "col-start-3 items-end")}>
-                <div className={cn("flex min-w-0 items-center gap-5", side === 1 && "flex-row-reverse")}>
-                  <span className="inline-flex -skew-x-12 items-center px-4 py-1.5" style={{ background: TEAM[side].c, boxShadow: `5px 5px 0 0 ${TEAM[side].deep}` }}>
-                    <span className={cn("flex skew-x-12 items-center gap-3", side === 1 && "flex-row-reverse")}>
-                      {team.image.trim() && <Img src={team.image} className="size-[44px] object-cover" />}
-                      <span className="max-w-[460px] truncate font-display text-[36px] font-black leading-none text-white">{team.name}</span>
-                    </span>
-                  </span>
-                  <Points score={feed.match.score[side]} firstTo={feed.match.firstTo} side={side} />
-                </div>
+              <div key={side} className={cn("min-w-0", side === 1 && "col-start-3")}>
+                <HeaderSide team={feed.teams[side]} side={side} score={feed.match.score[side]} firstTo={feed.match.firstTo} />
               </div>
             );
           })}
@@ -272,9 +231,7 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
             ) : (
               <>
                 <Lockup num={editionNum(feed)} size={34} />
-                <span className={LABEL}>
-                  {feed.match.round} · First to {feed.match.firstTo}
-                </span>
+                <span className={LABEL}>{feed.match.round}</span>
               </>
             )}
           </div>
@@ -298,16 +255,16 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
         >
           {current ? (
             <>
-              <span className="inline-flex -skew-x-12 px-3 py-1" style={{ background: slotC, boxShadow: "4px 4px 0 0 color-mix(in srgb, var(--rose-deep) 42%, transparent)" }}>
-                <span className="skew-x-12 font-display text-[34px] font-black italic leading-none" style={{ color: modOn(slotC) }}>{current.slot}</span>
-              </span>
+              <Slant className="px-3 py-1" style={{ background: slotC, boxShadow: "4px 4px 0 0 color-mix(in srgb, var(--rose-deep) 42%, transparent)" }}>
+                <span className="font-display text-[34px] font-black italic leading-none" style={{ color: modOn(slotC) }}>{current.slot}</span>
+              </Slant>
               <div className="min-w-0 flex-1">
                 <h3 className="truncate text-[24px] font-black leading-tight">{current.title}</h3>
                 <p className="truncate text-[14px] font-bold text-ash">
                   [{current.version}] · {current.creator}
                 </p>
               </div>
-              <dl className="flex shrink-0 items-center gap-2">
+              <dl className="flex shrink-0 items-baseline gap-5">
                 {[
                   ["★", current.sr.toFixed(2)],
                   ["BPM", integer.format(current.bpm)],
@@ -316,11 +273,9 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
                   ["OD", current.od.toFixed(1)],
                   ["Length", len(current.length)],
                 ].map(([k, v]) => (
-                  <div key={k} className="inline-flex -skew-x-12 border border-line bg-coal px-2 py-1">
-                    <div className="flex skew-x-12 items-baseline gap-1.5">
-                      <dt className={cn("text-[10px] font-display font-bold", k === "★" ? "text-gold-hi" : "text-ash")}>{k}</dt>
-                      <dd className="num text-[17px] font-black">{v}</dd>
-                    </div>
+                  <div key={k} className="flex items-baseline gap-1.5">
+                    <dt className={cn("text-[11px] font-display font-bold", k === "★" ? "text-gold-hi" : "text-ash")}>{k}</dt>
+                    <dd className="num text-[18px] font-black">{v}</dd>
                   </div>
                 ))}
               </dl>
