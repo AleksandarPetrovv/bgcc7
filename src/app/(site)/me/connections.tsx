@@ -26,7 +26,8 @@ function Row({ avatar, platform, name, n, children }: { avatar: string | null; p
         <div className="flex items-center gap-1.5 text-[0.65rem] font-display font-bold text-ash">{platform}</div>
         <div className="heading-slam mt-0.5 truncate text-xl leading-tight">{name}</div>
       </div>
-      <div className="relative flex flex-wrap gap-2">{children}</div>
+      {/* room for the last button's slanted edge, the row clips overflow for its intro */}
+      <div className="relative flex flex-wrap gap-2 px-1.5">{children}</div>
     </div>
   );
 }

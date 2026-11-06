@@ -12,8 +12,8 @@ export function SeedingChart({ players, cut }: { players: QualPlayer[]; cut: num
     <div className="h-[20rem] sm:h-[26.25rem] 2xl:h-[33.75rem]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 60, left: -12 }}>
-          <XAxis dataKey="name" angle={-55} textAnchor="end" interval={0} tick={{ fill: HEX.ash, fontSize: 10, fontWeight: 700 }} axisLine={{ stroke: HEX.line }} tickLine={false} />
-          <YAxis tick={{ fill: HEX.ash, fontSize: 11 }} axisLine={false} tickLine={false} />
+          <XAxis dataKey="name" angle={-55} textAnchor="end" interval={0} tick={{ fill: HEX.ash, fontSize: "0.625rem", fontWeight: 700 }} axisLine={{ stroke: HEX.line }} tickLine={false} />
+          <YAxis tick={{ fill: HEX.ash, fontSize: "0.6875rem" }} axisLine={false} tickLine={false} />
           <Tooltip
             cursor={{ fill: "color-mix(in srgb, var(--rose) 10%, transparent)" }}
             contentStyle={{ background: HEX.coal, border: `1px solid ${HEX.line}`, borderRadius: 0, fontWeight: 700, color: HEX.paper }}
@@ -21,7 +21,7 @@ export function SeedingChart({ players, cut }: { players: QualPlayer[]; cut: num
             itemStyle={{ color: HEX.paper }}
             formatter={(v) => [Number(v).toFixed(2), t.qual.percentile]}
           />
-          <ReferenceLine x={data[11]?.name} stroke={HEX.rose} strokeDasharray="4 4" label={{ value: t.qual.top12, fill: HEX.roseHi, fontSize: 11, fontWeight: 800, position: "insideTopRight" }} />
+          <ReferenceLine x={data[11]?.name} stroke={HEX.rose} strokeDasharray="4 4" label={{ value: t.qual.top12, fill: HEX.roseHi, fontSize: "0.6875rem", fontWeight: 800, position: "insideTopRight" }} />
           <Bar dataKey="z" radius={0}>
             {data.map((d) => (
               <Cell key={d.name} fill={d.seed <= 3 ? HEX.rose : d.seed <= 12 ? "var(--balkan-deep)" : HEX.ash} fillOpacity={d.seed <= 12 ? 1 : 0.45} />

@@ -52,7 +52,7 @@ function Line({ m, slot, live, slim }: { m: Match; slot: 1 | 2; live?: [number, 
       {(won || leads) && <span className={cn("absolute inset-y-1 left-0 w-0.5", won ? "bg-balkan" : "bg-rose/60")} aria-hidden />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {!slim && <img src={team.image} alt="" className="in-pop size-4 shrink-0 object-cover" style={v({ "--d": "0.45s" })} />}
-      <span title={team.name} className={cn("in-wipe min-w-0 flex-1 truncate text-[0.8rem] font-display font-bold", won && "font-display font-black text-paper", leads && "font-display font-black text-rose-hi")} style={v({ "--d": "0.5s" })}>
+      <span title={team.name} className={cn("in-wipe min-w-0 flex-1 truncate text-[12.8px] font-display font-bold", won && "font-display font-black text-paper", leads && "font-display font-black text-rose-hi")} style={v({ "--d": "0.5s" })}>
         {team.name}
       </span>
       <MeTag t={team.id} className="me-tag-plain -mx-1" />
@@ -75,11 +75,11 @@ function Box({ id, m, live, slim, className, style, onEnter, onLeave }: { id: st
   return (
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className={cn("flex flex-col overflow-hidden border bg-coal transition-[border-color] duration-200", className)} style={style}>
       <div className="flex h-7 shrink-0 items-center gap-2 border-b border-line bg-ink/70 px-2.5">
-        <span className="num truncate text-[0.78rem] text-paper/75">{m.datetime ? `${id === "grand-final-reset" ? new Date(m.datetime).toLocaleDateString(locale, { timeZone: TZ, day: "2-digit", month: "short" }) : day(m.datetime)} · ${clock(m.datetime)}` : m.winner ? "" : m.team1.id && m.team2.id ? t.common.tbd : "—"}</span>
+        <span className="num truncate text-[12.5px] text-paper/75">{m.datetime ? `${id === "grand-final-reset" ? new Date(m.datetime).toLocaleDateString(locale, { timeZone: TZ, day: "2-digit", month: "short" }) : day(m.datetime)} · ${clock(m.datetime)}` : m.winner ? "" : m.team1.id && m.team2.id ? t.common.tbd : "—"}</span>
         {id === "grand-final-reset" ? (
-          <span className="shrink-0 whitespace-nowrap text-[0.6rem] font-display font-bold text-gold-hi">{t.rounds.reset}</span>
+          <span className="shrink-0 whitespace-nowrap text-[9.6px] font-display font-bold text-gold-hi">{t.rounds.reset}</span>
         ) : (
-          !m.datetime && !m.winner && !(m.team1.id && m.team2.id) && <span className="truncate whitespace-nowrap text-[0.6rem] font-display font-bold text-gold-hi">{roundName(t, m.round)}{num ? ` ${t.nav.match} ${num}` : ""}</span>
+          !m.datetime && !m.winner && !(m.team1.id && m.team2.id) && <span className="truncate whitespace-nowrap text-[9.6px] font-display font-bold text-gold-hi">{roundName(t, m.round)}{num ? ` ${t.nav.match} ${num}` : ""}</span>
         )}
         <span className="ml-auto flex items-center gap-1">
           {live !== undefined && <LiveDot />}
@@ -150,7 +150,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
 
   const width = col(gfCol) + W + (phone ? gap : 0);
   const height = LOW + (lowRows - 1) * P + H + 12;
-  const scale = shrink < 1 ? shrink : seen >= 1280 && width < seen ? Math.min(1.35, seen / width) : 1;
+  const scale = shrink < 1 ? shrink : seen >= 1280 && width < seen ? Math.min(2, seen / width) : 1;
   const fit = fitBox(width, height, scale);
   const lowCol = Math.min(...HEADERS.filter((h) => h.s === "l").map((h) => h.c));
   const midY = (id: string) => top(id) + H / 2;
@@ -185,7 +185,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
     <div className="relative">
     <div ref={box} onScroll={onScroll} className="snap-x snap-mandatory overflow-x-auto overflow-y-hidden pb-4 md:snap-none">
       <div className="mx-auto mt-4" style={fit.outer}>
-      <div ref={inner} className={cn("relative", scale === 1 && "mx-auto")} style={fit.inner}>
+      <div ref={inner} className={cn("relative [--spacing:4px] [--text-xs:12px] [--text-base:16px] [--text-xl:20px] [--text-3xl:30px]", scale === 1 && "mx-auto")} style={fit.inner}>
         <svg className="pointer-events-none absolute inset-0 overflow-visible" width={width} height={height} aria-hidden>
           {Object.entries(WIN).map(([a, b]) => {
             const done = !!byId.get(a)?.winner;
