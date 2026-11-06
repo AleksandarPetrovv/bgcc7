@@ -1,184 +1,76 @@
 "use client";
 
-import { motion } from "motion/react";
-import { Glyph } from "@/components/site/graphics";
-import type { FeedMatch, OverlayFeed } from "@/lib/overlay-types";
-import { TZ, tzLabel } from "@/lib/time";
-import { cn } from "@/lib/utils";
-import { Backdrop, Echo, editionNum, LABEL, TEAM, TopBar } from "./chrome";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { MatchBracket } from "@/components/site/match-bracket";
+import { MatchRow } from "@/components/site/match-row";
+import { useDict } from "@/components/site/lang";
+import { useTournament } from "@/components/site/tournament";
+import type { Match } from "@/lib/data";
+import { cardLabels } from "@/lib/matches";
+import type { OverlayFeed } from "@/lib/overlay-types";
+import { Backdrop, Echo, editionNum, Lockup, Rule, TopBar } from "./chrome";
 
-const EASE = [0.16, 1, 0.3, 1] as const;
-const day = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "short", day: "numeric", month: "short" });
-const time = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
-
-function Heading({ text }: { text: string }) {
-  return (
-    <div className="flex items-center gap-4">
-      <Glyph kind="spark" className="size-[24px]" />
-      <h2 className="text-[22px] font-display font-bold text-paper">{text}</h2>
-    </div>
-  );
+// the match data comes from the page render, so pull fresh results each time one of these scenes comes on
+function useFresh() {
+  const router = useRouter();
+  useEffect(() => router.refresh(), [router]);
 }
 
-function Row({ m, current, i }: { m: FeedMatch; current: boolean; i: number }) {
-  const at = m.startsAt ? new Date(m.startsAt) : null;
-  const done = m.winner !== null;
+function Column({ title, list }: { title: string; list: Match[] }) {
+  const t = useDict();
+  const { matches } = useTournament();
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -30 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.45, delay: 0.1 + i * 0.06, ease: EASE }}
-      className="flex h-[78px] -skew-x-12 items-stretch border bg-coal/95"
-      style={{ borderColor: current ? "var(--gold)" : "var(--line)", boxShadow: current ? "6px 6px 0 0 var(--gold-deep)" : "5px 5px 0 0 color-mix(in srgb, var(--rose-deep) 42%, transparent)" }}
-    >
-      <div className={cn("flex w-[170px] shrink-0 flex-col items-center justify-center", done ? "bg-slate" : "bg-rose")}>
-        <span className={cn("skew-x-12 text-[15px] font-display font-bold", done ? "text-ash" : "text-white/85")}>{at ? day.format(at) : "TBD"}</span>
-        <span className={cn("num skew-x-12 font-display text-[26px] font-black leading-none", done ? "text-paper" : "text-white")}>{at ? time.format(at) : "--:--"}</span>
-      </div>
-      <div className="flex min-w-0 flex-1 skew-x-12 flex-col justify-center gap-1 px-6">
-        <span className={LABEL}>{m.round}</span>
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 text-[24px] font-black">
-          {[0, 1].map((s) => {
-            const lost = done && m.winner !== s + 1;
-            return (
-              <span key={s} className={cn("flex min-w-0 items-center gap-3", s === 1 && "order-3 flex-row-reverse")}>
-                <span className="h-6 w-1.5 shrink-0" style={{ background: TEAM[s].c }} />
-                <span className={cn("min-w-0 truncate", lost && "text-paper/40")}>{m.teams[s]}</span>
-              </span>
-            );
-          })}
-          <span className="order-2 flex items-center gap-2 font-display">
-            {done ? (
-              [0, 1].map((s) => (
-                <span key={s} className={cn("num flex items-center gap-2", s === 1 && "flex-row-reverse")} style={{ color: m.winner === s + 1 ? TEAM[s].hi : "var(--ash)" }}>
-                  {m.score[s] ?? 0}
-                  {s === 0 && <span className="text-ash/60">-</span>}
-                </span>
-              ))
-            ) : (
-              <span className="text-[18px] italic text-ash">VS</span>
-            )}
-          </span>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-export function ScheduleScene({ feed }: { feed: OverlayFeed }) {
-  const all = feed.schedule ?? [];
-  const t = (m: FeedMatch) => (m.startsAt ? Date.parse(m.startsAt) : Infinity);
-  const next = all.filter((m) => m.winner === null && m.teams.some((n) => n !== "TBD")).sort((a, b) => t(a) - t(b)).slice(0, 6);
-  const done = all.filter((m) => m.winner !== null).sort((a, b) => t(b) - t(a)).slice(0, 6);
-  const labels = [...new Set([...next, ...done].flatMap((m) => m.startsAt ? [tzLabel(new Date(m.startsAt))] : []))];
-  return (
-    <div className="absolute inset-0 overflow-hidden text-paper">
-      <Backdrop num={editionNum(feed)} tint="var(--rose)" />
-      <TopBar feed={feed} />
-      <div className="absolute left-[72px] top-[150px] flex items-end gap-6">
-        <Echo text="Schedule" className="text-[92px]" />
-        <span className={cn(LABEL, "mb-3")}>{labels.length ? labels.join(" / ") : tzLabel(new Date())}</span>
-      </div>
-      <div className={cn("absolute inset-x-[72px] top-[300px] grid gap-14", done.length ? "grid-cols-2" : "grid-cols-1")}>
-        <section className="flex min-w-0 flex-col gap-4">
-          <Heading text="Up next" />
-          {next.map((m, i) => (
-            <Row key={m.id} m={m} i={i} current={m.id === feed.match.id} />
-          ))}
-        </section>
-        {done.length > 0 && (
-          <section className="flex min-w-0 flex-col gap-4">
-            <Heading text="Results" />
-            {done.map((m, i) => (
-              <Row key={m.id} m={m} i={i + 2} current={m.id === feed.match.id} />
-            ))}
-          </section>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Mini({ m, current }: { m: FeedMatch; current: boolean }) {
-  const done = m.winner !== null;
-  return (
-    <div
-      className="w-full border bg-coal/95"
-      style={{ borderColor: current ? "var(--gold)" : "var(--line)", boxShadow: current ? "0 0 0 2px color-mix(in srgb, var(--gold) 35%, transparent)" : "3px 3px 0 0 color-mix(in srgb, var(--rose-deep) 42%, transparent)" }}
-    >
-      {[0, 1].map((s) => {
-        const won = done && m.winner === s + 1;
-        const tbd = m.teams[s] === "TBD";
-        return (
-          <div key={s} className={cn("flex h-[22px] items-center gap-2 pr-2", s === 0 && "border-b border-line")}>
-            <span className="h-full w-[4px] shrink-0" style={{ background: won ? TEAM[s].c : "transparent" }} />
-            <span className={cn("min-w-0 flex-1 truncate text-[14px] font-black", tbd ? "text-ash/60" : done && !won ? "text-paper/45" : "text-paper")}>{m.teams[s]}</span>
-            {done && <span className={cn("num text-[14px] font-black", won ? "text-gold-hi" : "text-ash")}>{m.score[s] ?? 0}</span>}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function Lane({ title, rounds, feed, height }: { title: string; rounds: [string, FeedMatch[]][]; feed: OverlayFeed; height: number }) {
-  return (
-    <section className="flex min-w-0 flex-col gap-2">
-      <span className="flex items-center gap-2.5 text-[19px] font-display font-black text-paper">
-        <span className="h-[18px] w-[5px] -skew-x-12 bg-rose" aria-hidden />
-        {title}
-      </span>
-      <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${rounds.length}, minmax(0, 1fr))`, height }}>
-        {rounds.map(([round, ms], ri) => (
-          <motion.div
-            key={round}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: ri * 0.07, ease: EASE }}
-            className="flex min-w-0 flex-col"
-          >
-            <span className="mb-1.5 truncate text-[13px] font-display font-bold text-paper/70">{round}</span>
-            <div className="flex flex-1 flex-col justify-around gap-1.5">
-              {ms.map((m) => (
-                <Mini key={m.id} m={m} current={m.id === feed.match.id} />
-              ))}
-            </div>
-          </motion.div>
+    <section className="flex min-w-0 flex-col">
+      <h2 className="heading-slam border-b border-line pb-3 text-[30px]">{title}</h2>
+      <div className="mt-5 flex flex-col gap-3">
+        {list.map((m, i) => (
+          <MatchRow key={m.id} match={m} small plain label={cardLabels(t, matches, m)} live={m.running ? null : undefined} delay={0.2 + i * 0.06} />
         ))}
       </div>
     </section>
   );
 }
 
-const byRound = (ms: FeedMatch[]) => {
-  const out = new Map<string, FeedMatch[]>();
-  for (const m of ms) out.set(m.round, [...(out.get(m.round) ?? []), m]);
-  return [...out.entries()];
-};
+const ROWS = 5;
+
+export function ScheduleScene({ feed }: { feed: OverlayFeed }) {
+  useFresh();
+  const { matches } = useTournament();
+  const done = matches.filter((m) => m.winner).sort((a, b) => (b.datetime ?? "").localeCompare(a.datetime ?? "")).slice(0, ROWS);
+  const pending = matches.filter((m) => !m.winner && (m.team1.id || m.team2.id));
+  const next = [...pending.filter((m) => m.datetime).sort((a, b) => a.datetime!.localeCompare(b.datetime!)), ...pending.filter((m) => !m.datetime)].slice(0, ROWS);
+  return (
+    <div className="absolute inset-0 overflow-hidden text-paper">
+      <Backdrop num={editionNum(feed)} tint="var(--rose)" />
+      <TopBar feed={feed} />
+      <div className="absolute inset-x-[72px] top-[130px] pb-6">
+        <Echo text="Schedule" className="text-[84px]" />
+        <Rule className="absolute inset-x-0 bottom-0" />
+      </div>
+      <div className="absolute inset-x-[72px] top-[290px] grid grid-cols-2 gap-16">
+        <Column title="Up next" list={next} />
+        <Column title="Results" list={done} />
+      </div>
+    </div>
+  );
+}
+
+// full page: the lockup sits top right, over the empty space above the grand final
+const TOP = 24;
+const BOTTOM = 16;
 
 export function BracketScene({ feed }: { feed: OverlayFeed }) {
-  const all = feed.schedule ?? [];
-  const winners = byRound(all.filter((m) => m.bracket === "winners"));
-  const losers = byRound(all.filter((m) => m.bracket === "losers"));
-  const grand = all.filter((m) => m.bracket === "grand");
+  useFresh();
+  const { id, score, firstTo } = feed.match;
+  // the reset only matters on a grand final once the losers-side team (slot 2) has taken the first set
+  const reset = id === "grand-final-reset" || (id === "grand-final" && score[1] >= firstTo);
   return (
     <div className="absolute inset-0 overflow-hidden text-paper">
       <Backdrop num={editionNum(feed)} tint="var(--white)" />
-      <TopBar feed={feed} />
-      <div className="absolute left-[72px] top-[130px]">
-        <Echo text="Bracket" className="text-[64px]" />
-      </div>
-      <div className="absolute inset-x-[72px] bottom-[50px] top-[230px] grid grid-cols-[minmax(0,1fr)_250px] gap-8">
-        <div className="flex min-w-0 flex-col gap-6">
-          <Lane title="Winners Bracket" rounds={winners} feed={feed} height={430} />
-          <Lane title="Losers Bracket" rounds={losers} feed={feed} height={300} />
-        </div>
-        <section className="flex flex-col justify-center gap-3">
-          <span className={cn(LABEL, "text-gold-hi")}>Grand Finals</span>
-          {grand.map((m) => (
-            <Mini key={m.id} m={m} current={m.id === feed.match.id} />
-          ))}
-        </section>
+      <Lockup num={editionNum(feed)} size={38} className="absolute right-[56px] top-[40px]" />
+      <div className="absolute inset-x-[40px]" style={{ top: TOP, bottom: BOTTOM }}>
+        <MatchBracket plain reset={reset} maxH={1080 - TOP - BOTTOM - 16} />
       </div>
     </div>
   );

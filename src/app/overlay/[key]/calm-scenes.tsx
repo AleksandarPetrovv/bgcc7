@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Confetti } from "@/components/site/confetti";
-import { Sparkle, Glyph } from "@/components/site/graphics";
+import { Glyph } from "@/components/site/graphics";
 import type { FeedTeam, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
-import { Backdrop, Echo, editionNum, Img, LABEL, Lockup, PlayerCard, ScoreNum, SLAB, TEAM, TeamPlate, TopBar, Versus } from "./chrome";
+import { Backdrop, Blend, Echo, editionNum, LABEL, Lockup, PlayerCard, Rule, ScoreNum, TEAM, TeamPic, TeamPlate, TopBar, Versus } from "./chrome";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -28,38 +28,39 @@ function useNow(active: boolean) {
 function Countdown({ startsAt, at }: { startsAt: string | null; at: number }) {
   const start = startsAt ? Date.parse(startsAt) : NaN;
   const now = useNow(Number.isFinite(start));
-  const left = Math.ceil((start - Math.max(at, now ?? at)) / 1000);
-  if (!Number.isFinite(left) || left <= 0) return <Echo text="Soon" className="text-[200px]" />;
+  const diff = Math.ceil((start - Math.max(at, now ?? at)) / 1000);
+  // no start time or already past: the timer just sits at zero
+  const left = Number.isFinite(diff) ? Math.max(0, diff) : 0;
   const parts = [Math.floor(left / 3600), Math.floor(left / 60) % 60, left % 60];
   const labels = ["Hours", "Minutes", "Seconds"];
+  const reduce = useReducedMotion();
   return (
-    <div className="flex items-start gap-5" role="timer" aria-live="off">
+    <div className="flex items-start gap-8" role="timer" aria-live="off">
       {parts.map((p, i) => (
-        <div key={i} className="flex items-start gap-5">
-          {i > 0 && <span className="mt-[80px] size-4 rotate-45 bg-rose" aria-hidden />}
-          <div className="flex flex-col items-center gap-3">
-            <span className="inline-flex -skew-x-12 overflow-hidden border border-line bg-coal px-9 py-4 will-change-transform shadow-[8px_8px_0_0_color-mix(in_srgb,var(--rose-deep)_42%,transparent)]">
-              <span className="num relative flex h-[136px] skew-x-12 items-center px-1 font-display text-[112px] font-black leading-none tabular-nums text-paper">
-                {String(p)
-                  .padStart(2, "0")
-                  .split("")
-                  .map((d, k) => (
-                    <span key={k} className="relative inline-block">
-                      <AnimatePresence initial={false} mode="popLayout">
-                        <motion.span
-                          key={d}
-                          className="inline-block"
-                          initial={{ y: "-100%", opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          exit={{ y: "100%", opacity: 0 }}
-                          transition={{ duration: 0.75, ease: [0.65, 0, 0.35, 1] }}
-                        >
-                          {d}
-                        </motion.span>
-                      </AnimatePresence>
-                    </span>
-                  ))}
-              </span>
+        <div key={i} className="flex items-start gap-8">
+          {i > 0 && <span className="num mt-[12px] text-[110px] leading-none text-ash/50" aria-hidden>:</span>}
+          <div className="flex flex-col items-center gap-[76px]">
+            {/* odometer reel: old and new digit stay joined and slide one full row; the soft edge band sits in the glyph's empty top/bottom space */}
+            <span className="num -my-[64px] flex h-[278px] items-center overflow-hidden text-[150px] leading-none tabular-nums text-paper [mask-image:linear-gradient(transparent,rgb(0_0_0/0.35)_32px,black_64px,black_calc(100%-64px),rgb(0_0_0/0.35)_calc(100%-32px),transparent)]">
+              {String(p)
+                .padStart(2, "0")
+                .split("")
+                .map((d, k) => (
+                  <span key={k} className="relative inline-block">
+                    <AnimatePresence initial={false} mode="popLayout">
+                      <motion.span
+                        key={d}
+                        className="block py-[64px]"
+                        initial={reduce ? { opacity: 0 } : { transform: "translateY(-100%)", opacity: 0 }}
+                        animate={reduce ? { opacity: 1 } : { transform: "translateY(0%)", opacity: 1 }}
+                        exit={reduce ? { opacity: 0 } : { transform: "translateY(100%)", opacity: 0 }}
+                        transition={{ duration: 0.72, ease: [0.65, 0, 0.35, 1] }}
+                      >
+                        {d}
+                      </motion.span>
+                    </AnimatePresence>
+                  </span>
+                ))}
             </span>
             <span className={LABEL}>{labels[i]}</span>
           </div>
@@ -71,23 +72,23 @@ function Countdown({ startsAt, at }: { startsAt: string | null; at: number }) {
 
 function Matchup({ feed, score }: { feed: OverlayFeed; score?: boolean }) {
   return (
-    <div className="flex items-center justify-center gap-10">
-      <motion.div initial={{ x: -120, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.6, delay: 0.25, ease: EASE }} className="min-w-0">
-        <TeamPlate team={feed.teams[0]} side={0} big className="max-w-[640px]" />
+    <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-12">
+      <motion.div initial={{ x: -60, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.6, delay: 0.25, ease: EASE }} className="flex min-w-0 justify-end">
+        <TeamPlate team={feed.teams[0]} side={0} big />
       </motion.div>
-      <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 380, damping: 16, delay: 0.45 }}>
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, delay: 0.4, ease: EASE }}>
         {score ? (
-          <span className="num flex shrink-0 items-center gap-5 font-display text-[64px] font-black">
+          <span className="num flex shrink-0 items-center gap-5 text-[72px] italic leading-none">
             <ScoreNum value={feed.match.score[0]} side={0} style={{ color: TEAM[0].hi }} />
-            <span className="size-3 rotate-45 bg-ash" aria-hidden />
+            <span className="text-ash">–</span>
             <ScoreNum value={feed.match.score[1]} side={1} style={{ color: TEAM[1].hi }} />
           </span>
         ) : (
           <Versus />
         )}
       </motion.div>
-      <motion.div initial={{ x: 120, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.6, delay: 0.25, ease: EASE }} className="min-w-0">
-        <TeamPlate team={feed.teams[1]} side={1} big className="max-w-[640px]" />
+      <motion.div initial={{ x: 60, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.6, delay: 0.25, ease: EASE }} className="flex min-w-0 justify-start">
+        <TeamPlate team={feed.teams[1]} side={1} big />
       </motion.div>
     </div>
   );
@@ -96,26 +97,17 @@ function Matchup({ feed, score }: { feed: OverlayFeed; score?: boolean }) {
 function Soon({ feed }: { feed: OverlayFeed }) {
   return (
     <>
-      <div className="absolute inset-x-0 top-[110px] flex flex-col items-center">
-        <motion.div initial={{ opacity: 0, y: -40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: EASE }}>
-          <Lockup num={editionNum(feed)} size={150} animate />
-        </motion.div>
-        <div className="mt-16">
-          <Countdown key={`${feed.match.id}:${feed.match.startsAt}`} startsAt={feed.match.startsAt} at={feed.at} />
-        </div>
+      <motion.div className="absolute inset-x-0 top-[110px] flex justify-center" initial={{ opacity: 0, y: -24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: EASE }}>
+        <Lockup num={editionNum(feed)} size={150} animate />
+      </motion.div>
+      {/* centred in the space between the logo and the rule above the teams */}
+      <div className="absolute inset-x-0 bottom-[230px] top-[280px] flex items-center justify-center">
+        <Countdown key={`${feed.match.id}:${feed.match.startsAt}`} startsAt={feed.match.startsAt} at={feed.at} />
       </div>
-      <div className="absolute inset-x-[72px] bottom-[120px]">
+      <div className="absolute inset-x-[72px] bottom-[110px] flex flex-col gap-12">
+        <Rule />
         <Matchup feed={feed} />
       </div>
-      {[
-        { at: "left-[1390px] top-[110px]", s: "size-10 text-rose-hi", d: 0, r: [0, 18, 0], y: [0, -14, 0], x: [0, 6, 0], t: 4.2 },
-        { at: "left-[1450px] top-[190px]", s: "size-5 text-balkan-hi", d: 0.8, r: [0, -24, 0], y: [0, 10, 0], x: [0, -8, 0], t: 3.4 },
-        { at: "left-[470px] top-[230px]", s: "size-3 text-paper/60", d: 1.6, r: [0, 30, 0], y: [0, -8, 0], x: [0, 5, 0], t: 3.8 },
-      ].map((f, i) => (
-        <motion.div key={i} className={cn("pointer-events-none absolute", f.at)} animate={{ y: f.y, x: f.x, rotate: f.r }} transition={{ duration: f.t, repeat: Infinity, ease: "easeInOut", delay: f.d }}>
-          <Sparkle className={cn("relative", f.s)} delay={f.d} />
-        </motion.div>
-      ))}
     </>
   );
 }
@@ -163,81 +155,49 @@ function useReveal(both: boolean) {
   return ready;
 }
 
-function Roll({ value, state, side }: { value: number | null; state: "wait" | "won" | "lost"; side: 0 | 1 }) {
-  const c = TEAM[side];
+function Roll({ value, state }: { value: number | null; state: "wait" | "won" | "lost" }) {
   const { shown, spinning } = useSpin(value);
   const won = state === "won" && !spinning;
   return (
-    <div className={cn("flex items-center gap-5 transition-opacity duration-500", side === 1 && "flex-row-reverse", state === "lost" && !spinning && "opacity-45")}>
-      <span
-        className="inline-flex -skew-x-12 items-center gap-4 border-[3px] px-6 py-2 transition-[border-color,box-shadow,background-color] duration-500"
-        style={{ borderColor: won ? "var(--gold-deep)" : c.c, background: won ? "var(--gold)" : "color-mix(in srgb, var(--coal) 92%, transparent)", boxShadow: `7px 7px 0 0 ${won ? "var(--gold-deep)" : c.deep}` }}
-      >
-        <span className={cn("skew-x-12 text-[16px] font-display font-bold", won ? "text-paper/75" : "text-ash")}>Roll</span>
-        <span className="relative flex h-[64px] min-w-[96px] skew-x-12 items-center justify-center">
-          <AnimatePresence initial={false} mode="popLayout">
-            <motion.span
-              key={spinning ? "s" : `f${shown}`}
-              className={cn("num font-display text-[56px] font-black leading-none", shown == null ? "text-ash/50" : spinning ? "text-paper/70" : "text-paper")}
-              initial={spinning ? { opacity: 0 } : { scale: 2.2, opacity: 0, rotate: -8 }}
-              animate={shown == null ? { y: 0, scale: 1, rotate: 0, opacity: [0.35, 0.8, 0.35] } : { y: 0, scale: 1, rotate: 0, opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.12 } }}
-              transition={shown == null ? { opacity: { duration: 1.6, repeat: Infinity } } : spinning ? { duration: 0.08 } : { type: "spring", stiffness: 520, damping: 18 }}
-            >
-              {shown ?? "?"}
-            </motion.span>
-          </AnimatePresence>
-        </span>
+    <div className={cn("flex flex-col items-center gap-2 transition-opacity duration-500", state === "lost" && !spinning && "opacity-45")}>
+      <span className={cn("text-[16px] font-display font-bold transition-colors duration-500", won ? "text-gold-hi" : "text-ash")}>Roll</span>
+      <span className="relative flex h-[84px] min-w-[150px] items-center justify-center border-b-4 transition-colors duration-500" style={{ borderColor: won ? "var(--gold)" : "var(--line)" }}>
+        <AnimatePresence initial={false} mode="popLayout">
+          <motion.span
+            key={spinning ? "s" : `f${shown}`}
+            className={cn("num text-[68px] italic leading-none", shown == null ? "text-ash/50" : won ? "text-gold-hi" : spinning ? "text-paper/70" : "text-paper")}
+            initial={spinning ? { opacity: 0 } : { scale: 1.4, opacity: 0 }}
+            animate={shown == null ? { scale: 1, opacity: [0.35, 0.8, 0.35] } : { scale: 1, opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.12 } }}
+            transition={shown == null ? { opacity: { duration: 1.6, repeat: Infinity } } : spinning ? { duration: 0.08 } : { duration: 0.45, ease: EASE }}
+          >
+            {shown ?? "?"}
+          </motion.span>
+        </AnimatePresence>
       </span>
     </div>
   );
 }
 
 function TeamSide({ team, side, roll }: { team: FeedTeam; side: 0 | 1; roll?: React.ReactNode }) {
-  const c = TEAM[side];
   const right = side === 1;
   return (
     <motion.section
-      initial={{ opacity: 0, x: right ? 160 : -160 }}
+      initial={{ opacity: 0, x: right ? 80 : -80 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.8, ease: EASE, delay: right ? 0.12 : 0 }}
-      className={cn("absolute top-[170px] bottom-[100px] w-[820px]", right ? "right-[110px]" : "left-[110px]")}
+      transition={{ duration: 0.8, ease: EASE, delay: right ? 0.1 : 0 }}
+      className={cn("relative flex min-w-0 flex-col items-center justify-center gap-12 px-10 text-center", right && "col-start-3")}
     >
-      <div
-        className="absolute inset-0 -skew-x-12 overflow-hidden border-y-[6px]"
-        style={{
-          borderColor: c.c,
-          background: `radial-gradient(70% 55% at ${right ? "85%" : "15%"} 18%, color-mix(in srgb, ${c.c} 16%, transparent), transparent 70%), radial-gradient(60% 50% at ${right ? "20%" : "80%"} 92%, color-mix(in srgb, ${c.c} 9%, transparent), transparent 70%), var(--coal)`,
-          boxShadow: `12px 12px 0 0 ${SLAB}`,
-        }}
-      >
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `radial-gradient(color-mix(in srgb, ${c.c} 22%, transparent) 1.6px, transparent 2.4px) 0 0 / 26px 26px`,
-            maskImage: `linear-gradient(${right ? 225 : 135}deg, black, transparent 55%)`,
-          }}
-        />
+      <div className="flex flex-col items-center gap-5">
+        <TeamPic src={team.image} side={side} size={120} />
+        <h2 className="line-clamp-2 max-w-[640px] font-display text-[60px] font-black leading-[0.95]">{team.name}</h2>
       </div>
-      {/* content shares the panel skew and each block unskews around its own center, so every row sits centered on its own slice of the trapezoid */}
-      <div className="relative flex h-full -skew-x-12 flex-col items-center justify-center gap-14 px-[110px] text-center">
-        <div className="flex flex-col items-center gap-5">
-          {team.image.trim() && (
-            <div className="skew-x-12">
-              <span className="inline-flex shrink-0 -skew-x-12 overflow-hidden border-[3px] bg-ink" style={{ borderColor: c.c, boxShadow: `8px 8px 0 0 ${c.deep}` }}>
-                <Img src={team.image} className="size-[110px] shrink-0 skew-x-12 scale-[1.25] object-cover" />
-              </span>
-            </div>
-          )}
-          <h2 className="max-w-[600px] skew-x-12 font-display text-[60px] font-black leading-[0.95]">{team.name}</h2>
-        </div>
-        <div className="flex skew-x-12 flex-wrap justify-center gap-10">
-          {team.players.map((p, i) => (
-            <PlayerCard key={p.id} p={p} color={c.c} deep={c.deep} size={140} delay={0.45 + i * 0.1} />
-          ))}
-        </div>
-        {roll && <div className="skew-x-12">{roll}</div>}
+      <div className="flex flex-wrap justify-center gap-8">
+        {team.players.map((p, i) => (
+          <PlayerCard key={p.id} p={p} side={side} size={120} delay={0.45 + i * 0.08} />
+        ))}
       </div>
+      {roll}
     </motion.section>
   );
 }
@@ -246,19 +206,30 @@ function Intro({ feed }: { feed: OverlayFeed }) {
   const [a, b] = feed.rolls ?? [null, null];
   const revealed = useReveal(a != null && b != null && a !== b);
   const state = (i: 0 | 1) => (!revealed || a == null || b == null ? "wait" : (i === 0 ? a > b : b > a) ? "won" : "lost");
-  const roll = (i: 0 | 1) => (feed.rolls ? <Roll value={feed.rolls[i]} state={state(i)} side={i} /> : null);
+  const roll = (i: 0 | 1) => (feed.rolls ? <Roll value={feed.rolls[i]} state={state(i)} /> : null);
   return (
     <>
+      <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, ease: EASE }}>
+        <Blend teams={feed.teams} />
+      </motion.div>
       <TopBar feed={feed} />
-      <TeamSide team={feed.teams[0]} side={0} roll={roll(0)} />
-      <TeamSide team={feed.teams[1]} side={1} roll={roll(1)} />
       <motion.div
-        className="absolute left-1/2 top-[540px] z-10 -translate-x-1/2 -translate-y-1/2"
-        initial={{ scale: 1.6, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.5, ease: EASE }}
+        className="absolute inset-x-[72px] bottom-[100px] top-[140px] grid grid-cols-[minmax(0,1fr)_220px_minmax(0,1fr)] border-b border-line"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, ease: EASE }}
       >
-        <Versus size={150} />
+        <TeamSide team={feed.teams[0]} side={0} roll={roll(0)} />
+        <motion.div
+          className="relative col-start-2 row-start-1 flex items-center justify-center"
+          initial={{ scale: 1.15, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.5, ease: EASE }}
+        >
+          <Versus size={130} />
+        </motion.div>
+        <TeamSide team={feed.teams[1]} side={1} roll={roll(1)} />
+        <span className="absolute -bottom-[8px] left-1/2 size-3.5 -translate-x-1/2 rotate-45 bg-rose" aria-hidden />
       </motion.div>
     </>
   );
@@ -270,72 +241,57 @@ function Winner({ feed }: { feed: OverlayFeed }) {
     return (
       <>
         <TopBar feed={feed} />
-        <div className="absolute inset-x-0 top-[300px] flex flex-col items-center gap-10">
+        <div className="absolute inset-x-[72px] top-[300px] flex flex-col items-center gap-14">
           <Echo text="Match score" className="text-[110px]" />
           <Matchup feed={feed} score />
         </div>
       </>
     );
   }
-  const team = feed.teams[w - 1];
-  const c = TEAM[w - 1];
+  const side = (w - 1) as 0 | 1;
+  const team = feed.teams[side];
   const [a, b] = feed.match.score;
+  const rise = (delay: number) => ({ initial: { opacity: 0, y: 24 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.7, delay, ease: EASE } });
   return (
     <>
-      <motion.div
-        className="absolute inset-y-[-40px] left-[-200px] w-[1350px] -skew-x-12"
-        style={{ background: `linear-gradient(90deg, ${c.deep}, ${c.c})`, boxShadow: `16px 0 0 0 color-mix(in srgb, ${c.deep} 45%, transparent)` }}
-        initial={{ x: -1400 }}
-        animate={{ x: 0 }}
-        transition={{ duration: 0.9, ease: EASE }}
-        aria-hidden
-      />
-      <TopBar feed={feed} invert />
+      <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2, ease: EASE }}>
+        <Blend teams={feed.teams} winner={w} />
+      </motion.div>
+      <TopBar feed={feed} />
       <Confetti duration={4500} />
-      <div className="absolute left-[72px] top-[200px] flex flex-col gap-8 text-white">
-        <div className="flex items-center gap-5">
-          <Glyph kind="crown" className="size-[30px]" />
-          <span className="text-[28px] font-display font-bold text-gold">Winner</span>
-        </div>
-        <div className="flex items-center gap-10">
-          {team.image.trim() && (
-            <span className="inline-flex shrink-0 -skew-x-12 overflow-hidden border-4 border-gold bg-ink shadow-[10px_10px_0_0_var(--gold-deep)]">
-              <Img src={team.image} className="size-[150px] shrink-0 skew-x-12 scale-[1.25] object-cover" />
-            </span>
-          )}
-          <motion.h1
-            className="max-w-[760px] font-display text-[92px] font-black leading-[0.92] text-white"
-            initial={{ opacity: 0, x: -80, skewX: -12 }}
-            animate={{ opacity: 1, x: 0, skewX: 0 }}
-            transition={{ duration: 0.7, delay: 0.5, ease: EASE }}
-          >
-            {team.name}
-          </motion.h1>
-        </div>
-        <div className="flex flex-wrap gap-6">
+      <div className="absolute inset-x-[72px] bottom-[60px] top-[120px] flex flex-col items-center justify-center text-center">
+        <motion.div {...rise(0.2)} className="flex items-center gap-3 text-gold-hi">
+          <Glyph kind="crown" className="size-[28px]" />
+          <span className="text-[28px] font-display font-bold">Winner</span>
+        </motion.div>
+        <motion.div {...rise(0.35)} className="mt-7">
+          <TeamPic src={team.image} side={side} size={150} />
+        </motion.div>
+        <motion.h1 {...rise(0.5)} className={cn("heading-slam mt-6 max-w-[1500px] text-balance pb-[0.08em] leading-[1.05]", team.name.length > 16 ? "text-[88px]" : "text-[112px]")}>
+          {team.name}
+        </motion.h1>
+        <div className="mt-10 flex flex-wrap justify-center gap-12">
           {team.players.map((p, i) => (
-            <PlayerCard key={p.id} p={p} color="var(--gold)" deep="var(--gold-deep)" fg="var(--paper)" size={130} delay={1 + i * 0.12} />
+            <PlayerCard key={p.id} p={p} side={side} size={104} delay={0.8 + i * 0.1} />
           ))}
         </div>
-      </div>
-      <motion.div
-        className="absolute right-[72px] top-[330px] flex w-[620px] flex-col items-center gap-6"
-        initial={{ scale: 0.6, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.8 }}
-      >
-        <span className="num flex items-center gap-8 font-display text-[190px] font-black leading-none">
-          <span style={{ color: w === 1 ? c.hi : "var(--ash)" }}>{a}</span>
-          <span className="size-6 rotate-45" style={{ background: c.c }} aria-hidden />
-          <span style={{ color: w === 2 ? c.hi : "var(--ash)" }}>{b}</span>
-        </span>
-        <span className={LABEL}>
-          {feed.teams[0].name} · {feed.teams[1].name}
-        </span>
+      <motion.div {...rise(1.1)} className="mt-16 flex w-[1480px] flex-col gap-9">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-12 font-display font-black">
+          {[0, 1].map((i) => (
+            <span key={i} className={cn("flex min-w-0 items-center gap-4 text-[34px] leading-none", i === 0 ? "justify-end" : "col-start-3 row-start-1 flex-row-reverse justify-end", w !== i + 1 && "text-ash")}>
+              <span className="min-w-0 truncate">{feed.teams[i].name}</span>
+              <span className="h-[30px] w-[5px] shrink-0" style={{ background: TEAM[i].c }} aria-hidden />
+            </span>
+          ))}
+          <span className="num col-start-2 row-start-1 flex items-center gap-6 text-[110px] italic leading-none">
+            <span style={{ color: w === 1 ? TEAM[0].hi : "var(--ash)" }}>{a}</span>
+            <span className="text-ash">–</span>
+            <span style={{ color: w === 2 ? TEAM[1].hi : "var(--ash)" }}>{b}</span>
+          </span>
+        </div>
+        <Rule />
       </motion.div>
-      <Sparkle className="right-[560px] top-[250px] size-12 text-rose" />
-      <Sparkle className="right-[180px] top-[640px] size-7 text-balkan-hi" delay={0.6} />
-      <Sparkle className="right-[700px] top-[700px] size-4 text-paper/70" delay={1.2} />
+      </div>
     </>
   );
 }
@@ -346,30 +302,29 @@ function Break({ feed, end }: { feed: OverlayFeed; end?: boolean }) {
       {!end && <TopBar feed={feed} />}
       <div className="absolute inset-x-0 top-[200px] flex flex-col items-center">
         {end ? (
-          <motion.div initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, ease: EASE }}>
+          <motion.div initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, ease: EASE }}>
             <Lockup num={editionNum(feed)} size={190} animate />
           </motion.div>
         ) : null}
         <motion.div
-          className={cn("flex flex-col items-center", end ? "mt-14" : "mt-10")}
-          initial={{ opacity: 0, y: 30 }}
+          className={cn("flex flex-col items-center", end ? "mt-28" : "mt-10")}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.15, ease: EASE }}
         >
           {end ? (
             <Echo text="Thanks for watching!" className="text-[84px]" />
           ) : (
-            <motion.div className="flex flex-col items-center" animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
+            <div className="flex flex-col items-center">
               <Echo text="Be right" className="text-[180px]" />
-              <motion.span animate={{ rotate: [0, -1.5, 0, 1.5, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
-                <Echo text="back" className="text-[180px]" color="var(--rose)" />
-              </motion.span>
-            </motion.div>
+              <Echo text="back" className="text-[180px]" color="var(--rose)" />
+            </div>
           )}
         </motion.div>
       </div>
       {!end && (
-        <div className="absolute inset-x-[72px] bottom-[120px]">
+        <div className="absolute inset-x-[72px] bottom-[110px] flex flex-col gap-12">
+          <Rule />
           <Matchup feed={feed} score />
         </div>
       )}
