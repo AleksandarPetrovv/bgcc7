@@ -42,6 +42,7 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
   const tabs =
     stages.length > 1 ? (
       <LinkTabs
+        spark
         label={t.stats.stageTabs}
         items={stages.map((s) => ({ href: `/stats?stage=${s.slug}`, label: name(s.title), active: s.slug === current?.slug, disabled: !reached(s.slug) }))}
       />

@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { RotateCcw } from "lucide-react";
 import { Btn } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
-import { DEFAULT_PLAN, roundStats, type Plan, type PlanRound } from "@/lib/format-plan";
+import { DEFAULT_PLAN, type Plan, type PlanRound } from "@/lib/format-plan";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
 import { Tabs } from "@/components/site/tabs";
@@ -73,12 +73,7 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
           className="in-left [--d:0.1s]"
           index={tab}
           onChange={setTab}
-          options={plan.rounds.map((r) => (
-            <>
-              {t.rounds[r.name] ?? r.name}
-              <span className="num text-xs text-ash">BO{roundStats(r).bestOf}</span>
-            </>
-          ))}
+          options={plan.rounds.map((r) => t.rounds[r.name] ?? r.name)}
         />
 
         <div>

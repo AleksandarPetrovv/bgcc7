@@ -8,7 +8,6 @@ import { InView } from "@/components/site/in-view";
 import { RuleDiamond } from "@/components/site/rule";
 import { useDict } from "@/components/site/lang";
 import { modHi } from "@/lib/theme";
-import { Sparkle } from "@/components/site/graphics";
 import { cn } from "@/lib/utils";
 
 type Mod = { key: string; short: string; color: string; count: number };
@@ -71,9 +70,6 @@ export function SheetView({ stageId, version, mods, children }: { stageId: numbe
                 {on && (
                   <>
                     <motion.span layoutId={`mod-bar-${stageId}`} transition={{ type: "spring", stiffness: 500, damping: 38 }} className="absolute inset-x-1.5 bottom-0 h-[3px] -skew-x-12" style={{ background: c.color }} aria-hidden />
-                    <motion.span layoutId={`mod-spark-${stageId}`} transition={{ type: "spring", stiffness: 500, damping: 38 }} className="absolute -top-0.5 right-0 size-3" aria-hidden>
-                      <Sparkle className="inset-0 size-full text-rose-hi" />
-                    </motion.span>
                   </>
                 )}
                 {c.short}

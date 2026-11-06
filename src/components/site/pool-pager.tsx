@@ -12,8 +12,8 @@ const stride = (el: HTMLElement) => {
 };
 const ease = (k: number) => (k < 0.5 ? 4 * k ** 3 : 1 - (-2 * k + 2) ** 3 / 2);
 
-// underline tab bar with the nav sparkle; pos can be fractional (scroll-driven) or whole with `animate` for an eased slide
-export function UnderlineTabs({ names, colors, pos, onPick, animate, className, style }: { names: string[]; colors: string[]; pos: number; onPick: (i: number) => void; animate?: boolean; className?: string; style?: React.CSSProperties }) {
+// underline tab bar (nav sparkle optional); pos can be fractional (scroll-driven) or whole with `animate` for an eased slide
+export function UnderlineTabs({ names, colors, pos, onPick, animate, spark, className, style }: { names: string[]; colors: string[]; pos: number; onPick: (i: number) => void; animate?: boolean; spark?: boolean; className?: string; style?: React.CSSProperties }) {
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const [rects, setRects] = useState<{ l: number; w: number }[]>([]);
   const key = names.join("|");
@@ -58,9 +58,9 @@ export function UnderlineTabs({ names, colors, pos, onPick, animate, className, 
             style={{ width: w, translate: `${x}px 0`, transition: slide, background: animate ? colors[on] : `color-mix(in oklab, ${colors[i0]} ${(1 - f) * 100}%, ${colors[i1]})` }}
             aria-hidden
           />
-          <span className="pointer-events-none absolute left-0 top-0 size-3" style={{ translate: `${x + w - 4}px 0`, transition: slide }} aria-hidden>
+          {spark && <span className="pointer-events-none absolute left-0 top-0 size-3" style={{ translate: `${x + w - 4}px 0`, transition: slide }} aria-hidden>
             <Sparkle className="inset-0 size-full text-rose-hi" />
-          </span>
+          </span>}
         </>
       )}
     </div>

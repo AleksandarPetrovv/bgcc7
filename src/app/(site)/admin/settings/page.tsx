@@ -43,11 +43,11 @@ export default async function AdminSettings() {
         </div>
         <div className="space-y-6">
           <Panel title={t.admin.set.draft} help={t.admin.set.draftHelp} i={2}>
-            <ActionForm key={`${s.bans}${s.banSecs}${s.pickSecs}${s.timeoutSecs}`} action={setDraft}>
-              <div className="grid grid-cols-[6rem_1fr_1fr] items-end gap-3">
+            <ActionForm key={`${s.bans}${s.banSecs}${s.pickSecs}${s.timeoutSecs}`} action={setDraft} className="flex flex-col items-center gap-6">
+              <div className="flex flex-wrap items-end justify-center gap-5">
                 <label className={labelCls}>
                   {t.admin.set.bans}
-                  <Field type="number" name="bans" min={0} max={4} defaultValue={s.bans} className={`${inputCls} num w-full text-lg`} />
+                  <Field type="number" name="bans" min={0} max={4} defaultValue={s.bans} className={`${inputCls} num w-20 text-lg`} />
                 </label>
                 {(
                   [
@@ -58,7 +58,7 @@ export default async function AdminSettings() {
                   <label key={k} className={labelCls}>
                     {label}
                     <span className="flex items-center gap-1.5">
-                      <Field type="number" name={k} min={10} max={900} defaultValue={val} className={`${inputCls} num w-full text-lg`} />
+                      <Field type="number" name={k} min={10} max={900} defaultValue={val} className={`${inputCls} num w-24 text-lg`} />
                       <span className="text-xs text-ash">s</span>
                     </span>
                   </label>

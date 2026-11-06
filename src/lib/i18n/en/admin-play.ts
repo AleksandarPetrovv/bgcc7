@@ -71,7 +71,7 @@ export const adminPlay = {
     closed: "Closed",
     bestOf: (n: number) => `Best of ${n}`,
     draft: "Pick and ban",
-    draftHelp: "How many maps each team bans and in what order, A being the team that bans first. Bans and order count for pick and bans opened after this, the timers count right away.",
+    draftHelp: "How many maps each team bans, plus the pick/ban and timeout timers. Bans count for pick and bans opened after this, the timers count right away.",
     bans: "Bans per team",
     pickBanSecs: "Pick / ban timer",
     timeoutSecs: "Timeout",

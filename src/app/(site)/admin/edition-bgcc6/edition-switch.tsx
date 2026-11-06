@@ -9,7 +9,6 @@ import { EDITIONS, type Edition } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { switchEdition } from "./actions";
 import { GOLD as GOLD_C } from "@/lib/theme";
-import { Sparkle } from "@/components/site/graphics";
 
 const GOLD = GOLD_C.c;
 
@@ -48,9 +47,6 @@ export function EditionSwitch({ edition }: { edition: Edition }) {
               {on && (
                 <>
                   <motion.span layoutId="edition-bar" transition={{ type: "spring", stiffness: 520, damping: 40 }} className="absolute inset-x-1.5 bottom-0 h-[3px] -skew-x-12" style={{ background: GOLD }} aria-hidden />
-                  <motion.span layoutId="edition-spark" transition={{ type: "spring", stiffness: 520, damping: 40 }} className="absolute -top-0.5 right-0 size-3" aria-hidden>
-                    <Sparkle className="inset-0 size-full text-gold-hi" />
-                  </motion.span>
                 </>
               )}
               {e}
