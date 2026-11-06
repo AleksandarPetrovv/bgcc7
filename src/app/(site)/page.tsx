@@ -112,7 +112,7 @@ function TopList({ t, top, teams }: { t: Dict; top: TopCost[]; teams: Team[] }) 
         return (
           <li
             key={p.id}
-            className="in-up flex items-center gap-3 border-b-2 border-dashed border-line py-3 first:pt-1 last:border-b-0 sm:gap-4"
+            className="in-up flex items-center gap-3 border-b-2 border-dashed border-line py-3 first:pt-3 last:border-b-0 sm:gap-4"
             style={{ "--d": `${1.65 + i * 0.08}s` } as React.CSSProperties}
           >
             <span className={cn("num w-7 shrink-0 text-center text-3xl italic leading-none", MEDAL[i])}>{i + 1}</span>

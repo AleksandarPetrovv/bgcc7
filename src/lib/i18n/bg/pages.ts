@@ -111,9 +111,7 @@ export const pages: typeof en = {
   },
   mappool: {
     title: "Мапове",
-    pack: (n: number) => `Пакет · ${n} мапа`,
-    packSoon: "Пакет · скоро",
-    direct: "osu!direct",
+    pack: (n: number) => `Пакет · ${n} мапа`,    direct: "osu!direct",
     page: "Страница на мапа",
     empty: "Мапповете още не са публикувани.",
     firstTo: "До",
