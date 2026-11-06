@@ -52,6 +52,7 @@ export const site = {
     meTeam: "Your team",
     eet: "EET / EEST",
     tbd: "TBD",
+    units: ["days", "hrs", "min"],
     wins: (n: number) => `${n}W`,
     losses: (n: number) => `${n}L`,
     vs: "VS",

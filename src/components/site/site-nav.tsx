@@ -8,7 +8,6 @@ import { LogOut, Menu, Pause, Swords } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Sparkle, Wordmark } from "./graphics";
 import { useDict } from "./lang";
-import { EditionView } from "./edition-view-bgcc6";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
 import { login, logout } from "@/app/(site)/pickems/actions";
@@ -172,6 +171,8 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
   const [fit, setFit] = useState<boolean | null>(null);
   // null = centered; a number = left offset when only the spot right after the theme toggle has room
   const [shift, setShift] = useState<number | null>(null);
+  const [tight, setTight] = useState(false);
+  const wideW = useRef(0);
   const [clicked, setClicked] = useState<{ base: string; from: string } | null>(null);
   // a nav click only highlights early until the route changes; otherwise returning to `from` (e.g. via the logo) revives it
   if (clicked && clicked.from !== path) setClicked(null);
@@ -222,13 +223,21 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
       const rightW = kids.reduce((s, k) => s + k.getBoundingClientRect().width, 0) + gap * Math.max(0, kids.length - 1);
       const rowGap = parseFloat(getComputedStyle(row).columnGap) || 0;
       const r = row.getBoundingClientRect();
-      const start = r.left + (r.width - nav.offsetWidth) / 2;
       const end = r.right - (parseFloat(getComputedStyle(row).paddingRight) || 0) - rightW;
-      const centered = start - left >= rowGap + 8 && end - (start + nav.offsetWidth) >= rowGap + 8;
       const flowStart = left + rowGap;
-      const flows = end - (flowStart + nav.offsetWidth) >= rowGap + 8;
-      setFit(window.innerWidth >= 1024 && (centered || flows));
-      setShift(centered ? null : flowStart - r.left);
+      const check = (navW: number) => {
+        const start = r.left + (r.width - navW) / 2;
+        const centered = start - left >= rowGap + 8 && end - (start + navW) >= rowGap + 8;
+        return { centered, ok: window.innerWidth >= 1024 && (centered || end - (flowStart + navW) >= rowGap + 8) };
+      };
+      if (!tight) wideW.current = nav.offsetWidth;
+      const wide = check(wideW.current || nav.offsetWidth);
+      // too wide at normal size: try smaller links before falling back to the menu
+      if (!tight && !wide.ok) return setTight(true);
+      if (tight && wide.ok) return setTight(false);
+      const c = tight ? check(nav.offsetWidth) : wide;
+      setFit(c.ok);
+      setShift(c.centered ? null : flowStart - r.left);
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -236,7 +245,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
     ro.observe(right);
     nav.querySelectorAll("a").forEach((a) => ro.observe(a));
     return () => ro.disconnect();
-  }, [desk.length, user, register, match]);
+  }, [desk.length, user, register, match, tight]);
   const compact = fit === null ? "min-[1700px]:hidden" : fit ? "hidden" : "";
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-field/90 backdrop-blur-md">
@@ -244,7 +253,6 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
         <Link href="/" className="group flex h-full items-center gap-1 pl-3 sm:pl-4 lg:pl-6" aria-label={t.nav.homeLabel}>
           <Wordmark size="md" className="text-paper max-sm:text-[1.6rem]" />
         </Link>
-        <EditionView />
         <ThemeToggle />
 
         <nav
@@ -279,7 +287,8 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
                   }}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "group relative flex items-center whitespace-nowrap px-2 text-[0.78rem] font-display font-bold transition-colors max-[1799px]:px-1.5 max-[1799px]:text-[0.72rem]",
+                    "group relative flex items-center whitespace-nowrap font-display font-bold transition-colors",
+                    tight ? "px-1.5 text-[0.72rem]" : "px-2 text-[0.78rem]",
                     active ? "text-paper" : "text-paper/70 hover:text-rose-hi",
                   )}
                 >

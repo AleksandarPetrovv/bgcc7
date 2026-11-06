@@ -17,7 +17,7 @@ export function QualifierScores({ t, maps, player }: { t: Dict; maps: QualMap[];
               <th className="py-2 text-right">{t.me.mapRank}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-dashed divide-line">
+          <tbody className="divide-y divide-line">
             {maps.map((m) => {
               const p = player.perf[m.id];
               return (

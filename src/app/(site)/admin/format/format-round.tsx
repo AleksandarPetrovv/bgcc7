@@ -241,7 +241,7 @@ function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "
   );
 }
 
-const rowCls = "flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-dashed border-line bg-ink py-2.5";
+const rowCls = "flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line bg-ink py-2.5";
 const nameCls = "w-32 min-w-0 bg-transparent text-sm font-display font-black outline-none focus:text-rose-hi sm:w-40";
 
 function CatRow({ c, onChange, onRemove, prev }: { c: PlanCat; onChange: (c: PlanCat) => void; onRemove: () => void; prev: PlanRound[] }) {
@@ -302,9 +302,9 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
 
   return (
     <Intro.Provider value={intro}>
-    <section className="relative border-b-2 border-dashed border-line">
+    <section className="relative border-b border-line">
       <RuleDiamond />
-      <header className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b-2 border-dashed border-line pb-3">
+      <header className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-line pb-3">
         <span data-cascade className="in-pop">
           <span className="heading-slam inline-block -skew-x-12 bg-rose px-2.5 py-1 text-xl leading-none text-white shadow-[3px_3px_0_0_var(--rose-deep)]">
             <span className="inline-block skew-x-12">BO{s.bestOf}</span>
@@ -325,7 +325,7 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
         </div>
       </header>
 
-      <div className="grid grid-cols-3 gap-y-3 border-b border-dashed border-line py-3 sm:grid-cols-6">
+      <div className="grid grid-cols-3 gap-y-3 border-b border-line py-3 sm:grid-cols-6">
         {(
           [
             [t.admin.fp.maps, s.maps],
@@ -336,7 +336,7 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
             [t.admin.fp.used, s.open ? `${Math.round(Math.min(1, s.ratio) * 100)}%` : "—"],
           ] as const
         ).map(([k, val]) => (
-          <div key={k} className="flex flex-col gap-0.5 border-l-2 border-dashed border-line pl-3">
+          <div key={k} className="flex flex-col gap-0.5 border-l border-line pl-3">
             <span data-cascade className="in-wipe text-[0.62rem] font-display font-bold text-ash">{k}</span>
             <span data-cascade className="in-up num text-xl leading-none text-paper">{val}</span>
           </div>

@@ -66,7 +66,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
         <SectionHeading>{t.teams.roster}</SectionHeading>
         <div className={team.players.length === 2 ? "grid grid-cols-1 gap-x-8 sm:grid-cols-2 xl:grid-cols-1" : "grid grid-cols-1 gap-x-8 sm:grid-cols-3 xl:grid-cols-1"}>
           {team.players.map((p) => (
-            <div key={p.userId} {...meP(p.userId)} className="me-hl relative flex items-center gap-1 overflow-hidden border-b-2 border-dashed border-line py-3">
+            <div key={p.userId} {...meP(p.userId)} className="me-hl relative flex items-center gap-1 overflow-hidden border-b border-line py-3">
               <MeTag p={p.userId} corner />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={p.avatar} alt="" className="size-20 shrink-0 object-cover" />

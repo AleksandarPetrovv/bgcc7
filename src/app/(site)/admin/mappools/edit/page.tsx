@@ -92,7 +92,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                 { k: t.admin.poolStatMaps, v: String(poolMaps.length) },
                 { k: t.admin.poolStatSr, v: poolMaps.length ? `${(poolMaps.reduce((n, m) => n + m.sr, 0) / poolMaps.length).toFixed(2)}★` : "–" },
               ].map((s) => (
-                <div key={s.k} className="border-l-2 border-dashed border-line pl-3">
+                <div key={s.k} className="border-l border-line pl-3">
                   <div>
                     <div className="text-[0.62rem] font-display font-bold text-ash">{s.k}</div>
                     <div className="num text-2xl text-paper">{s.v}</div>
@@ -123,7 +123,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
       )}
 
       {sections.length === 0 && (
-        <p className="flex flex-wrap items-center gap-3 border-y-2 border-dashed border-line py-4 text-sm text-ash">
+        <p className="flex flex-wrap items-center gap-3 border-y border-line py-4 text-sm text-ash">
           {t.admin.noLayout}
           {host && (
             <Link href={`/admin/mappools/create?stage=${stage.slug}`} className="font-display font-bold text-rose-hi hover:text-paper">
@@ -142,7 +142,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
               self
               scrub
               key={key}
-              className="sr in-up relative overflow-x-clip border-b-2 border-dashed border-line"
+              className="sr in-up relative overflow-x-clip border-b border-line"
               style={{ "--i": pi < 5 ? pi : 0, "--s": "0.08s", "--d": "0.15s" } as React.CSSProperties}
             >
               <RuleDiamond />
@@ -155,7 +155,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                   </span>
                 )}
               </h2>
-              <ul className="divide-y divide-dashed divide-line">
+              <ul className="divide-y divide-line">
                 {items.map(({ mod, slot, out, note, label: tagLabel }, i) => {
                   const color = skill && !out ? accent : MODS[mod].color;
                   const chip = skill && mod !== "Tiebreaker" ? (

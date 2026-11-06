@@ -34,7 +34,7 @@ export default async function Players() {
       target="_blank"
       rel="noreferrer"
       className={cn(
-        "me-ring iv iv-self in-up group relative flex items-center gap-2.5 border-b-2 border-dashed border-line py-3 pl-2 pr-2 transition-colors hover:border-balkan/60",
+        "me-ring iv iv-self in-up group relative flex items-center gap-2.5 border-b border-line py-3 pl-2 pr-2 transition-colors hover:border-balkan/60",
         out && "opacity-45 grayscale transition-[opacity,filter] duration-300 hover:opacity-80 hover:grayscale-0",
       )}
     >

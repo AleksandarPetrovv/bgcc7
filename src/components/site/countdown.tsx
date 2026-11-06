@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
+import { useDict } from "./lang";
 
 const TICK = 30_000;
 const subscribe = (cb: () => void) => {
@@ -35,6 +36,7 @@ function Roll({ value }: { value: string }) {
 }
 
 export function Countdown({ to, from }: { to: string; from?: string }) {
+  const t = useDict();
   const now = useSyncExternalStore(subscribe, getNow, getServerNow);
   const left = now === null ? 0 : Math.max(0, new Date(to).getTime() - now);
   const d = Math.floor(left / 86_400_000);
@@ -46,11 +48,14 @@ export function Countdown({ to, from }: { to: string; from?: string }) {
   const pct = now === null || start === null || end <= start ? null : Math.min(1, Math.max(0, (now - start) / (end - start)));
   return (
     <>
-    <time dateTime={to} className={cn("num mt-1 flex w-fit items-baseline gap-x-[0.35em] whitespace-nowrap text-5xl text-paper", d >= 100 && "max-sm:text-4xl")}>
-      {([[d, "d"], [h, "h"], [m, "m"]] as const).map(([n, u], i) => (
-        <span key={u} className="inline-flex items-baseline">
-          <Roll value={now === null ? "--" : i ? pad(n) : String(n)} />
-          <span className="ml-[0.06em] text-[0.62em] text-ash">{u}</span>
+    <time dateTime={to} className={cn("num mt-1 flex w-fit items-start gap-x-4 whitespace-nowrap text-5xl text-paper", d >= 100 && "max-sm:text-4xl")}>
+      {[d, h, m].map((n, i) => (
+        <span key={i} className="flex items-start gap-x-4">
+          {i > 0 && <span className="mt-[0.2em] h-[0.7em] w-0.5 skew-x-[-14deg] bg-rose/60" aria-hidden />}
+          <span className="flex flex-col items-center">
+            <Roll value={now === null ? "--" : i ? pad(n) : String(n)} />
+            <span className="mt-1 font-display text-[0.65rem] font-bold uppercase tracking-[0.14em] text-ash">{t.common.units[i]}</span>
+          </span>
         </span>
       ))}
     </time>

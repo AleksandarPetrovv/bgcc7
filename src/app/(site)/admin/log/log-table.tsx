@@ -60,7 +60,7 @@ function Rich({ text }: { text: string }) {
 }
 
 export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: LogCtx; lang: string; t: Dict; empty: string }) {
-  if (!rows.length) return <p className="border-y-2 border-dashed border-line py-4 text-sm text-ash">{empty}</p>;
+  if (!rows.length) return <p className="border-y border-line py-4 text-sm text-ash">{empty}</p>;
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   const helpers = {
     lang,
@@ -92,7 +92,7 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
   const renderRow = (r: LogRow, i: number) => {
     const g = categoryOf(r.action);
     return (
-      <li key={r.id} className="in-left group relative flex items-center gap-3 border-b border-dashed border-line px-3 py-2.5 transition-colors last:border-b-0 hover:bg-slate" style={{ "--i": Math.min(i, 24), "--s": "0.05s", "--d": "0.15s" } as React.CSSProperties}>
+      <li key={r.id} className="in-left group relative flex items-center gap-3 border-b border-line px-3 py-2.5 transition-colors last:border-b-0 hover:bg-slate" style={{ "--i": Math.min(i, 24), "--s": "0.05s", "--d": "0.15s" } as React.CSSProperties}>
         <span className={cn("absolute inset-y-0 left-0 w-0.5 origin-top scale-y-0 transition-transform duration-300 group-hover:scale-y-100", DOT[g])} aria-hidden />
         <span className="inline-flex">
           <Avatar src={r.avatarUrl} className="size-7 ring-offset-1" />
@@ -128,15 +128,15 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
         <section key={day}>
           <h3 className="in-left mb-2 flex items-center gap-3 text-xs font-display font-bold text-ash" style={step(n)}>
             <span>{list.label}</span>
-            <span className="h-px flex-1 border-t-2 border-dashed border-line" aria-hidden />
+            <span className="h-px flex-1 border-t border-line" aria-hidden />
             <span className="size-2 shrink-0 rotate-45 bg-rose" aria-hidden />
           </h3>
-          <ol className="relative border-y-2 border-dashed border-line">
+          <ol className="relative border-y border-line">
             {list.entries.map((entry) => {
               if (entry.kind === "row") return renderRow(entry.row, n++);
               const r = entry.latest;
               return (
-                <li key={r.id} className="in-left border-b border-dashed border-line last:border-b-0" style={step(n++)}>
+                <li key={r.id} className="in-left border-b border-line last:border-b-0" style={step(n++)}>
                   <details className="group/audit">
                     <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-2.5 hover:bg-slate focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-rose [&::-webkit-details-marker]:hidden">
                       <Avatar src={r.avatarUrl} className="size-7 shrink-0 ring-offset-1" />
@@ -149,7 +149,7 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
                       <ChevronDown className="size-4 shrink-0 text-rose group-open/audit:rotate-180" aria-hidden />
                       <span className="sr-only">{t.admin.audit.expand}</span>
                     </summary>
-                    <ol className="ml-3 border-l-2 border-t border-dashed border-line sm:ml-6">{entry.rows.map(renderRow)}</ol>
+                    <ol className="ml-3 border-l-2 border-t border-line sm:ml-6">{entry.rows.map(renderRow)}</ol>
                   </details>
                 </li>
               );

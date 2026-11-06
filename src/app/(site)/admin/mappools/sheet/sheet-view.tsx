@@ -130,7 +130,7 @@ export function SlotBox({
               as="section"
               self
               scrub
-              className={cn("sr in-up relative overflow-x-clip border-b-2 border-dashed", picked ? "border-balkan/50" : "border-line")}
+              className={cn("sr in-up relative overflow-x-clip border-b", picked ? "border-balkan/50" : "border-line")}
               style={{ "--i": i < 5 ? i : 0, "--s": "0.1s", "--d": "0.4s" } as React.CSSProperties}
             >
               <RuleDiamond />

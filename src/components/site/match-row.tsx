@@ -127,7 +127,7 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
       className={cn(
         // small: no box, only a dashed rule underneath with a diamond in the middle (like the timeline)
         "group/row relative isolate grid",
-        small ? "border-b-2 border-dashed" : "overflow-hidden border bg-coal",
+        small ? "border-b" : "overflow-hidden border bg-coal",
         // small: the label line spans the card (row 2) and stops 2rem short of the pictures, label + score stay centred together
         small
           ? "grid-cols-[minmax(0,1fr)_var(--mid)_minmax(0,1fr)] grid-rows-[1fr_auto_auto_1fr] [--mid:6.5rem] sm:[--mid:11rem]"

@@ -1,6 +1,7 @@
 import { DiscordLogo } from "./discord-logo";
 import { TwitchLogo } from "./twitch-logo";
 import { LangSwitch } from "./lang";
+import { EditionView } from "./edition-view-bgcc6";
 import { DISCORD_URL, TWITCH_URL } from "@/lib/links";
 import { getFormat } from "@/db/edition";
 
@@ -10,7 +11,7 @@ export function SiteFooter() {
     { label: "Twitch", icon: TwitchLogo, href: TWITCH_URL },
   ];
   return (
-    <footer className="mt-24 border-t border-dashed border-line">
+    <footer className="mt-24 border-t border-line">
       <div className="mx-auto flex max-w-page flex-wrap items-center justify-center gap-x-5 gap-y-3 px-4 py-5 sm:px-6 lg:px-10 2xl:px-14">
         <span className="font-display text-sm font-black lowercase text-ash">{getFormat().name}</span>
         <span className="size-1 rotate-45 bg-line" aria-hidden />
@@ -23,6 +24,7 @@ export function SiteFooter() {
         </div>
         <span className="size-1 rotate-45 bg-line" aria-hidden />
         <LangSwitch />
+        <EditionView className="lg:h-8 lg:text-[0.75rem]" />
       </div>
     </footer>
   );

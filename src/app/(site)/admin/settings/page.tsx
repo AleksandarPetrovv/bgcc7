@@ -67,7 +67,7 @@ export default async function AdminSettings() {
                   </div>
                 </fieldset>
               </div>
-              <div className="grid grid-cols-2 gap-3 border-t border-dashed border-line pt-4">
+              <div className="grid grid-cols-2 gap-3 border-t border-line pt-4">
                 {(
                   [
                     ["pickBanSecs", t.admin.set.pickBanSecs, s.banSecs],

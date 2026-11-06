@@ -34,7 +34,7 @@ export function Card({ title, children, className, i = 0, right, body }: { title
 
 export function Stat({ k, n, className }: { k: string; n: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("border-l-2 border-dashed border-line pl-3", className)}>
+    <div className={cn("border-l border-line pl-3", className)}>
       <div className={label}>{k}</div>
       <div className="num mt-1 text-2xl leading-none sm:text-3xl">{n}</div>
     </div>
@@ -72,7 +72,7 @@ export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { 
           </div>
         </div>
       </div>
-      <ul className="mt-3 divide-y-2 divide-dashed divide-line border-t-2 border-dashed border-line">
+      <ul className="mt-3 divide-y divide-line border-t border-line">
         {team.players.map((p, n) => (
           <li key={p.userId} className="in-left in-slow flex flex-wrap items-center gap-x-2.5 gap-y-1.5 py-2.5 sm:flex-nowrap sm:gap-3" style={at(0.45, n, 0.12)}>
             <Avatar src={p.avatar} className="size-8 sm:size-9" />
@@ -107,7 +107,7 @@ export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { 
           </li>
         ))}
       </ul>
-      <div className="in-up in-slow border-t-2 border-dashed border-line pt-3" style={at(0.6, team.players.length, 0.12)}>
+      <div className="in-up in-slow border-t border-line pt-3" style={at(0.6, team.players.length, 0.12)}>
         <Link href={teamHref(team)} className="inline-flex items-center gap-1.5 text-xs font-display font-bold text-ash transition-colors hover:text-paper">
           {t.me.teamPage} <ArrowRight className="size-3.5" />
         </Link>

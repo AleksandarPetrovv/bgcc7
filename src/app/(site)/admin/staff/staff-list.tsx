@@ -34,7 +34,7 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
       layout="position"
       whileDrag={{ scale: 1.01, boxShadow: "6px 6px 0 0 var(--rose-deep)", zIndex: 10 }}
       data-cascade
-      className="in-up relative border-b-2 border-dashed border-line bg-ink"
+      className="in-up relative border-b border-line bg-ink"
     >
       <RuleDiamond />
       <div className="flex items-center gap-3 border-b border-line py-3">

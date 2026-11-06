@@ -115,7 +115,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
           </AnimatePresence>
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2 border-t border-dashed border-line px-3 py-2.5 pl-5">
+      <div className="flex flex-wrap items-center gap-2 border-t border-line px-3 py-2.5 pl-5">
         {!control ? (
           <Link
             href={`/matches/${r.slug}`}

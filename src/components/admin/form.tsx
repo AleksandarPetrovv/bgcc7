@@ -90,7 +90,7 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
 export function Panel({ title, help, children, className, i = 0 }: { title: string; help?: string; children: React.ReactNode; className?: string; i?: number }) {
   return (
     <section className={cn("in-up relative", className)} style={{ "--i": i, "--s": "0.1s", "--d": "0.1s" } as React.CSSProperties}>
-      <div className="border-b-2 border-dashed border-line pb-3">
+      <div className="border-b border-line pb-3">
         <h2 className="heading-slam flex items-center gap-3 text-xl sm:text-2xl">
           <span className="in-left-far relative inline-flex size-3.5 shrink-0 [--d:0.25s]">
             <Sparkle className={cn("inset-0 size-full", ["text-rose-hi", "text-balkan-hi", "text-paper/60"][i % 3])} delay={i * 0.2} />

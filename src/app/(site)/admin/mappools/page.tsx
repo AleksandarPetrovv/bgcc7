@@ -43,7 +43,7 @@ export default async function MappoolsHub() {
           >
             <Link
               href={href}
-              className="group relative flex h-full min-h-48 flex-col justify-between border-b-2 border-dashed border-line py-6 transition-colors duration-300 hover:border-rose sm:min-h-60 sm:py-8"
+              className="group relative flex h-full min-h-48 flex-col justify-between border-b border-line py-6 transition-colors duration-300 hover:border-rose sm:min-h-60 sm:py-8"
             >
               <RuleDiamond />
               <Icon

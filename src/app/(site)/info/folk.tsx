@@ -64,7 +64,7 @@ function Sheet({ children }: { children: React.ReactNode }) {
 
 function Tile({ className, d = 0, children }: { className?: string; d?: number; children: React.ReactNode }) {
   return (
-    <InView as="section" self className={cn("in-up in-slow relative border-t border-dashed border-paper/10 py-9 lg:py-12", className)} style={dv(d)}>
+    <InView as="section" self className={cn("in-up in-slow relative border-t border-paper/10 py-9 lg:py-12", className)} style={dv(d)}>
       {children}
     </InView>
   );
@@ -91,7 +91,7 @@ function Stitch() {
 // locked items follow admin settings, so hosts can't edit them
 function Ledger({ path, items, p, plain, locked = [] }: { path: string; items: string[]; p: FolkProps; plain?: boolean; locked?: number[] }) {
   return (
-    <ul className="divide-y divide-dashed divide-paper/10">
+    <ul className="divide-y divide-paper/10">
       {items.map((item, i) => {
         const lock = locked.includes(i);
         const text = lock ? item.replace("%timer%", String(p.timer ?? 90)) : p.raw(`${path}.${i}`, item);
@@ -151,7 +151,7 @@ function StageTable({ p }: { p: FolkProps }) {
         <Letters text={p.t.info.bansCol} d={T} className="text-right" />
       </div>
       {rows.map((r) => (
-        <div key={r.slug} className={cn("grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 border-b border-dashed border-paper/10 py-3.5 last:border-b-0 last:pb-0", COLS)}>
+        <div key={r.slug} className={cn("grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 border-b border-paper/10 py-3.5 last:border-b-0 last:pb-0", COLS)}>
           <Letters text={r.name} d={T} className="heading-slam text-lg leading-none md:text-xl" />
           <Letters text={r.when || "TBA"} d={T} s={0.02} className="num text-right text-sm text-paper/70 md:text-left md:text-base" />
           <span className={cn("num flex items-center gap-1 text-base md:text-lg", r.sr ? "text-gold-hi" : "text-ash")}>
@@ -180,7 +180,7 @@ function Hosts({ p, compact, d = 0 }: { p: FolkProps; compact?: boolean; d?: num
   const hosts = p.hosts ?? [];
   if (!hosts.length) return <div className="hidden lg:col-span-6 lg:block" aria-hidden />;
   return (
-    <InView className={cn("relative flex items-center border-t border-dashed border-paper/10 py-9 lg:col-span-6 lg:border-l lg:border-t-0 lg:pl-12", compact ? "lg:py-10" : "lg:py-0")}>
+    <InView className={cn("relative flex items-center border-t border-paper/10 py-9 lg:col-span-6 lg:border-l lg:border-t-0 lg:pl-12", compact ? "lg:py-10" : "lg:py-0")}>
       <div className={cn("mx-auto grid w-full grid-cols-2 gap-6 sm:gap-10", compact ? "lg:max-w-md" : "lg:absolute lg:inset-y-7 lg:left-12 lg:right-0 lg:w-auto lg:grid-cols-[auto_auto] lg:content-center lg:justify-center lg:gap-6 lg:[container-type:size] xl:inset-y-9")}>
         {hosts.slice(0, 2).map((h, i) => (
           <a key={h.osuId} href={osuUser(h.osuId)} target="_blank" rel="noreferrer" className="group flex min-w-0 flex-col">
@@ -325,7 +325,7 @@ function Facts({ p }: { p: FolkProps }) {
         const k = p.raw(`info.facts.${i}.0`, k0);
         const v = p.raw(`info.facts.${i}.1`, v0);
         return (
-          <div key={i} className="border-b border-dashed border-paper/10 py-4">
+          <div key={i} className="border-b border-paper/10 py-4">
             <dt className="flex items-center gap-2.5 text-[0.65rem] font-display font-bold text-ash">
               <Stitch />
               <Editable path={`info.facts.${i}.0`} raw={k} on={p.on}>

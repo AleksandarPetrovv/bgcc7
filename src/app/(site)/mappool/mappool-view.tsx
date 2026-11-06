@@ -3,7 +3,18 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowDownToLine, ArrowUpRight, Download, Play, Star } from "lucide-react";
-import { Container, PageTitle, SlantButton, StageTabs } from "@/components/site/page";
+import { Container, PageTitle, SlantButton } from "@/components/site/page";
+import { UnderlineTabs } from "@/components/site/pool-pager";
+
+// a hidden two-digit label holds the width, so the button (and the tabs left of it) never move between stages
+function PackLabel({ text, widest }: { text: string; widest: string }) {
+  return (
+    <span className="grid *:col-start-1 *:row-start-1">
+      <span className="invisible">{widest}</span>
+      <span className="text-center">{text}</span>
+    </span>
+  );
+}
 import { useDict } from "@/components/site/lang";
 import { MODS, fmtLen, type Stage } from "@/lib/data";
 import { osuMap } from "@/lib/links";
@@ -36,14 +47,14 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
       <PageTitle mark="notes"
         right={
           <>
-            <StageTabs options={stages.map((s) => t.rounds[s.title] ?? s.title)} index={i} onChange={pick} />
+            <UnderlineTabs names={stages.map((s) => t.rounds[s.title] ?? s.title)} colors={stages.map(() => "var(--rose)")} pos={i} onPick={pick} animate className="min-w-0" />
             {stage.pack ? (
-              <SlantButton tone="balkan" download href={`/download/${stage.slug}`} className="px-3 py-1.5">
-                <Download className="size-4" /> {t.mappool.pack(count)}
+              <SlantButton tone="balkan" download href={`/download/${stage.slug}`} className="shrink-0 px-3 py-1.5">
+                <Download className="size-4" /> <PackLabel text={t.mappool.pack(count)} widest={t.mappool.pack(88)} />
               </SlantButton>
             ) : (
-              <SlantButton tone="balkan" disabled fill="bg-line" className="px-3 py-1.5 text-ash">
-                <Download className="size-4" /> {t.mappool.pack(count)}
+              <SlantButton tone="balkan" disabled fill="bg-line" className="shrink-0 px-3 py-1.5 text-ash">
+                <Download className="size-4" /> <PackLabel text={t.mappool.pack(count)} widest={t.mappool.pack(88)} />
               </SlantButton>
             )}
           </>
@@ -95,7 +106,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                       initial={{ opacity: 0, x: -14 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.45, delay: 0.05 + k * 0.04, ease: [0.16, 1, 0.3, 1] }}
-                      key={m.slot} className="group relative flex items-stretch overflow-hidden border-b-2 border-dashed border-line transition-colors hover:border-[var(--lift)]"
+                      key={m.slot} className="group relative flex items-stretch overflow-hidden border-b border-line transition-colors hover:border-[var(--lift)]"
                       style={{ "--lift": modHi(mc), "--i": pi + k, "--s": "0.05s" } as React.CSSProperties}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-45 saturate-[1.15] [mask-image:linear-gradient(to_left,black,transparent_85%)] transition duration-500 group-hover:scale-105 group-hover:opacity-60 dark:opacity-25 dark:group-hover:opacity-35 [--d:0.15s]" />
@@ -237,7 +248,7 @@ function StageStrip({ stage, info }: { stage: Stage; info: { firstTo: number; ba
 
   return (
     <motion.div className="mb-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <div className="relative grid grid-cols-3 divide-x-2 divide-dashed divide-line border-b-2 border-dashed border-line">
+      <div className="relative grid grid-cols-3 divide-x divide-line border-b border-line">
         <RuleDiamond />
         {cells.map((c, k) => (
           <motion.div

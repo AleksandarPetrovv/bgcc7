@@ -25,7 +25,7 @@ export function EditionSwitch({ edition }: { edition: Edition }) {
   };
 
   return (
-    <div className="relative border-t-2 border-dashed border-line px-3 py-3 lg:py-4">
+    <div className="relative border-t border-line px-3 py-3 lg:py-4">
       <div className="mb-2.5 flex items-center gap-2 text-[0.65rem] font-display font-bold text-gold-hi">
         <span className="size-1.5 rotate-45" style={{ background: GOLD }} aria-hidden />
         {t.admin.edition}
