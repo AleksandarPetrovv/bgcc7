@@ -109,9 +109,7 @@ export const pages = {
   },
   mappool: {
     title: "Mappool",
-    pack: (n: number) => `Pack · ${n} maps`,
-    packSoon: "Pack · soon",
-    direct: "osu!direct",
+    pack: (n: number) => `Pack · ${n} maps`,    direct: "osu!direct",
     page: "Beatmap page",
     empty: "The mappool isn't out yet.",
     firstTo: "First to",
