@@ -43,7 +43,7 @@ function AdminCrest({ on }: { on: boolean }) {
   );
 }
 
-type Props = { user: { name: string; image: string | null; admin: boolean } | null; nav: NavItem[]; register: boolean; live: string[]; captain: boolean; match: string | null; sched: { show: boolean; dot: boolean; discord: boolean } | null };
+type Props = { user: { name: string; image: string | null; admin: string | null } | null; nav: NavItem[]; register: boolean; live: string[]; captain: boolean; match: string | null; sched: { show: boolean; dot: boolean; discord: boolean } | null };
 
 type Clock = { end: number | null; pause: boolean; offset: number };
 
@@ -149,7 +149,7 @@ function Dot({ className }: { className?: string }) {
 
 export function SiteNav({ user, nav: base, register, live, captain, match: initialMatch, sched }: Props) {
   const nav = sched?.show ? withSched(base) : base;
-  const desk: (Omit<NavItem, "key"> & { key: NavItem["key"] | "admin" })[] = user?.admin ? [...nav, { key: "admin", href: "/admin", base: "/admin", hidden: false }] : nav;
+  const desk: (Omit<NavItem, "key"> & { key: NavItem["key"] | "admin" })[] = user?.admin ? [...nav, { key: "admin", href: user.admin, base: "/admin", hidden: false }] : nav;
   const meDot = !!sched?.discord;
   const schedDot = !!sched?.dot;
   const dots = [...(sched?.dot ? ["scheduling"] : []), ...(meDot ? ["me"] : [])];
@@ -364,7 +364,7 @@ export function SiteNav({ user, nav: base, register, live, captain, match: initi
           )}
           {user?.admin && (
             <Link
-              href="/admin"
+              href={user.admin}
               data-compact="1"
               aria-label={t.nav.admin}
               title={t.nav.admin}

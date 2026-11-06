@@ -322,6 +322,8 @@ export const reschedules = pgTable("reschedules", {
   requestedBy: integer("requested_by").notNull(),
   proposedAt: timestamp("proposed_at", { withTimezone: true }).notNull(),
   reason: text("reason"),
+  // note from whoever declined, withdrew or cleared it
+  reply: text("reply"),
   status: text("status").notNull().default("pending"),
   answeredBy: integer("answered_by"),
   decidedBy: integer("decided_by"),

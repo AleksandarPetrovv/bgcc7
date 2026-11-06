@@ -35,7 +35,7 @@ function Roll({ value }: { value: string }) {
   );
 }
 
-export function Countdown({ to, from }: { to: string; from?: string }) {
+export function Countdown({ to, from, className }: { to: string; from?: string; className?: string }) {
   const t = useDict();
   const now = useSyncExternalStore(subscribe, getNow, getServerNow);
   const left = now === null ? 0 : Math.max(0, new Date(to).getTime() - now);
@@ -48,7 +48,7 @@ export function Countdown({ to, from }: { to: string; from?: string }) {
   const pct = now === null || start === null || end <= start ? null : Math.min(1, Math.max(0, (now - start) / (end - start)));
   return (
     <>
-    <time dateTime={to} className={cn("num mt-1 flex w-fit items-start gap-x-4 whitespace-nowrap text-5xl text-paper", d >= 100 && "max-sm:text-4xl")}>
+    <time dateTime={to} className={cn("num mt-1 flex w-fit items-start gap-x-4 whitespace-nowrap text-5xl text-paper", d >= 100 && "max-sm:text-4xl", className)}>
       {[d, h, m].map((n, i) => (
         <span key={i} className="flex items-start gap-x-4">
           {i > 0 && <span className="mt-[0.2em] h-[0.7em] w-0.5 skew-x-[-14deg] bg-rose/60" aria-hidden />}

@@ -8,7 +8,8 @@ import { useDict } from "@/components/site/lang";
 import { EDITIONS, type Edition } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { switchEdition } from "./actions";
-import { GOLD as GOLD_C, tint } from "@/lib/theme";
+import { GOLD as GOLD_C } from "@/lib/theme";
+import { Sparkle } from "@/components/site/graphics";
 
 const GOLD = GOLD_C.c;
 
@@ -31,7 +32,7 @@ export function EditionSwitch({ edition }: { edition: Edition }) {
         {t.admin.edition}
         {pending && <Loader2 className="ml-auto size-3.5 animate-spin" />}
       </div>
-      <div role="radiogroup" aria-label={t.admin.edition} className={cn("relative grid h-12 grid-cols-2 -skew-x-12 border", pending && "opacity-70")} style={{ borderColor: tint(GOLD, 40) }}>
+      <div role="radiogroup" aria-label={t.admin.edition} className={cn("relative flex gap-x-4", pending && "opacity-70")}>
         {EDITIONS.map((e) => {
           const on = e === edition;
           return (
@@ -42,18 +43,17 @@ export function EditionSwitch({ edition }: { edition: Edition }) {
               aria-checked={on}
               disabled={pending}
               onClick={() => !on && run(() => switchEdition(e), t.admin.confirmEdition(e.toUpperCase()))}
-              className={cn("relative font-display font-bold transition-colors duration-200", on ? "text-paper" : "text-ash hover:text-paper")}
+              className={cn("relative px-1.5 pb-2 pt-1.5 text-sm uppercase font-display font-bold transition-colors duration-200", on ? "text-paper" : "text-ash hover:text-paper")}
             >
               {on && (
-                <motion.span
-                  layoutId="edition-pill"
-                  transition={{ type: "spring", stiffness: 520, damping: 40 }}
-                  className="absolute inset-0 shadow-[3px_3px_0_0_var(--gold-deep)]"
-                  style={{ background: GOLD }}
-                  aria-hidden
-                />
+                <>
+                  <motion.span layoutId="edition-bar" transition={{ type: "spring", stiffness: 520, damping: 40 }} className="absolute inset-x-1.5 bottom-0 h-[3px] -skew-x-12" style={{ background: GOLD }} aria-hidden />
+                  <motion.span layoutId="edition-spark" transition={{ type: "spring", stiffness: 520, damping: 40 }} className="absolute -top-0.5 right-0 size-3" aria-hidden>
+                    <Sparkle className="inset-0 size-full text-gold-hi" />
+                  </motion.span>
+                </>
               )}
-              <span className="relative inline-block skew-x-12 text-sm">{e}</span>
+              {e}
             </button>
           );
         })}

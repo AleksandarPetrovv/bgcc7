@@ -4,6 +4,7 @@ import { useId } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
+import { Sparkle } from "./graphics";
 
 const spring = { type: "spring", stiffness: 520, damping: 42 } as const;
 
@@ -11,20 +12,21 @@ function Pill({ id, active }: { id: string; active: boolean }) {
   if (!active) return null;
   return (
     <>
-      <motion.span layoutId={`${id}-shadow`} transition={spring} className="absolute inset-0 translate-x-[3px] translate-y-[3px] -skew-x-12 bg-rose-deep" aria-hidden />
-      <motion.span layoutId={`${id}-pill`} transition={spring} className="absolute inset-0 -skew-x-12 bg-rose" aria-hidden />
+      <motion.span layoutId={`${id}-bar`} transition={spring} className="absolute inset-x-1.5 bottom-0 h-[3px] -skew-x-12 bg-rose" aria-hidden />
+      <motion.span layoutId={`${id}-spark`} transition={spring} className="absolute -top-0.5 right-0 size-3" aria-hidden>
+        <Sparkle className="inset-0 size-full text-rose-hi" />
+      </motion.span>
     </>
   );
 }
 
 const item = (active: boolean, extra?: string) =>
   cn(
-    "group relative inline-flex min-h-9 shrink-0 items-center gap-2 px-3.5 text-xs font-display font-bold transition-colors duration-200",
-    active ? "text-white" : "text-ash hover:text-paper",
+    "group relative inline-flex min-h-9 shrink-0 items-center gap-2 px-1.5 pt-1.5 pb-2 text-sm font-display font-bold transition-colors duration-200",
+    active ? "text-paper" : "text-ash hover:text-paper",
     extra,
   );
 
-const hoverBg = "absolute inset-0 -skew-x-12 bg-white/0 transition-colors duration-200 group-hover:bg-white/40";
 
 export function Tabs({
   options,
@@ -43,7 +45,7 @@ export function Tabs({
 }) {
   const id = useId();
   return (
-    <div className={cn("flex flex-wrap gap-1", className)} role="tablist" aria-label={label}>
+    <div className={cn("flex flex-wrap gap-x-4 gap-y-1", className)} role="tablist" aria-label={label}>
       {options.map((o, i) => (
         <button
           key={i}
@@ -54,7 +56,6 @@ export function Tabs({
           onClick={() => onChange(i)}
           className={item(i === index, "disabled:cursor-not-allowed disabled:opacity-35")}
         >
-          {i !== index && <span className={hoverBg} aria-hidden />}
           <Pill id={id} active={i === index} />
           <span className="relative inline-flex items-center gap-2">{o}</span>
         </button>
@@ -66,7 +67,7 @@ export function Tabs({
 export function LinkTabs({ items, label, className }: { items: { href: string; label: React.ReactNode; active: boolean; disabled?: boolean }[]; label?: string; className?: string }) {
   const id = useId();
   return (
-    <nav className={cn("flex flex-wrap gap-1", className)} aria-label={label}>
+    <nav className={cn("flex flex-wrap gap-x-4 gap-y-1", className)} aria-label={label}>
       {items.map((t) =>
         t.disabled ? (
           <span key={t.href} aria-disabled className={item(false, "cursor-not-allowed text-paper/45 hover:text-paper/45")}>
@@ -74,7 +75,6 @@ export function LinkTabs({ items, label, className }: { items: { href: string; l
           </span>
         ) : (
         <Link key={t.href} href={t.href} scroll={false} aria-current={t.active ? "page" : undefined} className={item(t.active)}>
-          {!t.active && <span className={hoverBg} aria-hidden />}
           <Pill id={id} active={t.active} />
           <span className="relative inline-flex items-center gap-2">{t.label}</span>
         </Link>

@@ -18,7 +18,13 @@ export default async function AdminMatches() {
   const [t, lang, viewer, rows, teams, stages, refs, live] = await Promise.all([getDict(), getLang(), getViewer(), getMatchRows(), getTeams(), getPoolStages(), refList(), liveList()]);
   if (!can(viewer?.roles, "matches")) notFound();
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
+  // upcoming first by start time (no time after them), played matches at the bottom; same for rounds and stages
+  const key = (m: (typeof rows)[number]) => (m.winner ? 2e15 : 0) + (m.startsAt ? new Date(m.startsAt).getTime() : 1e15);
+  const first = (list: typeof rows) => Math.min(...list.map(key));
   const bracketStages = stages.filter((s) => s.slug !== "qualifiers");
+  const shown = bracketStages
+    .map((s) => ({ s, list: rows.filter((m) => m.stageSlug === s.slug) }))
+    .sort((a, b) => first(a.list) - first(b.list));
 
   return (
     <>
@@ -28,11 +34,14 @@ export default async function AdminMatches() {
       </p>
 
       <Cascade className="space-y-8" step={0.04}>
-        {bracketStages.map((s, n) => (
+        {shown.map(({ s, list: inStage }, n) => (
           <Panel key={s.slug} i={n < 3 ? n + 1 : 0} title={`${t.rounds[s.title] ?? s.title} · ${t.admin.firstToShort(s.firstTo ?? getFormat().firstTo)}`}>
             <div className="space-y-6">
-              {[...new Set(rows.filter((m) => m.stageSlug === s.slug).map((m) => m.round))].map((round) => {
-                const list = rows.filter((m) => m.stageSlug === s.slug && m.round === round);
+              {[...new Set(inStage.map((m) => m.round))]
+                .map((round) => inStage.filter((m) => m.round === round).sort((a, b) => key(a) - key(b)))
+                .sort((a, b) => first(a) - first(b))
+                .map((list) => {
+                const round = list[0].round;
                 return (
                   <div key={round}>
                     <h3 data-cascade className="in-wipe mb-2.5 flex items-center gap-3 text-[0.7rem] font-display font-bold text-rose-hi">

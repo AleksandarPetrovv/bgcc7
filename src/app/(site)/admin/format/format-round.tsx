@@ -302,7 +302,7 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
 
   return (
     <Intro.Provider value={intro}>
-    <section className="relative border-b border-line">
+    <section className="in-up relative border-b border-line [--i:0]">
       <RuleDiamond />
       <header className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-line pb-3">
         <span data-cascade className="in-pop">

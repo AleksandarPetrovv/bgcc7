@@ -34,11 +34,11 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
             <Field name="q" required maxLength={32} placeholder={t.admin.addPlaceholder} aria-label={t.admin.addPlaceholder} className={cn(inputCls, "flex-1 sm:max-w-sm")} />
           </ActionForm>
         </Panel>
-        <div className="in-right flex flex-col justify-center gap-3 border-l border-line xl:w-80 xl:pl-5 [--d:0.3s]">
+        <div className="in-right flex flex-col justify-center gap-3 border-l border-line xl:w-80 xl:pl-5 [--d:0.35s]">
           <ActionForm action={approveAllPending} submit={t.admin.approveAll} confirm={t.admin.confirmApproveAll} className="[&>div]:w-full [&_button]:min-h-14 [&_button]:w-full [&_button]:text-base" />
           <ActionForm action={refreshStats} submit={t.admin.refreshStats} ghost className="[&>div]:w-full [&_button]:min-h-14 [&_button]:w-full [&_button]:text-base" />
         </div>
-        <Panel title={t.admin.exportPlayers} help={t.admin.exportHelp} className="xl:col-span-2">
+        <Panel i={2} title={t.admin.exportPlayers} help={t.admin.exportHelp} className="xl:col-span-2">
           <div className="flex flex-wrap gap-3">
             <a href="/admin/screening/export" className="group relative isolate inline-flex min-h-10 items-center gap-2 px-4 text-sm font-display font-bold text-on-fill hover:text-ink">
               <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 bg-balkan group-hover:bg-paper" />
@@ -53,7 +53,7 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
       </div>
 
       <LinkTabs
-        className="mb-4"
+        className="in-up mb-4 [--d:0.8s]"
         label={t.admin.menu.screening}
         items={[null, ...STATUSES].map((s) => ({
           href: s ? `/admin/screening?status=${s}` : "/admin/screening",
@@ -67,7 +67,7 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
       />
 
       {shown.length ? (
-        <div className="border-t border-line">
+        <div className="in-up border-t border-line [--d:0.85s]">
           {shown.map((p, i) => (
             <ScreeningRow key={`${p.osuId}-${p.status}`} p={p} i={i} signedAt={fmtSofia(p.createdAt, locale)} />
           ))}

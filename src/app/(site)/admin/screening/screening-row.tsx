@@ -24,10 +24,10 @@ export function ScreeningRow({ p, signedAt, i }: { p: RegRow; signedAt: string; 
     p.accuracy !== null && `${p.accuracy.toFixed(2)}%`,
   ].filter(Boolean);
   return (
-    <InView self className="in-left-far border-b border-line" style={{ "--i": i < 12 ? i : 0, "--s": "0.05s", "--d": "0.35s" } as React.CSSProperties}>
+    <InView self className="in-left-far border-b border-line" style={{ "--i": i < 12 ? i : 0, "--s": "0.05s", "--d": "0.9s" } as React.CSSProperties}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {p.avatarUrl && <img src={p.avatarUrl} alt="" className="in-spin size-10 [--d:0.45s]" />}
+        {p.avatarUrl && <img src={p.avatarUrl} alt="" className="in-spin size-10 [--d:0.95s]" />}
         <div className="min-w-[13rem] flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -35,18 +35,18 @@ export function ScreeningRow({ p, signedAt, i }: { p: RegRow; signedAt: string; 
             <a href={osuUser(p.osuId)} target="_blank" rel="noreferrer" className="truncate font-display font-black hover:text-rose-hi">
               {p.username}
             </a>
-            <span className="in-slam inline-flex [--d:0.6s]">
+            <span className="in-slam inline-flex [--d:1.1s]">
               <Tag tone={TAG[p.status]}>{t.status[p.status]}</Tag>
             </span>
             {p.seeded && <span className="text-[0.6rem] font-display font-bold text-ash">{t.admin.test}</span>}
           </div>
-          <div className="in-wipe num text-sm text-paper/70 [--d:0.55s]">
+          <div className="in-wipe num text-sm text-paper/70 [--d:1.05s]">
             {stats.join(" · ")} <span className="text-xs text-ash">· {t.admin.signedAt} {signedAt}</span>
           </div>
         </div>
         <ActionForm action={removeRegistration.bind(null, p.osuId)} submit={t.admin.removeReg} ghost confirm={t.admin.confirmRemoveReg} className="ml-auto" />
       </div>
-      <form action={action} className={cn("in-up flex flex-wrap items-center gap-2 border-t border-line py-2.5 [--d:0.65s]", pending && "opacity-60")}>
+      <form action={action} className={cn("in-up flex flex-wrap items-center gap-2 border-t border-line py-2.5 [--d:1.15s]", pending && "opacity-60")}>
         <Field name="note" defaultValue={p.note ?? ""} maxLength={300} placeholder={t.admin.note} aria-label={t.admin.note} className={cn(inputCls, "w-full sm:w-auto sm:min-w-40 sm:flex-1")} />
         <Btn name="status" value={p.status} disabled={pending} tone="outline" small>
           {t.admin.save}

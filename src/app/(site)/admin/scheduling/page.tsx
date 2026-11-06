@@ -96,6 +96,8 @@ export default async function AdminScheduling() {
                                   <span className="num">{fmtSofia(new Date(p.at), locale)}</span>
                                   <span className="text-paper/85">{name(p.teamId)}</span>
                                   <span className="font-display font-bold">{p.status === "staff" ? s.st.set : p.staff || (p.status === "cancelled" && p.answeredBy == null) ? s.st.staff : p.status === "rejected" ? s.st.rejected(name(p.teamId === m.team1Id ? m.team2Id : m.team1Id)) : p.status === "cancelled" ? s.st.cancelled(name(teamOf(p.answeredBy))) : s.st[p.status]}</span>
+                                  {p.note && <span className="basis-full italic">“{p.note}”</span>}
+                                  {p.reply && <span className="basis-full italic text-rose-hi/80">↳ “{p.reply}”</span>}
                                 </li>
                               ))}
                             </ol>

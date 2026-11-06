@@ -60,6 +60,8 @@ const toProposal = (r: typeof reschedules.$inferSelect): Proposal => ({
   answeredBy: r.answeredBy,
   staff: r.decidedBy != null,
   createdAt: r.createdAt.toISOString(),
+  note: r.reason,
+  reply: r.reply,
 });
 
 export async function historyOf(ids: string[]) {

@@ -7,7 +7,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { InView } from "@/components/site/in-view";
 import { RuleDiamond } from "@/components/site/rule";
 import { useDict } from "@/components/site/lang";
-import { modHi, modOn } from "@/lib/theme";
+import { modHi } from "@/lib/theme";
+import { Sparkle } from "@/components/site/graphics";
 import { cn } from "@/lib/utils";
 
 type Mod = { key: string; short: string; color: string; count: number };
@@ -54,7 +55,7 @@ export function SheetView({ stageId, version, mods, children }: { stageId: numbe
   return (
     <Ctx.Provider value={{ mod }}>
       {mods.length > 0 && (
-        <div role="tablist" aria-label={t.admin.mod} className="in-up mb-5 flex flex-wrap gap-2 [--d:0.3s]">
+        <div role="tablist" aria-label={t.admin.mod} className="in-up mb-5 flex flex-wrap gap-x-4 gap-y-1 [--d:0.3s]">
           {chips.map((c) => {
             const on = mod === c.key;
             return (
@@ -64,21 +65,19 @@ export function SheetView({ stageId, version, mods, children }: { stageId: numbe
                 role="tab"
                 aria-selected={on}
                 onClick={() => setMod(c.key)}
-                className="group relative flex h-10 -skew-x-12 items-center border px-4 transition-[border-color,color,transform,translate,scale,rotate] duration-200 hover:-translate-y-0.5"
-                style={{ borderColor: on ? c.color : "var(--line)", color: on ? modOn(c.color) : modHi(c.color) }}
+                className={cn("relative flex items-center gap-2 px-1.5 pb-2 pt-1.5 text-sm font-display font-bold transition-colors duration-200", on ? "" : "text-ash hover:text-paper")}
+                style={on ? { color: modHi(c.color) } : undefined}
               >
                 {on && (
-                  <motion.span
-                    layoutId={`mod-chip-${stageId}`}
-                    transition={{ type: "spring", stiffness: 500, damping: 38 }}
-                    className="absolute inset-0"
-                    style={{ background: c.color }}
-                  />
+                  <>
+                    <motion.span layoutId={`mod-bar-${stageId}`} transition={{ type: "spring", stiffness: 500, damping: 38 }} className="absolute inset-x-1.5 bottom-0 h-[3px] -skew-x-12" style={{ background: c.color }} aria-hidden />
+                    <motion.span layoutId={`mod-spark-${stageId}`} transition={{ type: "spring", stiffness: 500, damping: 38 }} className="absolute -top-0.5 right-0 size-3" aria-hidden>
+                      <Sparkle className="inset-0 size-full text-rose-hi" />
+                    </motion.span>
+                  </>
                 )}
-                <span className="relative flex skew-x-12 items-center gap-2 text-sm font-display font-bold">
-                  {c.short}
-                  <span className={cn("num text-xs", on ? "opacity-70" : "text-ash")}>{c.count}</span>
-                </span>
+                {c.short}
+                <span className="num text-xs text-ash">{c.count}</span>
               </button>
             );
           })}
