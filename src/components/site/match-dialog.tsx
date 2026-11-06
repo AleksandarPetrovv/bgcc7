@@ -279,7 +279,8 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
             <DialogTitle className="in-wipe pr-8 text-xs font-display font-bold text-rose-hi" style={v({ "--d": "0.1s" })}>
               {roundName(t, match.round)}
             </DialogTitle>
-            <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-4">
+            {/* min-content on phones lets the date wrap so team names don't break mid-word */}
+            <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_min-content_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-4">
               {teams.map((team, i) => (
                 <div
                   key={i}
@@ -299,7 +300,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
                   <span className="mx-2 text-ash sm:mx-3">–</span>
                   <span className={match.winner === 1 ? "text-ash" : "text-paper"}>{score[1]}</span>
                 </span>
-                {when && <span className="num whitespace-nowrap text-[0.7rem] italic leading-none text-paper/70 sm:text-[0.8rem]">{when}</span>}
+                {when && <span className="num text-center text-[0.7rem] italic leading-tight sm:whitespace-nowrap sm:leading-none text-paper/70 sm:text-[0.8rem]">{when}</span>}
               </span>
             </div>
             {match.links.length > 0 && (
