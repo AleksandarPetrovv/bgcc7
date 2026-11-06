@@ -129,7 +129,7 @@ async function runSync() {
       if (d && r) want.set(d, r.roleId);
     }
   const ours = new Set([...have.values()].map((r) => r.roleId));
-  // shortcut: only linked users are checked, so someone who unlinks keeps a stale team role until the cleanup; fine while unlinking is rare
+  // only linked users are checked here; unlink/relink strips the old account first (dropTeamRoles)
   for (const d of new Set(linked.values())) {
     const roles = await memberRoles(d);
     if (!roles) continue;
@@ -137,6 +137,12 @@ async function runSync() {
     for (const rid of roles) if (ours.has(rid) && rid !== w) await removeRole(d, rid);
     if (w && !roles.includes(w)) await addRole(d, w);
   }
+}
+
+/** strips every team role from a discord account the site stops tracking (unlink / relink) */
+export async function dropTeamRoles(discordId: string) {
+  const ours = new Set((await db.select({ r: discordTeams.roleId }).from(discordTeams)).map((x) => x.r));
+  for (const rid of (await memberRoles(discordId)) ?? []) if (ours.has(rid)) await removeRole(discordId, rid);
 }
 
 /** after the cup: deletes every team section (category, text, voice) + role, forgets sent posts (picked channels stay) */
