@@ -69,7 +69,8 @@ html.lite .folk-panel::after {
   animation-delay: 0.60s;
 }
 
-html.lite header {
+/* only the sticky site nav: a bare `header` also filled the overlay bars and in-page headers */
+html.lite header.sticky {
   backdrop-filter: none;
   background-color: var(--ink);
 }
