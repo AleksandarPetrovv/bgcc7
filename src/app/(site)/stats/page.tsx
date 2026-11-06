@@ -99,7 +99,7 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
 
       <SectionHeading>{t.stats.avgPerMap}</SectionHeading>
       <InView key={`c-${current!.slug}`} className="relative border-b border-line pb-6">
-        <span className="pointer-events-none absolute -bottom-[7px] left-1/2 size-2.5 -translate-x-1/2 rotate-45 bg-rose shadow-[0_0_0_3px_var(--ink)]" aria-hidden />
+        <span className="pointer-events-none absolute -bottom-[7px] left-1/2 size-2.5 -translate-x-1/2 rotate-45 bg-rose" aria-hidden />
         <MapDifficultyChart qualifiers={data} />
       </InView>
 

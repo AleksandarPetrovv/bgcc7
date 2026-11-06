@@ -145,14 +145,9 @@
     scrollbar-color: var(--line) var(--ink);
     -webkit-tap-highlight-color: transparent;
   }
-  @media (min-width: 1500px) {
-    html { font-size: 106.25%; }
-  }
-  @media (min-width: 1800px) {
-    html { font-size: 112.5%; }
-  }
-  @media (min-width: 2300px) {
-    html { font-size: 125%; }
+  /* desktop scales with the window: 18px root at 1920 wide, so every page keeps its 1080p proportions at 720p/1440p/4k */
+  @media (min-width: 1280px) {
+    html { font-size: calc(100vw * 18 / 1920); }
   }
   body {
     @apply text-paper;

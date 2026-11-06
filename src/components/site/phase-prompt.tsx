@@ -32,7 +32,7 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent showCloseButton={false} className="mdlg overflow-hidden rounded-none border-2 border-rose bg-coal p-0 shadow-[6px_6px_0_0_var(--rose-deep)] ring-0 sm:max-w-lg">
         <div className="relative overflow-hidden border-b border-line px-5 pb-6 pt-5 sm:px-7">
-          <div className="anim-drift pointer-events-none absolute inset-0 w-[calc(100%+120px)] bg-[repeating-linear-gradient(115deg,transparent_0_40px,color-mix(in_srgb,var(--rose)_7%,transparent)_40px_42px)]" aria-hidden />
+          <div className="anim-drift pointer-events-none absolute inset-0 w-[calc(100%+7.5rem)] bg-[repeating-linear-gradient(115deg,transparent_0_40px,color-mix(in_srgb,var(--rose)_7%,transparent)_40px_42px)]" aria-hidden />
           <div className="in-left relative flex items-center gap-2.5 text-xs font-display font-bold text-rose-hi" style={v({ "--d": "0.15s" })}>
             <Glyph kind="spark" className="size-3" /> {t.admin.prompt.kicker}
           </div>

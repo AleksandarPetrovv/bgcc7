@@ -9,7 +9,7 @@ export function SeedingChart({ players, cut }: { players: QualPlayer[]; cut: num
   const t = useDict();
   const data = players.slice(0, cut).map((p, i) => ({ name: p.username, z: p.zSum, seed: i + 1 }));
   return (
-    <div className="h-[320px] sm:h-[420px] 2xl:h-[540px]">
+    <div className="h-[20rem] sm:h-[26.25rem] 2xl:h-[33.75rem]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 60, left: -12 }}>
           <XAxis dataKey="name" angle={-55} textAnchor="end" interval={0} tick={{ fill: HEX.ash, fontSize: 10, fontWeight: 700 }} axisLine={{ stroke: HEX.line }} tickLine={false} />

@@ -101,7 +101,7 @@ export function PoolPager({ pages }: { pages: { name: string; color: string; nod
 
   return (
     <div>
-      <UnderlineTabs names={pages.map((p) => p.name)} colors={pages.map((p) => p.color)} pos={pos} onPick={go} className="in-up mt-5 uppercase" style={{ "--d": "1.55s" } as React.CSSProperties} />
+      <UnderlineTabs names={pages.map((p) => p.name)} colors={pages.map((p) => p.color)} pos={pos} onPick={go} className="in-up mt-5" style={{ "--d": "1.55s" } as React.CSSProperties} />
       <div
         ref={box}
         onScroll={(e) => {

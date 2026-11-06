@@ -8,7 +8,7 @@ export function QualifierScores({ t, maps, player }: { t: Dict; maps: QualMap[];
   return (
     <Card title={t.me.yourScores} i={3} className="lg:col-span-2" body="pt-2">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[460px] text-sm">
+        <table className="w-full min-w-[28.75rem] text-sm">
           <thead>
             <tr className={cn("border-b border-line text-left", label)}>
               <th className="py-2 pr-4">{t.me.map}</th>
