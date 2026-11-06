@@ -1,3 +1,4 @@
+import { currentEdition, siteEdition } from "@/db";
 import { draftAccess } from "@/db/drafts";
 import { getFormat } from "@/db/edition";
 import { matchIdFromSlug } from "@/lib/format";
@@ -10,6 +11,9 @@ export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
+// live lobbies are keyed by bare match id and only exist for the site edition; bgcc6 shares those ids
+const otherEdition = () => (currentEdition() !== siteEdition() ? Response.json({ error: "notFound" }, { status: 404 }) : null);
+
 async function who(ctx: Ctx) {
   const id = matchIdFromSlug(await getFormat(), (await ctx.params).slug);
   const a = await draftAccess(id);
@@ -17,6 +21,8 @@ async function who(ctx: Ctx) {
 }
 
 export async function GET(req: Request, ctx: Ctx) {
+  const off = otherEdition();
+  if (off) return off;
   const id = matchIdFromSlug(await getFormat(), (await ctx.params).slug);
   const a = await draftAccess(id);
   if (!a) return Response.json({ error: "forbidden" }, { status: 403 });
@@ -36,6 +42,8 @@ export async function GET(req: Request, ctx: Ctx) {
 const int = (v: unknown) => (typeof v === "number" && Number.isInteger(v) ? v : -1);
 
 export async function POST(req: Request, ctx: Ctx) {
+  const off = otherEdition();
+  if (off) return off;
   const b = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   const act = typeof b?.act === "string" ? b.act : "";
   if (act === "say") {
