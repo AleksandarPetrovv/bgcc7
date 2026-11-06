@@ -58,8 +58,6 @@ export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { 
     <Card title={t.me.team} i={i} className={className}>
       <div className="in-up in-slow relative flex items-center gap-3 overflow-hidden py-2 sm:gap-4" style={at(0.2)}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={team.image} alt="" className="pointer-events-none absolute inset-0 size-full scale-110 object-cover opacity-20 blur-md [mask-image:linear-gradient(to_right,black,transparent_80%)]" aria-hidden />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={team.image} alt="" className="relative size-12 shrink-0 object-cover sm:size-16" />
         <div className="relative min-w-0 flex-1">
           <div className="heading-slam break-words text-lg leading-tight sm:text-2xl">{team.name}</div>

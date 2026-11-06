@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { CalendarClock, ChevronRight, ClipboardCheck, Download, Dices, DoorOpen, Gauge, LayoutGrid, Layers, Link2, MonitorPlay, Music2, ScrollText, Settings2, Shield, Swords, Trophy, Users } from "lucide-react";
-import { Sparkle } from "@/components/site/graphics";
 import { TwitchLogo } from "@/components/site/twitch-logo";
 import { DiscordLogo } from "@/components/site/discord-logo";
 import { cn } from "@/lib/utils";
@@ -58,9 +57,6 @@ export function AdminNav({ items }: { items: { href: string; label: string }[] }
               <>
                 {/* the main nav's underline, stood on its side on desktop */}
                 <motion.span layoutId="admin-nav-active" transition={spring} className="absolute inset-x-1 bottom-0 h-[3px] -skew-x-12 bg-rose lg:inset-x-auto lg:inset-y-1.5 lg:left-0 lg:h-auto lg:w-[3px] lg:skew-x-0 lg:-skew-y-12" aria-hidden />
-                <motion.span layoutId="admin-nav-spark" transition={spring} className="absolute right-0 top-0 size-3 lg:left-0.5 lg:-top-1.5 lg:right-auto" aria-hidden>
-                  <Sparkle className="inset-0 size-full text-rose-hi" />
-                </motion.span>
               </>
             )}
             <span
@@ -69,7 +65,7 @@ export function AdminNav({ items }: { items: { href: string; label: string }[] }
                 active ? "bg-rose/20 text-rose-hi" : key === "refapp" ? "bg-balkan/20 group-hover:scale-110" : "bg-slate group-hover:scale-110 group-hover:bg-rose/20 group-hover:text-rose-hi",
               )}
             >
-              <Icon className={cn("size-3.5", active && "anim-bob")} />
+              <Icon className="size-3.5" />
             </span>
             <span className="relative hidden min-w-0 flex-1 leading-tight transition-transform duration-300 group-hover:translate-x-0.5 lg:block">{i.label}</span>
             {!active && <ChevronRight className="relative hidden size-3.5 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-70 lg:block" aria-hidden />}
