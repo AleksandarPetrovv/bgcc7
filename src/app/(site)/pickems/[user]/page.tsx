@@ -11,6 +11,7 @@ import { requireSection } from "@/lib/authz";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
+import { ScrollTop } from "./scroll-top";
 
 // names not in our db would otherwise hit the osu api on every request
 type Found = Awaited<ReturnType<typeof getUser>>;
@@ -53,6 +54,7 @@ export default async function UserBracket({ params }: { params: Promise<{ user: 
 
   return (
     <Container>
+      <ScrollTop />
       <Link href="/pickems" className="mb-4 inline-flex items-center gap-1.5 text-xs font-display font-bold text-ash hover:text-paper">
         <ArrowLeft className="size-4" /> {t.pickems.back}
       </Link>

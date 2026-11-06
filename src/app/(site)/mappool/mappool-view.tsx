@@ -41,11 +41,14 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                 <Download className="size-4" /> {t.mappool.pack(count)}
               </SlantButton>
             ) : (
-              <span className="inline-flex -skew-x-12 items-center border border-dashed border-line px-3 py-1.5 text-sm font-display font-bold text-ash" title={t.mappool.packSoon}>
-                <span className="inline-flex skew-x-12 items-center gap-2">
-                  <Download className="size-4" /> {t.mappool.packSoon}
+              <SlantButton tone="balkan" disabled fill="bg-line" className="px-3 py-1.5 text-ash">
+                <Download className="size-4" />
+                {/* hidden real label keeps the width of the download button */}
+                <span className="grid *:col-start-1 *:row-start-1">
+                  <span className="invisible">{t.mappool.pack(count)}</span>
+                  <span className="text-center">{t.mappool.packSoon}</span>
                 </span>
-              </span>
+              </SlantButton>
             )}
           </>
         }

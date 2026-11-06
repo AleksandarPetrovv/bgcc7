@@ -167,7 +167,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
               <span className="hidden justify-end sm:flex">
                 <Link
                   href={pickemsHref(e.username)}
-                  onClick={() => window.scrollTo({ top: 0 })}
+                  scroll={false}
                   className="whitespace-nowrap text-xs font-display font-bold leading-none text-rose-hi hover:text-paper"
                 >
                   {t.pickems.viewBracket}

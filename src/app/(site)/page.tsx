@@ -101,7 +101,7 @@ function Champion({ t, team, other }: { t: Dict; team: Team; other?: Team }) {
 function TopList({ t, top, teams }: { t: Dict; top: TopCost[]; teams: Team[] }) {
   const stat = (k: string, v: string, cls?: string) => (
     <span className={cn("flex-col items-end gap-1", cls ?? "flex")}>
-      <span className="num text-lg italic leading-none text-paper/80">{v}</span>
+      <span className="num pe-[0.2em] text-lg italic leading-none text-paper/80">{v}</span>
       <span className="whitespace-nowrap text-[0.65rem] font-display font-bold text-ash">{k}</span>
     </span>
   );
@@ -133,7 +133,7 @@ function TopList({ t, top, teams }: { t: Dict; top: TopCost[]; teams: Team[] }) 
               {stat(t.home.avgAcc, `${p.acc.toFixed(2)}%`, "hidden min-[420px]:flex")}
               {stat(t.home.maps, String(p.maps))}
               <span className="flex flex-col items-end gap-1">
-                <span className={cn("num text-2xl italic leading-none", i === 0 ? "text-paper" : "text-paper/80")}>{p.cost.toFixed(2)}</span>
+                <span className={cn("num pe-[0.2em] text-2xl italic leading-none", i === 0 ? "text-paper" : "text-paper/80")}>{p.cost.toFixed(2)}</span>
                 <span className="whitespace-nowrap text-[0.65rem] font-display font-bold text-ash">{t.home.matchCost}</span>
               </span>
             </span>
