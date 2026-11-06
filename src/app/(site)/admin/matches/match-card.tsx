@@ -244,9 +244,9 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
             <Link
               href={`/admin/matches/${matchSlug(f, m.id)}`}
-              className="group relative isolate inline-flex min-h-10 items-center px-4 text-xs font-display font-bold text-on-fill hover:text-ink"
+              className="group/ms relative isolate inline-flex min-h-10 items-center px-4 text-xs font-display font-bold text-on-fill hover:text-ink"
             >
-              <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 bg-balkan group-hover:bg-paper" />
+              <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 bg-balkan group-hover/ms:bg-paper" />
               {t.admin.ms.open}
             </Link>
             <ActionForm action={clearCache.bind(null, m.id)} submit={t.admin.clearCache} ghost />

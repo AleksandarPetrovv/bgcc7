@@ -8,6 +8,7 @@ import { useDict } from "@/components/site/lang";
 import { DEFAULT_PLAN, roundStats, type Plan, type PlanRound } from "@/lib/format-plan";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
+import { Tabs } from "@/components/site/tabs";
 import { resetPlan, savePlan } from "./actions";
 import { Catalog, Edit } from "./format-context";
 import { RoundCard } from "./format-round";
@@ -67,33 +68,23 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
     <Edit.Provider value={edit && !resetting}>
       <Catalog.Provider value={plan.subcategories}>
       <div className="space-y-6 pb-24" aria-busy={resetting}>
-        <div role="tablist" aria-label={t.admin.fp.round} className="flex flex-wrap gap-2">
-          {plan.rounds.map((r, k) => {
-            const on = k === tab;
-            return (
-              <button
-                key={r.slug}
-                type="button"
-                role="tab"
-                aria-selected={on}
-                onClick={() => setTab(k)}
-                style={{ "--i": k, "--s": "0.06s", "--d": "0.1s" } as React.CSSProperties}
-                className={cn("in-left relative flex h-11 -skew-x-12 items-center border px-4 transition-colors duration-200", on ? "border-rose text-white" : "border-line text-ash hover:border-paper/40 hover:text-paper")}
-              >
-                {on && <motion.span layoutId="format-tab" transition={{ type: "spring", stiffness: 500, damping: 38 }} className="absolute inset-0 bg-rose shadow-[3px_3px_0_0_var(--rose-deep)]" />}
-                <span className="relative flex skew-x-12 items-center gap-2 text-sm font-display font-bold">
-                  {t.rounds[r.name] ?? r.name}
-                  <span className={cn("num text-xs", on ? "opacity-80" : "text-ash")}>BO{roundStats(r).bestOf}</span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <Tabs
+          label={t.admin.fp.round}
+          className="in-left [--d:0.1s]"
+          index={tab}
+          onChange={setTab}
+          options={plan.rounds.map((r) => (
+            <>
+              {t.rounds[r.name] ?? r.name}
+              <span className="num text-xs text-ash">BO{roundStats(r).bestOf}</span>
+            </>
+          ))}
+        />
 
         <div>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div key={plan.rounds[tab].slug} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
-            <Cascade step={0.012} className="[--d:0.1s]">
+            <Cascade step={0.012} className="[--d:0.25s]">
               <RoundCard r={plan.rounds[tab]} prev={plan.rounds.slice(0, tab)} onChange={(x) => setRound(tab, x)} />
             </Cascade>
           </motion.div>

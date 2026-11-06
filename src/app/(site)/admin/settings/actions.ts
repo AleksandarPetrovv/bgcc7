@@ -38,7 +38,7 @@ export async function setQualify(_: ActionResult, fd: FormData) {
 export async function setDraft(_: ActionResult, fd: FormData) {
   return guard("settings", "settings.draft", async () => {
     const bans = Number(fd.get("bans"));
-    const banOrder = fd.get("banOrder") === "abba" ? "abba" : "abab";
+    const banOrder = "abab" as const;
     const secs = (k: string) => Number(fd.get(k));
     const banSecs = secs("pickBanSecs");
     const pickSecs = banSecs;

@@ -47,7 +47,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
       <PageTitle mark="notes"
         right={
           <>
-            <UnderlineTabs names={stages.map((s) => t.rounds[s.title] ?? s.title)} colors={stages.map(() => "var(--rose)")} pos={i} onPick={pick} animate className="min-w-0" />
+            <UnderlineTabs names={stages.map((s) => t.rounds[s.title] ?? s.title)} colors={stages.map(() => "var(--rose)")} pos={i} onPick={pick} animate className="min-w-0 pr-4" />
             {stage.pack ? (
               <SlantButton tone="balkan" download href={`/download/${stage.slug}`} className="shrink-0 px-3 py-1.5">
                 <Download className="size-4" /> <PackLabel text={t.mappool.pack(count)} widest={t.mappool.pack(88)} />

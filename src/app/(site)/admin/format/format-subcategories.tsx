@@ -43,7 +43,7 @@ export function SubcategoryEditor({ groups, onChange }: { groups: SubcategoryGro
     onChange(groups.filter((g) => g.id !== group.id));
   };
   const intro = useIntroWindow();
-  return <Intro.Provider value={intro}><Cascade step={0.01} className="[--d:0.2s]"><section className="relative border-b border-line">
+  return <Intro.Provider value={intro}><Cascade step={0.01} className="[--d:0.9s]"><section className="in-up relative border-b border-line [--i:0]">
     <RuleDiamond />
     <header className="flex flex-wrap items-center gap-3 border-b border-line pb-3">
       <h2 data-cascade className="in-wipe heading-slam flex-1 text-2xl">{t.admin.fp.subcategories}</h2>

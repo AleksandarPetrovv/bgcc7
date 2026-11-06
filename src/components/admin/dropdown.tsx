@@ -59,6 +59,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
     up: boolean;
   } | null>(null);
   const btn = useRef<HTMLButtonElement>(null);
+  const closedAt = useRef(-1e9);
   const list = useRef<HTMLDivElement>(null);
   const search = options.length > 8;
   const shown = q ? options.filter((o) => `${o.label} ${o.hint ?? ""}`.toLowerCase().includes(q.toLowerCase())) : options;
@@ -93,7 +94,10 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
     if (!open) return;
     const down = (e: PointerEvent) => {
       const el = e.target as Node;
-      if (!btn.current?.contains(el) && !list.current?.contains(el)) setOpen(false);
+      if (!btn.current?.contains(el) && !list.current?.contains(el)) {
+        closedAt.current = e.timeStamp;
+        setOpen(false);
+      }
     };
     document.addEventListener("pointerdown", down);
     return () => document.removeEventListener("pointerdown", down);
@@ -161,7 +165,8 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
         aria-expanded={open}
         aria-controls={open ? id : undefined}
         aria-label={aria}
-        onClick={() => toggle(!open)}
+        // a press outside already closed it; the wrapping <label> then forwards that click here, which must not reopen it
+        onClick={(e) => e.timeStamp - closedAt.current > 400 && toggle(!open)}
         onKeyDown={key}
         className={cn(
           "group relative flex h-10 w-full min-w-0 -skew-x-12 items-center border border-b-2 bg-field px-3 text-left text-sm normal-case tracking-normal outline-none transition-[border-color,background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-rose disabled:cursor-not-allowed disabled:opacity-50",

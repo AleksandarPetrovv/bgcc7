@@ -50,32 +50,29 @@ export function AdminNav({ items }: { items: { href: string; label: string }[] }
             title={i.label}
             className={cn(
               "group relative flex min-w-0 flex-1 items-center justify-center gap-3 whitespace-nowrap py-2 lg:flex-none lg:justify-start lg:whitespace-normal lg:px-2.5 text-[0.8rem] font-display font-bold transition-colors duration-200",
-              active ? "text-white" : key === "refapp" ? "text-balkan-hi hover:text-paper" : "text-ash hover:text-paper",
+              active ? "text-paper" : key === "refapp" ? "text-balkan-hi hover:text-paper" : "text-ash hover:text-paper",
               key === "refapp" && !active && "lg:mb-2",
             )}
           >
             {active && (
               <>
-                <motion.span layoutId="admin-nav-shadow" transition={spring} className="absolute inset-0 translate-x-1 translate-y-1 -skew-x-6 bg-rose-deep" aria-hidden />
-                <motion.span layoutId="admin-nav-active" transition={spring} className="absolute inset-0 -skew-x-6 bg-rose" aria-hidden />
+                {/* the main nav's underline, stood on its side on desktop */}
+                <motion.span layoutId="admin-nav-active" transition={spring} className="absolute inset-x-1 bottom-0 h-[3px] -skew-x-12 bg-rose lg:inset-x-auto lg:inset-y-1.5 lg:left-0 lg:h-auto lg:w-[3px] lg:skew-x-0 lg:-skew-y-12" aria-hidden />
+                <motion.span layoutId="admin-nav-spark" transition={spring} className="absolute right-0 top-0 size-3 lg:left-0.5 lg:-top-1.5 lg:right-auto" aria-hidden>
+                  <Sparkle className="inset-0 size-full text-rose-hi" />
+                </motion.span>
               </>
             )}
             <span
               className={cn(
                 "relative flex size-7 shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform,translate,scale,rotate] duration-300",
-                active ? "bg-white/20" : key === "refapp" ? "bg-balkan/20 group-hover:scale-110" : "bg-slate group-hover:scale-110 group-hover:bg-rose/20 group-hover:text-rose-hi",
+                active ? "bg-rose/20 text-rose-hi" : key === "refapp" ? "bg-balkan/20 group-hover:scale-110" : "bg-slate group-hover:scale-110 group-hover:bg-rose/20 group-hover:text-rose-hi",
               )}
             >
               <Icon className={cn("size-3.5", active && "anim-bob")} />
             </span>
             <span className="relative hidden min-w-0 flex-1 leading-tight transition-transform duration-300 group-hover:translate-x-0.5 lg:block">{i.label}</span>
-            {active ? (
-              <span className="relative hidden size-4 lg:block" aria-hidden>
-                <Sparkle className="inset-0 size-3.5 text-rose" />
-              </span>
-            ) : (
-              <ChevronRight className="relative hidden size-3.5 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-70 lg:block" aria-hidden />
-            )}
+            {!active && <ChevronRight className="relative hidden size-3.5 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-70 lg:block" aria-hidden />}
           </Link>
         );
       })}

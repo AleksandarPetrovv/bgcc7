@@ -12,7 +12,8 @@ import { schedNav } from "@/db/schedule";
 import { auth } from "@/auth";
 import { getViewer, getVisibility } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
-import { hasAdmin } from "@/lib/roles";
+import { can, hasAdmin } from "@/lib/roles";
+import { adminMenu } from "./admin/menu";
 import { buildNav } from "@/lib/sections";
 import { getLive } from "@/lib/twitch";
 import { isLive } from "@/lib/matches";
@@ -21,7 +22,7 @@ import { avatarPath } from "@/lib/avatar";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [session, viewer, vis, teams, matches, settings, dict] = await Promise.all([auth(), getViewer(), getVisibility(), getTeams(), getMatches(), getSettings(), getDict()]);
-  const user = session?.user?.name ? { name: session.user.name, image: viewer ? avatarPath(viewer.osuId, true) : session.user.image ?? null, admin: hasAdmin(viewer?.roles) } : null;
+  const user = session?.user?.name ? { name: session.user.name, image: viewer ? avatarPath(viewer.osuId, true) : session.user.image ?? null, admin: hasAdmin(viewer?.roles) ? (adminMenu().find((m) => m.perm.some((p) => can(viewer?.roles, p)))?.href ?? "/admin") : null } : null;
   const [captain, twitch, sched] = await Promise.all([viewer ? isPlayer(viewer.osuId) : false, vis.sections.streams || vis.staff ? getLive().then(Boolean) : false, schedNav(viewer?.osuId ?? null).catch(() => null)]);
   const match = captain && viewer ? await myOpenDraft(viewer.osuId).catch(() => null) : null;
   const regOpen = vis.sections.register && settings.phase === "registration" && windowState(settings.regOpensAt, settings.regClosesAt) === "open";

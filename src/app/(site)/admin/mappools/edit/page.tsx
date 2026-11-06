@@ -68,9 +68,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
           label: (
             <>
               {name(s)}
-              <span className="num text-sm opacity-80">{s.pools.reduce((n, p) => n + p.maps.length, 0)}</span>
-              {!s.released && <span className="text-[0.6rem] opacity-70">{t.admin.poolHidden}</span>}
-            </>
+              <span className="num text-sm opacity-80">{s.pools.reduce((n, p) => n + p.maps.length, 0)}</span>            </>
           ),
         }))}
       />

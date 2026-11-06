@@ -330,6 +330,13 @@
       "when": 1793830573356,
       "tag": "0046_discord_team_sections",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1793953840228,
+      "tag": "0047_reschedule_notes",
+      "breakpoints": true
     }
   ]
 }

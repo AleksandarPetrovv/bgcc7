@@ -14,7 +14,15 @@ import { teamNote } from "@/db/discord-bot";
 import { fromSofiaInput } from "@/lib/time";
 import { inWindow, isOpen, weekOf } from "@/lib/schedule";
 
-type Res = { ok: true } | { ok: false; error: "forbidden" | "closed" | "window" | "gone" | "failed" };
+type Res = { ok: true } | { ok: false; error: "forbidden" | "closed" | "window" | "gone" | "failed" | "note" };
+
+// every proposal, decline and withdraw carries a short note so teams don't go back and forth
+const noteOf = (v: string) => {
+  const n = String(v ?? "").trim().slice(0, 300);
+  if (!n) throw new Stop("note");
+  return n;
+};
+const quote = (n: string) => `\n> ${n.replace(/\s*\n\s*/g, " ")}`;
 type Fail = Extract<Res, { ok: false }>["error"];
 
 class Stop extends Error {
@@ -48,9 +56,10 @@ async function run(fn: () => Promise<() => Promise<void>>): Promise<Res> {
 
 const teamName = async (id: string) => (await getAllTeams()).find((t) => t.id === id)?.name ?? id;
 
-export async function propose(matchId: string, input: string): Promise<Res> {
+export async function propose(matchId: string, input: string, noteIn: string): Promise<Res> {
   return run(async () => {
     const { osuId, team } = await captain();
+    const note = noteOf(noteIn);
     const at = fromSofiaInput(input);
     const weeks = await stageWeeks();
     const { opp, counter } = await db.transaction(async (tx) => {
@@ -66,16 +75,16 @@ export async function propose(matchId: string, input: string): Promise<Res> {
           .set(p.teamId === team ? { status: "withdrawn" } : { status: "rejected", answeredBy: osuId })
           .where(eq(reschedules.id, p.id));
       }
-      await tx.insert(reschedules).values({ matchId: m.id, teamId: team, requestedBy: osuId, proposedAt: at });
+      await tx.insert(reschedules).values({ matchId: m.id, teamId: team, requestedBy: osuId, proposedAt: at, reason: note });
       return { opp: m.team1Id === team ? m.team2Id! : m.team1Id!, counter: open.some((p) => p.teamId !== team) };
     });
     const [from, to] = [await teamName(team), await teamName(opp)];
     const verb = counter ? "countered with" : "proposed";
     return async () => {
-      await notifyCaptain(opp, (link) => `${from} ${verb} **${fmtAt(at!)}** for your match. Accept or counter: ${link}`);
+      await notifyCaptain(opp, (link) => `${from} ${verb} **${fmtAt(at!)}** for your match. Accept or counter: ${link}${quote(note)}`);
       await teamNote({
-        [team]: `Your captain ${verb} **${fmtAt(at!)}** for your match against **${to}**. Waiting for their answer.`,
-        [opp]: `**${from}** ${verb} **${fmtAt(at!)}** for your match. Your captain can accept or counter: <${siteUrl()}/scheduling>`,
+        [team]: `Your captain ${verb} **${fmtAt(at!)}** for your match against **${to}**. Waiting for their answer.${quote(note)}`,
+        [opp]: `**${from}** ${verb} **${fmtAt(at!)}** for your match. Your captain can accept or counter: <${siteUrl()}/scheduling>${quote(note)}`,
       });
     };
   });
@@ -106,9 +115,10 @@ export async function accept(matchId: string, proposalId: number): Promise<Res> 
   });
 }
 
-export async function withdraw(matchId: string): Promise<Res> {
+export async function withdraw(matchId: string, noteIn: string): Promise<Res> {
   return run(async () => {
     const { osuId, team } = await captain();
+    const note = noteOf(noteIn);
     const weeks = await stageWeeks();
     const { opp, agreed } = await db.transaction(async (tx) => {
       const m = await lockMatch(tx, matchId);
@@ -116,22 +126,46 @@ export async function withdraw(matchId: string): Promise<Res> {
       const w = weekOf(weeks[m.stageSlug]);
       if (!w || !isOpen(w)) throw new Stop("closed");
       const mine = (await pendingOf(tx, m.id)).find((p) => p.teamId === team);
-      if (mine) await tx.update(reschedules).set({ status: "withdrawn" }).where(eq(reschedules.id, mine.id));
+      if (mine) await tx.update(reschedules).set({ status: "withdrawn", reply: note }).where(eq(reschedules.id, mine.id));
       else if (m.startsAt) {
         await tx.update(matches).set({ startsAt: null }).where(eq(matches.id, m.id));
-        await tx.update(reschedules).set({ status: "cancelled", answeredBy: osuId }).where(and(eq(reschedules.matchId, m.id), eq(reschedules.status, "accepted")));
+        await tx.update(reschedules).set({ status: "cancelled", answeredBy: osuId, reply: note }).where(and(eq(reschedules.matchId, m.id), eq(reschedules.status, "accepted")));
       } else throw new Stop("gone");
       return { opp: m.team1Id === team ? m.team2Id! : m.team1Id!, agreed: !mine };
     });
     const [from, to] = [await teamName(team), await teamName(opp)];
     return async () => {
-      await notifyCaptain(opp, (link) => `${from} withdrew their scheduling proposal or agreed time. Check the match page: ${link}`);
+      await notifyCaptain(opp, (link) => `${from} withdrew their scheduling proposal or agreed time. Check the match page: ${link}${quote(note)}`);
       const link = `<${siteUrl()}/scheduling>`;
+      const q = quote(note);
       await teamNote(
         agreed
-          ? { [team]: `The agreed time for your match against **${to}** was cleared. It's TBD again: ${link}`, [opp]: `The agreed time for your match against **${from}** was cleared. It's TBD again: ${link}` }
-          : { [team]: `Your captain withdrew the proposal for your match against **${to}**.`, [opp]: `**${from}** withdrew their proposal for your match.` },
+          ? { [team]: `The agreed time for your match against **${to}** was cleared. It's TBD again: ${link}${q}`, [opp]: `The agreed time for your match against **${from}** was cleared. It's TBD again: ${link}${q}` }
+          : { [team]: `Your captain withdrew the proposal for your match against **${to}**.${q}`, [opp]: `**${from}** withdrew their proposal for your match.${q}` },
       );
+    };
+  });
+}
+
+export async function decline(matchId: string, proposalId: number, noteIn: string): Promise<Res> {
+  return run(async () => {
+    const { osuId, team } = await captain();
+    const note = noteOf(noteIn);
+    const weeks = await stageWeeks();
+    const by = await db.transaction(async (tx) => {
+      const m = await lockMatch(tx, matchId);
+      if (!m || !schedulable(m) || (m.team1Id !== team && m.team2Id !== team)) throw new Stop("gone");
+      const w = weekOf(weeks[m.stageSlug]);
+      if (!w || !isOpen(w)) throw new Stop("closed");
+      const p = (await pendingOf(tx, m.id)).find((x) => x.id === proposalId);
+      if (!p || p.teamId === team) throw new Stop("gone");
+      await tx.update(reschedules).set({ status: "rejected", answeredBy: osuId, reply: note }).where(eq(reschedules.id, p.id));
+      return p.teamId;
+    });
+    const [from, to] = [await teamName(team), await teamName(by)];
+    return async () => {
+      await notifyCaptain(by, (link) => `${from} declined your proposed time. Propose another: ${link}${quote(note)}`);
+      await teamNote({ [team]: `Your captain declined the time **${to}** proposed.${quote(note)}`, [by]: `**${from}** declined your proposed time. Your captain can propose another: <${siteUrl()}/scheduling>${quote(note)}` });
     };
   });
 }
