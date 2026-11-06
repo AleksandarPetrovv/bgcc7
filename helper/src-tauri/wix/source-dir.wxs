@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <!-- default the folder picker to the folder the msi sits in; an earlier install's folder still wins -->
+    <CustomAction Id="InstallDirFromMsi" Property="INSTALLDIR" Value="[SourceDir]" />
+    <InstallUISequence>
+      <ResolveSource After="CostInitialize" />
+      <Custom Action="InstallDirFromMsi" After="ResolveSource">NOT Installed AND NOT INSTALLDIR</Custom>
+    </InstallUISequence>
+    <ComponentGroup Id="InstallDirFromMsiGroup" />
+  </Fragment>
+</Wix>

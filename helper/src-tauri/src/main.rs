@@ -390,31 +390,6 @@ async fn unlink(ctl: State<'_, Ctl>) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn uninstall(app: AppHandle, ctl: State<'_, Ctl>) -> Result<(), String> {
-    unlink(ctl).await?;
-    let _ = app.autolaunch().disable();
-    let p = app.path();
-    let mut dirs: Vec<std::path::PathBuf> = [p.app_config_dir(), p.app_data_dir(), p.app_local_data_dir(), p.app_cache_dir(), p.app_log_dir()].into_iter().flatten().collect();
-    dirs.sort();
-    dirs.dedup();
-    let id = app.config().identifier.clone();
-    let mut script = String::from("ping 127.0.0.1 -n 3 > nul");
-    for d in dirs.iter().filter(|d| d.components().any(|c| c.as_os_str() == id.as_str())) {
-        script.push_str(&format!(" & rmdir /s /q \"{}\"", d.display()));
-    }
-    if let Ok(exe) = std::env::current_exe() {
-        script.push_str(&format!(" & del /f /q \"{}\"", exe.display()));
-    }
-    #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        let _ = std::process::Command::new("cmd").raw_arg(format!("/C {script}")).creation_flags(0x0800_0000).spawn();
-    }
-    app.exit(0);
-    Ok(())
-}
-
-#[tauri::command]
 fn open(app: AppHandle, ctl: State<'_, Ctl>, what: String) {
     let url = match what.as_str() {
         path if path.starts_with('/') && !path.starts_with("//") && !path.contains('\\') && !path.chars().any(char::is_control) => format!("{}{path}", SITE.trim_end_matches('/')),
@@ -449,6 +424,18 @@ fn show(app: &AppHandle) {
     }
 }
 
+// tells the site the app is closing so its helper page flips to "not running" at once
+fn quit(app: &AppHandle) {
+    if let Some(token) = app.state::<Ctl>().shared.store.load().token {
+        tauri::async_runtime::block_on(async move {
+            if let Ok(http) = reqwest::Client::builder().timeout(Duration::from_secs(2)).build() {
+                let _ = http.post(format!("{SITE}/api/relay/bye")).bearer_auth(token).send().await;
+            }
+        });
+    }
+    app.exit(0);
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _, _| show(app)))
@@ -469,7 +456,7 @@ fn main() {
             }
             tray.on_menu_event(|app, e| match e.id.as_ref() {
                 "open" => show(app),
-                "quit" => app.exit(0),
+                "quit" => quit(app),
                 _ => {}
             })
             .on_tray_icon_event(|t, e| {
@@ -485,7 +472,7 @@ fn main() {
             Ok(())
         })
         .on_window_event(|w, e| match e {
-            WindowEvent::CloseRequested { .. } => w.app_handle().exit(0),
+            WindowEvent::CloseRequested { .. } => quit(w.app_handle()),
             WindowEvent::Resized(_) => {
                 if w.is_minimized().unwrap_or(false) {
                     let _ = w.hide();
@@ -493,7 +480,7 @@ fn main() {
             }
             _ => {}
         })
-        .invoke_handler(tauri::generate_handler![status, alerts, logs, saved_name, link, cancel_link, unlink, uninstall, open, autostart, set_streaming, save_irc_password, recheck_roles])
+        .invoke_handler(tauri::generate_handler![status, alerts, logs, saved_name, link, cancel_link, unlink, open, autostart, set_streaming, save_irc_password, recheck_roles])
         .run(tauri::generate_context!())
         .expect("error while running BGCC7 Helper");
 }

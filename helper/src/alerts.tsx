@@ -55,7 +55,7 @@ function AlertCard({ alert, onSnooze }: { alert: Alert; onSnooze: (minutes: numb
       {href && text.button && (
         <>
           <div className="mt-4 flex flex-wrap gap-2.5 px-[3px]">
-            <button type="button" disabled={busy} onClick={open} className="btn btn-sm min-h-10 whitespace-normal bg-(--alert) text-(--alert-on) [--lift:var(--alert-shadow)] hover:bg-paper hover:text-ink">
+            <button type="button" disabled={busy} onClick={open} className="btn btn-sm min-h-10 whitespace-normal text-(--alert-on) [--lift:var(--alert-shadow)] [--sl-bg:var(--alert)] hover:text-ink hover:[--sl-bg:var(--paper)]">
               <span>{text.button}</span>
             </button>
           </div>
