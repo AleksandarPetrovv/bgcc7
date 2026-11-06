@@ -22,7 +22,8 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
   const seen = avail || 1500;
   const fill = seen >= 640 ? Math.floor(Math.min(290, Math.max(box.minW, (seen - cols * box.g - 8) / (cols + 1)))) : undefined;
   const { W, G, H, x, LB, POS, WIN, HEADERS, gfCol, width, height } = pickLayout(f, fill);
-  const fit = fitBox(width, height, 1);
+  const scale = seen >= 1280 && width < seen ? Math.min(2, seen / width) : 1;
+  const fit = fitBox(width, height, scale);
   const { slots, picks: clean, resetLive, champion } = resolve(f, picks, seedingOf(f, matches));
   const champ = champion ? teamById(champion) : undefined;
   const real = (id: string) => {
@@ -44,7 +45,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
   return (
     <div ref={ref} className="overflow-x-auto overflow-y-hidden pb-4">
       <div className="mx-auto mt-10" style={fit.outer}>
-      <div className="relative mx-auto" style={fit.inner}>
+      <div className={cn("relative [--spacing:4px] [--text-xs:12px] [--text-sm:14px] [--text-lg:18px] [--text-2xl:24px]", scale === 1 && "mx-auto")} style={fit.inner}>
         <svg className="pointer-events-none absolute inset-0" width={width} height={height} aria-hidden>
           {Object.entries(WIN).map(([a, b]) => (
             <path key={a} d={wire(a, b)} pathLength={1} className="in-draw" style={{ "--d": `${0.55 + POS[a][0] * 0.14}s` } as React.CSSProperties} fill="none" stroke={wireColor(a).stroke} strokeOpacity={wireColor(a).opacity} strokeWidth={2} />
@@ -67,7 +68,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
 
         {champ && (
           <div key={champ.id} className="in-up absolute border border-gold/40 bg-coal [--d:1.3s]" style={{ left: x(gfCol), top: POS["grand-final-reset"][1] + H + 30, width: W }}>
-            <div className="flex items-center gap-1.5 bg-gold px-2.5 py-1 text-[0.7rem] font-display font-bold text-on-fill">
+            <div className="flex items-center gap-1.5 bg-gold px-2.5 py-1 text-[11.2px] font-display font-bold text-on-fill">
               <Crown className="size-3.5" /> {t.pickems.champion}
             </div>
             <div className="flex items-center gap-3 p-2.5">
@@ -115,7 +116,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
                     disabled={readOnly || locked.includes(id) || !team || !pair[0] || !pair[1]}
                     onClick={() => team && onPick?.(id, team.id)}
                     className={cn(
-                      "flex min-h-0 flex-1 items-center gap-2 px-2 text-left text-[0.82rem] transition-colors",
+                      "flex min-h-0 flex-1 items-center gap-2 px-2 text-left text-[13px] transition-colors",
                       right ? "bg-[color-mix(in_oklab,var(--balkan)_14%,var(--coal))] font-display font-black text-balkan-hi" : miss ? "bg-rose/15 font-display font-black text-rose-hi" : picked ? "bg-coal/55 font-display font-black text-paper" : "font-display font-bold enabled:hover:bg-slate",
                       lost && "text-ash",
                       !team && "cursor-default italic text-ash",
@@ -129,7 +130,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
                       </>
                     )}
                     {miss ? (
-                      <span className="flex shrink-0 items-center gap-0.5 text-[0.65rem] font-display font-bold" aria-label={t.pickems.missed}>
+                      <span className="flex shrink-0 items-center gap-0.5 text-[10.4px] font-display font-bold" aria-label={t.pickems.missed}>
                         <X className="size-3.5" strokeWidth={3} />
                       </span>
                     ) : (

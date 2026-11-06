@@ -26,8 +26,8 @@ export function MapDifficultyChart({ qualifiers }: { qualifiers: { maps: QualMap
               <stop offset="1" stopColor="black" stopOpacity={0.12} />
             </linearGradient>
           </defs>
-          <XAxis dataKey="slot" interval={0} tick={{ fill: HEX.paper, fontSize: data.length > 12 ? 10 : 13, fontWeight: 800 }} axisLine={{ stroke: HEX.line }} tickLine={false} />
-          <YAxis domain={[0, top]} tickCount={top / 100_000 + 1} tickFormatter={(v) => `${Math.round(v / 1000)}k`} tick={{ fill: HEX.ash, fontSize: 11 }} axisLine={false} tickLine={false} />
+          <XAxis dataKey="slot" interval={0} tick={{ fill: HEX.paper, fontSize: data.length > 12 ? "0.625rem" : "0.8125rem", fontWeight: 800 }} axisLine={{ stroke: HEX.line }} tickLine={false} />
+          <YAxis domain={[0, top]} tickCount={top / 100_000 + 1} tickFormatter={(v) => `${Math.round(v / 1000)}k`} tick={{ fill: HEX.ash, fontSize: "0.6875rem" }} axisLine={false} tickLine={false} />
           <Tooltip
             cursor={{ fill: "color-mix(in srgb, var(--rose) 10%, transparent)" }}
             contentStyle={{ background: HEX.coal, border: `1px solid ${HEX.line}`, borderRadius: 0, fontWeight: 700, color: HEX.paper }}

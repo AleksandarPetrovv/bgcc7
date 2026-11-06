@@ -1,7 +1,7 @@
 .preview {
   position: relative;
   width: 100%;
-  max-width: 480px;
+  max-width: 26.667rem;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   border: 1px solid var(--color-line);
