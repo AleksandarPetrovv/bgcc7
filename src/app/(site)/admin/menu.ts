@@ -2,7 +2,7 @@ import type { Perm } from "@/lib/roles";
 import { menuBGCC6 } from "./menu-bgcc6";
 
 export const adminMenu = (): { href: string; perm: Perm[] }[] => [
-  { href: "/admin/refapp", perm: ["matches", "overlay"] },
+  { href: "/admin/helper", perm: ["matches", "overlay"] },
   { href: "/admin/phase", perm: ["phase"] },
   { href: "/admin/screening", perm: ["screening"] },
   ...menuBGCC6(),

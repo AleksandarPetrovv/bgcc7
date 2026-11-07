@@ -85,7 +85,7 @@ export function HelperMissing({ onClose }: { onClose: () => void }) {
             </span>
           </motion.a>
           <motion.a
-            href="/admin/refapp"
+            href="/admin/helper"
             target="_blank"
             rel="noreferrer"
             whileHover={{ x: 4 }}

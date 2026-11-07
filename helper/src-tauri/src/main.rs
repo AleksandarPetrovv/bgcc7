@@ -306,7 +306,7 @@ async fn link(app: AppHandle, ctl: State<'_, Ctl>) -> Result<String, String> {
     let mut raw = [0u8; 32];
     rand::thread_rng().fill_bytes(&mut raw);
     let state = base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(raw);
-    // the site hands out a short code to type on /admin/refapp; the state itself never goes into a url
+    // the site hands out a short code to type on /admin/helper; the state itself never goes into a url
     let start = reqwest::Client::builder().timeout(Duration::from_secs(15)).build().map_err(|e| e.to_string())?
         .post(format!("{SITE}/api/relay/start")).json(&serde_json::json!({ "state": state })).send().await
         .map_err(|_| "nosite".to_string())?;
@@ -314,7 +314,7 @@ async fn link(app: AppHandle, ctl: State<'_, Ctl>) -> Result<String, String> {
     let word = start.json::<serde_json::Value>().await.ok()
         .and_then(|v| v["code"].as_str().map(str::to_string))
         .ok_or_else(|| "nosite".to_string())?;
-    let _ = app.opener().open_url(format!("{SITE}/admin/refapp"), None::<&str>);
+    let _ = app.opener().open_url(format!("{SITE}/admin/helper"), None::<&str>);
 
     let (tx, mut rx) = watch::channel(false);
     if let Some(old) = ctl.linking.lock().unwrap().replace(tx) {
@@ -395,7 +395,7 @@ fn open(app: AppHandle, ctl: State<'_, Ctl>, what: String) {
         path if path.starts_with('/') && !path.starts_with("//") && !path.contains('\\') && !path.chars().any(char::is_control) => format!("{}{path}", SITE.trim_end_matches('/')),
         "irc" => IRC_PAGE.to_string(),
         "page" if ctl.shared.status().can_stream && !ctl.shared.status().can_ref => format!("{SITE}/admin/overlay"),
-        "page" => format!("{SITE}/admin/refapp"),
+        "page" => format!("{SITE}/admin/helper"),
         _ => SITE.to_string(),
     };
     let _ = app.opener().open_url(url, None::<&str>);
