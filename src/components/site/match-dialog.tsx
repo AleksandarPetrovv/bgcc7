@@ -5,7 +5,7 @@ import { ExternalLink, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useDict, useLang } from "./lang";
 import { fmtSofia } from "@/lib/time";
-import { MODS, fmtNum, type Match } from "@/lib/data";
+import { fmtNum, type Match } from "@/lib/data";
 import { slotColor } from "@/lib/format-plan";
 import { useTournament } from "./tournament";
 import { roundName } from "@/lib/i18n/dict";
@@ -17,6 +17,7 @@ import { modHi, TEAM as TEAMS } from "@/lib/theme";
 import { osuMatch } from "@/lib/links";
 import { RuleDiamond } from "./rule";
 import { localeOf } from "@/lib/i18n/locale";
+import { MODS } from "@/lib/mods";
 
 const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;

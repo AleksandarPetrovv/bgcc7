@@ -9,11 +9,6 @@ export const HEX = {
   balkan: "var(--balkan)",
   azure: "var(--azure)",
   gold: "var(--gold)",
-  nm: "var(--mod-nm)",
-  hd: "var(--mod-hd)",
-  hr: "var(--mod-hr)",
-  dt: "var(--mod-dt)",
-  fm: "var(--mod-fm)",
 } as const;
 
 export const tint =(color: string, pct: number) => `color-mix(in srgb, ${color} ${pct}%, transparent)`;
@@ -29,17 +24,6 @@ export const MEDAL = ["text-gold-hi", "text-silver-deep", "text-bronze-hi"];
 export const MEDAL_BG = ["bg-gold", "bg-silver", "bg-bronze"];
 
 export const GOLD ={ c: "var(--gold)", deep: "var(--gold-deep)", hi: "var(--gold-hi)" } as const;
-
-export const MOD_COLOR: Record<string, string> = {
-  NM: "var(--mod-nm)",
-  HD: "var(--mod-hd)",
-  HR: "var(--mod-hr)",
-  DT: "var(--mod-dt)",
-  NC: "var(--mod-dt)",
-  FM: "var(--mod-fm)",
-  TB: "var(--mod-tb)",
-  NF: "var(--paper)",
-};
 
 // mod colors are fills; modHi (raw palette var, theme vars only exist when a utility uses them) gives the text shade on the canvas, modOn the text color on a mod fill
 export const modHi = <T extends string | undefined>(c: T) => c?.replace(/--(?:color-)?(mod-[a-z]+)\)$/, "--$1-hi)") as T;

@@ -14,6 +14,7 @@ import { Editable } from "./editable";
 import { avatarPath } from "@/lib/avatar";
 import { osuUser } from "@/lib/links";
 import { roundName } from "@/lib/i18n/dict";
+import { MOD_COLOR } from "@/lib/mods";
 
 export type FolkProps = {
   t: Dict;
@@ -32,7 +33,6 @@ export type FolkProps = {
 const T = 0;
 const dv = (d: number) => ({ "--d": `${d * 0.5}s` }) as React.CSSProperties;
 
-const MOD_HEX: Record<string, string> = { NM: "var(--mod-nm)", HD: "var(--mod-hd)", HR: "var(--mod-hr)", DT: "var(--mod-dt)", TB: "var(--mod-tb)" };
 const PLACE = ["text-gold-hi", "text-silver-deep", "text-bronze-hi"];
 
 const STAR = Array.from({ length: 16 }, (_, i) => {
@@ -130,7 +130,7 @@ function stageRows(p: FolkProps) {
       name: roundName(p.t, r.name),
       when: days.length ? fmtRange(p.locale, days[0], days.at(-1)!) : "",
       sr: r.sr ?? null,
-      mods: [...r.cats.filter((c) => c.maps.length).map((c) => [skillOf(c).abbr, c.maps.length, skillOf(c).color] as const), ["TB", 1, MOD_HEX.TB] as const],
+      mods: [...r.cats.filter((c) => c.maps.length).map((c) => [skillOf(c).abbr, c.maps.length, skillOf(c).color] as const), ["TB", 1, MOD_COLOR.TB] as const],
       bo: s.bestOf,
       bans: r.bans,
     };

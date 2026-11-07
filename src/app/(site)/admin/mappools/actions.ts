@@ -5,11 +5,11 @@ import { currentEdition, db } from "@/db";
 import { maps, stages } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
 import { later, postPool } from "@/db/discord-bot";
-import { MODS } from "@/lib/data";
 import { fetchMap, parseBeatmapId } from "@/lib/fetch-map";
 import type { ActionResult } from "@/lib/roles";
 import { rm } from "node:fs/promises";
 import { packPath } from "@/lib/uploads";
+import { MODS } from "@/lib/mods";
 
 // a changed pool makes the uploaded pack stale, so it goes completely
 async function dropPack(stageId: number) {

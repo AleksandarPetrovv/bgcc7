@@ -13,7 +13,7 @@ import { phaseStates } from "@/lib/dates";
 import { Timeline } from "@/components/site/timeline";
 import { getFill } from "@/db/copy";
 import { Countdown } from "@/components/site/countdown";
-import { MODS, fmtNum, teamHref, type Match, type Team } from "@/lib/data";
+import { fmtNum, teamHref, type Match, type Team } from "@/lib/data";
 import { getPoolStages, type PoolStage } from "@/db/mappools";
 import { getSkillLayouts } from "@/db/format-plan";
 import { bySkill } from "@/lib/format-plan";
@@ -42,6 +42,7 @@ import { MeTag } from "@/components/site/me";
 import { ShrinkWrap } from "@/components/site/shrink-wrap";
 import { currentEdition, isBGCC6 } from "@/db";
 import { localeOf } from "@/lib/i18n/locale";
+import { MODS } from "@/lib/mods";
 
 const INK: Record<string, number> = { "6": 0.15, "7": 0.22 };
 

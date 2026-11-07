@@ -7,6 +7,7 @@ import { Container, PageTitle, SlantButton } from "@/components/site/page";
 import { UnderlineTabs } from "@/components/site/pool-pager";
 import { roundName } from "@/lib/i18n/dict";
 import { isLite } from "@/lib/lite";
+import { MODS } from "@/lib/mods";
 
 // a hidden two-digit label holds the width, so the button (and the tabs left of it) never move between stages
 function PackLabel({ text, widest }: { text: string; widest: string }) {
@@ -18,7 +19,7 @@ function PackLabel({ text, widest }: { text: string; widest: string }) {
   );
 }
 import { useDict } from "@/components/site/lang";
-import { MODS, fmtLen, type Stage } from "@/lib/data";
+import { fmtLen, type Stage } from "@/lib/data";
 import { osuMap } from "@/lib/links";
 import { modHi, modOn } from "@/lib/theme";
 import { cn } from "@/lib/utils";

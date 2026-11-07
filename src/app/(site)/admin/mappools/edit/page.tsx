@@ -5,11 +5,11 @@ import { RuleDiamond } from "@/components/site/rule";
 import { notFound } from "next/navigation";
 import { ArrowDown, ArrowUp, Download, Star, Trash2 } from "lucide-react";
 import { ActionForm, inputCls, Panel, Field, IconAction } from "@/components/admin/form";
-import { getPoolStages, MOD_ORDER, slotOf } from "@/db/mappools";
+import { getPoolStages, slotOf } from "@/db/mappools";
 import { getSkillLayouts } from "@/db/format-plan";
 import { getMapChecks } from "@/lib/osu-api";
 import { getViewer } from "@/lib/authz";
-import { cardCover, fmtLen, MODS } from "@/lib/data";
+import { cardCover, fmtLen } from "@/lib/data";
 import { TagChips } from "../tag-chips";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { PackUploader } from "../../site/pack-uploader";
@@ -26,6 +26,7 @@ import Link from "next/link";
 import { osuMap } from "@/lib/links";
 import { localeOf } from "@/lib/i18n/locale";
 import { roundName } from "@/lib/i18n/dict";
+import { MOD_ORDER, MODS } from "@/lib/mods";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 

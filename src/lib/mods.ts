@@ -1,3 +1,27 @@
+/** the one mod table, in pool order; every mod list, colour, label and lobby setting derives from it */
+const TABLE = [
+  { name: "NoMod", short: "NM", label: "No Mod", color: "var(--mod-nm)", lobby: "NF" },
+  { name: "Hidden", short: "HD", label: "Hidden", color: "var(--mod-hd)", lobby: "HD NF", sr: true },
+  { name: "HardRock", short: "HR", label: "Hard Rock", color: "var(--mod-hr)", lobby: "HR NF", sr: true },
+  { name: "DoubleTime", short: "DT", label: "Double Time", color: "var(--mod-dt)", lobby: "DT NF", sr: true },
+  { name: "FreeMod", short: "FM", label: "Free Mod", color: "var(--mod-fm)" },
+  { name: "Tiebreaker", short: "TB", label: "Tiebreaker", color: "var(--mod-tb)" },
+] as const;
+
+type Mod = { name: string; short: string; label: string; color: string; lobby?: string; sr?: boolean };
+const rows: readonly Mod[] = TABLE;
+
+/** long names in pool order ("NoMod", "Hidden", …) */
+export const MOD_ORDER = rows.map((m) => m.name);
+export const MODS: Record<string, { label: string; short: string; color: string }> = Object.fromEntries(rows.map((m) => [m.name, { label: m.label, short: m.short, color: m.color }]));
+/** colour by acronym; NC plays as DT, NF has no colour of its own */
+export const MOD_COLOR: Record<string, string> = { ...Object.fromEntries(rows.map((m) => [m.short, m.color])), NC: "var(--mod-dt)", NF: "var(--paper)" };
+export const LONG_MOD: Record<string, string> = Object.fromEntries(rows.map((m) => [m.short, m.name]));
+/** `!mp mods` arguments; mods without one (FreeMod, Tiebreaker) leave the lobby on freemod */
+export const MOD_LOBBY: Record<string, string> = Object.fromEntries(rows.flatMap((m) => (m.lobby ? [[m.name, m.lobby]] : [])));
+/** mods that change star rating, as the acronyms the osu! api takes */
+export const MOD_ACRONYM: Record<string, string[]> = Object.fromEntries(rows.flatMap((m) => (m.sr ? [[m.name, [m.short]]] : [])));
+
 const clamp = (v: number) => Math.min(11, Math.round(v * 100) / 100);
 const arToMs = (ar: number) => (ar < 5 ? 1800 - 120 * ar : 1200 - 150 * (ar - 5));
 const msToAr = (ms: number) => (ms > 1200 ? (1800 - ms) / 120 : 5 + (1200 - ms) / 150);
@@ -16,5 +40,3 @@ export function applyMod(mod: string, s: BaseStats): BaseStats {
     };
   return s;
 }
-
-export const MOD_ACRONYM: Record<string, string[]> = { Hidden: ["HD"], HardRock: ["HR"], DoubleTime: ["DT"] };

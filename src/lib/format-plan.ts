@@ -1,5 +1,5 @@
-import { MOD_COLOR } from "./theme";
 import { DEFAULT_CATALOG, DEFAULT_ROUNDS } from "./format-defaults";
+import { LONG_MOD, MOD_COLOR } from "./mods";
 
 export const PLAN_MODS = ["NM", "HD", "HR", "DT"] as const;
 export type PlanMod = (typeof PLAN_MODS)[number];
@@ -99,8 +99,6 @@ export function cleanPlan(v: unknown): Plan | null {
   });
   return { rounds, subcategories };
 }
-
-export const LONG_MOD: Record<PlanMod, string> = { NM: "NoMod", HD: "Hidden", HR: "HardRock", DT: "DoubleTime" };
 
 export const SKILLS: Record<string, { abbr: string; color: string }> = {
   aim: { abbr: "AIM", color: "var(--mod-nm)" },

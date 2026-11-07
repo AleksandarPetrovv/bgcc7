@@ -11,12 +11,13 @@ import { asc, eq } from "drizzle-orm";
 import { currentEdition, dbOf } from "@/db";
 import type { Edition } from "@/lib/format";
 import { maps as mapsTable, stages } from "@/db/schema";
-import { MOD_ORDER, slotOf } from "@/db/mappools";
+import { slotOf } from "@/db/mappools";
 import { getSkillLayouts } from "@/db/format-plan";
 import { skillSlot } from "./format-plan";
 import { log } from "./authz";
 import { getBeatmap } from "./osu-api";
 import { PACK_MAX, UPLOAD_DIR, packPath } from "./uploads";
+import { MOD_ORDER } from "@/lib/mods";
 
 export type PackJob = {
   state: "running" | "done" | "error";

@@ -6,10 +6,10 @@ import { poolSuggestions, poolVotes, stages } from "@/db/schema";
 import { resolveSlot, slotPicked } from "@/db/pool-sheet";
 import { guard } from "@/lib/admin-action";
 import { getViewer, log } from "@/lib/authz";
-import { MODS } from "@/lib/data";
 import { fetchMap, parseBeatmapId } from "@/lib/fetch-map";
 import { can, type ActionResult } from "@/lib/roles";
 import { getPlan } from "@/db/format-plan";
+import { MODS } from "@/lib/mods";
 
 async function settle(osuId: number, stageId: number, mod: string, slot: number, force = false, chosen?: number) {
   const res = await resolveSlot(stageId, mod, slot, force, chosen);

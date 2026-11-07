@@ -238,7 +238,7 @@ export function DraftRoom({
   const left = dl == null ? null : Math.max(0, dl - (paused ? new Date(d.pausedAt!).getTime() : now));
   const pauseLeft = paused && d.pauseUntil ? Math.max(0, new Date(d.pauseUntil).getTime() - now) : 0;
   const playMap = d.playing ? pools.flatMap((p) => p.maps).find((m) => m.id === d.playing!.mapId) : undefined;
-  const playTotal = playMap ? (playMap.length * 1000) / (playMap.mod === "DT" ? 1.5 : 1) : 0;
+  const playTotal = playMap ? playMap.length * 1000 : 0;
   const playLeft = d.playing ? (playTotal ? Math.max(0, d.playing.at + playTotal - now) : Math.max(0, now - d.playing.at)) : 0;
   const playTeam = (playMap && used.get(playMap.slot)?.team) || 1;
   const canTap = (slot: string) => !paused && (turn.kind === "ban" || turn.kind === "pick") && mine && pickable(slot) && !used.has(slot);

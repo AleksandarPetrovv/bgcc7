@@ -8,7 +8,7 @@ import { getPoolStages } from "@/db/mappools";
 import { getEdits, getScoreboard } from "@/db/scoreboards";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getViewer } from "@/lib/authz";
-import { fmtNum, MODS } from "@/lib/data";
+import { fmtNum } from "@/lib/data";
 import { slotColor } from "@/lib/format-plan";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
@@ -16,6 +16,7 @@ import { matchIdFromSlug } from "@/lib/format";
 import { getFormat } from "@/db/edition";
 import { cn } from "@/lib/utils";
 import { removeScore, saveScore, undoScore } from "./actions";
+import { MODS } from "@/lib/mods";
 
 export default async function MatchScores({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

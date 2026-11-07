@@ -3,14 +3,14 @@
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Notes } from "@/components/site/page";
-import { MODS } from "@/lib/data";
 import { slotColor } from "@/lib/format-plan";
 import { modHi } from "@/lib/theme";
 import type { FeedMap, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
 import { Backdrop, editionNum, HeaderSide, LABEL, Lockup, Rule, Slant, TEAM } from "./chrome";
+import { MOD_ORDER, MODS } from "@/lib/mods";
 
-const GROUPS = ["NoMod", "Hidden", "HardRock", "DoubleTime", "Tiebreaker"] as const;
+const GROUPS = MOD_ORDER;
 const norm = (v: string) => v.toLowerCase().replace(/[^a-z0-9]/g, "");
 
 function groupFor(map: FeedMap) {

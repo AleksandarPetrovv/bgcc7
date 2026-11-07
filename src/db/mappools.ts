@@ -6,7 +6,8 @@ import { maps, stages } from "./schema";
 import { safe } from "./safe";
 import { getSkillLayouts } from "./format-plan";
 import { skillSlot } from "@/lib/format-plan";
-import { MODS, type Beatmap, type Pack } from "@/lib/data";
+import { type Beatmap, type Pack } from "@/lib/data";
+import { MOD_ORDER, MODS } from "@/lib/mods";
 
 export type MapRow = typeof maps.$inferSelect;
 export type PoolStage = {
@@ -19,8 +20,6 @@ export type PoolStage = {
   blueprint: Record<string, number>;
   pools: { category: string; maps: (Beatmap & { rowId: number; order: number })[] }[];
 };
-
-export const MOD_ORDER = Object.keys(MODS);
 
 export const slotOf = (mod: string, i: number) => `${MODS[mod]?.short ?? mod}${mod === "Tiebreaker" ? "" : i + 1}`;
 

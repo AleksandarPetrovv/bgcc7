@@ -4,13 +4,13 @@ import { ArrowUpRight, Check, Hourglass, Scale, Star, Trash2 } from "lucide-reac
 import { LinkTabs } from "@/components/site/tabs";
 import { PageTitle } from "@/components/site/page";
 import { ActionForm, IconAction } from "@/components/admin/form";
-import { getPoolStages, MOD_ORDER } from "@/db/mappools";
+import { getPoolStages } from "@/db/mappools";
 import { getPlan, getSkillLayouts } from "@/db/format-plan";
 import { subcategoryNames } from "@/lib/format-plan";
 import { TagChips } from "../tag-chips";
 import { getSheet, sheetVersion } from "@/db/pool-sheet";
 import { getViewer } from "@/lib/authz";
-import { fmtLen, MODS } from "@/lib/data";
+import { fmtLen } from "@/lib/data";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { modHi } from "@/lib/theme";
@@ -23,6 +23,7 @@ import { SheetView, SlotBox } from "./sheet-view";
 import { osuMap } from "@/lib/links";
 import { cardCover } from "@/lib/data";
 import { roundName } from "@/lib/i18n/dict";
+import { MOD_ORDER, MODS } from "@/lib/mods";
 
 const places = (items: { picked: boolean; avg: number | null }[]) => {
   const out: number[] = [];

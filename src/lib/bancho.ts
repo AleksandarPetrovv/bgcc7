@@ -11,6 +11,7 @@ import { getUser } from "@/lib/osu-api";
 import { lobbySize } from "@/lib/format";
 
 import { CHAT_GAP, attach, canLobby, conn, ensureBot, g, lastSent, lobbyOwner, markClosed, membersOf, online, ownerOf, ping, playStart, state, syncOf, typed, type Live, type LobbySlot, type LobbyView } from "./bancho-irc";
+import { MOD_LOBBY } from "./mods";
 
 export { CHAT_GAP, canLobby, ensureBot, lobbyOwner, onLobby, sayLocal, type ChatLine, type LobbySlot, type LobbyView } from "./bancho-irc";
 
@@ -259,7 +260,7 @@ async function poolMap(matchId: string, text: string) {
   return { text: `!mp map ${map.id}${m[2]}`, mod: map.mod };
 }
 
-const modArgs = (mod: string) => (MOD_ARGS[mod] ? [MOD_ARGS[mod], false] : ["NF", true]) as [string, boolean];
+const modArgs = (mod: string) => (MOD_LOBBY[mod] ? [MOD_LOBBY[mod], false] : ["NF", true]) as [string, boolean];
 
 
 export async function sendChat(matchId: string, by: number, raw: string) {
@@ -390,8 +391,6 @@ export async function spareSlot(matchId: string, by: number, open: boolean) {
   const base = lobbySize(getFormat());
   await lb.channel.sendMessage(`!mp size ${open ? base + 1 : base}`);
 }
-
-const MOD_ARGS: Record<string, string> = { NoMod: "NF", Hidden: "HD NF", HardRock: "HR NF", DoubleTime: "DT NF" };
 
 export async function lobbyPick(matchId: string, stageSlug: string, slot: string) {
   if (!g.bgccIrc?.live.has(matchId)) return;

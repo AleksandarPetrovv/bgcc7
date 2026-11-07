@@ -13,10 +13,11 @@ import type { Beatmap } from "@/lib/data";
 import type { LobbyView } from "@/lib/bancho";
 import { slotColor } from "@/lib/format-plan";
 import { cn } from "@/lib/utils";
-import { LOBBY_TEAM, MOD_COLOR, modHi, TEAM } from "@/lib/theme";
+import { LOBBY_TEAM, modHi, TEAM } from "@/lib/theme";
 import { osuMp } from "@/lib/links";
 import { Btn, HelperMissing, IconBtn, LobbyAsk, StreamOrder, lobbyPost } from "./lobby-popups";
 import { Chat } from "./lobby-chat";
+import { MOD_COLOR } from "@/lib/mods";
 
 const TEAM_C = LOBBY_TEAM;
 const TEAM_HI = { red: TEAM[1].hi, blue: TEAM[2].hi } as const;

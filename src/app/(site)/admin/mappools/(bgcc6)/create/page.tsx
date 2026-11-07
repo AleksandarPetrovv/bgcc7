@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { LinkTabs } from "@/components/site/tabs";
 import { PageTitle } from "@/components/site/page";
-import { getPoolStages, MOD_ORDER } from "@/db/mappools";
+import { getPoolStages } from "@/db/mappools";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
@@ -9,6 +9,7 @@ import { saveBlueprint } from "../../actions";
 import { BlueprintForm } from "./blueprint-form";
 import { isBGCC6 } from "@/db";
 import { roundName } from "@/lib/i18n/dict";
+import { MOD_ORDER } from "@/lib/mods";
 
 export default async function PoolCreate({ searchParams }: { searchParams: Promise<{ stage?: string }> }) {
   const [t, viewer, stages, sp] = await Promise.all([getDict(), getViewer(), getPoolStages(), searchParams]);

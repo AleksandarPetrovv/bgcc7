@@ -8,14 +8,9 @@ import { useDict } from "./lang";
 import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
 import { MeTag, meP } from "./me";
-import { MEDAL_BG } from "@/lib/theme";
+import { MEDAL_BG, modHi } from "@/lib/theme";
+import { MOD_COLOR } from "@/lib/mods";
 
-const MOD_COLOR: Record<string, string> = {
-  NM: "text-mod-nm-hi",
-  HD: "text-mod-hd-hi",
-  HR: "text-mod-hr-hi",
-  DT: "text-mod-dt-hi",
-};
 
 
 type Open = { id: string; at: React.CSSProperties; map: QualMap; perf: QualPerf; player: QualPlayer } | null;
@@ -70,7 +65,7 @@ export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]
               <th className="px-3 py-3 text-right">{t.qual.cols[2]}</th>
               <th className="px-3 py-3 text-right">{t.qual.cols[3]}</th>
               {qualifiers.maps.map((m) => (
-                <th key={m.id} className={cn("px-2 py-3 text-right", MOD_COLOR[m.slot.slice(0, 2)])}>
+                <th key={m.id} className="px-2 py-3 text-right" style={{ color: modHi(MOD_COLOR[m.slot.slice(0, 2)]) }}>
                   {m.slot}
                 </th>
               ))}

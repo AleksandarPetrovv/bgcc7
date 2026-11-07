@@ -37,15 +37,6 @@ export type Beatmap = {
   id: number;
 };
 
-export const MODS: Record<string, { label: string; short: string; color: string }> = {
-  NoMod: { label: "No Mod", short: "NM", color: "var(--mod-nm)" },
-  Hidden: { label: "Hidden", short: "HD", color: "var(--mod-hd)" },
-  HardRock: { label: "Hard Rock", short: "HR", color: "var(--mod-hr)" },
-  DoubleTime: { label: "Double Time", short: "DT", color: "var(--mod-dt)" },
-  FreeMod: { label: "Free Mod", short: "FM", color: "var(--mod-fm)" },
-  Tiebreaker: { label: "Tiebreaker", short: "TB", color: "var(--mod-tb)" },
-};
-
 export type Pack = { size: number; at: string | null };
 export type Stage = { title: string; slug: string; pools: { category: string; color?: string; maps: Beatmap[] }[]; pack?: Pack | null; info?: { firstTo: number; bans: number } | null };
 

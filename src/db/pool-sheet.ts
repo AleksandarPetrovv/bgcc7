@@ -2,8 +2,9 @@ import "server-only";
 import { and, arrayOverlaps, asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "./index";
 import { poolSuggestions, poolVotes, staff, users } from "./schema";
-import { MOD_ORDER, slotOf } from "./mappools";
+import { slotOf } from "./mappools";
 import { avatarCol } from "./avatar";
+import { MOD_ORDER } from "@/lib/mods";
 
 export type Suggestion = typeof poolSuggestions.$inferSelect & {
   by: string;

@@ -4,12 +4,13 @@ import { AnimatePresence, motion } from "motion/react";
 import { Crown, Eye, Settings, Star } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import { EASE } from "@/components/site/motion";
-import { MODS, fmtLen, type Beatmap } from "@/lib/data";
+import { fmtLen, type Beatmap } from "@/lib/data";
 import { pickable, type DraftStep, type Side } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { slotColor } from "@/lib/format-plan";
 import { modHi, modOn, TEAM } from "@/lib/theme";
 import { CopyId } from "./draft-popups";
+import { MODS } from "@/lib/mods";
 
 export type Pool = { category: string; color?: string; maps: Beatmap[] }[];
 export type Used = Map<string, DraftStep & { n: number }>;
