@@ -36,7 +36,7 @@ export default async function Overlay() {
       <div className="grid max-w-3xl gap-6">
         <LinkGate linked={!!app}>
           <Panel title={r.linkTitle} i={i++}>
-            <ActionForm action={linkHelper.bind(null, "overlay")} submit={r.link} icon={<Link2 className="size-4" />} className="flex flex-wrap items-end gap-3">
+            <ActionForm action={linkHelper} submit={r.link} icon={<Link2 className="size-4" />} className="flex flex-wrap items-end gap-3">
               <label className={labelCls}>
                 {r.linkCode}
                 <Field name="code" required maxLength={64} autoComplete="off" spellCheck={false} className="w-64" />

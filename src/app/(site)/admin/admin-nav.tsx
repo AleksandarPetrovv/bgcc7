@@ -10,7 +10,6 @@ import { Sparkle } from "@/components/site/graphics";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  overview: Gauge,
   phase: Layers,
   screening: ClipboardCheck,
   lobbies: DoorOpen,
@@ -38,7 +37,7 @@ export function AdminNav({ items }: { items: { href: string; label: string }[] }
   return (
     <nav className="grid grid-cols-8 gap-x-0.5 gap-y-1.5 py-2 lg:flex lg:flex-col lg:justify-start lg:gap-1 lg:py-3" aria-label="Admin">
       {items.map((i) => {
-        const key = i.href.split("/")[2] ?? "overview";
+        const key = i.href.split("/")[2];
         const Icon = ICONS[key] ?? Gauge;
         const active = i.href === "/admin" ? path === i.href : path.startsWith(i.href);
         return (

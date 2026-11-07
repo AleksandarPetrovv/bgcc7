@@ -92,7 +92,7 @@ export const getSettings = cache(() =>
 );
 
 export async function saveSettings(patch: Partial<Settings>) {
-  // edition is the site switch (admin/edition-bgcc6); only write the given fields so a failed read can't overwrite the row with defaults
+  // edition is set elsewhere (public.settings); only write the given fields so a failed read can't overwrite the row with defaults
   const set = { ...patch, edition: undefined, updatedAt: new Date() };
   await db
     .insert(settings)

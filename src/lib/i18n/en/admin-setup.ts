@@ -1,7 +1,6 @@
 export const adminSetup = {
   title: "Admin",
   menu: {
-    overview: "Overview",
     phase: "Phase and pages",
     screening: "Screening",
     lobbies: "Lobbies",
@@ -273,7 +272,6 @@ export const adminSetup = {
   bwsLive: "Live ranks · they lock when registration ends",
   avgBws: "Avg seed",
   edition: "Edition",
-  confirmEdition: (e: string) => `Switch the whole site to ${e}?`,
   dc: {
     off: "The Discord bot isn't set up (no bot token or server id).",
     channels: "Channels",

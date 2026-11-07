@@ -41,7 +41,7 @@ export default async function HelperPage() {
       <Cascade className="grid max-w-3xl gap-6 [--d:0.35s]" step={0.08}>
         <LinkGate linked={!!app}>
           <Panel title={r.linkTitle} i={1}>
-            <ActionForm action={ref ? linkApp : linkHelper.bind(null, "helper")} submit={r.link} icon={<Link2 className="size-4" />} className="flex flex-wrap items-end gap-3">
+            <ActionForm action={ref ? linkApp : linkHelper} submit={r.link} icon={<Link2 className="size-4" />} className="flex flex-wrap items-end gap-3">
               <label className={labelCls}>
                 {r.linkCode}
                 <Field name="code" required maxLength={64} autoComplete="off" spellCheck={false} className="w-64" />

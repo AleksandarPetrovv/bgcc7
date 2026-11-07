@@ -10,9 +10,7 @@ import type { ActionResult } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
 export const inputCls = "min-w-0";
-export const dateCls = "w-full min-w-0 [&::-webkit-date-and-time-value]:text-left";
 export const labelCls = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
-export const checkLabelCls = "flex min-h-10 cursor-pointer items-center gap-2.5 text-sm font-display font-bold";
 
 // [text, skewed background]: the skew lives on an absolute span so the text is never transformed (transformed text goes blurry)
 const TONES = {

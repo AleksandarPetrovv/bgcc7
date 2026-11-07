@@ -3,7 +3,6 @@ import type { adminSetup as en } from "../en/admin-setup";
 export const adminSetup: typeof en = {
   title: "Админ",
   menu: {
-    overview: "Преглед",
     phase: "Фаза и страници",
     screening: "Проверка",
     lobbies: "Лобита",
@@ -275,7 +274,6 @@ export const adminSetup: typeof en = {
   bwsLive: "Текущи рангове · заключват се, когато свърши записването",
   avgBws: "Среден номер",
   edition: "Издание",
-  confirmEdition: (e: string) => `Да се превключи целият сайт на ${e}?`,
   dc: {
     off: "Discord ботът не е настроен (няма токен или сървър).",
     channels: "Канали",

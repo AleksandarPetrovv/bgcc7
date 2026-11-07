@@ -1,7 +1,7 @@
 export const ROLES = ["host", "technical", "leadDesign", "referee", "mappooler", "playtester", "streamer", "commentator", "designer"] as const;
 export type Role = (typeof ROLES)[number];
 
-export const PERMS = ["overview", "phase", "screening", "lobbies", "qualifiers", "mappools", "poolEdit", "poolVote", "teams", "matches", "draft", "staff", "log", "settings", "format", "formatEdit", "stream", "overlay", "discord"] as const;
+export const PERMS = ["phase", "screening", "lobbies", "qualifiers", "mappools", "poolEdit", "poolVote", "teams", "matches", "draft", "staff", "log", "settings", "format", "formatEdit", "stream", "overlay", "discord"] as const;
 export type Perm = (typeof PERMS)[number];
 
 const GRANTS: Record<Role, readonly Perm[]> = {
@@ -20,7 +20,6 @@ export const can = (roles: readonly Role[] | null | undefined, perm: Perm) => !!
 export const hasAdmin = (roles: readonly Role[] | null | undefined) => !!roles?.some((r) => GRANTS[r].length);
 export const titleOnly = (r: Role) => GRANTS[r].length === 0;
 export const PLAYABLE: readonly Role[] = ["streamer", "commentator", "designer", "leadDesign"];
-export const isRole = (v: unknown): v is Role => typeof v === "string" && (ROLES as readonly string[]).includes(v);
 export const cleanRoles = (list: unknown[]): Role[] => {
   const roles = ROLES.filter((r) => list.includes(r));
   return roles.includes("host") ? roles.filter((r) => r === "host" || titleOnly(r)) : roles;

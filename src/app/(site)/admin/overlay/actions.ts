@@ -4,7 +4,7 @@ import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
 import { linkResult, unpair } from "@/lib/relay";
 
-export async function linkHelper(_back: "helper" | "overlay", _: ActionResult, fd: FormData) {
+export async function linkHelper(_: ActionResult, fd: FormData) {
   return guard("overlay", "overlay.link", async (osuId) => linkResult(fd, osuId));
 }
 
