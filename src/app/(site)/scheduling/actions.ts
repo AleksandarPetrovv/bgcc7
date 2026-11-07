@@ -1,20 +1,21 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { currentEdition, db, withEdition } from "@/db";
-import { matches, reschedules } from "@/db/schema";
+import { availability, matches, reschedules } from "@/db/schema";
 import { getSettings } from "@/db/settings";
 import { getAllTeams } from "@/db/tournament";
-import { fmtAt, lockMatch, myCaptainTeam, notifyCaptain, pendingOf, schedulable, stageWeeks } from "@/db/schedule";
+import { busyOf, fmtAt, lockMatch, myCaptainTeam, mySchedule, notifyCaptain, pendingOf, schedulable, stageWeeks, teamOf } from "@/db/schedule";
 import { getViewer } from "@/lib/authz";
 import { siteUrl } from "@/lib/links";
 import { teamNote } from "@/db/discord-bot";
 import { fromSofiaInput } from "@/lib/time";
-import { inWindow, isOpen, weekOf } from "@/lib/schedule";
+import { hourKeys, hourOf, inWindow, isOpen, offHours, weekOf } from "@/lib/schedule";
 
-type Res = { ok: true } | { ok: false; error: "forbidden" | "closed" | "window" | "gone" | "failed" | "note" };
+type Res = { ok: true } | { ok: false; error: "forbidden" | "closed" | "window" | "gone" | "failed" | "note" | "busy" };
 
 // every proposal, decline and withdraw carries a short note so teams don't go back and forth
 const noteOf = (v: string) => {
@@ -67,7 +68,10 @@ export async function propose(matchId: string, input: string, noteIn: string): P
       if (!m || !schedulable(m) || (m.team1Id !== team && m.team2Id !== team)) throw new Stop("gone");
       const w = weekOf(weeks[m.stageSlug]);
       if (!w || !isOpen(w)) throw new Stop("closed");
-      if (!at || !inWindow(w, at)) throw new Stop("window");
+      if (!at || !inWindow(w, at) || offHours(input)) throw new Stop("window");
+      // nobody of the four may have marked this hour as unavailable
+      const busy = (await busyOf([m.id])).get(m.id) ?? {};
+      if (Object.values(busy).some((h) => h.includes(hourOf(input)))) throw new Stop("busy");
       const open = await pendingOf(tx, m.id);
       for (const p of open) {
         await tx
@@ -168,4 +172,32 @@ export async function decline(matchId: string, proposalId: number, noteIn: strin
       await teamNote({ [team]: `Your captain declined the time **${to}** proposed.${quote(note)}`, [by]: `**${from}** declined your proposed time. Your captain can propose another: <${siteUrl()}/scheduling>${quote(note)}` });
     };
   });
+}
+
+/** a player of either team saves the hours they can't play for this match */
+export async function setBusy(matchId: string, hours: string[]): Promise<Res> {
+  return run(async () => {
+    const v = await getViewer();
+    if (!v || (await getSettings()).phase !== "playoffs") throw new Stop("forbidden");
+    const team = await teamOf(v.osuId);
+    const weeks = await stageWeeks();
+    const m = (await db.select().from(matches).where(eq(matches.id, matchId)).limit(1))[0];
+    if (!m || !team || (m.team1Id !== team && m.team2Id !== team) || m.winner != null) throw new Stop("forbidden");
+    const w = weekOf(weeks[m.stageSlug]);
+    if (!w || !isOpen(w)) throw new Stop("closed");
+    const ok = new Set(hourKeys(w.min, w.max));
+    const busy = [...new Set(Array.isArray(hours) ? hours.filter((h) => typeof h === "string" && ok.has(h)) : [])].sort();
+    await db
+      .insert(availability)
+      .values({ matchId, osuId: v.osuId, busy })
+      .onConflictDoUpdate({ target: [availability.matchId, availability.osuId], set: { busy, updatedAt: new Date() } });
+    return async () => {};
+  });
+}
+
+/** fingerprint of the viewer's scheduling data; the page polls it and refreshes on change */
+export async function schedSig() {
+  const v = await getViewer();
+  if (!v) return "";
+  return createHash("sha1").update(JSON.stringify(await mySchedule(v.osuId))).digest("hex");
 }

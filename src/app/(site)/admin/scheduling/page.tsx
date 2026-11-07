@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, Field, Panel, dateCls, labelCls } from "@/components/admin/form";
+import { ActionForm, DateTimeField, Field, Panel, dateCls, labelCls } from "@/components/admin/form";
 import { getPoolStages } from "@/db/mappools";
 import { getMatchRows, getTeams } from "@/db/tournament";
 import { historyOf, stageWeeks } from "@/db/schedule";
@@ -106,7 +106,7 @@ export default async function AdminScheduling() {
                         <ActionForm action={setTime.bind(null, m.id)} className="flex flex-wrap items-end gap-3 border-t border-line py-3 pl-5 pr-4" submit={s.admin.set} ghost>
                           <label className={labelCls}>
                             {s.admin.at}
-                            <Field type="datetime-local" name="at" defaultValue={toSofiaInput(m.startsAt)} inputClassName={dateCls} />
+                            <DateTimeField name="at" defaultValue={toSofiaInput(m.startsAt)} />
                           </label>
                         </ActionForm>
                       </div>

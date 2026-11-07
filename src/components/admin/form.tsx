@@ -5,6 +5,7 @@ import { Flash } from "./flash";
 import { Modal } from "@/components/site/modal";
 import { Sparkle } from "@/components/site/graphics";
 import { useDict } from "@/components/site/lang";
+import { WeekdayInput } from "@/components/site/weekday-input";
 import type { ActionResult } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
@@ -147,6 +148,21 @@ export function Field({ className, inputClassName, ...props }: React.InputHTMLAt
     <span className={cn("adm-field", props.disabled && "opacity-45", className)}>
       <input {...props} className={cn("adm-bare", inputClassName)} />
     </span>
+  );
+}
+
+/** datetime-local Field with the weekday shown inside, on an unskewed layer so it stays crisp */
+export function DateTimeField({ defaultValue, ...props }: { name: string; defaultValue: string }) {
+  const [val, setVal] = useState(defaultValue);
+  return (
+    <WeekdayInput
+      {...props}
+      value={val}
+      onValue={setVal}
+      className="h-10 w-[21rem] max-w-full"
+      box="border border-line border-b-2 border-b-paper/16 bg-field transition-[border-color,background-color,box-shadow] group-hover:border-paper/22 group-focus-within:border-b-rose group-focus-within:bg-well group-focus-within:shadow-[4px_4px_0_0_var(--rose-deep)]"
+      text="font-display text-[0.9rem] font-semibold text-paper tabular-nums"
+    />
   );
 }
 

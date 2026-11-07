@@ -50,5 +50,8 @@ export const windowState = (opens: Date | null, closes: Date | null): WindowStat
 };
 
 export const fmtSofiaDay = (d: Date, locale: string) => d.toLocaleDateString(locale, { timeZone: TZ, weekday: "short", day: "numeric", month: "short" });
-export const fmtSofiaTime = (d: Date) => d.toLocaleTimeString("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+/** weekday of a datetime-local value ("2027-09-17T18:00"), as written, no timezone shift */
+export const inputWeekday = (v: string, locale: string) =>
+  /^\d{4}-\d{2}-\d{2}/.test(v) ? new Date(`${v.slice(0, 10)}T12:00Z`).toLocaleDateString(locale, { timeZone: "UTC", weekday: "long" }) : "";
+export const fmtSofiaTime =(d: Date) => d.toLocaleTimeString("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 export const nextHour = () => new Date(Math.ceil(Date.now() / 3_600_000) * 3_600_000);

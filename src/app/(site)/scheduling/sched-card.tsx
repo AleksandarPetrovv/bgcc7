@@ -8,6 +8,9 @@ import { Modal } from "@/components/site/modal";
 import { SlantButton } from "@/components/site/page";
 import { useDict, useLang } from "@/components/site/lang";
 import { fmtSofiaDay, fmtSofiaTime } from "@/lib/time";
+import { DayTime, firstFree, isFree } from "./day-time";
+import { Availability } from "./availability";
+import { avatarPath } from "@/lib/avatar";
 import type { Proposal } from "@/lib/schedule";
 import type { SchedMatch } from "@/db/schedule";
 import { cn } from "@/lib/utils";
@@ -21,7 +24,7 @@ import { accept, decline, propose, withdraw } from "./actions";
 const reveal = { initial: { height: 0, opacity: 0 }, animate: { height: "auto", opacity: 1 }, exit: { height: 0, opacity: 0 }, transition: { duration: 0.4, ease: EASE } };
 const fade = { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -8 }, transition: { duration: 0.25, ease: EASE } };
 
-export type Side = { id: string; name: string; image: string; players: number[] };
+export type Side = { id: string; name: string; image: string; players: number[]; names: string[] };
 type Week = { deadline: string; min: string; max: string } | null;
 
 function useWhen() {
@@ -29,6 +32,9 @@ function useWhen() {
   const locale = lang === "bg" ? "bg-BG" : "en-GB";
   return {
     full: (iso: string) => `${fmtSofiaDay(new Date(iso), locale)} · ${fmtSofiaTime(new Date(iso))}`,
+    // "1 Oct · 18:00, Friday"
+    hist: (iso: string) =>
+      `${new Date(iso).toLocaleDateString(locale, { timeZone: "Europe/Sofia", day: "numeric", month: "short" })} · ${fmtSofiaTime(new Date(iso))}, ${new Date(iso).toLocaleDateString(locale, { timeZone: "Europe/Sofia", weekday: "long" })}`,
     short: (iso: string) => `${new Date(iso).toLocaleDateString(locale, { timeZone: "Europe/Sofia", weekday: "short" })} ${fmtSofiaTime(new Date(iso))}`,
   };
 }
@@ -46,10 +52,12 @@ function Team({ s, flip, d }: { s: Side; flip?: boolean; d: number }) {
 function NoteField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const t = useDict();
   return (
-    <label className="grid gap-1.5 text-xs font-display font-bold text-ash">
-      {t.sched.note}
+    // a div, not a label: only a click inside the box itself focuses it
+    <div className="grid gap-1.5 text-xs font-display font-bold text-ash">
+      <span id="sched-note">{t.sched.note}</span>
       <span className="flex w-full min-w-0 -skew-x-6 border border-line bg-ink focus-within:border-rose">
         <textarea
+          aria-labelledby="sched-note"
           required
           rows={2}
           maxLength={300}
@@ -59,7 +67,7 @@ function NoteField({ value, onChange }: { value: string; onChange: (v: string) =
           className="w-full min-w-0 skew-x-6 resize-none border-0 bg-transparent px-4 py-2.5 font-sans text-sm font-normal text-paper outline-none placeholder:text-ash/70"
         />
       </span>
-    </label>
+    </div>
   );
 }
 
@@ -109,9 +117,10 @@ function NoteModal({ open, onClose, title, text, action, onSend }: { open: boole
   );
 }
 
-function Picker({ open, onClose, week, title, onSend }: { open: boolean; onClose: () => void; week: NonNullable<Week>; title: string; onSend: (v: string, note: string) => Promise<string | null> }) {
+function Picker({ open, onClose, week, title, onSend, blocked }: { open: boolean; onClose: () => void; week: NonNullable<Week>; title: string; onSend: (v: string, note: string) => Promise<string | null>; blocked: Set<string> }) {
   const t = useDict();
-  const [val, setVal] = useState(week.min);
+  const [val, setVal] = useState(() => firstFree(week.min, week.max, blocked));
+  const free = isFree(blocked, val);
   const [note, setNote] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -123,26 +132,16 @@ function Picker({ open, onClose, week, title, onSend }: { open: boolean; onClose
         className="mt-5 grid gap-4"
         onSubmit={(e) => {
           e.preventDefault();
+          if (!free) return setErr(t.sched.err.busy);
           if (!note.trim()) return setErr(t.sched.err.note);
           start(async () => setErr(await onSend(val, note)));
         }}
       >
-        <span className="flex min-h-11 w-full min-w-0 -skew-x-12 border border-line bg-ink focus-within:border-rose">
-          <input
-            type="datetime-local"
-            required
-            value={val}
-            min={week.min}
-            max={week.max}
-            step={300}
-            onChange={(e) => setVal(e.target.value)}
-            className="num w-full min-w-0 skew-x-12 border-0 bg-transparent px-4 text-base text-paper outline-none [color-scheme:light] [&::-webkit-datetime-edit-fields-wrapper]:p-0 [&::-webkit-datetime-edit-text]:px-px"
-          />
-        </span>
+        <DayTime min={week.min} max={week.max} value={val} onChange={setVal} blocked={blocked} />
         <NoteField value={note} onChange={setNote} />
         <ErrLine err={err} />
         <div className="flex flex-wrap gap-3">
-          <SlantButton type="submit" disabled={pending} className="px-6 py-2.5">
+          <SlantButton type="submit" disabled={pending || !free} className="px-6 py-2.5">
             {pending ? "…" : t.sched.send}
           </SlantButton>
           <SlantButton tone="outline" onClick={onClose} className="px-5 py-2.5">
@@ -154,20 +153,78 @@ function Picker({ open, onClose, week, title, onSend }: { open: boolean; onClose
   );
 }
 
+function AvailSection({ m, week, me, opp, viewer, editable }: { m: SchedMatch; week: NonNullable<Week>; me: Side; opp: Side; viewer: number; editable: boolean }) {
+  const t = useDict();
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="border-t border-line">
+      <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} style={at(2.2)} className="in-up in-slow flex items-center gap-2 py-3 text-[0.7rem] font-display font-bold text-ash hover:text-paper">
+        {t.sched.avail} <ChevronDown className={cn("size-3.5 transition-transform duration-300", open && "rotate-180")} />
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div {...reveal} className="overflow-hidden">
+            <Availability matchId={m.id} week={week} busy={m.busy} me={me} opp={opp} viewer={viewer} editable={editable} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/** who an osu id is in this matchup: name + team colour; anyone else is staff */
+function usePerson(me: Side, opp: Side) {
+  const t = useDict();
+  return (id: number | null) => {
+    for (const [s, color] of [[me, "var(--crimson)"], [opp, "var(--azure)"]] as const) {
+      const i = id == null ? -1 : s.players.indexOf(id);
+      if (i >= 0) return { id: id!, name: s.names[i] ?? s.name, color };
+    }
+    return { id, name: t.sched.staffName, color: "var(--gold)" };
+  };
+}
+
+function Pfp({ id, color, className }: { id: number | null; color: string; className?: string }) {
+  return id == null ? (
+    <span className={cn("shrink-0 rounded-full border-2 bg-slate", className)} style={{ borderColor: color }} aria-hidden />
+  ) : (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={avatarPath(id)} alt="" className={cn("shrink-0 rounded-full border-2 object-cover", className)} style={{ borderColor: color }} />
+  );
+}
+
+/** chat-style line: pfp, name, text */
+function Comment({ who, text }: { who: { id: number | null; name: string; color: string }; text: string }) {
+  return (
+    <div className="flex items-start gap-2">
+      {/* same height as the pfp so the diamond sits level with its centre */}
+      <span className="mt-0.5 flex h-6 shrink-0 items-center" aria-hidden>
+        <span className="size-1.5 rotate-45" style={{ background: who.color }} />
+      </span>
+      <Pfp id={who.id} color={who.color} className="mt-0.5 size-6" />
+      <div className="min-w-0">
+        <span className="text-[0.7rem] font-display font-bold" style={{ color: `color-mix(in srgb, ${who.color} 70%, var(--paper))` }}>
+          {who.name}
+        </span>
+        <p className="break-words text-sm leading-snug text-paper/85">{text}</p>
+      </div>
+    </div>
+  );
+}
+
 function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
   const t = useDict();
   const w = useWhen();
   const st = t.sched.st;
-  const team = (id: string) => (id === me.id ? me.name : opp.name);
-  const other = (id: string) => (id === me.id ? opp.name : me.name);
-  const of = (osu: number | null) => (osu == null ? "" : me.players.includes(osu) ? me.name : opp.name);
+  const person = usePerson(me, opp);
+  // names in labels are the captain who answered, not the team
   const label = (p: Proposal) =>
-    p.status === "rejected" ? st.rejected(other(p.teamId)) : p.status === "cancelled" ? (p.staff || p.answeredBy == null ? st.staff : st.cancelled(of(p.answeredBy))) : p.status === "staff" ? st.set : st[p.status];
+    p.status === "rejected" ? st.rejected(person(p.answeredBy).name) : p.status === "cancelled" ? (p.staff || p.answeredBy == null ? st.staff : st.cancelled(person(p.answeredBy).name)) : p.status === "staff" ? st.set : st[p.status];
   const [open, setOpen] = useState(true);
   if (!list.length) return null;
   return (
     <div className="border-t border-line">
-      <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} style={at(1.5)} className="in-up in-slow flex items-center gap-2 py-3 text-[0.7rem] font-display font-bold text-ash hover:text-paper">
+      <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} style={at(3.2)} className="in-up in-slow flex items-center gap-2 py-3 text-[0.7rem] font-display font-bold text-ash hover:text-paper">
         {t.sched.history} <ChevronDown className={cn("size-3.5 transition-transform duration-300", open && "rotate-180")} />
       </button>
       <AnimatePresence initial={false}>
@@ -182,14 +239,22 @@ function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
                     initial={{ opacity: 0, x: -16 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.4, ease: EASE }}
-                    style={at(1.6, k, 0.08)}
+                    style={at(3.3, k, 0.08)}
                     className="in-left in-slow flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-sm"
                   >
-                    <span className={cn("num transition-colors duration-500", p.status === "rejected" || p.status === "cancelled" ? "text-ash line-through" : "text-paper")}>{w.full(p.at)}</span>
-                    <span className="font-display text-sm font-bold text-ash">{team(p.teamId)}</span>
+                    <span className={cn("num transition-colors duration-500", p.status === "rejected" || p.status === "cancelled" ? "text-ash line-through" : "text-paper")}>{w.hist(p.at)}</span>
+                    <span className="inline-flex items-center gap-1.5 self-center font-display text-sm font-bold text-ash">
+                      <Pfp id={person(p.by).id} color={person(p.by).color} className="size-5" />
+                      {person(p.by).name}
+                    </span>
                     <span className={cn("ml-auto text-[0.68rem] font-display font-bold transition-colors duration-500", p.status === "accepted" ? "text-balkan-hi" : p.status === "pending" ? "text-gold-hi" : "text-rose-hi/80")}>{label(p)}</span>
-                    {p.note && <span className="basis-full text-xs italic text-ash">“{p.note}”</span>}
-                    {p.reply && <span className="basis-full text-xs italic text-rose-hi/80">↳ “{p.reply}”</span>}
+                    {(p.note || p.reply) && (
+                      // a thread: rule on the left, a diamond in the writer's team colour beside each pfp
+                      <div className="mb-1 mt-1.5 grid basis-full gap-2.5 border-l border-line pl-2.5">
+                        {p.note && <Comment who={person(p.by)} text={p.note} />}
+                        {p.reply && <Comment who={person(p.answeredBy ?? p.by)} text={p.reply} />}
+                      </div>
+                    )}
                   </motion.li>
                 ))}
               </AnimatePresence>
@@ -201,7 +266,7 @@ function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
   );
 }
 
-export function SchedCard({ m, round, me, opp, week, open, readOnly = false, n = 0 }: { m: SchedMatch; round: string; me: Side; opp: Side; week: Week; open: boolean; readOnly?: boolean; n?: number }) {
+export function SchedCard({ m, round, me, opp, week, open, viewer, readOnly = false, n = 0 }: { m: SchedMatch; round: string; me: Side; opp: Side; week: Week; open: boolean; viewer: number; readOnly?: boolean; n?: number }) {
   const t = useDict();
   const ref = useRef<HTMLElement>(null);
   // once the intro is over, parts that mount later (after a refresh) appear without the long delays
@@ -238,9 +303,13 @@ export function SchedCard({ m, round, me, opp, week, open, readOnly = false, n =
   const theirs = pend && pend.teamId !== me.id;
   const agreed = m.startsAt;
   const msg = (e: string) => t.sched.err[e] ?? t.sched.err.failed;
+  // hours any current player of the four marked as unavailable
+  const blocked = new Set([...me.players, ...opp.players].flatMap((id) => m.busy[id] ?? []));
 
   const send = async (v: string, note: string) => {
     const res = await propose(m.id, v, note).catch(() => ({ ok: false as const, error: "failed" as const }));
+    // someone changed their hours meanwhile: pull the fresh grid so the picker skips it
+    if (!res.ok && res.error === "busy") router.refresh();
     if (!res.ok) return msg(res.error);
     setPick(false);
     router.refresh();
@@ -294,29 +363,29 @@ export function SchedCard({ m, round, me, opp, week, open, readOnly = false, n =
 
       <div className="pb-5 text-center">
         <AnimatePresence initial={false} mode="wait">
-          <motion.p key={agreed ?? "tbd"} {...fade} className={cn("num text-paper", agreed ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl")}><Letters text={agreed ? w.full(agreed) : t.common.tbd} d={L} s={0.02} /></motion.p>
+          <motion.p key={agreed ?? "tbd"} {...fade} className={cn("num text-paper", agreed ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl")}><Letters text={agreed ? w.full(agreed) : t.common.tbd} d={L + 0.45} s={0.02} /></motion.p>
         </AnimatePresence>
 
         {!week ? (
-          <p className="mt-4 text-sm font-display font-bold text-ash"><Letters text={t.sched.noWeek} d={L} s={0.01} /></p>
+          <p className="mt-4 text-sm font-display font-bold text-ash"><Letters text={t.sched.noWeek} d={L + 0.6} s={0.01} /></p>
         ) : !open ? (
-          <p className="mt-4 text-sm font-display font-bold text-ash"><Letters text={t.sched.locked} d={L} s={0.01} /></p>
+          <p className="mt-4 text-sm font-display font-bold text-ash"><Letters text={t.sched.locked} d={L + 0.6} s={0.01} /></p>
         ) : agreed ? (
-          <p className="mt-2 text-xs font-display font-bold text-ash"><Letters text={t.sched.closes(w.short(week.deadline))} d={L} s={0.01} /></p>
+          <p className="mt-2 text-xs font-display font-bold text-ash"><Letters text={t.sched.closes(w.short(week.deadline))} d={L + 0.6} s={0.01} /></p>
         ) : (
           <div className="relative mx-auto mt-5 max-w-sm pb-2">
-            <p className="text-xs font-display font-bold text-ash"><Letters text={t.sched.closesIn} d={L} s={0.015} /></p>
-            <div style={at(0.1)} className="in-up mt-1 flex justify-center">
+            <p className="text-xs font-display font-bold text-ash"><Letters text={t.sched.closesIn} d={L + 0.6} s={0.015} /></p>
+            <div style={at(1.4)} className="in-up mt-1 flex justify-center">
               <Countdown to={week.deadline} className="text-3xl max-sm:text-3xl" />
             </div>
-            <p className="mt-4 text-xs font-display font-bold text-ash"><Letters text={w.full(week.deadline)} d={L} s={0.01} /></p>
+            <p className="mt-4 text-xs font-display font-bold text-ash"><Letters text={w.full(week.deadline)} d={L + 0.8} s={0.01} /></p>
           </div>
         )}
 
         <AnimatePresence initial={false}>
           {week && open && pend && (
             <motion.div key={pend.id} {...reveal} className="overflow-hidden">
-              <div style={at(1.1)} className={cn("in-up in-slow mx-auto mt-5 max-w-md border px-4 py-3 transition-colors duration-500", theirs ? "border-gold bg-gold/10" : "border-line")}>
+              <div style={at(1.8)} className={cn("in-up in-slow mx-auto mt-5 max-w-md border px-4 py-3 transition-colors duration-500", theirs ? "border-gold bg-gold/10" : "border-line")}>
                 <p className="text-xs font-display font-bold text-ash">{theirs ? t.sched.proposed(opp.name) : t.sched.waitingOn(opp.name)}</p>
                 <p className="num mt-1 text-2xl text-paper">{w.full(pend.at)}</p>
                 {pend.note && <p className="mt-1.5 text-sm italic text-paper/80">“{pend.note}”</p>}
@@ -330,44 +399,44 @@ export function SchedCard({ m, round, me, opp, week, open, readOnly = false, n =
           <motion.div key={theirs ? "t" : agreed ? (pend ? "ap" : "a") : pend ? "p" : "n"} {...fade} className="mt-5 flex flex-wrap justify-center gap-3">
             {theirs ? (
               <>
-                <span className="in-up in-slow inline-flex" style={at(1.25, 0, 0.1)}>
+                <span className="in-up in-slow inline-flex" style={at(1.9, 0, 0.1)}>
                   <SlantButton tone="balkan" onClick={yes} disabled={pending} className="px-6 py-2.5">
                     <Check className="size-4" /> {pending ? "…" : t.sched.accept}
                   </SlantButton>
                 </span>
-                <span className="in-up in-slow inline-flex" style={at(1.25, 1, 0.1)}>
+                <span className="in-up in-slow inline-flex" style={at(1.9, 1, 0.1)}>
                   <SlantButton tone="outline" onClick={() => setPick(true)} className="px-5 py-2.5">
                     <Repeat className="size-4" /> {t.sched.counter}
                   </SlantButton>
                 </span>
-                <span className="in-up in-slow inline-flex" style={at(1.25, 2, 0.1)}>
+                <span className="in-up in-slow inline-flex" style={at(1.9, 2, 0.1)}>
                   <SlantButton tone="outline" onClick={() => setAsk("decline")} disabled={pending} className="px-5 py-2.5">
                     <X className="size-4" /> {t.sched.decline}
                   </SlantButton>
                 </span>
               </>
             ) : agreed ? (
-              <span className="in-up in-slow inline-flex" style={at(1.25, 0, 0.1)}>
+              <span className="in-up in-slow inline-flex" style={at(1.9, 0, 0.1)}>
                 <SlantButton tone="outline" onClick={() => setWarn(true)} className="px-5 py-2.5">
                   <Repeat className="size-4" /> {t.sched.reschedule}
                 </SlantButton>
               </span>
             ) : (
-              <span className="in-up in-slow inline-flex" style={at(1.25, 0, 0.1)}>
+              <span className="in-up in-slow inline-flex" style={at(1.9, 0, 0.1)}>
                 <SlantButton onClick={() => setPick(true)} className="px-6 py-2.5">
                   <CalendarClock className="size-4" /> {t.sched.propose}
                 </SlantButton>
               </span>
             )}
             {!theirs && pend && (
-              <span className="in-up in-slow inline-flex" style={at(1.25, 1, 0.1)}>
+              <span className="in-up in-slow inline-flex" style={at(1.9, 1, 0.1)}>
                 <SlantButton tone="outline" onClick={() => setAsk("pull")} disabled={pending} className="px-5 py-2.5">
                   <X className="size-4" /> {t.sched.withdraw}
                 </SlantButton>
               </span>
             )}
             {agreed && !pend && (
-              <span className="in-up in-slow inline-flex" style={at(1.25, 1, 0.1)}>
+              <span className="in-up in-slow inline-flex" style={at(1.9, 1, 0.1)}>
                 <SlantButton tone="outline" onClick={() => setAsk("clear")} disabled={pending} className="px-5 py-2.5">
                   <X className="size-4" /> {t.sched.withdraw}
                 </SlantButton>
@@ -385,10 +454,12 @@ export function SchedCard({ m, round, me, opp, week, open, readOnly = false, n =
         </AnimatePresence>
       </div>
 
+      {week && <AvailSection m={m} week={week} me={me} opp={opp} viewer={viewer} editable={open} />}
+
       <History list={m.history} me={me} opp={opp} />
 
       {week && (
-        <Picker key={pickKey} open={pick} onClose={() => setPick(false)} week={week} title={theirs ? t.sched.counter : agreed ? t.sched.reschedule : t.sched.propose} onSend={send} />
+        <Picker key={pickKey} open={pick} onClose={() => setPick(false)} week={week} title={theirs ? t.sched.counter : agreed ? t.sched.reschedule : t.sched.propose} onSend={send} blocked={blocked} />
       )}
       <Modal open={warn} onClose={() => setWarn(false)} tone="gold">
         <AlertTriangle className="size-7 text-gold-hi" />
