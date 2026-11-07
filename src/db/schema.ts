@@ -330,6 +330,20 @@ export const reschedules = pgTable("reschedules", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// hours a player can't play for a match ("YYYY-MM-DDTHH", sofia); proposals can't land on them
+export const availability = pgTable(
+  "availability",
+  {
+    matchId: text("match_id")
+      .notNull()
+      .references(() => matches.id, { onDelete: "cascade" }),
+    osuId: integer("osu_id").notNull(),
+    busy: jsonb("busy").$type<string[]>().notNull().default([]),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("availability_match_user").on(t.matchId, t.osuId)],
+);
+
 export const scoreEdits = pgTable(
   "score_edits",
   {
@@ -352,6 +366,9 @@ export const scoreEdits = pgTable(
 
 export type DraftStep = { team: 1 | 2; kind: "ban" | "pick"; slot: string; skip?: boolean; winner?: 1 | 2; auto?: boolean };
 /** the stage's rules and maps when the draft started, so format or pool edits don't change a running match */
+/** captain timeout requests: waiting queue (in order), sides that used theirs, side whose timeout is running */
+export type DraftTimeouts = { queue: (1 | 2)[]; used: (1 | 2)[]; on: 1 | 2 | null };
+export const NO_TIMEOUTS: DraftTimeouts = { queue: [], used: [], on: null };
 export type DraftRules = { firstTo: number; hasTb: boolean; banSecs: number; pickSecs: number; slots: string[]; maps: Record<string, Beatmap & { rowId: number; order: number }> };
 export type DraftUndo =
   | { kind: "winner"; slot: string; winner: 1 | 2 }
@@ -377,6 +394,7 @@ export const drafts = pgTable("drafts", {
   turnAt: timestamp("turn_at", { withTimezone: true }),
   pausedAt: timestamp("paused_at", { withTimezone: true }),
   pauseUntil: timestamp("pause_until", { withTimezone: true }),
+  timeouts: jsonb("timeouts").$type<DraftTimeouts>().notNull().default({ queue: [], used: [], on: null }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

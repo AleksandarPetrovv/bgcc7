@@ -3,7 +3,7 @@ import "server-only";
 import { randomInt } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { and, eq, isNull, or, sql } from "drizzle-orm";
-import { drafts, matches, mpLobbies, teamMembers, users, type DraftRules, type DraftUndo } from "./schema";
+import { drafts, matches, mpLobbies, teamMembers, users, NO_TIMEOUTS, type DraftRules, type DraftUndo } from "./schema";
 import { getPoolStages } from "./mappools";
 import { getSettings } from "./settings";
 import { can } from "@/lib/roles";
@@ -79,6 +79,7 @@ export const toView = (r: Row, c: Timers = { banSecs: 90, pickSecs: 120, stages:
   turnAt: r.turnAt?.toISOString() ?? null,
   pausedAt: r.pausedAt?.toISOString() ?? null,
   pauseUntil: r.pauseUntil?.toISOString() ?? null,
+  timeouts: r.timeouts ?? NO_TIMEOUTS,
   now: Date.now(),
   banSecs: r.rules?.banSecs ?? c.banSecs,
   pickSecs: r.rules?.pickSecs ?? c.pickSecs,
@@ -166,11 +167,13 @@ export async function settle(matchId: string) {
     let turnAt = row.turnAt?.getTime() ?? now;
     let pausedAt = row.pausedAt;
     let pauseUntil = row.pauseUntil;
+    let timeouts = row.timeouts;
     const steps = [...row.steps];
     if (pausedAt && pauseUntil && now >= pauseUntil.getTime()) {
       turnAt += pauseUntil.getTime() - pausedAt.getTime();
       pausedAt = null;
       pauseUntil = null;
+      timeouts = { ...timeouts, on: null };
     }
     if (!pausedAt) {
       for (let guard = 0; guard < 64; guard++) {
@@ -184,7 +187,7 @@ export async function settle(matchId: string) {
     }
     const [out] = await tx
       .update(drafts)
-      .set({ steps, ...(steps.length !== row.steps.length ? { redo: [] } : {}), turnAt: new Date(turnAt), pausedAt, pauseUntil, rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+      .set({ steps, ...(steps.length !== row.steps.length ? { redo: [] } : {}), turnAt: new Date(turnAt), pausedAt, pauseUntil, timeouts, rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
       .where(eq(drafts.matchId, matchId))
       .returning();
     return toView(out, c);
@@ -199,7 +202,7 @@ export async function lobbyTimer(matchId: string, secs: number | null) {
   if (!d?.open || (!secs && !d.pausedAt)) return;
   const now = Date.now();
   const turnAt = d.pausedAt ? new Date((d.turnAt?.getTime() ?? now) + (now - d.pausedAt.getTime())) : d.turnAt;
-  const pause = secs ? { pausedAt: new Date(now), pauseUntil: new Date(now + secs * 1000) } : { pausedAt: null, pauseUntil: null };
+  const pause = secs ? { pausedAt: new Date(now), pauseUntil: new Date(now + secs * 1000) } : { pausedAt: null, pauseUntil: null, timeouts: { ...d.timeouts, on: null } };
   await db
     .update(drafts)
     .set({ turnAt, ...pause, rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
@@ -241,7 +244,42 @@ export async function draftAccess(matchId: string) {
   const side = team && mem?.isCaptain ? team : null;
   if (!admin && !watch && !(team && onSite)) return null;
   const streams = !!v.roles?.includes("host") || (!!v.roles?.includes("referee") && !!v.roles?.includes("streamer"));
-  return { osuId: v.osuId, admin, staff, streams, side, team, match: m };
+  // hosts answer timeout requests too, not only the assigned ref
+  const runs = admin || !!v.roles?.includes("host");
+  return { osuId: v.osuId, admin, runs, staff, streams, side, team, match: m };
+}
+
+/** a captain asks for their one timeout; it waits in the queue until the ref accepts or declines */
+export async function requestTimeout(matchId: string, side: Side) {
+  const res = await db.transaction(async (tx) => {
+    const [row] = await tx.select({ open: drafts.open, timeouts: drafts.timeouts }).from(drafts).where(eq(drafts.matchId, matchId)).for("update");
+    if (!row?.open) return "closed" as const;
+    const t = row.timeouts;
+    if (t.used.includes(side) || t.queue.includes(side)) return "used" as const;
+    await tx
+      .update(drafts)
+      .set({ timeouts: { ...t, queue: [...t.queue, side] }, rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+      .where(eq(drafts.matchId, matchId));
+    return "ok" as const;
+  });
+  if (res === "ok") emitDraft(matchId);
+  return res;
+}
+
+/** the ref answers the oldest request; accept uses the team's timeout and pauses the draft. null when that side isn't first in line anymore */
+export async function answerTimeout(matchId: string, side: Side, accept: boolean) {
+  const ok = await db.transaction(async (tx) => {
+    const [row] = await tx.select({ timeouts: drafts.timeouts }).from(drafts).where(eq(drafts.matchId, matchId)).for("update");
+    const t = row?.timeouts;
+    if (!t || t.queue[0] !== side) return false;
+    const next = { queue: t.queue.slice(1), used: accept ? [...t.used, side] : t.used, on: accept ? side : t.on };
+    await tx.update(drafts).set({ timeouts: next, rev: sql`${drafts.rev} + 1`, updatedAt: new Date() }).where(eq(drafts.matchId, matchId));
+    return true;
+  });
+  if (!ok) return null;
+  if (accept) await lobbyTimer(matchId, (await getSettings()).timeoutSecs);
+  else emitDraft(matchId);
+  return true;
 }
 
 export async function isPlayer(osuId: number) {

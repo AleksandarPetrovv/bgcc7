@@ -338,6 +338,11 @@ export async function simpleCmd(matchId: string, by: number, cmd: SimpleCmd) {
   await lb.channel.sendMessage(SIMPLE[cmd]);
 }
 
+export async function sayTimer(matchId: string, secs: number) {
+  const { lb } = await lobbyAs(matchId);
+  await lb.channel.sendMessage(`!mp timer ${secs}`);
+}
+
 export async function kickSlot(matchId: string, by: number, slot: number) {
   const p = await slotPlayer(matchId, by, slot);
   if (!p) return "empty" as const;

@@ -22,7 +22,7 @@ const TEAM_C = LOBBY_TEAM;
 const TEAM_HI = { red: TEAM[1].hi, blue: TEAM[2].hi } as const;
 const modC = (m: string) => modHi(MOD_COLOR[m]) ?? "var(--ash)";
 
-export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = false, canSay, teamNames }: { slug: string; maps: Beatmap[]; onOpen: (open: boolean) => void; readOnly?: boolean; streams?: boolean; canSay: boolean; teamNames: [string, string] }) {
+export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = false, canSay, teamNames, startWarn = [] }: { slug: string; maps: Beatmap[]; onOpen: (open: boolean) => void; readOnly?: boolean; streams?: boolean; canSay: boolean; teamNames: [string, string]; startWarn?: string[] }) {
   const t = useDict();
   const format = useFormat();
   const [v, setV] = useState<LobbyView | null>(null);
@@ -134,6 +134,8 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
   };
   const strangers = all.filter((s): s is NonNullable<typeof s> => !!s && s.side === null);
   if (seated < base) warn.unshift(t.lobby.fewPlayers(seated, base));
+  // a waiting timeout request goes first: starting a map now skips it
+  warn.unshift(...startWarn);
 
   const slotBox = (s: LobbyView["slots"][number], i: number) => {
     const spareSlot = i === base;

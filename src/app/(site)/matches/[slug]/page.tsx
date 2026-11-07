@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
   const t = await getDict();
-  return { title: `${t.draft.title} · ${getFormat().name}`, robots: { index: false } };
+  return { title: t.draft.title, robots: { index: false } };
 }
 
 export default async function DraftPage({ params }: PageProps<"/matches/[slug]">) {
@@ -46,6 +46,7 @@ export default async function DraftPage({ params }: PageProps<"/matches/[slug]">
       title={stage.slug === (access.match.poolSlug ?? access.match.stageSlug) ? round : `${round} · ${t.rounds[stage.title] ?? stage.title}`}
       firstTo={firstTo}
       admin={access.admin}
+      runs={access.runs}
       streams={access.streams}
       side={access.side}
       canSay={access.admin || !!access.team}
