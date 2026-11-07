@@ -123,16 +123,16 @@ html.lite :is(.anim-blob-a, .anim-blob-b) { animation-timing-function: steps(60)
 html.lite .anim-drift { animation-timing-function: steps(110) !important; }
 html.lite .anim-comet { animation-timing-function: steps(90) !important; }
 html.lite .anim-float { animation-timing-function: steps(30) !important; }
-html.lite :is(.anim-echo, .match-run) { animation-timing-function: steps(20) !important; }
-html.lite :is(.anim-orbit, .anim-orbit-in) { animation-timing-function: steps(24) !important; }
-html.lite :is(.match-cta-sheen, .btn-shine, .mdlg-shine) { animation-timing-function: steps(16) !important; }
-html.lite :is(.anim-twinkle, .anim-ping-diamond, .animate-pulse, .adm-crest, .adm-spark, .mk-bubble, .mk-stem, .mk-dot, .mk-pop, .mk-fan,
-    .mk-rise, .mk-bar, .mk-gear, .mk-gear-r, .mk-crowd, .mk-twinkle, .mk-swing-l, .mk-swing-r, .mk-clash, .mk-spark, .mk-hand-h, .mk-hand-m,
-    .mk-pen, .mk-pen-late, .mk-sway, .mk-hang, .mk-show, .mk-toot, .mk-rec, .mk-drift, .mk-ping, .mk-scan) {
-  animation-timing-function: steps(10) !important;
+html.lite .anim-echo { animation-timing-function: steps(20) !important; }
+/* small loops: held still while the page intro plays, then run smooth once LiteLoops adds .lite-loops (motion.tsx) */
+html.lite:not(.lite-loops) :is(.match-run, .anim-orbit, .match-cta-sheen, .btn-shine, .mdlg-shine, .anim-twinkle, .anim-ping-diamond, .animate-pulse,
+    .adm-crest, .adm-spark, .mk-sway, .mk-toot, .mk-drift, .mk-ping, .mk-scan, .anim-chevron, .anim-bob, .dr-glow, .dr-beads-on, .mdlg-bar, .dr-dots > span) {
+  animation-play-state: paused !important;
 }
-html.lite :is(.anim-chevron, .anim-bob, .dr-glow, .dr-beads-on, .mdlg-bar) { animation-timing-function: steps(7) !important; }
-html.lite .dr-dots > span { animation-timing-function: steps(4) !important; }
+/* intro + loop in one rule: the intro plays, only the loop waits */
+html.lite:not(.lite-loops) :is(.anim-orbit-in, .mk-dot, .mk-bar, .mk-gear, .mk-gear-r, .mk-crowd, .mk-twinkle, .mk-spark, .mk-hand-h, .mk-hand-m, .mk-rec) {
+  animation-play-state: running, paused !important;
+}
 
 /* resampled intros (scale / rotate / skew / perspective / clip) become the plain slide of the same direction */
 html.lite :is(.in-flip, .in-spin, .in-slam, .in-launch, .in-curtain, .word, .anim-letter) { animation-name: k-up !important; }
