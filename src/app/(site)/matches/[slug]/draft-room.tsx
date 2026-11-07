@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { Ban, Crown, Swords, WifiOff } from "lucide-react";
+import { Ban, Crown, Hourglass, Pause, Swords, WifiOff } from "lucide-react";
 import { Sparkle } from "@/components/site/graphics";
 import { useDict } from "@/components/site/lang";
 import { EASE } from "@/components/site/motion";
@@ -12,12 +12,12 @@ import { Confetti } from "@/components/site/confetti";
 import { deadline, limitOf, pickable, rollWinner, scoreOf, turnOf, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { TEAM } from "@/lib/theme";
-import { resetDraft } from "@/app/(site)/admin/draft/actions";
+import { answerTimeoutAct, resetDraft } from "@/app/(site)/admin/draft/actions";
 import { LobbyPanel } from "./lobby-panel";
 import { LobbyHelp, lobbyPost } from "./lobby-popups";
 import { useSSE } from "@/components/site/use-sse";
 import { MatchDialog } from "@/components/site/match-dialog";
-import { ChoosePopup, Portal, ResetPopup, ScoresPopup, TimerDock, Waiting, WinnerPopup } from "./draft-popups";
+import { AskPopup, ChoosePopup, Portal, ResetPopup, ScoresPopup, TimerDock, Waiting, WinnerPopup } from "./draft-popups";
 import { AdminBar, Rolls, Sequence, TeamsHeader, type TeamInfo } from "./draft-parts";
 import { MapGrid, type Pool } from "./draft-maps";
 
@@ -56,6 +56,7 @@ export function DraftRoom({
   title,
   firstTo,
   admin,
+  runs,
   streams,
   side,
   canSay,
@@ -69,6 +70,8 @@ export function DraftRoom({
   title: string;
   firstTo: number;
   admin: boolean;
+  /** host or assigned ref: answers timeout requests */
+  runs: boolean;
   streams: boolean;
   side: Side | null;
   canSay: boolean;
@@ -111,6 +114,7 @@ export function DraftRoom({
   const lobbyOpen = useRef(false);
   const [askReset, setAskReset] = useState(false);
   const [help, setHelp] = useState(false);
+  const [toAsk, setToAsk] = useState<"ask" | "map" | null>(null);
   const [lobbyShown, setLobbyShown] = useState(false);
   const onLobby = useCallback((o: boolean) => {
     lobbyOpen.current = o;
@@ -261,6 +265,18 @@ export function DraftRoom({
 
   const unscored = admin ? picked.find((s) => !s.winner) : undefined;
 
+  const to = d.timeouts ?? { queue: [], used: [], on: null };
+  const toUsed = !!side && (to.used.includes(side) || to.queue.includes(side));
+  const toHead = runs ? to.queue[0] : undefined;
+  const toColor = (s: Side): "Red" | "Blue" => (s === 1 ? "Red" : "Blue");
+  async function requestTimeout() {
+    setToAsk(null);
+    const res = await fetch(`/api/draft/${slug}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ act: "timeout" }) }).catch(() => null);
+    if (res?.ok) return take((await res.json()) as DraftView);
+    if (res && ((await res.json().catch(() => null)) as { error?: string } | null)?.error === "playing") return setToAsk("map");
+    setErr(true);
+  }
+
   return (
     <div className="relative mx-auto w-full max-w-page px-4 pb-32 pt-6 sm:px-6 sm:pt-10 lg:px-10 2xl:px-14">
       {admin && (
@@ -293,7 +309,7 @@ export function DraftRoom({
         transition={{ duration: 0.7, ease: EASE, delay: 0.35 }}
         className="xl:col-start-2 xl:row-start-1"
       >
-        <LobbyPanel slug={slug} maps={pools.flatMap((p) => p.maps)} onOpen={onLobby} readOnly={!admin} streams={streams} canSay={canSay} teamNames={names} />
+        <LobbyPanel slug={slug} maps={pools.flatMap((p) => p.maps)} onOpen={onLobby} readOnly={!admin} streams={streams} canSay={canSay} teamNames={names} startWarn={to.queue.map((s) => t.draft.toStartWarn(name(s)))} />
       </motion.aside>
       <div className="@container min-w-0 xl:col-start-1 xl:row-start-1">
       <TeamsHeader teams={teams} turn={turn} me={me} score={scored ? score : null} />
@@ -383,6 +399,7 @@ export function DraftRoom({
               total={d.pauseUntil && d.pausedAt ? new Date(d.pauseUntil).getTime() - new Date(d.pausedAt).getTime() : 1}
               color={TEAM[1]}
               label={t.draft.paused}
+              note={to.on ? { text: t.draft.toRunning(toColor(to.on)), color: TEAM[to.on].hi } : undefined}
             />
           ) : d.playing ? (
             <TimerDock key="play" calm left={playLeft} total={playTotal} color={TEAM[playTeam]} label={playMap ? `${t.lobby.mapPlaying} · ${playMap.slot}` : t.lobby.mapPlaying} />
@@ -435,6 +452,64 @@ export function DraftRoom({
           )}
         </AnimatePresence>
 
+        {side && !admin && d.open && (
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: sel ? 0 : 1, y: sel ? 40 : 0 }}
+            transition={{ type: "spring", stiffness: 340, damping: 30 }}
+            disabled={toUsed}
+            onClick={() => setToAsk(d.playing ? "map" : "ask")}
+            className={cn(
+              "group fixed bottom-[calc(max(1rem,env(safe-area-inset-bottom))+7rem)] right-4 z-30 isolate inline-flex min-h-11 items-center gap-2 px-5 text-sm font-display font-bold sm:bottom-[max(1.5rem,env(safe-area-inset-bottom))] sm:right-6",
+              toUsed ? "cursor-not-allowed text-ash" : "text-paper",
+              sel && "pointer-events-none",
+            )}
+          >
+            <span
+              aria-hidden
+              className={cn("absolute inset-0 -z-10 -skew-x-12 border-2 bg-ink/95 backdrop-blur transition-[filter]", toUsed ? "border-line" : "group-hover:brightness-110")}
+              style={toUsed ? undefined : { borderColor: TEAM[side].c, boxShadow: `4px 4px 0 0 ${TEAM[side].deep}` }}
+            />
+            {toUsed ? <Hourglass className="size-4" /> : <Pause className="size-4" style={{ color: TEAM[side].hi }} />}
+            {to.queue.includes(side) ? t.draft.toWaiting : to.used.includes(side) ? t.draft.toUsed : t.draft.toBtn}
+          </motion.button>
+        )}
+        <AnimatePresence>
+          {toAsk === "ask" && side && (
+            <AskPopup
+              key="to-ask"
+              icon={Pause}
+              color={TEAM[side]}
+              title={t.draft.toAskTitle}
+              body={t.draft.toAskBody}
+              onClose={() => setToAsk(null)}
+              actions={[
+                { label: t.draft.toSure, fill: true, onClick: requestTimeout },
+                { label: t.draft.cancel, onClick: () => setToAsk(null) },
+              ]}
+            />
+          )}
+          {toAsk === "map" && side && (
+            <AskPopup key="to-map" icon={Hourglass} color={TEAM[side]} title={t.draft.toMapTitle} body={t.draft.toMapBody} onClose={() => setToAsk(null)} actions={[{ label: t.draft.toOkay, fill: true, onClick: () => setToAsk(null) }]} />
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {toHead && (
+            <AskPopup
+              key={`to-ref${toHead}`}
+              icon={Pause}
+              color={TEAM[toHead]}
+              title={t.draft.toRefTitle(name(toHead))}
+              body={t.draft.toRefBody}
+              busy={pending}
+              actions={[
+                { label: t.draft.toAccept, fill: true, onClick: () => adminAct(() => answerTimeoutAct(matchId, toHead, true)) },
+                { label: t.draft.toDecline, onClick: () => adminAct(() => answerTimeoutAct(matchId, toHead, false)) },
+              ]}
+            />
+          )}
+        </AnimatePresence>
         <AnimatePresence>
           {turn.kind === "choose" && turn.team === me && <ChoosePopup key="choose" me={me} busy={busy} onPick={(c) => act({ act: "choose", value: c })} />}
         </AnimatePresence>

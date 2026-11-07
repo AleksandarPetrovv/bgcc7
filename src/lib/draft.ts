@@ -14,6 +14,7 @@ export type DraftView = {
   turnAt: string | null;
   pausedAt: string | null;
   pauseUntil: string | null;
+  timeouts: { queue: Side[]; used: Side[]; on: Side | null };
   now: number;
   banSecs: number;
   pickSecs: number;

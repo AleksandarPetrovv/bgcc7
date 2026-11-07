@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "motion/react";
-import { Ban, Check, Copy, Crown, DoorClosed, ListOrdered, Pause, RotateCcw, Swords } from "lucide-react";
+import { Ban, Check, Copy, Crown, DoorClosed, ListOrdered, Pause, RotateCcw, Swords, type LucideIcon } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import type { Beatmap } from "@/lib/data";
 import type { Side } from "@/lib/draft";
@@ -115,6 +115,7 @@ export function TimerDock({
   forever,
   raised,
   calm,
+  note,
 }: {
   left: number;
   total: number;
@@ -124,6 +125,8 @@ export function TimerDock({
   forever?: boolean;
   raised?: boolean;
   calm?: boolean;
+  /** small line under the clock, e.g. whose timeout is running */
+  note?: { text: string; color: string };
 }) {
   const low = !pause && !calm && left <= 10_000;
   const pct = forever ? 1 : total ? Math.max(0, Math.min(1, left / total)) : 0;
@@ -165,6 +168,11 @@ export function TimerDock({
             {forever ? <Pause className="size-12 fill-current sm:size-14" /> : clockText(left)}
           </span>
         </div>
+        {note && (
+          <p className="mt-1.5 skew-x-12 text-center text-xs font-display font-black" style={{ color: note.color }}>
+            {note.text}
+          </p>
+        )}
       </motion.div>
     </motion.div>
   );
@@ -418,5 +426,62 @@ export function Waiting() {
       <span className="size-1.5 rounded-full bg-current" />
       <span className="size-1.5 rounded-full bg-current" />
     </span>
+  );
+}
+
+type AskAction = { label: string; onClick: () => void; fill?: boolean };
+
+/** centered confirm popup. without onClose it can't be dismissed (no backdrop click, no esc), only answered */
+export function AskPopup({ icon: Icon, color, title, body, actions, busy, onClose }: { icon: LucideIcon; color: { c: string; hi: string; deep: string }; title: string; body: string; actions: AskAction[]; busy?: boolean; onClose?: () => void }) {
+  useEffect(() => {
+    if (!onClose) return;
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", esc);
+    return () => window.removeEventListener("keydown", esc);
+  }, [onClose]);
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: { duration: 0.2 } }}
+      exit={{ opacity: 0, transition: { duration: 0.2 } }}
+      {...(onClose ? backdropClose(onClose) : {})}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
+    >
+      <motion.div
+        initial={POP.initial}
+        animate={POP.animate}
+        exit={POP.exit}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md overflow-hidden border-2 bg-coal p-6"
+        style={{ borderColor: color.c, boxShadow: `8px 8px 0 0 ${color.deep}` }}
+        role="alertdialog"
+        aria-modal="true"
+      >
+        <Icon className="size-8" style={{ color: color.hi }} />
+        <h3 className="heading-slam mt-2 text-3xl" style={{ color: color.hi }}>
+          {title}
+        </h3>
+        <p className="mt-1 text-sm font-bold text-paper/70">{body}</p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          {actions.map((a) => (
+            <motion.button
+              key={a.label}
+              type="button"
+              disabled={busy}
+              whileTap={{ scale: 0.97 }}
+              onClick={a.onClick}
+              className={cn("group relative isolate inline-flex min-h-12 items-center justify-center px-6 font-display font-bold disabled:opacity-60", a.fill ? "flex-1 text-white" : "text-paper")}
+            >
+              <span
+                aria-hidden
+                className="absolute inset-0 -z-10 -skew-x-12 border-2 transition-[filter] group-hover:brightness-110"
+                style={a.fill ? { background: color.c, borderColor: color.c, boxShadow: `5px 5px 0 0 ${color.deep}` } : { borderColor: "var(--line)" }}
+              />
+              {a.label}
+            </motion.button>
+          ))}
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }

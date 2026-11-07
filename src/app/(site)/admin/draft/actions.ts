@@ -3,8 +3,9 @@
 import { db } from "@/db";
 import { eq, sql } from "drizzle-orm";
 
-import { drafts, matches, type DraftUndo } from "@/db/schema";
-import { canRunMatch, emitDraft, redoStep, rulesFor, settle, undoStep } from "@/db/drafts";
+import { drafts, matches, NO_TIMEOUTS, type DraftUndo } from "@/db/schema";
+import { answerTimeout, canRunMatch, emitDraft, redoStep, rulesFor, settle, undoStep } from "@/db/drafts";
+import { sayTimer, simpleCmd } from "@/lib/bancho";
 import { getPoolStages } from "@/db/mappools";
 import { getSettings } from "@/db/settings";
 import { getSkillLayouts } from "@/db/format-plan";
@@ -35,7 +36,7 @@ export async function openDraft(matchId: string, stageSlug: string) {
       const reopen = !fresh && !cur.open ? { turnAt: new Date(), pausedAt: null, pauseUntil: null } : {};
       await db
         .update(drafts)
-        .set({ open: true, stageSlug, ...(fresh || !cur.rules ? { rules } : {}), ...(fresh ? { steps: [], redo: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null } : reopen), ...bump })
+        .set({ open: true, stageSlug, ...(fresh || !cur.rules ? { rules } : {}), ...(fresh ? { steps: [], redo: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null, timeouts: NO_TIMEOUTS } : reopen), ...bump })
         .where(eq(drafts.matchId, matchId));
     } else await db.insert(drafts).values({ matchId, stageSlug, bans, banOrder: s.banOrder, rules, turnAt: new Date() });
     return done(matchId, { matchId, stage: stage.title });
@@ -59,7 +60,7 @@ export async function resetDraft(matchId: string) {
     const rules = cur ? await rulesFor(cur.stageSlug) : null;
     await db
       .update(drafts)
-      .set({ rules, roll1: null, roll2: null, choice: null, steps: [], redo: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null, ...bump })
+      .set({ rules, roll1: null, roll2: null, choice: null, steps: [], redo: [], bans, banOrder: s.banOrder, turnAt: new Date(), pausedAt: null, pauseUntil: null, timeouts: NO_TIMEOUTS, ...bump })
       .where(eq(drafts.matchId, matchId));
     return done(matchId, { matchId });
   });
@@ -131,7 +132,19 @@ export async function resumeDraft(matchId: string) {
     if (!d?.pausedAt) return { ok: true };
     const now = Date.now();
     const turnAt = new Date((d.turnAt?.getTime() ?? now) + (now - d.pausedAt.getTime()));
-    await db.update(drafts).set({ turnAt, pausedAt: null, pauseUntil: null, ...bump }).where(eq(drafts.matchId, matchId));
+    await db.update(drafts).set({ turnAt, pausedAt: null, pauseUntil: null, timeouts: { ...d.timeouts, on: null }, ...bump }).where(eq(drafts.matchId, matchId));
+    // a timed pause is also an !mp timer in the lobby: stop that one too (no lobby = nothing to stop)
+    if (d.pauseUntil) await simpleCmd(matchId, 0, "aborttimer").catch(() => {});
     return done(matchId, { matchId });
+  });
+}
+
+/** ref/host answers the oldest captain timeout request. accept pauses the draft and sends !mp timer to the lobby */
+export async function answerTimeoutAct(matchId: string, side: 1 | 2, accept: boolean) {
+  return guard("matches", accept ? "draft.timeoutAccept" : "draft.timeoutDecline", async () => {
+    if (!(await canRunMatch(matchId)) || (side !== 1 && side !== 2)) return { ok: false, error: "forbidden" };
+    if (!(await answerTimeout(matchId, side, accept))) return { ok: true };
+    if (accept) await sayTimer(matchId, (await getSettings()).timeoutSecs).catch((e) => console.error("[draft] timeout timer", e));
+    return { matchId, team: side };
   });
 }

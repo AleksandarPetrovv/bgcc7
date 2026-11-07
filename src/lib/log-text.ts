@@ -77,6 +77,12 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `затвори пик и бан за ${match()}` : `closed pick and ban for ${match()}`;
     case "draft.pause":
       return bg ? `пусна таймаут в ${match()}` : `called a timeout in ${match()}`;
+    case "draft.timeoutRequest":
+      return bg ? `поиска таймаут за ${p.team === 2 ? "синия" : "червения"} отбор в ${match()}` : `requested a timeout for the ${p.team === 2 ? "blue" : "red"} team in ${match()}`;
+    case "draft.timeoutAccept":
+      return bg ? `прие таймаута на ${p.team === 2 ? "синия" : "червения"} отбор в ${match()}` : `accepted the ${p.team === 2 ? "blue" : "red"} team's timeout in ${match()}`;
+    case "draft.timeoutDecline":
+      return bg ? `отказа таймаута на ${p.team === 2 ? "синия" : "червения"} отбор в ${match()}` : `declined the ${p.team === 2 ? "blue" : "red"} team's timeout in ${match()}`;
     case "draft.resume":
       return bg ? `прекрати таймаута в ${match()}` : `ended the timeout in ${match()}`;
     case "draft.end":
@@ -181,8 +187,10 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
         : bg ? `смени отбора на играча от място ${slot()} в лобито за ${match()}` : `changed the team of the player in seat ${slot()} in the lobby for ${match()}`;
     }
 
+    case "helper.link":
     case "refapp.link":
       return bg ? "свърза приложението за съдии" : "linked the referee app";
+    case "helper.unlink":
     case "refapp.unlink":
       return bg ? "прекъсна връзката с приложението за съдии" : "unlinked the referee app";
     case "overlay.link":

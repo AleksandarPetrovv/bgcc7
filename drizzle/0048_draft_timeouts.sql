@@ -1,0 +1,2 @@
+ALTER TABLE "drafts" ADD COLUMN "timeouts" jsonb DEFAULT '{"queue":[],"used":[],"on":null}'::jsonb NOT NULL;--> statement-breakpoint
+ALTER TABLE "bgcc7"."drafts" ADD COLUMN "timeouts" jsonb DEFAULT '{"queue":[],"used":[],"on":null}'::jsonb NOT NULL;
