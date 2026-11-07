@@ -11,6 +11,8 @@ import { roundOf } from "@/lib/format";
 import { siteUrl } from "@/lib/links";
 import { matchCosts } from "@/lib/match-cost";
 import { fmtSofia } from "@/lib/time";
+import type { Match } from "@/lib/data";
+import type { Scoreboard } from "@/lib/scoreboard";
 import {
   addRole, botUser, createChannel, createRole, deleteChannel, deleteMessage, deleteRole, discordReady, dm, editChannel, editRole,
   guildChannels, guildId, guildRoles, memberRoles, post, removeRole, type Embed, type Overwrite,
@@ -251,31 +253,67 @@ export async function postResult(matchId: string) {
   const prev = await getState(key);
   if (prev?.stamp === stamp) return;
   const sb = await getScoreboard(m, ts, pools).catch(() => null);
-  const costs = sb ? matchCosts(sb, true) : [];
-  const top = Math.max(...costs.map((c) => c.cost));
-  const side = (k: 1 | 2) =>
-    costs
-      .filter((c) => c.team === k)
-      .sort((a, b) => b.cost - a.cost)
-      .map((c) => `${c.cost === top ? "👑 " : ""}**${c.name}** ${c.cost.toFixed(2)}`)
-      .join("\n") || "—";
-  const tag = (id: string, fallback: string) => (links.get(id) ? `<@&${links.get(id)!.roleId}>` : `**${fallback}**`);
-  const url = `${siteUrl()}/results/${m.id}`;
-  const embed: Embed = {
-    title: `${matchLabel(m.id, m.round)}: ${m.team1.name} ${m.team1.score} – ${m.team2.score} ${m.team2.name}`,
-    url,
-    color: 0xe0457b,
-    fields: [
-      { name: `${m.winner === 1 ? "🏆 " : ""}${m.team1.name}`, value: side(1), inline: true },
-      { name: `${m.winner === 2 ? "🏆 " : ""}${m.team2.name}`, value: side(2), inline: true },
-      { name: "Links", value: [`[Results](${url})`, ...m.links.map((id) => `[MP ${id}](https://osu.ppy.sh/community/matches/${id})`)].join(" · ") },
-    ],
-  };
-  const content = `${tag(m.team1.id, m.team1.name)} **${m.team1.score} – ${m.team2.score}** ${tag(m.team2.id, m.team2.name)}`;
+  const tag = (id: string) => (links.get(id) ? `<@&${links.get(id)!.roleId}>` : null);
+  const { content, embed } = resultMessage(m, sb, tag);
   const roles = [m.team1.id, m.team2.id].flatMap((id) => (links.get(id) ? [links.get(id)!.roleId] : []));
   if (prev?.messageId) await deleteMessage(prev.channelId, prev.messageId).catch(log("delete"));
   const messageId = await post(results, content, { mentions: { roles }, embeds: [embed] });
   await setState(key, { channelId: results, messageId, stamp });
+}
+
+const esc = (s: string) => s.replace(/[\\*_~`|[\]<>]/g, "\\$&");
+const SQ = ["⬛", "🟥", "🟦"] as const;
+const num = (n: number) => n.toLocaleString("en-US");
+
+/** the /results popup as an embed: every counted map with team totals, then match costs. team 1 = red, team 2 = blue */
+export function resultMessage(m: Match, sb: Scoreboard | null, tag: (teamId: string) => string | null) {
+  const url = `${siteUrl()}/results/${m.id}`;
+  const [n1, n2] = [m.team1.name, m.team2.name];
+  const maps = (sb?.maps ?? []).filter((x) => x.note !== "warmup" && x.note !== "aborted");
+  const lines = maps.map((x) => {
+    const slot = x.slot ?? x.mod ?? "—";
+    const [a, b] = [num(x.team1), num(x.team2)];
+    const bold = (s: string | number, k: 1 | 2) => (x.winner === k ? `**${s}**` : `${s}`);
+    const head = `${SQ[x.winner]}  \`${slot}\` [${esc(x.title)}](https://osu.ppy.sh/b/${x.beatmapId}) \\[${esc(x.version)}\\]`;
+    const tail =
+      x.note === "replayed" ? "-# replayed, not counted" : `-# ${bold(a, 1)} – ${bold(b, 2)}\n-# ${bold(x.running[0], 1)} – ${bold(x.running[1], 2)}`;
+    return `${head}\n${tail}`;
+  });
+  // shortcut: drops whole maps from the end past discord's 4096 description limit, no real match gets close
+  let description = "";
+  for (const l of lines) if (description.length + l.length + 2 < 4000) description += (description ? "\n\n" : "") + l;
+  const costs = sb ? matchCosts(sb, true) : [];
+  // bathbot style: top 3 of the whole match get medals, rows are padded code cells
+  const medal = new Map([...costs].sort((a, b) => b.cost - a.cost).slice(0, 3).map((c, i) => [c, ["🥇", "🥈", "🥉"][i]]));
+  const side = (k: 1 | 2) => {
+    const rows = costs.filter((c) => c.team === k).sort((a, b) => b.cost - a.cost);
+    const w = Math.max(0, ...rows.map((c) => c.name.length));
+    return (
+      rows
+        .map((c, i) => `\`${i + 1}.\` \`${c.name.replace(/`/g, "'").padEnd(w)}\` \`${c.cost.toFixed(2)}\`${medal.has(c) ? `  ${medal.get(c)}` : ""}`)
+        .join("\n") || "—"
+    );
+  };
+  const team = (k: 1 | 2) => ({ name: `${SQ[k]}  ${k === 1 ? n1 : n2}${m.winner === k ? "  🏆" : ""}`, value: side(k) });
+  const order: (1 | 2)[] = m.winner === 2 ? [2, 1] : [1, 2];
+  const mp = m.links.map((id, i) => `[MP${m.links.length > 1 ? ` ${i + 1}` : ""}](https://osu.ppy.sh/community/matches/${id})`);
+  const embed: Embed = {
+    author: { name: `BGCC7  ·  ${matchLabel(m.id, m.round)}` },
+    title: `${n1}  ${m.team1.score} – ${m.team2.score}  ${n2}`,
+    url,
+    color: m.winner === 1 ? 0xe0303f : 0x2f6fe0,
+    description: description || undefined,
+    fields: [
+      { name: "​", value: `**Match costs**`, inline: false },
+      ...order.map(team),
+      { name: "​", value: [`[Full results](${url})`, ...mp].join("  ·  ") },
+    ],
+    footer: { text: "Match played" },
+    timestamp: m.datetime ? new Date(m.datetime).toISOString() : undefined,
+  };
+  const t1 = tag(m.team1.id) ?? `**${n1}**`;
+  const t2 = tag(m.team2.id) ?? `**${n2}**`;
+  return { content: `${t1}  **${m.team1.score} – ${m.team2.score}**  ${t2}`, embed };
 }
 
 /** mappool channel, @everyone, once per stage */

@@ -25,7 +25,7 @@ export const guildId = guild;
 export const isMissing = (e: unknown) => e instanceof Error && / 404 /.test(e.message);
 
 type Mentions = { parse?: ("everyone" | "roles" | "users")[]; roles?: string[]; users?: string[] };
-export type Embed = { title?: string; description?: string; url?: string; color?: number; fields?: { name: string; value: string; inline?: boolean }[]; footer?: { text: string } };
+export type Embed = { title?: string; description?: string; url?: string; color?: number; fields?: { name: string; value: string; inline?: boolean }[]; footer?: { text: string }; author?: { name: string }; timestamp?: string };
 
 export async function post(channelId: string, content: string, opts: { mentions?: Mentions; embeds?: Embed[] } = {}) {
   const m = await call<{ id: string }>(`/channels/${channelId}/messages`, {
