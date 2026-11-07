@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { animate, motion, MotionConfig, useMotionValue, useTransform, type Variants } from "motion/react";
 import { belowFold } from "./in-view";
 
@@ -26,6 +27,21 @@ function watchFrames(onLite: () => void) {
 }
 
 export function MotionProvider({ children }: { children: React.ReactNode }) {
+  const path = usePathname();
+  // lite: small loops wait until the page intro (every finite animation) has finished (presentation.css .lite-loops)
+  useEffect(() => {
+    const html = document.documentElement;
+    html.classList.remove("lite-loops");
+    const until = Date.now() + 4000;
+    let t = 0;
+    const check = () => {
+      const busy = document.getAnimations().some((a) => a.playState === "running" && Number.isFinite(Number(a.effect?.getComputedTiming().endTime)));
+      if (busy && Date.now() < until) t = window.setTimeout(check, 150);
+      else html.classList.add("lite-loops");
+    };
+    t = window.setTimeout(check, 150);
+    return () => clearTimeout(t);
+  }, [path]);
   useEffect(() => {
     if (document.documentElement.classList.contains("lite")) return;
     return watchFrames(() => {
