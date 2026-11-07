@@ -133,11 +133,21 @@ export const DEFAULT_CATALOG: SubcategoryGroup[] = [
 
 export const DEFAULT_ROUNDS: PlanRound[] = [
   {
-    "sr": 7.2,
+    "slug": "round-of-16",
+    "name": "Round of 16",
+    "firstTo": 5,
     "bans": 1,
+    "sr": 7.2,
+    "tbNote": "",
+    "tbSubcategoryIds": [
+      "ngsebgtf",
+      "aim-0",
+      "tapping-0"
+    ],
     "cats": [
       {
         "id": "aim",
+        "name": "Aim",
         "maps": [
           {
             "id": "pfqpwws8",
@@ -173,11 +183,11 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "aim-0"
             ]
           }
-        ],
-        "name": "AIM"
+        ]
       },
       {
         "id": "dfhh1t44",
+        "name": "Tapping",
         "maps": [
           {
             "id": "nl1q2lrr",
@@ -213,11 +223,11 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "tapping-1"
             ]
           }
-        ],
-        "name": "TAPPING"
+        ]
       },
       {
         "id": "rnjchr7s",
+        "name": "Gimmick",
         "maps": [
           {
             "id": "7yioc28w",
@@ -238,11 +248,11 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "0fju3xrn"
             ]
           }
-        ],
-        "name": "GIMMICK"
+        ]
       },
       {
         "id": "7xi19szz",
+        "name": "Reading",
         "maps": [
           {
             "id": "7dggtjgc",
@@ -271,26 +281,26 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "xaxvf2lx"
             ]
           }
-        ],
-        "name": "READING"
+        ]
       }
-    ],
-    "name": "Round of 16",
-    "slug": "round-of-16",
-    "tbNote": "",
-    "firstTo": 5,
-    "tbSubcategoryIds": [
-      "ngsebgtf",
-      "aim-0",
-      "tapping-0"
     ]
   },
   {
-    "sr": 7.4,
+    "slug": "quarterfinals",
+    "name": "Quarterfinals",
+    "firstTo": 6,
     "bans": 1,
+    "sr": 7.4,
+    "tbNote": "",
+    "tbSubcategoryIds": [
+      "ngsebgtf",
+      "0kej0mi6",
+      "tapping-4"
+    ],
     "cats": [
       {
         "id": "aim",
+        "name": "Aim",
         "maps": [
           {
             "id": "dauwe42m",
@@ -326,11 +336,11 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "aim-0"
             ]
           }
-        ],
-        "name": "AIM"
+        ]
       },
       {
         "id": "dfhh1t44",
+        "name": "Tapping",
         "maps": [
           {
             "id": "u99ah4d3",
@@ -366,11 +376,11 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "tapping-1"
             ]
           }
-        ],
-        "name": "TAPPING"
+        ]
       },
       {
         "id": "rnjchr7s",
+        "name": "Gimmick",
         "maps": [
           {
             "id": "9kujknc6",
@@ -407,11 +417,11 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "0fju3xrn"
             ]
           }
-        ],
-        "name": "GIMMICK"
+        ]
       },
       {
         "id": "7xi19szz",
+        "name": "Reading",
         "maps": [
           {
             "id": "crt7fft7",
@@ -440,26 +450,26 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "xaxvf2lx"
             ]
           }
-        ],
-        "name": "READING"
+        ]
       }
-    ],
-    "name": "Quarterfinals",
-    "slug": "quarterfinals",
-    "tbNote": "",
-    "firstTo": 6,
-    "tbSubcategoryIds": [
-      "ngsebgtf",
-      "0kej0mi6",
-      "tapping-4"
     ]
   },
   {
-    "sr": 7.6,
+    "slug": "semifinals",
+    "name": "Semifinals",
+    "firstTo": 6,
     "bans": 1,
+    "sr": 7.6,
+    "tbNote": "",
+    "tbSubcategoryIds": [
+      "ngsebgtf",
+      "aim-0",
+      "tapping-4"
+    ],
     "cats": [
       {
         "id": "aim",
+        "name": "Aim",
         "maps": [
           {
             "id": "u7j20tkb",
@@ -503,11 +513,11 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "aim-0"
             ]
           }
-        ],
-        "name": "AIM"
+        ]
       },
       {
         "id": "dfhh1t44",
+        "name": "Tapping",
         "maps": [
           {
             "id": "aozuurxo",
@@ -543,11 +553,11 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "tapping-1"
             ]
           }
-        ],
-        "name": "TAPPING"
+        ]
       },
       {
         "id": "rnjchr7s",
+        "name": "Gimmick",
         "maps": [
           {
             "id": "zshi6iq7",
@@ -585,11 +595,11 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "0fju3xrn"
             ]
           }
-        ],
-        "name": "GIMMICK"
+        ]
       },
       {
         "id": "7xi19szz",
+        "name": "Reading",
         "maps": [
           {
             "id": "q6bruh7f",
@@ -627,26 +637,26 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "0fju3xrn"
             ]
           }
-        ],
-        "name": "READING"
+        ]
       }
-    ],
-    "name": "Semifinals",
-    "slug": "semifinals",
-    "tbNote": "",
-    "firstTo": 6,
-    "tbSubcategoryIds": [
-      "ngsebgtf",
-      "aim-0",
-      "tapping-4"
     ]
   },
   {
-    "sr": 7.8,
+    "slug": "finals",
+    "name": "Finals",
+    "firstTo": 7,
     "bans": 1,
+    "sr": 7.8,
+    "tbNote": "",
+    "tbSubcategoryIds": [
+      "ngsebgtf",
+      "0kej0mi6",
+      "tapping-0"
+    ],
     "cats": [
       {
         "id": "aim",
+        "name": "Aim",
         "maps": [
           {
             "id": "w9bwmrkv",
@@ -691,11 +701,11 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "xaxvf2lx"
             ]
           }
-        ],
-        "name": "AIM"
+        ]
       },
       {
         "id": "dfhh1t44",
+        "name": "Tapping",
         "maps": [
           {
             "id": "eopdvjli",
@@ -732,11 +742,11 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "tapping-3"
             ]
           }
-        ],
-        "name": "TAPPING"
+        ]
       },
       {
         "id": "rnjchr7s",
+        "name": "Gimmick",
         "maps": [
           {
             "id": "5l9043ck",
@@ -774,11 +784,11 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "0fju3xrn"
             ]
           }
-        ],
-        "name": "GIMMICK"
+        ]
       },
       {
         "id": "7xi19szz",
+        "name": "Reading",
         "maps": [
           {
             "id": "qx4zp1cm",
@@ -816,26 +826,27 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "aim-1"
             ]
           }
-        ],
-        "name": "READING"
+        ]
       }
-    ],
-    "name": "Finals",
-    "slug": "finals",
-    "tbNote": "",
-    "firstTo": 7,
-    "tbSubcategoryIds": [
-      "ngsebgtf",
-      "0kej0mi6",
-      "tapping-0"
     ]
   },
   {
-    "sr": 8,
+    "slug": "grand-finals",
+    "name": "Grand Finals",
+    "firstTo": 7,
     "bans": 2,
+    "sr": 8,
+    "tbNote": "",
+    "tbSubcategoryIds": [
+      "ngsebgtf",
+      "aim-0",
+      "tapping-0",
+      "tapping-4"
+    ],
     "cats": [
       {
         "id": "aim",
+        "name": "Aim",
         "maps": [
           {
             "id": "vq0ulgj1",
@@ -859,7 +870,8 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
             "mod": "NM",
             "note": "",
             "subcategoryIds": [
-              "aim-3"
+              "0fju3xrn",
+              "s6u7r0it"
             ]
           },
           {
@@ -888,11 +900,11 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "xaxvf2lx"
             ]
           }
-        ],
-        "name": "AIM"
+        ]
       },
       {
         "id": "dfhh1t44",
+        "name": "Tapping",
         "maps": [
           {
             "id": "xmu19oni",
@@ -937,11 +949,11 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "tapping-3"
             ]
           }
-        ],
-        "name": "TAPPING"
+        ]
       },
       {
         "id": "rnjchr7s",
+        "name": "Gimmick",
         "maps": [
           {
             "id": "9dxq6ny9",
@@ -978,11 +990,11 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "0fju3xrn"
             ]
           }
-        ],
-        "name": "GIMMICK"
+        ]
       },
       {
         "id": "7xi19szz",
+        "name": "Reading",
         "maps": [
           {
             "id": "7vfv4q7j",
@@ -1008,7 +1020,7 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
             "note": "",
             "subcategoryIds": [
               "aim-3",
-              "m5mvpvwf"
+              "xaxvf2lx"
             ]
           },
           {
@@ -1020,19 +1032,8 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
               "s6u7r0it"
             ]
           }
-        ],
-        "name": "READING"
+        ]
       }
-    ],
-    "name": "Grand Finals",
-    "slug": "grand-finals",
-    "tbNote": "",
-    "firstTo": 7,
-    "tbSubcategoryIds": [
-      "ngsebgtf",
-      "aim-0",
-      "tapping-0",
-      "tapping-4"
     ]
   }
 ];
