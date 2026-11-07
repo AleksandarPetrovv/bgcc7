@@ -165,8 +165,7 @@ function PoolRow({ t, stage, split }: { t: Dict; stage: Omit<PoolStage, "pools">
   const groups: { name: string; color: string; maps: (PoolStage["pools"][number]["maps"][number] & { color: string })[] }[] = [];
   for (const p of stage.pools) {
     const maps = p.maps.map((m) => ({ ...m, color: p.color ?? MODS[m.mod]?.color ?? "var(--rose)" }));
-    // skill group names are stored in caps ("AIM"); tabs read "Aim"
-    groups.push({ name: p.category.toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase()), color: maps[0]?.color ?? "var(--rose)", maps });
+    groups.push({ name: p.category, color: maps[0]?.color ?? "var(--rose)", maps });
   }
   return (
     // alone: two thirds wide and centred; next to top performers: the left half

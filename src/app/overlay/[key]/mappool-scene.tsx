@@ -62,7 +62,7 @@ function Turn({ feed }: { feed: OverlayFeed }) {
 export function MappoolScene({ feed }: { feed: OverlayFeed }) {
   const bySlot = new Map(feed.pool.map((m) => [norm(m.slot), m]));
   const groups: { key: string; short: string; label: string; color: string; maps: FeedMap[] }[] = feed.groups?.length
-    ? feed.groups.map((g) => ({ key: g.name, short: g.name.charAt(0).toUpperCase() + g.name.slice(1).toLowerCase(), label: "", color: g.color, maps: g.slots.flatMap((x) => bySlot.get(norm(x)) ?? []) })).filter((g) => g.maps.length)
+    ? feed.groups.map((g) => ({ key: g.name, short: g.name, label: "", color: g.color, maps: g.slots.flatMap((x) => bySlot.get(norm(x)) ?? []) })).filter((g) => g.maps.length)
     : GROUPS.map((key) => ({ key, ...MODS[key], maps: feed.pool.filter((m) => groupFor(m) === key) })).filter((g) => g.maps.length);
   const steps = new Map(feed.steps.map((s) => [norm(s.slot), s]));
   let rows = 4;

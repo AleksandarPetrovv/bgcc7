@@ -52,6 +52,8 @@ export function roundStats(r: PlanRound) {
 
 const int = (v: unknown, lo: number, hi: number, d: number) => (typeof v === "number" && Number.isInteger(v) ? Math.min(hi, Math.max(lo, v)) : d);
 const str = (v: unknown, max: number, d: string) => (typeof v === "string" ? v.trim().slice(0, max) : d);
+// category names are labels: "AIM" or "aim" typed in admin shows as "Aim"; mixed case is kept as typed
+export const catName = (s: string) => (s === s.toUpperCase() || s === s.toLowerCase() ? s.toLowerCase().replace(/(^|[\s/-])\p{L}/gu, (c) => c.toUpperCase()) : s);
 const isMod = (v: unknown): v is PlanMod => typeof v === "string" && (PLAN_MODS as readonly string[]).includes(v);
 
 type Loose = { id?: unknown; name?: unknown; maps?: unknown; mods?: Record<string, unknown> };
@@ -60,7 +62,7 @@ function cleanCat(c: Loose, validIds: Set<string>): PlanCat {
   const maps: PlanMap[] = Array.isArray(c.maps)
     ? (c.maps as { id?: unknown; mod?: unknown; note?: unknown; subcategoryIds?: unknown }[]).filter((m) => isMod(m?.mod)).map((m) => ({ id: str(m.id, 20, "") || newId(), mod: m.mod as PlanMod, note: "", subcategoryIds: cleanIds(m.subcategoryIds, validIds) }))
     : PLAN_MODS.flatMap((mod) => Array.from({ length: int(c.mods?.[mod], 0, 20, 0) }, () => ({ id: newId(), mod, note: "" })));
-  return { id: str(c.id, 20, "") || newId(), name: str(c.name, 30, "Category") || "Category", maps: maps.slice(0, 20) };
+  return { id: str(c.id, 20, "") || newId(), name: catName(str(c.name, 30, "Category") || "Category"), maps: maps.slice(0, 20) };
 }
 
 const cleanIds = (v: unknown, valid: Set<string>): string[] | undefined => Array.isArray(v) ? [...new Set(v.filter((id): id is string => typeof id === "string" && valid.has(id)))] : undefined;
