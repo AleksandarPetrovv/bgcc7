@@ -17,7 +17,7 @@ export const adminSetup = {
     discord: "Discord",
     draft: "Pick and ban",
     format: "Format",
-    refapp: "Helper",
+    helper: "Helper",
     stream: "Stream",
     overlay: "Overlay",
   } as Record<string, string>,

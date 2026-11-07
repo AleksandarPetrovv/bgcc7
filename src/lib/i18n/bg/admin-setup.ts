@@ -19,7 +19,7 @@ export const adminSetup: typeof en = {
     draft: "Пик и бан",
     format: "Формат",
     discord: "Discord",
-    refapp: "Помощник",
+    helper: "Помощник",
     stream: "Стрийм",
     overlay: "Овърлей",
   },

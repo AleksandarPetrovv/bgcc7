@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { getFormat } from "@/db/edition";
 import { overlayName } from "@/db/stream";
 import { linkHelper, unlinkHelper } from "./actions";
-import { HelperPoll, LinkGate } from "../refapp/link-gate";
+import { HelperPoll, LinkGate } from "../helper/link-gate";
 import { helperSig } from "@/lib/helper-sig";
 
 export const dynamic = "force-dynamic";

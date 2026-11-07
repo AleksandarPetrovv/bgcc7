@@ -26,7 +26,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   settings: Settings2,
   discord: DiscordLogo,
   format: LayoutGrid,
-  refapp: Download,
+  helper: Download,
   stream: TwitchLogo,
   overlay: MonitorPlay,
 };
@@ -50,8 +50,8 @@ export function AdminNav({ items }: { items: { href: string; label: string }[] }
             title={i.label}
             className={cn(
               "group relative flex min-w-0 flex-1 items-center justify-center gap-3 whitespace-nowrap py-2 lg:flex-none lg:justify-start lg:whitespace-normal lg:px-2.5 text-[0.8rem] font-display font-bold transition-colors duration-200",
-              active ? "text-paper" : key === "refapp" ? "text-balkan-hi hover:text-paper" : "text-ash hover:text-paper",
-              key === "refapp" && !active && "lg:mb-2",
+              active ? "text-paper" : key === "helper" ? "text-balkan-hi hover:text-paper" : "text-ash hover:text-paper",
+              key === "helper" && !active && "lg:mb-2",
             )}
           >
             {active && (
@@ -66,7 +66,7 @@ export function AdminNav({ items }: { items: { href: string; label: string }[] }
             <span
               className={cn(
                 "relative flex size-7 shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform,translate,scale,rotate] duration-300",
-                active ? "bg-rose/20 text-rose-hi" : key === "refapp" ? "bg-balkan/20 group-hover:scale-110" : "bg-slate group-hover:scale-110 group-hover:bg-rose/20 group-hover:text-rose-hi",
+                active ? "bg-rose/20 text-rose-hi" : key === "helper" ? "bg-balkan/20 group-hover:scale-110" : "bg-slate group-hover:scale-110 group-hover:bg-rose/20 group-hover:text-rose-hi",
               )}
             >
               <Icon className="size-3.5" />

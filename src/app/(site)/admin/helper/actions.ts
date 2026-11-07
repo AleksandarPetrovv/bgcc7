@@ -7,11 +7,11 @@ import { linkResult, unpair } from "@/lib/relay";
 import { helperSig } from "@/lib/helper-sig";
 
 export async function linkApp(_: ActionResult, fd: FormData) {
-  return guard("matches", "refapp.link", async (osuId) => linkResult(fd, osuId));
+  return guard("matches", "helper.link", async (osuId) => linkResult(fd, osuId));
 }
 
 export async function unlinkApp() {
-  return guard("matches", "refapp.unlink", async (osuId) => {
+  return guard("matches", "helper.unlink", async (osuId) => {
     await unpair(osuId);
     return { unlinked: true };
   });
