@@ -44,7 +44,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
   const extras = (mod: string): Item[] => mapsOf(mod).filter((m) => m.order >= countOf(mod)).map((m) => ({ mod, slot: m.order, out: true }));
   const sections: { key: string; title: string; color: string; items: Item[] }[] = skill
     ? [
-        ...skill.groups.map((g) => ({ key: g.id, title: g.name.charAt(0).toUpperCase() + g.name.slice(1).toLowerCase(), color: g.color, items: g.slots.map((x) => ({ ...x, out: false })) })),
+        ...skill.groups.map((g) => ({ key: g.id, title: g.name, color: g.color, items: g.slots.map((x) => ({ ...x, out: false })) })),
         { key: "out", title: t.admin.outsideLayout, color: "var(--rose)", items: MOD_ORDER.flatMap(extras) },
       ].filter((x) => x.items.length)
     : MOD_ORDER.filter((mod) => countOf(mod) > 0 || mapsOf(mod).length).map((mod) => ({
