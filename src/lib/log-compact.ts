@@ -1,5 +1,5 @@
 import type { LogRow } from "@/db/admin";
-import { TZ } from "@/lib/time";
+import { sofiaDate } from "@/lib/time";
 
 type Category = "refereed" | "poolWork" | "ratings" | "screening" | "qualifierScores" | "matchScores";
 type Scope = { category: Category; context: string; key: string };
@@ -13,7 +13,6 @@ const refereeActions = new Set([
 const poolActions = new Set(["pool.suggest", "pool.unsuggest", "map.add", "map.move"]);
 const qualifierActions = new Set(["qual.setScore", "qual.deleteScore", "qual.clearPlayer"]);
 const scoreActions = new Set(["match.score.save", "match.score.remove", "match.score.undo"]);
-const dayFormat = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
 const inactivity = 60 * 60 * 1000;
 
 function payload(row: LogRow): Record<string, unknown> {
@@ -77,7 +76,7 @@ export function compactLog(rows: readonly LogRow[]): CompactLogEntry[] {
       entries.push({ kind: "row", row });
       continue;
     }
-    const day = dayFormat.format(row.at);
+    const day = sofiaDate(row.at);
     let generation = 0;
     if (s.category === "refereed") {
       const sessionKey = JSON.stringify([boundary, edition, s.context]);

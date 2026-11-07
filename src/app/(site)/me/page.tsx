@@ -37,6 +37,7 @@ import { Card, Stat, PlayerLink, TeamCard, Side, Info, label } from "./cards";
 import { QualifierPlacement, QualifierScores } from "./qualifier-scores";
 import { isBGCC6 } from "@/db";
 import { at } from "@/components/site/rich";
+import { localeOf } from "@/lib/i18n/locale";
 
 
 export default async function Me() {
@@ -67,7 +68,7 @@ export default async function Me() {
     canSee("schedule"),
     getPlayerSeeds(),
   ]);
-  const locale = lang === "bg" ? "bg-BG" : "en-GB";
+  const locale = localeOf(lang);
   const phase = settings.phase;
   const signupPhase = phase === "registration" || phase === "screening";
   const reg = regs.find((r) => r.osuId === me);

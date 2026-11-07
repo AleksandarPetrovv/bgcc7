@@ -8,6 +8,7 @@ import { can } from "@/lib/roles";
 import { saveBlueprint } from "../../actions";
 import { BlueprintForm } from "./blueprint-form";
 import { isBGCC6 } from "@/db";
+import { roundName } from "@/lib/i18n/dict";
 
 export default async function PoolCreate({ searchParams }: { searchParams: Promise<{ stage?: string }> }) {
   const [t, viewer, stages, sp] = await Promise.all([getDict(), getViewer(), getPoolStages(), searchParams]);
@@ -24,7 +25,7 @@ export default async function PoolCreate({ searchParams }: { searchParams: Promi
       <LinkTabs
         className="mb-6"
         label={t.admin.menu.mappools}
-        items={stages.map((s) => ({ href: `/admin/mappools/create?stage=${s.slug}`, active: s.id === stage.id, label: t.rounds[s.title] ?? s.title }))}
+        items={stages.map((s) => ({ href: `/admin/mappools/create?stage=${s.slug}`, active: s.id === stage.id, label: roundName(t, s.title) }))}
       />
       <BlueprintForm key={stage.id} action={saveBlueprint.bind(null, stage.id)} mods={mods} initial={stage.blueprint} tb={!quals} />
     </>

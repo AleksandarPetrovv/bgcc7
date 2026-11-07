@@ -11,6 +11,7 @@ import { CondensedFolk } from "../folk";
 import { getPlan } from "@/db/format-plan";
 import { getMatches } from "@/db/tournament";
 import { getHosts } from "@/db/admin";
+import { localeOf } from "@/lib/i18n/locale";
 
 export const generateMetadata = pageMeta("info");
 
@@ -24,7 +25,7 @@ export default async function Condensed() {
     const [plan, matches, hosts] = await Promise.all([getPlan(), getMatches(), getHosts()]);
     return (
       <Container plain>
-        <CondensedFolk t={t} f={f} raw={raw} on={on} locale={lang === "bg" ? "bg-BG" : "en-GB"} plan={plan} matches={matches} hosts={hosts} />
+        <CondensedFolk t={t} f={f} raw={raw} on={on} locale={localeOf(lang)} plan={plan} matches={matches} hosts={hosts} />
       </Container>
     );
   }

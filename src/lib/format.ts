@@ -222,6 +222,8 @@ export const GF_RESET = "grand-final-reset";
 
 const ROUNDS = new Set(Object.values(FORMATS).flatMap((f) => Object.keys(f.rounds)));
 export const roundOf = (matchId: string) => (ROUNDS.has(matchId) ? matchId : matchId.replace(/-\d+$/, ""));
+/** the match's number inside its round ("3" for winners-r1-3), null when the round is a single match */
+export const matchNum = (f: Format, matchId: string) => (f.rounds[roundOf(matchId)]?.single ? null : (matchId.match(/-(\d+)$/)?.[1] ?? null));
 
 export const winTargets = (f: Format) => {
   const out: Record<string, string> = {};

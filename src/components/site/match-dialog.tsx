@@ -16,6 +16,7 @@ import { MeTag, meP } from "./me";
 import { modHi, TEAM as TEAMS } from "@/lib/theme";
 import { osuMatch } from "@/lib/links";
 import { RuleDiamond } from "./rule";
+import { localeOf } from "@/lib/i18n/locale";
 
 const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
@@ -200,7 +201,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
   const names = [teams[0]?.name ?? match.team1.name, teams[1]?.name ?? match.team2.name];
   const score = data && data !== "error" ? data.score : [match.team1.score ?? 0, match.team2.score ?? 0];
   const lang = useLang();
-  const when = match.datetime ? fmtSofia(new Date(match.datetime), lang === "bg" ? "bg-BG" : "en-GB") : null;
+  const when = match.datetime ? fmtSofia(new Date(match.datetime), localeOf(lang)) : null;
 
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);

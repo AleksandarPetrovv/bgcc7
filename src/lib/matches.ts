@@ -27,7 +27,7 @@ export function matchLabel(t: Dict, matches: Match[], id: string) {
   const m = matches.find((x) => x.id === id);
   if (!m) return t.common.tbd;
   const same = matches.filter((o) => o.round === m.round);
-  const name = t.rounds[m.round] ?? m.round;
+  const name = roundName(t, m.round);
   return same.length > 1 ? `${name} #${same.indexOf(m) + 1}` : name;
 }
 

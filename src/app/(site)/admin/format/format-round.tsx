@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { modHi, modOn } from "@/lib/theme";
 import { RuleDiamond } from "@/components/site/rule";
 import { Catalog, Edit, Intro, useFresh, useIntroWindow } from "./format-context";
+import { roundName } from "@/lib/i18n/dict";
 
 const COLOR: Record<PlanMod | "FM", string> = {
   NM: "var(--mod-nm)",
@@ -310,7 +311,7 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
             <span className="inline-block skew-x-12">BO{s.bestOf}</span>
           </span>
         </span>
-        <h2 data-cascade className="in-wipe heading-slam flex-1 whitespace-nowrap text-2xl sm:text-3xl">{t.rounds[r.name] ?? r.name}</h2>
+        <h2 data-cascade className="in-wipe heading-slam flex-1 whitespace-nowrap text-2xl sm:text-3xl">{roundName(t, r.name)}</h2>
         <div data-cascade className="in-drop flex items-center gap-2 text-[0.65rem] font-display font-bold text-ash">
           {t.admin.fp.firstTo}
           <Stepper value={r.firstTo} min={1} max={15} onChange={(n) => onChange({ ...r, firstTo: n })} label={t.admin.fp.firstTo} />

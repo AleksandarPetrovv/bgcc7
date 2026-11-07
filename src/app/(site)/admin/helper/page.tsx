@@ -16,6 +16,7 @@ import { currentStreamMatch } from "@/db/stream";
 import { getLive } from "@/lib/live-scores";
 import { getLang } from "@/lib/i18n/server";
 import { fmtSofia } from "@/lib/time";
+import { localeOf } from "@/lib/i18n/locale";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ export default async function HelperPage() {
   const streamer = can(viewer.roles, "overlay");
   const [match, lang, sig] = await Promise.all([streamer ? currentStreamMatch(viewer.osuId) : null, getLang(), helperSig(viewer.osuId)]);
   const live = match ? getLive(match.id) : null;
-  const locale = lang === "bg" ? "bg-BG" : "en-GB";
+  const locale = localeOf(lang);
   const tile = "in-up flex min-w-0 flex-col gap-1.5 border border-line bg-ink/50 px-4 py-3";
   const k = "in-wipe text-[0.68rem] font-display font-bold text-ash";
 

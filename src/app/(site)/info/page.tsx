@@ -16,6 +16,7 @@ import { getMatches } from "@/db/tournament";
 import { getHosts } from "@/db/admin";
 import { stageWeeks } from "@/db/schedule";
 import { getSettings } from "@/db/settings";
+import { localeOf } from "@/lib/i18n/locale";
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
@@ -60,7 +61,7 @@ export default async function InfoPage() {
     const [plan, matches, hosts, weeks, settings] = await Promise.all([getPlan(), getMatches(), getHosts(), stageWeeks(), getSettings()]);
     return (
       <Container plain>
-        <InfoFolk t={t} f={f} raw={(path, fallback) => ed(path, fallback).raw} on={on} locale={lang === "bg" ? "bg-BG" : "en-GB"} plan={plan} matches={matches} weeks={weeks} hosts={hosts} timer={settings.banSecs} />
+        <InfoFolk t={t} f={f} raw={(path, fallback) => ed(path, fallback).raw} on={on} locale={localeOf(lang)} plan={plan} matches={matches} weeks={weeks} hosts={hosts} timer={settings.banSecs} />
       </Container>
     );
   }

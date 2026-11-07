@@ -11,6 +11,7 @@ import { Cascade } from "@/components/site/cascade";
 import { addSponsor } from "./actions";
 import { PackUploader } from "./pack-uploader";
 import { SponsorList } from "./sponsor-list";
+import { localeOf } from "@/lib/i18n/locale";
 
 export default async function AdminSite() {
   const [t, lang, viewer, sponsors, stages] = await Promise.all([getDict(), getLang(), getViewer(), getSponsors(), getPoolStages()]);
@@ -23,7 +24,7 @@ export default async function AdminSite() {
       <Cascade className="grid grid-cols-1 gap-6 xl:grid-cols-2" step={0.06}>
         <div className="space-y-6">
           <Panel title={t.admin.packs} help={t.admin.packsHelp}>
-            <PackUploader stages={stages.map((s) => ({ slug: s.slug, title: s.title, pack: s.pack }))} locale={lang === "bg" ? "bg-BG" : "en-GB"} />
+            <PackUploader stages={stages.map((s) => ({ slug: s.slug, title: s.title, pack: s.pack }))} locale={localeOf(lang)} />
           </Panel>
         </div>
 

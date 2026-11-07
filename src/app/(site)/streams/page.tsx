@@ -13,6 +13,7 @@ import type { Team } from "@/lib/data";
 import { getLive } from "@/lib/twitch";
 import { requireSection } from "@/lib/authz";
 import { MeTag, meT } from "@/components/site/me";
+import { localeOf } from "@/lib/i18n/locale";
 
 export const generateMetadata = pageMeta("streams");
 
@@ -64,7 +65,7 @@ export default async function Streams() {
                 <div key={m.id} {...meT(a?.id)} className="in-right border-b border-line py-3 last:border-b-0" style={{ "--i": Math.min(i, 8), "--s": "0.08s", "--d": "0.35s" } as React.CSSProperties}>
                   <div className="flex items-center justify-between text-xs font-display font-bold">
                     <span className="text-rose-hi">{roundName(t, m.round)}</span>
-                    <span className="num text-sm text-paper">{fmtSofia(new Date(m.datetime!), lang === "bg" ? "bg-BG" : "en-GB")}</span>
+                    <span className="num text-sm text-paper">{fmtSofia(new Date(m.datetime!), localeOf(lang))}</span>
                   </div>
                   <div className="mt-1 truncate font-display font-black">
                     {a?.name}

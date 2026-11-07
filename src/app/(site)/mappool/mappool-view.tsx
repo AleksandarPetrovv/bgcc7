@@ -5,6 +5,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowDownToLine, ArrowUpRight, Download, Play, Star } from "lucide-react";
 import { Container, PageTitle, SlantButton } from "@/components/site/page";
 import { UnderlineTabs } from "@/components/site/pool-pager";
+import { roundName } from "@/lib/i18n/dict";
+import { isLite } from "@/lib/lite";
 
 // a hidden two-digit label holds the width, so the button (and the tabs left of it) never move between stages
 function PackLabel({ text, widest }: { text: string; widest: string }) {
@@ -47,7 +49,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
       <PageTitle mark="notes"
         right={
           <>
-            <UnderlineTabs names={stages.map((s) => t.rounds[s.title] ?? s.title)} colors={stages.map(() => "var(--rose)")} pos={i} onPick={pick} animate spark className="min-w-0 pr-4" />
+            <UnderlineTabs names={stages.map((s) => roundName(t, s.title))} colors={stages.map(() => "var(--rose)")} pos={i} onPick={pick} animate spark className="min-w-0 pr-4" />
             {stage.pack ? (
               <SlantButton tone="balkan" download href={`/download/${stage.slug}`} className="shrink-0 px-3 py-1.5">
                 <Download className="size-4" /> <PackLabel text={t.mappool.pack(count)} widest={t.mappool.pack(88)} />
@@ -201,7 +203,7 @@ function useCount(to: number, ms = 900) {
   const [v, setV] = useState(to);
   useEffect(() => {
     // reduced motion / lite: lands on the final number on the first frame
-    const dur = matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("lite") ? 1 : ms;
+    const dur = matchMedia("(prefers-reduced-motion: reduce)").matches || isLite() ? 1 : ms;
     let raf = 0;
     const t0 = performance.now();
     const tick = (now: number) => {

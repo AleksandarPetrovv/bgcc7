@@ -11,11 +11,12 @@ import { MatchDialog } from "./match-dialog";
 import { cn } from "@/lib/utils";
 import { MeTag, meT } from "./me";
 import { fitBox, useFit } from "./use-fit";
-import { roundOf, winTargets, type Format, type Half } from "@/lib/format";
-import { TZ } from "@/lib/time";
+import { matchNum, winTargets, type Format, type Half } from "@/lib/format";
+import { fmtDate, fmtSofiaTime } from "@/lib/time";
 import { roundName } from "@/lib/i18n/dict";
 import { hasResults } from "@/lib/matches";
 import { HEX } from "@/lib/theme";
+import { localeOf } from "@/lib/i18n/locale";
 
 const TOP = 92;
 type Pos = Record<string, [number, number, Half]>;
@@ -68,14 +69,13 @@ function Line({ m, slot, live, slim }: { m: Match; slot: 1 | 2; live?: [number, 
 function Box({ id, m, live, slim, plain, className, style, onEnter, onLeave }: { id: string; m: Match; live?: [number, number] | null; slim?: boolean; plain?: boolean; className?: string; style?: React.CSSProperties; onEnter?: () => void; onLeave?: () => void }) {
   const t = useDict();
   const lang = useLang();
-  const locale = lang === "bg" ? "bg-BG" : "en-GB";
-  const day = (dt: string) => new Date(dt).toLocaleDateString(locale, { timeZone: TZ, weekday: "short", day: "2-digit", month: "short" });
-  const clock = (dt: string) => new Date(dt).toLocaleTimeString("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
-  const num = useFormat().rounds[roundOf(id)]?.single ? null : id.match(/-(\d+)$/)?.[1];
+  const locale = localeOf(lang);
+  const day = (dt: string) => fmtDate(new Date(dt), locale, id === "grand-final-reset" ? { day: "2-digit", month: "short" } : { weekday: "short", day: "2-digit", month: "short" });
+  const num = matchNum(useFormat(), id);
   return (
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className={cn("flex flex-col overflow-hidden border bg-coal transition-[border-color] duration-200", className)} style={style}>
       <div className="flex h-7 shrink-0 items-center gap-2 border-b border-line bg-ink/70 px-2.5">
-        <span className="num truncate text-[12.5px] text-paper/75">{m.datetime ? `${id === "grand-final-reset" ? new Date(m.datetime).toLocaleDateString(locale, { timeZone: TZ, day: "2-digit", month: "short" }) : day(m.datetime)} · ${clock(m.datetime)}` : m.winner ? "" : m.team1.id && m.team2.id ? t.common.tbd : "—"}</span>
+        <span className="num truncate text-[12.5px] text-paper/75">{m.datetime ? `${day(m.datetime)} · ${fmtSofiaTime(new Date(m.datetime))}` : m.winner ? "" : m.team1.id && m.team2.id ? t.common.tbd : "—"}</span>
         {id === "grand-final-reset" ? (
           <span className="shrink-0 whitespace-nowrap text-[9.6px] font-display font-bold text-gold-hi">{t.rounds.reset}</span>
         ) : (
@@ -238,7 +238,7 @@ export function MatchBracket({ live = {}, maxH, reset = true, plain }: { live?: 
                 className="in-drop absolute snap-start truncate border-b border-line pb-1 text-xs font-display font-bold text-ash"
                 style={{ left: col(h.c), top: y - 30, width: W, ...v({ "--i": h.c, "--s": "0.12s", "--d": h.s === "u" ? "0.15s" : "0.45s" }) }}
               >
-                {t.rounds[h.t] ?? h.t}
+                {roundName(t, h.t)}
               </div>
             </div>
           );

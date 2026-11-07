@@ -11,11 +11,12 @@ import { fmtSofia, fmtSofiaDay, fmtSofiaTime, windowState, tzLabel } from "@/lib
 import { cn } from "@/lib/utils";
 import { LobbyButton } from "./lobby-button";
 import { meP } from "@/components/site/me";
+import { localeOf } from "@/lib/i18n/locale";
 
 export default async function Lobbies() {
   await requireSection("lobbies");
   const [t, lang, lobbies, settings, osuId] = await Promise.all([getDict(), getLang(), getLobbies(), getSettings(), currentOsuId()]);
-  const locale = lang === "bg" ? "bg-BG" : "en-GB";
+  const locale = localeOf(lang);
   const status = osuId ? await getRegistration(osuId) : null;
   const state = windowState(settings.bookingOpensAt, settings.bookingClosesAt);
   const mineId = osuId ? (lobbies.find((l) => l.players.some((p) => p.osuId === osuId))?.id ?? null) : null;

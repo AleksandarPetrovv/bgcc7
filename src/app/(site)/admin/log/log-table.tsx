@@ -5,10 +5,12 @@ import { Avatar } from "@/components/site/avatar";
 import type { Dict } from "@/lib/i18n/dict";
 import { describe, summarize, type LogCtx } from "@/lib/log-text";
 import { getFormat } from "@/db/edition";
-import { roundOf } from "@/lib/format";
+import { matchNum, roundOf } from "@/lib/format";
 import { compactLog, type CompactLogEntry } from "@/lib/log-compact";
-import { fmtSofia, fmtSofiaDay, fmtSofiaTime, TZ, tzLabel } from "@/lib/time";
+import { fmtSofia, fmtSofiaDay, fmtSofiaTime, sofiaDate, tzLabel } from "@/lib/time";
 import { cn } from "@/lib/utils";
+import { localeOf } from "@/lib/i18n/locale";
+import { roundName } from "@/lib/i18n/dict";
 
 const categoryPrefixes: Record<string, string[]> = {
   players: ["register.", "lobby.book", "lobby.leave", "reschedule.request", "reschedule.accepted", "reschedule.declined", "reschedule.cancelled"],
@@ -61,17 +63,18 @@ function Rich({ text }: { text: string }) {
 
 export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: LogCtx; lang: string; t: Dict; empty: string }) {
   if (!rows.length) return <p className="border-y border-line py-4 text-sm text-ash">{empty}</p>;
-  const locale = lang === "bg" ? "bg-BG" : "en-GB";
+  const locale = localeOf(lang);
   const helpers = {
     lang,
     phase: (p: string) => t.admin.phases[p as keyof typeof t.admin.phases] ?? p,
-    round: (s: string) => t.rounds[s] ?? s,
+    round: (s: string) => roundName(t, s),
     role: (r: string) => t.admin.roles[r] ?? r,
     date: (d: string) => `${fmtSofia(new Date(d), locale)} ${tzLabel(new Date(d))}`,
     match: (id: string) => {
-      const r = getFormat().rounds[roundOf(id)];
-      const n = id.match(/-(\d+)$/)?.[1];
-      return r ? (r.single ? (t.rounds[r.name] ?? r.name) : `${t.rounds[r.name] ?? r.name} - ${n}`) : id;
+      const f = getFormat();
+      const r = f.rounds[roundOf(id)];
+      const n = matchNum(f, id);
+      return r ? (n ? `${roundName(t, r.name)} - ${n}` : roundName(t, r.name)) : id;
     },
   };
   const matchName = (id: string) => {
@@ -108,11 +111,10 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
       </li>
     );
   };
-  const dayFormat = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
   const days = new Map<string, { label: string; entries: CompactLogEntry[] }>();
   for (const entry of compactLog(rows)) {
     const r = entry.kind === "row" ? entry.row : entry.latest;
-    const key = dayFormat.format(r.at);
+    const key = sofiaDate(r.at);
     let day = days.get(key);
     if (!day) {
       day = { label: fmtSofiaDay(r.at, locale), entries: [] };

@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { avatarPath } from "@/lib/avatar";
 import { useDict, useLang } from "@/components/site/lang";
 import { hourKeys } from "@/lib/schedule";
-import { dayFmt as fmt, dayHead } from "@/lib/time";
+import { addDays, dayFmt as fmt, dayHead } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { at } from "@/components/site/rich";
 import { setBusy } from "./actions";
@@ -28,8 +28,7 @@ export function Availability({ matchId, week, busy, me, opp, viewer, editable }:
   const router = useRouter();
   const keys = hourKeys(week.min, week.max);
   // midnight closes the evening before it: shown as the last row of the previous day
-  const nextDay = (d: string) => new Date(Date.parse(`${d}T12:00Z`) + 864e5).toISOString().slice(0, 10);
-  const keyOf = (d: string, h: number) => `${h ? d : nextDay(d)}T${String(h).padStart(2, "0")}`;
+  const keyOf = (d: string, h: number) => `${h ? d : addDays(d, 1)}T${String(h).padStart(2, "0")}`;
   const days = [...new Set(keys.filter((k) => !k.endsWith("T00")).map((k) => k.slice(0, 10)))];
   const hours = [...new Set(keys.map((k) => +k.slice(11)))].sort((a, b) => (a || 24) - (b || 24));
   const valid = new Set(keys);
@@ -128,7 +127,7 @@ export function Availability({ matchId, week, busy, me, opp, viewer, editable }:
               const k = keyOf(d, h);
               if (!valid.has(k)) return <span key={k} />;
               const out = players.filter((p) => busyOf(p.id, k));
-              const label = `${dayLong(h ? d : nextDay(d), lang)} ${String(h).padStart(2, "0")}:00${out.length ? ` · ${t.sched.cantPlay(out.map((p) => p.name).join(", "), out.length)}` : ""}`;
+              const label = `${dayLong(h ? d : addDays(d, 1), lang)} ${String(h).padStart(2, "0")}:00${out.length ? ` · ${t.sched.cantPlay(out.map((p) => p.name).join(", "), out.length)}` : ""}`;
               return (
                 <button
                   key={k}
@@ -145,11 +144,11 @@ export function Availability({ matchId, week, busy, me, opp, viewer, editable }:
                   }}
                   onPointerEnter={(e) => {
                     if (paint.current != null) apply(k, paint.current);
-                    else if (e.pointerType === "mouse") setTip({ k, d: h ? d : nextDay(d), h, r: e.currentTarget.getBoundingClientRect(), touch: false });
+                    else if (e.pointerType === "mouse") setTip({ k, d: h ? d : addDays(d, 1), h, r: e.currentTarget.getBoundingClientRect(), touch: false });
                   }}
                   onPointerLeave={(e) => e.pointerType === "mouse" && setTip((cur) => (cur?.k === k ? null : cur))}
                   onClick={(e) => {
-                    if (ptr.current !== "mouse" || e.detail === 0) setTip({ k, d: h ? d : nextDay(d), h, r: e.currentTarget.getBoundingClientRect(), touch: true });
+                    if (ptr.current !== "mouse" || e.detail === 0) setTip({ k, d: h ? d : addDays(d, 1), h, r: e.currentTarget.getBoundingClientRect(), touch: true });
                     // mouse already painted on pointerdown; touch taps and keyboard toggle here
                     if (!live || (ptr.current === "mouse" && e.detail > 0)) return;
                     apply(k, !mine.has(k));

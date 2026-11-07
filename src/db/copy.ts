@@ -7,11 +7,12 @@ import { getSkillLayouts } from "./format-plan";
 import { getLang } from "@/lib/i18n/server";
 import { buildTokens, fill } from "@/lib/dates";
 import { isBGCC6 } from "./index";
+import { localeOf } from "@/lib/i18n/locale";
 
 export const getTokens = cache(async () => {
   const [s, stages, lang, skills] = await Promise.all([getSettings(), getPoolStages(), getLang(), getSkillLayouts()]);
   return buildTokens({
-    locale: lang === "bg" ? "bg-BG" : "en-GB",
+    locale: localeOf(lang),
     timeline: s.timeline,
     regClosesAt: s.regClosesAt,
     qualifyCount: s.qualifyCount,

@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDict } from "./lang";
+import { THEME_COOKIE } from "@/lib/i18n/locale";
 
 const html = () => document.documentElement;
 const subscribe = (cb: () => void) => {
@@ -14,7 +15,7 @@ const subscribe = (cb: () => void) => {
 
 const set = (on: boolean) => {
   html().classList.toggle("dark", on);
-  document.cookie = `theme=${on ? "dark" : "light"}; path=/; max-age=31536000; samesite=lax`;
+  document.cookie = `${THEME_COOKIE}=${on ? "dark" : "light"}; path=/; max-age=31536000; samesite=lax`;
 };
 
 export function ThemeToggle({ className }: { className?: string }) {

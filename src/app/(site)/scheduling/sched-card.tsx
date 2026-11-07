@@ -7,7 +7,7 @@ import { Countdown } from "@/components/site/countdown";
 import { Modal } from "@/components/site/modal";
 import { SlantButton } from "@/components/site/page";
 import { useDict, useLang } from "@/components/site/lang";
-import { fmtSofiaDay, fmtSofiaTime } from "@/lib/time";
+import { fmtDate, fmtSofiaDay, fmtSofiaTime } from "@/lib/time";
 import { DayTime, firstFree, isFree } from "./day-time";
 import { Availability } from "./availability";
 import { avatarPath } from "@/lib/avatar";
@@ -20,6 +20,7 @@ import { RuleDiamond } from "@/components/site/rule";
 import { AnimatePresence, motion } from "motion/react";
 import { EASE } from "@/components/site/motion";
 import { accept, decline, propose, withdraw } from "./actions";
+import { localeOf } from "@/lib/i18n/locale";
 
 const reveal = { initial: { height: 0, opacity: 0 }, animate: { height: "auto", opacity: 1 }, exit: { height: 0, opacity: 0 }, transition: { duration: 0.4, ease: EASE } };
 const fade = { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -8 }, transition: { duration: 0.25, ease: EASE } };
@@ -29,13 +30,13 @@ type Week = { deadline: string; min: string; max: string } | null;
 
 function useWhen() {
   const lang = useLang();
-  const locale = lang === "bg" ? "bg-BG" : "en-GB";
+  const locale = localeOf(lang);
   return {
     full: (iso: string) => `${fmtSofiaDay(new Date(iso), locale)} · ${fmtSofiaTime(new Date(iso))}`,
     // "1 Oct · 18:00, Friday"
     hist: (iso: string) =>
-      `${new Date(iso).toLocaleDateString(locale, { timeZone: "Europe/Sofia", day: "numeric", month: "short" })} · ${fmtSofiaTime(new Date(iso))}, ${new Date(iso).toLocaleDateString(locale, { timeZone: "Europe/Sofia", weekday: "long" })}`,
-    short: (iso: string) => `${new Date(iso).toLocaleDateString(locale, { timeZone: "Europe/Sofia", weekday: "short" })} ${fmtSofiaTime(new Date(iso))}`,
+      `${fmtDate(new Date(iso), locale, { day: "numeric", month: "short" })} · ${fmtSofiaTime(new Date(iso))}, ${fmtDate(new Date(iso), locale, { weekday: "long" })}`,
+    short: (iso: string) => `${fmtDate(new Date(iso), locale, { weekday: "short" })} ${fmtSofiaTime(new Date(iso))}`,
   };
 }
 

@@ -22,6 +22,7 @@ import { SlotPop } from "../slot-pop";
 import { SheetView, SlotBox } from "./sheet-view";
 import { osuMap } from "@/lib/links";
 import { cardCover } from "@/lib/data";
+import { roundName } from "@/lib/i18n/dict";
 
 const places = (items: { picked: boolean; avg: number | null }[]) => {
   const out: number[] = [];
@@ -42,7 +43,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
   const vote = can(viewer.roles, "poolVote");
   const [sheets, version, layouts, plan] = await Promise.all([Promise.all(stages.map((s) => getSheet(s.id, viewer.osuId, s.blueprint))), sheetVersion(stage.id), getSkillLayouts(), getPlan()]);
   const sheet = sheets[stages.indexOf(stage)];
-  const name = (s: { title: string }) => t.rounds[s.title] ?? s.title;
+  const name = (s: { title: string }) => roundName(t, s.title);
   const skill = layouts?.[stage.slug];
   const info = new Map(skill?.groups.flatMap((g, gi) => g.slots.map((x, k) => [`${x.mod}-${x.slot}`, { group: g, label: x.label, ids: x.ids, at: gi * 100 + k }] as const)) ?? []);
   const unset = (s: (typeof sheet.slots)[number]) => {

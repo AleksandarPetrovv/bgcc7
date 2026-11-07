@@ -9,7 +9,8 @@ import { useDict } from "@/components/site/lang";
 import { Tabs } from "@/components/site/tabs";
 import type { Pack } from "@/lib/data";
 import { cn } from "@/lib/utils";
-import { TZ } from "@/lib/time";
+import { fmtDate } from "@/lib/time";
+import { roundName } from "@/lib/i18n/dict";
 
 type StageInfo = { slug: string; title: string; pack: Pack | null };
 type Job = { state: "running" | "done" | "error"; done: number; total: number; missing: string[]; error?: string; size?: number; zipping?: boolean };
@@ -98,7 +99,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
     prev.current[key] = j.state;
     setJobs((all) => ({ ...all, [key]: j }));
   }
-  const name = (s: StageInfo) => t.rounds[s.title] ?? s.title;
+  const name = (s: StageInfo) => roundName(t, s.title);
 
   function upload(file: File) {
     const key = slug;
@@ -164,7 +165,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
               <span className="num text-ash">
                 {mb(pack.size)}
                 {pack.at &&
-                  ` · ${new Date(pack.at).toLocaleString(locale, { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}`}
+                  ` · ${fmtDate(new Date(pack.at), locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}`}
               </span>
             </span>
             {simple ? (

@@ -24,6 +24,8 @@ import { SwapRow } from "../swap-row";
 import { PoolMode } from "../pool-mode";
 import Link from "next/link";
 import { osuMap } from "@/lib/links";
+import { localeOf } from "@/lib/i18n/locale";
+import { roundName } from "@/lib/i18n/dict";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 
@@ -34,7 +36,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
   if (!stage) return null;
   const host = can(viewer?.roles, "phase");
   const edit = can(viewer?.roles, "poolEdit");
-  const name = (s: { title: string }) => t.rounds[s.title] ?? s.title;
+  const name = (s: { title: string }) => roundName(t, s.title);
   const [checks, layouts] = await Promise.all([getMapChecks(stage.pools.flatMap((p) => p.maps.map((m) => m.id))), getSkillLayouts()]);
   const skill = layouts?.[stage.slug];
   const poolMaps = stage.pools.flatMap((p) => p.maps);
@@ -102,7 +104,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
               key={stage.slug}
               simple
               stages={[{ slug: stage.slug, title: stage.title, pack: stage.pack }]}
-              locale={lang === "bg" ? "bg-BG" : "en-GB"}
+              locale={localeOf(lang)}
               lead={<ReleaseToggle key={`${stage.id}-${stage.released}`} stageId={stage.id} released={stage.released} className="w-full justify-center" />}
             />
           </div>

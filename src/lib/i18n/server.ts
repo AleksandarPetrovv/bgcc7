@@ -1,10 +1,11 @@
 import { cookies } from "next/headers";
 import type { Lang } from "./dict";
 import { dictFor } from "./dict";
+import { LANG_COOKIE } from "./locale";
 import { currentEdition } from "@/db";
 
 export async function getLang(): Promise<Lang> {
-  const v = (await cookies()).get("lang")?.value;
+  const v = (await cookies()).get(LANG_COOKIE)?.value;
   return v === "bg" ? "bg" : "en";
 }
 

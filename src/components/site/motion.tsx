@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState
 import { usePathname } from "next/navigation";
 import { animate, motion, MotionConfig, useMotionValue, useTransform, type Variants } from "motion/react";
 import { belowFold } from "./in-view";
+import { isLite, LITE } from "@/lib/lite";
 
 export const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -43,11 +44,11 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(t);
   }, [path]);
   useEffect(() => {
-    if (document.documentElement.classList.contains("lite")) return;
+    if (isLite()) return;
     return watchFrames(() => {
-      document.documentElement.classList.add("lite");
+      document.documentElement.classList.add(LITE);
       try {
-        sessionStorage.setItem("lite", "1");
+        sessionStorage.setItem(LITE, "1");
       } catch {}
     });
   }, []);

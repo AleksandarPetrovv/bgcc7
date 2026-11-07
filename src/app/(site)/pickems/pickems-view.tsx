@@ -18,6 +18,7 @@ import type { LeaderRow } from "@/db/queries";
 import { cn } from "@/lib/utils";
 import { login, savePickems } from "./actions";
 import { MeTag } from "@/components/site/me";
+import { roundName } from "@/lib/i18n/dict";
 
 
 type Props = { osuId: number | null; saved: Picks | null; leaderboard: LeaderRow[]; open: boolean; locked: string[] };
@@ -37,7 +38,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
   for (const [code, r] of Object.entries(f.rounds)) byStage.set(r.stage, (byStage.get(r.stage) ?? new Set()).add(f.points[code] ?? 0));
   const stageName = (slug: string) => PLAN_STAGES.find((s) => s.slug === slug)?.name ?? slug;
   const points: [string, number][] = [...byStage.values()].every((s) => s.size === 1)
-    ? [...byStage].map(([slug, s]) => [t.rounds[stageName(slug)] ?? stageName(slug), [...s][0]])
+    ? [...byStage].map(([slug, s]) => [roundName(t, stageName(slug)), [...s][0]])
     : t.pickems.points;
 
   useEffect(() => {

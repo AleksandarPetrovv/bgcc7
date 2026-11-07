@@ -4,13 +4,14 @@ import "./globals.css";
 import Link from "next/link";
 import { useEffect, useSyncExternalStore } from "react";
 import { dicts } from "@/lib/i18n/dict";
+import { LANG_COOKIE } from "@/lib/i18n/locale";
 
 const noop = () => () => {};
 
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const lang = useSyncExternalStore(
     noop,
-    () => (/(?:^|;\s*)lang=bg/.test(document.cookie) ? "bg" : "en"),
+    () => (new RegExp(`(?:^|;\\s*)${LANG_COOKIE}=bg`).test(document.cookie) ? "bg" : "en"),
     () => "en" as const,
   );
   useEffect(() => console.error(error), [error]);

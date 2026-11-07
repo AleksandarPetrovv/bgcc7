@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Editable } from "./editable";
 import { avatarPath } from "@/lib/avatar";
 import { osuUser } from "@/lib/links";
+import { roundName } from "@/lib/i18n/dict";
 
 export type FolkProps = {
   t: Dict;
@@ -126,7 +127,7 @@ function stageRows(p: FolkProps) {
     const days = wk ? [wk.min.slice(0, 10), wk.max.slice(0, 10)] : p.matches.filter((m) => m.stage === r.slug && m.datetime).map((m) => sofiaDate(new Date(m.datetime!))).sort();
     return {
       slug: r.slug,
-      name: p.t.rounds[r.name] ?? r.name,
+      name: roundName(p.t, r.name),
       when: days.length ? fmtRange(p.locale, days[0], days.at(-1)!) : "",
       sr: r.sr ?? null,
       mods: [...r.cats.filter((c) => c.maps.length).map((c) => [skillOf(c).abbr, c.maps.length, skillOf(c).color] as const), ["TB", 1, MOD_HEX.TB] as const],

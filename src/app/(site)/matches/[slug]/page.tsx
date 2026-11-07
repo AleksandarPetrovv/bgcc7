@@ -8,6 +8,7 @@ import { getDict } from "@/lib/i18n/server";
 import { getFormat } from "@/db/edition";
 import { matchIdFromSlug } from "@/lib/format";
 import { DraftRoom } from "./draft-room";
+import { roundName } from "@/lib/i18n/dict";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,7 @@ export default async function DraftPage({ params }: PageProps<"/matches/[slug]">
     const cap = x?.players.find((p) => p.isCaptain) ?? x?.players[0];
     return { name: x?.name ?? t.common.tbd, image: x?.image ?? "", captain: cap?.username ?? "", players: x?.players.map((p) => p.username) ?? [] };
   };
-  const round = t.rounds[access.match.round] ?? access.match.round;
+  const round = roundName(t, access.match.round);
   const firstTo = draft.firstTo;
 
   return (
@@ -43,7 +44,7 @@ export default async function DraftPage({ params }: PageProps<"/matches/[slug]">
       initial={draft}
       teams={[side(access.match.team1Id), side(access.match.team2Id)]}
       pools={bySkill(stage, skills?.[stage.slug]).pools}
-      title={stage.slug === (access.match.poolSlug ?? access.match.stageSlug) ? round : `${round} · ${t.rounds[stage.title] ?? stage.title}`}
+      title={stage.slug === (access.match.poolSlug ?? access.match.stageSlug) ? round : `${round} · ${roundName(t, stage.title)}`}
       firstTo={firstTo}
       admin={access.admin}
       runs={access.runs}

@@ -13,11 +13,13 @@ import { Cascade } from "@/components/site/cascade";
 import { db } from "@/db";
 import { drafts, mpLobbies, staff, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { localeOf } from "@/lib/i18n/locale";
+import { roundName } from "@/lib/i18n/dict";
 
 export default async function AdminMatches() {
   const [t, lang, viewer, rows, teams, stages, refs, live] = await Promise.all([getDict(), getLang(), getViewer(), getMatchRows(), getTeams(), getPoolStages(), refList(), liveList()]);
   if (!can(viewer?.roles, "matches")) notFound();
-  const locale = lang === "bg" ? "bg-BG" : "en-GB";
+  const locale = localeOf(lang);
   // upcoming first by start time (no time after them), played matches at the bottom; same for rounds and stages
   const key = (m: (typeof rows)[number]) => (m.winner ? 2e15 : 0) + (m.startsAt ? new Date(m.startsAt).getTime() : 1e15);
   const first = (list: typeof rows) => Math.min(...list.map(key));
@@ -35,7 +37,7 @@ export default async function AdminMatches() {
 
       <Cascade className="space-y-8" step={0.04}>
         {shown.map(({ s, list: inStage }, n) => (
-          <Panel key={s.slug} i={n < 3 ? n + 1 : 0} title={`${t.rounds[s.title] ?? s.title} · ${t.admin.firstToShort(s.firstTo ?? getFormat().firstTo)}`}>
+          <Panel key={s.slug} i={n < 3 ? n + 1 : 0} title={`${roundName(t, s.title)} · ${t.admin.firstToShort(s.firstTo ?? getFormat().firstTo)}`}>
             <div className="space-y-6">
               {[...new Set(inStage.map((m) => m.round))]
                 .map((round) => inStage.filter((m) => m.round === round).sort((a, b) => key(a) - key(b)))
@@ -45,7 +47,7 @@ export default async function AdminMatches() {
                 return (
                   <div key={round}>
                     <h3 data-cascade className="in-wipe mb-2.5 flex items-center gap-3 text-[0.7rem] font-display font-bold text-rose-hi">
-                      {t.rounds[round] ?? round}
+                      {roundName(t, round)}
                       <span className="num text-ash">
                         {list.filter((m) => m.winner).length}/{list.length}
                       </span>
@@ -53,7 +55,7 @@ export default async function AdminMatches() {
                     </h3>
                     <div className="border-t border-line">
                       {list.map((m) => (
-                        <MatchCard key={m.id} m={m} t={t} locale={locale} teams={teams} refs={refs} pools={bracketStages.filter((x) => x.pools.length).map((x) => ({ slug: x.slug, title: t.rounds[x.title] ?? x.title }))} live={m.winner ? undefined : live.get(m.id)} />
+                        <MatchCard key={m.id} m={m} t={t} locale={locale} teams={teams} refs={refs} pools={bracketStages.filter((x) => x.pools.length).map((x) => ({ slug: x.slug, title: roundName(t, x.title) }))} live={m.winner ? undefined : live.get(m.id)} />
                       ))}
                     </div>
                   </div>

@@ -15,6 +15,7 @@ import { createLobby, deleteLobby, placePlayer, unbook, updateLobby } from "./ac
 import { Dropdown } from "@/components/admin/dropdown";
 import { osuMp } from "@/lib/links";
 import { isBGCC6 } from "@/db";
+import { localeOf } from "@/lib/i18n/locale";
 
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 
@@ -50,7 +51,7 @@ function LobbyFields({ t, l }: { t: Dict; l?: Lobby }) {
 export default async function AdminLobbies() {
   const [t, lang, viewer, lobbies, regs] = await Promise.all([getDict(), getLang(), getViewer(), getLobbies(), getRegistrations()]);
   if (!can(viewer?.roles, "lobbies") || !isBGCC6()) notFound();
-  const locale = lang === "bg" ? "bg-BG" : "en-GB";
+  const locale = localeOf(lang);
   const booked = new Set(lobbies.flatMap((l) => l.players.map((p) => p.osuId)));
   const approved = regs.filter((r) => r.status === "approved");
   const free = approved.filter((r) => !booked.has(r.osuId));

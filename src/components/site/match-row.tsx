@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { MeTag, meT } from "./me";
 import { fmtSofia } from "@/lib/time";
 import { hasResults } from "@/lib/matches";
+import { localeOf } from "@/lib/i18n/locale";
 
 const d = (s: string) => ({ "--d": s }) as React.CSSProperties;
 
@@ -106,7 +107,7 @@ export function MatchRow({ match, live, small, label, delay = 0, plain }: { matc
   const t = useDict();
   const lang = useLang();
   const at = (s: number) => d(`${s + delay}s`);
-  const w = match.datetime ? fmtSofia(new Date(match.datetime), lang === "bg" ? "bg-BG" : "en-GB") : null;
+  const w = match.datetime ? fmtSofia(new Date(match.datetime), localeOf(lang)) : null;
   const played = match.winner !== null;
   const { teamById } = useTournament();
   const teams = [teamById(match.team1.id), teamById(match.team2.id)];

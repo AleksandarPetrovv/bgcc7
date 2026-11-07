@@ -1,17 +1,11 @@
-import { fromSofiaInput } from "./time";
+import { addDays, dayDate, fromSofiaInput } from "./time";
 
 export type SchedStatus = "pending" | "accepted" | "rejected" | "cancelled" | "withdrawn" | "staff";
 
 export type Proposal = { id: number; teamId: string; by: number; at: string; status: SchedStatus; answeredBy: number | null; staff: boolean; createdAt: string; note: string | null; reply: string | null };
 
-const addDays = (iso: string, n: number) => {
-  const d = new Date(`${iso}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-};
-
 export function mondayOf(iso: string) {
-  const d = new Date(`${iso}T12:00:00Z`);
+  const d = dayDate(iso);
   if (Number.isNaN(d.getTime())) return null;
   return addDays(iso, -((d.getUTCDay() + 6) % 7));
 }

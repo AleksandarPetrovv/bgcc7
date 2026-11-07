@@ -12,6 +12,8 @@ import { isOpen, weekOf, type Proposal } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
 import { setTime, setWeek } from "./actions";
+import { localeOf } from "@/lib/i18n/locale";
+import { roundName } from "@/lib/i18n/dict";
 
 const TONE: Record<string, { bar: string; chip: string }> = {
   agreed: { bar: "bg-balkan", chip: "bg-balkan text-on-fill" },
@@ -25,7 +27,7 @@ export default async function AdminScheduling() {
   const [t, lang, viewer, rows, teams, stages, weeks] = await Promise.all([getDict(), getLang(), getViewer(), getMatchRows(), getTeams(), getPoolStages(), stageWeeks()]);
   if (!can(viewer?.roles, "matches")) notFound();
   const s = t.sched;
-  const locale = lang === "bg" ? "bg-BG" : "en-GB";
+  const locale = localeOf(lang);
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? "—";
   const teamOf = (osuId: number | null) => (osuId == null ? null : (teams.find((x) => x.players.some((p) => p.userId === osuId))?.id ?? null));
   const hist = await historyOf(rows.map((m) => m.id)).catch(() => new Map<string, Proposal[]>());
@@ -56,7 +58,7 @@ export default async function AdminScheduling() {
           const rank = (m: (typeof rows)[number]) => (!m.team1Id || !m.team2Id ? 2 : m.startsAt ? 1 : 0);
           const ms = rows.filter((m) => m.stageSlug === st.slug).sort((a, b) => rank(a) - rank(b));
           return (
-            <Panel key={st.slug} i={n < 3 ? n + 1 : 0} title={t.rounds[st.title] ?? st.title} help={wk ? s.admin.deadline(fmtSofia(wk.deadline, locale)) : undefined}>
+            <Panel key={st.slug} i={n < 3 ? n + 1 : 0} title={roundName(t, st.title)} help={wk ? s.admin.deadline(fmtSofia(wk.deadline, locale)) : undefined}>
               <ActionForm action={setWeek.bind(null, st.slug)} className="mb-6 flex flex-wrap items-end gap-3" ghost>
                 <label className={labelCls}>
                   {s.admin.week}
@@ -78,7 +80,7 @@ export default async function AdminScheduling() {
                           <Side id={m.team2Id} side={1} />
                         </div>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line py-2.5 pl-5 pr-4">
-                          {m.round !== st.title && <span className="text-[0.68rem] font-display font-bold text-ash">{t.rounds[m.round] ?? m.round}</span>}
+                          {m.round !== st.title && <span className="text-[0.68rem] font-display font-bold text-ash">{roundName(t, m.round)}</span>}
                           <span data-cascade className="in-up num text-base font-display font-bold">
                             {m.startsAt ? fmtSofia(m.startsAt, locale) : pend ? fmtSofia(new Date(pend.at), locale) : "—"}
                             {!m.startsAt && pend && <span className="ml-2 text-xs text-ash">{name(pend.teamId)}</span>}

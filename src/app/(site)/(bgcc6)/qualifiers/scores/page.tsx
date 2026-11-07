@@ -8,6 +8,7 @@ import { getLobbies, mpIds } from "@/db/lobbies";
 import { getSettings } from "@/db/settings";
 import { fmtSofia } from "@/lib/time";
 import { osuMatch } from "@/lib/links";
+import { localeOf } from "@/lib/i18n/locale";
 
 export default async function Scores() {
   await requireSection("qualScores");
@@ -30,7 +31,7 @@ export default async function Scores() {
             {played.map((l) => (
               <li key={l.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 border border-line bg-coal px-3 py-2 text-sm">
                 <span className="font-display font-black">{l.name}</span>
-                <span className="num text-ash">{fmtSofia(l.startsAt, lang === "bg" ? "bg-BG" : "en-GB")}</span>
+                <span className="num text-ash">{fmtSofia(l.startsAt, localeOf(lang))}</span>
                 <span className="ml-auto flex gap-3">
                   {mpIds(l.mpLinks).map((id, i, all) => (
                     <a key={id} href={osuMatch(id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-display font-bold text-ash hover:text-paper">

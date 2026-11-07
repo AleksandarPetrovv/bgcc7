@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { TWITCH_CHANNEL } from "@/lib/links";
+import { isLite } from "@/lib/lite";
 
 export function TwitchEmbed({ title }: { title: string }) {
   const [host, setHost] = useState<string | null>(null);
   useEffect(() => {
-    const t = setTimeout(() => setHost(window.location.hostname), document.documentElement.classList.contains("lite") ? 1300 : 700);
+    const t = setTimeout(() => setHost(window.location.hostname), isLite() ? 1300 : 700);
     return () => clearTimeout(t);
   }, []);
   return (

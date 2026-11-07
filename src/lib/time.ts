@@ -1,3 +1,5 @@
+import { localeOf } from "./i18n/locale";
+
 export const TZ = "Europe/Sofia";
 
 const fmt = new Intl.DateTimeFormat("en-US", {
@@ -35,9 +37,22 @@ export function toSofiaInput(d: Date | null | undefined) {
   return new Date(d.getTime() + offsetMs(d)).toISOString().slice(0, 16);
 }
 
-export function fmtSofia(d: Date, locale: string) {
-  return d.toLocaleString(locale, { timeZone: TZ, day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
-}
+/** every shown date goes through here: Sofia time, and "Sep" where en-GB writes "Sept" */
+export const fmtDate = (d: Date, locale: string, o: Intl.DateTimeFormatOptions, timeZone = TZ) => d.toLocaleString(locale, { timeZone, ...o }).replace("Sept", "Sep");
+
+export const fmtSofia = (d: Date, locale: string) => fmtDate(d, locale, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+
+/** "2027-09-18" in Sofia */
+export const sofiaDate = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d);
+
+/** a calendar day ("2027-09-18", or a datetime-local value) at noon UTC, so it is that day in every timezone */
+export const dayDate = (iso: string) => new Date(`${iso.slice(0, 10)}T12:00:00Z`);
+
+export const addDays = (iso: string, n: number) => {
+  const d = dayDate(iso);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+};
 
 export const isFuture = (d: Date | null | undefined) => !!d && d.getTime() > Date.now();
 
@@ -49,9 +64,9 @@ export const windowState = (opens: Date | null, closes: Date | null): WindowStat
   return "open";
 };
 
-export const fmtSofiaDay = (d: Date, locale: string) => d.toLocaleDateString(locale, { timeZone: TZ, weekday: "short", day: "numeric", month: "short" });
+export const fmtSofiaDay = (d: Date, locale: string) => fmtDate(d, locale, { weekday: "short", day: "numeric", month: "short" });
 /** a date / datetime-local value's day, as written, no timezone shift */
-export const dayFmt = (date: string, lang: string, o: Intl.DateTimeFormatOptions) => new Date(`${date.slice(0, 10)}T12:00Z`).toLocaleDateString(lang === "bg" ? "bg-BG" : "en-US", { timeZone: "UTC", ...o }).replace(".", "");
+export const dayFmt = (date: string, lang: string, o: Intl.DateTimeFormatOptions) => fmtDate(dayDate(date), localeOf(lang), o, "UTC").replace(".", "");
 /** "Nov 1, Fri" / "1 ное, пт" from "2027-11-01" (a date or datetime-local value, as written) */
 export const dayHead = (date: string, lang: string) => {
   const n = +date.slice(8, 10);

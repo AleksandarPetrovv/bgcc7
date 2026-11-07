@@ -13,6 +13,7 @@ import { requireSection } from "@/lib/authz";
 import { fmtSofia, windowState, tzLabel } from "@/lib/time";
 import { avatarPath } from "@/lib/avatar";
 
+import { localeOf } from "@/lib/i18n/locale";
 export const generateMetadata = pageMeta("register");
 
 export default async function Register() {
@@ -22,7 +23,7 @@ export default async function Register() {
   const user = osuId && session?.user?.name ? { name: session.user.name, image: avatarPath(osuId) } : null;
   const status = osuId ? await getRegistration(osuId) : null;
   const state = windowState(settings.regOpensAt, settings.regClosesAt);
-  const fmt = (d: Date | null) => (d ? `${fmtSofia(d, lang === "bg" ? "bg-BG" : "en-GB")} ${tzLabel(d)}` : "");
+  const fmt = (d: Date | null) => (d ? `${fmtSofia(d, localeOf(lang))} ${tzLabel(d)}` : "");
   const tag =
     state === "open" ? (
       <Tag tone="balkan" className="text-xs">{settings.regClosesAt ? t.register.openTag(fmt(settings.regClosesAt)) : t.register.accent}</Tag>

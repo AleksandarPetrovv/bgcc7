@@ -9,6 +9,8 @@ import { getSettings } from "@/db/settings";
 import { getFill } from "@/db/copy";
 import { getFormat } from "@/db/edition";
 import "./globals.css";
+import { LITE } from "@/lib/lite";
+import { THEME_COOKIE } from "@/lib/i18n/locale";
 
 const archivo = Archivo({
   variable: "--font-archivo",
@@ -38,15 +40,15 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // css animations stay paused until the streamed html and fonts are in; safari restarted them mid-load (title flashed)
 const BOOT = "var h=document.documentElement;h.setAttribute(\"data-booting\",\"\");addEventListener(\"DOMContentLoaded\",function(){Promise.race([document.fonts.ready,new Promise(function(r){setTimeout(r,1000)})]).then(function(){requestAnimationFrame(function(){h.removeAttribute(\"data-booting\")})})});";
-const LITE = "try{var h=document.documentElement,S=sessionStorage,q=location.search.match(/[?&]lite=([01])/);if(q)S.setItem(\"lite\",q[1]);var v=S.getItem(\"lite\");if(v===null){var c=document.createElement(\"canvas\"),g=c.getContext(\"webgl\"),r=\"\";if(g){var e=g.getExtension(\"WEBGL_debug_renderer_info\");r=e?String(g.getParameter(e.UNMASKED_RENDERER_WEBGL)):\"\";var x=g.getExtension(\"WEBGL_lose_context\");x&&x.loseContext()}v=!g||/swiftshader|llvmpipe|software|basic render/i.test(r)?\"1\":\"0\";S.setItem(\"lite\",v)}if(v===\"1\")h.classList.add(\"lite\")}catch(_){}";
+const LITE_BOOT = `try{var h=document.documentElement,S=sessionStorage,L="${LITE}",q=location.search.match(/[?&]lite=([01])/);if(q)S.setItem(L,q[1]);var v=S.getItem(L);if(v===null){var c=document.createElement("canvas"),g=c.getContext("webgl"),r="";if(g){var e=g.getExtension("WEBGL_debug_renderer_info");r=e?String(g.getParameter(e.UNMASKED_RENDERER_WEBGL)):"";var x=g.getExtension("WEBGL_lose_context");x&&x.loseContext()}v=!g||/swiftshader|llvmpipe|software|basic render/i.test(r)?"1":"0";S.setItem(L,v)}if(v==="1")h.classList.add(L)}catch(_){}`;
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const [lang, settings, jar] = await Promise.all([getLang(), getSettings(), cookies()]);
-  const dark = jar.get("theme")?.value === "dark";
+  const dark = jar.get(THEME_COOKIE)?.value === "dark";
   return (
     <html lang={lang} className={`${archivo.variable} ${unbounded.variable} ${montserrat.variable} h-full antialiased${dark ? " dark" : ""}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: LITE }} />
+        <script dangerouslySetInnerHTML={{ __html: LITE_BOOT }} />
         <script dangerouslySetInnerHTML={{ __html: BOOT }} />
         {/* safari can paint before the stylesheet applies; stay hidden until it does (globals.css reveals), 2s fallback */}
         <style>{"body{visibility:hidden;animation:fouc 0s 2s forwards}@keyframes fouc{to{visibility:visible}}"}</style>

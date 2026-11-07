@@ -7,7 +7,7 @@ import { getPoolStages } from "./mappools";
 import { getScoreboard } from "./scoreboards";
 import { getFormat } from "./edition";
 import { dicts, roundName } from "@/lib/i18n/dict";
-import { roundOf } from "@/lib/format";
+import { matchNum } from "@/lib/format";
 import { siteUrl } from "@/lib/links";
 import { matchCosts } from "@/lib/match-cost";
 import { fmtSofia } from "@/lib/time";
@@ -165,7 +165,7 @@ const ping = (roleId: string) => ({ roles: [roleId] });
 const when = (d: Date) => `${fmtSofia(d, "en-GB")} (BG time)`;
 
 export function matchLabel(id: string, round: string) {
-  const num = getFormat().rounds[roundOf(id)]?.single ? null : id.match(/-(\d+)$/)?.[1];
+  const num = matchNum(getFormat(), id);
   return `${roundName(dicts.en, round)}${num ? ` Match ${num}` : ""}`;
 }
 

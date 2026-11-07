@@ -7,6 +7,8 @@ import { UnderlineTabs } from "@/components/site/pool-pager";
 import { useLang } from "@/components/site/lang";
 import { cn } from "@/lib/utils";
 import { offHours } from "@/lib/schedule";
+import { localeOf } from "@/lib/i18n/locale";
+import { dayDate, fmtDate } from "@/lib/time";
 
 const STEP = 30;
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -15,7 +17,7 @@ const toMin = (hhmm: string) => +hhmm.slice(0, 2) * 60 + +hhmm.slice(3, 5);
 /** each day between min and max ("YYYY-MM-DDTHH:mm", sofia) with its allowed minute range */
 function daysOf(min: string, max: string) {
   const out: { date: string; lo: number; hi: number }[] = [];
-  for (let d = new Date(`${min.slice(0, 10)}T12:00Z`); ; d.setUTCDate(d.getUTCDate() + 1)) {
+  for (let d = dayDate(min); ; d.setUTCDate(d.getUTCDate() + 1)) {
     const date = d.toISOString().slice(0, 10);
     out.push({ date, lo: date === min.slice(0, 10) ? toMin(min.slice(11)) : 0, hi: date === max.slice(0, 10) ? toMin(max.slice(11)) : 24 * 60 - STEP });
     if (date >= max.slice(0, 10) || out.length > 7) return out;
@@ -24,8 +26,8 @@ function daysOf(min: string, max: string) {
 
 /** "Oct 1st, Sat" / "1 окт, сб" */
 function dayName(date: string, lang: string) {
-  const d = new Date(`${date}T12:00Z`);
-  const f = (o: Intl.DateTimeFormatOptions) => d.toLocaleDateString(lang === "bg" ? "bg-BG" : "en-GB", { timeZone: "UTC", ...o });
+  const d = dayDate(date);
+  const f = (o: Intl.DateTimeFormatOptions) => fmtDate(d, localeOf(lang), o, "UTC");
   const n = d.getUTCDate();
   if (lang === "bg") return `${n} ${f({ month: "short" }).replace(".", "")}, ${f({ weekday: "short" }).replace(".", "")}`;
   const th = n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] ?? "th";

@@ -13,6 +13,8 @@ import { getLive, getReject } from "@/lib/live-scores";
 import { SceneButtons } from "./scene-buttons";
 import { OverlayPreview } from "./overlay-preview";
 import { Cascade } from "@/components/site/cascade";
+import { localeOf } from "@/lib/i18n/locale";
+import { roundName } from "@/lib/i18n/dict";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +32,7 @@ export default async function Stream() {
       <Cascade className="grid max-w-4xl grid-cols-1 gap-6" step={0.06}>
         {list.length === 0 && <p className="text-sm font-bold text-ash">{all ? s.noneAll : s.none}</p>}
         {list.map((m, i) => (
-          <Panel key={m.id} title={t.rounds[m.round] ?? m.round} i={i + 1} className={m.mine ? "border-2 border-gold shadow-[6px_6px_0_0_var(--gold-deep)]" : undefined}>
+          <Panel key={m.id} title={roundName(t, m.round)} i={i + 1} className={m.mine ? "border-2 border-gold shadow-[6px_6px_0_0_var(--gold-deep)]" : undefined}>
             <div className="grid grid-cols-1 gap-4">
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
                 <span data-cascade className="in-left flex min-w-0 items-center gap-2 text-lg font-display font-black">
@@ -42,7 +44,7 @@ export default async function Stream() {
                 </span>
                 <span data-cascade className="in-up num flex items-center gap-1.5 text-xs text-paper/85">
                   <CalendarClock className="size-3.5 text-ash" />
-                  {m.datetime ? fmtSofia(new Date(m.datetime), lang === "bg" ? "bg-BG" : "en-GB") : t.common.tbd}
+                  {m.datetime ? fmtSofia(new Date(m.datetime), localeOf(lang)) : t.common.tbd}
                 </span>
                 <span data-cascade className={m.mine ? "in-right flex items-center gap-1.5 text-xs font-display font-bold text-gold-hi" : "in-right flex items-center gap-1.5 text-xs text-ash"}>
                   <Radio className="size-3.5" />

@@ -14,6 +14,7 @@ import { Catalog, Edit } from "./format-context";
 import { RoundCard } from "./format-round";
 import { SubcategoryEditor } from "./format-subcategories";
 import { FormatWriter, type WriteState } from "./format-writer";
+import { roundName } from "@/lib/i18n/dict";
 
 function runAction(action: () => Promise<{ ok: boolean } | null>) {
   return new Promise<{ ok: boolean } | null>((resolve) => {
@@ -87,7 +88,7 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
           className="in-left [--d:0.1s]"
           index={tab}
           onChange={setTab}
-          options={plan.rounds.map((r) => t.rounds[r.name] ?? r.name)}
+          options={plan.rounds.map((r) => roundName(t, r.name))}
         />
 
         <div>

@@ -10,7 +10,7 @@ import { getSettings } from "@/db/settings";
 import { getTeams } from "@/db/tournament";
 import { getViewer } from "@/lib/authz";
 import { fmtNum } from "@/lib/data";
-import { getDict } from "@/lib/i18n/server";
+import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { createTeam, deleteTeam, seedTeams, generateTeams, placeMember, setBadges, updateTeam } from "./actions";
@@ -22,12 +22,13 @@ import { avatarPath } from "@/lib/avatar";
 import { isBGCC6 } from "@/db";
 import { Cascade } from "@/components/site/cascade";
 import { RuleDiamond } from "@/components/site/rule";
+import { localeOf } from "@/lib/i18n/locale";
 
 const bwsGrid = "grid grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_4rem] items-center gap-x-2 px-2 sm:gap-x-3 sm:px-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_6rem_10rem_6rem]";
 const label = "flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors";
 
 export default async function AdminTeams() {
-  const [t, viewer, teams, results, regs, settings, f, locked] = await Promise.all([getDict(), getViewer(), getTeams(), getQualResults(), getRegistrations(), getSettings(), getFormat(), getBwsLock()]);
+  const [t, lang, viewer, teams, results, regs, settings, f, locked] = await Promise.all([getDict(), getLang(), getViewer(), getTeams(), getQualResults(), getRegistrations(), getSettings(), getFormat(), getBwsLock()]);
   if (!can(viewer?.roles, "teams")) notFound();
   const suiji = !isBGCC6();
   const need = f.teams * f.teamSize;
@@ -58,7 +59,7 @@ export default async function AdminTeams() {
       {suiji && (
         <Panel title={t.admin.bwsRanking} className="mb-6">
           <p className={cn("mb-3 text-xs font-display font-bold", locked ? "text-balkan-hi" : "text-ash")}>
-            {locked ? t.admin.bwsLocked(fmtSofia(locked, "en-GB")) : t.admin.bwsLive}
+            {locked ? t.admin.bwsLocked(fmtSofia(locked, localeOf(lang))) : t.admin.bwsLive}
           </p>
           {ranked.length === 0 ? (
             <p className="text-sm text-ash">{t.admin.noRegs}</p>

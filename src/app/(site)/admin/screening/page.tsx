@@ -12,6 +12,7 @@ import { fmtSofia } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { addPlayer, approveAllPending, refreshStats } from "./actions";
 import { ScreeningRow } from "./screening-row";
+import { localeOf } from "@/lib/i18n/locale";
 
 export default async function AdminScreening({ searchParams }: PageProps<"/admin/screening">) {
   const [t, lang, viewer, rows, sp] = await Promise.all([getDict(), getLang(), getViewer(), getRegistrations(), searchParams]);
@@ -19,7 +20,7 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
   const filter = isStatus(sp.status) ? sp.status : null;
   const shown = filter ? rows.filter((r) => r.status === filter) : rows;
   const count = (s: string | null) => (s ? rows.filter((r) => r.status === s).length : rows.length);
-  const locale = lang === "bg" ? "bg-BG" : "en-GB";
+  const locale = localeOf(lang);
 
   return (
     <>

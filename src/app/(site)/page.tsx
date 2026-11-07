@@ -41,6 +41,7 @@ import { HeroGate } from "@/components/site/hero-gate";
 import { MeTag } from "@/components/site/me";
 import { ShrinkWrap } from "@/components/site/shrink-wrap";
 import { currentEdition, isBGCC6 } from "@/db";
+import { localeOf } from "@/lib/i18n/locale";
 
 const INK: Record<string, number> = { "6": 0.15, "7": 0.22 };
 
@@ -236,7 +237,7 @@ export default async function Home() {
   ]);
   const skills = await getSkillLayouts();
   const [f, me, viewer] = await Promise.all([getFill(), currentOsuId(), getViewer()]);
-  const locale = lang === "bg" ? "bg-BG" : "en-GB";
+  const locale = localeOf(lang);
   const teamById = (id: string) => teams.find((x) => x.id === id);
   const see = (s: keyof typeof vis.sections) => vis.sections[s];
   const phase = settings.phase;

@@ -6,6 +6,7 @@ import { useDict } from "./lang";
 import { flagUrl } from "@/lib/data";
 import { resolve, seedingOf, type Picks } from "@/lib/pickems";
 import { useTournament } from "./tournament";
+import { roundName } from "@/lib/i18n/dict";
 
 export type { Picks };
 import { cn } from "@/lib/utils";
@@ -59,7 +60,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
             className={cn("in-drop absolute truncate whitespace-nowrap text-center text-xs font-display font-bold", h.gold ? "text-gold-hi" : "text-ash")}
             style={{ left: x(h.c), top: h.y, width: W, "--i": h.c, "--s": "0.12s", "--d": h.y >= LB - 100 ? "0.45s" : "0.15s" } as React.CSSProperties}
           >
-            {t.rounds[h.t] ?? h.t}
+            {roundName(t, h.t)}
           </div>
         ))}
         <div className="in-wipe heading-slam absolute text-2xl text-gold-hi" style={{ left: x(0), top: LB - 90, "--d": "0.4s" } as React.CSSProperties}>

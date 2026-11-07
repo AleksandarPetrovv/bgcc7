@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { HEX } from "@/lib/theme";
+import { isLite } from "@/lib/lite";
 
 const COLORS = [HEX.rose, HEX.roseHi, HEX.balkan, HEX.paper, HEX.gold, HEX.azure];
 
@@ -18,7 +19,7 @@ export function Confetti({ duration = 2500, onDone }: { duration?: number; onDon
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
     // reduced motion, or software rendering where a full-screen canvas stutters: skip straight to the end
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("lite")) {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches || isLite()) {
       done.current?.();
       return;
     }

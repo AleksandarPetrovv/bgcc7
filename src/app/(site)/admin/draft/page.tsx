@@ -12,6 +12,8 @@ import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { fmtSofia } from "@/lib/time";
 import { DraftAdmin, type DraftRow } from "./draft-admin";
+import { localeOf } from "@/lib/i18n/locale";
+import { roundName } from "@/lib/i18n/dict";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +30,7 @@ export default async function AdminDraft() {
   const cfg = await timers();
   if (!can(viewer?.roles, "draft")) notFound();
   const control = can(viewer?.roles, "matches");
-  const locale = lang === "bg" ? "bg-BG" : "en-GB";
+  const locale = localeOf(lang);
   const team = (id: string | null) => teams.find((x) => x.id === id);
   const pools = stages.filter((s) => s.slug !== "qualifiers" && s.pools.length);
   const slotsOf = (slug: string) => (stages.find((s) => s.slug === slug)?.pools ?? []).flatMap((p) => p.maps.map((m) => m.slot)).filter(pickable);
@@ -46,7 +48,7 @@ export default async function AdminDraft() {
     return {
       id: m.id,
       slug: m.id,
-      round: t.rounds[m.round] ?? m.round,
+      round: roundName(t, m.round),
       stage: m.poolSlug ?? m.stageSlug,
       when: m.startsAt ? fmtSofia(m.startsAt, locale) : null,
       teams: [a ? { name: a.name, image: a.image } : null, b ? { name: b.name, image: b.image } : null],
@@ -60,7 +62,7 @@ export default async function AdminDraft() {
       <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
         <Words text={t.admin.dr.help} d={0.15} s={0.012} />
       </p>
-      <DraftAdmin control={control} rows={list} pools={pools.map((p) => ({ slug: p.slug, title: t.rounds[p.title] ?? p.title }))} />
+      <DraftAdmin control={control} rows={list} pools={pools.map((p) => ({ slug: p.slug, title: roundName(t, p.title) }))} />
     </>
   );
 }
