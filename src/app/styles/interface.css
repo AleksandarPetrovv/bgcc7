@@ -71,6 +71,9 @@
 .adm input::-webkit-date-and-time-value { text-align: left; margin: 0; }
 /* date fields are sized for the widest digit; equal-width digits stop the gaps */
 input:is([type="date"], [type="datetime-local"], [type="time"], [type="month"], [type="week"]) { font-variant-numeric: tabular-nums; }
+/* a label's caption text must not hover or activate its field (the browser forwards both); checkbox / radio rows stay clickable. clicks on caption children: LabelGuard */
+label:not(:has(input[type="checkbox"], input[type="radio"])) { pointer-events: none; }
+label:not(:has(input[type="checkbox"], input[type="radio"])) > * { pointer-events: auto; }
 .adm input::-webkit-calendar-picker-indicator { opacity: 0.7; cursor: pointer; }
 .adm input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 .adm input[type="file"]::file-selector-button {

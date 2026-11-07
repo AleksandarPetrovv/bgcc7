@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, Montserrat, Unbounded } from "next/font/google";
 import { LangProvider } from "@/components/site/lang";
 import { MotionProvider } from "@/components/site/motion";
+import { LabelGuard } from "@/components/site/label-guard";
 import { cookies } from "next/headers";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { getSettings } from "@/db/settings";
@@ -52,6 +53,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="flex min-h-full flex-col">
         <LangProvider lang={lang} edition={settings.edition}>
+          <LabelGuard />
           <MotionProvider>{children}</MotionProvider>
         </LangProvider>
       </body>
