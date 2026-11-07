@@ -48,26 +48,27 @@ export function Words({ text, d = 0, s = 0.04, className, lines }: { text: strin
 export const at = (d: number, i = 0, s = 0.09) => ({ "--d": `calc(var(--cd, 0s) + ${d * 0.5}s)`, "--i": i, "--s": `${s * 0.7}s` }) as React.CSSProperties;
 
 export function Letters({ text, d = 0, s = 0.035, plain, className }: { text: string; d?: number; s?: number; plain?: boolean; className?: string }) {
-  let i = 0;
+  const n = { i: 0 };
   const split = (str: string) =>
-    str.split(/(\s+)/).map((w, k) =>
-      !w || /^\s+$/.test(w) ? (
-        w
-      ) : s < 0.01 ? (
+    str.split(/(\s+)/).map((w, k) => {
+      if (!w || /^\s+$/.test(w)) return w;
+      const start = n.i;
+      n.i += w.length;
+      return s < 0.01 ? (
         // long fast text: one span per word keeps the same timing with far fewer nodes
-        <span key={k} className="ltr whitespace-nowrap" style={{ "--i": (i += w.length) - w.length } as React.CSSProperties}>
+        <span key={k} className="ltr whitespace-nowrap" style={{ "--i": start } as React.CSSProperties}>
           {w}
         </span>
       ) : (
         <span key={k} className="inline-block whitespace-nowrap">
           {[...w].map((c, j) => (
-            <span key={j} className="ltr" style={{ "--i": i++ } as React.CSSProperties}>
+            <span key={j} className="ltr" style={{ "--i": start + j } as React.CSSProperties}>
               {c}
             </span>
           ))}
         </span>
-      ),
-    );
+      );
+    });
   const parts = text.split(/(\[\[.+?\]\]|\{\{.+?\}\})/g);
   return (
     <span data-letters className={className} style={{ "--d": `${d}s`, "--s": `${s}s` } as React.CSSProperties}>
