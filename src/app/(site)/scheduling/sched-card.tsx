@@ -18,7 +18,7 @@ import { at, Letters } from "@/components/site/rich";
 import { belowFold } from "@/components/site/in-view";
 import { RuleDiamond } from "@/components/site/rule";
 import { AnimatePresence, motion } from "motion/react";
-import { EASE } from "@/components/site/motion";
+import { EASE } from "@/lib/ease";
 import { accept, decline, propose, withdraw } from "./actions";
 import { localeOf } from "@/lib/i18n/locale";
 

@@ -9,7 +9,7 @@ import { Btn } from "@/components/admin/form";
 import { Dropdown } from "@/components/admin/dropdown";
 import { Modal } from "@/components/site/modal";
 import { useDict } from "@/components/site/lang";
-import { EASE } from "@/components/site/motion";
+import { EASE } from "@/lib/ease";
 import type { ActionResult } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { closeDraft, endDraft, openDraft, pauseDraft, resetDraft, resumeDraft, undoDraft } from "./actions";

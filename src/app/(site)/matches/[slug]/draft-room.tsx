@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Ban, Crown, Hourglass, Pause, Swords, WifiOff } from "lucide-react";
 import { Sparkle } from "@/components/site/graphics";
 import { useDict } from "@/components/site/lang";
-import { EASE } from "@/components/site/motion";
+import { EASE } from "@/lib/ease";
 import type { Match } from "@/lib/data";
 import { Confetti } from "@/components/site/confetti";
 import { deadline, limitOf, pickable, rollWinner, scoreOf, turnOf, type DraftView, type Side, type Turn } from "@/lib/draft";

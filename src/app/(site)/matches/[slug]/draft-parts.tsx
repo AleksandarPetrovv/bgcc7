@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Ban, CircleHelp, Crown, Dices, Lock, Pause, Play, Redo2, RotateCcw, Swords, TimerOff, Undo2 } from "lucide-react";
 import { useDict } from "@/components/site/lang";
-import { EASE } from "@/components/site/motion";
+import { EASE } from "@/lib/ease";
 import { plan, type DraftStep, type DraftUndo, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { GOLD, TEAM, tint } from "@/lib/theme";

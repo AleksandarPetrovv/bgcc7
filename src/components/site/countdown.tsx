@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useDict } from "./lang";
+import { EASE } from "@/lib/ease";
 
 const TICK = 30_000;
 const subscribe = (cb: () => void) => {
@@ -65,7 +66,7 @@ export function Countdown({ to, from, className }: { to: string; from?: string; 
           className="block h-full origin-left bg-gradient-to-r from-rose-deep to-rose"
           initial={{ scaleX: 0 }}
           animate={{ scaleX: pct }}
-          transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 1.4, ease: EASE }}
         />
       </span>
     )}

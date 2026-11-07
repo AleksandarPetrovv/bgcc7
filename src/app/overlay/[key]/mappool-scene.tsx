@@ -9,6 +9,7 @@ import type { FeedMap, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
 import { Backdrop, editionNum, HeaderSide, LABEL, Lockup, Rule, Slant, TEAM } from "./chrome";
 import { MOD_ORDER, MODS } from "@/lib/mods";
+import { EASE } from "@/lib/ease";
 
 const GROUPS = MOD_ORDER;
 const norm = (v: string) => v.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -21,7 +22,7 @@ function groupFor(map: FeedMap) {
   return GROUPS.find((k) => MODS[k].short.toLowerCase() === prefix);
 }
 
-const SWAP = { initial: { opacity: 0, y: 14, filter: "blur(4px)" }, animate: { opacity: 1, y: 0, filter: "blur(0px)" }, exit: { opacity: 0, y: -14, filter: "blur(4px)" }, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } } as const;
+const SWAP = { initial: { opacity: 0, y: 14, filter: "blur(4px)" }, animate: { opacity: 1, y: 0, filter: "blur(0px)" }, exit: { opacity: 0, y: -14, filter: "blur(4px)" }, transition: { duration: 0.4, ease: EASE } } as const;
 
 // the middle of the header: which side acts next, with an arrow leaning toward that team's plate
 function Turn({ feed }: { feed: OverlayFeed }) {
@@ -42,7 +43,7 @@ function Turn({ feed }: { feed: OverlayFeed }) {
               </span>
               <span className="relative px-1 text-[20px] font-display font-bold text-paper">
                 {t.kind === "pick" ? "picks" : "bans"}
-                <motion.span className="absolute inset-x-0 -bottom-1.5 h-[3px] origin-center" style={{ background: TEAM[t.team - 1].c }} initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.5, delay: 0.15, ease: [0.16, 1, 0.3, 1] }} />
+                <motion.span className="absolute inset-x-0 -bottom-1.5 h-[3px] origin-center" style={{ background: TEAM[t.team - 1].c }} initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.5, delay: 0.15, ease: EASE }} />
               </span>
             </>
           ) : t?.kind === "tb" ? (
@@ -116,7 +117,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
                   key={`${map.slot}-${map.id}`}
                   initial={{ opacity: 0, y: 18 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: gi * 0.06 + mi * 0.04, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.4, delay: gi * 0.06 + mi * 0.04, ease: EASE }}
                   className="relative overflow-hidden border-2 bg-coal transition-[border-color,box-shadow] duration-500"
                   style={{
                     height: cardH,
@@ -137,7 +138,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
                       style={{ filter: `drop-shadow(3px 3px 0 ${team.deep})` }}
                       initial={{ clipPath: "inset(0 100% 0 0)" }}
                       animate={{ clipPath: "inset(0 0% 0 0)" }}
-                      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: 0.45, ease: EASE }}
                       aria-hidden
                     >
                       <line x1="2" y1="88" x2="98" y2="12" stroke={team.c} strokeWidth="8" vectorEffect="non-scaling-stroke" />

@@ -30,7 +30,7 @@ html.lite .folk-panel::after {
 }
 
 .enter-kids > * {
-  animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.36s backwards;
+  animation: rise 0.7s var(--ease) 0.36s backwards;
 }
 
 .enter-kids > .no-enter {
@@ -138,7 +138,7 @@ html.lite :is(.in-flip, .in-spin, .in-slam, .in-launch, .word, .anim-letter) { a
 html.lite :is(.in-left-far, .in-wipe) { animation-name: k-left !important; }
 html.lite :is(.in-right-far, .in-wipe-r) { animation-name: k-right !important; }
 /* longhands only: the shorthand would reset the inline delay and the hero gate's pause */
-html.lite .anim-slam { animation-name: rise !important; animation-duration: 0.7s !important; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important; }
+html.lite .anim-slam { animation-name: rise !important; animation-duration: 0.7s !important; animation-timing-function: var(--ease) !important; }
 
 /* Letters / Words: each text block fades in as one element (on cpu every animated element costs style work per frame,
    so hundreds of letters or words animating at once is what made the info page stutter) */

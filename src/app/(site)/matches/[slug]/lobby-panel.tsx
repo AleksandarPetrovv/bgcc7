@@ -8,7 +8,7 @@ import { useDict } from "@/components/site/lang";
 import { useSSE } from "@/components/site/use-sse";
 import { useFormat } from "@/components/site/tournament";
 import { lobbySize } from "@/lib/format";
-import { EASE } from "@/components/site/motion";
+import { EASE } from "@/lib/ease";
 import type { Beatmap } from "@/lib/data";
 import type { LobbyView } from "@/lib/bancho";
 import { slotColor } from "@/lib/format-plan";

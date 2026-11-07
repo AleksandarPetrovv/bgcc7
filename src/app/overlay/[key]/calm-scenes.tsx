@@ -7,8 +7,8 @@ import { Glyph } from "@/components/site/graphics";
 import type { FeedTeam, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
 import { Backdrop, Blend, Echo, editionNum, LABEL, Lockup, PlayerCard, Rule, ScoreNum, TEAM, TeamPic, TeamPlate, TopBar, Versus } from "./chrome";
+import { EASE } from "@/lib/ease";
 
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 function useNow(active: boolean) {
   const [now, setNow] = useState<number | null>(null);

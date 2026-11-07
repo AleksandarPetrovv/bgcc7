@@ -8,6 +8,7 @@ import { useDict, useLang } from "./lang";
 import { dayFmt, dayMonth } from "@/lib/time";
 import { FORMAT } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { EASE } from "@/lib/ease";
 
 type Props = {
   value: string;
@@ -25,7 +26,6 @@ type Props = {
 
 const YEAR = FORMAT.year;
 const YEARS = [2026, 2027];
-const EASE = [0.16, 1, 0.3, 1] as const;
 const pad = (n: number) => String(n).padStart(2, "0");
 const iso = (y: number, m: number, d: number) => `${y}-${pad(m)}-${pad(d)}`;
 const monthDays = (y: number, m: number) => new Date(Date.UTC(y, m, 0)).getUTCDate();

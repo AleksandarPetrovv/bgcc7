@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { Crown, Eye, Settings, Star } from "lucide-react";
 import { useDict } from "@/components/site/lang";
-import { EASE } from "@/components/site/motion";
+import { EASE } from "@/lib/ease";
 import { fmtLen, type Beatmap } from "@/lib/data";
 import { pickable, type DraftStep, type Side } from "@/lib/draft";
 import { cn } from "@/lib/utils";

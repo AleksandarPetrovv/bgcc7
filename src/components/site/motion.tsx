@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { animate, motion, MotionConfig, useMotionValue, useTransform, type Variants } from "motion/react";
 import { belowFold } from "./in-view";
 import { isLite, LITE } from "@/lib/lite";
+import { EASE } from "@/lib/ease";
 
-export const EASE = [0.16, 1, 0.3, 1] as const;
 
 // the boot script only catches known software renderers (firefox often reports the real gpu with acceleration off),
 // so slow frames after load also switch to lite for the rest of the session

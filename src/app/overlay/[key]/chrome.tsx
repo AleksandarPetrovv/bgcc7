@@ -6,6 +6,7 @@ import type { FeedTeam, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
 import { TEAM as SIDE } from "@/lib/theme";
 import { editionNumber } from "@/lib/format";
+import { EASE } from "@/lib/ease";
 
 // overlay feeds count sides from 0
 export const TEAM = [SIDE[1], SIDE[2]] as const;
@@ -20,7 +21,6 @@ export function Img({ src, className, style }: { src: string; className?: string
 }
 
 export const LABEL = "text-[15px] font-display font-bold text-ash";
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function Lockup({ num, size, className, animate, invert }: { num: string; size: number; className?: string; animate?: boolean; invert?: boolean }) {
   return (

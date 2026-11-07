@@ -8,6 +8,7 @@ import { UnderlineTabs } from "@/components/site/pool-pager";
 import { roundName } from "@/lib/i18n/dict";
 import { isLite } from "@/lib/lite";
 import { MODS } from "@/lib/mods";
+import { EASE } from "@/lib/ease";
 
 // a hidden two-digit label holds the width, so the button (and the tabs left of it) never move between stages
 function PackLabel({ text, widest }: { text: string; widest: string }) {
@@ -68,7 +69,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
 
       {stage.info && <StageStrip key={`s-${stage.slug}`} stage={stage} info={stage.info} />}
 
-      <motion.div key={stage.slug} className="space-y-2.5" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
+      <motion.div key={stage.slug} className="space-y-2.5" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
         {stage.pools.map((p, pi) => {
           const skill = !!p.color;
           const mod = { label: MODS[p.category]?.label ?? p.category, color: p.color ?? MODS[p.category]?.color ?? "var(--rose)" };
@@ -98,7 +99,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.4, ease: EASE }}
                 >
                 <div className="mt-2 space-y-1 sm:pl-10">
                   {p.maps.map((m, k) => {
@@ -108,7 +109,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                     <motion.div
                       initial={{ opacity: 0, x: -14 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.45, delay: 0.05 + k * 0.04, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: 0.45, delay: 0.05 + k * 0.04, ease: EASE }}
                       key={m.slot} className="group relative flex items-stretch overflow-hidden border-b border-line transition-colors hover:border-[var(--lift)]"
                       style={{ "--lift": modHi(mc), "--i": pi + k, "--s": "0.05s" } as React.CSSProperties}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -198,7 +199,6 @@ function MapStats({ map }: { map: Stage["pools"][number]["maps"][number] }) {
   );
 }
 
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 function useCount(to: number, ms = 900) {
   const [v, setV] = useState(to);

@@ -8,6 +8,7 @@ import { DiscordLogo } from "./discord-logo";
 import { useBelowFold } from "./motion";
 import { useDict } from "./lang";
 import { cn } from "@/lib/utils";
+import { EASE } from "@/lib/ease";
 
 export function SubNav({ items }: { items: { href: string; label: string; hidden?: boolean }[] }) {
   const path = usePathname();
@@ -569,22 +570,22 @@ export function SectionHeading({ children, mark = "glints" }: { children: React.
       whileInView="show"
       viewport={{ once: true, amount: "some" }}
     >
-      <motion.span variants={{ hidden: { opacity: 0, x: -12 }, show: { opacity: 1, x: 0 } }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
+      <motion.span variants={{ hidden: { opacity: 0, x: -12 }, show: { opacity: 1, x: 0 } }} transition={{ duration: 0.5, ease: EASE }}>
         <M />
       </motion.span>
-      <motion.span className="min-w-0 break-words" variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }} transition={{ duration: 0.6, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}>
+      <motion.span className="min-w-0 break-words" variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }} transition={{ duration: 0.6, delay: 0.05, ease: EASE }}>
         {children}
       </motion.span>
       <motion.span
         className="h-px flex-1 origin-left border-t-2 border-dashed border-line"
         variants={{ hidden: { scaleX: 0 }, show: { scaleX: 1 } }}
-        transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.9, delay: 0.15, ease: EASE }}
         aria-hidden
       />
       <motion.span
         className="size-2 shrink-0 rotate-45 bg-rose"
         variants={{ hidden: { opacity: 0, scale: 0 }, show: { opacity: 1, scale: 1 } }}
-        transition={{ duration: 0.4, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.4, delay: 0.8, ease: EASE }}
         aria-hidden
       />
     </motion.h2>

@@ -6,7 +6,7 @@ import { Check, CircleHelp, X, DoorClosed, Download, ExternalLink, OctagonX, Pla
 import { useDict } from "@/components/site/lang";
 import { useFormat } from "@/components/site/tournament";
 import { lobbySize } from "@/lib/format";
-import { EASE } from "@/components/site/motion";
+import { EASE } from "@/lib/ease";
 import { cn } from "@/lib/utils";
 import { backdropClose } from "@/lib/backdrop";
 

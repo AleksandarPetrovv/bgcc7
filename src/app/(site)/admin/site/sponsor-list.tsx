@@ -10,6 +10,7 @@ import { useDict } from "@/components/site/lang";
 import type { Sponsor } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { deleteSponsor, reorderSponsors, updateSponsor } from "./actions";
+import { EASE } from "@/lib/ease";
 
 function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
   const t = useDict();
@@ -71,7 +72,7 @@ function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.25, ease: EASE }}
             className="overflow-hidden"
           >
             <ActionForm action={updateSponsor.bind(null, s.id)} className="flex items-center gap-3 border-t border-line py-3">

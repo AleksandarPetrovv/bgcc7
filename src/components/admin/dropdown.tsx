@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/site/avatar";
+import { EASE } from "@/lib/ease";
 
 export type DropOption = {
   value: string;
@@ -30,7 +31,6 @@ type Props = {
 };
 
 const noop = () => () => {};
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 function OptionAvatar({ src }: { src: string | null }) {
   return (

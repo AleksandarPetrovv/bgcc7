@@ -5,6 +5,7 @@ import { PageTitle } from "./page";
 import { TeamCard } from "./team-card";
 import { useDict } from "./lang";
 import { useTournament } from "./tournament";
+import { EASE } from "@/lib/ease";
 
 export function TeamGrid({ title }: { title: string }) {
   const t = useDict();
@@ -19,7 +20,7 @@ export function TeamGrid({ title }: { title: string }) {
               key={team.id}
               style={{ "--i": Math.min(k, 12), "--s": "0.05s" } as React.CSSProperties}
               initial={{ opacity: 0, y: 20, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, delay: Math.min(k, 12) * 0.04, ease: [0.16, 1, 0.3, 1] } }}
+              animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, delay: Math.min(k, 12) * 0.04, ease: EASE } }}
             >
               <TeamCard team={team} />
             </motion.div>
