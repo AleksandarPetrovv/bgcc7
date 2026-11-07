@@ -24,8 +24,8 @@ html.lite .folk-panel::after {
   background-image: url("/noise.png");
 }
 
-.no-intro:is(.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word, .ltr, .in-left-far, .in-right-far, .in-slam, .in-curtain, .in-launch, .in-grow-y, .in-stitch, .in-sweep, .in-trace),
-.no-intro :is(.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word, .ltr, .in-left-far, .in-right-far, .in-slam, .in-curtain, .in-launch, .in-grow-y, .in-stitch, .in-sweep, .in-trace) {
+.no-intro:is(.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word, .ltr, .in-left-far, .in-right-far, .in-slam, .in-launch, .in-grow-y, .in-stitch, .in-sweep),
+.no-intro :is(.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word, .ltr, .in-left-far, .in-right-far, .in-slam, .in-launch, .in-grow-y, .in-stitch, .in-sweep) {
   animation: none !important;
 }
 
@@ -115,27 +115,26 @@ html.lite :is(.anim-page > *, .anim-page-in) {
   animation: none !important;
 }
 
-html.lite :is(.anim-blob-a, .anim-blob-b, .anim-float, .anim-comet, .anim-orbit, .anim-letter, .mk-sweep) {
+html.lite :is(.anim-blob-a, .anim-blob-b, .anim-float, .anim-letter, .mk-sweep) {
   will-change: auto !important;
 }
 
 html.lite :is(.anim-blob-a, .anim-blob-b) { animation-timing-function: steps(60) !important; }
 html.lite .anim-drift { animation-timing-function: steps(110) !important; }
-html.lite .anim-comet { animation-timing-function: steps(90) !important; }
 html.lite .anim-float { animation-timing-function: steps(30) !important; }
 html.lite .anim-echo { animation-timing-function: steps(20) !important; }
 /* small loops: held still while the page intro plays, then run smooth once LiteLoops adds .lite-loops (motion.tsx) */
-html.lite:not(.lite-loops) :is(.match-run, .anim-orbit, .match-cta-sheen, .btn-shine, .mdlg-shine, .anim-twinkle, .anim-ping-diamond, .animate-pulse,
-    .adm-crest, .adm-spark, .mk-sway, .mk-toot, .mk-drift, .mk-ping, .mk-scan, .anim-chevron, .anim-bob, .dr-glow, .dr-beads-on, .mdlg-bar, .dr-dots > span) {
+html.lite:not(.lite-loops) :is(.match-run, .mdlg-shine, .anim-twinkle, .anim-ping-diamond, .animate-pulse,
+    .adm-crest, .adm-spark, .mk-sway, .mk-toot, .mk-drift, .mk-ping, .mk-scan, .anim-chevron, .anim-bob, .dr-glow, .dr-beads-on, .dr-dots > span) {
   animation-play-state: paused !important;
 }
 /* intro + loop in one rule: the intro plays, only the loop waits */
-html.lite:not(.lite-loops) :is(.anim-orbit-in, .mk-dot, .mk-bar, .mk-gear, .mk-gear-r, .mk-crowd, .mk-twinkle, .mk-spark, .mk-hand-h, .mk-hand-m, .mk-rec) {
+html.lite:not(.lite-loops) :is(.mk-bar, .mk-gear, .mk-gear-r, .mk-crowd, .mk-spark, .mk-hand-h, .mk-hand-m, .mk-rec) {
   animation-play-state: running, paused !important;
 }
 
 /* resampled intros (scale / rotate / skew / perspective / clip) become the plain slide of the same direction */
-html.lite :is(.in-flip, .in-spin, .in-slam, .in-launch, .in-curtain, .word, .anim-letter) { animation-name: k-up !important; }
+html.lite :is(.in-flip, .in-spin, .in-slam, .in-launch, .word, .anim-letter) { animation-name: k-up !important; }
 html.lite :is(.in-left-far, .in-wipe) { animation-name: k-left !important; }
 html.lite :is(.in-right-far, .in-wipe-r) { animation-name: k-right !important; }
 /* longhands only: the shorthand would reset the inline delay and the hero gate's pause */
@@ -184,7 +183,6 @@ html.lite :is(.lift, .lift-sm):hover {
   .in-left-far,
   .in-right-far,
   .in-slam,
-  .in-curtain,
   .in-launch,
   .in-grow-y,
   .in-stitch,
@@ -203,7 +201,6 @@ html.lite :is(.lift, .lift-sm):hover {
   .word,
   .ltr,
   .anim-twinkle.star-in,
-  .anim-orbit-in,
   .anim-stripe,
   .anim-stitch,
   .anim-twinkle,
@@ -223,19 +220,15 @@ html.lite :is(.lift, .lift-sm):hover {
   .anim-draw,
   .anim-appear,
   .anim-chevron,
-  .anim-orbit,
-  .anim-burst,
   .mk-bubble,
   .mk-stem,
   .mk-dot,
   .mk-pop,
   .mk-fan,
-  .mk-rise,
   .mk-bar,
   .mk-gear,
   .mk-gear-r,
   .mk-crowd,
-  .mk-twinkle,
   .mk-swing-l,
   .mk-swing-r,
   .mk-clash,
@@ -248,18 +241,14 @@ html.lite :is(.lift, .lift-sm):hover {
   .mk-sway,
   .mk-hang,
   .mk-show,
-  .mk-dot,
   .mk-toot,
   .mk-rec,
   .mk-drift,
   .mk-ping,
   .mk-scan,
-  .in-trace,
-  .anim-comet,
   .anim-float,
   .anim-blob-a,
-  .anim-blob-b,
-  .sheen:hover::after {
+  .anim-blob-b {
     animation: none !important;
   }
   .lift:hover,

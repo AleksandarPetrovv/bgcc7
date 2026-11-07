@@ -16,7 +16,6 @@ export function InView({
   className?: string;
   style?: React.CSSProperties;
   self?: boolean;
-  scrub?: boolean;
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLElement>(null);

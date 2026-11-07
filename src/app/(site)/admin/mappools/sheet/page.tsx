@@ -103,7 +103,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
               color={color}
               header={
                 <>
-                  <span className={cn("sr in-slam heading-slam shrink-0 whitespace-nowrap text-2xl [--d:0.2s]", s.mod !== "Tiebreaker" && "w-24")} style={{ color: modHi(color) }}>
+                  <span className={cn("in-slam heading-slam shrink-0 whitespace-nowrap text-2xl [--d:0.2s]", s.mod !== "Tiebreaker" && "w-24")} style={{ color: modHi(color) }}>
                     {label}
                   </span>
                   {sk && s.mod !== "Tiebreaker" && (
@@ -114,18 +114,18 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                   {sk && <TagChips names={subcategoryNames(plan.subcategories, sk.ids)} color={color} />}
                   {s.picked ? (
                     unset(s) && (
-                      <Link href={`/admin/mappools/edit?stage=${stage.slug}`} className="sr in-pop flex items-center gap-1.5 text-xs font-display font-bold text-gold-hi underline-offset-4 hover:underline [--d:0.3s]">
+                      <Link href={`/admin/mappools/edit?stage=${stage.slug}`} className="in-pop flex items-center gap-1.5 text-xs font-display font-bold text-gold-hi underline-offset-4 hover:underline [--d:0.3s]">
                         {t.admin.pickedNotSet} <ArrowUpRight className="size-3.5" />
                       </Link>
                     )
                   ) : s.tie ? (
-                    <span className="sr in-pop flex -skew-x-12 items-center border border-rose/70 bg-rose/15 px-2.5 py-1 text-xs font-display font-bold text-rose-hi [--d:0.3s]">
+                    <span className="in-pop flex -skew-x-12 items-center border border-rose/70 bg-rose/15 px-2.5 py-1 text-xs font-display font-bold text-rose-hi [--d:0.3s]">
                       <span className="flex skew-x-12 items-center gap-1.5">
                         <Scale className="size-3.5" /> {host ? t.admin.tieHost : t.admin.tie}
                       </span>
                     </span>
                   ) : s.waitingOn.length ? (
-                    <span className="sr in-drop flex min-w-0 items-center gap-1.5 text-xs text-ash [--d:0.3s]">
+                    <span className="in-drop flex min-w-0 items-center gap-1.5 text-xs text-ash [--d:0.3s]">
                       <Hourglass className="size-3.5 shrink-0" />
                       <span className="font-display font-bold">{t.admin.waitingOn}</span>
                       <span className="truncate">{s.waitingOn.join(", ")}</span>
@@ -154,7 +154,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                     <li
                       key={m.id}
                       style={{ "--i": i, "--s": "0.04s", "--d": "0.25s" } as React.CSSProperties}
-                      className={cn("sr in-left relative flex flex-wrap items-center gap-3 py-3.5 pl-4 pr-3 max-sm:pb-8", green && "bg-balkan/[0.07]")}
+                      className={cn("in-left relative flex flex-wrap items-center gap-3 py-3.5 pl-4 pr-3 max-sm:pb-8", green && "bg-balkan/[0.07]")}
                     >
                       {(green || lead) && <span className={cn("absolute inset-y-0 left-0 w-1", green ? "bg-balkan" : "bg-rose")} aria-hidden />}
                       <span

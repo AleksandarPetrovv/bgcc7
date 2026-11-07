@@ -138,15 +138,14 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
             <InView
               as="section"
               self
-              scrub
               key={key}
-              className="sr in-up relative overflow-x-clip border-b border-line"
+              className="in-up relative overflow-x-clip border-b border-line"
               style={{ "--i": pi < 5 ? pi : 0, "--s": "0.08s", "--d": "0.15s" } as React.CSSProperties}
             >
               <RuleDiamond />
               <h2 className="flex items-center gap-3 border-b border-line pb-2 text-sm font-display font-bold" style={{ color: modHi(accent) }}>
                 <span className="size-2 shrink-0 rotate-45" style={{ background: accent }} aria-hidden />
-                <span className="sr in-wipe inline-block [--d:0.25s]">{title}</span>
+                <span className="in-wipe inline-block [--d:0.25s]">{title}</span>
                 {total > 0 && (
                   <span className="num text-xs text-ash">
                     {filled}/{total}
@@ -169,7 +168,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                       <SwapRow
                         key={`empty-${mod}-${slot}`}
                         style={{ "--i": i, "--s": "0.04s", "--d": "0.25s" } as React.CSSProperties}
-                        className="sr in-left flex flex-wrap items-center gap-3 bg-[repeating-linear-gradient(135deg,transparent_0_10px,color-mix(in_srgb,var(--rose)_5%,transparent)_10px_20px)] px-3 py-2.5"
+                        className="in-left flex flex-wrap items-center gap-3 bg-[repeating-linear-gradient(135deg,transparent_0_10px,color-mix(in_srgb,var(--rose)_5%,transparent)_10px_20px)] px-3 py-2.5"
                       >
                         <span className={cn("heading-slam shrink-0 whitespace-nowrap text-xl opacity-60", skill ? "w-20" : "w-12")} style={{ color: modHi(color) }}>
                           {tagLabel ?? slotOf(mod, slot)}
@@ -189,14 +188,14 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                     <SwapRow
                       key={m.rowId}
                       style={{ "--i": i, "--s": "0.04s", "--d": "0.25s" } as React.CSSProperties}
-                      className={cn("sr in-left flex flex-wrap items-center gap-3 px-3 py-2", out && "bg-rose/[0.06]")}
+                      className={cn("in-left flex flex-wrap items-center gap-3 px-3 py-2", out && "bg-rose/[0.06]")}
                     >
-                      <span className={cn("sr in-slam heading-slam shrink-0 whitespace-nowrap text-xl [--d:0.3s]", skill ? "w-20" : "w-12")} style={{ color: modHi(color) }}>
+                      <span className={cn("in-slam heading-slam shrink-0 whitespace-nowrap text-xl [--d:0.3s]", skill ? "w-20" : "w-12")} style={{ color: modHi(color) }}>
                         {m.slot}
                       </span>
                       {chip}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={cardCover(m.cover)} alt="" loading="lazy" decoding="async" className="sr in-wipe hidden h-10 w-24 object-cover sm:block [--d:0.35s]" />
+                      <img src={cardCover(m.cover)} alt="" loading="lazy" decoding="async" className="in-wipe hidden h-10 w-24 object-cover sm:block [--d:0.35s]" />
                       {/* phones: slot + buttons on top, the map under them at full width */}
                       <div className="min-w-0 basis-full max-sm:order-last sm:flex-1 sm:basis-0">
                         <a

@@ -127,8 +127,6 @@ label:not(:has(input[type="checkbox"], input[type="radio"])) > * { pointer-event
 .adm label:focus-within { color: var(--paper); }
 .adm input.adm-tight { min-height: 2.25rem; padding: 0 0.5rem; font-size: 0.8rem; }
 
-@keyframes cta-sheen { 0%, 55% { transform: translateX(0) skewX(-20deg); } 100% { transform: translateX(450%) skewX(-20deg); } }
-.match-cta-sheen { animation: cta-sheen 2.6s ease-in-out infinite; }
 .match-cta { box-shadow: 4px 4px 0 0 var(--rose-deep); }
 @keyframes dr-glow { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.9; } }
 .dr-glow { animation: dr-glow 1.6s ease-in-out infinite; }
@@ -142,7 +140,7 @@ label:not(:has(input[type="checkbox"], input[type="radio"])) > * { pointer-event
 .dr-dots > span:nth-child(2) { animation-delay: 0.15s; }
 .dr-dots > span:nth-child(3) { animation-delay: 0.3s; }
 @media (prefers-reduced-motion: reduce) {
-  .match-cta-sheen, .dr-glow, .dr-beads-on, .dr-dots > span { animation: none; }
+  .dr-glow, .dr-beads-on, .dr-dots > span { animation: none; }
 }
 
 @keyframes match-run { to { stroke-dashoffset: -100; } }
@@ -201,26 +199,8 @@ label:not(:has(input[type="checkbox"], input[type="radio"])) > * { pointer-event
 .adm-field.adm-tight { height: 2.25rem; }
 .adm-field.adm-tight > input.adm-bare { padding: 0 0.5rem; font-size: 0.8rem; }
 
-@keyframes mdlg-bar { 0%, 100% { scale: 1 0.3; opacity: 0.5; } 50% { scale: 1 1; opacity: 1; } }
-.mdlg-bar { height: 100%; transform-origin: bottom; animation: mdlg-bar 0.8s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) { .mdlg-bar { animation-duration: 2s; } }
 
-@keyframes btn-shine { 0%, 86% { background-position: 130% 0; } 100% { background-position: -30% 0; } }
-.btn-shine { background-image: linear-gradient(105deg, transparent 40%, color-mix(in srgb, var(--white) 50%, transparent) 50%, transparent 60%); background-size: 300% 100%; background-repeat: no-repeat; animation: btn-shine 5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
-@media (prefers-reduced-motion: reduce) { .btn-shine { animation: none; background-image: none; } }
 
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .sr-live.sr, .sr-live .sr {
-      animation-duration: auto !important;
-      animation-delay: 0s !important;
-      animation-fill-mode: both !important;
-      animation-play-state: running !important;
-      animation-timeline: view() !important;
-      animation-range: entry 0% cover 35% !important;
-    }
-  }
-}
 
 
 @keyframes vote-pop-in { from { opacity: 0; transform: translateY(4px); } }

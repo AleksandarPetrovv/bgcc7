@@ -124,12 +124,11 @@ export function SlotBox({
             <InView
               as="section"
               self
-              scrub
-              className={cn("sr in-up relative overflow-x-clip border-b", picked ? "border-balkan/50" : "border-line")}
+              className={cn("in-up relative overflow-x-clip border-b", picked ? "border-balkan/50" : "border-line")}
               style={{ "--i": i < 5 ? i : 0, "--s": "0.1s", "--d": "0.4s" } as React.CSSProperties}
             >
               <RuleDiamond />
-              <span className="sr in-grow absolute inset-x-0 top-0 h-0.5 [--d:0.55s]" style={{ background: color }} aria-hidden />
+              <span className="in-grow absolute inset-x-0 top-0 h-0.5 [--d:0.55s]" style={{ background: color }} aria-hidden />
               <header
                 onClick={(e) => !empty && !(e.target as Element).closest("a,button,input,label,form") && toggle()}
                 className={cn(
