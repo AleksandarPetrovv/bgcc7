@@ -1,6 +1,6 @@
 import { pageMeta } from "@/lib/page-meta";
 import { requireSection } from "@/lib/authz";
-import { Container, PageTitle, Wide } from "@/components/site/page";
+import { Container, PageTitle } from "@/components/site/page";
 import { MatchBracket } from "@/components/site/match-bracket";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
@@ -18,9 +18,7 @@ export default async function Matches() {
       <PageTitle mark="swords">
         {t.schedule.title}
       </PageTitle>
-      <Wide full>
-        <MatchBracket live={live} />
-      </Wide>
+      <MatchBracket live={live} />
     </Container>
   );
 }

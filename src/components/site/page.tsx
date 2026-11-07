@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { Sparkle } from "./graphics";
 import { DiscordLogo } from "./discord-logo";
-import { Tabs } from "./tabs";
 import { useBelowFold } from "./motion";
 import { useDict } from "./lang";
 import { cn } from "@/lib/utils";
@@ -547,10 +546,6 @@ export function Container({ children, className, plain }: { children: React.Reac
   return <div className={cn(!plain && "enter-kids", "mx-auto w-full max-w-page px-4 pt-6 sm:px-6 sm:pt-10 lg:px-10 2xl:px-14", className)}>{children}</div>;
 }
 
-export function Wide({ children, className }: { children: React.ReactNode; className?: string; full?: boolean }) {
-  return <div className={className}>{children}</div>;
-}
-
 export function SectionHeading({ children, mark = "glints" }: { children: React.ReactNode; mark?: Mark }) {
   const M = MARKS[mark];
   const [ref, below] = useBelowFold<HTMLHeadingElement>();
@@ -671,9 +666,4 @@ export function SlantButton({
       {inner}
     </button>
   );
-}
-
-export function StageTabs({ options, index, onChange, locked = [] }: { options: string[]; index: number; onChange: (i: number) => void; locked?: number[] }) {
-  const t = useDict();
-  return <Tabs options={options} index={index} onChange={onChange} locked={locked} label={t.common.stage} />;
 }

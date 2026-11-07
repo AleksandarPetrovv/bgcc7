@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getUser } from "@/lib/osu-api";
 import { pickemsHref, userPath } from "@/lib/data";
 import { ArrowLeft } from "lucide-react";
-import { Container, PageTitle, Wide } from "@/components/site/page";
+import { Container, PageTitle } from "@/components/site/page";
 import { PickemsBracket } from "@/components/site/pickems-bracket";
 import { getBracketOf } from "@/db/queries";
 import { getDict } from "@/lib/i18n/server";
@@ -77,9 +77,7 @@ export default async function UserBracket({ params }: { params: Promise<{ user: 
           {t.pickems.bracketOf(entry.username)}
         </span>
       </PageTitle>
-      {entry.picks ? <Wide>
-          <PickemsBracket picks={entry.picks} />
-        </Wide> : <p className="py-10 text-center text-ash">{t.pickems.notSaved}</p>}
+      {entry.picks ? <PickemsBracket picks={entry.picks} /> : <p className="py-10 text-center text-ash">{t.pickems.notSaved}</p>}
     </Container>
   );
 }

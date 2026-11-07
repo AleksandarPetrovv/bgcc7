@@ -1,4 +1,4 @@
-const STAR = "M12 0C12.9 7.6 16.4 11.1 24 12C16.4 12.9 12.9 16.4 12 24C11.1 16.4 7.6 12.9 0 12C7.6 11.1 11.1 7.6 12 0Z";
+import { STAR } from "./graphics";
 
 const BITS: { kind: "star" | "plus" | "diamond" | "wave" | "ring"; pos: React.CSSProperties; size: number; color: string; delay: number }[] = [
   { kind: "star", pos: { left: "3%", top: "22%" }, size: 16, color: "text-rose-hi", delay: 0 },

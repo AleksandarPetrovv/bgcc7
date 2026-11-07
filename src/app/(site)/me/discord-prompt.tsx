@@ -8,7 +8,7 @@ import { SlantButton } from "@/components/site/page";
 import { useDict } from "@/components/site/lang";
 import { DISCORD_URL } from "@/lib/links";
 import { cn } from "@/lib/utils";
-import { confirmDiscord, linkDiscord, unlinkDiscord } from "./discord-actions";
+import { confirmDiscord, linkDiscord } from "./discord-actions";
 
 type Fail = "notFound" | "taken" | "failed" | "dm" | "wait" | "expired";
 type Step = { k: "input" } | { k: "code"; name: string; wrong?: boolean } | { k: "ok"; name: string } | { k: Fail };
@@ -144,37 +144,5 @@ export function DiscordPrompt({ open: ctl, onClose }: { open?: boolean; onClose?
         </>
       )}
     </Modal>
-  );
-}
-
-export function DiscordLine({ name }: { name: string | null }) {
-  const t = useDict();
-  const d = t.sched.dc;
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [n, setN] = useState(0);
-  const [pending, start] = useTransition();
-  const unlink = () =>
-    start(async () => {
-      await unlinkDiscord().catch(() => null);
-      router.refresh();
-    });
-  const btn = "text-xs font-display font-bold text-ash hover:text-paper disabled:opacity-50";
-  return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ash">
-      {name ? <span>{d.linked(name)}</span> : null}
-      <button type="button" onClick={() => {
-            setN((k) => k + 1);
-            setOpen(true);
-          }} className={btn}>
-        {name ? d.change : d.missing}
-      </button>
-      {name && (
-        <button type="button" onClick={unlink} disabled={pending} className={btn}>
-          {d.unlink}
-        </button>
-      )}
-      <DiscordPrompt key={n} open={open} onClose={() => setOpen(false)} />
-    </div>
   );
 }

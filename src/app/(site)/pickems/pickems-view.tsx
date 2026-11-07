@@ -5,7 +5,7 @@ import { useEffect, useState, useTransition } from "react";
 import { InView } from "@/components/site/in-view";
 import Link from "next/link";
 import { Check } from "lucide-react";
-import { Container, PageTitle, SectionHeading, SlantButton, Tag, Wide } from "@/components/site/page";
+import { Container, PageTitle, SectionHeading, SlantButton, Tag } from "@/components/site/page";
 import { useDict, useIsBGCC6 } from "@/components/site/lang";
 import { PickemsBracket } from "@/components/site/pickems-bracket";
 import { resolve, seedingOf, type Picks } from "@/lib/pickems";
@@ -131,9 +131,7 @@ export function PickemsView({ osuId, saved, leaderboard, open, locked }: Props) 
         </div>
       </div>
 
-      <Wide>
-        <PickemsBracket picks={clean} onPick={open ? pick : undefined} locked={locked} />
-      </Wide>
+      <PickemsBracket picks={clean} onPick={open ? pick : undefined} locked={locked} />
 
       {/* one column, centred under the bracket; rows come in once the bracket has */}
       <div className="mx-auto mt-14 max-w-3xl">

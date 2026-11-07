@@ -1,5 +1,5 @@
 import { ExternalLink } from "lucide-react";
-import { Container, PageTitle, SubHeading, Wide } from "@/components/site/page";
+import { Container, PageTitle, SubHeading } from "@/components/site/page";
 import { ScoreMatrix } from "@/components/site/score-matrix";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { requireSection } from "@/lib/authz";
@@ -19,9 +19,7 @@ export default async function Scores() {
         {t.qual.scoresTitle}
       </PageTitle>
       {qualifiers.players.length ? (
-        <Wide>
-          <ScoreMatrix qualifiers={qualifiers} cut={settings.qualifyCount} />
-        </Wide>
+        <ScoreMatrix qualifiers={qualifiers} cut={settings.qualifyCount} />
       ) : (
         <p className="py-10 text-center text-ash">{t.qual.noResults}</p>
       )}

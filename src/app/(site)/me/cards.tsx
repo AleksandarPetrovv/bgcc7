@@ -13,7 +13,7 @@ const pct = (a?: number | null) => (a == null ? "—" : `${(a * 100).toFixed(2)}
 export const label = "text-[0.65rem] font-display font-bold text-ash";
 
 // no box: a heading over a rule like the home sections, the content sits straight on the page
-export function Heading({ children, right, className }: { children: React.ReactNode; right?: React.ReactNode; className?: string }) {
+function Heading({ children, right, className }: { children: React.ReactNode; right?: React.ReactNode; className?: string }) {
   return (
     <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line pb-3", className)}>
       <span className="size-2 shrink-0 rotate-45 bg-rose" aria-hidden />
