@@ -22,7 +22,7 @@ import { discordProfile } from "@/lib/discord";
 import { Connections } from "./connections";
 import { MatchRow } from "@/components/site/match-row";
 import { avatarPath } from "@/lib/avatar";
-import { getScoreboard } from "@/db/scoreboards";
+import { scoreboardOrNull } from "@/db/scoreboards";
 import { phaseStates } from "@/lib/dates";
 import { Timeline } from "@/components/site/timeline";
 import { fmtSofia, fmtSofiaTime, isFuture, windowState, tzLabel } from "@/lib/time";
@@ -296,7 +296,7 @@ export default async function Me() {
   );
 
   const boards = await Promise.all(
-    played.map((m) => Promise.race([getScoreboard(m, teams, stages), new Promise<null>((r) => setTimeout(() => r(null), 5000))]).catch(() => null)),
+    played.map((m) => scoreboardOrNull(m, teams, stages)),
   );
   const avg = (xs: number[]) => (xs.length ? xs.reduce((n, x) => n + x, 0) / xs.length : null);
   const costRows = boards.map((b) => (b ? matchCosts(b, true) : []));

@@ -9,7 +9,7 @@ import { getQualResults } from "@/db/qualifiers";
 import { getPoolStages } from "@/db/mappools";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getStageStats } from "@/db/stage-stats";
-import { getScoreboard } from "@/db/scoreboards";
+import { scoreboardOrNull } from "@/db/scoreboards";
 import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
 import { bySkill, skillColor } from "@/lib/format-plan";
@@ -19,6 +19,7 @@ import { InView } from "@/components/site/in-view";
 import { MeTag, meP } from "@/components/site/me";
 import { MEDAL, modHi } from "@/lib/theme";
 import { roundName } from "@/lib/i18n/dict";
+import { RuleDiamond } from "@/components/site/rule";
 
 const TONES = ["bg-rose text-white", "bg-balkan text-on-fill", "border-b border-line", "border-b border-line"];
 
@@ -33,7 +34,7 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
     matches
       .filter((m) => m.links.length > 0 && !pts(m))
       .map(async (m) => {
-        const sb = await Promise.race([getScoreboard(m, teams, stages), new Promise<null>((r) => setTimeout(() => r(null), 5000))]).catch(() => null);
+        const sb = await scoreboardOrNull(m, teams, stages);
         return sb && sb.score[0] + sb.score[1] > 0 ? m.stage : null;
       }),
   );
@@ -103,7 +104,7 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
 
       <SectionHeading>{t.stats.avgPerMap}</SectionHeading>
       <InView key={`c-${current!.slug}`} className="relative border-b border-line pb-6">
-        <span className="pointer-events-none absolute -bottom-[7px] left-1/2 size-2.5 -translate-x-1/2 rotate-45 bg-rose" aria-hidden />
+        <RuleDiamond />
         <MapDifficultyChart qualifiers={data} />
       </InView>
 

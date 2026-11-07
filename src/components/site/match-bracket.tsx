@@ -8,7 +8,7 @@ import { TWITCH_URL } from "@/lib/links";
 import { useFormat, useTournament } from "./tournament";
 import { useDict, useLang } from "./lang";
 import { MatchDialog } from "./match-dialog";
-import { cn } from "@/lib/utils";
+import { cn, cssVars } from "@/lib/utils";
 import { MeTag, meT } from "./me";
 import { fitBox, useFit } from "./use-fit";
 import { matchNum, winTargets, type Format, type Half } from "@/lib/format";
@@ -36,7 +36,6 @@ function bracketLayout(f: Format) {
   return { G, H, P, minW, LOW, POS, top, WIN: winTargets(f), DROPS: f.layout.drops, HEADERS: f.layout.headers, gfCol, upRows, lowRows, mark: f.layout.mark };
 }
 
-const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
 function Line({ m, slot, live, slim }: { m: Match; slot: 1 | 2; live?: [number, number] | null; slim?: boolean }) {
   const { teamById } = useTournament();
@@ -52,13 +51,13 @@ function Line({ m, slot, live, slim }: { m: Match; slot: 1 | 2; live?: [number, 
     <div {...meT(team.id)} className={cn("relative flex min-h-0 flex-1 items-center gap-1.5 pl-2 pr-2.5", won && "bg-[color-mix(in_oklab,var(--balkan)_14%,var(--coal))]", leads && "bg-rose/10", lost && "opacity-45")}>
       {(won || leads) && <span className={cn("absolute inset-y-1 left-0 w-0.5", won ? "bg-balkan" : "bg-rose/60")} aria-hidden />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {!slim && <img src={team.image} alt="" className="in-pop size-4 shrink-0 object-cover" style={v({ "--d": "0.45s" })} />}
-      <span title={team.name} className={cn("in-wipe min-w-0 flex-1 truncate text-[12.8px] font-display font-bold", won && "font-display font-black text-paper", leads && "font-display font-black text-rose-hi")} style={v({ "--d": "0.5s" })}>
+      {!slim && <img src={team.image} alt="" className="in-pop size-4 shrink-0 object-cover" style={cssVars({ "--d": "0.45s" })} />}
+      <span title={team.name} className={cn("in-wipe min-w-0 flex-1 truncate text-[12.8px] font-display font-bold", won && "font-display font-black text-paper", leads && "font-display font-black text-rose-hi")} style={cssVars({ "--d": "0.5s" })}>
         {team.name}
       </span>
       <MeTag t={team.id} className="me-tag-plain me-tag-px -mx-1" />
       {score !== null && (
-        <span className={cn("in-slam num ml-2 shrink-0 text-right text-base leading-none", won ? "text-balkan-hi" : leads || tie ? "text-rose-hi" : "text-paper/80")} style={v({ "--d": "0.65s" })}>
+        <span className={cn("in-slam num ml-2 shrink-0 text-right text-base leading-none", won ? "text-balkan-hi" : leads || tie ? "text-rose-hi" : "text-paper/80")} style={cssVars({ "--d": "0.65s" })}>
           {score}
         </span>
       )}
@@ -178,7 +177,7 @@ export function MatchBracket({ live = {}, maxH, reset = true, plain }: { live?: 
 
   const section = (s: "u" | "l") => (
     <div className="pointer-events-none absolute flex items-center gap-3" style={{ left: s === "u" ? 0 : col(lowCol), top: s === "u" ? 0 : LOW - 100 }}>
-      <span className={cn("in-wipe heading-slam whitespace-nowrap text-xl sm:text-3xl", (plain ? s === "u" : s === "l") && "text-rose-hi")} style={v({ "--d": s === "u" ? "0.1s" : "0.4s" })}>
+      <span className={cn("in-wipe heading-slam whitespace-nowrap text-xl sm:text-3xl", (plain ? s === "u" : s === "l") && "text-rose-hi")} style={cssVars({ "--d": s === "u" ? "0.1s" : "0.4s" })}>
         {s === "u" ? t.schedule.upper : t.schedule.lower}
       </span>
     </div>
@@ -199,7 +198,7 @@ export function MatchBracket({ live = {}, maxH, reset = true, plain }: { live?: 
                 d={wire(a, b)}
                 pathLength={1}
                 className="in-draw"
-                style={v({ "--d": `${0.6 + POS[a][0] * 0.14}s` })}
+                style={cssVars({ "--d": `${0.6 + POS[a][0] * 0.14}s` })}
                 fill="none"
                 stroke={done ? "var(--balkan-deep)" : HEX.line}
                 strokeOpacity={1}
@@ -219,7 +218,7 @@ export function MatchBracket({ live = {}, maxH, reset = true, plain }: { live?: 
               opacity={linked.has(a) && linked.has(b) ? 0.9 : 0}
             />
           ))}
-          {reset && <path d={`M${col(gfCol) + W / 2} ${top("grand-final") + H} V${top("grand-final-reset")}`} strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="3 4" className="in-up" style={v({ "--d": "1.3s", stroke: "var(--gold)" })} />}
+          {reset && <path d={`M${col(gfCol) + W / 2} ${top("grand-final") + H} V${top("grand-final-reset")}`} strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="3 4" className="in-up" style={cssVars({ "--d": "1.3s", stroke: "var(--gold)" })} />}
         </svg>
 
         {!phone && section("u")}
@@ -236,7 +235,7 @@ export function MatchBracket({ live = {}, maxH, reset = true, plain }: { live?: 
               )}
               <div
                 className="in-drop absolute snap-start truncate border-b border-line pb-1 text-xs font-display font-bold text-ash"
-                style={{ left: col(h.c), top: y - 30, width: W, ...v({ "--i": h.c, "--s": "0.12s", "--d": h.s === "u" ? "0.15s" : "0.45s" }) }}
+                style={{ left: col(h.c), top: y - 30, width: W, ...cssVars({ "--i": h.c, "--s": "0.12s", "--d": h.s === "u" ? "0.15s" : "0.45s" }) }}
               >
                 {roundName(t, h.t)}
               </div>
@@ -245,7 +244,7 @@ export function MatchBracket({ live = {}, maxH, reset = true, plain }: { live?: 
         })}
         <div
           className="in-drop absolute flex snap-start items-center gap-2 border-b border-gold/20 pb-1 text-xs font-display font-bold text-gold-hi/80"
-          style={{ left: col(gfCol), top: top("grand-final") - 30, width: W, ...v({ "--d": "0.7s" }) }}
+          style={{ left: col(gfCol), top: top("grand-final") - 30, width: W, ...cssVars({ "--d": "0.7s" }) }}
         >
           <Crown className="size-3.5" /> {t.rounds["Grand Finals"]}
         </div>
@@ -266,7 +265,7 @@ export function MatchBracket({ live = {}, maxH, reset = true, plain }: { live?: 
               onEnter={() => setHover(id)}
               onLeave={() => setHover(null)}
               className={cn("in-left-far absolute", gf ? "border-gold/70" : "border-line hover:border-paper/30", linked.has(id) && "z-10 border-rose shadow-[0_0_14px_-3px_var(--rose)]")}
-              style={{ left: col(c), top: top(id), width: W, height: H, ...v({ "--i": c, "--s": "0.14s", "--d": `${(POS[id][2] === "u" ? 0.2 : 0.5) + POS[id][1] / 2500}s` }) }}
+              style={{ left: col(c), top: top(id), width: W, height: H, ...cssVars({ "--i": c, "--s": "0.14s", "--d": `${(POS[id][2] === "u" ? 0.2 : 0.5) + POS[id][1] / 2500}s` }) }}
             />
           );
         })}

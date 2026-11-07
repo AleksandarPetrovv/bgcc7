@@ -12,8 +12,8 @@ import { can } from "@/lib/roles";
 import { setDraft, setQualify, setRounds } from "./actions";
 import { PickemsToggle } from "./pickems-toggle";
 import { isBGCC6 } from "@/db";
+import { cssVars } from "@/lib/utils";
 
-const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
 export default async function AdminSettings() {
   const [t, s, viewer, stages, matches] = await Promise.all([getDict(), getSettings(), getViewer(), getPoolStages(), getMatches()]);
@@ -76,7 +76,7 @@ export default async function AdminSettings() {
                   return (
                     <label
                       key={st.id}
-                      style={v({ "--i": i, "--s": "0.06s", "--d": "0.5s" })}
+                      style={cssVars({ "--i": i, "--s": "0.06s", "--d": "0.5s" })}
                       className="in-left grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 sm:grid-cols-[minmax(0,1fr)_auto_auto]"
                     >
                       <span className="min-w-0">

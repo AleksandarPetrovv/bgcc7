@@ -9,9 +9,8 @@ import { acceptPhase, dismissPhase } from "@/app/(site)/admin/phase/actions";
 import { PHASES } from "@/lib/sections";
 import { Glyph } from "./graphics";
 import { useDict } from "./lang";
-import { cn } from "@/lib/utils";
+import { cn, cssVars } from "@/lib/utils";
 
-const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
 export function PhasePrompt({ current, next }: { current: string; next: string }) {
   const t = useDict();
@@ -33,18 +32,18 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
       <DialogContent showCloseButton={false} className="mdlg overflow-hidden rounded-none border-2 border-rose bg-coal p-0 shadow-[6px_6px_0_0_var(--rose-deep)] ring-0 sm:max-w-lg">
         <div className="relative overflow-hidden border-b border-line px-5 pb-6 pt-5 sm:px-7">
           <div className="anim-drift pointer-events-none absolute inset-0 w-[calc(100%+7.5rem)] bg-[repeating-linear-gradient(115deg,transparent_0_40px,color-mix(in_srgb,var(--rose)_7%,transparent)_40px_42px)]" aria-hidden />
-          <div className="in-left relative flex items-center gap-2.5 text-xs font-display font-bold text-rose-hi" style={v({ "--d": "0.15s" })}>
+          <div className="in-left relative flex items-center gap-2.5 text-xs font-display font-bold text-rose-hi" style={cssVars({ "--d": "0.15s" })}>
             <Glyph kind="spark" className="size-3" /> {t.admin.prompt.kicker}
           </div>
-          <DialogTitle className="in-wipe heading-slam relative mt-3 text-3xl leading-none sm:text-4xl" style={v({ "--d": "0.25s" })}>
+          <DialogTitle className="in-wipe heading-slam relative mt-3 text-3xl leading-none sm:text-4xl" style={cssVars({ "--d": "0.25s" })}>
             {t.admin.prompt.title(name)}
           </DialogTitle>
-          <p className="in-up relative mt-3 text-sm text-paper/75" style={v({ "--d": "0.4s" })}>
+          <p className="in-up relative mt-3 text-sm text-paper/75" style={cssVars({ "--d": "0.4s" })}>
             {t.admin.prompt.body(name)}
           </p>
           <ol className="relative mt-6 flex items-center gap-1.5">
             {PHASES.map((p, i) => (
-              <li key={p} className="in-pop flex min-w-0 flex-1 flex-col items-center gap-1.5" style={v({ "--i": i, "--s": "0.06s", "--d": "0.5s" })}>
+              <li key={p} className="in-pop flex min-w-0 flex-1 flex-col items-center gap-1.5" style={cssVars({ "--i": i, "--s": "0.06s", "--d": "0.5s" })}>
                 <span
                   className={cn(
                     "h-2 w-full -skew-x-12",
@@ -57,7 +56,7 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
               </li>
             ))}
           </ol>
-          <div className="in-up relative mt-2 flex items-center gap-2 text-xs font-display font-bold sm:hidden" style={v({ "--d": "0.8s" })}>
+          <div className="in-up relative mt-2 flex items-center gap-2 text-xs font-display font-bold sm:hidden" style={cssVars({ "--d": "0.8s" })}>
             <span className="text-paper">{t.admin.phases[current]}</span>
             <ArrowRight className="size-3.5 text-ash" />
             <span className="text-rose-hi">{name}</span>
@@ -68,7 +67,7 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
             type="button"
             onClick={() => run(() => acceptPhase(next))}
             className="in-pop group relative isolate inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-display font-bold text-white"
-            style={v({ "--d": "0.7s" })}
+            style={cssVars({ "--d": "0.7s" })}
           >
             <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 bg-rose shadow-[3px_3px_0_0_var(--rose-deep)] group-hover:bg-rose-hi" />
             <Check className="size-4" /> {t.admin.prompt.yes(name)}
@@ -77,7 +76,7 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
             href="/admin/phase"
             onClick={() => setOpen(false)}
             className="in-pop group relative isolate inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-display font-bold text-paper"
-            style={v({ "--d": "0.78s" })}
+            style={cssVars({ "--d": "0.78s" })}
           >
             <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 border border-line group-hover:border-rose" />
             {t.admin.prompt.stages} <ArrowRight className="size-4" />
@@ -86,7 +85,7 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
             type="button"
             onClick={() => run(() => dismissPhase(next))}
             className="in-pop inline-flex items-center justify-center gap-1.5 px-3 py-3 text-sm font-display font-bold text-ash transition-colors hover:text-paper sm:ml-auto"
-            style={v({ "--d": "0.86s" })}
+            style={cssVars({ "--d": "0.86s" })}
           >
             <X className="size-4" /> {t.admin.prompt.no}
           </button>

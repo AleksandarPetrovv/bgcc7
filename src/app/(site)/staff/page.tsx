@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { requireSection } from "@/lib/authz";
 import { Stagger, StaggerItem } from "@/components/site/motion";
 import { avatarPath } from "@/lib/avatar";
+import { RuleDiamond } from "@/components/site/rule";
 
 const rank = (r: string) => ROLES.indexOf(r as (typeof ROLES)[number]) + 1 || 99;
 
@@ -31,7 +32,7 @@ export default async function Staff() {
       <Stagger className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3 2xl:gap-x-10 2xl:gap-y-8">
         {list.map((p, i) => (
           <StaggerItem as="article" key={p.username} className="group relative flex border-b-2 border-dashed border-line transition-colors hover:border-paper/30">
-            <span className="pointer-events-none absolute -bottom-[7px] left-1/2 size-2.5 -translate-x-1/2 rotate-45 bg-rose" aria-hidden />
+            <RuleDiamond />
             <div className="flex shrink-0 items-center justify-center py-3 pr-1 sm:py-5 sm:pr-2" style={{ "--i": i, "--s": "0.08s", "--d": "0.2s" } as React.CSSProperties}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

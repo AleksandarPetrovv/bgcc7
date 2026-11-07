@@ -13,6 +13,7 @@ import { lobbySize } from "@/lib/format";
 import { CHAT_GAP, attach, canLobby, conn, ensureBot, g, lastSent, lobbyOwner, markClosed, membersOf, online, ownerOf, ping, playStart, state, syncOf, typed, type Live, type LobbySlot, type LobbyView } from "./bancho-irc";
 import { MOD_LOBBY } from "./mods";
 import { nameKey, ircName } from "@/lib/names";
+import { within } from "./utils";
 
 export { CHAT_GAP, canLobby, ensureBot, lobbyOwner, onLobby, sayLocal, type ChatLine, type LobbySlot, type LobbyView } from "./bancho-irc";
 
@@ -279,8 +280,6 @@ export async function sendChat(matchId: string, by: number, raw: string) {
   if (hit.mod) await lb.setMods(...modArgs(hit.mod)).catch(() => {});
   return "ok" as const;
 }
-
-const within = <T,>(p: Promise<T>, ms: number) => Promise.race([p, new Promise<null>((r) => setTimeout(() => r(null), ms))]);
 
 export async function closeLobby(matchId: string) {
   const s = await ensureBot().catch(() => null);

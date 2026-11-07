@@ -5,7 +5,7 @@ import { AnimatePresence, motion, Reorder, useDragControls } from "motion/react"
 import { ChevronDown, GripVertical, Star, Minus, Plus, Trash2, X } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import { selectedSubcategories, subcategoryNames, newId, PLAN_MODS, roundStats, sortMaps, type PlanCat, type PlanMod, type PlanRound } from "@/lib/format-plan";
-import { cn } from "@/lib/utils";
+import { cn, cssVars } from "@/lib/utils";
 import { modHi, modOn } from "@/lib/theme";
 import { RuleDiamond } from "@/components/site/rule";
 import { Catalog, Edit, Intro, useFresh, useIntroWindow } from "./format-context";
@@ -19,7 +19,6 @@ const COLOR: Record<PlanMod | "FM", string> = {
   FM: "var(--mod-fm)",
 };
 
-const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
 function Stepper({ value, min, max, onChange, label }: { value: number; min: number; max: number; onChange: (n: number) => void; label: string }) {
   const edit = useContext(Edit);
@@ -89,7 +88,7 @@ function ModPick({ mod, onMod, label }: { mod: PlanMod; onMod: (mod: PlanMod) =>
                   setOpen(false);
                 }}
                 className={cn("flex h-7 w-16 -skew-x-12 items-center justify-center border text-xs font-display font-black transition-colors", m === mod ? "" : "hover:bg-[color-mix(in_srgb,var(--c)_22%,transparent)]")}
-                style={{ borderColor: COLOR[m], color: m === mod ? modOn(COLOR[m]) : modHi(COLOR[m]), background: m === mod ? COLOR[m] : undefined, ...v({ "--c": COLOR[m] }) }}
+                style={{ borderColor: COLOR[m], color: m === mod ? modOn(COLOR[m]) : modHi(COLOR[m]), background: m === mod ? COLOR[m] : undefined, ...cssVars({ "--c": COLOR[m] }) }}
               >
                 <span className="skew-x-12">{m}</span>
               </button>
@@ -279,7 +278,7 @@ function CatRow({ c, onChange, onRemove, prev }: { c: PlanCat; onChange: (c: Pla
                 type="button"
                 onClick={() => add(m)}
                 className="h-7 -skew-x-12 border border-line px-1.5 text-[0.62rem] font-display font-black text-ash transition-colors hover:border-[var(--m)] hover:bg-[var(--m)] hover:text-[var(--mo)]"
-                style={v({ "--m": COLOR[m], "--mo": modOn(COLOR[m]) })}
+                style={cssVars({ "--m": COLOR[m], "--mo": modOn(COLOR[m]) })}
               >
                 <span className="inline-block skew-x-12">+{m}</span>
               </button>

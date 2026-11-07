@@ -1,7 +1,7 @@
 import "server-only";
 import type { Match, QualMap, QualPlayer, Team } from "@/lib/data";
 import type { PoolStage } from "./mappools";
-import { getScoreboard } from "./scoreboards";
+import { scoreboardOrNull } from "./scoreboards";
 import { matchCosts } from "@/lib/match-cost";
 
 export type StageStats = { maps: QualMap[]; players: QualPlayer[]; plays: number; matches: number; topCost?: { username: string; cost: number }; topCosts: TopCost[]; costs: TopCost[] };
@@ -41,7 +41,7 @@ export async function getStageStats(stage: PoolStage, matches: Match[], teams: T
   const inPool = new Set(maps.map((m) => m.id));
   const mine = matches.filter((m) => m.stage === stage.slug && m.links.length > 0);
   const boards = await Promise.all(
-    mine.map((m) => Promise.race([getScoreboard(m, teams, stages), new Promise<null>((r) => setTimeout(() => r(null), 5000))]).catch(() => null)),
+    mine.map((m) => scoreboardOrNull(m, teams, stages)),
   );
 
   const byPlayer = new Map<number, QualPlayer & { accSum: number; scoreSum: number; n: number }>();

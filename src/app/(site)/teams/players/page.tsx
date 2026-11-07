@@ -13,12 +13,11 @@ import { getPlayerSeeds } from "@/db/seeds";
 import { getMatches, getTeams } from "@/db/tournament";
 import { splitAlive } from "@/lib/alive";
 import { Avatar } from "@/components/site/avatar";
-import { cn } from "@/lib/utils";
+import { cn, cssVars } from "@/lib/utils";
 import { MeTag, meP } from "@/components/site/me";
 import { rankBws } from "@/lib/bws";
 import { isBGCC6 } from "@/db";
 
-const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
 export const generateMetadata = pageMeta("players");
 
@@ -45,14 +44,14 @@ export default async function Players() {
         {seeds.has(p.osuId) ? `#${seeds.get(p.osuId)}` : "—"}
       </span>
       <span className="absolute inset-y-0 left-0 w-0.5 origin-top scale-y-0 bg-balkan transition-transform duration-300 group-hover:scale-y-100" aria-hidden />
-      <span className="in-spin shrink-0" style={v({ "--d": "0.12s" })}>
+      <span className="in-spin shrink-0" style={cssVars({ "--d": "0.12s" })}>
         <Avatar src={p.avatarUrl} className="size-12 transition-transform duration-300 group-hover:scale-105" />
       </span>
       <div className="@container relative min-w-0 flex-1">
         <div className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           {p.country && <img src={flagUrl(p.country)} alt="" className="h-3 shrink-0" />}
-          <span className="in-wipe truncate text-[1.05rem] font-display font-black transition-colors group-hover:text-balkan-hi" style={v({ "--d": "0.25s" })}>
+          <span className="in-wipe truncate text-[1.05rem] font-display font-black transition-colors group-hover:text-balkan-hi" style={cssVars({ "--d": "0.25s" })}>
             {p.username}
           </span>
           <MeTag p={p.osuId} />
@@ -62,7 +61,7 @@ export default async function Players() {
             </Tag>
           )}
         </div>
-        <div className="in-up num mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs" style={v({ "--d": "0.35s" })}>
+        <div className="in-up num mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs" style={cssVars({ "--d": "0.35s" })}>
           {p.rank !== null && <span className="whitespace-nowrap text-paper">#{fmtNum(p.rank)}</span>}
           {p.countryRank !== null && (
             <>

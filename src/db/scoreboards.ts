@@ -9,6 +9,7 @@ import type { Match, Team } from "@/lib/data";
 import { buildScoreboard, playoffPools, SCOREBOARD_V, type ScoreEdit, type Scoreboard } from "@/lib/scoreboard";
 import { isLive } from "@/lib/matches";
 import { alertId, clear, describeMatch, failingFor, osuIdOf, raise } from "@/lib/alerts";
+import { within } from "@/lib/utils";
 
 const LIVE_TTL = 30_000;
 const live = new Map<string, { at: number; data: Scoreboard }>();
@@ -99,13 +100,15 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
   }
 }
 
+/** a match's scoreboard, or null when osu! fails or takes over 5s, so no page waits on it */
+export const scoreboardOrNull = (...a: Parameters<typeof getScoreboard>) => within(getScoreboard(...a), 5000).catch(() => null);
+
 export async function getLiveScores(matches: Match[], teams: Team[], stages: PoolStage[]) {
   const liveOnes = matches.filter((m) => isLive(m));
   const out: Record<string, [number, number] | null> = {};
   await Promise.all(
     liveOnes.map(async (m) => {
-      const timeout = new Promise<null>((r) => setTimeout(() => r(null), 4000));
-      const sb = await Promise.race([getScoreboard(m, teams, stages), timeout]);
+      const sb = await scoreboardOrNull(m, teams, stages);
       out[m.id] = sb ? sb.score : null;
     }),
   );

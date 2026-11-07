@@ -10,7 +10,7 @@ import { slotColor } from "@/lib/format-plan";
 import { useTournament } from "./tournament";
 import { roundName } from "@/lib/i18n/dict";
 import type { MapResult, PlayerLine, Scoreboard } from "@/lib/scoreboard";
-import { cn } from "@/lib/utils";
+import { cn, cssVars } from "@/lib/utils";
 import { matchCosts } from "@/lib/match-cost";
 import { MeTag, meP } from "./me";
 import { MEDAL, modHi, TEAM as TEAMS } from "@/lib/theme";
@@ -20,7 +20,6 @@ import { localeOf } from "@/lib/i18n/locale";
 import { MODS } from "@/lib/mods";
 
 const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
-const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 const cache = new Map<string, Scoreboard>();
 const TEAM = [TEAMS[1].border, TEAMS[2].border];
 const TEAM_TEXT = [TEAMS[1].text, TEAMS[2].text];
@@ -30,7 +29,7 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
   return (
     <ul className={cn("min-w-0 space-y-2", !won && "opacity-60")}>
       {players.map((p, r) => (
-        <li key={p.id} {...meP(p.id)} className={cn("flex min-w-0 items-center gap-2 py-0.5", flip ? "in-right flex-row-reverse pr-1.5 text-right" : "in-left pl-1.5")} style={v({ "--d": `${0.45 + r * 0.06}s` })}>
+        <li key={p.id} {...meP(p.id)} className={cn("flex min-w-0 items-center gap-2 py-0.5", flip ? "in-right flex-row-reverse pr-1.5 text-right" : "in-left pl-1.5")} style={cssVars({ "--d": `${0.45 + r * 0.06}s` })}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={p.avatar} alt="" loading="lazy" decoding="async" className="size-8 shrink-0" />
           <div className="min-w-0 flex-1 leading-tight">
@@ -58,7 +57,7 @@ export function MapCard({ m, i }: { m: MapResult; i: number }) {
   return (
     <article
       className={cn("in-up relative border-b-2 border-dashed border-line", m.note && "opacity-50")}
-      style={v({ "--i": Math.min(i, 6), "--s": "0.08s", "--d": "0.12s" })}
+      style={cssVars({ "--i": Math.min(i, 6), "--s": "0.08s", "--d": "0.12s" })}
     >
       <RuleDiamond />
       {m.cover && (
@@ -72,7 +71,7 @@ export function MapCard({ m, i }: { m: MapResult; i: number }) {
         />
       )}
       <header className="relative flex items-start gap-3 pt-3">
-        <span className="in-slam heading-slam shrink-0 text-2xl leading-none" style={{ color: color ?? "var(--ash)", ...v({ "--d": "0.22s" }) }}>
+        <span className="in-slam heading-slam shrink-0 text-2xl leading-none" style={{ color: color ?? "var(--ash)", ...cssVars({ "--d": "0.22s" }) }}>
           {m.slot ?? "—"}
         </span>
         <div className="min-w-0 flex-1 pt-0.5">
@@ -84,7 +83,7 @@ export function MapCard({ m, i }: { m: MapResult; i: number }) {
           </div>
         </div>
         {!m.note && (
-          <span className="in-pop num shrink-0 text-lg leading-none" style={v({ "--d": "0.5s" })}>
+          <span className="in-pop num shrink-0 text-lg leading-none" style={cssVars({ "--d": "0.5s" })}>
             <span className={m.winner === 1 ? "text-crimson-hi" : "text-ash"}>{m.running[0]}</span>
             <span className="px-1 text-ash/40">/</span>
             <span className={m.winner === 2 ? "text-azure-hi" : "text-ash"}>{m.running[1]}</span>
@@ -94,21 +93,21 @@ export function MapCard({ m, i }: { m: MapResult; i: number }) {
       {!m.note && (
         <div className="relative pb-4 pt-3">
           <div className="flex items-end justify-between gap-3">
-            <span className={cn("in-left num text-xl leading-none", m.winner === 1 ? "text-crimson-hi" : "text-ash")} style={v({ "--d": "0.3s" })}>
+            <span className={cn("in-left num text-xl leading-none", m.winner === 1 ? "text-crimson-hi" : "text-ash")} style={cssVars({ "--d": "0.3s" })}>
               {fmtNum(m.team1)}
             </span>
             {sum > 0 && (
-              <span className="in-drop num text-[0.7rem] text-ash" style={v({ "--d": "0.55s" })}>
+              <span className="in-drop num text-[0.7rem] text-ash" style={cssVars({ "--d": "0.55s" })}>
                 {fmtNum(Math.abs(m.team1 - m.team2))}
               </span>
             )}
-            <span className={cn("in-right num text-xl leading-none", m.winner === 2 ? "text-azure-hi" : "text-ash")} style={v({ "--d": "0.3s" })}>
+            <span className={cn("in-right num text-xl leading-none", m.winner === 2 ? "text-azure-hi" : "text-ash")} style={cssVars({ "--d": "0.3s" })}>
               {fmtNum(m.team2)}
             </span>
           </div>
           <div className="mt-2 flex h-1 gap-0.5">
-            <span className={cn("in-grow h-full bg-crimson", m.winner !== 1 && "opacity-40")} style={{ width: `${share}%`, ...v({ "--d": "0.35s" }) }} />
-            <span className={cn("in-grow h-full flex-1 bg-azure", m.winner !== 2 && "opacity-40")} style={{ transformOrigin: "100% 50%", ...v({ "--d": "0.35s" }) }} />
+            <span className={cn("in-grow h-full bg-crimson", m.winner !== 1 && "opacity-40")} style={{ width: `${share}%`, ...cssVars({ "--d": "0.35s" }) }} />
+            <span className={cn("in-grow h-full flex-1 bg-azure", m.winner !== 2 && "opacity-40")} style={{ transformOrigin: "100% 50%", ...cssVars({ "--d": "0.35s" }) }} />
           </div>
           <div className="mt-3.5 grid grid-cols-2 gap-x-4">
             <Side players={m.players[0]} won={m.winner !== 2} />
@@ -126,8 +125,8 @@ export function Costs({ data, names, finished }: { data: Scoreboard; names: (str
   if (!rows.length) return null;
   const place = new Map(rows.map((r, i) => [r.id, i]));
   return (
-    <section className="in-up pt-3" style={v({ "--d": "0.35s" })}>
-      <h3 className="in-wipe mb-3 text-sm font-display font-bold" style={v({ "--d": "0.45s" })}>
+    <section className="in-up pt-3" style={cssVars({ "--d": "0.35s" })}>
+      <h3 className="in-wipe mb-3 text-sm font-display font-bold" style={cssVars({ "--d": "0.45s" })}>
         {t.match.cost}
       </h3>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -145,7 +144,7 @@ export function Costs({ data, names, finished }: { data: Scoreboard; names: (str
                     key={r.id}
                     {...meP(r.id)}
                     className={cn("flex items-center gap-3 border-b border-line py-2 last:border-b-0", k === 1 ? "in-left" : "in-right")}
-                    style={v({ "--i": n, "--s": "0.07s", "--d": "0.55s" })}
+                    style={cssVars({ "--i": n, "--s": "0.07s", "--d": "0.55s" })}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={r.avatar} alt="" loading="lazy" decoding="async" className="size-8 shrink-0" />
@@ -158,7 +157,7 @@ export function Costs({ data, names, finished }: { data: Scoreboard; names: (str
                         {t.match.mapsShort(r.maps)} · {pct(r.acc)} · {fmtNum(r.score)}
                       </div>
                     </div>
-                    <span className={cn("in-slam num shrink-0 text-2xl", MEDAL[place.get(r.id)!] ?? "text-paper/60")} style={v({ "--d": `${0.75 + place.get(r.id)! * 0.06}s` })}>
+                    <span className={cn("in-slam num shrink-0 text-2xl", MEDAL[place.get(r.id)!] ?? "text-paper/60")} style={cssVars({ "--d": `${0.75 + place.get(r.id)! * 0.06}s` })}>
                       {r.cost.toFixed(2)}
                     </span>
                   </li>
@@ -277,7 +276,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
         <DialogContent className="mdlg max-h-[88dvh] grid-cols-[minmax(0,1fr)] content-start gap-0 overflow-y-auto overflow-x-hidden [-webkit-overflow-scrolling:touch] [touch-action:pan-y] rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
           {/* -top-px + the upward shadow close the sliver that let scrolled maps peek above the header */}
           <div className="sticky -top-px z-10 min-w-0 border-b border-line bg-ink px-3 py-3 shadow-[0_-8px_0_0_var(--ink)] sm:px-5 sm:py-4">
-            <DialogTitle className="in-wipe pr-8 text-xs font-display font-bold text-rose-hi" style={v({ "--d": "0.1s" })}>
+            <DialogTitle className="in-wipe pr-8 text-xs font-display font-bold text-rose-hi" style={cssVars({ "--d": "0.1s" })}>
               {roundName(t, match.round)}
             </DialogTitle>
             {/* min-content on phones lets the date wrap so team names don't break mid-word */}
@@ -286,7 +285,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
                 <div
                   key={i}
                   className={cn("flex min-w-0 items-center gap-2 sm:gap-3", i === 1 ? "in-right order-3 flex-row-reverse text-right" : "in-left")}
-                  style={v({ "--d": "0.12s" })}
+                  style={cssVars({ "--d": "0.12s" })}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {team && <img src={team.image} alt="" className={cn("size-8 shrink-0 border-b-[3px] object-cover sm:size-12", i ? "border-azure" : "border-crimson")} />}
@@ -295,7 +294,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
                   </span>
                 </div>
               ))}
-              <span className="in-slam order-2 flex flex-col items-center gap-1.5" style={v({ "--d": "0.25s" })}>
+              <span className="in-slam order-2 flex flex-col items-center gap-1.5" style={cssVars({ "--d": "0.25s" })}>
                 <span className="num whitespace-nowrap text-2xl leading-none sm:text-4xl">
                   <span className={match.winner === 2 ? "text-ash" : "text-paper"}>{score[0]}</span>
                   <span className="mx-2 text-ash sm:mx-3">–</span>
@@ -323,7 +322,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
           {data === null ? (
             <div className="space-y-4 p-3 sm:p-5" aria-busy>
               {[0, 1, 2].map((k) => (
-                <div key={k} className="in-up relative h-40 overflow-hidden border-b border-line" style={v({ "--i": k, "--s": "0.1s" })}>
+                <div key={k} className="in-up relative h-40 overflow-hidden border-b border-line" style={cssVars({ "--i": k, "--s": "0.1s" })}>
                   <span className="mdlg-shine absolute inset-0" style={{ animationDelay: `${k * 0.15}s` }} />
                   <span className="absolute left-3.5 top-3 h-6 w-12 -skew-x-12 bg-slate" />
                   <span className="absolute left-20 top-3.5 h-3 w-1/2 bg-slate" />

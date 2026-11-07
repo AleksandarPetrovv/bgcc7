@@ -12,6 +12,7 @@ import { MeTag, meT } from "./me";
 import { fmtSofia } from "@/lib/time";
 import { hasResults } from "@/lib/matches";
 import { localeOf } from "@/lib/i18n/locale";
+import { RuleDiamond } from "@/components/site/rule";
 
 const d = (s: string) => ({ "--d": s }) as React.CSSProperties;
 
@@ -138,7 +139,7 @@ export function MatchRow({ match, live, small, label, delay = 0, plain }: { matc
       )}
     >
       {small ? (
-        <span className="pointer-events-none absolute -bottom-[7px] left-1/2 size-2.5 -translate-x-1/2 rotate-45 bg-rose" aria-hidden />
+        <RuleDiamond />
       ) : (
       <div className="pointer-events-none absolute inset-0 -z-10 flex" aria-hidden>
         {teams.map((team, i) => (
