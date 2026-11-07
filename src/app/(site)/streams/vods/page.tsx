@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/page-meta";
 import { Play } from "lucide-react";
 import { Container, PageTitle } from "@/components/site/page";
 import { getDict } from "@/lib/i18n/server";
@@ -6,6 +7,8 @@ import { getMatches, getTeams } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
 import { requireSection } from "@/lib/authz";
 import { MeTag } from "@/components/site/me";
+
+export const generateMetadata = pageMeta("vods");
 
 export default async function Vods() {
   await requireSection("streams");

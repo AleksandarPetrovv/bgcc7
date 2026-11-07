@@ -248,7 +248,7 @@ function StageStrip({ stage, info }: { stage: Stage; info: { firstTo: number; ba
 
   return (
     <motion.div className="mb-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <div className="relative grid grid-cols-3 divide-x divide-line border-b border-line">
+      <div className="relative grid grid-cols-3 border-b border-line">
         <RuleDiamond />
         {cells.map((c, k) => (
           <motion.div

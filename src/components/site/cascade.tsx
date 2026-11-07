@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { belowFold } from "./in-view";
 
 export function Cascade({ className, step = 0.06, children }: { className?: string; step?: number; children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
+  // before paint: setting --i after rows started animating restarts them (they blink out and back in)
+  useLayoutEffect(() => {
     const root = ref.current;
     if (!root) return;
     [...root.querySelectorAll<HTMLElement>("[data-cascade]")]

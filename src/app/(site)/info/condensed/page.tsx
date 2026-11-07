@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/page-meta";
 import { Container, PageTitle } from "@/components/site/page";
 import { Words } from "@/components/site/rich";
 import { getDict, getLang } from "@/lib/i18n/server";
@@ -10,6 +11,8 @@ import { CondensedFolk } from "../folk";
 import { getPlan } from "@/db/format-plan";
 import { getMatches } from "@/db/tournament";
 import { getHosts } from "@/db/admin";
+
+export const generateMetadata = pageMeta("info");
 
 export default async function Condensed() {
   await requireSection("info");

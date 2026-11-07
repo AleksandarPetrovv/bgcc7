@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/page-meta";
 import { Check } from "lucide-react";
 import { Container, PageTitle, Tag } from "@/components/site/page";
 import { RegisterForm } from "@/components/site/register-form";
@@ -11,6 +12,8 @@ import { getFormat } from "@/db/edition";
 import { requireSection } from "@/lib/authz";
 import { fmtSofia, windowState, tzLabel } from "@/lib/time";
 import { avatarPath } from "@/lib/avatar";
+
+export const generateMetadata = pageMeta("register");
 
 export default async function Register() {
   await requireSection("register");

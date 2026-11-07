@@ -30,8 +30,22 @@ function runAction(action: () => Promise<{ ok: boolean } | null>) {
 export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }) {
   const t = useDict();
   const [plan, setPlan] = useState(initial);
-  const [{ status, resetting }, setWriteState] = useState<WriteState>({ status: "idle", resetting: false });
-  const [tab, setTab] = useState(0);
+  const [ws, setWriteState] = useState<WriteState>({ status: "idle", resetting: false });
+  const { status, resetting } = ws;
+  const [tab, setTabState] = useState(0);
+  // the staggered intro plays on page load only; a stage switch just fades the round in, so the last row (tiebreaker) isn't left empty for a second
+  const [switched, setSwitched] = useState(false);
+  const setTab = (i: number) => {
+    setSwitched(true);
+    setTabState(i);
+  };
+  // "saved" fades out 5s after the last save; any newer write state shows again
+  const [staleFor, setStaleFor] = useState<WriteState | null>(null);
+  useEffect(() => {
+    if (ws.status !== "saved") return;
+    const id = setTimeout(() => setStaleFor(ws), 5000);
+    return () => clearTimeout(id);
+  }, [ws]);
   const [writer] = useState(() => new FormatWriter({
     initial,
     defaults: DEFAULT_PLAN,
@@ -79,7 +93,7 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
         <div>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div key={plan.rounds[tab].slug} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
-            <Cascade step={0.012} className="[--d:0.25s]">
+            <Cascade step={0.012} className={cn("[--d:0.25s]", switched && "no-intro")}>
               <RoundCard r={plan.rounds[tab]} prev={plan.rounds.slice(0, tab)} onChange={(x) => setRound(tab, x)} />
             </Cascade>
           </motion.div>
@@ -93,7 +107,7 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
         {edit && (
           <div className="fixed inset-x-4 bottom-4 z-40 flex justify-end gap-3 sm:inset-x-auto sm:right-6">
             <AnimatePresence mode="wait">
-              {status !== "idle" && (
+              {status !== "idle" && staleFor !== ws && (
                 <motion.span
                   key={status}
                   initial={{ opacity: 0, y: 4 }}

@@ -1,9 +1,12 @@
+import { pageMeta } from "@/lib/page-meta";
 import { notFound } from "next/navigation";
 import { requireSection, getVisibility } from "@/lib/authz";
 import { getPoolStages } from "@/db/mappools";
 import { getSkillLayouts } from "@/db/format-plan";
 import { bySkill } from "@/lib/format-plan";
 import { MappoolView } from "../mappool-view";
+
+export const generateMetadata = pageMeta("mappool");
 
 export default async function StagePool({ params }: { params: Promise<{ stage: string }> }) {
   await requireSection("mappool");

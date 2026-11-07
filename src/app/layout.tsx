@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { getSettings } from "@/db/settings";
 import { getFill } from "@/db/copy";
+import { getFormat } from "@/db/edition";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -31,7 +32,7 @@ const unbounded = Unbounded({
 
 export async function generateMetadata(): Promise<Metadata> {
   const [t, f] = await Promise.all([getDict(), getFill()]);
-  return { title: f(t.meta.title), description: f(t.meta.description) };
+  return { title: { default: f(t.meta.title), template: `%s · ${getFormat().name}` }, description: f(t.meta.description) };
 }
 
 // css animations stay paused until the streamed html and fonts are in; safari restarted them mid-load (title flashed)
