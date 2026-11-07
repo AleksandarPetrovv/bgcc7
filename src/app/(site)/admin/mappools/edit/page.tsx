@@ -12,7 +12,7 @@ import { getViewer } from "@/lib/authz";
 import { cardCover, fmtLen } from "@/lib/data";
 import { TagChips } from "../tag-chips";
 import { getDict, getLang } from "@/lib/i18n/server";
-import { PackUploader } from "../../site/pack-uploader";
+import { PackUploader } from "@/components/admin/pack-uploader";
 import { can } from "@/lib/roles";
 import { modHi } from "@/lib/theme";
 import { cn } from "@/lib/utils";

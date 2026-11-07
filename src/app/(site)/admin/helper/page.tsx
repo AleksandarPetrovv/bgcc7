@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Download, Link2, Unlink } from "lucide-react";
 import { helperSig } from "@/lib/helper-sig";
-import { HelperPoll, LinkGate } from "./link-gate";
+import { HelperPoll, LinkGate } from "@/components/admin/link-gate";
 import { PageTitle, SlantButton } from "@/components/site/page";
 import { ActionForm, Field, Panel, labelCls } from "@/components/admin/form";
 import { getViewer } from "@/lib/authz";
@@ -11,7 +11,7 @@ import { appOf, appRunning, relayOnline } from "@/lib/relay";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
 import { linkApp, unlinkApp } from "./actions";
-import { linkHelper, unlinkHelper } from "../overlay/actions";
+import { linkHelper, unlinkHelper } from "@/actions/helper-link";
 import { currentStreamMatch } from "@/db/stream";
 import { getLive } from "@/lib/live-scores";
 import { getLang } from "@/lib/i18n/server";

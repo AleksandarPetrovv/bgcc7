@@ -4,7 +4,7 @@ import { Avatar } from "@/components/site/avatar";
 import { Countdown } from "@/components/site/countdown";
 import { currentOsuId } from "@/auth";
 import { canSee } from "@/lib/authz";
-import { login } from "@/app/(site)/pickems/actions";
+import { login } from "@/actions/auth";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { roundName } from "@/lib/i18n/dict";
 import { getSettings } from "@/db/settings";

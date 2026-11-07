@@ -12,7 +12,7 @@ import { useDict } from "@/components/site/lang";
 import { EASE } from "@/lib/ease";
 import type { ActionResult } from "@/lib/roles";
 import { cn } from "@/lib/utils";
-import { closeDraft, endDraft, openDraft, pauseDraft, resetDraft, resumeDraft, undoDraft } from "./actions";
+import { closeDraft, endDraft, openDraft, pauseDraft, resetDraft, resumeDraft, undoDraft } from "@/actions/draft";
 
 type TeamLite = { name: string; image: string } | null;
 export type DraftRow = {

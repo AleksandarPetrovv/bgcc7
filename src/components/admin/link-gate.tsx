@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { helperState } from "./actions";
+import { helperState } from "@/app/(site)/admin/helper/actions";
 
 // link panel collapses once the helper is linked and comes back after an unlink
 export function LinkGate({ linked, children }: { linked: boolean; children: React.ReactNode }) {

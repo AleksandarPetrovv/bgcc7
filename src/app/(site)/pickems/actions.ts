@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { revalidatePath } from "next/cache";
-import { currentOsuId, signIn, signOut } from "@/auth";
+import { currentOsuId } from "@/auth";
 import { getFormat } from "@/db/edition";
 import { pickems } from "@/db/schema";
 import { lockedOf, picksSchema, resolve, seedingOf } from "@/lib/pickems";
@@ -28,12 +28,4 @@ export async function savePickems(input: unknown) {
     .onConflictDoUpdate({ target: pickems.osuId, set: { picks, updatedAt: new Date() } });
   revalidatePath("/pickems");
   return { ok: true as const };
-}
-
-export async function login(redirectTo: string) {
-  await signIn("osu", { redirectTo: /^\/(?![/\\])/.test(redirectTo) ? redirectTo : "/" });
-}
-
-export async function logout() {
-  await signOut({ redirectTo: "/" });
 }

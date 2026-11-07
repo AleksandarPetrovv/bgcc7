@@ -8,11 +8,11 @@ import { can } from "@/lib/roles";
 import { PHASES, SECTIONS, TIMELINE_KEYS } from "@/lib/sections";
 import { toSofiaInput } from "@/lib/time";
 import { phaseStates } from "@/lib/dates";
-import { setDates, setPhase, setSections, setTimeline } from "./actions";
+import { setDates, setPhase, setSections, setTimeline } from "@/actions/phase";
 import { getFormat } from "@/db/edition";
 import { isBGCC6 } from "@/db";
 import { discordReady } from "@/lib/discord";
-import { cleanup } from "../discord/actions";
+import { cleanup } from "@/actions/discord";
 
 const check = "size-4 shrink-0 accent-rose";
 

@@ -7,7 +7,7 @@ import { SlantButton } from "@/components/site/page";
 import { DiscordLogo } from "@/components/site/discord-logo";
 import { OsuLogo } from "@/components/site/osu-logo";
 import { useDict } from "@/components/site/lang";
-import { logout } from "@/app/(site)/pickems/actions";
+import { logout } from "@/actions/auth";
 import { DISCORD_URL, osuUser } from "@/lib/links";
 import { at } from "@/components/site/rich";
 import { unlinkDiscord } from "./discord-actions";

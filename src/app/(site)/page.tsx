@@ -36,7 +36,7 @@ import { duePhase } from "@/lib/phase-prompt";
 import { PhasePrompt } from "@/components/site/phase-prompt";
 import { InView } from "@/components/site/in-view";
 import { currentOsuId } from "@/auth";
-import { login } from "@/app/(site)/pickems/actions";
+import { login } from "@/actions/auth";
 import { HeroGate } from "@/components/site/hero-gate";
 import { MeTag } from "@/components/site/me";
 import { ShrinkWrap } from "@/components/site/shrink-wrap";

@@ -9,7 +9,7 @@ import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { discordReady, guildChannels } from "@/lib/discord";
-import { saveChannels, syncNow } from "./actions";
+import { saveChannels, syncNow } from "@/actions/discord";
 
 export default async function AdminDiscord() {
   const [t, viewer] = await Promise.all([getDict(), getViewer()]);

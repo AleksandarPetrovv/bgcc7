@@ -9,7 +9,7 @@ import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
 import { addSponsor } from "./actions";
-import { PackUploader } from "./pack-uploader";
+import { PackUploader } from "@/components/admin/pack-uploader";
 import { SponsorList } from "./sponsor-list";
 import { localeOf } from "@/lib/i18n/locale";
 

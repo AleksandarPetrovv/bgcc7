@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { acceptPhase, dismissPhase } from "@/app/(site)/admin/phase/actions";
+import { acceptPhase, dismissPhase } from "@/actions/phase";
 import { PHASES } from "@/lib/sections";
 import { Glyph } from "./graphics";
 import { useDict } from "./lang";

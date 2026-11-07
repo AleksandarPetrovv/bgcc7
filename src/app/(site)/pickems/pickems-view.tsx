@@ -16,7 +16,8 @@ import { osuUser } from "@/lib/links";
 import { pickemsHref } from "@/lib/data";
 import type { LeaderRow } from "@/db/queries";
 import { cn } from "@/lib/utils";
-import { login, savePickems } from "./actions";
+import { savePickems } from "./actions";
+import { login } from "@/actions/auth";
 import { MeTag } from "@/components/site/me";
 import { roundName } from "@/lib/i18n/dict";
 

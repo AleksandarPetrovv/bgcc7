@@ -8,7 +8,7 @@ import { EASE } from "@/lib/ease";
 import { plan, type DraftStep, type DraftUndo, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { GOLD, TEAM, tint } from "@/lib/theme";
-import { holdDraft, redoDraft, resumeDraft, undoDraft } from "@/app/(site)/admin/draft/actions";
+import { holdDraft, redoDraft, resumeDraft, undoDraft } from "@/actions/draft";
 import { Waiting } from "./draft-popups";
 
 export type TeamInfo = {

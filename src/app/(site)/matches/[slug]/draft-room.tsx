@@ -12,7 +12,7 @@ import { Confetti } from "@/components/site/confetti";
 import { deadline, limitOf, pickable, rollWinner, scoreOf, turnOf, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { TEAM } from "@/lib/theme";
-import { answerTimeoutAct, resetDraft } from "@/app/(site)/admin/draft/actions";
+import { answerTimeoutAct, resetDraft } from "@/actions/draft";
 import { LobbyPanel } from "./lobby-panel";
 import { LobbyHelp, lobbyPost } from "./lobby-popups";
 import { useSSE } from "@/components/site/use-sse";

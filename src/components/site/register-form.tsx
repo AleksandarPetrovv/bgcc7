@@ -6,7 +6,7 @@ import { setFlash } from "./flash";
 import { Check } from "lucide-react";
 import { SlantButton } from "./page";
 import { useDict } from "./lang";
-import { login } from "@/app/(site)/pickems/actions";
+import { login } from "@/actions/auth";
 import { signUp, withdraw } from "@/app/(site)/register/actions";
 import { cn } from "@/lib/utils";
 import type { WindowState } from "@/lib/time";

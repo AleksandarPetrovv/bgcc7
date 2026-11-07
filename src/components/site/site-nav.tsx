@@ -10,7 +10,7 @@ import { Sparkle, Wordmark } from "./graphics";
 import { useDict } from "./lang";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
-import { login, logout } from "@/app/(site)/pickems/actions";
+import { login, logout } from "@/actions/auth";
 import type { NavItem } from "@/lib/sections";
 
 const bar = "pointer-events-none absolute left-0 h-1 w-[100px] origin-left opacity-0 transition-[transform,opacity,translate,scale,rotate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform";

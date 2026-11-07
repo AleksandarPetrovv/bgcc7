@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { LoaderCircle, X } from "lucide-react";
-import { retryFinish } from "@/app/(site)/admin/alerts/actions";
+import { retryFinish } from "@/actions/retry-finish";
 import { ALERT_KINDS, snoozeMs, type Alert } from "@/lib/alert-types";
 import { cn } from "@/lib/utils";
 import { useDict } from "./lang";
