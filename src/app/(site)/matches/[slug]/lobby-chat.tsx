@@ -7,6 +7,7 @@ import type { LobbyView } from "@/lib/bancho";
 import { cn } from "@/lib/utils";
 import { lobbyPost } from "./lobby-popups";
 import { useChatHistory } from "./use-chat-history";
+import { nameKey } from "@/lib/names";
 
 type ChatProps = {
   slug: string;
@@ -79,7 +80,7 @@ function ChatSession({
         {entries.length ? (
           entries.map((m) => {
             const bancho = m.from === "BanchoBot";
-            const side = m.side === 1 ? "red" : m.side === 2 ? "blue" : sides.get(m.from.toLowerCase());
+            const side = m.side === 1 ? "red" : m.side === 2 ? "blue" : sides.get(nameKey(m.from));
             return (
               <p key={m.key} data-chat-key={m.key} className={cn("break-words py-0.5 leading-snug", m.ref && !bancho && "-mx-3 border-l-2 border-balkan-deep bg-balkan/20 px-3")}>
                 <span className="num mr-2 text-xs text-ash">{new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>

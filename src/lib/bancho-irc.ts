@@ -16,6 +16,7 @@ import { alertId, clearWhere, describeMatch, raise } from "@/lib/alerts";
 import { cueAbort, cueCountdown, cueFinish, cuePlay } from "@/lib/overlay-cues";
 
 import { closeLobby, onFinished, react, swapSlots } from "./bancho";
+import { nameKey, ircName } from "@/lib/names";
 
 export type LobbySlot = { slot: number; name: string; id: number | null; side: 1 | 2 | null; team: "red" | "blue" | null; ready: "ready" | "notready" | "nomap"; host: boolean; mods: string[] };
 export type LobbyView = {
@@ -266,7 +267,7 @@ export async function sayLocal(matchId: string, by: number, raw: string, side: 1
   if (!l) return "closed" as const;
   lastSent.set(by, Date.now());
   const [u] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, by)).limit(1);
-  const line: ChatLine = { at: Date.now(), from: (u?.username ?? String(by)).replace(/ /g, "_"), text, local: true, ...(side ? { side } : {}) };
+  const line: ChatLine = { at: Date.now(), from: ircName(u?.username ?? String(by)), text, local: true, ...(side ? { side } : {}) };
   l.chat.push(line);
   if (l.chat.length > 150) l.chat.splice(0, l.chat.length - 150);
   await db.insert(mpChat).values({ matchId, mpId: l.mpId, at: new Date(line.at), from: line.from, text, local: true, side }).returning({ id: mpChat.id }).then(([row]) => { line.id = row.id; }).catch((e) => console.error("[bancho] chat save", e));
@@ -437,7 +438,6 @@ export function attach(l: Live) {
   });
 }
 
-const nameKey = (n: string) => n.trim().toLowerCase().replace(/ /g, "_");
 
 async function timerBy(matchId: string, self: boolean, from: string) {
   if (self) return true;

@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { mpChat, mpLobbies } from "@/db/schema";
 import { lobbyRefNames, type ChatLine } from "./bancho";
 import { visibleChatLine } from "./chat-visibility";
+import { nameKey } from "@/lib/names";
 
 export type ChatHistoryPage = { mpId: number | null; lines: ChatLine[]; before: number | null; hasMore: boolean };
 
@@ -28,7 +29,7 @@ export async function lobbyChatHistory(matchId: string, admin: boolean, before?:
     text: row.text,
     ...(row.local ? { local: true } : {}),
     ...(row.side === 1 || row.side === 2 ? { side: row.side } : {}),
-    ...(refs.has(row.from.toLowerCase().replace(/ /g, "_")) ? { ref: true } : {}),
+    ...(refs.has(nameKey(row.from)) ? { ref: true } : {}),
   })).reverse();
 
   return {

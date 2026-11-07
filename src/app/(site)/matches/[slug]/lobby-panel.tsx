@@ -18,6 +18,7 @@ import { osuMp } from "@/lib/links";
 import { Btn, HelperMissing, IconBtn, LobbyAsk, StreamOrder, lobbyPost } from "./lobby-popups";
 import { Chat } from "./lobby-chat";
 import { MOD_COLOR } from "@/lib/mods";
+import { nameKey } from "@/lib/names";
 
 const TEAM_C = LOBBY_TEAM;
 const TEAM_HI = { red: TEAM[1].hi, blue: TEAM[2].hi } as const;
@@ -454,7 +455,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                 </span>
               </div>
             </div>
-            <Chat slug={slug} mpId={v.mpId} lines={v.chat} sides={new Map(v.slots.flatMap((s) => (s?.team ? [[s.name.toLowerCase().replace(/ /g, "_"), s.team] as const] : [])))} disabled={offline} text={say} setText={setSay} inputRef={sayRef} readOnly={readOnly} canSay={canSay} />
+            <Chat slug={slug} mpId={v.mpId} lines={v.chat} sides={new Map(v.slots.flatMap((s) => (s?.team ? [[nameKey(s.name), s.team] as const] : [])))} disabled={offline} text={say} setText={setSay} inputRef={sayRef} readOnly={readOnly} canSay={canSay} />
           </motion.div>
         )}
       </AnimatePresence>

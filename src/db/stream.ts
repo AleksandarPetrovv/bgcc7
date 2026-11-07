@@ -3,7 +3,7 @@ import { asc, eq, inArray, sql } from "drizzle-orm";
 import { currentEdition, db } from "./index";
 import { drafts, matches, mpLobbies, staff, userNames, users } from "./schema";
 import { getAllMatches } from "./tournament";
-import { userPath } from "@/lib/data";
+import { nameKey } from "@/lib/names";
 import { isScene, type Scene } from "@/lib/scenes";
 import { can, cleanRoles } from "@/lib/roles";
 import { getLive, IPC_PLAYING } from "@/lib/live-scores";
@@ -21,10 +21,10 @@ export async function overlayName(osuId: number) {
   return first?.username ?? (await usernameOf(osuId));
 }
 
-export const streamersOf = (m: { streamer: string | null }) => (m.streamer ?? "").split(",").map((s) => userPath(s.trim())).filter(Boolean);
+export const streamersOf = (m: { streamer: string | null }) => (m.streamer ?? "").split(",").map((s) => nameKey(s)).filter(Boolean);
 
 export async function streamMatches(osuId: number, all: boolean) {
-  const me = userPath((await usernameOf(osuId)) ?? "");
+  const me = nameKey((await usernameOf(osuId)) ?? "");
   const list = (await getAllMatches()).filter((m) => m.winner == null && (all || streamersOf(m).includes(me)));
   list.sort((a, b) => (a.datetime ? Date.parse(a.datetime) : Infinity) - (b.datetime ? Date.parse(b.datetime) : Infinity));
   const rows = list.length ? await db.select({ id: matches.id, scene: matches.scene }).from(matches).where(inArray(matches.id, list.map((m) => m.id))) : [];
@@ -33,7 +33,7 @@ export async function streamMatches(osuId: number, all: boolean) {
 }
 
 export async function currentStreamMatch(osuId: number) {
-  const me = userPath((await usernameOf(osuId)) ?? "");
+  const me = nameKey((await usernameOf(osuId)) ?? "");
   const list = (await getAllMatches()).filter((m) => streamersOf(m).includes(me));
   const key = `${currentEdition()}:${osuId}`;
   if (!list.length) {

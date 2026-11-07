@@ -6,6 +6,7 @@ import { and, eq } from "drizzle-orm";
 import { db, withEdition } from "@/db";
 import { mpLobbies, refApps, users } from "@/db/schema";
 import { alertId, alertsFor, clearWhere, describeMatch, onAlerts, raise } from "./alerts";
+import { nameKey, ircName } from "@/lib/names";
 
 export type RelayMsg = { t: "open" } | { t: "line"; l: string } | { t: "close" };
 export type RelayEv = { t: "opened" } | { t: "line"; l: string } | { t: "closed"; why?: string };
@@ -56,7 +57,6 @@ const g = globalThis as unknown as { bgccRelay?: Store };
 const store = () => (g.bgccRelay ??= { relays: new Map(), codes: new Map(), bus: new EventEmitter().setMaxListeners(0) });
 
 const hash = (t: string) => createHash("sha256").update(t).digest("hex");
-export const ircKey = (n: string) => n.trim().toLowerCase().replace(/ /g, "_");
 
 export const validState = (st: string) => /^[A-Za-z0-9_-]{32,64}$/.test(st);
 
@@ -120,9 +120,9 @@ export async function claim(st: string, irc: string | null) {
   if (!hit || hit.exp < Date.now()) return "pending" as const;
   const [u] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, hit.osuId)).limit(1);
   codes.delete(st);
-  if (!u || (irc !== null && ircKey(u.username) !== ircKey(irc))) return "wrongname" as const;
+  if (!u || (irc !== null && nameKey(u.username) !== nameKey(irc))) return "wrongname" as const;
   const token = randomBytes(32).toString("base64url");
-  const row = { tokenHash: hash(token), ircName: u.username.replace(/ /g, "_"), createdAt: new Date(), seenAt: null };
+  const row = { tokenHash: hash(token), ircName: ircName(u.username), createdAt: new Date(), seenAt: null };
   await db.insert(refApps).values({ osuId: hit.osuId, ...row }).onConflictDoUpdate({ target: refApps.osuId, set: row });
   drop(hit.osuId);
   return { token, osuId: hit.osuId, name: row.ircName };

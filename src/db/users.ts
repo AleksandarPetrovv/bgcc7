@@ -5,6 +5,7 @@ import { lobbies, matches, refApps, userNames, users } from "./schema";
 import type { OsuUserFull } from "@/lib/osu-api";
 import { tourneyBadges } from "@/lib/bws";
 import { EDITIONS } from "@/lib/format";
+import { ircName } from "@/lib/names";
 
 export async function saveOsuUser(u: OsuUserFull) {
   const row = {
@@ -35,5 +36,5 @@ export async function carryRename(osuId: number, name: string) {
     const rows = await d.select({ id: matches.id, streamer: matches.streamer, commentators: matches.commentators }).from(matches).where(or(ilike(matches.streamer, `%${old.username}%`), ilike(matches.commentators, `%${old.username}%`)));
     for (const r of rows) await d.update(matches).set({ streamer: swap(r.streamer), commentators: swap(r.commentators) }).where(eq(matches.id, r.id));
   }
-  await db.update(refApps).set({ ircName: name.replace(/ /g, "_") }).where(eq(refApps.osuId, osuId));
+  await db.update(refApps).set({ ircName: ircName(name) }).where(eq(refApps.osuId, osuId));
 }

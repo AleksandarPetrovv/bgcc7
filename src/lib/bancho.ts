@@ -12,6 +12,7 @@ import { lobbySize } from "@/lib/format";
 
 import { CHAT_GAP, attach, canLobby, conn, ensureBot, g, lastSent, lobbyOwner, markClosed, membersOf, online, ownerOf, ping, playStart, state, syncOf, typed, type Live, type LobbySlot, type LobbyView } from "./bancho-irc";
 import { MOD_LOBBY } from "./mods";
+import { nameKey, ircName } from "@/lib/names";
 
 export { CHAT_GAP, canLobby, ensureBot, lobbyOwner, onLobby, sayLocal, type ChatLine, type LobbySlot, type LobbyView } from "./bancho-irc";
 
@@ -144,7 +145,6 @@ export async function lobbyView(matchId: string, viewer?: number): Promise<Lobby
   };
 }
 
-const nameKey = (n: string) => n.toLowerCase().replace(/ /g, "_");
 let refCache: { at: number; names: Set<string> } | null = null;
 
 export async function lobbyRefNames() {
@@ -322,7 +322,7 @@ export async function handOff(matchId: string, referee: string | null) {
   ping(matchId);
 }
 
-const target = (p: { user: { id: number; ircUsername: string } }) => (p.user.id ? `#${p.user.id}` : p.user.ircUsername.replace(/ /g, "_"));
+const target = (p: { user: { id: number; ircUsername: string } }) => (p.user.id ? `#${p.user.id}` : ircName(p.user.ircUsername));
 
 async function slotPlayer(matchId: string, by: number, slot: number) {
   const { l, lb } = await lobbyAs(matchId);
