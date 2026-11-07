@@ -1,6 +1,8 @@
 export const EDITIONS = ["bgcc6", "bgcc7"] as const;
 export type Edition = (typeof EDITIONS)[number];
 export const isEdition = (v: unknown): v is Edition => typeof v === "string" && (EDITIONS as readonly string[]).includes(v);
+/** "7" for bgcc7 */
+export const editionNumber = (e: string) => e.replace(/^\D+/, "");
 
 export type Src = { from: string; take: "W" | "L" };
 export type Half = "u" | "l";

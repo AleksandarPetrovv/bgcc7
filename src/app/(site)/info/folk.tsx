@@ -15,6 +15,7 @@ import { avatarPath } from "@/lib/avatar";
 import { osuUser } from "@/lib/links";
 import { roundName } from "@/lib/i18n/dict";
 import { MOD_COLOR } from "@/lib/mods";
+import { MEDAL } from "@/lib/theme";
 
 export type FolkProps = {
   t: Dict;
@@ -33,7 +34,6 @@ export type FolkProps = {
 const T = 0;
 const dv = (d: number) => ({ "--d": `${d * 0.5}s` }) as React.CSSProperties;
 
-const PLACE = ["text-gold-hi", "text-silver-deep", "text-bronze-hi"];
 
 const STAR = Array.from({ length: 16 }, (_, i) => {
   const a = (i * Math.PI) / 8 - Math.PI / 2;
@@ -209,10 +209,10 @@ function Prize({ p, i, small, d = 0 }: { p: FolkProps; i: number; small?: boolea
   return (
     <div className={cn("flex gap-4", small ? "items-center" : "items-center sm:flex-col sm:items-start", i === 0 && "max-sm:order-first")}>
       <span className="in-spin in-slow shrink-0" style={dv(d)}>
-        <FolkStar points={i + 1} className={cn("block", PLACE[i], small ? "size-12" : "size-20 sm:size-32")} />
+        <FolkStar points={i + 1} className={cn("block", MEDAL[i], small ? "size-12" : "size-20 sm:size-32")} />
       </span>
       <div className="min-w-0">
-        <div className={cn("font-display font-black leading-none", PLACE[i], small ? "text-2xl" : "text-5xl sm:mt-2 sm:text-6xl")}>
+        <div className={cn("font-display font-black leading-none", MEDAL[i], small ? "text-2xl" : "text-5xl sm:mt-2 sm:text-6xl")}>
           <E p={p} path={`info.prizeRows.${i}.place`} value={row.place} fill={false} />
         </div>
         <div className={cn(i === 0 ? "font-display font-black text-paper" : "font-display font-semibold text-paper/85", small ? "mt-1 text-sm" : "mt-5 text-lg leading-snug")}>

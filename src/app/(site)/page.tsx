@@ -43,6 +43,7 @@ import { ShrinkWrap } from "@/components/site/shrink-wrap";
 import { currentEdition, isBGCC6 } from "@/db";
 import { localeOf } from "@/lib/i18n/locale";
 import { MODS } from "@/lib/mods";
+import { editionNumber } from "@/lib/format";
 
 const INK: Record<string, number> = { "6": 0.15, "7": 0.22 };
 
@@ -293,11 +294,11 @@ export default async function Home() {
           style={{ animationDuration: "1.6s" }}
           aria-hidden
         >
-          {currentEdition().slice(4)}
+          {editionNumber(currentEdition())}
         </div>
         <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)] gap-8 px-4 pb-10 pt-8 sm:gap-10 sm:px-6 sm:pb-12 sm:pt-10 lg:flex lg:items-center lg:justify-center lg:gap-[clamp(4rem,5vw,7rem)] lg:px-10 lg:pb-10 lg:pt-10 2xl:gap-20 2xl:px-14 2xl:pb-10 2xl:pt-10">
           <div className="min-w-0 lg:shrink-0">
-            <HeroLockup num={currentEdition().slice(4)} />
+            <HeroLockup num={editionNumber(currentEdition())} />
           </div>
 
           <ShrinkWrap className="flex min-w-0 flex-col justify-end lg:max-w-[36rem] 2xl:max-w-[40rem]">

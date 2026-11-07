@@ -17,6 +17,7 @@ import { getHosts } from "@/db/admin";
 import { stageWeeks } from "@/db/schedule";
 import { getSettings } from "@/db/settings";
 import { localeOf } from "@/lib/i18n/locale";
+import { MEDAL_BG } from "@/lib/theme";
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
 
@@ -39,7 +40,6 @@ function List({ path, items, ed, f, on }: { path: string; items: string[]; ed: E
   );
 }
 
-const PRIZE_BAR = ["bg-gold", "bg-silver", "bg-bronze"];
 
 export const generateMetadata = pageMeta("info");
 
@@ -100,7 +100,7 @@ export default async function InfoPage() {
         <InView className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {t.info.prizeRows.map((p, i) => (
             <div key={p.place} className="in-flip border border-line bg-slate/50" style={v({ "--i": i, "--s": "0.13s", "--d": "0.1s" })}>
-              <div className={`in-grow h-1.5 ${PRIZE_BAR[i]}`} style={v({ "--i": i, "--s": "0.13s", "--d": "0.45s" })} />
+              <div className={`in-grow h-1.5 ${MEDAL_BG[i]}`} style={v({ "--i": i, "--s": "0.13s", "--d": "0.45s" })} />
               <div className="p-4">
                 <div className="in-pop heading-slam origin-left text-4xl" style={v({ "--i": i, "--s": "0.13s", "--d": "0.4s" })}>{E(`info.prizeRows.${i}.place`, p.place, false)}</div>
                 <div className="mt-2 font-display font-bold">{E(`info.prizeRows.${i}.reward`, p.reward, false)}</div>

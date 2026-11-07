@@ -4,13 +4,13 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { FeedTeam, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
+import { TEAM as SIDE } from "@/lib/theme";
+import { editionNumber } from "@/lib/format";
 
-export const TEAM = [
-  { c: "var(--crimson)", hi: "var(--crimson-hi)", deep: "var(--crimson-deep)" },
-  { c: "var(--azure)", hi: "var(--azure-hi)", deep: "var(--azure-deep)" },
-] as const;
+// overlay feeds count sides from 0
+export const TEAM = [SIDE[1], SIDE[2]] as const;
 
-export const editionNum = (feed: OverlayFeed) => feed.edition.replace(/^\D+/, "") || "7";
+export const editionNum = (feed: OverlayFeed) => editionNumber(feed.edition) || "7";
 
 export function Img({ src, className, style }: { src: string; className?: string; style?: React.CSSProperties }) {
   const [failed, setFailed] = useState<string | null>(null);

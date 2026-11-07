@@ -20,7 +20,6 @@ import { Chat } from "./lobby-chat";
 import { MOD_COLOR } from "@/lib/mods";
 import { nameKey } from "@/lib/names";
 
-const TEAM_C = LOBBY_TEAM;
 const TEAM_HI = { red: TEAM[1].hi, blue: TEAM[2].hi } as const;
 const modC = (m: string) => modHi(MOD_COLOR[m]) ?? "var(--ash)";
 
@@ -93,7 +92,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
     const people = all.flatMap((s, i) => (s && s.side === side ? [{ s, i }] : []));
     return (
       <div className="min-w-0 bg-coal">
-        <div className="flex items-center gap-2 border-b border-line px-3 py-1.5" style={{ boxShadow: `inset 0 2px 0 ${TEAM_C[want]}` }}>
+        <div className="flex items-center gap-2 border-b border-line px-3 py-1.5" style={{ boxShadow: `inset 0 2px 0 ${LOBBY_TEAM[want]}` }}>
           <span className="text-[0.62rem] font-display font-bold" style={{ color: TEAM_HI[want] }}>
             {t.lobby.side[want]}
           </span>
@@ -107,7 +106,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                 <span className="min-w-0 flex-1 truncate text-sm font-display font-black">{s.name}</span>
                 {ok ? (
                   <span className="inline-flex items-center gap-1 text-[0.6rem] font-display font-bold text-ash">
-                    <span className="size-1.5 rotate-45" style={{ background: TEAM_C[want] }} aria-hidden />
+                    <span className="size-1.5 rotate-45" style={{ background: LOBBY_TEAM[want] }} aria-hidden />
                     {t.lobby.side[want]}
                   </span>
                 ) : (
@@ -119,7 +118,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                         disabled={pending || offline}
                         onClick={() => run({ act: "team", slot: i, team: want })}
                         className="inline-flex h-7 -skew-x-12 items-center border px-2 text-[0.62rem] font-display font-bold text-white transition-[filter] hover:brightness-125 disabled:opacity-50"
-                        style={{ background: TEAM_C[want], borderColor: TEAM_C[want] }}
+                        style={{ background: LOBBY_TEAM[want], borderColor: LOBBY_TEAM[want] }}
                       >
                         <span className="skew-x-12">{t.lobby.moveTo(t.lobby.side[want])}</span>
                       </button>
@@ -152,7 +151,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
       >
         {s ? (
           <>
-            <span className="absolute inset-y-0 left-0 w-1" style={{ background: s.team ? TEAM_C[s.team] : "var(--line)" }} />
+            <span className="absolute inset-y-0 left-0 w-1" style={{ background: s.team ? LOBBY_TEAM[s.team] : "var(--line)" }} />
             <span className="flex min-w-0 flex-1 flex-col gap-1.5">
               <span className="flex min-w-0 items-baseline gap-2">
                 <span className="num w-4 shrink-0 text-[0.7rem] font-display font-black text-ash">{i + 1}</span>
@@ -192,7 +191,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
                   title={t.lobby.swapTeam}
                   disabled={pending || offline}
                   onClick={() => run({ act: "team", slot: i, team: s.team === "red" ? "blue" : "red" })}
-                  style={{ background: s.team === "blue" ? TEAM_C.blue : TEAM_C.red, borderColor: "transparent" }}
+                  style={{ background: s.team === "blue" ? LOBBY_TEAM.blue : LOBBY_TEAM.red, borderColor: "transparent" }}
                   className="hover:brightness-125"
                 >
                   {null}
