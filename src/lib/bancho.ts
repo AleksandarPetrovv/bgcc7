@@ -330,12 +330,9 @@ async function slotPlayer(matchId: string, by: number, slot: number) {
   return { l, say: (m: string) => lb.channel.sendMessage(m), who: target(p) };
 }
 
-const SIMPLE = { aborttimer: "!mp aborttimer" } as const;
-export type SimpleCmd = keyof typeof SIMPLE;
-
-export async function simpleCmd(matchId: string, by: number, cmd: SimpleCmd) {
+export async function abortTimer(matchId: string) {
   const { lb } = await lobbyAs(matchId);
-  await lb.channel.sendMessage(SIMPLE[cmd]);
+  await lb.channel.sendMessage("!mp aborttimer");
 }
 
 export async function sayTimer(matchId: string, secs: number) {

@@ -3,7 +3,7 @@ import { draftAccess } from "@/db/drafts";
 import { getFormat } from "@/db/edition";
 import { matchIdFromSlug } from "@/lib/format";
 import { log } from "@/lib/authz";
-import { abortLobby, canLobby, closeLobby, lobbyOwner, ensureBot, inviteMissing, kickSlot, lobbyView, makeLobby, moveSlot, onLobby, refreshLobby, sayLocal, sendChat, simpleCmd, spareSlot, startLobby, teamSlot } from "@/lib/bancho";
+import { abortLobby, canLobby, closeLobby, lobbyOwner, ensureBot, inviteMissing, kickSlot, lobbyView, makeLobby, moveSlot, onLobby, refreshLobby, sayLocal, sendChat, abortTimer, spareSlot, startLobby, teamSlot } from "@/lib/bancho";
 import { sse } from "@/lib/sse";
 import { visibleChatLine } from "@/lib/chat-visibility";
 
@@ -83,7 +83,7 @@ export async function POST(req: Request, ctx: Ctx) {
         await closeLobby(id);
         break;
       case "aborttimer":
-        await simpleCmd(id, osuId, "aborttimer");
+        await abortTimer(id);
         break;
       case "kick":
         if ((await kickSlot(id, osuId, int(b?.slot))) === "empty") return Response.json({ ok: false, error: "empty" }, { status: 409 });

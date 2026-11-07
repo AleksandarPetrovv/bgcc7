@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { currentOsuId } from "@/auth";
 import { currentEdition, db } from "@/db";
 import { adminLog, staff } from "@/db/schema";
-import { safe } from "@/db/queries";
+import { safe } from "@/db/safe";
 import { getSettings } from "@/db/settings";
 import { getFormat } from "@/db/edition";
 import { can, cleanRoles, hasAdmin, type Perm, type Role } from "./roles";

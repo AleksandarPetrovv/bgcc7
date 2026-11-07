@@ -31,10 +31,5 @@ export const getLobbies = () =>
     );
   }, [] as Lobby[]);
 
-export const getBooking = (osuId: number) =>
-  safe(async () => {
-    const [row] = await db.select({ lobbyId: lobbyBookings.lobbyId }).from(lobbyBookings).where(eq(lobbyBookings.osuId, osuId)).limit(1);
-    return row?.lobbyId ?? null;
-  }, null as number | null);
 
 export const mpIds = (links: string) => links.match(/\d{6,}/g) ?? [];

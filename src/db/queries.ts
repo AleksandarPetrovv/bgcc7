@@ -1,14 +1,12 @@
 import "server-only";
-import { count, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "./index";
 import { getFormat } from "./edition";
-import { pickems, registrations, users } from "./schema";
+import { pickems, users } from "./schema";
 import { actualOf, resolve, score, seedingOf } from "@/lib/pickems";
 import { safe } from "./safe";
 import { getMatches } from "./tournament";
 import { avatarCol } from "./avatar";
-
-export { safe };
 
 export type LeaderRow = { osuId: number; username: string; avatarUrl: string | null; points: number; correct: number };
 
@@ -51,8 +49,3 @@ export const getLeaderboard = () =>
       .sort((a, b) => b.points - a.points || b.correct - a.correct || a.username.localeCompare(b.username));
   }, [] as LeaderRow[]);
 
-export const getSignupCount = () =>
-  safe(async () => {
-    const [row] = await db.select({ n: count() }).from(registrations);
-    return row?.n ?? 0;
-  }, 0);

@@ -5,7 +5,7 @@ import { eq, sql } from "drizzle-orm";
 
 import { drafts, matches, NO_TIMEOUTS, type DraftUndo } from "@/db/schema";
 import { answerTimeout, canRunMatch, emitDraft, redoStep, rulesFor, settle, undoStep } from "@/db/drafts";
-import { sayTimer, simpleCmd } from "@/lib/bancho";
+import { abortTimer, sayTimer } from "@/lib/bancho";
 import { getPoolStages } from "@/db/mappools";
 import { getSettings } from "@/db/settings";
 import { getSkillLayouts } from "@/db/format-plan";
@@ -134,7 +134,7 @@ export async function resumeDraft(matchId: string) {
     const turnAt = new Date((d.turnAt?.getTime() ?? now) + (now - d.pausedAt.getTime()));
     await db.update(drafts).set({ turnAt, pausedAt: null, pauseUntil: null, timeouts: { ...d.timeouts, on: null }, ...bump }).where(eq(drafts.matchId, matchId));
     // a timed pause is also an !mp timer in the lobby: stop that one too (no lobby = nothing to stop)
-    if (d.pauseUntil) await simpleCmd(matchId, 0, "aborttimer").catch(() => {});
+    if (d.pauseUntil) await abortTimer(matchId).catch(() => {});
     return done(matchId, { matchId });
   });
 }
