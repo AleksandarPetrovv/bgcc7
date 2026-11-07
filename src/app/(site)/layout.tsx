@@ -20,6 +20,7 @@ import { getLive } from "@/lib/twitch";
 import { isLive } from "@/lib/matches";
 import { windowState } from "@/lib/time";
 import { avatarPath } from "@/lib/avatar";
+import { currentEdition } from "@/db";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [session, viewer, vis, teams, matches, settings, dict] = await Promise.all([auth(), getViewer(), getVisibility(), getTeams(), getMatches(), getSettings(), getDict()]);
@@ -36,7 +37,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       {meCss && <style dangerouslySetInnerHTML={{ __html: meCss }} />}
       <Backdrop />
       <SiteNav user={user} nav={buildNav(vis.sections, vis.staff, vis.off)} register={regOpen} live={live} captain={captain} match={match} sched={sched} />
-      <TournamentProvider teams={teams} matches={matches} edition={settings.edition}>
+      <TournamentProvider teams={teams} matches={matches} edition={currentEdition()}>
         <main className="flex-1">{children}</main>
       </TournamentProvider>
       <SiteFooter />

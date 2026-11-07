@@ -3,8 +3,9 @@ import * as bg from "./bg";
 import { dictsBGCC6 } from "./dict-bgcc6";
 import type { Edition } from "@/lib/format";
 
-export type Lang = "en" | "bg";
-export const LANGS: Lang[] = ["en", "bg"];
+import type { Lang } from "./locale";
+
+export { LANGS, type Lang } from "./locale";
 
 const build = (d: typeof en) => ({ ...d.site, ...d.pages, ...d.match, ...d.schedule, admin: { ...d.adminSetup, ...d.adminPlay } });
 

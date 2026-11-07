@@ -1,22 +1,22 @@
 import { notFound, redirect } from "next/navigation";
 import { getFormat } from "@/db/edition";
 import { getAllMatches, getMatches, getTeams } from "@/db/tournament";
-import { getSettings } from "@/db/settings";
 import { TournamentProvider } from "@/components/site/tournament";
 import { overlayUser } from "@/db/stream";
 import { matchIdFromSlug } from "@/lib/format";
 import { userPath } from "@/lib/data";
 import { isScene } from "@/lib/scenes";
 import { OverlayView } from "./overlay-view";
+import { currentEdition, ensureEdition } from "@/db";
 
 export const dynamic = "force-dynamic";
 
 export default async function Overlay({ params, searchParams }: { params: Promise<{ key: string }>; searchParams: Promise<{ scene?: string | string[]; stage?: string | string[] }> }) {
   const key = decodeURIComponent((await params).key).toLowerCase();
   // schedule + bracket scenes reuse the site's match cards and bracket, which read the tournament context
-  const [teams, matches, settings] = await Promise.all([getTeams(), getMatches(), getSettings()]);
+  const [teams, matches] = await Promise.all([getTeams(), getMatches(), ensureEdition()]);
   const wrap = (view: React.ReactNode) => (
-    <TournamentProvider teams={teams} matches={matches} edition={settings.edition}>
+    <TournamentProvider teams={teams} matches={matches} edition={currentEdition()}>
       {view}
     </TournamentProvider>
   );
