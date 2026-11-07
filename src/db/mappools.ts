@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { asc } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { db } from "./index";
 import { maps, stages } from "./schema";
 import { safe } from "./safe";
@@ -8,6 +8,7 @@ import { getSkillLayouts } from "./format-plan";
 import { skillSlot } from "@/lib/format-plan";
 import { type Beatmap, type Pack } from "@/lib/data";
 import { MOD_ORDER, MODS } from "@/lib/mods";
+import { isBracketStage } from "@/lib/format";
 
 export type MapRow = typeof maps.$inferSelect;
 export type PoolStage = {
@@ -20,6 +21,11 @@ export type PoolStage = {
   blueprint: Record<string, number>;
   pools: { category: string; maps: (Beatmap & { rowId: number; order: number })[] }[];
 };
+
+export async function blueprintFor(stageId: number) {
+  const [s] = await db.select({ slug: stages.slug, blueprint: stages.blueprint }).from(stages).where(eq(stages.id, stageId)).limit(1);
+  return s ?? null;
+}
 
 export const slotOf = (mod: string, i: number) => `${MODS[mod]?.short ?? mod}${mod === "Tiebreaker" ? "" : i + 1}`;
 
@@ -63,6 +69,6 @@ export const getPoolStages = cache(() =>
 );
 
 export async function getQualifierMaps() {
-  const q = (await getPoolStages()).find((s) => s.slug === "qualifiers");
+  const q = (await getPoolStages()).find((s) => !isBracketStage(s.slug));
   return (q?.pools ?? []).flatMap((p) => p.maps);
 }

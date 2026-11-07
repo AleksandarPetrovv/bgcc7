@@ -14,6 +14,7 @@ import { Cascade } from "@/components/site/cascade";
 import { setTime, setWeek } from "./actions";
 import { localeOf } from "@/lib/i18n/locale";
 import { roundName } from "@/lib/i18n/dict";
+import { isBracketStage } from "@/lib/format";
 
 const TONE: Record<string, { bar: string; chip: string }> = {
   agreed: { bar: "bg-balkan", chip: "bg-balkan text-on-fill" },
@@ -31,7 +32,7 @@ export default async function AdminScheduling() {
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? "—";
   const teamOf = (osuId: number | null) => (osuId == null ? null : (teams.find((x) => x.players.some((p) => p.userId === osuId))?.id ?? null));
   const hist = await historyOf(rows.map((m) => m.id)).catch(() => new Map<string, Proposal[]>());
-  const list = stages.filter((x) => x.slug !== "qualifiers");
+  const list = stages.filter((x) => isBracketStage(x.slug));
   const Side = ({ id, side }: { id: string | null; side: 0 | 1 }) => {
     const team = teams.find((x) => x.id === id);
     return (

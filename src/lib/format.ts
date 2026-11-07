@@ -1,6 +1,8 @@
 export const EDITIONS = ["bgcc6", "bgcc7"] as const;
 export type Edition = (typeof EDITIONS)[number];
 export const isEdition = (v: unknown): v is Edition => typeof v === "string" && (EDITIONS as readonly string[]).includes(v);
+/** every stage except bgcc6's qualifiers is played as bracket matches */
+export const isBracketStage = (slug: string) => slug !== "qualifiers";
 /** "7" for bgcc7 */
 export const editionNumber = (e: string) => e.replace(/^\D+/, "");
 

@@ -20,6 +20,7 @@ import { MeTag, meP } from "@/components/site/me";
 import { MEDAL, modHi } from "@/lib/theme";
 import { roundName } from "@/lib/i18n/dict";
 import { RuleDiamond } from "@/components/site/rule";
+import { isBracketStage } from "@/lib/format";
 
 const TONES = ["bg-rose text-white", "bg-balkan text-on-fill", "border-b border-line", "border-b border-line"];
 
@@ -39,7 +40,7 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
       }),
   );
   const reached = (slug: string) =>
-    slug === "qualifiers" ? qual.players.some((p) => Object.keys(p.perf).length > 0) : live.includes(slug) || matches.some((m) => m.stage === slug && m.links.length > 0 && pts(m) > 0);
+    !isBracketStage(slug) ? qual.players.some((p) => Object.keys(p.perf).length > 0) : live.includes(slug) || matches.some((m) => m.stage === slug && m.links.length > 0 && pts(m) > 0);
   const open = stages.filter((s) => reached(s.slug));
   const current = stages.find((s) => s.slug === wanted && reached(s.slug)) ?? open.at(-1);
   const name = (title: string) => roundName(t, title);
@@ -53,7 +54,7 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
       />
     ) : null;
 
-  const isQual = current?.slug === "qualifiers";
+  const isQual = !!current && !isBracketStage(current.slug);
   const data = !current ? null : isQual ? { ...qual, plays: 0, matches: 0 } : await getStageStats(bySkill(current, skills?.[current.slug]), matches, teams, stages);
   const perfs = data ? data.players.flatMap((p) => Object.entries(p.perf).map(([mid, v]) => ({ ...v, mid, player: p }))) : [];
 

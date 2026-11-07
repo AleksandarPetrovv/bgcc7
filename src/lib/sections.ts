@@ -20,6 +20,8 @@ export type Section = (typeof SECTIONS)[number];
 
 export const PHASES = ["registration", "screening", "qualifiers", "seeding", "playoffs", "finished"] as const;
 export type Phase = (typeof PHASES)[number];
+/** the phases an edition goes through: only bgcc6 had a qualifiers phase */
+export const phasesFor = (bgcc6: boolean): Phase[] => PHASES.filter((p) => bgcc6 || p !== "qualifiers");
 
 const base: Section[] = ["info", "staff", "sponsors"];
 const seeded: Section[] = [...base, "players", "qualScores", "seeding", "teams", "mappool", "stats"];

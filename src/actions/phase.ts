@@ -5,12 +5,12 @@ import { getTeams } from "@/db/tournament";
 import { getBwsLock, lockBws, unlockBws } from "@/db/registrations";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/roles";
-import { PHASES, presetSections, SECTIONS, TIMELINE_KEYS, type Phase } from "@/lib/sections";
+import { PHASES, phasesFor, presetSections, SECTIONS, TIMELINE_KEYS, type Phase } from "@/lib/sections";
 import { fromSofiaInput } from "@/lib/time";
 import { isBGCC6 } from "@/db";
 
 async function applyPhase(p: Phase) {
-  if (p === "qualifiers" && !isBGCC6()) return false;
+  if (!phasesFor(isBGCC6()).includes(p)) return false;
   await saveSettings({ phase: p, sections: presetSections(p), pickemsOpen: p !== "playoffs" && p !== "finished" });
   if (isBGCC6()) return;
   // only before the draw: afterwards the locked ranks are what seeds and tiers were built on

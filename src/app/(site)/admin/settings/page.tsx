@@ -9,16 +9,18 @@ import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { roundName } from "@/lib/i18n/dict";
 import { can } from "@/lib/roles";
-import { setDraft, setQualify, setRounds } from "./actions";
+import { setDraft } from "./actions";
+import { setQualify, setRounds } from "./(bgcc6)/actions";
 import { PickemsToggle } from "./pickems-toggle";
 import { isBGCC6 } from "@/db";
 import { cssVars } from "@/lib/utils";
+import { isBracketStage } from "@/lib/format";
 
 
 export default async function AdminSettings() {
   const [t, s, viewer, stages, matches] = await Promise.all([getDict(), getSettings(), getViewer(), getPoolStages(), getMatches()]);
   if (!can(viewer?.roles, "settings")) notFound();
-  const rounds = stages.filter((st) => st.slug !== "qualifiers");
+  const rounds = stages.filter((st) => isBracketStage(st.slug));
   const usedBy = (slug: string) => [...new Set(matches.filter((m) => m.stage === slug).map((m) => roundName(t, m.round)))];
 
   return (

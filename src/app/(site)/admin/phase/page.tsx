@@ -5,7 +5,7 @@ import { getSettings } from "@/db/settings";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
-import { PHASES, SECTIONS, TIMELINE_KEYS } from "@/lib/sections";
+import { phasesFor, SECTIONS, TIMELINE_KEYS } from "@/lib/sections";
 import { toSofiaInput } from "@/lib/time";
 import { phaseStates } from "@/lib/dates";
 import { setDates, setPhase, setSections, setTimeline } from "@/actions/phase";
@@ -21,7 +21,7 @@ export default async function AdminPhase() {
   if (!can(viewer?.roles, "phase")) notFound();
   const suiji = !isBGCC6();
   const off = getFormat().sectionsOff;
-  const phases = PHASES.filter((p) => !suiji || p !== "qualifiers");
+  const phases = phasesFor(!suiji);
   const sections = SECTIONS.filter((k) => !off.includes(k));
   const allDates = [
     ["regOpensAt", t.admin.regOpens, s.regOpensAt],

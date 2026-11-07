@@ -14,6 +14,7 @@ import { handOff } from "@/lib/bancho";
 import { matchStamp } from "@/lib/matches";
 import { fmtWhen, later, postResult, teamNote } from "@/db/discord-bot";
 import { getTeams } from "@/db/tournament";
+import { isBracketStage } from "@/lib/format";
 
 const text = (fd: FormData, k: string, max = 120) => String(fd.get(k) ?? "").trim().slice(0, max) || null;
 const num = (fd: FormData, k: string) => {
@@ -42,7 +43,7 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     };
     const slugs = new Set((await db.select({ slug: stages.slug }).from(stages)).map((s) => s.slug));
     const pick = String(fd.get("poolSlug") ?? "");
-    if (pick && (!slugs.has(pick) || pick === "qualifiers")) return { ok: false, error: "invalid" };
+    if (pick && (!slugs.has(pick) || !isBracketStage(pick))) return { ok: false, error: "invalid" };
     const poolSlug = pick && pick !== m.stageSlug ? pick : null;
     const [stage] = await db.select({ firstTo: stages.firstTo }).from(stages).where(eq(stages.slug, poolSlug ?? m.stageSlug)).limit(1);
     const firstTo = stage?.firstTo ?? getFormat().firstTo;

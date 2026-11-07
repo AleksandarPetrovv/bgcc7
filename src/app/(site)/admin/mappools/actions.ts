@@ -10,6 +10,7 @@ import type { ActionResult } from "@/lib/roles";
 import { rm } from "node:fs/promises";
 import { packPath } from "@/lib/uploads";
 import { MODS } from "@/lib/mods";
+import { blueprintFor } from "@/db/mappools";
 
 // a changed pool makes the uploaded pack stale, so it goes completely
 async function dropPack(stageId: number) {
@@ -36,30 +37,6 @@ export async function setReleased(id: number, poolReleased: boolean) {
   });
 }
 
-async function blueprintFor(stageId: number) {
-  const [s] = await db.select({ slug: stages.slug, blueprint: stages.blueprint }).from(stages).where(eq(stages.id, stageId)).limit(1);
-  return s ?? null;
-}
-
-export async function saveBlueprint(stageId: number, _: ActionResult, fd: FormData) {
-  return guard("phase", "stage.blueprint", async () => {
-    const s = await blueprintFor(stageId);
-    if (!s) return { ok: false, error: "notFound" };
-    const quals = s.slug === "qualifiers";
-    const blueprint: Record<string, number> = {};
-    for (const mod of Object.keys(MODS)) {
-      if (mod === "Tiebreaker") {
-        if (!quals) blueprint[mod] = 1;
-        continue;
-      }
-      if (quals && mod === "FreeMod") continue;
-      const n = Math.floor(Number(fd.get(mod) ?? 0));
-      if (Number.isFinite(n) && n > 0) blueprint[mod] = Math.min(n, 99);
-    }
-    await db.update(stages).set({ blueprint }).where(eq(stages.id, stageId));
-    return { stageId, blueprint };
-  });
-}
 
 export async function setSlotMap(stageId: number, mod: string, slot: number, _: ActionResult, fd: FormData) {
   return guard("poolEdit", "map.add", async () => {

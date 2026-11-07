@@ -15,6 +15,7 @@ import { drafts, mpLobbies, staff, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { localeOf } from "@/lib/i18n/locale";
 import { roundName } from "@/lib/i18n/dict";
+import { isBracketStage } from "@/lib/format";
 
 export default async function AdminMatches() {
   const [t, lang, viewer, rows, teams, stages, refs, live] = await Promise.all([getDict(), getLang(), getViewer(), getMatchRows(), getTeams(), getPoolStages(), refList(), liveList()]);
@@ -23,7 +24,7 @@ export default async function AdminMatches() {
   // upcoming first by start time (no time after them), played matches at the bottom; same for rounds and stages
   const key = (m: (typeof rows)[number]) => (m.winner ? 2e15 : 0) + (m.startsAt ? new Date(m.startsAt).getTime() : 1e15);
   const first = (list: typeof rows) => Math.min(...list.map(key));
-  const bracketStages = stages.filter((s) => s.slug !== "qualifiers");
+  const bracketStages = stages.filter((s) => isBracketStage(s.slug));
   const shown = bracketStages
     .map((s) => ({ s, list: rows.filter((m) => m.stageSlug === s.slug) }))
     .sort((a, b) => first(a.list) - first(b.list));

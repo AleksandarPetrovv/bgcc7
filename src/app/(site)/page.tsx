@@ -43,7 +43,7 @@ import { ShrinkWrap } from "@/components/site/shrink-wrap";
 import { currentEdition, isBGCC6 } from "@/db";
 import { localeOf } from "@/lib/i18n/locale";
 import { MODS } from "@/lib/mods";
-import { editionNumber } from "@/lib/format";
+import { editionNumber, isBracketStage } from "@/lib/format";
 
 const INK: Record<string, number> = { "6": 0.15, "7": 0.22 };
 
@@ -273,7 +273,7 @@ export default async function Home() {
   // a live match finishing moves it to previous and pulls the next one in
   const liveNow = upcoming.some((m) => m.running || (!!m.datetime && !isFuture(new Date(m.datetime))));
   // the round being played: the next match's pool when it's out, else the latest released one
-  const released = stages.filter((s) => s.released && s.slug !== "qualifiers" && s.pools.length);
+  const released = stages.filter((s) => s.released && isBracketStage(s.slug) && s.pools.length);
   const cur = phase === "playoffs" && see("mappool") ? (released.find((s) => s.slug === upcoming[0]?.stage) ?? released.at(-1)) : undefined;
   const pool = cur && bySkill(cur, skills?.[cur.slug]);
   // top 3 by match cost: the whole tournament, then every round with results

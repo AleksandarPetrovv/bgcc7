@@ -2,6 +2,7 @@ import "server-only";
 import { getMpMatch, type OsuGame } from "./osu-api";
 import type { Match, Stage, Team } from "./data";
 import { avatarPath } from "@/lib/avatar";
+import { isBracketStage } from "./format";
 
 export type PlayerLine = {
   id: number;
@@ -52,7 +53,7 @@ export type Scoreboard = {
 type Pool = Map<number, { slot: string; mod: string }>;
 
 export const playoffPools = (stages: Stage[]): Pool[] =>
-  stages.filter((s) => s.slug !== "qualifiers").map((s) => new Map(s.pools.flatMap((p) => p.maps.map((m) => [m.id, { slot: m.slot, mod: m.mod }] as const))));
+  stages.filter((s) => isBracketStage(s.slug)).map((s) => new Map(s.pools.flatMap((p) => p.maps.map((m) => [m.id, { slot: m.slot, mod: m.mod }] as const))));
 
 const shownMods = (mods: string[]) => mods.filter((m) => m !== "NF");
 

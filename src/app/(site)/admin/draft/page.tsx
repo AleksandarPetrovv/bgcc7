@@ -14,6 +14,7 @@ import { fmtSofia } from "@/lib/time";
 import { DraftAdmin, type DraftRow } from "./draft-admin";
 import { localeOf } from "@/lib/i18n/locale";
 import { roundName } from "@/lib/i18n/dict";
+import { isBracketStage } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,7 @@ export default async function AdminDraft() {
   const control = can(viewer?.roles, "matches");
   const locale = localeOf(lang);
   const team = (id: string | null) => teams.find((x) => x.id === id);
-  const pools = stages.filter((s) => s.slug !== "qualifiers" && s.pools.length);
+  const pools = stages.filter((s) => isBracketStage(s.slug) && s.pools.length);
   const slotsOf = (slug: string) => (stages.find((s) => s.slug === slug)?.pools ?? []).flatMap((p) => p.maps.map((m) => m.slot)).filter(pickable);
 
   const time = (d: Date | null) => d?.getTime() ?? Infinity;
