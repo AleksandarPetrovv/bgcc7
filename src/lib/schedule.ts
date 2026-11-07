@@ -31,3 +31,22 @@ export function weekOf(monday: string | null | undefined): Week | null {
 
 export const inWindow = (w: Week, at: Date) => at.getTime() >= w.from.getTime() && at.getTime() <= w.to.getTime();
 export const isOpen = (w: Week | null, now = Date.now()) => !!w && now <= w.deadline.getTime();
+
+/** players can't pick 00:30–11:30 (sofia); 00:00 is the latest slot of a night. staff can still set any time */
+export const offHours = (v: string) => {
+  const m = +v.slice(11, 13) * 60 + +(v.slice(14, 16) || 0);
+  return m > 0 && m < 12 * 60;
+};
+
+/** every playable hour of the window as "YYYY-MM-DDTHH" (sofia), from fri 18 to sun 21 */
+export function hourKeys(min: string, max: string) {
+  const out: string[] = [];
+  for (let d = new Date(`${min.slice(0, 13)}:00Z`); ; d.setUTCHours(d.getUTCHours() + 1)) {
+    const k = d.toISOString().slice(0, 13);
+    if (!offHours(`${k}:59`) || k.endsWith("T00")) out.push(k);
+    if (k >= max.slice(0, 13) || out.length > 24 * 8) return out;
+  }
+}
+
+/** the hour key a datetime-local value ("YYYY-MM-DDTHH:mm") falls in */
+export const hourOf = (v: string) => v.slice(0, 13);

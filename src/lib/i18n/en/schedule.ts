@@ -14,10 +14,21 @@ export const schedule = {
     propose: "Propose a time",
     reschedule: "Reschedule",
     withdraw: "Withdraw",
-    window: "Fri 18:00 – Sun 21:00 · BG time",
+    window: "Fri 18:00 – Sun 21:00, not 00:30–11:30 · BG time",
     send: "Send",
     cancel: "Cancel",
     history: "History",
+    avail: "Availability",
+    staffName: "Staff",
+    availSave: "Save",
+    availEdit: "Edit",
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- bg needs the count, en does not
+    cantPlay: (names: string, _n: number) => `${names} can't play`,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- bg needs the count, en does not
+    cantPlayOn: (when: string, _n: number) => `can't play on ${when}`,
+    availHint: "Mark the hours you can't play",
+    availView: "Hours each player can't play",
+    availState: { saving: "Saving…", saved: "Saved!", error: "Couldn't save. Try again." },
     st: {
       pending: "Pending",
       accepted: "Accepted",
@@ -40,8 +51,9 @@ export const schedule = {
     notePh: "e.g. we can only play on Saturday",
     err: {
       note: "Write a short note first.",
+      busy: "Someone can't play at that time.",
       closed: "Scheduling is closed.",
-      window: "Pick a time between Friday 18:00 and Sunday 21:00.",
+      window: "Pick a time between Friday 18:00 and Sunday 21:00, outside 00:30–11:30.",
       gone: "This changed in the meantime. Reload the page.",
       forbidden: "Not allowed.",
       failed: "Something went wrong. Try again.",
