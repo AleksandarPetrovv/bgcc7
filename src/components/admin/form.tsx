@@ -151,16 +151,16 @@ export function Field({ className, inputClassName, ...props }: React.InputHTMLAt
   );
 }
 
-/** datetime-local Field with the weekday shown inside, on an unskewed layer so it stays crisp */
-export function DateTimeField({ defaultValue, ...props }: { name: string; defaultValue: string }) {
+/** date / datetime-local Field with the weekday shown inside, on an unskewed layer so it stays crisp; the tournament year is hidden */
+export function DateTimeField({ defaultValue, className, ...props }: { name: string; defaultValue: string; kind?: "datetime-local" | "date"; className?: string; required?: boolean; "aria-label"?: string }) {
   const [val, setVal] = useState(defaultValue);
   return (
     <WeekdayInput
       {...props}
       value={val}
       onValue={setVal}
-      className="h-10 w-[21rem] max-w-full"
-      box="border border-line border-b-2 border-b-paper/16 bg-field transition-[border-color,background-color,box-shadow] group-hover:border-paper/22 group-focus-within:border-b-rose group-focus-within:bg-well group-focus-within:shadow-[4px_4px_0_0_var(--rose-deep)]"
+      className={cn("h-10 w-[21rem] max-w-full", className)}
+      box="border border-line border-b-2 border-b-paper/16 bg-field transition-[border-color,background-color,box-shadow] group-hover/dt:border-paper/22 group-focus-within/dt:border-b-rose group-focus-within/dt:bg-well group-focus-within/dt:shadow-[4px_4px_0_0_var(--rose-deep)]"
       text="font-display text-[0.9rem] font-semibold text-paper tabular-nums"
     />
   );

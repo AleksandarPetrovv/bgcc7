@@ -8,18 +8,12 @@ import { AnimatePresence, motion } from "motion/react";
 import { avatarPath } from "@/lib/avatar";
 import { useDict, useLang } from "@/components/site/lang";
 import { hourKeys } from "@/lib/schedule";
+import { dayFmt as fmt, dayHead } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { at } from "@/components/site/rich";
 import { setBusy } from "./actions";
 import type { Side } from "./sched-card";
 
-const fmt = (date: string, lang: string, o: Intl.DateTimeFormatOptions) => new Date(`${date}T12:00Z`).toLocaleDateString(lang === "bg" ? "bg-BG" : "en-GB", { timeZone: "UTC", ...o }).replace(".", "");
-/** "Nov 1, Fri" / "1 ное, пт" column head */
-const dayHead = (date: string, lang: string) => {
-  const n = +date.slice(8, 10);
-  const [m, w] = [fmt(date, lang, { month: "short" }), fmt(date, lang, { weekday: "short" })];
-  return lang === "bg" ? `${n} ${m}, ${w}` : `${m} ${n}, ${w}`;
-};
 /** "November 2, Saturday" / "2 ноември, събота" */
 const dayLong = (date: string, lang: string) => {
   const n = +date.slice(8, 10);

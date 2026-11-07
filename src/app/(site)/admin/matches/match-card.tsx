@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CalendarClock, ChevronDown, Gavel, Link2, Radio, Video } from "lucide-react";
-import { ActionForm, dateCls, Field, inputCls } from "@/components/admin/form";
+import { ActionForm, DateTimeField, Field, inputCls } from "@/components/admin/form";
 import { Dropdown } from "@/components/admin/dropdown";
 import { MpLinks } from "@/components/admin/mp-links";
 import { RefSwapGuard } from "./ref-swap-guard";
@@ -9,7 +9,7 @@ import type { Dict } from "@/lib/i18n/dict";
 import { getFormat } from "@/db/edition";
 import { matchSlug } from "@/lib/format";
 import { matchStamp } from "@/lib/matches";
-import { fmtSofia, toSofiaInput } from "@/lib/time";
+import { dayTime, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { clearCache, saveMatch } from "./actions";
 import { osuMp } from "@/lib/links";
@@ -97,7 +97,7 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
           ))}
           <span className="num flex items-center gap-1.5 pl-3.5 text-[0.7rem] text-ash">
             <CalendarClock className="size-3" />
-            {m.startsAt ? fmtSofia(m.startsAt, locale) : t.common.tbd}
+            {m.startsAt ? dayTime(toSofiaInput(m.startsAt), locale.startsWith("bg") ? "bg" : "en") : t.common.tbd}
             <span className="ml-auto font-display font-bold">{t.admin.mStatus[status]}</span>
           </span>
         </span>
@@ -118,10 +118,10 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
           </span>
         </span>
 
-        <span className="hidden w-44 shrink-0 flex-col items-end gap-1 text-xs lg:flex">
+        <span className="hidden w-56 shrink-0 flex-col items-end gap-1 text-xs lg:flex">
           <span className={cn("num flex items-center gap-1.5", m.startsAt ? "text-paper/85" : "text-ash")}>
             <CalendarClock className="size-3.5 text-ash" />
-            {m.startsAt ? fmtSofia(m.startsAt, locale) : t.common.tbd}
+            {m.startsAt ? dayTime(toSofiaInput(m.startsAt), locale.startsWith("bg") ? "bg" : "en") : t.common.tbd}
           </span>
           <span className="flex items-center gap-3 text-ash">
             {m.referee && (
@@ -198,7 +198,7 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
               <div className="grid grid-cols-2 gap-3">
                 <label className={cn(label, "col-span-2 sm:col-span-1")}>
                   {t.admin.startsAt}
-                  <Field type="datetime-local" name="startsAt" defaultValue={toSofiaInput(m.startsAt)} className={dateCls} />
+                  <DateTimeField name="startsAt" defaultValue={toSofiaInput(m.startsAt)} className="w-full" />
                 </label>
                 <label className={label}>
                   {t.admin.matchPool}

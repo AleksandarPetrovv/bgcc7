@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { InView } from "@/components/site/in-view";
 import { PageTitle } from "@/components/site/page";
 import { RuleDiamond } from "@/components/site/rule";
-import { ActionForm, dateCls, inputCls, Panel, Field } from "@/components/admin/form";
+import { ActionForm, DateTimeField, inputCls, Panel, Field } from "@/components/admin/form";
 import { getLobbies, type Lobby } from "@/db/lobbies";
 import { getRegistrations } from "@/db/registrations";
 import { getViewer } from "@/lib/authz";
@@ -27,7 +27,7 @@ function LobbyFields({ t, l }: { t: Dict; l?: Lobby }) {
       </label>
       <label className={label}>
         {t.admin.startsAt}
-        <Field type="datetime-local" name="startsAt" required defaultValue={toSofiaInput(l?.startsAt ?? nextHour())} className={dateCls} />
+        <DateTimeField name="startsAt" required defaultValue={toSofiaInput(l?.startsAt ?? nextHour())} className="w-full" />
       </label>
       <label className={label}>
         {t.admin.capacity}

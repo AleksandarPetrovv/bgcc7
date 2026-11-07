@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PageTitle } from "@/components/site/page";
-import { ActionForm, DateTimeField, Field, Panel, dateCls, labelCls } from "@/components/admin/form";
+import { ActionForm, DateTimeField, Panel, labelCls } from "@/components/admin/form";
 import { getPoolStages } from "@/db/mappools";
 import { getMatchRows, getTeams } from "@/db/tournament";
 import { historyOf, stageWeeks } from "@/db/schedule";
@@ -52,13 +52,15 @@ export default async function AdminScheduling() {
       <Cascade className="space-y-8" step={0.035}>
         {list.map((st, n) => {
           const wk = weekOf(weeks[st.slug]);
-          const ms = rows.filter((m) => m.stageSlug === st.slug);
+          // both teams known but no time yet first, then agreed, then still waiting on teams
+          const rank = (m: (typeof rows)[number]) => (!m.team1Id || !m.team2Id ? 2 : m.startsAt ? 1 : 0);
+          const ms = rows.filter((m) => m.stageSlug === st.slug).sort((a, b) => rank(a) - rank(b));
           return (
             <Panel key={st.slug} i={n < 3 ? n + 1 : 0} title={t.rounds[st.title] ?? st.title} help={wk ? s.admin.deadline(fmtSofia(wk.deadline, locale)) : undefined}>
               <ActionForm action={setWeek.bind(null, st.slug)} className="mb-6 flex flex-wrap items-end gap-3" ghost>
                 <label className={labelCls}>
                   {s.admin.week}
-                  <Field type="date" name="week" defaultValue={weeks[st.slug] ?? ""} inputClassName={dateCls} />
+                  <DateTimeField kind="date" name="week" defaultValue={weeks[st.slug] ?? ""} className="w-[18rem]" />
                 </label>
               </ActionForm>
               {ms.length ? (
@@ -106,7 +108,7 @@ export default async function AdminScheduling() {
                         <ActionForm action={setTime.bind(null, m.id)} className="flex flex-wrap items-end gap-3 border-t border-line py-3 pl-5 pr-4" submit={s.admin.set} ghost>
                           <label className={labelCls}>
                             {s.admin.at}
-                            <DateTimeField name="at" defaultValue={toSofiaInput(m.startsAt)} />
+                            <DateTimeField name="at" defaultValue={toSofiaInput(m.startsAt)} className="w-[25rem]" />
                           </label>
                         </ActionForm>
                       </div>
