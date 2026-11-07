@@ -1,7 +1,7 @@
-import { db } from "./index";
+import { currentEdition, db } from "./index";
 import "server-only";
 import { eq } from "drizzle-orm";
-import { getEdition, getFormat } from "./edition";
+import { getFormat } from "./edition";
 import { matchCache, scoreEdits } from "./schema";
 import { finishMatch } from "./bracket";
 import type { PoolStage } from "./mappools";
@@ -34,7 +34,7 @@ export async function getEdits(matchId: string): Promise<ScoreEdit[]> {
 }
 
 export async function forgetScoreboard(matchId: string) {
-  live.delete(`${await getEdition()}:${matchId}`);
+  live.delete(`${currentEdition()}:${matchId}`);
   await db.delete(matchCache).where(eq(matchCache.matchId, matchId));
 }
 
@@ -68,7 +68,7 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
     return saved;
   }
 
-  const key = `${await getEdition()}:${match.id}`;
+  const key = `${currentEdition()}:${match.id}`;
   const hit = live.get(key);
   if (hit && Date.now() - hit.at < LIVE_TTL) return hit.data;
 

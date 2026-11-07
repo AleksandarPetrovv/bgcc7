@@ -12,7 +12,7 @@ import { fmtNum, MODS } from "@/lib/data";
 import { slotColor } from "@/lib/format-plan";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
-import { matchIdFromSlug, matchSlug } from "@/lib/format";
+import { matchIdFromSlug } from "@/lib/format";
 import { getFormat } from "@/db/edition";
 import { cn } from "@/lib/utils";
 import { removeScore, saveScore, undoScore } from "./actions";
@@ -21,7 +21,7 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const f = await getFormat();
   const id = matchIdFromSlug(f, slug);
-  if (matchSlug(f, id) !== slug) notFound();
+  if (id !== slug) notFound();
   const [t, viewer, all, teams, stages] = await Promise.all([getDict(), getViewer(), getMatches(), getTeams(), getPoolStages()]);
   if (!can(viewer?.roles, "matches")) notFound();
   const match = all.find((m) => m.id === id);

@@ -6,8 +6,6 @@ import { availability, matches, reschedules, stages, users } from "./schema";
 import { safe } from "./safe";
 import { getAllTeams, getMatchRows, getTeams, type MatchRow } from "./tournament";
 import { getSettings } from "./settings";
-import { getFormat } from "./edition";
-import { matchSlug } from "@/lib/format";
 import { siteUrl } from "@/lib/links";
 import { dm, discordReady } from "@/lib/discord";
 import { fmtSofia } from "@/lib/time";
@@ -87,10 +85,9 @@ export const mySchedule = cache(async (osuId: number): Promise<SchedMatch[]> => 
   const [rows, weeks] = await Promise.all([getMatchRows(), stageWeeks()]);
   const mine = rows.filter((m) => schedulable(m) && (m.team1Id === team || m.team2Id === team));
   const [hist, busy] = await Promise.all([safe(() => historyOf(mine.map((m) => m.id)), new Map<string, Proposal[]>()), safe(() => busyOf(mine.map((m) => m.id)), new Map<string, Record<number, string[]>>())]);
-  const f = getFormat();
   return mine.map((m) => ({
     id: m.id,
-    slug: matchSlug(f, m.id),
+    slug: m.id,
     round: m.round,
     stage: m.stageSlug,
     week: weeks[m.stageSlug] ?? null,

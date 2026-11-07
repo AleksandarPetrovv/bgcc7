@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { currentEdition, db, siteEdition } from "@/db";
 import { matches } from "@/db/schema";
 import { getAllMatches, getAllTeams } from "@/db/tournament";
-import { matchIdFromSlug, matchSlug } from "@/lib/format";
+import { matchIdFromSlug } from "@/lib/format";
 import { getDraft, settle } from "@/db/drafts";
 import { getFormat } from "@/db/edition";
 import { getPoolStages, type PoolStage } from "@/db/mappools";
@@ -221,7 +221,7 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
     tournament: f.name,
     match: {
       id: m.id,
-      slug: matchSlug(f, m.id),
+      slug: m.id,
       round: m.round,
       startsAt: m.datetime,
       firstTo,

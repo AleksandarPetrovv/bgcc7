@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import type { Lang } from "./dict";
 import { dictFor } from "./dict";
-import { getEdition } from "@/db/edition";
+import { currentEdition } from "@/db";
 
 export async function getLang(): Promise<Lang> {
   const v = (await cookies()).get("lang")?.value;
@@ -9,5 +9,5 @@ export async function getLang(): Promise<Lang> {
 }
 
 export async function getDict() {
-  return dictFor(await getLang(), getEdition());
+  return dictFor(await getLang(), currentEdition());
 }

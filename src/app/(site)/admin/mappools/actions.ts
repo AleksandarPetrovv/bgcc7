@@ -1,7 +1,7 @@
 "use server";
 
 import { and, eq } from "drizzle-orm";
-import { db } from "@/db";
+import { currentEdition, db } from "@/db";
 import { maps, stages } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
 import { later, postPool } from "@/db/discord-bot";
@@ -10,12 +10,11 @@ import { fetchMap, parseBeatmapId } from "@/lib/fetch-map";
 import type { ActionResult } from "@/lib/roles";
 import { rm } from "node:fs/promises";
 import { packPath } from "@/lib/uploads";
-import { getEdition } from "@/db/edition";
 
 // a changed pool makes the uploaded pack stale, so it goes completely
 async function dropPack(stageId: number) {
   const [s] = await db.update(stages).set({ packSize: null, packAt: null }).where(eq(stages.id, stageId)).returning({ slug: stages.slug });
-  if (s) await rm(packPath(s.slug, getEdition()), { force: true });
+  if (s) await rm(packPath(s.slug, currentEdition()), { force: true });
 }
 
 export async function renameStage(id: number, _: ActionResult, fd: FormData) {

@@ -7,9 +7,8 @@ import { useDict, useLang } from "./lang";
 import { fmtSofia } from "@/lib/time";
 import { MODS, fmtNum, type Match } from "@/lib/data";
 import { slotColor } from "@/lib/format-plan";
-import { useFormat, useTournament } from "./tournament";
+import { useTournament } from "./tournament";
 import { roundName } from "@/lib/i18n/dict";
-import { matchSlug } from "@/lib/format";
 import type { MapResult, PlayerLine, Scoreboard } from "@/lib/scoreboard";
 import { cn } from "@/lib/utils";
 import { matchCosts, MEDAL } from "@/lib/match-cost";
@@ -194,7 +193,7 @@ function Board({ match, data, names }: { match: Match; data: Scoreboard; names: 
 
 export function MatchDialog({ match, compact, children, className }: { match: Match; compact?: boolean; children?: React.ReactNode; className?: string }) {
   const t = useDict();
-  const slug = matchSlug(useFormat(), match.id);
+  const slug = match.id;
   const [data, setData] = useState<Scoreboard | "error" | null>(() => cache.get(slug) ?? null);
   const { teamById } = useTournament();
   const teams = [teamById(match.team1.id), teamById(match.team2.id)];

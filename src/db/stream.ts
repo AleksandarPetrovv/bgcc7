@@ -3,8 +3,6 @@ import { asc, eq, inArray, sql } from "drizzle-orm";
 import { currentEdition, db } from "./index";
 import { drafts, matches, mpLobbies, staff, userNames, users } from "./schema";
 import { getAllMatches } from "./tournament";
-import { getFormat } from "./edition";
-import { matchSlug } from "@/lib/format";
 import { userPath } from "@/lib/data";
 import { isScene, type Scene } from "@/lib/scenes";
 import { can, cleanRoles } from "@/lib/roles";
@@ -31,8 +29,7 @@ export async function streamMatches(osuId: number, all: boolean) {
   list.sort((a, b) => (a.datetime ? Date.parse(a.datetime) : Infinity) - (b.datetime ? Date.parse(b.datetime) : Infinity));
   const rows = list.length ? await db.select({ id: matches.id, scene: matches.scene }).from(matches).where(inArray(matches.id, list.map((m) => m.id))) : [];
   const scene = new Map(rows.map((r) => [r.id, isScene(r.scene) ? r.scene : null] as const));
-  const f = getFormat();
-  return list.map((m) => ({ ...m, slug: matchSlug(f, m.id), scene: scene.get(m.id) ?? null, mine: streamersOf(m).includes(me) }));
+  return list.map((m) => ({ ...m, slug: m.id, scene: scene.get(m.id) ?? null, mine: streamersOf(m).includes(me) }));
 }
 
 export async function currentStreamMatch(osuId: number) {
@@ -57,7 +54,7 @@ export async function currentStreamMatch(osuId: number) {
   const stillPlaying = current && getLive(current.id)?.ipcState === IPC_PLAYING;
   const selected = stillPlaying ? current : active ?? (held ? current : undefined) ?? pending[0] ?? list.sort((a, b) => (b.datetime ? Date.parse(b.datetime) : 0) - (a.datetime ? Date.parse(a.datetime) : 0))[0];
   focus().set(key, selected.id);
-  return { ...selected, slug: matchSlug(getFormat(), selected.id) };
+  return { ...selected, slug: selected.id };
 }
 
 export async function setMatchScene(id: string, scene: Scene | null) {

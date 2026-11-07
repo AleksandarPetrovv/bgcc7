@@ -6,11 +6,10 @@ import { pipeline } from "node:stream/promises";
 import type { ReadableStream as WebStream } from "node:stream/web";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
+import { currentEdition, db } from "@/db";
 import { stages } from "@/db/schema";
 import { log, requireRole } from "@/lib/authz";
 import { PACK_MAX, packPath } from "@/lib/uploads";
-import { getEdition } from "@/db/edition";
 
 async function stageOf(slug: string) {
   const [s] = await db.select({ id: stages.id, slug: stages.slug, title: stages.title }).from(stages).where(eq(stages.slug, slug)).limit(1);
@@ -33,7 +32,7 @@ export async function PUT(req: Request, { params }: RouteContext<"/api/admin/map
   if (!req.body) return Response.json({ error: "invalid" }, { status: 400 });
   if (Number(req.headers.get("content-length") ?? 0) > PACK_MAX) return Response.json({ error: "tooBig" }, { status: 413 });
 
-  const dest = packPath(stage.slug, getEdition());
+  const dest = packPath(stage.slug, currentEdition());
   const tmp = `${dest}.${Date.now()}.part`;
   await mkdir(path.dirname(dest), { recursive: true });
   let size = 0;
@@ -67,7 +66,7 @@ export async function DELETE(_: Request, { params }: RouteContext<"/api/admin/ma
   if (!who) return Response.json({ error: "forbidden" }, { status: 403 });
   const stage = await stageOf((await params).slug);
   if (!stage) return Response.json({ error: "notFound" }, { status: 404 });
-  await rm(packPath(stage.slug, getEdition()), { force: true });
+  await rm(packPath(stage.slug, currentEdition()), { force: true });
   await db.update(stages).set({ packSize: null, packAt: null }).where(eq(stages.id, stage.id));
   await log(who.osuId, "pack.delete", { stage: stage.title });
   revalidatePath("/", "layout");

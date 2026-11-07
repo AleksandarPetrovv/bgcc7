@@ -4,7 +4,7 @@ import { eq, inArray, sql } from "drizzle-orm";
 import { currentEdition, db } from "@/db";
 import { getFormat } from "@/db/edition";
 import { matches, teams, users } from "@/db/schema";
-import { matchSlug, roundOf } from "./format";
+import { roundOf } from "./format";
 import type { Alert, AlertKind } from "./alert-types";
 
 /** who sees an alert: hosts, and/or these osu ids */
@@ -79,7 +79,7 @@ export async function osuIdOf(name: string | null | undefined) {
 /** "Quarterfinals · Team A vs Team B" plus the slug, for the popup header and links */
 export async function describeMatch(matchId: string): Promise<NonNullable<Alert["match"]>> {
   const f = getFormat();
-  const slug = matchSlug(f, matchId);
+  const slug = matchId;
   const [m] = await db.select({ t1: matches.team1Id, t2: matches.team2Id }).from(matches).where(eq(matches.id, matchId)).limit(1).catch(() => []);
   const ids = [m?.t1, m?.t2].filter((x): x is string => !!x);
   const names = ids.length ? await db.select({ id: teams.id, name: teams.name }).from(teams).where(inArray(teams.id, ids)).catch(() => []) : [];

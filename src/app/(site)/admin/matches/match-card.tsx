@@ -7,7 +7,6 @@ import { RefSwapGuard } from "./ref-swap-guard";
 import type { MatchRow } from "@/db/tournament";
 import type { Dict } from "@/lib/i18n/dict";
 import { getFormat } from "@/db/edition";
-import { matchSlug } from "@/lib/format";
 import { matchStamp } from "@/lib/matches";
 import { dayTime, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
@@ -243,7 +242,7 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
         {mp.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
             <Link
-              href={`/admin/matches/${matchSlug(f, m.id)}`}
+              href={`/admin/matches/${m.id}`}
               className="group/ms relative isolate inline-flex min-h-10 items-center px-4 text-xs font-display font-bold text-on-fill hover:text-ink"
             >
               <span aria-hidden className="absolute inset-0 -z-10 -skew-x-12 bg-balkan group-hover/ms:bg-paper" />

@@ -2,8 +2,6 @@ import type { Match } from "./data";
 import type { Format } from "./format";
 import { roundName, type Dict } from "./i18n/dict";
 
-export { matchIdFromSlug, matchSlug } from "./format";
-
 /** the fields a lobby, finish or captain can change while a staff form is open */
 export const matchStamp = (m: { team1Id: string | null; team2Id: string | null; score1: number | null; score2: number | null; winner: number | null; mpLinks: string; startsAt: Date | null }) =>
   JSON.stringify([m.team1Id, m.team2Id, m.score1, m.score2, m.winner, m.mpLinks, m.startsAt?.getTime() ?? null]);

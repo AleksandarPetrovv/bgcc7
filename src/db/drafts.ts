@@ -9,7 +9,6 @@ import { getSettings } from "./settings";
 import { can } from "@/lib/roles";
 import { relayOnline } from "@/lib/relay";
 import { getViewer } from "@/lib/authz";
-import { matchSlug } from "@/lib/format";
 import { getFormat } from "./edition";
 import { deadline, pickable, scoreOf, tbDue, turnOf, type DraftView, type Side } from "@/lib/draft";
 
@@ -294,7 +293,7 @@ export async function isPlayer(osuId: number) {
 
 export async function myOpenDraft(osuId: number) {
   const id = await myOpenId(osuId);
-  return id ? matchSlug(await getFormat(), id) : null;
+  return id || null;
 }
 
 export async function myDraftClock(osuId: number) {
@@ -302,7 +301,7 @@ export async function myDraftClock(osuId: number) {
   if (!id) return { slug: null, end: null, pause: false, now: Date.now() };
   const d = await settle(id);
   const end = !d ? null : d.pausedAt ? (d.pauseUntil ? new Date(d.pauseUntil).getTime() : null) : deadline(d, await draftSlots(id, d.stageSlug));
-  return { slug: matchSlug(await getFormat(), id), end, pause: !!d?.pausedAt, now: Date.now() };
+  return { slug: id, end, pause: !!d?.pausedAt, now: Date.now() };
 }
 
 async function myOpenId(osuId: number) {

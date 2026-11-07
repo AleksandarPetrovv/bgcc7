@@ -219,9 +219,6 @@ export const FORMATS: Record<Edition, Format> = { bgcc6: formatBGCC6, bgcc7: FOR
 
 export const GF = "grand-final";
 export const GF_RESET = "grand-final-reset";
-export const isGrand = (matchId: string) => matchId.startsWith("grand-");
-export const isWinners = (matchId: string) => matchId.startsWith("winners-");
-export const isLosers = (matchId: string) => matchId.startsWith("losers-");
 
 const ROUNDS = new Set(Object.values(FORMATS).flatMap((f) => Object.keys(f.rounds)));
 export const roundOf = (matchId: string) => (ROUNDS.has(matchId) ? matchId : matchId.replace(/-\d+$/, ""));
@@ -243,11 +240,4 @@ export const versus = (f: Format) => `${f.teamSize}v${f.teamSize}`;
 export const playerCount = (f: Format) => f.teams * f.teamSize;
 
 // match ids are their url slugs
-export const matchSlug = (_f: Format, id: string) => id;
 export const matchIdFromSlug = (f: Format, slug: string) => (slug === TEST_MATCH.id || f.order.includes(slug) ? slug : "");
-
-export const bracketRows = (f: Format) =>
-  f.order.map((mid, i) => {
-    const r = f.rounds[roundOf(mid)];
-    return { id: mid, stageSlug: r.stage, bracket: isWinners(mid) ? "winners" : isLosers(mid) ? "losers" : "grand", round: r.name, order: i + 1 };
-  });
