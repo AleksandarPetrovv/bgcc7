@@ -531,7 +531,7 @@ export function App() {
               {logs.map((e, i) => (
                 <li key={`${e.at}-${i}-${e.text}`} className="anim-left flex items-center gap-2.5 py-1 text-[12.5px]">
                   {/* margin: the rotated square pokes out of its box and the scroll list clips it */}
-                  <i aria-hidden="true" className={cn("ml-[2px] size-[7px] shrink-0 rotate-45", LOG_DOT[e.kind] ?? "bg-line")} />
+                  <i aria-hidden="true" className={cn("ml-[3px] size-[7px] shrink-0 rotate-45", LOG_DOT[e.kind] ?? "bg-line")} />
                   <span className="num shrink-0 text-ash">{hhmm(e.at)}</span>
                   <span title={sentence(e.text)} className={cn("min-w-0 select-text truncate", e.kind === "cmd" ? "font-extrabold" : "font-semibold")}>
                     {sentence(e.text)}
