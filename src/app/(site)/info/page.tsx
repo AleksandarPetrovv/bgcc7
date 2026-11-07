@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/page-meta";
 import { Container, SectionHeading, SlantButton, PageTitle } from "@/components/site/page";
 import { Rich, Words } from "@/components/site/rich";
 import { InView } from "@/components/site/in-view";
@@ -38,6 +39,8 @@ function List({ path, items, ed, f, on }: { path: string; items: string[]; ed: E
 }
 
 const PRIZE_BAR = ["bg-gold", "bg-silver", "bg-bronze"];
+
+export const generateMetadata = pageMeta("info");
 
 export default async function InfoPage() {
   await requireSection("info");

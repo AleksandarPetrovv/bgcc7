@@ -1,9 +1,12 @@
+import { pageMeta } from "@/lib/page-meta";
 import { Container, PageTitle } from "@/components/site/page";
 import { getDict } from "@/lib/i18n/server";
 import { getSponsors } from "@/db/tournament";
 import { requireSection } from "@/lib/authz";
 import { Avatar } from "@/components/site/avatar";
 import { Stagger, StaggerItem } from "@/components/site/motion";
+
+export const generateMetadata = pageMeta("sponsors");
 
 export default async function Sponsors() {
   await requireSection("sponsors");

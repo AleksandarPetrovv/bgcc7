@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/page-meta";
 import { Container, PageTitle, SectionHeading } from "@/components/site/page";
 import { CountUp } from "@/components/site/motion";
 import { MapDifficultyChart } from "@/components/site/map-chart";
@@ -19,6 +20,8 @@ import { MeTag, meP } from "@/components/site/me";
 import { MEDAL, modHi } from "@/lib/theme";
 
 const TONES = ["bg-rose text-white", "bg-balkan text-on-fill", "border-b border-line", "border-b border-line"];
+
+export const generateMetadata = pageMeta("stats");
 
 export default async function Stats({ searchParams }: { searchParams: Promise<{ stage?: string }> }) {
   await requireSection("stats");

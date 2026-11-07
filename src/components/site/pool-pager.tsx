@@ -39,6 +39,7 @@ export function UnderlineTabs({ names, colors, pos, onPick, animate, spark, clas
     <div className={cn("relative flex gap-x-5 overflow-x-auto pt-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden", className)} role="tablist" style={style}>
       {names.map((n, i) => (
         <button
+          type="button"
           key={n}
           ref={(el) => {
             tabs.current[i] = el;

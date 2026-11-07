@@ -55,7 +55,7 @@ function Line({ m, slot, live, slim }: { m: Match; slot: 1 | 2; live?: [number, 
       <span title={team.name} className={cn("in-wipe min-w-0 flex-1 truncate text-[12.8px] font-display font-bold", won && "font-display font-black text-paper", leads && "font-display font-black text-rose-hi")} style={v({ "--d": "0.5s" })}>
         {team.name}
       </span>
-      <MeTag t={team.id} className="me-tag-plain -mx-1" />
+      <MeTag t={team.id} className="me-tag-plain me-tag-px -mx-1" />
       {score !== null && (
         <span className={cn("in-slam num ml-2 shrink-0 text-right text-base leading-none", won ? "text-balkan-hi" : leads || tie ? "text-rose-hi" : "text-paper/80")} style={v({ "--d": "0.65s" })}>
           {score}

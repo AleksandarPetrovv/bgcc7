@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/page-meta";
 import { currentOsuId } from "@/auth";
 import { getLeaderboard, getPicks } from "@/db/queries";
 import { getSettings } from "@/db/settings";
@@ -5,6 +6,8 @@ import { getMatches } from "@/db/tournament";
 import { lockedOf } from "@/lib/pickems";
 import { PickemsView } from "./pickems-view";
 import { requireSection } from "@/lib/authz";
+
+export const generateMetadata = pageMeta("pickems");
 
 export default async function Pickems() {
   await requireSection("pickems");

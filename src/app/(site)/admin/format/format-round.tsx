@@ -336,7 +336,7 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
             [t.admin.fp.used, s.open ? `${Math.round(Math.min(1, s.ratio) * 100)}%` : "—"],
           ] as const
         ).map(([k, val]) => (
-          <div key={k} className="flex flex-col gap-0.5 border-l border-line pl-3">
+          <div key={k} className="flex flex-col gap-0.5 pl-3">
             <span data-cascade className="in-wipe text-[0.62rem] font-display font-bold text-ash">{k}</span>
             <span data-cascade className="in-up num text-xl leading-none text-paper">{val}</span>
           </div>

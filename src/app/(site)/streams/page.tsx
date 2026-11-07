@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/page-meta";
 import { ExternalLink, Mic, User, Video } from "lucide-react";
 import { Container, PageTitle, SlantButton, SubHeading, Tag } from "@/components/site/page";
 import { TwitchEmbed } from "@/components/site/twitch-embed";
@@ -12,6 +13,8 @@ import type { Team } from "@/lib/data";
 import { getLive } from "@/lib/twitch";
 import { requireSection } from "@/lib/authz";
 import { MeTag, meT } from "@/components/site/me";
+
+export const generateMetadata = pageMeta("streams");
 
 export default async function Streams() {
   await requireSection("streams");

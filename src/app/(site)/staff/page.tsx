@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/page-meta";
 import { Container, PageTitle, SectionHeading, SlantButton } from "@/components/site/page";
 import { getDict } from "@/lib/i18n/server";
 import { DISCORD_URL, osuUser } from "@/lib/links";
@@ -10,6 +11,8 @@ import { Stagger, StaggerItem } from "@/components/site/motion";
 import { avatarPath } from "@/lib/avatar";
 
 const rank = (r: string) => ROLES.indexOf(r as (typeof ROLES)[number]) + 1 || 99;
+
+export const generateMetadata = pageMeta("staff");
 
 export default async function Staff() {
   await requireSection("staff");

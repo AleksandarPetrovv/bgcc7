@@ -189,9 +189,9 @@ export function MatchRow({ match, live, small, label, delay = 0, plain }: { matc
           </div>
           {eye && small ? (
             // bare pink eye, grows on hover
-            <MatchDialog match={match} className="group flex h-6 items-center justify-center">
-              <span className="flex size-6 items-center justify-center text-rose transition-[color,scale] duration-200 group-hover:scale-125 group-hover:text-rose-hi">
-                <Eye className="size-[18px]" strokeWidth={2.25} aria-hidden />
+            <MatchDialog match={match} className="group flex h-7 items-center justify-center">
+              <span className="flex size-7 items-center justify-center text-rose transition-[color,scale] duration-200 group-hover:scale-125 group-hover:text-rose-hi">
+                <Eye className="size-[1.3rem]" strokeWidth={2.25} aria-hidden />
               </span>
             </MatchDialog>
           ) : eye ? (

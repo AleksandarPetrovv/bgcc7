@@ -2,6 +2,20 @@ export const site = {
   meta: {
     title: "BGCC7 · Bulgarian Community Cup 7",
     description: "The seventh Bulgarian Community Cup, a %vs% osu! team tournament for players from Bulgaria.",
+    pages: {
+      info: ["Info", "Format, rules, schedule and prizes."],
+      teams: ["Teams", "Every team and its players."],
+      players: ["Players", "Every player in the cup."],
+      matches: ["Matches", "Bracket, schedule and results."],
+      mappool: ["Mappool", "The maps for every stage."],
+      stats: ["Stats", "Player and map stats."],
+      staff: ["Staff", "The people running the cup."],
+      sponsors: ["Sponsors", "Who backs the cup."],
+      streams: ["Streams", "Live matches with Bulgarian commentary."],
+      vods: ["VODs", "Past match streams."],
+      pickems: ["Pick'ems", "Predict the bracket."],
+      register: ["Register", "Sign up for the cup."],
+    } as Record<string, [string, string]>,
   },
   nav: {
     home: "Home",

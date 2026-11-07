@@ -6,16 +6,16 @@ export const DEFAULT_CATALOG: SubcategoryGroup[] = [
     "name": "Aim",
     "items": [
       {
+        "id": "aim-3",
+        "name": "Speed Aim"
+      },
+      {
         "id": "aim-0",
         "name": "Jump Aim"
       },
       {
         "id": "aim-1",
         "name": "Awkward Aim"
-      },
-      {
-        "id": "aim-3",
-        "name": "Speed Aim"
       },
       {
         "id": "0kej0mi6",
@@ -105,7 +105,7 @@ export const DEFAULT_CATALOG: SubcategoryGroup[] = [
   },
   {
     "id": "lzajp423",
-    "name": "reading",
+    "name": "Reading",
     "items": [
       {
         "id": "xaxvf2lx",
@@ -455,7 +455,7 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
     ]
   },
   {
-    "sr": 7.5,
+    "sr": 7.6,
     "bans": 1,
     "cats": [
       {
@@ -642,7 +642,7 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
     ]
   },
   {
-    "sr": 7.6,
+    "sr": 7.8,
     "bans": 1,
     "cats": [
       {
@@ -831,7 +831,7 @@ export const DEFAULT_ROUNDS: PlanRound[] = [
     ]
   },
   {
-    "sr": 7.7,
+    "sr": 8,
     "bans": 2,
     "cats": [
       {

@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/page-meta";
 import { User } from "lucide-react";
 import { Container, PageTitle, Tag } from "@/components/site/page";
 import { Rhombus } from "@/components/site/graphics";
@@ -18,6 +19,8 @@ import { rankBws } from "@/lib/bws";
 import { isBGCC6 } from "@/db";
 
 const v = (o: Record<string, string | number>) => o as React.CSSProperties;
+
+export const generateMetadata = pageMeta("players");
 
 export default async function Players() {
   await requireSection("players");
