@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PageTitle, Tag } from "@/components/site/page";
-import { ActionForm, dateCls, Panel, Field } from "@/components/admin/form";
+import { ActionForm, DateTimeField, Panel } from "@/components/admin/form";
 import { getSettings } from "@/db/settings";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
@@ -80,7 +80,7 @@ export default async function AdminPhase() {
               {dates.map(([name, label, value], i) => (
                 <label key={name} style={{ "--i": i, "--s": "0.07s", "--d": "0.6s" } as React.CSSProperties} className="in-up flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors">
                   {label}
-                  <Field type="datetime-local" name={name} defaultValue={toSofiaInput(value)} className={dateCls} />
+                  <DateTimeField name={name} defaultValue={toSofiaInput(value)} className="w-full" />
                 </label>
               ))}
             </div>
@@ -104,8 +104,8 @@ export default async function AdminPhase() {
                     <span className="text-xs text-ash sm:col-span-2">{t.admin.regFromDates}</span>
                   ) : (
                     <>
-                      <Field type="date" name={`from.${k}`} defaultValue={row(k)?.from ?? ""} aria-label={`${t.timeline[k]} · ${t.admin.from}`} className={dateCls} />
-                      <Field type="date" name={`to.${k}`} defaultValue={row(k)?.to ?? ""} aria-label={`${t.timeline[k]} · ${t.admin.to}`} className={dateCls} />
+                      <DateTimeField kind="date" name={`from.${k}`} defaultValue={row(k)?.from ?? ""} aria-label={`${t.timeline[k]} · ${t.admin.from}`} className="w-full sm:w-[13rem]" />
+                      <DateTimeField kind="date" name={`to.${k}`} defaultValue={row(k)?.to ?? ""} aria-label={`${t.timeline[k]} · ${t.admin.to}`} className="w-full sm:w-[13rem]" />
                     </>
                   )}
                 </div>

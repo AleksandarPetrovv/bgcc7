@@ -62,6 +62,8 @@ export const site = {
     sponsors: "Sponsors",
   },
   common: {
+    prevMonth: "Previous month",
+    nextMonth: "Next month",
     meYou: "You",
     meTeam: "Your team",
     eet: "EET / EEST",

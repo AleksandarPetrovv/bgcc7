@@ -64,6 +64,8 @@ export const site: typeof en = {
     sponsors: "Спонсори",
   },
   common: {
+    prevMonth: "Предишен месец",
+    nextMonth: "Следващ месец",
     meYou: "Ти",
     meTeam: "Твоят отбор",
     eet: "EET / EEST",
