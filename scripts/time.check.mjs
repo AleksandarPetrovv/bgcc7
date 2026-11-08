@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { registerHooks } from "node:module";
 
-const scheduleUrl = new URL("../src/lib/schedule.ts", import.meta.url).href;
+const libUrl = new URL("../src/lib/", import.meta.url).href;
 registerHooks({
   resolve(specifier, context, next) {
-    return next(context.parentURL === scheduleUrl && specifier === "./time" ? "./time.ts" : specifier, context);
+    const bare = specifier.startsWith(".") && !/\.\w+$/.test(specifier) && context.parentURL?.startsWith(libUrl);
+    return next(bare ? `${specifier}.ts` : specifier, context);
   },
 });
 const { fromSofiaInput, toSofiaInput, tzLabel, windowState } = await import("../src/lib/time.ts");
