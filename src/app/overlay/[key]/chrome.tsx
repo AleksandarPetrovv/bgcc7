@@ -133,7 +133,6 @@ export function TopBar({ feed }: { feed: OverlayFeed }) {
   );
 }
 
-// the site's match-card underline: team picture with a team-coloured bottom edge
 export function TeamPic({ src, side, size, className }: { src: string; side: 0 | 1 | null; size: number; className?: string }) {
   if (!src.trim()) return null;
   return (
@@ -152,7 +151,6 @@ export function TeamPlate({ team, side, big, className }: { team: FeedTeam; side
   );
 }
 
-// slanted box where only the background layer is skewed, so the text inside stays crisp
 export function Slant({ className, layer, style, children }: { className?: string; layer?: string; style?: React.CSSProperties; children: React.ReactNode }) {
   return (
     <span className={cn("relative isolate inline-flex", className)}>
@@ -162,7 +160,6 @@ export function Slant({ className, layer, style, children }: { className?: strin
   );
 }
 
-// the boxed, team-outlined plate used in the mappool and gameplay headers
 export function SlabPlate({ team, side, className }: { team: FeedTeam; side: 0 | 1; className?: string }) {
   const c = TEAM[side];
   return (
@@ -175,7 +172,6 @@ export function SlabPlate({ team, side, className }: { team: FeedTeam; side: 0 |
   );
 }
 
-// one diamond per point needed, filled as maps are won
 export function Points({ score, firstTo, side }: { score: number; firstTo: number; side: 0 | 1 }) {
   return (
     <span className={cn("flex items-center gap-2", side === 1 && "flex-row-reverse")} aria-label={`${score} of ${firstTo}`}>
@@ -206,7 +202,6 @@ export function Points({ score, firstTo, side }: { score: number; firstTo: numbe
   );
 }
 
-// plate at the outer edge, the diamonds centred in whatever room is left before the middle column
 export function HeaderSide({ team, side, score, firstTo }: { team: FeedTeam; side: 0 | 1; score: number; firstTo: number }) {
   return (
     <div className={cn("flex min-w-0 items-center gap-6", side === 1 && "flex-row-reverse")}>
@@ -218,10 +213,8 @@ export function HeaderSide({ team, side, score, firstTo }: { team: FeedTeam; sid
   );
 }
 
-// both team pictures fading in from the outer edges, like the big match cards on the site
 export function Blend({ teams, winner }: { teams: FeedTeam[]; winner?: 1 | 2 | null }) {
   return (
-    // each picture fills its whole half and only fades where the two meet in the middle; heavy blur, low opacity so it stays a backdrop
     <div className="pointer-events-none absolute inset-0 flex" aria-hidden>
       {teams.map((team, i) => (
         <div key={i} className="relative w-1/2 overflow-hidden">
@@ -239,7 +232,6 @@ export function Blend({ teams, winner }: { teams: FeedTeam[]; winner?: 1 | 2 | n
   );
 }
 
-// the site's section rule: a line with one pink diamond in the middle
 export function Rule({ className }: { className?: string }) {
   return (
     <div className={cn("relative h-px bg-line", className)} aria-hidden>

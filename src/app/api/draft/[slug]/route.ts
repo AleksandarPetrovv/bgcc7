@@ -30,7 +30,6 @@ export async function POST(req: Request, { params }: RouteContext<"/api/draft/[s
     return typeof out === "string" ? Response.json({ error: out }, { status: 409 }) : Response.json(out);
   }
   if (body?.act === "timeout") {
-    // captains only; a map in progress has to finish first
     if (!who.side) return Response.json({ error: "forbidden" }, { status: 403 });
     if (nowPlaying(id)) return Response.json({ error: "playing" }, { status: 409 });
     const r = await requestTimeout(id, who.side);

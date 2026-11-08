@@ -15,7 +15,6 @@ function Name({ n }: { n: string }) {
   );
 }
 
-/** inside the match ActionForm: asks before saving a new referee while the match is live */
 export function RefSwapGuard({ live, lobby, from }: { live: boolean; lobby: boolean; from: string }) {
   const t = useDict();
   const r = t.admin.refSwap;

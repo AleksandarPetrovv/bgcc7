@@ -28,7 +28,6 @@ export function OverlayPreview({ slug, title, label, offline, clientsLabel, dela
       setClients(feed?.live?.clients.length ?? 0);
       setNow(Date.now());
     } catch {
-      // the expiry timer clears stale status during a reconnect.
     }
   });
   useEffect(() => {

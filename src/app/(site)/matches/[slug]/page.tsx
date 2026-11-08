@@ -26,7 +26,6 @@ export default async function DraftPage({ params }: PageProps<"/matches/[slug]">
   const [t, teams, stages, skills, all] = await Promise.all([getDict(), getAllTeams(), getPoolStages(), getSkillLayouts(), getAllMatches()]);
   const live = stages.find((s) => s.slug === draft.stageSlug);
   if (!live) notFound();
-  // a running draft shows the maps it started with, the same ones the lobby plays
   const frozen = new Map((await rulesOf(id, draft.stageSlug)).maps.map((m) => [m.slot, m]));
   const stage = { ...live, pools: live.pools.map((p) => ({ ...p, maps: p.maps.map((m) => frozen.get(m.slot) ?? m) })) };
   const side = (tid: string | null) => {

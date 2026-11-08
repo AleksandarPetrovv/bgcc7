@@ -33,7 +33,6 @@ function useWhen() {
   const locale = localeOf(lang);
   return {
     full: (iso: string) => `${fmtSofiaDay(new Date(iso), locale)} · ${fmtSofiaTime(new Date(iso))}`,
-    // "1 Oct · 18:00, Friday"
     hist: (iso: string) =>
       `${fmtDate(new Date(iso), locale, { day: "numeric", month: "short" })} · ${fmtSofiaTime(new Date(iso))}, ${fmtDate(new Date(iso), locale, { weekday: "long" })}`,
     short: (iso: string) => `${fmtDate(new Date(iso), locale, { weekday: "short" })} ${fmtSofiaTime(new Date(iso))}`,
@@ -85,7 +84,6 @@ function ErrLine({ err }: { err: string | null }) {
   );
 }
 
-// confirm popup for withdrawing or declining; the note is required
 function NoteModal({ open, onClose, title, text, action, onSend }: { open: boolean; onClose: () => void; title: string; text: string; action: string; onSend: (note: string) => Promise<string | null> }) {
   const t = useDict();
   const [note, setNote] = useState("");
@@ -174,7 +172,6 @@ function AvailSection({ m, week, me, opp, viewer, editable }: { m: SchedMatch; w
   );
 }
 
-/** who an osu id is in this matchup: name + team colour; anyone else is staff */
 function usePerson(me: Side, opp: Side) {
   const t = useDict();
   return (id: number | null) => {
@@ -195,11 +192,9 @@ function Pfp({ id, color, className }: { id: number | null; color: string; class
   );
 }
 
-/** chat-style line: pfp, name, text */
 function Comment({ who, text }: { who: { id: number | null; name: string; color: string }; text: string }) {
   return (
     <div className="flex items-start gap-2">
-      {/* same height as the pfp so the diamond sits level with its centre */}
       <span className="mt-0.5 flex h-6 shrink-0 items-center" aria-hidden>
         <span className="size-1.5 rotate-45" style={{ background: who.color }} />
       </span>
@@ -249,7 +244,6 @@ function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
                     </span>
                     <span className={cn("ml-auto text-[0.68rem] font-display font-bold transition-colors duration-500", p.status === "accepted" ? "text-balkan-hi" : p.status === "pending" ? "text-gold-hi" : "text-rose-hi/80")}>{label(p)}</span>
                     {(p.note || p.reply) && (
-                      // a thread: rule on the left, a diamond in the writer's team colour beside each pfp
                       <div className="mb-1 mt-1.5 grid basis-full gap-2.5 border-l border-line pl-2.5">
                         {p.note && <Comment who={person(p.by)} text={p.note} />}
                         {p.reply && <Comment who={person(p.answeredBy ?? p.by)} text={p.reply} />}
@@ -269,7 +263,6 @@ function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
 export function SchedCard({ m, round, me, opp, week, open, viewer, readOnly = false, n = 0 }: { m: SchedMatch; round: string; me: Side; opp: Side; week: Week; open: boolean; viewer: number; readOnly?: boolean; n?: number }) {
   const t = useDict();
   const ref = useRef<HTMLElement>(null);
-  // once the intro is over, parts that mount later (after a refresh) appear without the long delays
   const [settled, setSettled] = useState(false);
   useEffect(() => {
     if (ref.current && belowFold(ref.current)) return setSettled(true);
@@ -279,14 +272,12 @@ export function SchedCard({ m, round, me, opp, week, open, viewer, readOnly = fa
   const w = useWhen();
   const router = useRouter();
   const [pick, setPickState] = useState(false);
-  // new key per open resets the form; same key while closing keeps the exit animation
   const [pickKey, setPickKey] = useState(0);
   const setPick = (v: boolean) => {
     if (v) setPickKey((k) => k + 1);
     setPickState(v);
   };
   const [warn, setWarn] = useState(false);
-  // which note popup is up: withdraw my proposal, clear the agreed time, or decline theirs
   const [ask, setAskState] = useState<"pull" | "clear" | "decline" | null>(null);
   const [askOpen, setAskOpen] = useState(false);
   const [askKey, setAskKey] = useState(0);
@@ -303,12 +294,10 @@ export function SchedCard({ m, round, me, opp, week, open, viewer, readOnly = fa
   const theirs = pend && pend.teamId !== me.id;
   const agreed = m.startsAt;
   const msg = (e: string) => t.sched.err[e] ?? t.sched.err.failed;
-  // hours any current player of the four marked as unavailable
   const blocked = new Set([...me.players, ...opp.players].flatMap((id) => m.busy[id] ?? []));
 
   const send = async (v: string, note: string) => {
     const res = await propose(m.id, v, note).catch(() => ({ ok: false as const, error: "failed" as const }));
-    // someone changed their hours meanwhile: pull the fresh grid so the picker skips it
     if (!res.ok && res.error === "busy") router.refresh();
     if (!res.ok) return msg(res.error);
     setPick(false);

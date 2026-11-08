@@ -69,13 +69,7 @@ html.lite .site-header {
   background-color: var(--ink);
 }
 
-/* ---- lite: software rendering (no gpu), every frame is painted and blended on the cpu ----
-   goal: same look, far less work per frame.
-   - loops keep running at a low frame rate (steps), so most frames repaint nothing
-   - slide/fade intros stay (opacity costs the same as translate on cpu); only scale/rotate/skew/clip ones become a plain slide
-   - per-letter / per-word text fades in per block
-   - no live blur behind/through layers, grain is a png instead of a live svg filter, no stuck will-change layers */
-html.lite .grain::after {
+/* lite: software rendering (no gpu), every frame is painted and blended on the cpu: loops stepped, intros plain slides, no live blur */
   transform: none;
   opacity: 0.05;
   background-image: url("/noise.png");
@@ -104,7 +98,6 @@ html.lite .fixed.inset-0:not(canvas):not(.pointer-events-none) {
   background-color: color-mix(in srgb, black 66%, transparent);
 }
 
-/* one page-level intro only: the page wrapper fade is dropped, its sections still rise in */
 html.lite :is(.anim-page > *, .anim-page-in) {
   animation: none !important;
 }
@@ -117,25 +110,21 @@ html.lite :is(.anim-blob-a, .anim-blob-b) { animation-timing-function: steps(60)
 html.lite .anim-drift { animation-timing-function: steps(110) !important; }
 html.lite .anim-float { animation-timing-function: steps(30) !important; }
 html.lite .anim-echo { animation-timing-function: steps(20) !important; }
-/* small loops: held still while the page intro plays, then run smooth once MotionProvider adds .lite-loops (motion.tsx) */
 html.lite:not(.lite-loops) :is(.match-run, .mdlg-shine, .anim-twinkle, .anim-ping-diamond, .animate-pulse,
     .adm-crest, .adm-spark, .mk-sway, .mk-toot, .mk-drift, .mk-ping, .mk-scan, .anim-chevron, .anim-bob, .dr-glow, .dr-beads-on, .dr-dots > span) {
   animation-play-state: paused !important;
 }
-/* intro + loop in one rule: the intro plays, only the loop waits */
 html.lite:not(.lite-loops) :is(.mk-bar, .mk-gear, .mk-gear-r, .mk-crowd, .mk-spark, .mk-hand-h, .mk-hand-m, .mk-rec) {
   animation-play-state: running, paused !important;
 }
 
-/* resampled intros (scale / rotate / skew / perspective / clip) become the plain slide of the same direction */
 html.lite :is(.in-flip, .in-spin, .in-slam, .in-launch, .word, .anim-letter) { animation-name: k-up !important; }
 html.lite :is(.in-left-far, .in-wipe) { animation-name: k-left !important; }
 html.lite :is(.in-right-far, .in-wipe-r) { animation-name: k-right !important; }
 /* longhands only: the shorthand would reset the inline delay and the hero gate's pause */
 html.lite .anim-slam { animation-name: rise !important; animation-duration: 0.7s !important; animation-timing-function: var(--ease) !important; }
 
-/* Letters / Words: each text block fades in as one element (on cpu every animated element costs style work per frame,
-   so hundreds of letters or words animating at once is what made the info page stutter) */
+/* on cpu every animated element costs style work per frame; hundreds of letters or words animating at once stuttered the info page */
 html.lite [data-letters] :is(.ltr, .word) {
   animation: none !important;
 }
@@ -143,7 +132,6 @@ html.lite [data-letters] {
   animation: lite-fade 0.6s ease-out backwards;
   animation-delay: var(--d, 0s);
 }
-/* hero text: one fade per line, --ln set by LineIndex once the fonts are in */
 html.lite [data-lines] {
   animation: none !important;
 }
@@ -162,7 +150,6 @@ html.lite .iv:not(.in) [data-letters] {
   from { color: transparent; }
 }
 
-/* blurred thumbnails stay blurred, but no hover zoom that would re-blur every frame */
 html.lite .row-thumb {
   scale: 1.1 !important;
   transition: none !important;
@@ -172,7 +159,6 @@ html.lite :is(.lift, .lift-sm):hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* every .anim-* and .mk-* class is an animation; the in-* intros have theirs in motion.css */
   :is([class^="anim-"], [class*=" anim-"], [class^="mk-"], [class*=" mk-"]),
   .enter-kids > * {
     animation: none !important;

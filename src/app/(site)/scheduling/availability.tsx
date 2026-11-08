@@ -14,14 +14,12 @@ import { at } from "@/components/site/rich";
 import { setBusy } from "./actions";
 import type { Side } from "./sched-card";
 
-/** "November 2, Saturday" / "2 ноември, събота" */
 const dayLong = (date: string, lang: string) => {
   const n = +date.slice(8, 10);
   const [m, w] = [fmt(date, lang, { month: "long" }), fmt(date, lang, { weekday: "long" })];
   return lang === "bg" ? `${n} ${m}, ${w}` : `${m} ${n}, ${w}`;
 };
 
-/** hours × days grid. every player marks the hours they can't play; everyone sees all four. mouse drags paint, touch taps toggle */
 export function Availability({ matchId, week, busy, me, opp, viewer, editable }: { matchId: string; week: { min: string; max: string }; busy: Record<number, string[]>; me: Side; opp: Side; viewer: number; editable: boolean }) {
   const t = useDict();
   const lang = useLang();
@@ -34,10 +32,8 @@ export function Availability({ matchId, week, busy, me, opp, viewer, editable }:
   const valid = new Set(keys);
   const players = [...me.players.map((id, i) => ({ id, name: me.names[i] ?? String(id), team: "me" as const })), ...opp.players.map((id, i) => ({ id, name: opp.names[i] ?? String(id), team: "opp" as const }))];
   const canEdit = editable && players.some((p) => p.id === viewer);
-  // a row in busy = that player saved at least once
   const [didSave, setDidSave] = useState(false);
   const saved = (id: number) => id in busy || (id === viewer && didSave);
-  // first visit starts editing; after a save the grid locks until Edit. nothing is stored until Save, leaving drops the changes
   const [editing, setEditing] = useState(() => canEdit && !(viewer in busy));
   const [mine, setMine] = useState(() => new Set(busy[viewer] ?? []));
   const [pending, setPending] = useState(false);
@@ -45,7 +41,6 @@ export function Availability({ matchId, week, busy, me, opp, viewer, editable }:
   const live = canEdit && editing;
   const paint = useRef<boolean | null>(null);
   const ptr = useRef("");
-  // who can't play in the hovered hour (tapped on touch), shown next to that cell
   const [tip, setTip] = useState<{ k: string; d: string; h: number; r: DOMRect; touch: boolean } | null>(null);
   useEffect(() => {
     if (!tip) return;
@@ -101,7 +96,6 @@ export function Availability({ matchId, week, busy, me, opp, viewer, editable }:
           <span key={p.id} style={at(2.3, i, 0.08)} className={cn("in-up inline-flex items-end gap-1.5 text-xs font-display", p.id === viewer ? "font-black text-paper" : "font-bold text-ash")}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={avatarPath(p.id)} alt="" className="size-5 rounded-full border-2 object-cover" style={{ borderColor: color(p.team) }} />
-            {/* green tick once they saved their hours, white ? until then (and while you edit yours); centred over the name only */}
             <span className="flex flex-col items-center gap-1">
               <span className="grid h-3.5 place-items-center">
                 {saved(p.id) && !(p.id === viewer && editing) ? <Check className="size-3.5 text-balkan-hi" strokeWidth={3.5} aria-hidden /> : <span className="text-[0.75rem] font-black leading-none text-paper">?</span>}
@@ -119,7 +113,6 @@ export function Availability({ matchId, week, busy, me, opp, viewer, editable }:
             {dayHead(d, lang)}
           </span>
         ))}
-        {/* rows come in top to bottom */}
         {hours.map((h, r) => (
           <div key={h} className="contents">
             <span style={at(2.7, r, 0.05)} className="in-left num pr-2 text-right text-[0.7rem] leading-6 text-ash">{String(h).padStart(2, "0")}:00</span>
@@ -149,7 +142,6 @@ export function Availability({ matchId, week, busy, me, opp, viewer, editable }:
                   onPointerLeave={(e) => e.pointerType === "mouse" && setTip((cur) => (cur?.k === k ? null : cur))}
                   onClick={(e) => {
                     if (ptr.current !== "mouse" || e.detail === 0) setTip({ k, d: h ? d : addDays(d, 1), h, r: e.currentTarget.getBoundingClientRect(), touch: true });
-                    // mouse already painted on pointerdown; touch taps and keyboard toggle here
                     if (!live || (ptr.current === "mouse" && e.detail > 0)) return;
                     apply(k, !mine.has(k));
                   }}
@@ -194,7 +186,6 @@ export function Availability({ matchId, week, busy, me, opp, viewer, editable }:
   );
 }
 
-/** small card beside the clicked cell: pfps + names in one column, then "can't play on ...". no transforms so the text stays crisp */
 function Tip({ tip, out, color, lang }: { tip: { d: string; h: number; r: DOMRect }; out: { id: number; name: string; team: "me" | "opp" }[]; color: (t: "me" | "opp") => string; lang: string }) {
   const t = useDict();
   if (!out.length) return null;

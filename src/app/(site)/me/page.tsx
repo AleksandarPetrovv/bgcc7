@@ -79,7 +79,6 @@ export default async function Me() {
   const teamById = (id: string) => teams.find((x) => x.id === id);
   const fmt = (d: Date | string) => `${fmtSofia(new Date(d), locale)} ${tzLabel(new Date(d))}`;
 
-  // discord can be linked from registration on, so the connections card shows in every phase
   const dcRow = canLinkDiscord() ? await safe(() => userLink(me), null) : null;
   const dcProfile = dcRow?.id ? await discordProfile(dcRow.id) : null;
   const discord = dcRow ? { name: dcRow.id ? (dcProfile?.name ?? dcRow.name ?? dcRow.id) : null, avatar: dcProfile?.avatar ?? null } : isBGCC6() ? { name: null, avatar: null } : undefined;
@@ -309,7 +308,6 @@ export default async function Me() {
       {played.length === 0 ? (
         <p className="text-sm text-ash">—</p>
       ) : (
-        // the home page's small cards, newest on top
         <div className="mx-auto flex max-w-2xl flex-col gap-4">
           {played.toReversed().map((m, n) => (
             <MatchRow key={m.id} match={m} small label={cardLabels(ff, t, m)} delay={0.3 + n * 0.08} />

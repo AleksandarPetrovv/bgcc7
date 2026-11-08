@@ -6,7 +6,6 @@ import { roundName } from "@/lib/i18n/dict";
 import { getDict } from "@/lib/i18n/server";
 import Matches from "../../matches/page";
 
-// the matches page with this match's popup open; the popup sets this url itself when opened anywhere
 export async function generateMetadata({ params }: PageProps<"/results/[slug]">) {
   const id = matchIdFromSlug(getFormat(), (await params).slug);
   const [t, ms] = await Promise.all([getDict(), getMatches()]);

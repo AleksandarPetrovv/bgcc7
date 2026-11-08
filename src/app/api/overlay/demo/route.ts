@@ -68,7 +68,6 @@ const POOL = Array.from({ length: 13 }, (_, i) => {
   };
 });
 
-// one loop through every scene; ?scene= pins one and loops just that part
 const TIMELINE: [Scene, number][] = [
   ["soon", 8],
   ["intro", 15],
@@ -126,7 +125,6 @@ function demo(pin: Scene | null, startedAt: number): OverlayFeed {
     rolls = [local >= 2 ? 73 : null, local >= 4.5 ? 41 : null];
     choice = null;
   } else if (scene === "mappool") {
-    // a step every 3s, the last pick lights up as the map in play
     steps = STEPS.slice(0, Math.min(STEPS.length, Math.floor(local / 3))).map((x) => ({ ...x }));
     const last = steps.at(-1);
     if (last?.kind === "pick" && last.winner === null) current = POOL.find((m) => m.slot === last.slot) ?? null;
@@ -175,7 +173,6 @@ function demo(pin: Scene | null, startedAt: number): OverlayFeed {
   };
 }
 
-// scores climb to roughly 300k a player over ~22s, then the map ends and holds
 function gameplay(t: number, now: number): LiveScore {
   const run = Math.min(t, 22);
   const rate = [12_400, 13_600, 12_900, 13_300];
@@ -214,7 +211,6 @@ export async function GET(req: Request) {
   const startedAt = Date.now();
   const stageSlug = url.searchParams.get("stage");
   const stages = await getPoolStages();
-  // no ?stage: the first released pool, so the demo shows the real format
   const stage = stageSlug ? stages.find((s) => s.slug === stageSlug) : stages.find((s) => s.released);
   const real = stage ? await poolFeed(stage) : null;
   const schedule = await scheduleFeed();

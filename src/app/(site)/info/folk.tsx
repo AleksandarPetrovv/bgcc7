@@ -32,7 +32,6 @@ export type FolkProps = {
   timeout?: number;
 };
 
-// every visible text starts typing at the same moment, the boxes around it arrive one by one
 const T = 0;
 const dv = (d: number) => ({ "--d": `${d * 0.5}s` }) as React.CSSProperties;
 

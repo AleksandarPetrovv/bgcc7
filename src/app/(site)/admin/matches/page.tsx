@@ -21,7 +21,6 @@ export default async function AdminMatches() {
   const [t, lang, viewer, rows, teams, stages, refs, live] = await Promise.all([getDict(), getLang(), getViewer(), getMatchRows(), getTeams(), getPoolStages(), refList(), liveList()]);
   if (!can(viewer?.roles, "matches")) notFound();
   const locale = localeOf(lang);
-  // upcoming first by start time (no time after them), played matches at the bottom; same for rounds and stages
   const key = (m: (typeof rows)[number]) => (m.winner ? 2e15 : 0) + (m.startsAt ? new Date(m.startsAt).getTime() : 1e15);
   const first = (list: typeof rows) => Math.min(...list.map(key));
   const bracketStages = stages.filter((s) => isBracketStage(s.slug));

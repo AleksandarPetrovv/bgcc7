@@ -160,7 +160,6 @@ function TopList({ t, top, teams }: { t: Dict; top: TopCost[]; teams: Team[] }) 
   );
 }
 
-// same pager as the pool so both tab bars line up: the whole tournament first, then each played round
 function TopPerformers({ t, pages, teams }: { t: Dict; pages: { name: string; top: TopCost[] }[]; teams: Team[] }) {
   return (
     <InView>
@@ -171,14 +170,12 @@ function TopPerformers({ t, pages, teams }: { t: Dict; pages: { name: string; to
 }
 
 function PoolRow({ t, stage, split }: { t: Dict; stage: Omit<PoolStage, "pools"> & { pools: (PoolStage["pools"][number] & { color?: string })[] }; split?: boolean }) {
-  // skill pools carry their group colour, like the mappool page
   const groups: { name: string; color: string; maps: (PoolStage["pools"][number]["maps"][number] & { color: string })[] }[] = [];
   for (const p of stage.pools) {
     const maps = p.maps.map((m) => ({ ...m, color: p.color ?? MODS[m.mod]?.color ?? "var(--rose)" }));
     groups.push({ name: p.category, color: maps[0]?.color ?? "var(--rose)", maps });
   }
   return (
-    // alone: two thirds wide and centred; next to top performers: the left half
     <InView className={cn(!split && "xl:mx-auto xl:w-2/3")}>
       <SectionHead d="1.5s" className="text-2xl sm:whitespace-nowrap sm:text-3xl" title={roundName(t, stage.title)} href={`/mappool/${stage.slug}`} link={t.home.fullPool} />
       <PoolPager
@@ -263,13 +260,10 @@ export default async function Home() {
   const mine = me ? regs.find((r) => r.osuId === me.osuId) : undefined;
   const featured = recentResults(matches).slice(0, 2);
   const upcoming = upcomingMatches(matches).slice(0, 2);
-  // a live match finishing moves it to previous and pulls the next one in
   const liveNow = upcoming.some((m) => m.running || (!!m.datetime && !isFuture(new Date(m.datetime))));
-  // the round being played: the next match's pool when it's out, else the latest released one
   const released = stages.filter((s) => s.released && isBracketStage(s.slug) && s.pools.length);
   const cur = phase === "playoffs" && see("mappool") ? (released.find((s) => s.slug === upcoming[0]?.stage) ?? released.at(-1)) : undefined;
   const pool = cur && bySkill(cur, skills?.[cur.slug]);
-  // top 3 by match cost: the whole tournament, then every round with results
   const played = cur && see("stats") ? (await Promise.all(released.map(async (s) => ({ s, costs: (await getStageStats(bySkill(s, skills?.[s.slug]), matches, teams, stages)).costs })))).filter((x) => x.costs.length) : [];
   const top = played.length ? [{ name: t.home.total, top: mergeCosts(played.map((x) => x.costs)).slice(0, 3) }, ...played.map((x) => ({ name: roundName(t, x.s.title), top: x.costs.slice(0, 3) }))] : undefined;
   const label = (m: Match) => cardLabels(getFormat(), t, m);
@@ -352,7 +346,6 @@ export default async function Home() {
 
       <section className="mx-auto max-w-page px-4 pt-14 sm:px-6 lg:px-10 xl:-mb-16 2xl:px-14">
         {champ && <Champion t={t} team={champ} other={runnerUp} />}
-        {/* intro after the hero: previous, then the timeline, then live / upcoming; each column is its own InView so ones below the fold on phones stay static */}
         <div className="grid grid-cols-[minmax(0,1fr)] gap-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,1fr)] 2xl:gap-16">
           {see("schedule") && featured.length > 0 && (
             <InView className="order-3 flex flex-col xl:order-none">

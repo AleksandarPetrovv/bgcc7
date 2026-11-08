@@ -27,7 +27,6 @@ function RollNumber({ value, side, win, lose }: { value: number | null; side: Si
     if (value == null) setShown(null);
     else {
       setSpinning(true);
-      // first spin frame; the effect's ticks take over with Math.random
       setShown(1 + ((value * 37 + (shown ?? 0)) % 100));
     }
   }

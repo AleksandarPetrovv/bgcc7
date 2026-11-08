@@ -12,7 +12,6 @@ export async function saveInfoText(path: string, text: string) {
   if (!/^info\.[\w.]{1,80}$/.test(path) || text.length > 4000) return { ok: false };
   const key = infoCopyKey(await getLang(), path);
   const clean = text.trim();
-  // an empty save goes back to the default text
   await setInfoCopy(key, clean ? clean : null);
   await log(v.osuId, "info.edit", { key });
   revalidatePath("/info", "layout");

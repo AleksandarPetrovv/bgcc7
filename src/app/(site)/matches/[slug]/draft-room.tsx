@@ -75,7 +75,6 @@ export function DraftRoom({
   title: string;
   firstTo: number;
   admin: boolean;
-  /** host or assigned ref: answers timeout requests */
   runs: boolean;
   streams: boolean;
   side: Side | null;

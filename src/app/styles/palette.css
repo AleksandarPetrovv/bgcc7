@@ -5,7 +5,6 @@
 .light {
   color-scheme: light;
 
-  /* surfaces: light blush, cards and raised parts get lighter */
   --ink: #f7f4f2;
   --well: #fefdfc;
   --coal: #fefefd;
@@ -13,17 +12,14 @@
   --field: #ffffff;
   --line: #dccdca;
 
-  /* text */
   --paper: #2b2326;
   --ash: #75666b;
 
-  /* pure light / dark (text on strong fills, shines, shadows, scrims) */
   --white: #ffffff;
   --black: #2b2326;
   /* dark text on light fills (gold, ginkgo, light mods); stays dark in dark mode */
   --on-fill: #2b2326;
 
-  /* main: pink */
   --rose: #c4577f;
   --rose-deep: #9a3b62;
   --rose-hi: #a8436b;
@@ -43,7 +39,6 @@
   --azure-deep: #1a46a3;
   --azure-hi: #1c4fb0;
 
-  /* medals */
   --gold: #e8be3e;
   --gold-deep: #a07a10;
   --gold-hi: #6e5200;
@@ -56,7 +51,6 @@
   --bronze: #cc8a4e;
   --bronze-hi: #80481a;
 
-  /* mods (fills with dark text, or text on the canvas) */
   --mod-nm: #3f78e0;
   --mod-hd: #c08a06;
   --mod-hr: #e0303f;

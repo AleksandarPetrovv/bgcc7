@@ -25,7 +25,6 @@ export default async function AdminDiscord() {
     );
   }
   const [cfg, chans, teams] = await Promise.all([getCfg(), guildChannels().catch(() => null), db.select().from(discordTeams)]);
-  // the server's own text channels only, not the bot's team channels or their category
   const mine = new Set(teams.map((r) => r.channelId));
   const cats = new Map((chans ?? []).filter((c) => c.type === 4).map((c) => [c.id, c]));
   // discord's order: uncategorized first, then by category position, then channel position

@@ -30,7 +30,6 @@ const Count = memo(function Count({ value, decimals = false, reduced, signed = f
       el.textContent = format(value);
       return;
     }
-    // roll over the gap between updates so the number keeps moving instead of jumping then pausing
     const start = performance.now();
     const span = Math.min(1000, Math.max(120, start - lastAt.current));
     lastAt.current = start;
@@ -74,7 +73,6 @@ function GameplayDivider({ length, horizontal = false }: { length: number; horiz
   );
 }
 
-// name + rank until the first note is hit, then the stats slide in and stay until the scene changes
 function Player({ c, p, side, reduced }: { c?: LiveClient; p?: OverlayFeed["teams"][number]["players"][number]; side: 0 | 1; reduced: boolean }) {
   const t = TEAM[side];
   const right = side === 1;

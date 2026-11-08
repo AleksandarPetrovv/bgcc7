@@ -18,7 +18,6 @@ import { hourKeys, hourOf, inWindow, isOpen, offHours, weekOf } from "@/lib/sche
 
 type Res = { ok: true } | { ok: false; error: "forbidden" | "closed" | "window" | "gone" | "failed" | "note" | "busy" };
 
-// every proposal, decline and withdraw carries a short note so teams don't go back and forth
 const noteOf = (v: string) => {
   const n = String(v ?? "").trim().slice(0, 300);
   if (!n) throw new Stop("note");
@@ -42,7 +41,6 @@ async function captain() {
   return { osuId: v.osuId, team };
 }
 
-// locked match of this team that can still be scheduled, in an open week
 async function openMatch(tx: Tx, matchId: string, team: string, weeks: Record<string, string | null>) {
   const m = await lockMatch(tx, matchId);
   if (!m || !schedulable(m) || (m.team1Id !== team && m.team2Id !== team)) throw new Stop("gone");
@@ -76,7 +74,6 @@ export async function propose(matchId: string, input: string, noteIn: string): P
     const { opp, counter } = await db.transaction(async (tx) => {
       const { m, w } = await openMatch(tx, matchId, team, weeks);
       if (!at || !inWindow(w, at) || offHours(input)) throw new Stop("window");
-      // nobody of the four may have marked this hour as unavailable
       const busy = (await busyOf([m.id])).get(m.id) ?? {};
       if (Object.values(busy).some((h) => h.includes(hourOf(input)))) throw new Stop("busy");
       const open = await pendingOf(tx, m.id);
@@ -172,7 +169,6 @@ export async function decline(matchId: string, proposalId: number, noteIn: strin
   });
 }
 
-/** a player of either team saves the hours they can't play for this match */
 export async function setBusy(matchId: string, hours: string[]): Promise<Res> {
   return run(async () => {
     const v = await getMe();
@@ -193,7 +189,6 @@ export async function setBusy(matchId: string, hours: string[]): Promise<Res> {
   });
 }
 
-/** fingerprint of the viewer's scheduling data; the page polls it and refreshes on change */
 export async function schedSig() {
   const v = await getMe();
   if (!v) return "";

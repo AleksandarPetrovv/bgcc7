@@ -69,9 +69,8 @@
   line-height: 2.6rem;
 }
 .adm input::-webkit-date-and-time-value { text-align: left; margin: 0; }
-/* date fields are sized for the widest digit; equal-width digits stop the gaps */
 input:is([type="date"], [type="datetime-local"], [type="time"], [type="month"], [type="week"]) { font-variant-numeric: tabular-nums; }
-/* a label's caption text must not hover or activate its field (the browser forwards both); checkbox / radio rows stay clickable. clicks on caption children: LabelGuard */
+/* the browser forwards hover and activation from a label's caption to its field; checkbox / radio rows stay clickable (LabelGuard handles children) */
 label:not(:has(input[type="checkbox"], input[type="radio"])) { pointer-events: none; }
 label:not(:has(input[type="checkbox"], input[type="radio"])) > * { pointer-events: auto; }
 .adm input::-webkit-calendar-picker-indicator { opacity: 0.7; cursor: pointer; }
@@ -155,7 +154,6 @@ label:not(:has(input[type="checkbox"], input[type="radio"])) > * { pointer-event
   min-width: 0;
   height: 2.5rem;
 }
-/* the slanted box is a layer behind the input, so the typed text is never transformed */
 .adm-field::before {
   content: "";
   position: absolute;
@@ -237,9 +235,7 @@ label:not(:has(input[type="checkbox"], input[type="radio"])) > * { pointer-event
   vertical-align: middle;
   text-shadow: 0 1px 0 color-mix(in srgb, white 35%, transparent);
 }
-/* in match rows "Your team" covered the team name: short "You" (set in meStyle), same foil, text shadow */
 .me-tag.me-tag-plain:is([data-p], [data-t])::after { text-shadow: 0 1px 2px rgb(0 0 0 / 0.45); }
-/* bracket rows are sized in px, so the tag is too; rem grows with the viewport */
 .me-tag.me-tag-px::after { font-size: 9px; }
 .me-corner:is([data-p], [data-t]) { display: block; position: absolute; top: 0; right: 0; z-index: 3; pointer-events: none; filter: drop-shadow(0 0 5px color-mix(in srgb, var(--gold) 35%, transparent)); }
 .me-corner::after {

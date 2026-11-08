@@ -195,7 +195,6 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                       {chip}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={cardCover(m.cover)} alt="" loading="lazy" decoding="async" className="in-wipe hidden h-10 w-24 object-cover sm:block [--d:0.35s]" />
-                      {/* phones: slot + buttons on top, the map under them at full width */}
                       <div className="min-w-0 basis-full max-sm:order-last sm:flex-1 sm:basis-0">
                         <MapMeta
                           id={m.id}

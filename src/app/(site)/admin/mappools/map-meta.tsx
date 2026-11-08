@@ -17,7 +17,6 @@ export function ModChip({ mod }: { mod: string }) {
 
 type MapInfo = { title: string; version: string; sr: number; bpm: number; length: number; cs?: number | null; ar?: number | null; od?: number | null };
 
-/** title link and stat line of a pool map row; `note` sits between them, `children` after the id */
 export function MapMeta({ id, map: m, diff, note, children }: { id: number; map: MapInfo; diff?: boolean; note?: React.ReactNode; children?: React.ReactNode }) {
   return (
     <>

@@ -14,7 +14,6 @@ export const dynamic = "force-dynamic";
 
 const FAILING_AFTER = 60_000;
 
-// every open overlay on the same match shares one build per 250ms instead of each hitting the db
 const g = globalThis as unknown as { bgccFeeds?: Map<string, { at: number; feed: ReturnType<typeof buildFeed> }> };
 const feeds = (g.bgccFeeds ??= new Map());
 async function sharedFeed(matchId: string) {

@@ -55,7 +55,6 @@ export function PickemsView({ osuId, saved, leaderboard, open: openAtLoad, close
     ? [...byStage].map(([slug, s]) => [roundName(t, stageName(slug)), [...s][0]])
     : t.pickems.points;
 
-  // the unsaved draft lives in localStorage, so it can only be restored after mount
   const mounted = useSyncExternalStore(still, () => true, () => false);
   const [restoredFor, setRestoredFor] = useState<Picks | null | undefined>(undefined);
   if (mounted && restoredFor !== saved) {
@@ -151,7 +150,6 @@ export function PickemsView({ osuId, saved, leaderboard, open: openAtLoad, close
 
       <PickemsBracket picks={clean} onPick={open ? pick : undefined} locked={locked} />
 
-      {/* one column, centred under the bracket; rows come in once the bracket has */}
       <div className="mx-auto mt-14 max-w-3xl">
         <SectionHeading>{t.pickems.leaderboard}</SectionHeading>
       {leaderboard.length ? (

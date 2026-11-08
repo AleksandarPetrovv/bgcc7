@@ -13,7 +13,6 @@ export const dynamic = "force-dynamic";
 
 export default async function Overlay({ params, searchParams }: { params: Promise<{ key: string }>; searchParams: Promise<{ scene?: string | string[]; stage?: string | string[] }> }) {
   const key = decodeURIComponent((await params).key).toLowerCase();
-  // schedule + bracket scenes reuse the site's match cards and bracket, which read the tournament context
   const [teams, matches] = await Promise.all([getTeams(), getMatches(), ensureEdition()]);
   const wrap = (view: React.ReactNode) => (
     <TournamentProvider teams={teams} matches={matches} edition={currentEdition()}>

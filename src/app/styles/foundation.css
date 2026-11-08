@@ -120,7 +120,7 @@
     scrollbar-color: var(--line) var(--ink);
     -webkit-tap-highlight-color: transparent;
   }
-  /* desktop scales with the window: 18px root at 1920, a bit under linear above it (22.8px at 2560, 32.4px at 3840) so big screens don't look zoomed; 120rem stays wider than the viewport, no side gaps */
+  /* 18px root at 1920, a bit under linear above it (22.8px at 2560, 32.4px at 3840) so big screens don't look zoomed */
   @media (min-width: 1280px) {
     html { font-size: calc(0.75vw + 3.6px); }
   }

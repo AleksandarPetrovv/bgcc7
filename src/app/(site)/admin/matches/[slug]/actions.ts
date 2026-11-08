@@ -23,7 +23,6 @@ async function sync(matchId: string) {
   if (!sb) return;
   const firstTo = firstToOf(stages, match.stage);
   if (!(await settleResult(match, sb.score, firstTo))) throw new Error("saving the result failed");
-  // the board above was cached while the old winner was still set; drop it so later games still count
   if (!decideWinner(sb.score, firstTo)) await forgetScoreboard(matchId);
 }
 

@@ -13,7 +13,6 @@ import { dayDate, fmtDate } from "@/lib/time";
 const pad = (n: number) => String(n).padStart(2, "0");
 const toMin = (hhmm: string) => +hhmm.slice(0, 2) * 60 + +hhmm.slice(3, 5);
 
-/** each day between min and max ("YYYY-MM-DDTHH:mm", sofia) with its allowed minute range */
 function daysOf(min: string, max: string) {
   const out: { date: string; lo: number; hi: number }[] = [];
   for (let d = dayDate(min); ; d.setUTCDate(d.getUTCDate() + 1)) {
@@ -23,7 +22,6 @@ function daysOf(min: string, max: string) {
   }
 }
 
-/** "Oct 1st, Sat" / "1 окт, сб" */
 function dayName(date: string, lang: string) {
   const d = dayDate(date);
   const f = (o: Intl.DateTimeFormatOptions) => fmtDate(d, localeOf(lang), o, "UTC");
@@ -34,16 +32,13 @@ function dayName(date: string, lang: string) {
 }
 
 const at = (date: string, mins: number) => `${date}T${pad(Math.floor(mins / 60))}:${pad(mins % 60)}`;
-/** blocked holds "YYYY-MM-DDTHH" hours someone of the four can't play; the night (OFF_HOURS) is never free */
 export const isFree = (blocked: Set<string>, v: string) => !blocked.has(v.slice(0, 13)) && !offHours(v);
 
-/** first free time stepping from mins by step (never mins itself), null when none is left in range */
 function seek(blocked: Set<string>, date: string, mins: number, step: number, lo: number, hi: number) {
   for (let x = mins + step; x >= lo && x <= hi; x += step) if (isFree(blocked, at(date, x))) return x;
   return null;
 }
 
-/** first free time of the window, or min when everything is blocked */
 export function firstFree(min: string, max: string, blocked: Set<string>) {
   for (const d of daysOf(min, max)) {
     const x = isFree(blocked, at(d.date, d.lo)) ? d.lo : seek(blocked, d.date, d.lo, STEP, d.lo, d.hi);
@@ -52,7 +47,6 @@ export function firstFree(min: string, max: string, blocked: Set<string>) {
   return min;
 }
 
-/** day tabs + arrow-only hour/minute picker limited to the scheduling window; arrows skip blocked hours. value is "YYYY-MM-DDTHH:mm" */
 export function DayTime({ min, max, value, onChange, blocked }: { min: string; max: string; value: string; onChange: (v: string) => void; blocked: Set<string> }) {
   const lang = useLang();
   const days = daysOf(min, max);
@@ -65,7 +59,6 @@ export function DayTime({ min, max, value, onChange, blocked }: { min: string; m
     setDir(x >= t ? 1 : -1);
     onChange(at(day.date, x));
   };
-  // a new day starts at its earliest free time
   const pickDay = (i: number) => {
     const d = days[i];
     const x = isFree(blocked, at(d.date, d.lo)) ? d.lo : (seek(blocked, d.date, d.lo, STEP, d.lo, d.hi) ?? d.lo);
@@ -107,7 +100,6 @@ function Col({ label, text, dir, up, down }: { label: string; text: string; dir:
   );
 }
 
-/** odometer like the overlay countdown: old and new digit slide one row together, soft fade at the edges */
 function Reel({ text, dir }: { text: string; dir: number }) {
   const reduce = useReducedMotion();
   const v = {

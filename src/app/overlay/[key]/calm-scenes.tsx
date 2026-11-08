@@ -32,7 +32,6 @@ function Countdown({ startsAt, at }: { startsAt: string | null; at: number }) {
   const start = startsAt ? Date.parse(startsAt) : NaN;
   const now = useNow(Number.isFinite(start));
   const diff = Math.ceil((start - Math.max(at, now ?? at)) / 1000);
-  // no start time or already past: the timer just sits at zero
   const left = Number.isFinite(diff) ? Math.max(0, diff) : 0;
   const parts = [Math.floor(left / 3600), Math.floor(left / 60) % 60, left % 60];
   const labels = ["Hours", "Minutes", "Seconds"];
@@ -43,7 +42,6 @@ function Countdown({ startsAt, at }: { startsAt: string | null; at: number }) {
         <div key={i} className="flex items-start gap-8">
           {i > 0 && <span className="num mt-[12px] text-[110px] leading-none text-ash/50" aria-hidden>:</span>}
           <div className="flex flex-col items-center gap-[76px]">
-            {/* odometer reel: old and new digit stay joined and slide one full row; the soft edge band sits in the glyph's empty top/bottom space */}
             <span className="num -my-[64px] flex h-[278px] items-center overflow-hidden text-[150px] leading-none tabular-nums text-paper [mask-image:linear-gradient(transparent,rgb(0_0_0/0.35)_32px,black_64px,black_calc(100%-64px),rgb(0_0_0/0.35)_calc(100%-32px),transparent)]">
               {String(p)
                 .padStart(2, "0")
@@ -103,7 +101,6 @@ function Soon({ feed }: { feed: OverlayFeed }) {
       <motion.div className="absolute inset-x-0 top-[110px] flex justify-center" initial={{ opacity: 0, y: -24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: EASE }}>
         <Lockup num={editionNum(feed)} size={150} animate />
       </motion.div>
-      {/* centred in the space between the logo and the rule above the teams */}
       <div className="absolute inset-x-0 bottom-[230px] top-[280px] flex items-center justify-center">
         <Countdown key={`${feed.match.id}:${feed.match.startsAt}`} startsAt={feed.match.startsAt} at={feed.at} />
       </div>
@@ -115,7 +112,6 @@ function Soon({ feed }: { feed: OverlayFeed }) {
   );
 }
 
-// counts up to the roll over ROLL_SPIN_MS, winner revealed ROLL_REVEAL_MS after the second roll
 function useSpin(value: number | null) {
   const seen = useRef(value);
   const [shown, setShown] = useState<number | null>(value);

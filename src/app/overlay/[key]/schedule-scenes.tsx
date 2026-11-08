@@ -12,7 +12,6 @@ import { cardLabels, recentResults } from "@/lib/matches";
 import type { OverlayFeed } from "@/lib/overlay-types";
 import { Backdrop, Echo, editionNum, Lockup, Rule, TopBar } from "./chrome";
 
-// the match data comes from the page render, so pull fresh results each time one of these scenes comes on
 function useFresh() {
   const router = useRouter();
   useEffect(() => router.refresh(), [router]);
@@ -59,7 +58,6 @@ export function ScheduleScene({ feed }: { feed: OverlayFeed }) {
   );
 }
 
-// full page: the lockup sits top right, over the empty space above the grand final
 const TOP = 24;
 const BOTTOM = 16;
 

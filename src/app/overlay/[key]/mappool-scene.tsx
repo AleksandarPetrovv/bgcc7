@@ -24,7 +24,6 @@ function groupFor(map: FeedMap) {
 
 const SWAP = { initial: { opacity: 0, y: 14, filter: "blur(4px)" }, animate: { opacity: 1, y: 0, filter: "blur(0px)" }, exit: { opacity: 0, y: -14, filter: "blur(4px)" }, transition: { duration: 0.4, ease: EASE } } as const;
 
-// the middle of the header: which side acts next, with an arrow leaning toward that team's plate
 function Turn({ feed }: { feed: OverlayFeed }) {
   const t = feed.turn;
   const key = t ? (t.kind === "tb" ? "tb" : `${t.kind}${t.team}${feed.steps.length}`) : feed.current ? `now${feed.current.slot}` : "none";
@@ -34,7 +33,6 @@ function Turn({ feed }: { feed: OverlayFeed }) {
         <motion.div key={key} {...SWAP} className="flex flex-col items-center gap-1.5">
           {t && t.kind !== "tb" ? (
             <>
-              {/* the arrow hangs off the side so the name stays centred over "picks" */}
               <span className="relative" style={{ color: TEAM[t.team - 1].hi }}>
                 <span className="heading-slam text-[56px] leading-none">{t.team === 1 ? "Red" : "Blue"}</span>
                 <motion.span animate={{ x: t.team === 1 ? [0, -7, 0] : [0, 7, 0] }} transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }} className={cn("absolute top-1/2 flex -translate-y-1/2", t.team === 1 ? "right-full mr-3" : "left-full ml-3")}>

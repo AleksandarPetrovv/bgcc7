@@ -103,7 +103,6 @@ export function TimerDock({
   forever?: boolean;
   raised?: boolean;
   calm?: boolean;
-  /** small line under the clock, e.g. whose timeout is running */
   note?: { text: string; color: string };
 }) {
   const low = !pause && !calm && left <= 10_000;
@@ -370,7 +369,6 @@ export function Waiting() {
 
 type AskAction = { label: string; onClick: () => void; fill?: boolean };
 
-/** centered confirm popup. without onClose it can't be dismissed (no backdrop click, no esc), only answered */
 export function AskPopup({ icon: Icon, color, title, body, actions, busy, onClose }: { icon: LucideIcon; color: { c: string; hi: string; deep: string }; title: string; body: string; actions: AskAction[]; busy?: boolean; onClose?: () => void }) {
   return (
     <Popup onClose={onClose} tone={color}>

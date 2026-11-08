@@ -93,7 +93,6 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
         <div className="mt-14 xl:mt-0">
         <SectionHeading mark="chevrons">{t.teams.matches}</SectionHeading>
         {matches.length ? (
-          // the home page's small cards
           <div className="grid grid-cols-1 gap-x-10 gap-y-4 md:grid-cols-2">
             {matches.map((m, n) => (
               <MatchRow key={m.id} match={m} small label={cardLabels(getFormat(), t, m)} delay={0.2 + n * 0.06} />

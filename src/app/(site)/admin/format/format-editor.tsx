@@ -34,13 +34,11 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
   const [ws, setWriteState] = useState<WriteState>({ status: "idle", resetting: false });
   const { status, resetting } = ws;
   const [tab, setTabState] = useState(0);
-  // the staggered intro plays on page load only; a stage switch just fades the round in, so the last row (tiebreaker) isn't left empty for a second
   const [switched, setSwitched] = useState(false);
   const setTab = (i: number) => {
     setSwitched(true);
     setTabState(i);
   };
-  // "saved" fades out 5s after the last save; any newer write state shows again
   const [staleFor, setStaleFor] = useState<WriteState | null>(null);
   useEffect(() => {
     if (ws.status !== "saved") return;

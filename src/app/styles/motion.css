@@ -41,7 +41,6 @@
 }
 
 
-/* the sticky sub-nav is part of the header: it stays put while the page content fades in */
 .anim-page > :not(.sub-nav),
 .anim-page-in {
   animation: page-in 0.5s var(--ease) both;
@@ -245,7 +244,6 @@
 .mk-pen-late { animation: mk-pen 0.7s cubic-bezier(0.65, 0, 0.35, 1) 0.65s both; }
 .mk-sweep { will-change: transform; backface-visibility: hidden; animation: mk-hand-in 1.6s cubic-bezier(0.25, 0.6, 0.25, 1) 0.35s both, mk-turn 8s linear 1.95s infinite; }
 @keyframes mk-sway-k { 0%, 100% { rotate: 0deg; } 30% { rotate: 4deg; } 70% { rotate: -4deg; } }
-/* badge swings in from the clip like a pendulum settling, then the photo and name appear */
 @keyframes mk-hang-k { 0% { transform: rotate(-38deg); } 38% { transform: rotate(13deg); } 60% { transform: rotate(-6deg); } 78% { transform: rotate(2.5deg); } 91% { transform: rotate(-0.8deg); } 100% { transform: none; } }
 .mk-hang { transform-box: view-box; transform-origin: 12px 1.5px; animation: mk-hang-k 1.5s cubic-bezier(0.37, 0, 0.63, 1) 0.1s both; }
 @keyframes mk-show-k { from { opacity: 0; } to { opacity: 1; } }
@@ -301,7 +299,6 @@
 @keyframes k-word { from { opacity: 0; transform: translate3d(0, 0.5em, 0) rotate(5deg); } }
 @keyframes k-ltr { from { opacity: 0; transform: translate3d(0, 0.4em, 0) scale(0.7); } }
 
-/* every css intro: the one list. paused until its InView is in, skipped below the fold (.no-intro) and for reduced motion */
 :is(.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word, .ltr,
     .in-left-far, .in-right-far, .in-slam, .in-launch, .in-grow-y, .in-stitch, .in-sweep) {
   animation-duration: 0.7s;

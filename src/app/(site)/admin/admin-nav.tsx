@@ -56,7 +56,6 @@ export function AdminNav({ items }: { items: { key: AdminKey; href: string; labe
           >
             {active && (
               <>
-                {/* the main nav's underline, stood on its side on desktop */}
                 <motion.span layoutId="admin-nav-active" transition={spring} className="absolute inset-x-1 bottom-0 h-[3px] -skew-x-12 bg-rose lg:inset-x-auto lg:inset-y-1.5 lg:left-0 lg:h-auto lg:w-[3px] lg:skew-x-0 lg:-skew-y-12" aria-hidden />
                 <motion.span layoutId="admin-nav-spark" transition={spring} className="absolute right-0.5 top-0 size-3 lg:hidden" aria-hidden>
                   <Sparkle className="inset-0 size-full text-rose-hi" />

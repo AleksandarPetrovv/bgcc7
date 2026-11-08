@@ -21,7 +21,6 @@ export function OverlayView({ overlayKey, scene, stage }: { overlayKey: string; 
   return <OverlaySubscription key={JSON.stringify([overlayKey, scene, stage])} url={url} />;
 }
 
-// the scene swaps while the sweep covers the screen
 const WIPE_S = 1.05;
 const SWAP_MS = 520;
 
@@ -56,11 +55,9 @@ function OverlaySubscription({ url }: { url: string }) {
       setFeed(next);
       expiry.current = setTimeout(() => setFeed((current) => current === next ? { ...current, live: null } : current), remaining);
     } catch {
-      // keep the last complete feed while the stream reconnects.
     }
   });
 
-  // a hidden tab doesn't save up animations: whatever changed while away just shows when you come back
   useEffect(() => {
     const sync = () => {
       MotionGlobalConfig.skipAnimations = document.hidden;
@@ -85,7 +82,6 @@ function OverlaySubscription({ url }: { url: string }) {
     return () => clearTimeout(swap);
   }, [target, shown]);
 
-  // during the wipe the outgoing scene keeps its own last data, so it never redraws with the next scene's feed
   const [held, setHeld] = useState<OverlayFeed | null>(null);
   if (feed && target === shown && held !== feed) setHeld(feed);
   const scene = (shown?.slice(shown.lastIndexOf(":") + 1) ?? feed?.scene) as OverlayFeed["scene"];

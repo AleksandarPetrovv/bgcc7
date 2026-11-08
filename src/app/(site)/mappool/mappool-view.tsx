@@ -10,7 +10,6 @@ import { roundName } from "@/lib/i18n/dict";
 import { MODS } from "@/lib/mods";
 import { EASE } from "@/lib/ease";
 
-// a hidden two-digit label holds the width, so the button (and the tabs left of it) never move between stages
 function PackLabel({ text, widest }: { text: string; widest: string }) {
   return (
     <span className="grid *:col-start-1 *:row-start-1">

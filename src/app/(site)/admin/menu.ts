@@ -1,7 +1,6 @@
 import { isBGCC6 } from "@/db";
 import { can, HELPER_PERMS, type Perm, type Role } from "@/lib/roles";
 
-// every admin page in nav order; the url is /admin/<key>, the label t.admin.menu[key], the icon ICONS[key]
 const SECTIONS = [
   { key: "helper", perm: HELPER_PERMS },
   { key: "phase", perm: ["phase"] },
@@ -25,6 +24,5 @@ const SECTIONS = [
 
 export type AdminKey = (typeof SECTIONS)[number]["key"];
 
-/** the admin pages this viewer can open, in nav order */
 export const adminMenu = (roles: readonly Role[] | null | undefined) =>
   SECTIONS.filter((s) => (!("bgcc6" in s) || isBGCC6()) && s.perm.some((p) => can(roles, p))).map((s) => ({ key: s.key as AdminKey, href: `/admin/${s.key}` }));

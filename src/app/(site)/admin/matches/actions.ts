@@ -29,7 +29,6 @@ const num = (fd: FormData, k: string) => {
 };
 
 export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
-  // unassigned matches stay open so a referee can take one; assigned ones only their ref or a host
   return guard("matches", "match.save", async ({ osuId }) => {
     const f = getFormat();
     const [m] = await db.select().from(matches).where(eq(matches.id, id)).limit(1);
@@ -51,7 +50,6 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     const firstTo = firstToOf(await getPoolStages(), poolSlug ?? m.stageSlug);
     const w = String(fd.get("winner") ?? "auto");
     const score: [number, number] = [score1 ?? 0, score2 ?? 0];
-    // auto: a score that reached firstTo without being ahead is a typo, not a result
     if (w === "auto" && !decideWinner(score, firstTo) && Math.max(...score) >= firstTo) return { ok: false, error: "invalid" };
     const winner = w === "1" ? 1 : w === "2" ? 2 : w === "none" ? null : decideWinner(score, firstTo);
     const mpLinks = mpCsv(mpIds(fd.getAll("mpLinks").join(" ")));
@@ -82,7 +80,6 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
       const swapped = (!!cur.team1Id && cur.team1Id !== base.team1Id) || (!!cur.team2Id && cur.team2Id !== base.team2Id);
       const moved = (startsAt?.getTime() ?? null) !== (cur.startsAt?.getTime() ?? null);
       await tx.update(matches).set(base).where(eq(matches.id, id));
-      // a staff time change, or a team swap that voids the agreed time
       if (moved || swapped) {
         patch = { ...base, startsAt: moved ? startsAt : null };
         await setMatchTime(tx, { id, team1Id: base.team1Id }, patch.startsAt ?? null, osuId);

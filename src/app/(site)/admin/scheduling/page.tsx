@@ -57,7 +57,6 @@ export default async function AdminScheduling() {
       <Cascade className="space-y-8" step={0.035}>
         {list.map((st, n) => {
           const wk = weekOf(weeks[st.slug]);
-          // both teams known but no time yet first, then agreed, then still waiting on teams
           const rank = (m: (typeof rows)[number]) => (!m.team1Id || !m.team2Id ? 2 : m.startsAt ? 1 : 0);
           const ms = rows.filter((m) => m.stageSlug === st.slug).sort((a, b) => rank(a) - rank(b));
           return (
