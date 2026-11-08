@@ -20,8 +20,7 @@ import { scoreOf, tbDue, turnOf, type DraftView } from "@/lib/draft";
 import { TEST_MATCH } from "@/lib/format";
 import { canSee } from "@/lib/authz";
 import { globalStore } from "@/lib/global-store";
-
-const BUILD = String(Date.now());
+import { BUILD } from "@/lib/build";
 
 // feeds rebuild several times a second; the draft timer check (which can write) only needs ~1/s
 const settledAt = globalStore("bgccSettledAt", () => new Map<string, number>());

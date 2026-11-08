@@ -90,7 +90,7 @@ const en: Deep<Dict> = {
     ],
   },
   qual: { noResults: "Qualifier results aren't in yet." },
-  admin: { seedLocked: "Seeds come from qualifiers and can't be changed by hand." },
+  admin: { seedLocked: "Seeds come from qualifiers and can't be changed by hand.", phases: { qualifiers: "Qualifiers", seeding: "Seeding" } },
 };
 
 const bg: Deep<Dict> = {
@@ -179,7 +179,7 @@ const bg: Deep<Dict> = {
     ],
   },
   qual: { noResults: "Резултатите от квалификациите още ги няма." },
-  admin: { seedLocked: "Номерата идват от квалификациите и не се променят ръчно." },
+  admin: { seedLocked: "Номерата идват от квалификациите и не се променят ръчно.", phases: { qualifiers: "Квалификации", seeding: "Поставяне" } },
 };
 
 function merge<T>(base: T, over: unknown): T {

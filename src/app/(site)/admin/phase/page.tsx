@@ -6,7 +6,7 @@ import { getSettings } from "@/db/settings";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
-import { phasesFor, SECTIONS, TIMELINE_KEYS } from "@/lib/sections";
+import { PHASES, SECTIONS, TIMELINE_KEYS } from "@/lib/sections";
 import { toSofiaInput } from "@/lib/time";
 import { phaseStates } from "@/lib/dates";
 import { setDates, setPhase, setSections, setTimeline } from "@/actions/phase";
@@ -23,7 +23,6 @@ export default async function AdminPhase() {
   if (!can(viewer?.roles, "phase")) notFound();
   const suiji = !isBGCC6();
   const off = getFormat().sectionsOff;
-  const phases = phasesFor(!suiji);
   const sections = SECTIONS.filter((k) => !off.includes(k));
   const allDates = [
     ["regOpensAt", t.admin.regOpens, s.regOpensAt],
@@ -42,7 +41,7 @@ export default async function AdminPhase() {
         <Panel title={t.admin.phaseNow} help={t.admin.phaseHelp} className="xl:col-span-2" i={0}>
           <ActionForm action={setPhase} submit={t.admin.applyPhase} className="space-y-4">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {phases.map((p, i) => (
+              {PHASES.map((p, i) => (
                 <label
                   key={p}
                   style={{ "--i": i, "--s": "0.07s", "--d": "0.5s" } as React.CSSProperties}

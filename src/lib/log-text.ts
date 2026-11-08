@@ -269,8 +269,14 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `подреди схемата: ${String(p.teams ?? "")}` : `seeded the bracket: ${String(p.teams ?? "")}`;
     case "teams.draw":
       return bg ? `изтегли отборите: ${String(p.teams ?? "")}` : `drew the teams: ${String(p.teams ?? "")}`;
-    case "teams.badges":
-      return p.badges === null ? (bg ? `върна значките на ${user()} от профила` : `reset ${user()}'s badges to their profile count`) : bg ? `смени значките на ${user()} на ${b(p.badges)}` : `set ${user()}'s badges to ${b(p.badges)}`;
+    case "draw.spin":
+      return bg ? `завъртя колелото: ${b(p.player)}` : `spun the wheel: ${b(p.player)}`;
+    case "draw.undo":
+      return bg ? `върна тегленето на ${b(p.player)}` : `took back the draw of ${b(p.player)}`;
+    case "draw.end":
+      return p.on ? (bg ? "показа изтеглените отбори" : "showed the drawn teams") : bg ? "затвори изтеглените отбори" : "closed the drawn teams";
+    case "draw.redo":
+      return bg ? `изтегли отново ${b(p.player)}` : `put back the draw of ${b(p.player)}`;
     case "format.save":
       return bg ? "обнови плана на формата" : "updated the format plan";
     case "format.reset":
@@ -285,16 +291,16 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `създаде отбор ${b(p.name)}` : `created team ${b(p.name)}`;
     case "team.update":
       return bg ? `промени отбор ${b(p.name)}` : `edited team ${b(p.name)}`;
+    case "team.request":
+      return p.accept
+        ? bg ? `одобри новото име и снимка на ${b(p.team)}` : `accepted the new name and picture of ${b(p.team)}`
+        : bg ? `отказа новото име и снимка на ${b(p.team)}: ${String(p.note ?? "")}` : `declined the new name and picture of ${b(p.team)}: ${String(p.note ?? "")}`;
     case "team.delete":
       return bg ? `изтри отбор ${team("id")}` : `deleted team ${team("id")}`;
     case "team.placeMember":
       return bg ? `премести ${user()} в ${team()}` : `moved ${user()} to ${team()}`;
     case "team.removeMember":
       return bg ? `извади ${user()} от отбора му` : `took ${user()} off their team`;
-    case "team.request":
-      return p.accept
-        ? bg ? `одобри новото име и снимка на ${b(p.team)}` : `accepted the new name and picture of ${b(p.team)}`
-        : bg ? `отказа новото име и снимка на ${b(p.team)}: ${String(p.note ?? "")}` : `declined the new name and picture of ${b(p.team)}: ${String(p.note ?? "")}`;
 
     case "match.save": {
       const score = p.score1 != null && p.score2 != null ? ` ${p.score1}-${p.score2}` : "";
@@ -400,13 +406,14 @@ const SUMMARY: Record<string, [string, string]> = {
   "staff.add": ["added staff members", "добави хора в екипа"],
   "staff.remove": ["removed staff members", "махна хора от екипа"],
   "team.update": ["edited teams", "промени отбори"],
+  "team.request": ["reviewed team name and picture changes", "прегледа смени на име и снимка"],
   "team.placeMember": ["moved players between teams", "местеше играчи между отбори"],
   "team.removeMember": ["took players off teams", "вади играчи от отбори"],
   "teams.seed": ["drew the teams", "изтегли отборите"],
+  "draw.spin": ["spun the draw wheel", "въртя колелото за тегленето"],
   "lobby.update": ["edited qualifier lobbies", "промени лобита"],
   "lobby.create": ["created qualifier lobbies", "създаде лобита"],
   "lobby.delete": ["deleted qualifier lobbies", "изтри лобита"],
-  "team.request": ["reviewed team name and picture changes", "прегледа смени на име и снимка"],
   "qual.import": ["imported qualifier scores", "вкара квалификационни резултати"],
   "sponsor.update": ["edited sponsors", "промени спонсори"],
   "sponsor.add": ["added sponsors", "добави спонсори"],

@@ -5,12 +5,11 @@ import { getTeams } from "@/db/tournament";
 import { getBwsLock, lockBws, unlockBws } from "@/db/registrations";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/action-result";
-import { PHASES, phasesFor, presetSections, SECTIONS, TIMELINE_KEYS, type Phase } from "@/lib/sections";
+import { PHASES, presetSections, SECTIONS, TIMELINE_KEYS, type Phase } from "@/lib/sections";
 import { fromSofiaInput } from "@/lib/time";
 import { isBGCC6 } from "@/db";
 
 async function applyPhase(p: Phase) {
-  if (!phasesFor(isBGCC6()).includes(p)) return false;
   await saveSettings({ phase: p, sections: presetSections(p) });
   if (isBGCC6()) return;
   // only before the draw: afterwards the locked ranks are what seeds and tiers were built on
@@ -63,7 +62,7 @@ export async function acceptPhase(phase: string) {
   return guard("phase", "phase.set", async () => {
     if (!(PHASES as readonly string[]).includes(phase)) return { ok: false, error: "invalid" };
     const p = phase as Phase;
-    if ((await applyPhase(p)) === false) return { ok: false, error: "invalid" };
+    await applyPhase(p);
     return { log: { phase: p } };
   });
 }

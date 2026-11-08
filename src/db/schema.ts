@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { boolean, customType, doublePrecision, index, integer, jsonb, pgTable, serial, text, timestamp, unique, uniqueIndex } from "drizzle-orm/pg-core";
 import type { Beatmap } from "@/lib/data";
+import type { DrawState } from "@/lib/draw";
 
 export const users = pgTable(
   "users",
@@ -74,6 +75,7 @@ export const settings = pgTable("settings", {
   formatPlan: jsonb("format_plan"),
   copy: jsonb("copy").$type<Record<string, string>>().notNull().default({}),
   bwsLockedAt: timestamp("bws_locked_at", { withTimezone: true }),
+  draw: jsonb("draw").$type<DrawState>(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -309,8 +311,6 @@ export const sponsors = pgTable("sponsors", {
   seeded: boolean("seeded").notNull().default(false),
 });
 
-export const reschedules = pgTable("reschedules", {
-  id: serial("id").primaryKey(),
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => "bytea" });
 
 // a captain's team name + picture change; null name / pic = the captain's own. status pending / accepted / rejected
@@ -331,6 +331,8 @@ export const teamRequests = pgTable("team_requests", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const reschedules = pgTable("reschedules", {
+  id: serial("id").primaryKey(),
   matchId: text("match_id")
     .notNull()
     .references(() => matches.id, { onDelete: "cascade" }),

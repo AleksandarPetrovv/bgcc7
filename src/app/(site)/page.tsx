@@ -245,7 +245,7 @@ export default async function Home() {
   const teamById = (id: string) => teams.find((x) => x.id === id);
   const see = (s: keyof typeof vis.sections) => vis.sections[s];
   const phase = settings.phase;
-  const due = me?.roles.includes("host") ? duePhase(settings.timeline, phase, !isBGCC6()) : null;
+  const due = me?.roles.includes("host") ? duePhase(settings.timeline, phase) : null;
   const prompt = due && settings.phasePrompts[String(me!.osuId)] !== due ? due : null;
   const playing = phase === "seeding" || phase === "playoffs";
   const big = "px-6 py-3 text-base sm:px-8 sm:py-4 sm:text-xl";
@@ -253,8 +253,8 @@ export default async function Home() {
   const final = finalResult(matches);
   const champ = phase === "finished" && final ? teamById(final.champion) : undefined;
   const runnerUp = champ && final ? teamById(final.runnerUp) : undefined;
-  const ctaHref: Record<string, string> = { screening: "/teams/players", qualifiers: "/qualifiers", seeding: "/teams", playoffs: "/matches", finished: "/matches" };
-  const ctaOk: Record<string, boolean> = { screening: see("players"), qualifiers: see("lobbies"), seeding: see("teams"), playoffs: see("schedule"), finished: see("schedule") };
+  const ctaHref: Record<string, string> = { screening: "/teams/players", qualifiers: isBGCC6() ? "/qualifiers" : "/teams/players", seeding: "/teams", playoffs: "/matches", finished: "/matches" };
+  const ctaOk: Record<string, boolean> = { screening: see("players"), qualifiers: see(isBGCC6() ? "lobbies" : "players"), seeding: see("teams"), playoffs: see("schedule"), finished: see("schedule") };
   const signupOpen = regOpen(settings, vis.sections);
   const regCloses = signupOpen && isFuture(settings.regClosesAt) ? settings.regClosesAt!.toISOString() : null;
   const mine = me ? regs.find((r) => r.osuId === me.osuId) : undefined;

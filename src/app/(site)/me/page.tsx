@@ -171,7 +171,8 @@ export default async function Me() {
   const qp = myQual >= 0 ? qual.players[myQual] : null;
   const qualTable = qp && <QualifierScores t={t} maps={qual.maps} player={qp} />;
 
-  if (phase === "qualifiers") {
+  // bgcc7's qualifiers phase is player seeding: no lobbies, it falls through to the bws card
+  if (phase === "qualifiers" && isBGCC6()) {
     const booking = windowState(settings.bookingOpensAt, settings.bookingClosesAt);
     const lobby = lobbies.find((l) => l.players.some((p) => p.osuId === me));
     const approved = reg?.status === "approved";
