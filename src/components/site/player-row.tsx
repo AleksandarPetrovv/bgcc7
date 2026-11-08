@@ -12,7 +12,6 @@ export function PlayerRow({
   id,
   as: Tag = "li",
   avatar,
-  look,
   pfpClass,
   lazy,
   country,
@@ -26,7 +25,6 @@ export function PlayerRow({
   id?: number | string | null;
   as?: "li" | "span";
   avatar: string;
-  look?: "ring" | "plain";
   pfpClass?: string;
   lazy?: boolean;
   country?: string;
@@ -40,7 +38,7 @@ export function PlayerRow({
   const t = useDict();
   return (
     <Tag {...meP(id)} className={cn("flex items-center", hl && "me-hl", className)} style={style}>
-      <Pfp src={avatar} look={look} lazy={lazy} className={pfpClass} />
+      <Pfp src={avatar} lazy={lazy} className={pfpClass} />
       {country && <Pic src={flagUrl(country)} className="h-2.5 shrink-0" />}
       {children}
       {captain && <Crown className="size-3.5 shrink-0 -translate-y-px text-gold-hi" aria-label={t.common.captain} />}

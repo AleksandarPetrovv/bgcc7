@@ -33,7 +33,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
         <img src={team.image} alt="" className="absolute -inset-[5%] h-[110%] w-[110%] max-w-none object-cover opacity-25 mix-blend-multiply blur-2xl" />
         <div className="relative mx-auto flex max-w-page flex-wrap items-end gap-8 px-4 py-12 sm:px-6 lg:px-10 lg:py-16 2xl:px-14">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={team.image} alt="" className="in-spin size-40 border-4 border-paper object-cover" style={{ "--d": "0.1s" } as React.CSSProperties} />
+          <img src={team.image} alt="" className="in-spin size-40 rounded-full object-cover" style={{ "--d": "0.1s" } as React.CSSProperties} />
           <div>
             <span className="in-pop inline-block origin-left" style={{ "--d": "0.35s" } as React.CSSProperties}>
               <Tag tone="balkan" className="text-xs">
@@ -69,7 +69,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
             <div key={p.userId} {...meP(p.userId)} className="me-hl relative flex items-center gap-1 overflow-hidden border-b border-line py-3">
               <MeTag p={p.userId} corner />
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.avatar} alt="" className="size-20 shrink-0 object-cover" />
+              <img src={p.avatar} alt="" className="size-20 shrink-0 rounded-full object-cover" />
               <div className="flex-1 p-3">
                 <div className="flex items-center gap-2 font-display font-black">
                   <a href={osuUser(p.userId)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">

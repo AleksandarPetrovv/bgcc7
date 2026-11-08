@@ -190,11 +190,10 @@ function Hosts({ p, compact, d = 0 }: { p: FolkProps; compact?: boolean; d?: num
       <div className={cn("mx-auto grid w-full grid-cols-2 gap-6 sm:gap-10", compact ? "lg:max-w-md" : "lg:absolute lg:inset-y-7 lg:left-12 lg:right-0 lg:w-auto lg:grid-cols-[auto_auto] lg:content-center lg:justify-center lg:gap-6 lg:[container-type:size] xl:inset-y-9")}>
         {hosts.slice(0, 2).map((h, i) => (
           <a key={h.osuId} href={osuUser(h.osuId)} target="_blank" rel="noreferrer" className="group flex min-w-0 flex-col">
-            <span className={cn("in-up in-slow relative aspect-square overflow-hidden", !compact && "lg:w-[min(calc(100cqh_-_2.5rem_-_clamp(1.4rem,2vw,2.4rem)),calc(50cqw_-_0.75rem))]")} style={dv(d + i * 0.15)}>
+            <span className={cn("in-up in-slow relative aspect-square overflow-hidden rounded-full", !compact && "lg:w-[min(calc(100cqh_-_2.5rem_-_clamp(1.4rem,2vw,2.4rem)),calc(50cqw_-_0.75rem))]")} style={dv(d + i * 0.15)}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={h.avatarUrl ? avatarPath(h.osuId, true) : ""} alt="" className="absolute inset-0 size-full object-cover grayscale-[.3] transition duration-500 group-hover:grayscale-0" />
               <span className="absolute inset-0 bg-gradient-to-t from-well/45 via-transparent to-transparent" aria-hidden />
-              <span className={cn("in-grow absolute inset-x-0 top-0 h-1", i === 0 ? "bg-rose" : "bg-balkan")} style={dv(d + i * 0.15 + 0.35)} aria-hidden />
             </span>
             <span className="mt-4 block truncate font-display text-[clamp(1.4rem,2vw,2.4rem)] font-black leading-none tracking-[-0.03em] text-paper transition-colors group-hover:text-rose-hi">
               <Letters text={h.username} d={T} s={0.05} />

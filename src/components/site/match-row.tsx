@@ -42,7 +42,7 @@ function Side({ id, flip, lost, small, at }: { id: string; flip?: boolean; lost?
           )}
           <Link href={teamHref(team)} className="shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={team.image} alt="" className={cn("in-pop object-cover", small ? "size-10 rounded-full" : "size-14 border border-dashed border-paper/25 sm:size-20", lost && "opacity-50")} style={at(0.25)} />
+            <img src={team.image} alt="" className={cn("in-pop rounded-full object-cover", small ? "size-10" : "size-14 sm:size-20", lost && "opacity-50")} style={at(0.25)} />
           </Link>
           <span className="flex max-w-full min-w-0 flex-col items-center gap-1.5">
             <Link href={teamHref(team)} className={cn("min-w-0 max-w-full font-display font-black leading-tight hover:text-rose-hi", small ? "truncate text-xs" : "line-clamp-2 break-words text-[0.8rem] sm:line-clamp-1 sm:text-lg", lost && "text-ash")}>
@@ -66,7 +66,7 @@ function Side({ id, flip, lost, small, at }: { id: string; flip?: boolean; lost?
       ) : (
         <>
           {!small && <span className="-mb-1 hidden h-4 sm:block" />}
-          <span className={cn("bg-slate", small ? "size-10 rounded-full" : "size-14 border border-dashed border-paper/25 sm:size-20")} />
+          <span className={cn("rounded-full bg-slate", small ? "size-10" : "size-14 sm:size-20")} />
           <span className={cn("font-display font-bold text-ash", small ? "text-xs" : "text-sm")}>{t.common.tbd}</span>
         </>
       )}

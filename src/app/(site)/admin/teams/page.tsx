@@ -83,7 +83,7 @@ export default async function AdminTeams() {
                       <span className={cn("num text-right text-base", tier ? "text-paper" : "text-ash")}>{p.bws === null ? "–" : i + 1}</span>
                       <span className="flex min-w-0 items-center gap-2 sm:gap-2.5">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={p.avatarUrl ?? avatarPath(p.osuId)} alt="" className="size-7 shrink-0" />
+                        <img src={p.avatarUrl ?? avatarPath(p.osuId)} alt="" className="size-7 shrink-0 rounded-full object-cover" />
                         <span className="min-w-0 truncate font-display font-bold">{p.username}</span>
                       </span>
                       <span className="flex justify-center">
@@ -186,7 +186,7 @@ export default async function AdminTeams() {
                           <input type="radio" name="captain" value={p.userId} defaultChecked={p.isCaptain} className="peer sr-only" />
                           <span className="flex min-w-0 flex-1 items-center gap-2">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={p.avatar} alt="" className="size-7 shrink-0 grayscale transition group-has-[:checked]:grayscale-0" />
+                            <img src={p.avatar} alt="" className="size-7 shrink-0 rounded-full object-cover grayscale transition group-has-[:checked]:grayscale-0" />
                             <span className="min-w-0 flex-1 truncate text-sm font-display font-black">{p.username}</span>
                             <Crown className="size-4 shrink-0 translate-y-1 fill-current text-gold-hi opacity-0 transition-[opacity,translate] duration-300 group-has-[:checked]:translate-y-0 group-has-[:checked]:opacity-100" />
                           </span>
@@ -201,7 +201,7 @@ export default async function AdminTeams() {
                 {team.players.map((p) => (
                   <li key={p.userId} className="flex flex-wrap items-center gap-2 py-2 text-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.avatar} alt="" className="size-7" />
+                    <img src={p.avatar} alt="" className="size-7 rounded-full object-cover" />
                     <span className="font-display font-bold">{p.username}</span>
                     {seedOf.has(p.userId) && <span className="num text-xs text-ash">{tag}{seedOf.get(p.userId)}</span>}
                     {p.rank > 0 && <span className="num text-xs text-ash">#{fmtNum(p.rank)}</span>}

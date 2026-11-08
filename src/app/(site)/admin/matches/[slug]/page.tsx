@@ -90,7 +90,7 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
                               <details className="group border border-line">
                                 <summary className="flex cursor-pointer list-none items-center gap-2 px-2 py-1.5 text-sm">
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={p.avatar} alt="" className="size-6 shrink-0" />
+                                  <img src={p.avatar} alt="" className="size-6 shrink-0 rounded-full object-cover" />
                                   <span className="min-w-0 flex-1 truncate font-display font-bold">{p.name}</span>
                                   {p.edited && <span className="text-[0.6rem] font-display font-bold text-gold-hi">{t.admin.ms.edited}</span>}
                                   {p.mods.length > 0 && <span className="text-[0.65rem] font-display font-black uppercase text-ash">{p.mods.join("")}</span>}
@@ -123,7 +123,7 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
                               <details className="group border border-dashed border-rose/50">
                                 <summary className="flex cursor-pointer list-none items-center gap-2 px-2 py-1.5 text-sm">
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={p.avatar} alt="" className="size-6 shrink-0 opacity-60" />
+                                  <img src={p.avatar} alt="" className="size-6 shrink-0 rounded-full object-cover opacity-60" />
                                   <span className="min-w-0 flex-1 truncate font-display font-bold text-paper/70">{p.username}</span>
                                   <span className="text-[0.6rem] font-display font-bold text-rose-hi">{t.admin.ms.noScore}</span>
                                   <span className="num hidden w-14 text-right text-ash min-[400px]:block">0.00%</span>

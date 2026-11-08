@@ -43,7 +43,7 @@ function Team({ s, flip, d }: { s: Side; flip?: boolean; d: number }) {
   return (
     <div className={cn("flex min-w-0 flex-col items-center gap-2 text-center sm:flex-row sm:gap-3 sm:text-left", flip && "sm:flex-row-reverse sm:text-right")}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {s.image ? <img src={s.image} alt="" className={cn("size-12 shrink-0 border-b-[3px] object-cover sm:size-14", flip ? "border-azure" : "border-crimson")} /> : <span className="size-12 shrink-0 bg-slate sm:size-14" />}
+      {s.image ? <img src={s.image} alt="" className="size-12 shrink-0 rounded-full object-cover sm:size-14" /> : <span className="size-12 shrink-0 rounded-full bg-slate sm:size-14" />}
       <span className="line-clamp-2 min-w-0 break-words font-display font-black leading-tight sm:text-lg"><Letters text={s.name} d={d} s={0.02} /></span>
     </div>
   );
@@ -189,7 +189,7 @@ function Comment({ who, text }: { who: { id: number | null; name: string; color:
       <span className="mt-0.5 flex h-6 shrink-0 items-center" aria-hidden>
         <span className="size-1.5 rotate-45" style={{ background: who.color }} />
       </span>
-      <TeamPfp id={who.id} color={who.color} className="mt-0.5 size-6" />
+      <TeamPfp id={who.id} className="mt-0.5 size-6" />
       <div className="min-w-0">
         <span className="text-[0.7rem] font-display font-bold" style={{ color: `color-mix(in srgb, ${who.color} 70%, var(--paper))` }}>
           {who.name}
@@ -230,7 +230,7 @@ function History({ list, me, opp }: { list: Proposal[]; me: Side; opp: Side }) {
                   >
                     <span className={cn("num transition-colors duration-500", p.status === "rejected" || p.status === "cancelled" ? "text-ash line-through" : "text-paper")}>{w.hist(p.at)}</span>
                     <span className="inline-flex items-center gap-1.5 self-center font-display text-sm font-bold text-ash">
-                      <TeamPfp id={person(p.by).id} color={person(p.by).color} className="size-5" />
+                      <TeamPfp id={person(p.by).id} className="size-5" />
                       {person(p.by).name}
                     </span>
                     <span className={cn("ml-auto text-[0.68rem] font-display font-bold transition-colors duration-500", p.status === "accepted" ? "text-balkan-hi" : p.status === "pending" ? "text-gold-hi" : "text-rose-hi/80")}>{label(p)}</span>

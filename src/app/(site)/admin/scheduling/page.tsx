@@ -41,9 +41,9 @@ export default async function AdminScheduling() {
       <span data-cascade className={cn("flex min-w-0 items-center gap-1.5 sm:gap-2.5", side === 1 ? "in-right flex-row-reverse text-right" : "in-left")}>
         {team?.image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={team.image} alt="" className={cn("size-7 shrink-0 border-b-[3px] object-cover sm:size-9", side ? "border-azure" : "border-crimson")} />
+          <img src={team.image} alt="" className="size-7 shrink-0 rounded-full object-cover sm:size-9" />
         ) : (
-          <span className={cn("size-7 shrink-0 border-b-[3px] bg-slate sm:size-9", side ? "border-azure" : "border-crimson")} />
+          <span className="size-7 shrink-0 rounded-full bg-slate sm:size-9" />
         )}
         <span className={cn("min-w-0 truncate text-sm font-display font-black sm:text-base", !team && "text-ash")}>{team?.name ?? t.common.tbd}</span>
       </span>

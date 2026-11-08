@@ -96,7 +96,7 @@ export default async function AdminLobbies() {
                   {l.players.map((p, k) => (
                     <li key={p.osuId} style={{ "--i": k, "--s": "0.05s", "--d": "0.7s" } as React.CSSProperties} className="in-left flex flex-wrap items-center gap-3 py-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      {p.avatarUrl && <img src={p.avatarUrl} alt="" className="in-pop size-7 [--d:0.8s]" />}
+                      {p.avatarUrl && <img src={p.avatarUrl} alt="" className="in-pop size-7 rounded-full object-cover [--d:0.8s]" />}
                       <span className="min-w-0 truncate font-display font-bold">{p.username}</span>
                       <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto">
                         {lobbies.length > 1 && (

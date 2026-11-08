@@ -46,9 +46,9 @@ export function TeamCard({ team }: { team: Team }) {
           <Link href={teamHref(team)} {...meT(team.id)} className="group relative flex border-b-2 border-dashed border-line outline-offset-4 transition-colors hover:border-balkan sm:block">
             <MeTag t={team.id} corner className="me-corner-lg" />
             <RuleDiamond className="transition-colors group-hover:bg-balkan" />
-            <div className="relative w-24 shrink-0 overflow-hidden sm:h-32 sm:w-auto [mask-image:linear-gradient(to_right,black_60%,transparent)] sm:[mask-image:linear-gradient(to_bottom,black_55%,transparent)]">
-              <Pic src={team.image} className="in-wipe absolute inset-0 size-full object-cover sm:static transition duration-500 group-hover:brightness-110 [--d:0.1s]" />
-              <span className="in-pop num absolute bottom-0 left-0 flex size-8 origin-bottom-left items-center justify-center bg-ink text-lg sm:size-10 sm:text-2xl text-paper [--d:0.45s]" aria-label={`${t.common.seed} ${team.seed}`}>
+            <div className="relative shrink-0 self-center py-2.5 pl-2.5 sm:px-3.5 sm:pb-0 sm:pt-3.5">
+              <Pic src={team.image} className="in-wipe size-20 rounded-full object-cover transition duration-500 group-hover:brightness-110 sm:size-24 [--d:0.1s]" />
+              <span className="in-pop num absolute bottom-2 left-1.5 flex size-7 origin-bottom-left items-center justify-center bg-ink text-base sm:bottom-0 sm:left-2.5 sm:size-9 sm:text-xl text-paper [--d:0.45s]" aria-label={`${t.common.seed} ${team.seed}`}>
                 {team.seed}
               </span>
             </div>

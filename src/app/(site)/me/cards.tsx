@@ -56,7 +56,7 @@ export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { 
     <Card title={t.me.team} i={i} className={className}>
       <div className="in-up in-slow relative flex items-center gap-3 overflow-hidden py-2 sm:gap-4" style={at(0.2)}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={team.image} alt="" className="relative size-12 shrink-0 object-cover sm:size-16" />
+        <img src={team.image} alt="" className="relative size-12 shrink-0 rounded-full object-cover sm:size-16" />
         <div className="relative min-w-0 flex-1">
           <div className="heading-slam break-words text-lg leading-tight sm:text-2xl">{team.name}</div>
           <div className="num mt-1 flex flex-wrap gap-x-3 text-sm text-paper/70 sm:gap-x-4">
@@ -117,9 +117,9 @@ export function Side({ team, flip, fallback }: { team?: Team; flip?: boolean; fa
     <div className={cn("flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4", flip && "items-end text-right sm:flex-row-reverse")}>
       {team ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={team.image} alt="" className="size-14 shrink-0 object-cover sm:size-20" />
+        <img src={team.image} alt="" className="size-14 shrink-0 rounded-full object-cover sm:size-20" />
       ) : (
-        <span className="size-14 shrink-0 border border-dashed border-line sm:size-20" />
+        <span className="size-14 shrink-0 rounded-full bg-slate sm:size-20" />
       )}
       <div className="min-w-0">
         <div className="heading-slam line-clamp-2 break-words text-sm leading-tight sm:text-2xl">{team?.name ?? fallback}</div>

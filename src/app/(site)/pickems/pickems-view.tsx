@@ -166,7 +166,7 @@ export function PickemsView({ osuId, saved, leaderboard, open: openAtLoad, close
               <span className={cn("in-pop num text-2xl leading-none [--d:0.2s]", MEDAL[i] ?? "text-ash")}>#{i + 1}</span>
               <span className="flex min-w-0 items-center gap-3 font-display font-bold">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {e.avatarUrl && <img src={e.avatarUrl} alt="" className="size-8 shrink-0" />}
+                {e.avatarUrl && <img src={e.avatarUrl} alt="" className="size-8 shrink-0 rounded-full object-cover" />}
                 <a href={osuUser(e.osuId)} target="_blank" rel="noreferrer" className="truncate hover:text-rose-hi">
                   {e.username}
                 </a>

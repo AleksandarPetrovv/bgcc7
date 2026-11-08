@@ -12,19 +12,15 @@ export function Pic({ lazy, alt = "", ...rest }: PicProps) {
   return <img alt={alt} {...(lazy && { loading: "lazy" as const, decoding: "async" as const })} {...rest} />;
 }
 
-const RING = "rounded-full ring-2 ring-rose/40 ring-offset-2 ring-offset-coal";
-
-/** player avatar: `ring` is the round one with the rose ring, `plain` is the bare square one.
- *  `me` marks it for the viewer highlight, `crown` puts the crown on top. */
+/** round player avatar, no border. `me` marks it for the viewer highlight, `crown` puts the crown on top. */
 export function Pfp({
   src,
-  look = "ring",
   me,
   crown,
   className,
   ...rest
-}: Omit<PicProps, "src"> & { src?: string | null; look?: "ring" | "plain"; me?: number | string | null; crown?: boolean }) {
-  const cls = cn("size-10 shrink-0", look === "ring" && RING, me != null && "me-av", className);
+}: Omit<PicProps, "src"> & { src?: string | null; me?: number | string | null; crown?: boolean }) {
+  const cls = cn("size-10 shrink-0 rounded-full", me != null && "me-av", className);
   const img = src ? (
     <Pic src={src} className={cn(cls, "object-cover")} {...rest} {...(me != null && meP(me))} />
   ) : (
@@ -39,14 +35,10 @@ export function Pfp({
   );
 }
 
-/** round avatar with a team-coloured border; null id draws the empty placeholder. `className` sets size. */
-export function TeamPfp({ id, color, className }: { id: number | null; color: string; className?: string }) {
-  const cls = cn("shrink-0 rounded-full border-2", className);
-  return id == null ? (
-    <span className={cn(cls, "bg-slate")} style={{ borderColor: color }} aria-hidden />
-  ) : (
-    <Pic src={avatarPath(id)} className={cn(cls, "object-cover")} style={{ borderColor: color }} />
-  );
+/** round avatar by osu id; null id draws the empty placeholder. `className` sets size. */
+export function TeamPfp({ id, className }: { id: number | null; className?: string }) {
+  const cls = cn("shrink-0 rounded-full", className);
+  return id == null ? <span className={cn(cls, "bg-slate")} aria-hidden /> : <Pic src={avatarPath(id)} className={cn(cls, "object-cover")} />;
 }
 
 // 10.63cqh = tan(12deg) / 2 of the frame height: how far a -skew-x-12 edge leans at the top and bottom

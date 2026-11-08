@@ -7,7 +7,7 @@ import { modOn } from "@/lib/theme";
 import type { LiveClient, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
 import { editionNum, FlagBar, HeaderSide, LABEL, Lockup, Slant, TEAM } from "./chrome";
-import { SlantPfp } from "@/components/site/pfp";
+import { Pfp } from "@/components/site/pfp";
 import { EASE } from "@/lib/ease";
 
 const integer = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
@@ -83,7 +83,7 @@ function Player({ c, p, side, reduced }: { c?: LiveClient; p?: OverlayFeed["team
     <div className={cn("flex h-full flex-col items-center justify-center gap-4 text-center transition-opacity duration-300", right ? "pl-8 pr-4" : "pl-4 pr-8", c?.failed && "opacity-45")}>
       <motion.div layout="position" transition={move} className="flex min-w-0 max-w-full flex-col items-center gap-3">
         {p?.avatar && (
-          <SlantPfp src={p.avatar} className="size-[82px]" bg="bg-ink" edge="border-[3px]" edgeStyle={{ borderColor: t.c, boxShadow: `6px 6px 0 0 ${t.deep}` }} />
+          <Pfp src={p.avatar} className="size-[82px]" />
         )}
         <div className="flex min-w-0 max-w-full flex-col items-center">
           <span className="max-w-[320px] truncate font-display text-[30px] font-black leading-tight">{c?.name ?? p?.name ?? ""}</span>

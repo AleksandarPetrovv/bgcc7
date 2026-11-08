@@ -86,8 +86,7 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
                       <img
                         src={v.avatar}
                         alt=""
-                        className="mt-0.5 size-9 shrink-0 rounded-full object-cover ring-2 ring-offset-2 ring-offset-coal"
-                        style={{ "--tw-ring-color": scoreColor(v.score) } as React.CSSProperties}
+                        className="mt-0.5 size-9 shrink-0 rounded-full object-cover"
                       />
                     ) : (
                       <span className="size-8 shrink-0 rounded-full bg-slate" />
@@ -118,7 +117,7 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
                   <li key={p.osuId} className="vote-pop-row flex items-center gap-2.5 px-3 py-2 opacity-55" style={{ "--i": votes.length + i } as React.CSSProperties}>
                     {p.avatar ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.avatar} alt="" className="size-8 shrink-0 rounded-full object-cover grayscale ring-2 ring-line ring-offset-2 ring-offset-coal" />
+                      <img src={p.avatar} alt="" className="size-8 shrink-0 rounded-full object-cover grayscale" />
                     ) : (
                       <span className="size-8 shrink-0 rounded-full bg-slate" />
                     )}

@@ -28,7 +28,7 @@ export function ScreeningRow({ p, signedAt, i }: { p: RegRow; signedAt: string; 
     <InView self className="in-left-far border-b border-line" style={{ "--i": i < 12 ? i : 0, "--s": "0.05s", "--d": "0.9s" } as React.CSSProperties}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {p.avatarUrl && <img src={p.avatarUrl} alt="" className="in-spin size-10 [--d:0.95s]" />}
+        {p.avatarUrl && <img src={p.avatarUrl} alt="" className="in-spin size-10 rounded-full object-cover [--d:0.95s]" />}
         <div className="min-w-[13rem] flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}

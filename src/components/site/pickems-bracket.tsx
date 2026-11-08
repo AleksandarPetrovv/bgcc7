@@ -73,14 +73,14 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
               <Crown className="size-3.5" /> {t.pickems.champion}
             </div>
             <div className="flex items-center gap-3 p-2.5">
-              <Pic src={champ.image} className="size-16 shrink-0 object-cover" />
+              <Pic src={champ.image} className="size-16 shrink-0 rounded-full object-cover" />
               <div className="min-w-0 flex-1 break-words text-center text-lg font-display font-black leading-tight">
                 {champ.name}
               </div>
             </div>
             <ul className="space-y-1.5 border-t border-line px-2.5 py-2.5">
               {champ.players.map((p) => (
-                <PlayerRow key={p.userId} avatar={p.avatar} look="plain" pfpClass="size-6" country={p.country} captain={p.isCaptain} className="gap-2 px-1 py-0.5 text-sm">
+                <PlayerRow key={p.userId} avatar={p.avatar} pfpClass="size-6" country={p.country} captain={p.isCaptain} className="gap-2 px-1 py-0.5 text-sm">
                   <span className="truncate font-display font-bold">{p.username}</span>
                 </PlayerRow>
               ))}
@@ -121,7 +121,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
                     {team && (
                       <>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={team.image} alt="" className={cn("size-5 object-cover", (lost || miss) && "opacity-50")} />
+                        <img src={team.image} alt="" className={cn("size-5 rounded-full object-cover", (lost || miss) && "opacity-50")} />
                         <span className="min-w-0 flex-1 truncate">{team.name}</span>
                       </>
                     )}

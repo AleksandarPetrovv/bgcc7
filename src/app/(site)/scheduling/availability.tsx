@@ -87,14 +87,13 @@ export function Availability({ matchId, week, busy, me, opp, viewer, editable }:
   }, []);
 
   const busyOf = (id: number, k: string) => (id === viewer ? mine.has(k) : (busy[id] ?? []).includes(k));
-  const color = (team: "me" | "opp") => (team === "me" ? "var(--crimson)" : "var(--azure)");
 
   return (
     <div className="pb-5">
       <div className="mb-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
         {players.map((p, i) => (
           <span key={p.id} style={at(2.3, i, 0.08)} className={cn("in-up inline-flex items-end gap-1.5 text-xs font-display", p.id === viewer ? "font-black text-paper" : "font-bold text-ash")}>
-            <TeamPfp id={p.id} color={color(p.team)} className="size-5" />
+            <TeamPfp id={p.id} className="size-5" />
             <span className="flex flex-col items-center gap-1">
               <span className="grid h-3.5 place-items-center">
                 {saved(p.id) && !(p.id === viewer && editing) ? <Check className="size-3.5 text-balkan-hi" strokeWidth={3.5} aria-hidden /> : <span className="text-[0.75rem] font-black leading-none text-paper">?</span>}
@@ -154,7 +153,7 @@ export function Availability({ matchId, week, busy, me, opp, viewer, editable }:
                 >
                   {out.length ? (
                     out.map((p) => (
-                      <TeamPfp key={p.id} id={p.id} color={color(p.team)} className="size-[1.15rem]" />
+                      <TeamPfp key={p.id} id={p.id} className="size-[1.15rem]" />
                     ))
                   ) : (
                     <Check className="size-3.5 text-white/25" strokeWidth={3} aria-hidden />
@@ -179,12 +178,12 @@ export function Availability({ matchId, week, busy, me, opp, viewer, editable }:
           {err && <p className="text-xs font-bold text-rose-hi">{t.sched.availState.error}</p>}
         </div>
       )}
-      <AnimatePresence>{tip && <Tip key={tip.k} tip={tip} out={players.filter((p) => busyOf(p.id, tip.k))} color={color} lang={lang} />}</AnimatePresence>
+      <AnimatePresence>{tip && <Tip key={tip.k} tip={tip} out={players.filter((p) => busyOf(p.id, tip.k))} lang={lang} />}</AnimatePresence>
     </div>
   );
 }
 
-function Tip({ tip, out, color, lang }: { tip: { d: string; h: number; r: DOMRect }; out: { id: number; name: string; team: "me" | "opp" }[]; color: (t: "me" | "opp") => string; lang: string }) {
+function Tip({ tip, out, lang }: { tip: { d: string; h: number; r: DOMRect }; out: { id: number; name: string; team: "me" | "opp" }[]; lang: string }) {
   const t = useDict();
   if (!out.length) return null;
   const flip = tip.r.right + 280 > window.innerWidth;
@@ -202,7 +201,7 @@ function Tip({ tip, out, color, lang }: { tip: { d: string; h: number; r: DOMRec
       <ul className="grid shrink-0 gap-1">
         {out.map((p) => (
           <li key={p.id} className="flex items-center gap-1.5 text-xs font-display font-bold text-paper">
-            <TeamPfp id={p.id} color={color(p.team)} className="size-[1.15rem]" />
+            <TeamPfp id={p.id} className="size-[1.15rem]" />
             {p.name}
           </li>
         ))}

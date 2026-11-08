@@ -40,7 +40,7 @@ export default async function Staff() {
               <img
                 src={p.avatar}
                 alt=""
-                className="in-spin size-14 rounded-full object-cover ring-2 ring-rose/40 ring-offset-2 sm:ring-offset-4 ring-offset-ink transition-shadow duration-500 group-hover:ring-rose sm:size-24"
+                className="in-spin size-14 rounded-full object-cover sm:size-24"
               />
             </div>
             <div className="flex min-w-0 flex-1 flex-col justify-between gap-2.5 p-3 sm:gap-3 sm:p-4">

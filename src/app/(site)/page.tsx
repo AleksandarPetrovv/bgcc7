@@ -94,7 +94,7 @@ function Champion({ t, team, other }: { t: Dict; team: Team; other?: Team }) {
     <Reveal className="relative mb-6 overflow-hidden border border-gold/35 bg-coal">
       <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={team.image} alt="" className="size-24 shrink-0 object-cover ring-2 ring-gold/60 ring-offset-4 ring-offset-coal" />
+        <img src={team.image} alt="" className="size-24 shrink-0 rounded-full object-cover" />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-xs font-display font-bold text-gold-hi">
             <Crown className="size-4" /> {t.home.champion}
@@ -135,7 +135,7 @@ function TopList({ t, top, teams }: { t: Dict; top: TopCost[]; teams: Team[] }) 
             style={{ "--d": `${1.65 + i * 0.08}s` } as React.CSSProperties}
           >
             <span className={cn("num w-7 shrink-0 text-center text-3xl italic leading-none", MEDAL[i])}>{i + 1}</span>
-            <Pfp src={p.avatar} crown={i === 0} className={cn("size-11", i === 0 && "ring-gold")} />
+            <Pfp src={p.avatar} crown={i === 0} className="size-11" />
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="truncate font-display font-black leading-tight">{p.username}</span>
               {team && team.name !== p.username && (

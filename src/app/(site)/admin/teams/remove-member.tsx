@@ -51,7 +51,7 @@ export function RemoveMember({ osuId, captain, mates }: { osuId: number; captain
             >
               <SlantBg className="-skew-x-6 border border-line transition-colors group-hover:border-gold group-hover:bg-gold/10" />
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={m.avatar} alt="" className="size-8" />
+              <img src={m.avatar} alt="" className="size-8 rounded-full object-cover" />
               <span className="font-display font-black">{m.name}</span>
               <Crown className="ml-auto size-4 text-ash transition-colors group-hover:text-gold-hi" />
             </motion.button>

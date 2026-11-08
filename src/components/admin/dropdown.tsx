@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SlantPfp } from "@/components/site/pfp";
+import { Pfp } from "@/components/site/pfp";
 import { EASE } from "@/lib/ease";
 import { SlantBg } from "@/components/site/slant";
 import { AnchoredPopup } from "@/components/site/anchored-popup";
@@ -32,7 +32,7 @@ type Props = {
 };
 
 function OptionAvatar({ src }: { src: string | null }) {
-  return <SlantPfp src={src} className="size-7" bg="bg-slate" edge="border border-paper/30" />;
+  return <Pfp src={src} className="size-7" />;
 }
 
 export function Dropdown({ options, name, value, defaultValue, onChange, placeholder, required, disabled, className, multiple, "aria-label": aria }: Props) {

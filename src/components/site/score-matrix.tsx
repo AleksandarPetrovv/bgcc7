@@ -87,7 +87,7 @@ export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]
                     <span className={cn("num inline-block min-w-9 px-1.5 text-center text-base", seed <= 3 ? `${MEDAL_BG[seed - 1]} text-paper` : "bg-slate text-paper")}>#{seed}</span>
                   </td>
                   <td {...meP(p.id)} className="me-hl sticky left-14 z-10 bg-ink px-3 py-2">
-                    <PlayerRow as="span" avatar={p.avatar} look="plain" pfpClass="size-7" country={p.cc || undefined} className="gap-2 whitespace-nowrap font-display font-bold">
+                    <PlayerRow as="span" avatar={p.avatar} pfpClass="size-7" country={p.cc || undefined} className="gap-2 whitespace-nowrap font-display font-bold">
                       <a href={osuUser(p.id)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">{p.username}</a>
                       <MeTag p={p.id} />
                     </PlayerRow>

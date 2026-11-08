@@ -43,7 +43,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
             <div className="mt-4 flex items-center gap-3">
               {avatar && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatar} alt="" className="size-12 shrink-0 rounded-full object-cover ring-2 ring-rose/40 ring-offset-2 ring-offset-ink" />
+                <img src={avatar} alt="" className="size-12 shrink-0 rounded-full object-cover" />
               )}
               <div className="min-w-0">
                 <div className="heading-slam break-words text-xl leading-tight">

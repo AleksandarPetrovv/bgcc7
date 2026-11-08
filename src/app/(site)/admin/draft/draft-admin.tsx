@@ -13,7 +13,7 @@ import { EASE } from "@/lib/ease";
 import type { ActionResult } from "@/lib/action-result";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
-import { SlantPfp } from "@/components/site/pfp";
+import { Pfp } from "@/components/site/pfp";
 import { closeDraft, endDraft, openDraft, pauseDraft, resetDraft, resumeDraft, undoDraft } from "@/actions/draft";
 
 type TeamLite = { name: string; image: string } | null;
@@ -31,7 +31,7 @@ function Team({ team, side }: { team: TeamLite; side: 1 | 2 }) {
   const t = useDict();
   return (
     <span className={cn("flex min-w-0 items-center gap-2", side === 1 && "flex-row-reverse justify-start text-right")}>
-      {team?.image && <SlantPfp src={team.image} className="size-8" edge={cn("border-2", side === 1 ? "border-crimson" : "border-azure")} />}
+      {team?.image && <Pfp src={team.image} className="size-8" />}
       <span className={cn("truncate text-sm font-display font-black", !team && "text-ash")}>{team?.name ?? t.common.tbd}</span>
     </span>
   );

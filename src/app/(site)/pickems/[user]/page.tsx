@@ -70,7 +70,7 @@ export default async function UserBracket({ params }: { params: Promise<{ user: 
       >
         <span className="inline-flex items-center gap-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          {entry.avatarUrl && <img src={entry.avatarUrl} alt="" className="in-spin size-12" />}
+          {entry.avatarUrl && <img src={entry.avatarUrl} alt="" className="in-spin size-12 rounded-full object-cover" />}
           {t.pickems.bracketOf(entry.username)}
         </span>
       </PageTitle>

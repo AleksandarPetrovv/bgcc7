@@ -84,7 +84,7 @@ export default async function AdminQualifiers() {
               <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-2">
                 <span className={cn("in-slam num w-10 text-center text-lg [--d:0.6s]", i < settings.qualifyCount ? "text-balkan-hi" : "text-ash")}>#{i + 1}</span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.avatar} alt="" className="size-7" />
+                <img src={p.avatar} alt="" className="size-7 rounded-full object-cover" />
                 <span className="min-w-0 truncate font-display font-bold">{p.username}</span>
                 <span className="in-wipe-r num ml-auto text-balkan-hi [--d:0.7s]">{p.zSum.toFixed(2)}</span>
                 <span className="num hidden w-28 text-right text-sm text-ash sm:block">{t.admin.mapsPlayed(Object.keys(p.perf).length, results.maps.length)}</span>

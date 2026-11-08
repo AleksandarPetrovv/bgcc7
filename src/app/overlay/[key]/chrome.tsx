@@ -133,10 +133,10 @@ export function TopBar({ feed }: { feed: OverlayFeed }) {
   );
 }
 
-export function TeamPic({ src, side, size, className }: { src: string; side: 0 | 1 | null; size: number; className?: string }) {
+export function TeamPic({ src, size, className }: { src: string; size: number; className?: string }) {
   if (!src.trim()) return null;
   return (
-    <span className={cn("inline-flex shrink-0 overflow-hidden bg-slate", className)} style={{ width: size, height: size, borderBottom: `${Math.max(3, Math.round(size / 28))}px solid ${side === null ? "var(--gold)" : TEAM[side].c}` }}>
+    <span className={cn("inline-flex shrink-0 overflow-hidden rounded-full bg-slate", className)} style={{ width: size, height: size }}>
       <Img src={src} className="size-full object-cover" />
     </span>
   );
@@ -145,7 +145,7 @@ export function TeamPic({ src, side, size, className }: { src: string; side: 0 |
 export function TeamPlate({ team, side, big, className }: { team: FeedTeam; side: 0 | 1; big?: boolean; className?: string }) {
   return (
     <div className={cn("flex min-w-0 items-center gap-4", side === 1 && "flex-row-reverse text-right", className)}>
-      <TeamPic src={team.image} side={side} size={big ? 72 : 48} />
+      <TeamPic src={team.image} size={big ? 72 : 48} />
       <span className={cn("min-w-0 truncate font-display font-black leading-none", big ? "text-[44px]" : "text-[30px]")}>{team.name}</span>
     </div>
   );
@@ -165,7 +165,7 @@ function SlabPlate({ team, side, className }: { team: FeedTeam; side: 0 | 1; cla
   return (
     <Slant className={cn("min-w-0 shrink items-center px-5 py-2", className)} layer="border-2 bg-coal/95" style={{ borderColor: c.c, boxShadow: `6px 6px 0 0 ${c.deep}` }}>
       <span className={cn("flex min-w-0 items-center gap-3", side === 1 && "flex-row-reverse")}>
-        {team.image.trim() && <Img src={team.image} className="size-[40px] shrink-0 object-cover" />}
+        {team.image.trim() && <Img src={team.image} className="size-[40px] shrink-0 rounded-full object-cover" />}
         <span className="min-w-0 truncate font-display text-[28px] font-black leading-none">{team.name}</span>
       </span>
     </Slant>
@@ -256,7 +256,7 @@ export function Echo({ text, className, color = "var(--paper)" }: { text: React.
   );
 }
 
-export function PlayerCard({ p, side, size = 150, delay = 0 }: { p: FeedTeam["players"][number]; side: 0 | 1 | null; size?: number; delay?: number }) {
+export function PlayerCard({ p, size = 150, delay = 0 }: { p: FeedTeam["players"][number]; size?: number; delay?: number }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -265,7 +265,7 @@ export function PlayerCard({ p, side, size = 150, delay = 0 }: { p: FeedTeam["pl
       className="flex flex-col items-center gap-2"
       style={{ minWidth: size + 40, maxWidth: size + 140 }}
     >
-      <TeamPic src={p.avatar} side={side} size={size} />
+      <TeamPic src={p.avatar} size={size} />
       <span className="mt-1 max-w-full truncate px-1 font-display text-[26px] font-black leading-tight">{p.name}</span>
       <span className="flex items-center gap-2">
         {p.country && (

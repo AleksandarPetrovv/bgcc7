@@ -50,7 +50,7 @@ export function RegisterForm({ user, status, state, opensAt }: Props) {
         {user ? (
           <div className="flex items-center gap-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {user.image && <img src={user.image} alt="" className="size-16 shrink-0" />}
+            {user.image && <img src={user.image} alt="" className="size-16 shrink-0 rounded-full object-cover" />}
             <div className="min-w-0">
               <div className="truncate text-2xl font-display font-black">{user.name}</div>
               {status && (

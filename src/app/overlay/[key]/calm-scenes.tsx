@@ -196,12 +196,12 @@ function TeamSide({ team, side, roll }: { team: FeedTeam; side: 0 | 1; roll?: Re
       className={cn("relative flex min-w-0 flex-col items-center justify-center gap-12 px-10 text-center", right && "col-start-3")}
     >
       <div className="flex flex-col items-center gap-5">
-        <TeamPic src={team.image} side={side} size={120} />
+        <TeamPic src={team.image} size={120} />
         <h2 className="line-clamp-2 max-w-[640px] font-display text-[60px] font-black leading-[0.95]">{team.name}</h2>
       </div>
       <div className="flex flex-wrap justify-center gap-8">
         {team.players.map((p, i) => (
-          <PlayerCard key={p.id} p={p} side={side} size={120} delay={0.45 + i * 0.08} />
+          <PlayerCard key={p.id} p={p} size={120} delay={0.45 + i * 0.08} />
         ))}
       </div>
       {roll}
@@ -272,14 +272,14 @@ function Winner({ feed }: { feed: OverlayFeed }) {
           <span className="text-[28px] font-display font-bold">Winner</span>
         </motion.div>
         <motion.div {...rise(0.35)} className="mt-7">
-          <TeamPic src={team.image} side={side} size={150} />
+          <TeamPic src={team.image} size={150} />
         </motion.div>
         <motion.h1 {...rise(0.5)} className={cn("heading-slam mt-6 max-w-[1500px] text-balance pb-[0.08em] leading-[1.05]", team.name.length > 16 ? "text-[88px]" : "text-[112px]")}>
           {team.name}
         </motion.h1>
         <div className="mt-10 flex flex-wrap justify-center gap-12">
           {team.players.map((p, i) => (
-            <PlayerCard key={p.id} p={p} side={side} size={104} delay={0.8 + i * 0.1} />
+            <PlayerCard key={p.id} p={p} size={104} delay={0.8 + i * 0.1} />
           ))}
         </div>
       <motion.div {...rise(1.1)} className="mt-16 flex w-[1480px] flex-col gap-9">

@@ -8,7 +8,7 @@ import { EASE } from "@/lib/ease";
 import { plan, ROLL_SPIN_MS, type DraftStep, type DraftUndo, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
-import { SlantPfp } from "@/components/site/pfp";
+import { Pfp } from "@/components/site/pfp";
 import { GOLD, TEAM, tint } from "@/lib/theme";
 import { holdDraft, redoDraft, resumeDraft, undoDraft } from "@/actions/draft";
 import { Waiting } from "./draft-popups";
@@ -240,7 +240,7 @@ export function TeamsHeader({ teams, turn, me, score }: { teams: [TeamInfo, Team
         transition={{ duration: 0.8, ease: EASE, delay: 0.05, opacity: { duration: 0.5 } }}
         className={cn("flex min-w-0 flex-col items-center gap-2.5 text-center sm:flex-row sm:gap-5 sm:text-left", s === 2 && "sm:flex-row-reverse sm:text-right")}
       >
-        <SlantPfp src={tm.image} className="size-12 sm:size-20" bg="bg-slate" edge="border-2" edgeStyle={{ borderColor: TEAM[s].c, boxShadow: `5px 5px 0 0 ${TEAM[s].deep}` }} />
+        <Pfp src={tm.image} className="size-12 sm:size-20" />
         <div className={cn("flex w-full min-w-0 flex-1 flex-col items-center gap-2 sm:items-start", s === 2 && "sm:items-end")}>
           <div className="heading-slam w-full truncate text-base leading-none text-paper sm:text-3xl">{tm.name}</div>
           <div className={cn("flex w-full items-center gap-2", s === 2 && "flex-row-reverse")}>

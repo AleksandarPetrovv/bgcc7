@@ -53,7 +53,7 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
           {i + 1}
         </span>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {s.avatarUrl && <img src={s.avatarUrl} alt="" data-cascade className="in-spin size-9" />}
+        {s.avatarUrl && <img src={s.avatarUrl} alt="" data-cascade className="in-spin size-9 rounded-full object-cover" />}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {s.country && <img src={flagUrl(s.country)} alt="" data-cascade className="in-pop h-2.5" />}
         <span data-cascade className="in-wipe min-w-0 truncate font-display font-black">{s.username}</span>

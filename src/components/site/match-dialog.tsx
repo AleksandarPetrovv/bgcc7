@@ -34,7 +34,7 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
   return (
     <ul className={cn("min-w-0 space-y-2", !won && "opacity-60")}>
       {players.map((p, r) => (
-        <PlayerRow key={p.id} id={p.id} avatar={p.avatar} look="plain" lazy pfpClass="size-8" className={cn("min-w-0 gap-2 py-0.5", flip ? "in-right flex-row-reverse pr-1.5 text-right" : "in-left pl-1.5")} style={cssVars({ "--d": `${0.45 + r * 0.06}s` })}>
+        <PlayerRow key={p.id} id={p.id} avatar={p.avatar} lazy pfpClass="size-8" className={cn("min-w-0 gap-2 py-0.5", flip ? "in-right flex-row-reverse pr-1.5 text-right" : "in-left pl-1.5")} style={cssVars({ "--d": `${0.45 + r * 0.06}s` })}>
           <div className="min-w-0 flex-1 leading-tight">
             <div className={cn("flex min-w-0 items-center text-[0.8rem] font-display font-bold", flip && "flex-row-reverse")}>
               <span className="truncate">{p.name}</span>
@@ -159,7 +159,6 @@ export function Costs({ data, names, finished }: { data: Scoreboard; names: (str
                     key={r.id}
                     id={r.id}
                     avatar={r.avatar}
-                    look="plain"
                     lazy
                     pfpClass="size-8"
                     className={cn("gap-3 border-b border-line py-2 last:border-b-0", k === 1 ? "in-left" : "in-right")}
@@ -313,7 +312,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
                 className={cn("flex min-w-0 items-center gap-2 sm:gap-3", i === 1 ? "in-right order-3 flex-row-reverse text-right" : "in-left")}
                 style={cssVars({ "--d": "0.12s" })}
               >
-                {team && <Pic src={team.image} className={cn("size-8 shrink-0 border-b-[3px] object-cover sm:size-12", i ? "border-azure" : "border-crimson")} />}
+                {team && <Pic src={team.image} className="size-8 shrink-0 rounded-full object-cover sm:size-12" />}
                 <span className={cn("line-clamp-2 min-w-0 break-words text-xs font-display font-black leading-tight sm:text-lg", match.winner && match.winner !== i + 1 && "text-ash")}>
                   {names[i]}
                 </span>
