@@ -7,9 +7,9 @@ export const tourneyBadges = (list: OsuBadge[]) => list.filter((b) => !NOT_TOURN
 
 export const bws = (rank: number, badges: number) => Math.round(rank ** (0.9937 ** (badges * badges)));
 
-export type BwsIn = { osuId: number; rank: number | null; badges: number | null; badgeOverride: number | null };
+export type BwsIn = { osuId: number; rank: number | null; badges: number | null };
 
-const badgesOf = (p: BwsIn) => p.badgeOverride ?? p.badges ?? 0;
+const badgesOf = (p: BwsIn) => p.badges ?? 0;
 
 export function rankBws<T extends BwsIn>(rows: T[]) {
   return rows

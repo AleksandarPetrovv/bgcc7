@@ -15,7 +15,6 @@ export const users = pgTable(
     pp: doublePrecision("pp"),
     accuracy: doublePrecision("accuracy"),
     badges: integer("badges"),
-    badgeOverride: integer("badge_override"),
     discordId: text("discord_id"),
     discordName: text("discord_name"),
     statsAt: timestamp("stats_at", { withTimezone: true }),

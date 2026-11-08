@@ -105,13 +105,3 @@ export async function seedTeams() {
     return teams ? { log: { teams } } : { ok: false, error: "invalid" };
   });
 }
-
-export async function setBadges(osuId: number, _: ActionResult, fd: FormData) {
-  return guard("teams", "teams.badges", async () => {
-    const raw = String(fd.get("badges") ?? "").trim();
-    const n = raw === "" ? null : Number(raw);
-    if (n !== null && (!Number.isInteger(n) || n < 0 || n > 99)) return { ok: false, error: "invalid" };
-    await db.update(users).set({ badgeOverride: n }).where(eq(users.osuId, osuId));
-    return { log: { osuId, badges: n } };
-  });
-}

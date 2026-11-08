@@ -1,20 +1,19 @@
-import { Crown } from "lucide-react";
+import { ChevronDown, Crown } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { labelCls } from "@/components/admin/label";
 import { getQualResults } from "@/db/qualifiers";
-import { getBwsLock, getRegistrations } from "@/db/registrations";
-import { fmtSofia } from "@/lib/time";
+import { getRegistrations } from "@/db/registrations";
 import { getSettings } from "@/db/settings";
 import { getTeams } from "@/db/tournament";
 import { getViewer } from "@/lib/authz";
 import { fmtNum } from "@/lib/data";
-import { getDict, getLang } from "@/lib/i18n/server";
+import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
-import { createTeam, deleteTeam, seedTeams, placeMember, setBadges, updateTeam } from "./actions";
+import { createTeam, deleteTeam, seedTeams, placeMember, updateTeam } from "./actions";
 import { generateTeams } from "./(bgcc6)/actions";
 import { getFormat } from "@/db/edition";
 import { rankBws } from "@/lib/bws";
@@ -25,12 +24,12 @@ import { isBGCC6 } from "@/db";
 import { Cascade } from "@/components/site/cascade";
 import { RuleDiamond } from "@/components/site/rule";
 import { SlantBg } from "@/components/site/slant";
-import { localeOf } from "@/lib/i18n/locale";
 import { getPlayerSeeds } from "@/db/seeds";
+import { PHASES } from "@/lib/sections";
 
-const bwsGrid = "grid grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_4rem] items-center gap-x-2 px-2 sm:gap-x-3 sm:px-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_6rem_10rem_6rem]";
+const bwsGrid = "grid grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_4rem] items-center gap-x-2 px-2 sm:gap-x-3 sm:px-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_6rem_4rem_6rem]";
 export default async function AdminTeams() {
-  const [t, lang, viewer, teams, results, regs, settings, f, locked] = await Promise.all([getDict(), getLang(), getViewer(), getTeams(), getQualResults(), getRegistrations(), getSettings(), getFormat(), getBwsLock()]);
+  const [t, viewer, teams, results, regs, settings, f] = await Promise.all([getDict(), getViewer(), getTeams(), getQualResults(), getRegistrations(), getSettings(), getFormat()]);
   if (!can(viewer?.roles, "teams")) notFound();
   const suiji = !isBGCC6();
   const need = f.teams * f.teamSize;
@@ -50,6 +49,13 @@ export default async function AdminTeams() {
     const v = ids.map((id) => seedOf.get(id)).filter((x): x is number => typeof x === "number");
     return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
   };
+  const best = (ids: number[]) => Math.min(...ids.map((id) => seedOf.get(id) ?? Infinity));
+  // same order seedBracket gives: best average seed first, best single seed breaks ties, empty teams last
+  const sorted = [...teams].sort((a, b) => {
+    const ia = a.players.map((p) => p.userId), ib = b.players.map((p) => p.userId);
+    return (avg(ia) ?? Infinity) - (avg(ib) ?? Infinity) || best(ia) - best(ib) || a.seed - b.seed;
+  });
+  const seedingOpen = ranked.length > 0 && PHASES.indexOf(settings.phase) <= PHASES.indexOf("seeding");
 
   return (
     <>
@@ -60,13 +66,19 @@ export default async function AdminTeams() {
 
       {suiji && (
         <Panel title={t.admin.bwsRanking} className="mb-6">
-          <p className={cn("mb-3 text-xs font-display font-bold", locked ? "text-balkan-hi" : "text-ash")}>
-            {locked ? t.admin.bwsLocked(fmtSofia(locked, localeOf(lang))) : t.admin.bwsLive}
-          </p>
+          <details open={seedingOpen} className="group/seed">
+            <summary className="group/sum flex cursor-pointer list-none items-center gap-3 border-b border-line pb-2.5 [&::-webkit-details-marker]:hidden">
+              <span className="text-sm font-display font-black text-paper">{t.admin.seedingList}</span>
+              <span className="num text-xs text-ash">{ranked.length}</span>
+              <span className="relative isolate ml-auto grid size-8 shrink-0 place-items-center text-ash transition-colors group-hover/sum:text-paper group-open/seed:text-white">
+                <SlantBg className="border border-line transition-colors group-hover/sum:border-paper/40 group-open/seed:border-rose group-open/seed:bg-rose" />
+                <ChevronDown className="size-4 transition-transform duration-300 group-open/seed:rotate-180" aria-hidden />
+              </span>
+            </summary>
           {ranked.length === 0 ? (
-            <p className="text-sm text-ash">{t.admin.noRegs}</p>
+            <p className="pt-3 text-sm text-ash">{t.admin.noRegs}</p>
           ) : (
-            <Cascade className="border-y border-line" step={0.03}>
+            <Cascade className="border-b border-line" step={0.03}>
               <div className={cn(bwsGrid, "border-b border-line py-2 text-[0.62rem] font-display font-bold text-ash")}>
                 <span className="text-right">#</span>
                 <span>{t.admin.player}</span>
@@ -101,18 +113,7 @@ export default async function AdminTeams() {
                         )}
                       </span>
                       <span className="num hidden text-center text-ash sm:block">{p.rank ? `#${fmtNum(p.rank)}` : "–"}</span>
-                      <ActionForm key={`${p.osuId}-${p.badgeOverride}`} action={setBadges.bind(null, p.osuId)} submit="✓" ghost className="relative hidden items-center justify-center sm:flex [&>div]:absolute [&>div]:left-[calc(50%+2.25rem)] [&>div]:flex-nowrap">
-                        <Field
-                          name="badges"
-                          type="number"
-                          min={0}
-                          max={99}
-                          defaultValue={p.badgeOverride ?? p.badges ?? 0}
-                          aria-label={`${t.admin.badges} · ${p.username}`}
-                          title={p.badgeOverride !== null ? t.admin.badgesEdited(p.badges ?? 0) : undefined}
-                          className={cn("num w-14 text-center", p.badgeOverride !== null && "[&_input]:text-gold-hi")}
-                        />
-                      </ActionForm>
+                      <span className={cn("num hidden text-center sm:block", p.badgeCount > 0 ? "text-gold-hi" : "text-paper")}>{p.badgeCount}</span>
                       <span className="num text-center font-display font-bold text-paper">{p.bws === null ? "–" : fmtNum(p.bws)}</span>
                     </li>
                   );
@@ -120,6 +121,7 @@ export default async function AdminTeams() {
               </ol>
             </Cascade>
           )}
+          </details>
         </Panel>
       )}
 
@@ -142,14 +144,15 @@ export default async function AdminTeams() {
       </div>
 
       {teams.length === 0 && <p className="border-b border-line py-4 text-sm text-ash">{t.admin.noTeams}</p>}
-      <div className="grid grid-cols-1 gap-x-8 gap-y-8 2xl:grid-cols-2">
-        {teams.map((team, n) => (
+      <div className="mx-auto grid max-w-4xl grid-cols-1 gap-y-20 sm:gap-y-24">
+        {sorted.map((team, n) => (
           <section key={team.id} className="in-up relative border-b border-line" style={{ "--i": Math.min(n, 16), "--s": "0.07s", "--d": "0.2s" } as React.CSSProperties}>
             <RuleDiamond />
-            <div className="flex items-center gap-3 border-b border-line pb-3">
+            <details className="group/team">
+            <summary className="group/sum flex cursor-pointer list-none items-center gap-3 pb-3 [&::-webkit-details-marker]:hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {team.image && <img src={team.image} alt="" className="size-9 object-cover" />}
-              <span className="num text-xl text-balkan-hi">#{team.seed}</span>
+              {team.image && <img src={team.image} alt="" className="size-9 rounded-full object-cover" />}
+              <span className="num text-xl text-balkan-hi">#{n + 1}</span>
               <span className="heading-slam min-w-0 truncate text-xl sm:text-2xl">{team.name}</span>
               {suiji && avg(team.players.map((p) => p.userId)) !== null && (
                 <span className="num ml-auto shrink-0 text-xs text-ash">
@@ -159,8 +162,12 @@ export default async function AdminTeams() {
               <span className={cn("num shrink-0 text-sm text-ash", !suiji && "ml-auto")}>
                 {team.players.length}/{f.teamSize}
               </span>
-            </div>
-            <div className="space-y-4 py-4">
+              <span className="relative isolate grid size-8 shrink-0 place-items-center text-ash transition-colors group-hover/sum:text-paper group-open/team:text-white">
+                <SlantBg className="border border-line transition-colors group-hover/sum:border-paper/40 group-open/team:border-rose group-open/team:bg-rose" />
+                <ChevronDown className="size-4 transition-transform duration-300 group-open/team:rotate-180" aria-hidden />
+              </span>
+            </summary>
+            <div className="space-y-4 border-t border-line py-4">
               <ActionForm key={`${team.id}-${team.name}-${team.seed}-${team.players.map((p) => p.userId + String(p.isCaptain)).join()}`} action={updateTeam.bind(null, team.id)} className="space-y-3">
                 <div className="grid gap-2">
                   <label className={labelCls}>
@@ -218,8 +225,8 @@ export default async function AdminTeams() {
                 ))}
               </ul>
 
-              <div className="flex flex-wrap items-end justify-between gap-3">
-                {pool.length > 0 ? (
+              <div className={cn("flex flex-wrap items-end gap-3", team.players.length < f.teamSize ? "justify-between" : "justify-center")}>
+                {team.players.length >= f.teamSize ? null : pool.length > 0 ? (
                   <ActionForm action={placeMember} submit={t.admin.add} ghost className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                     <input type="hidden" name="teamId" value={team.id} />
                     <Dropdown name="osuId" required placeholder={t.admin.addToTeam} aria-label={t.admin.addToTeam} className="w-full sm:w-56" options={pool.map((p) => ({ value: String(p.osuId), label: p.username, hint: seedOf.has(p.osuId) ? `${tag}${seedOf.get(p.osuId)}` : undefined }))} />
@@ -230,6 +237,7 @@ export default async function AdminTeams() {
                 <ActionForm action={deleteTeam.bind(null, team.id)} submit={t.admin.deleteTeam} ghost confirm={t.admin.confirmDeleteTeam} />
               </div>
             </div>
+            </details>
           </section>
         ))}
       </div>

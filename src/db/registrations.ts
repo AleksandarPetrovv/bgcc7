@@ -21,7 +21,6 @@ export type RegRow = {
   pp: number | null;
   accuracy: number | null;
   badges: number | null;
-  badgeOverride: number | null;
   status: Status;
   note: string | null;
   createdAt: Date;
@@ -48,7 +47,6 @@ export const getRegistrations = () =>
           pp: users.pp,
           accuracy: users.accuracy,
           badges: users.badges,
-          badgeOverride: users.badgeOverride,
           rankLock: registrations.rankLock,
           badgesLock: registrations.badgesLock,
           status: registrations.status,
