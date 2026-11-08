@@ -24,11 +24,6 @@ html.lite .folk-panel::after {
   background-image: url("/noise.png");
 }
 
-.no-intro:is(.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word, .ltr, .in-left-far, .in-right-far, .in-slam, .in-launch, .in-grow-y, .in-stitch, .in-sweep),
-.no-intro :is(.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word, .ltr, .in-left-far, .in-right-far, .in-slam, .in-launch, .in-grow-y, .in-stitch, .in-sweep) {
-  animation: none !important;
-}
-
 .enter-kids > * {
   animation: rise 0.7s var(--ease) 0.36s backwards;
 }
@@ -69,8 +64,7 @@ html.lite .folk-panel::after {
   animation-delay: 0.60s;
 }
 
-/* only the sticky site nav: a bare `header` also filled the overlay bars and in-page headers */
-html.lite header.sticky {
+html.lite .site-header {
   backdrop-filter: none;
   background-color: var(--ink);
 }
@@ -123,7 +117,7 @@ html.lite :is(.anim-blob-a, .anim-blob-b) { animation-timing-function: steps(60)
 html.lite .anim-drift { animation-timing-function: steps(110) !important; }
 html.lite .anim-float { animation-timing-function: steps(30) !important; }
 html.lite .anim-echo { animation-timing-function: steps(20) !important; }
-/* small loops: held still while the page intro plays, then run smooth once LiteLoops adds .lite-loops (motion.tsx) */
+/* small loops: held still while the page intro plays, then run smooth once MotionProvider adds .lite-loops (motion.tsx) */
 html.lite:not(.lite-loops) :is(.match-run, .mdlg-shine, .anim-twinkle, .anim-ping-diamond, .animate-pulse,
     .adm-crest, .adm-spark, .mk-sway, .mk-toot, .mk-drift, .mk-ping, .mk-scan, .anim-chevron, .anim-bob, .dr-glow, .dr-beads-on, .dr-dots > span) {
   animation-play-state: paused !important;
@@ -169,7 +163,7 @@ html.lite .iv:not(.in) [data-letters] {
 }
 
 /* blurred thumbnails stay blurred, but no hover zoom that would re-blur every frame */
-html.lite .group\/row img {
+html.lite .row-thumb {
   scale: 1.1 !important;
   transition: none !important;
 }
@@ -178,77 +172,9 @@ html.lite :is(.lift, .lift-sm):hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .anim-rise,
-  .enter-kids > *,
-  .in-left-far,
-  .in-right-far,
-  .in-slam,
-  .in-launch,
-  .in-grow-y,
-  .in-stitch,
-  .in-sweep,
-  .in-up,
-  .in-left,
-  .in-right,
-  .in-drop,
-  .in-pop,
-  .in-flip,
-  .in-spin,
-  .in-wipe,
-  .in-wipe-r,
-  .in-grow,
-  .in-draw,
-  .word,
-  .ltr,
-  .anim-twinkle.star-in,
-  .anim-stripe,
-  .anim-stitch,
-  .anim-twinkle,
-  .anim-bob,
-  .anim-page,
-  .anim-page-in,
-  .anim-slam,
-  .anim-letter,
-  .anim-grow-x,
-  .anim-ping-diamond,
-  .anim-shine,
-  .anim-mark-in,
-  .anim-streak,
-  .anim-pop,
-  .anim-echo,
-  .anim-drift,
-  .anim-draw,
-  .anim-appear,
-  .anim-chevron,
-  .mk-bubble,
-  .mk-stem,
-  .mk-dot,
-  .mk-pop,
-  .mk-fan,
-  .mk-bar,
-  .mk-gear,
-  .mk-gear-r,
-  .mk-crowd,
-  .mk-swing-l,
-  .mk-swing-r,
-  .mk-clash,
-  .mk-spark,
-  .mk-hand-h,
-  .mk-hand-m,
-  .mk-pen,
-  .mk-pen-late,
-  .mk-sweep,
-  .mk-sway,
-  .mk-hang,
-  .mk-show,
-  .mk-toot,
-  .mk-rec,
-  .mk-drift,
-  .mk-ping,
-  .mk-scan,
-  .anim-float,
-  .anim-blob-a,
-  .anim-blob-b {
+  /* every .anim-* and .mk-* class is an animation; the in-* intros have theirs in motion.css */
+  :is([class^="anim-"], [class*=" anim-"], [class^="mk-"], [class*=" mk-"]),
+  .enter-kids > * {
     animation: none !important;
   }
   .lift:hover,

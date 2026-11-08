@@ -1,9 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export const belowFold = (el: Element) => el.getBoundingClientRect().top >= window.innerHeight;
+
+/** null until measured; true when the element mounted below the fold, so its intro is skipped */
+export function useIntroSkip(ref: React.RefObject<Element | null>) {
+  const [skip, setSkip] = useState<boolean | null>(null);
+  useLayoutEffect(() => {
+    if (ref.current) setSkip(belowFold(ref.current));
+  }, [ref]);
+  return skip;
+}
 
 export function InView({
   as: Tag = "div",
@@ -19,18 +28,9 @@ export function InView({
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLElement>(null);
-  const [state, setState] = useState<"" | "in" | "skip">("");
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (belowFold(el)) {
-      setState("skip");
-      return;
-    }
-    setState("in");
-  }, []);
+  const skip = useIntroSkip(ref);
   return (
-    <Tag ref={ref as React.Ref<never>} className={cn("iv", self && "iv-self", state && "in", state === "skip" && "no-intro", className)} style={style}>
+    <Tag ref={ref as React.Ref<never>} className={cn("iv", self && "iv-self", skip !== null && "in", skip && "no-intro", className)} style={style}>
       {children}
     </Tag>
   );

@@ -1,9 +1,9 @@
 "use client";
 
-import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { animate, motion, MotionConfig, useMotionValue, useTransform, type Variants } from "motion/react";
-import { belowFold } from "./in-view";
+import { useIntroSkip } from "./in-view";
 import { isLite, LITE } from "@/lib/lite";
 import { EASE } from "@/lib/ease";
 
@@ -31,6 +31,7 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   // lite: small loops wait until the page intro (every finite animation) has finished (presentation.css .lite-loops)
   useEffect(() => {
+    if (!isLite()) return;
     const html = document.documentElement;
     html.classList.remove("lite-loops");
     const until = Date.now() + 4000;
@@ -46,7 +47,8 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isLite()) return;
     return watchFrames(() => {
-      document.documentElement.classList.add(LITE);
+      // the intro is long over by now, so the loops start right away
+      document.documentElement.classList.add(LITE, "lite-loops");
       try {
         sessionStorage.setItem(LITE, "1");
       } catch {}
@@ -59,19 +61,11 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useBelowFold<T extends Element>() {
-  const ref = useRef<T>(null);
-  const [below, setBelow] = useState(false);
-  useLayoutEffect(() => {
-    if (ref.current && belowFold(ref.current)) setBelow(true);
-  }, []);
-  return [ref, below] as const;
-}
-
 const Skip = createContext(false);
 
 export function Reveal({ children, className, delay = 0, y = 24 }: { children: React.ReactNode; className?: string; delay?: number; y?: number }) {
-  const [ref, below] = useBelowFold<HTMLDivElement>();
+  const ref = useRef<HTMLDivElement>(null);
+  const below = useIntroSkip(ref);
   if (below)
     return (
       <div ref={ref} className={className}>
@@ -99,7 +93,8 @@ const item: Variants = {
 };
 
 export function Stagger({ children, className, gap = 0.06, as = "div" }: { children: React.ReactNode; className?: string; gap?: number; as?: "div" | "ul" | "ol" }) {
-  const [ref, below] = useBelowFold<HTMLDivElement>();
+  const ref = useRef<HTMLDivElement>(null);
+  const below = useIntroSkip(ref);
   if (below) {
     const Plain = as;
     return (
@@ -132,19 +127,21 @@ export function StaggerItem({ children, className, as = "div" }: { children: Rea
   );
 }
 
-export function CountUp({ to, className, decimals = 0, suffix = "", delay = 0 }: { to: number; className?: string; decimals?: number; suffix?: string; delay?: number }) {
+export function CountUp({ to, className, decimals = 0, suffix = "", delay = 0, duration = 1.6, snap = false }: { to: number; className?: string; decimals?: number; suffix?: string; delay?: number; duration?: number; snap?: boolean }) {
   const ref = useRef<HTMLSpanElement>(null);
+  const skip = useIntroSkip(ref);
   const value = useMotionValue(0);
   const shown = useTransform(value, (v) => v.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + suffix);
   useLayoutEffect(() => {
-    if (!ref.current) return;
-    if (belowFold(ref.current)) {
+    if (skip === null) return;
+    // snap: lands on the final number right away in lite / reduced motion
+    if (skip || (snap && (isLite() || matchMedia("(prefers-reduced-motion: reduce)").matches))) {
       value.set(to);
       return;
     }
-    const c = animate(value, to, { duration: 1.6, ease: EASE, delay });
+    const c = animate(value, to, { duration, ease: EASE, delay });
     return () => c.stop();
-  }, [to, value, delay]);
+  }, [skip, to, value, delay, duration, snap]);
   return (
     <motion.span ref={ref} className={className}>
       {shown}

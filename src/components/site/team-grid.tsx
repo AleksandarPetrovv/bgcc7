@@ -1,11 +1,9 @@
 "use client";
 
-import { motion } from "motion/react";
-import { PageTitle } from "./page";
+import { PageTitle } from "./page-title";
 import { TeamCard } from "./team-card";
 import { useDict } from "./lang";
 import { useTournament } from "./tournament";
-import { EASE } from "@/lib/ease";
 
 export function TeamGrid({ title }: { title: string }) {
   const t = useDict();
@@ -16,14 +14,9 @@ export function TeamGrid({ title }: { title: string }) {
       {teams.length ? (
         <div className="relative grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:gap-x-8 2xl:gap-y-10">
           {teams.map((team, k) => (
-            <motion.div
-              key={team.id}
-              style={{ "--i": Math.min(k, 12), "--s": "0.05s" } as React.CSSProperties}
-              initial={{ opacity: 0, y: 20, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, delay: Math.min(k, 12) * 0.04, ease: EASE } }}
-            >
+            <div key={team.id} className="in-up" style={{ "--i": Math.min(k, 12), "--s": "0.05s", animationDuration: "0.55s" } as React.CSSProperties}>
               <TeamCard team={team} />
-            </motion.div>
+            </div>
           ))}
         </div>
       ) : (

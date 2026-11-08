@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowDownToLine, ArrowUpRight, Download, Play, Star } from "lucide-react";
-import { Container, PageTitle, SlantButton } from "@/components/site/page";
+import { Container } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { UnderlineTabs } from "@/components/site/pool-pager";
 import { roundName } from "@/lib/i18n/dict";
-import { isLite } from "@/lib/lite";
 import { MODS } from "@/lib/mods";
 import { EASE } from "@/lib/ease";
 
@@ -25,7 +25,8 @@ import { osuMap } from "@/lib/links";
 import { modHi, modOn } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { RuleDiamond } from "@/components/site/rule";
-import { SlantBg } from "@/components/site/slant";
+import { CountUp } from "@/components/site/motion";
+import { SlantBg, SlantButton } from "@/components/site/slant";
 
 export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: string }) {
   const t = useDict();
@@ -202,35 +203,15 @@ function MapStats({ map }: { map: Stage["pools"][number]["maps"][number] }) {
 }
 
 
-function useCount(to: number, ms = 900) {
-  const [v, setV] = useState(to);
-  useEffect(() => {
-    // reduced motion / lite: lands on the final number on the first frame
-    const dur = matchMedia("(prefers-reduced-motion: reduce)").matches || isLite() ? 1 : ms;
-    let raf = 0;
-    const t0 = performance.now();
-    const tick = (now: number) => {
-      const p = Math.min(1, (now - t0) / dur);
-      setV(to * (1 - Math.pow(1 - p, 4)));
-      if (p < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [to, ms]);
-  return v;
-}
-
 function StageStrip({ stage, info }: { stage: Stage; info: { firstTo: number; bans: number } }) {
   const t = useDict();
   const maps = stage.pools.flatMap((p) => p.maps);
   const n = maps.length || 1;
-  const sr = useCount(maps.reduce((s, m) => s + m.sr, 0) / n);
-  const ft = useCount(info.firstTo, 700);
-  const total = useCount(maps.length, 700);
+  const sr = maps.reduce((s, m) => s + m.sr, 0) / n;
   const cells: { label: string; val: React.ReactNode; sub?: React.ReactNode; accent: string }[] = [
     {
       label: t.mappool.firstTo,
-      val: Math.round(ft),
+      val: <CountUp to={info.firstTo} duration={0.7} snap />,
       sub: (
         <>
           <span className="num">{info.bans}</span> {t.mappool.bans(info.bans)}
@@ -238,13 +219,13 @@ function StageStrip({ stage, info }: { stage: Stage; info: { firstTo: number; ba
       ),
       accent: "var(--balkan)",
     },
-    { label: t.mappool.maps, val: Math.round(total), accent: "var(--rose)" },
+    { label: t.mappool.maps, val: <CountUp to={maps.length} duration={0.7} snap />, accent: "var(--rose)" },
     {
       label: t.mappool.avgSr,
       val: (
         <span className="flex items-center gap-1.5">
           <Star className="size-5 fill-current text-gold-hi sm:size-6" />
-          {sr.toFixed(2)}
+          <CountUp to={sr} decimals={2} duration={0.9} snap />
         </span>
       ),
       accent: "var(--gold)",
