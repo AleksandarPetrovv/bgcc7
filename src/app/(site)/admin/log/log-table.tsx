@@ -56,7 +56,7 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
       const f = getFormat();
       const r = f.rounds[roundOf(id)];
       const n = matchNum(f, id);
-      return r ? (n ? `${roundName(t, r.name)} - ${n}` : roundName(t, r.name)) : id;
+      return r ? (n ? `${roundName(t, r.name)}, ${t.nav.match} ${n}` : roundName(t, r.name)) : id;
     },
   };
   const matchName = (id: string) => {

@@ -11,7 +11,7 @@ export const when = (d: Date) => `${fmtSofia(d, "en-GB")} (BG time)`;
 
 export function matchLabel(f: Format, id: string, round: string) {
   const num = matchNum(f, id);
-  return `${roundName(dicts.en, round)}${num ? ` Match ${num}` : ""}`;
+  return `${roundName(dicts.en, round)}${num ? `, Match ${num}` : ""}`;
 }
 
 const esc = (s: string) => s.replace(/[\\*_~`|[\]<>]/g, "\\$&");

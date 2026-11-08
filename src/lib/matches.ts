@@ -1,5 +1,5 @@
 import type { Match } from "./data";
-import { GF, GF_RESET, matchNum, type Format } from "./format";
+import { GF, GF_RESET, matchNum, roundOf, type Format } from "./format";
 import { roundName, type Dict } from "./i18n/dict";
 
 export const matchStamp = (m: { team1Id: string | null; team2Id: string | null; score1: number | null; score2: number | null; winner: number | null; mpLinks: string; startsAt: Date | null }) =>
@@ -10,17 +10,18 @@ const shortRound = (t: Dict, round: string) => {
   return t.roundsShort[round] ?? (losers ? t.losersShort(losers[1]) : roundName(t, round));
 };
 
-export function matchLabel(f: Format, t: Dict, matches: Match[], id: string) {
-  const m = matches.find((x) => x.id === id);
-  if (!m) return t.common.tbd;
+/** "Round of 16, Match 4"; `short` gives "Round of 16, M4" */
+export function matchLabel(f: Format, t: Dict, id: string, short = false) {
+  const round = f.rounds[roundOf(id)]?.name;
+  if (!round) return t.common.tbd;
   const k = matchNum(f, id);
-  return k ? `${roundName(t, m.round)} #${k}` : roundName(t, m.round);
+  return k ? `${roundName(t, round)}, ${short ? `${t.nav.match[0]}${k}` : `${t.nav.match} ${k}`}` : roundName(t, round);
 }
 
-export function sourceLabel(f: Format, t: Dict, matches: Match[], id: string, slot: 1 | 2) {
+export function sourceLabel(f: Format, t: Dict, id: string, slot: 1 | 2) {
   const src = f.feed[id]?.[slot - 1];
   if (!src) return t.common.tbd;
-  const label = matchLabel(f, t, matches, src.from);
+  const label = matchLabel(f, t, src.from);
   return src.take === "W" ? t.common.winnerOf(label) : t.common.loserOf(label);
 }
 
@@ -41,7 +42,7 @@ export function cardLabels(f: Format, t: Dict, m: Match): string[] {
   const k = matchNum(f, m.id);
   const short = shortRound(t, m.round);
   if (!k) return [roundName(t, m.round), short];
-  return [`${roundName(t, m.round)} ${t.nav.match} ${k}`, `${short} ${t.nav.match} ${k}`, `${short} ${t.nav.match[0]}${k}`];
+  return [`${roundName(t, m.round)}, ${t.nav.match} ${k}`, `${short}, ${t.nav.match} ${k}`, `${short}, ${t.nav.match[0]}${k}`];
 }
 
 export const recentResults = (matches: Match[]) => matches.filter((m) => m.winner).sort((a, b) => (b.datetime ?? "").localeCompare(a.datetime ?? ""));

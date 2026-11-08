@@ -363,10 +363,10 @@ export default async function Me() {
     const live = isLive(m);
     const stage = stages.find((s) => s.slug === m.stage);
     nextCard = (
-      <Card title={t.me.next} i={1} className="lg:col-span-2" right={pathTag}>
+      <Card title={t.me.next} i={1} className="lg:col-span-2">
         <div>
-          <div className="in-up in-slow flex items-center gap-3" style={at(0.15)}>
-            <span className="text-xs font-display font-bold text-rose-hi">{roundName(t, m.round)}</span>
+          <div className="in-up in-slow flex items-center justify-center gap-3" style={at(0.15)}>
+            <span className="num truncate text-sm text-paper/75 sm:text-base">{cardLabels(getFormat(), t, m)[0]}</span>
             {live && (
               <a href={TWITCH_URL} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-display font-bold text-rose-hi">
                 <span className="size-2 animate-pulse rounded-full bg-rose" /> {t.home.live}
@@ -384,7 +384,7 @@ export default async function Me() {
               </span>
             </span>
             <div className="in-right-far in-slow min-w-0" style={at(0.3)}>
-              <Side team={other} flip fallback={sourceLabel(getFormat(), t, matches, m.id, us === 1 ? 2 : 1)} />
+              <Side team={other} flip fallback={sourceLabel(getFormat(), t, m.id, us === 1 ? 2 : 1)} />
             </div>
           </div>
         </div>

@@ -80,7 +80,7 @@ function Box({ id, m, live, slim, className, style, onEnter, onLeave }: { id: st
         {id === GF_RESET ? (
           <span className="shrink-0 whitespace-nowrap text-[9.6px] font-display font-bold text-gold-hi">{t.rounds.reset}</span>
         ) : (
-          !m.datetime && !m.winner && !(m.team1.id && m.team2.id) && <span className={cn("truncate whitespace-nowrap text-[12.5px]", isGfId(id) ? "font-display font-bold text-gold-hi" : "num text-paper/75")}>{roundName(t, m.round)}{num ? ` ${t.nav.match} ${num}` : ""}</span>
+          !m.datetime && !m.winner && !(m.team1.id && m.team2.id) && <span className={cn("truncate whitespace-nowrap text-[12.5px]", isGfId(id) ? "font-display font-bold text-gold-hi" : "num text-paper/75")}>{roundName(t, m.round)}{num ? `, ${t.nav.match} ${num}` : ""}</span>
         )}
         <span className="ml-auto flex items-center gap-1">
           {live !== undefined && <LiveDot />}
