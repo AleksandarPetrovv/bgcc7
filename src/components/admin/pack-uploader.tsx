@@ -149,9 +149,9 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
   const remove = () => ask({ text: t.admin.confirmDeletePack, yes: t.admin.packDelete, onYes: startRemove });
   async function startRemove() {
     const key = slug;
-    const res = await fetch(`/api/admin/mappack/${key}`, { method: "DELETE" });
+    const res = await fetch(`/api/admin/mappack/${key}`, { method: "DELETE" }).catch(() => null);
     forget(key);
-    setMsg(res.ok ? { ok: true, text: t.admin.saved } : { ok: false, text: t.admin.error }, key);
+    setMsg(res?.ok ? { ok: true, text: t.admin.saved } : { ok: false, text: t.admin.error }, key);
     router.refresh();
   }
 

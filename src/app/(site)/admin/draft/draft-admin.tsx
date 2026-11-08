@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRefreshWhile } from "@/components/site/use-poll-refresh";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowUpRight, Lock, Pause, Play, RotateCcw, Undo2, X } from "lucide-react";
 import { Btn, ErrorNote } from "@/components/admin/form";
@@ -217,13 +217,7 @@ function Row({ r, pools, i }: { r: DraftRow; pools: { slug: string; title: strin
 
 export function DraftAdmin({ rows, pools }: { rows: DraftRow[]; pools: { slug: string; title: string }[] }) {
   const t = useDict();
-  const router = useRouter();
-  const live = rows.some((r) => r.draft?.open);
-  useEffect(() => {
-    if (!live) return;
-    const id = setInterval(() => router.refresh(), 4000);
-    return () => clearInterval(id);
-  }, [live, router]);
+  useRefreshWhile(rows.some((r) => r.draft?.open), 4000);
 
   if (!rows.length) return <p className="border border-dashed border-line px-4 py-8 text-center text-sm font-display font-bold text-ash">{t.admin.dr.none}</p>;
   return (

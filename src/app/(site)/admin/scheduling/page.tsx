@@ -9,7 +9,7 @@ import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { fmtSofia, toSofiaInput } from "@/lib/time";
-import { historyLabel, isOpen, weekOf, type Proposal } from "@/lib/schedule";
+import { historyLabel, isOpen, weekOf } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
 import { setTime, setWeek } from "./actions";
@@ -33,7 +33,7 @@ export default async function AdminScheduling() {
   const locale = localeOf(lang);
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? "—";
   const captain = (osuId: number | null) => (osuId == null ? s.staffName : (teams.flatMap((x) => x.players).find((p) => p.userId === osuId)?.username ?? s.staffName));
-  const hist = await historyOf(rows.map((m) => m.id)).catch(() => new Map<string, Proposal[]>());
+  const hist = await historyOf(rows.map((m) => m.id));
   const list = stages.filter((x) => isBracketStage(x.slug));
   const Side = ({ id, side }: { id: string | null; side: 0 | 1 }) => {
     const team = teams.find((x) => x.id === id);
@@ -45,7 +45,7 @@ export default async function AdminScheduling() {
         ) : (
           <span className={cn("size-7 shrink-0 border-b-[3px] bg-slate sm:size-9", side ? "border-azure" : "border-crimson")} />
         )}
-        <span className={cn("min-w-0 truncate text-sm font-display font-black sm:text-base", !team && "text-ash")}>{team?.name ?? "TBD"}</span>
+        <span className={cn("min-w-0 truncate text-sm font-display font-black sm:text-base", !team && "text-ash")}>{team?.name ?? t.common.tbd}</span>
       </span>
     );
   };

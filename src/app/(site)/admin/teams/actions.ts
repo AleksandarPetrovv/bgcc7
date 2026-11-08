@@ -28,10 +28,17 @@ export async function updateTeam(id: string, _: ActionResult, fd: FormData) {
     const image = String(fd.get("image") ?? "").trim().slice(0, 500);
     if (!name || (image && !/^https:\/\//.test(image))) return { ok: false, error: "invalid" };
     const captain = Number(fd.get("captain"));
+    const setCaptain = Number.isInteger(captain) && captain > 0;
+    if (setCaptain) {
+      const [member] = await db.select({ osuId: teamMembers.osuId }).from(teamMembers).where(and(eq(teamMembers.teamId, id), eq(teamMembers.osuId, captain))).limit(1);
+      if (!member) return { ok: false, error: "invalid" };
+    }
     await db.update(teams).set({ name, image }).where(eq(teams.id, id));
-    if (Number.isInteger(captain) && captain > 0) {
-      await db.update(teamMembers).set({ isCaptain: false }).where(and(eq(teamMembers.teamId, id), ne(teamMembers.osuId, captain)));
-      await db.update(teamMembers).set({ isCaptain: true }).where(and(eq(teamMembers.teamId, id), eq(teamMembers.osuId, captain)));
+    if (setCaptain) {
+      await db.transaction(async (tx) => {
+        await tx.update(teamMembers).set({ isCaptain: false }).where(and(eq(teamMembers.teamId, id), ne(teamMembers.osuId, captain)));
+        await tx.update(teamMembers).set({ isCaptain: true }).where(and(eq(teamMembers.teamId, id), eq(teamMembers.osuId, captain)));
+      });
     }
     await resetPickems();
     return { log: { id, name, image, captain } };

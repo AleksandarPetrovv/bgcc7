@@ -3,9 +3,8 @@ import { helperView } from "@/lib/helper-sig";
 import { HelperLink, HelperPoll, HelperStatus } from "@/components/admin/link-gate";
 import { PageTitle } from "@/components/site/page-title";
 import { Panel } from "@/components/admin/form";
-import { getViewer } from "@/lib/authz";
+import { getViewer, helperAccess } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
-import { can, HELPER_PERMS } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
 import { getLang } from "@/lib/i18n/server";
@@ -17,10 +16,10 @@ export const dynamic = "force-dynamic";
 
 export default async function HelperPage() {
   const [t, viewer] = await Promise.all([getDict(), getViewer()]);
-  if (!viewer || !HELPER_PERMS.some((p) => can(viewer.roles, p))) notFound();
-  const ref = can(viewer.roles, "matches");
+  const access = viewer && helperAccess(viewer.roles);
+  if (!viewer || !access?.any) notFound();
+  const { ref, stream: streamer } = access;
   const r = t.admin.refApp;
-  const streamer = can(viewer.roles, "overlay");
   const [h, lang] = await Promise.all([helperView(viewer.osuId), getLang()]);
   const { app, online, irc, sig } = h;
   const match = streamer ? h.match : null;

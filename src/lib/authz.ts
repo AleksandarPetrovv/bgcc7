@@ -7,7 +7,7 @@ import { currentEdition, db } from "@/db";
 import { adminLog, staff } from "@/db/schema";
 import { getSettings } from "@/db/settings";
 import { getFormat } from "@/db/edition";
-import { can, cleanRoles, hasAdmin, type Perm, type Role } from "./roles";
+import { can, cleanRoles, hasAdmin, HELPER_PERMS, type Perm, type Role } from "./roles";
 import type { Section } from "./sections";
 import type { ActionName } from "./action-names";
 
@@ -20,8 +20,9 @@ async function readRoles(osuId: number) {
 const rolesOf = cache(readRoles);
 
 export const helperAccess = (roles: readonly Role[]) => {
-  const ref = can(roles, "matches");
-  const stream = can(roles, "overlay");
+  const has = Object.fromEntries(HELPER_PERMS.map((p) => [p, can(roles, p)])) as Record<(typeof HELPER_PERMS)[number], boolean>;
+  const ref = has.matches;
+  const stream = has.overlay;
   return { ref, stream, any: ref || stream, host: roles.includes("host") };
 };
 

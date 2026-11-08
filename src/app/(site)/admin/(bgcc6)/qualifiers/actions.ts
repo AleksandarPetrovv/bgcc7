@@ -76,7 +76,7 @@ export async function importAll() {
 export async function updateScore(id: number, _: ActionResult, fd: FormData) {
   return guard("qualifiers", "qual.setScore", async () => {
     if (!isBGCC6()) return { ok: false, error: "invalid" };
-    const score = Math.round(Number(String(fd.get("score") ?? "").replace(/[s,]/g, "")));
+    const score = Math.round(Number(String(fd.get("score") ?? "").replace(/[\s,]/g, "")));
     const acc = Number(String(fd.get("acc") ?? "").replace("%", ""));
     const mods = String(fd.get("mods") ?? "").toUpperCase().replace(/[^A-Z,]/g, "").slice(0, 30);
     if (!Number.isInteger(score) || score < 0 || !(acc >= 0 && acc <= 100)) return { ok: false, error: "invalid" };
