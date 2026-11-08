@@ -32,17 +32,25 @@ function settleSometimes(matchId: string) {
 }
 
 const CHOICE_HOLD = 20_000;
-const RESULTS_HOLD = 20_000;
+const RESULTS_HOLD = 15_000;
+// on auto, after the last map: the winner, then the bracket playing the result, then "thanks for watching"
+const WINNER_HOLD = 30_000;
+const BRACKET_HOLD = 30_000;
 const ABORT_HOLD = 5_000;
 const lastLive = globalStore("bgccLastLive", () => new Map<string, LiveScore>());
-const rolledAt = globalStore("bgccRolledAt", () => new Map<string, { key: string; at: number }>());
-function rolledSince(matchId: string, key: string, fallback: number) {
-  const hit = rolledAt.get(editionKey(matchId));
-  if (hit?.key === key) return hit.at;
-  const at = hit ? Date.now() : fallback;
-  rolledAt.set(editionKey(matchId), { key, at });
-  return at;
+// when a match's value (its rolls, its result) last changed; `fallback` the first time it is seen
+function sinceStore(name: string) {
+  const seen = globalStore(name, () => new Map<string, { key: string; at: number }>());
+  return (matchId: string, key: string, fallback: number) => {
+    const hit = seen.get(editionKey(matchId));
+    if (hit?.key === key) return hit.at;
+    const at = hit ? Date.now() : fallback;
+    seen.set(editionKey(matchId), { key, at });
+    return at;
+  };
 }
+const rolledSince = sinceStore("bgccRolledAt");
+const wonSince = sinceStore("bgccWonAt");
 
 export async function scheduleFeed(): Promise<FeedMatch[]> {
   if (!(await canSee("schedule"))) return [];
@@ -201,7 +209,10 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
   const countingIn = cue?.countdownEnd != null && now >= cue.countdownEnd - PLAY_LEAD && now < cue.countdownEnd + 30_000;
   const held = results && !inPlay ? lastLive.get(editionKey(matchId)) : undefined;
   const shownLive = held ? { ...held, at: now } : live;
-  const auto: Scene = inPlay || countingIn || results || aborted ? "gameplay" : winner !== null ? "winner" : draft?.open ? (introDone ? "mappool" : "intro") : "soon";
+  // the result counts from when the last map's results stop showing (or when it is first seen, for a score typed in by hand)
+  const wonFor = winner === null ? 0 : now - wonSince(matchId, `${winner}:${score}`, cue?.finishedAt != null ? cue.finishedAt + RESULTS_HOLD : now);
+  const done: Scene = wonFor < WINNER_HOLD ? "winner" : wonFor < WINNER_HOLD + BRACKET_HOLD ? "bracket" : "end";
+  const auto: Scene = inPlay || countingIn || results || aborted ? "gameplay" : winner !== null ? done : draft?.open ? (introDone ? "mappool" : "intro") : "soon";
 
   const o = sceneRow[0]?.scene;
   const scene: Scene = isScene(o) ? o : auto;
