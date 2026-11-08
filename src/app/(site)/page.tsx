@@ -4,7 +4,7 @@ import { Sparkle } from "@/components/site/graphics";
 import { SlantBg, SlantButton } from "@/components/site/slant";
 import { RuleDiamond } from "@/components/site/rule";
 import { Words } from "@/components/site/rich";
-import { Avatar } from "@/components/site/avatar";
+import { Pfp } from "@/components/site/pfp";
 import { Reveal } from "@/components/site/motion";
 import { getDict } from "@/lib/i18n/server";
 import { roundName, type Dict } from "@/lib/i18n/dict";
@@ -107,7 +107,7 @@ function Champion({ t, team, other }: { t: Dict; team: Team; other?: Team }) {
         </div>
         <div className="flex -space-x-2">
           {team.players.map((p) => (
-            <Avatar key={p.userId} src={p.avatar} className="size-11" />
+            <Pfp key={p.userId} src={p.avatar} className="size-11" />
           ))}
         </div>
       </div>
@@ -135,10 +135,7 @@ function TopList({ t, top, teams }: { t: Dict; top: TopCost[]; teams: Team[] }) 
             style={{ "--d": `${1.65 + i * 0.08}s` } as React.CSSProperties}
           >
             <span className={cn("num w-7 shrink-0 text-center text-3xl italic leading-none", MEDAL[i])}>{i + 1}</span>
-            <span className="relative shrink-0">
-              <Avatar src={p.avatar} className={cn("size-11", i === 0 && "ring-gold")} />
-              {i === 0 && <Crown className="absolute -top-3 left-1/2 size-4 -translate-x-1/2 -rotate-12 fill-gold text-gold-hi" aria-hidden />}
-            </span>
+            <Pfp src={p.avatar} crown={i === 0} className={cn("size-11", i === 0 && "ring-gold")} />
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="truncate font-display font-black leading-tight">{p.username}</span>
               {team && team.name !== p.username && (

@@ -3,8 +3,9 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { AnchoredPopup } from "./anchored-popup";
 import { Search } from "lucide-react";
-import { fmtNum, flagUrl, type QualPerf, type QualMap, type QualPlayer } from "@/lib/data";
+import { fmtNum, type QualPerf, type QualMap, type QualPlayer } from "@/lib/data";
 import { useDict } from "./lang";
+import { PlayerRow } from "./player-row";
 import { osuUser } from "@/lib/links";
 import { cn } from "@/lib/utils";
 import { MeTag, meP } from "./me";
@@ -86,14 +87,10 @@ export function ScoreMatrix({ qualifiers, cut }: { qualifiers: { maps: QualMap[]
                     <span className={cn("num inline-block min-w-9 px-1.5 text-center text-base", seed <= 3 ? `${MEDAL_BG[seed - 1]} text-paper` : "bg-slate text-paper")}>#{seed}</span>
                   </td>
                   <td {...meP(p.id)} className="me-hl sticky left-14 z-10 bg-ink px-3 py-2">
-                    <span className="flex items-center gap-2 whitespace-nowrap font-display font-bold">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={p.avatar} alt="" className="size-7" />
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      {p.cc && <img src={flagUrl(p.cc)} alt="" className="h-2.5" />}
+                    <PlayerRow as="span" avatar={p.avatar} pfpClass="size-7" country={p.cc || undefined} className="gap-2 whitespace-nowrap font-display font-bold">
                       <a href={osuUser(p.id)} target="_blank" rel="noreferrer" className="hover:text-rose-hi">{p.username}</a>
                       <MeTag p={p.id} />
-                    </span>
+                    </PlayerRow>
                   </td>
                   <td className="num px-3 py-2 text-right text-xl text-balkan-hi">{p.zSum.toFixed(2)}</td>
                   <td className="num px-3 py-2 text-right text-base text-paper/70">{p.avgAcc.toFixed(2)}%</td>

@@ -13,7 +13,9 @@ import type { MapResult, PlayerLine, Scoreboard } from "@/lib/scoreboard";
 import { cn, cssVars } from "@/lib/utils";
 import { SlantBg } from "./slant";
 import { matchCosts } from "@/lib/match-cost";
-import { MeTag, meP } from "./me";
+import { MeTag } from "./me";
+import { Pic } from "./pfp";
+import { PlayerRow } from "./player-row";
 import { MEDAL, modHi, TEAM as TEAMS } from "@/lib/theme";
 import { osuMatch } from "@/lib/links";
 import { LineDiamond, RuleDiamond } from "./rule";
@@ -33,9 +35,7 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
   return (
     <ul className={cn("min-w-0 space-y-2", !won && "opacity-60")}>
       {players.map((p, r) => (
-        <li key={p.id} {...meP(p.id)} className={cn("flex min-w-0 items-center gap-2 py-0.5", flip ? "in-right flex-row-reverse pr-1.5 text-right" : "in-left pl-1.5")} style={cssVars({ "--d": `${0.45 + r * 0.06}s` })}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={p.avatar} alt="" loading="lazy" decoding="async" className="size-8 shrink-0" />
+        <PlayerRow key={p.id} id={p.id} avatar={p.avatar} lazy pfpClass="size-8" className={cn("min-w-0 gap-2 py-0.5", flip ? "in-right flex-row-reverse pr-1.5 text-right" : "in-left pl-1.5")} style={cssVars({ "--d": `${0.45 + r * 0.06}s` })}>
           <div className="min-w-0 flex-1 leading-tight">
             <div className={cn("flex min-w-0 items-center text-[0.8rem] font-display font-bold", flip && "flex-row-reverse")}>
               <span className="truncate">{p.name}</span>
@@ -47,7 +47,7 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
             </div>
             {p.edited && <div className="text-[0.6rem] font-display font-bold text-gold-hi">{t.match.edited}</div>}
           </div>
-        </li>
+        </PlayerRow>
       ))}
     </ul>
   );
@@ -156,14 +156,20 @@ export function Costs({ data, names, finished }: { data: Scoreboard; names: (str
               {rows
                 .filter((r) => r.team === k)
                 .map((r, n) => (
-                  <li
+                  <PlayerRow
                     key={r.id}
-                    {...meP(r.id)}
-                    className={cn("flex items-center gap-3 border-b border-line py-2 last:border-b-0", k === 1 ? "in-left" : "in-right")}
+                    id={r.id}
+                    avatar={r.avatar}
+                    lazy
+                    pfpClass="size-8"
+                    className={cn("gap-3 border-b border-line py-2 last:border-b-0", k === 1 ? "in-left" : "in-right")}
                     style={cssVars({ "--i": n, "--s": "0.07s", "--d": "0.55s" })}
+                    end={
+                      <span className={cn("in-slam num shrink-0 text-2xl", MEDAL[place.get(r.id)!] ?? "text-paper/60")} style={cssVars({ "--d": `${0.75 + place.get(r.id)! * 0.06}s` })}>
+                        {r.cost.toFixed(2)}
+                      </span>
+                    }
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={r.avatar} alt="" loading="lazy" decoding="async" className="size-8 shrink-0" />
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 items-center font-display font-bold">
                         <span className="truncate">{r.name}</span>
@@ -173,10 +179,7 @@ export function Costs({ data, names, finished }: { data: Scoreboard; names: (str
                         {t.match.mapsShort(r.maps)} · {pct(r.acc)} · {fmtNum(r.score)}
                       </div>
                     </div>
-                    <span className={cn("in-slam num shrink-0 text-2xl", MEDAL[place.get(r.id)!] ?? "text-paper/60")} style={cssVars({ "--d": `${0.75 + place.get(r.id)! * 0.06}s` })}>
-                      {r.cost.toFixed(2)}
-                    </span>
-                  </li>
+                  </PlayerRow>
                 ))}
             </ul>
           </div>
@@ -312,8 +315,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
                 className={cn("flex min-w-0 items-center gap-2 sm:gap-3", i === 1 ? "in-right order-3 flex-row-reverse text-right" : "in-left")}
                 style={cssVars({ "--d": "0.12s" })}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                {team && <img src={team.image} alt="" className={cn("size-8 shrink-0 border-b-[3px] object-cover sm:size-12", i ? "border-azure" : "border-crimson")} />}
+                {team && <Pic src={team.image} className={cn("size-8 shrink-0 border-b-[3px] object-cover sm:size-12", i ? "border-azure" : "border-crimson")} />}
                 <span className={cn("line-clamp-2 min-w-0 break-words text-xs font-display font-black leading-tight sm:text-lg", match.winner && match.winner !== i + 1 && "text-ash")}>
                   {names[i]}
                 </span>

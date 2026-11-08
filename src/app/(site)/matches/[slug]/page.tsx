@@ -31,8 +31,7 @@ export default async function DraftPage({ params }: PageProps<"/matches/[slug]">
   const stage = { ...live, pools: live.pools.map((p) => ({ ...p, maps: p.maps.map((m) => frozen.get(m.slot) ?? m) })) };
   const side = (tid: string | null) => {
     const x = teams.find((tm) => tm.id === tid);
-    const cap = x?.players.find((p) => p.isCaptain) ?? x?.players[0];
-    return { name: x?.name ?? t.common.tbd, image: x?.image ?? "", captain: cap?.username ?? "", players: x?.players.map((p) => p.username) ?? [] };
+    return { name: x?.name ?? t.common.tbd, image: x?.image ?? "" };
   };
   const round = roundName(t, access.match.round);
   const firstTo = draft.firstTo;

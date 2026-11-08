@@ -15,8 +15,6 @@ import { Waiting } from "./draft-popups";
 export type TeamInfo = {
   name: string;
   image: string;
-  captain: string;
-  players: string[];
 };
 
 function RollNumber({ value, side, win, lose }: { value: number | null; side: Side; win: boolean; lose: boolean }) {

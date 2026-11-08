@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import { ChevronDown } from "lucide-react";
 import type { LogRow } from "@/db/admin";
-import { Avatar } from "@/components/site/avatar";
+import { Pfp } from "@/components/site/pfp";
 import type { Dict } from "@/lib/i18n/dict";
 import { describe, summarize, type LogCtx } from "@/lib/log-text";
 import { getFormat } from "@/db/edition";
@@ -80,7 +80,7 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
       <li key={r.id} className="in-left group relative flex items-center gap-3 border-b border-line px-3 py-2.5 transition-colors last:border-b-0 hover:bg-slate" style={{ "--i": Math.min(i, 24), "--s": "0.05s", "--d": "0.15s" } as React.CSSProperties}>
         <span className={cn("absolute inset-y-0 left-0 w-0.5 origin-top scale-y-0 transition-transform duration-300 group-hover:scale-y-100", DOT[g])} aria-hidden />
         <span className="inline-flex">
-          <Avatar src={r.avatarUrl} className="size-7 ring-offset-1" />
+          <Pfp src={r.avatarUrl} className="size-7 ring-offset-1" />
         </span>
         <p className="min-w-0 flex-1 break-words text-sm leading-snug text-paper/70">
           <span className="font-display font-black text-paper">{r.username ?? `#${r.osuId}`}</span>{" "}
@@ -122,7 +122,7 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
                 <li key={r.id} className="in-left border-b border-line last:border-b-0" style={step(n++)}>
                   <details className="group/audit">
                     <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-2.5 hover:bg-slate focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-rose [&::-webkit-details-marker]:hidden">
-                      <Avatar src={r.avatarUrl} className="size-7 shrink-0 ring-offset-1" />
+                      <Pfp src={r.avatarUrl} className="size-7 shrink-0 ring-offset-1" />
                       <span className="min-w-0 flex-1 break-words text-sm leading-snug text-paper/70">
                         <span className="font-display font-black text-paper">{r.username ?? `#${r.osuId}`}</span>{" "}
                         <Rich text={groupText(entry)} />

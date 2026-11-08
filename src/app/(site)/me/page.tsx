@@ -2,7 +2,7 @@ import { ArrowRight, CalendarClock, Crown, ExternalLink, Flag, Mic, Tv, Video } 
 import { Container, Tag } from "@/components/site/page";
 import { PageTitle } from "@/components/site/page-title";
 import { SlantBg, SlantButton } from "@/components/site/slant";
-import { Avatar } from "@/components/site/avatar";
+import { Pfp } from "@/components/site/pfp";
 import { Countdown } from "@/components/site/countdown";
 import { canSee } from "@/lib/authz";
 import { login } from "@/actions/auth";
@@ -199,7 +199,7 @@ export default async function Me() {
               <ul className="flex flex-wrap gap-2">
                 {lobby.players.map((p) => (
                   <li key={p.osuId} className={cn("flex items-center gap-2 border px-2.5 py-1.5 text-sm font-display font-bold", p.osuId === me ? "border-balkan/60 bg-balkan/10 text-balkan-hi" : "border-line bg-ink")}>
-                    <Avatar src={p.avatarUrl} className="size-6" />
+                    <Pfp src={p.avatarUrl} className="size-6" />
                     <PlayerLink id={p.osuId} name={p.username} />
                   </li>
                 ))}

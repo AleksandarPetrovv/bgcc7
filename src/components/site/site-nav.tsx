@@ -10,6 +10,7 @@ import { Sparkle, Wordmark } from "./graphics";
 import { useDict } from "./lang";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
+import { SlantPfp } from "./pfp";
 import { SlantBg } from "./slant";
 import { LiveTag } from "./live-tag";
 import { MatchClock } from "./countdown";
@@ -295,12 +296,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
                   if (!e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) setClicked({ base: "/me", from: path });
                 }}
                 className="relative flex h-full items-center gap-2.5 pr-3 hover:text-rose-hi">
-                {user.image && (
-                  <span className="h-full w-10 shrink-0 -skew-x-12 overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={user.image} alt="" className="size-full skew-x-12 scale-x-125 object-cover" />
-                  </span>
-                )}
+                {user.image && <SlantPfp src={user.image} className="h-full w-10" layer="-left-[12.5%] top-0 h-full w-[125%]" />}
                 <span className={cn("max-w-32 truncate text-[0.8rem] font-display font-black leading-none", !user.image && "pl-3")}>{user.name}</span>
                 {meDot && <Dot className="-ml-1" />}
               </Link>

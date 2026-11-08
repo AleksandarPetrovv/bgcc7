@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Crown } from "lucide-react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { type Team, fmtNum, flagUrl, teamHref } from "@/lib/data";
+import { type Team, fmtNum, teamHref } from "@/lib/data";
 import { useDict } from "./lang";
-import { MeTag, meP, meT } from "./me";
+import { MeTag, meT } from "./me";
+import { Pic } from "./pfp";
+import { PlayerRow } from "./player-row";
 import { RuleDiamond } from "./rule";
 
 export function Roster({ team }: { team: Team }) {
@@ -14,16 +15,21 @@ export function Roster({ team }: { team: Team }) {
       <div className="heading-slam mb-2 text-lg">{team.name}</div>
       <ul className="space-y-1.5">
         {team.players.map((p) => (
-          <li key={p.userId} {...meP(p.userId)} className="me-hl flex items-center gap-2 px-1 py-0.5 text-sm">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.avatar} alt="" className="size-6 rounded-full object-cover ring-1 ring-rose/40 ring-offset-1 ring-offset-coal" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={flagUrl(p.country)} alt="" className="h-2.5" />
+          <PlayerRow
+            key={p.userId}
+            id={p.userId}
+            hl
+            avatar={p.avatar}
+            look="ring"
+            pfpClass="size-6 ring-1 ring-offset-1"
+            country={p.country}
+            captain={p.isCaptain}
+            className="gap-2 px-1 py-0.5 text-sm"
+            end={<span className="num ml-auto text-ash">#{fmtNum(p.rank)}</span>}
+          >
             <span className="font-display font-bold">{p.username}</span>
             <MeTag p={p.userId} />
-            {p.isCaptain && <Crown className="size-3.5 text-gold-hi" />}
-            <span className="num ml-auto text-ash">#{fmtNum(p.rank)}</span>
-          </li>
+          </PlayerRow>
         ))}
       </ul>
     </div>
@@ -43,8 +49,7 @@ export function TeamCard({ team }: { team: Team }) {
             <MeTag t={team.id} corner className="me-corner-lg" />
             <RuleDiamond className="transition-colors group-hover:bg-balkan" />
             <div className="relative w-24 shrink-0 overflow-hidden sm:h-32 sm:w-auto [mask-image:linear-gradient(to_right,black_60%,transparent)] sm:[mask-image:linear-gradient(to_bottom,black_55%,transparent)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={team.image} alt="" className="in-wipe absolute inset-0 size-full object-cover sm:static transition duration-500 group-hover:scale-105 [--d:0.1s]" />
+              <Pic src={team.image} className="in-wipe absolute inset-0 size-full object-cover sm:static transition duration-500 group-hover:scale-105 [--d:0.1s]" />
               <span className="in-pop num absolute bottom-0 left-0 flex size-8 origin-bottom-left items-center justify-center bg-ink text-lg sm:size-10 sm:text-2xl text-paper [--d:0.45s]" aria-label={`${t.common.seed} ${team.seed}`}>
                 {team.seed}
               </span>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Crown, Flag } from "lucide-react";
-import { Avatar } from "@/components/site/avatar";
+import { Pfp } from "@/components/site/pfp";
 import { RecordText } from "@/components/site/record";
 import type { Dict } from "@/lib/i18n/dict";
 import { flagUrl, fmtNum, teamHref, type Team } from "@/lib/data";
@@ -72,7 +72,7 @@ export function TeamCard({ t, team, me, seeds, stats, record, i, className }: { 
       <ul className="mt-3 divide-y divide-line border-t border-line">
         {team.players.map((p, n) => (
           <li key={p.userId} className="in-left in-slow flex flex-wrap items-center gap-x-2.5 gap-y-1.5 py-2.5 sm:flex-nowrap sm:gap-3" style={at(0.45, n, 0.12)}>
-            <Avatar src={p.avatar} className="size-8 sm:size-9" />
+            <Pfp src={p.avatar} className="size-8 sm:size-9" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={flagUrl(p.country)} alt="" className="h-3" />
             <PlayerLink id={p.userId} name={p.username} className={cn("min-w-0 truncate font-display font-black", p.userId === me && "text-balkan-hi")} />

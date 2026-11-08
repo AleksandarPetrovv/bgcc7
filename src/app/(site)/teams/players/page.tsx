@@ -13,7 +13,7 @@ import { getSettings } from "@/db/settings";
 import { getPlayerSeeds } from "@/db/seeds";
 import { getMatches, getTeams } from "@/db/tournament";
 import { splitAlive } from "@/lib/alive";
-import { Avatar } from "@/components/site/avatar";
+import { Pfp } from "@/components/site/pfp";
 import { cn, cssVars } from "@/lib/utils";
 import { MeTag, meP } from "@/components/site/me";
 import { rankBws } from "@/lib/bws";
@@ -46,7 +46,7 @@ export default async function Players() {
       </span>
       <span className="absolute inset-y-0 left-0 w-0.5 origin-top scale-y-0 bg-balkan transition-transform duration-300 group-hover:scale-y-100" aria-hidden />
       <span className="in-spin shrink-0" style={cssVars({ "--d": "0.12s" })}>
-        <Avatar src={p.avatarUrl} className="size-12 transition-transform duration-300 group-hover:scale-105" />
+        <Pfp src={p.avatarUrl} className="size-12 transition-transform duration-300 group-hover:scale-105" />
       </span>
       <div className="@container relative min-w-0 flex-1">
         <div className="flex items-center gap-2">

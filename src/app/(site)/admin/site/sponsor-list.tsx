@@ -5,7 +5,7 @@ import { AnimatePresence, motion, Reorder, useDragControls } from "motion/react"
 import { SortableList } from "@/components/admin/sortable-list";
 import { GripVertical, Pencil, X } from "lucide-react";
 import { ActionForm, Field } from "@/components/admin/form";
-import { Avatar } from "@/components/site/avatar";
+import { Pfp } from "@/components/site/pfp";
 import { useDict } from "@/components/site/lang";
 import type { Sponsor } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -41,7 +41,7 @@ function Row({ s, i, onDrop }: { s: Sponsor; i: number; onDrop: () => void }) {
           {i + 1}
         </span>
         <span data-cascade className="in-spin inline-flex">
-          <Avatar src={s.image} className="size-9" />
+          <Pfp src={s.image} className="size-9" />
         </span>
         <a
           href={s.url ?? undefined}
