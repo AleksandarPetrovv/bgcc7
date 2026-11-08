@@ -173,7 +173,7 @@ fn apply_me(sh: &Shared, token: &str, result: Result<Roles, MeErr>, failed_since
     match result {
         Ok(roles) if sh.status().roles_ready => {
             let before = sh.status();
-            sh.set(|s| { s.can_ref = roles.can_ref; s.can_stream = roles.can_stream; s.site = "online"; });
+            sh.set(|s| { s.can_ref = roles.can_ref; s.can_stream = roles.can_stream; s.site = if s.can_ref && matches!(s.irc, "connecting" | "online") { "online" } else { s.idle_site() }; });
             apply_roles(&sh.app.state::<Ctl>(), &before, &roles);
         }
         Ok(roles) => {
@@ -269,7 +269,7 @@ async fn save_irc_password(ctl: State<'_, Ctl>, pass: String) -> Result<(), Stri
 async fn recheck_roles(ctl: State<'_, Ctl>) -> Result<(), String> {
     let Some(token) = ctl.shared.store.load().token else { return Ok(()) };
     let result = fetch_me(&token).await;
-    apply_me(&ctl.shared, &token, result, &mut None);
+    if matches!(result, Ok(_) | Err(MeErr::Status(401))) { apply_me(&ctl.shared, &token, result, &mut None); }
     Ok(())
 }
 
