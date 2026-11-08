@@ -70,7 +70,6 @@ const Stat = ({ k, children }: { k: string; children: React.ReactNode }) => (
   </div>
 );
 const rule = "border-b border-line pb-4";
-// segmented trapezoid like the site's EN/BG and theme switches
 function Seg({ on, label, disabled, onPick }: { on: boolean; label: string; disabled?: boolean; onPick: (on: boolean) => void }) {
   return (
     <div className={cn("slant flex h-8 shrink-0 font-display text-[11px] font-black [--sl-line:var(--line)]", disabled && "opacity-60")} role="group" aria-label={label}>
@@ -249,7 +248,6 @@ export function App() {
   }, [passNote]);
 
   const s = status;
-  // only the sections this account's roles allow; roles refresh from the site poll
   const tabs = !s?.roles_ready ? [] : (["ref", "stream"] as const).filter((t) => (t === "ref" ? s.can_ref : s.can_stream));
   const current: Tab | undefined = tab && tabs.includes(tab) ? tab : tabs[0];
   const [siteText, siteDot] = SITE[s?.site ?? "off"] ?? SITE.off;
@@ -472,7 +470,6 @@ export function App() {
                     <span className="num text-[30px] leading-[0.9]">{s.sent}</span>
                   </Stat>
                 </div>
-                {/* only while no working password is saved; collapses with its separator once IRC accepts it */}
                 <div className={cn("collapse-y", s.irc !== "badpass" && "shut")} inert={s.irc !== "badpass"}>
                 <div>
                 <form className="flex min-w-0 flex-col gap-3 border-t border-line pb-2 pt-4" onSubmit={savePass}>
