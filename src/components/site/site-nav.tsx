@@ -15,6 +15,7 @@ import { SlantBg } from "./slant";
 import { LiveTag } from "./live-tag";
 import { MatchClock } from "./countdown";
 import { useSSE } from "./use-sse";
+import { TeamBell, type BellFeed } from "./team-bell";
 import { login, logout } from "@/actions/auth";
 import { isActive, type NavItem } from "@/lib/sections";
 
@@ -40,7 +41,7 @@ function AdminCrest({ on }: { on: boolean }) {
   );
 }
 
-type Props = { user: { name: string; image: string | null; admin: string | null } | null; nav: NavItem[]; register: boolean; live: string[]; captain: boolean; match: string | null; sched: { show: boolean; dot: boolean; discord: boolean } | null };
+type Props = { user: { name: string; image: string | null; admin: string | null } | null; nav: NavItem[]; register: boolean; live: string[]; captain: boolean; match: string | null; sched: { show: boolean; dot: boolean; discord: boolean; team: boolean } | null; bell: BellFeed | null };
 
 type Clock = { end: number | null; pause: boolean; offset: number };
 
@@ -111,9 +112,9 @@ function Dot({ className }: { className?: string }) {
   return <span className={cn("size-2 shrink-0 rounded-full bg-rose shadow-[0_0_0_2px_var(--ink)]", className)} aria-hidden />;
 }
 
-export function SiteNav({ user, nav, register, live, captain, match: initialMatch, sched }: Props) {
+export function SiteNav({ user, nav, register, live, captain, match: initialMatch, sched, bell }: Props) {
   const desk: (Omit<NavItem, "key"> & { key: NavItem["key"] | "admin" })[] = user?.admin ? [...nav, { key: "admin", href: user.admin, base: "/admin", hidden: false }] : nav;
-  const meDot = !!sched?.discord;
+  const meDot = !!(sched?.discord || sched?.team);
   const schedDot = !!sched?.dot;
   const dots = [...(sched?.dot ? ["scheduling"] : []), ...(meDot ? ["me"] : [])];
   const { slug: match, clock } = useMatch(captain, initialMatch);
@@ -278,6 +279,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
           </Link>
           )}
           <AnimatePresence>{match && <MatchLink key={match} slug={match} path={path} clock={clock} />}</AnimatePresence>
+          <TeamBell feed={bell} />
           {user ? (
             <div className="relative isolate hidden h-9 items-center md:flex">
               <SlantBg className="border border-line" />

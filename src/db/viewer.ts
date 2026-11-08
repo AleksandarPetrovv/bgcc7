@@ -11,6 +11,7 @@ import { canLinkDiscord, captainOf, mySchedule, needsHours, needsTime, waitingOn
 import { getViewer, getVisibility } from "@/lib/authz";
 import { isKnockedOut, teamOfPlayer } from "@/lib/alive";
 import { windowState } from "@/lib/time";
+import { owedPick } from "./team-requests";
 
 export const regState = (s: Pick<Settings, "regOpensAt" | "regClosesAt">) => windowState(s.regOpensAt, s.regClosesAt);
 export const regOpen = (s: Pick<Settings, "phase" | "regOpensAt" | "regClosesAt">, sections: { register: boolean }) => sections.register && s.phase === "registration" && regState(s) === "open";
@@ -42,9 +43,10 @@ export const schedNav = cache(async () => {
   const me = await getMe();
   if (!me) return null;
   const discord = canLinkDiscord() && !me.discordLinked;
-  if (!me.teamOf) return { show: false, dot: false, discord };
+  const team = !!me.captainOf && !!(await owedPick(me.osuId).catch(() => null));
+  if (!me.teamOf) return { show: false, dot: false, discord, team };
   const show = me.canSchedule;
   const list = show ? await mySchedule(me.myTeam) : [];
   const dot = list.some((m) => (!!me.captainOf && (waitingOnMe(m) || needsTime(m))) || needsHours(m, me.osuId));
-  return { show, dot, discord };
+  return { show, dot, discord, team };
 });

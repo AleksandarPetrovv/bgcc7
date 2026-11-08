@@ -291,6 +291,10 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `премести ${user()} в ${team()}` : `moved ${user()} to ${team()}`;
     case "team.removeMember":
       return bg ? `извади ${user()} от отбора му` : `took ${user()} off their team`;
+    case "team.request":
+      return p.accept
+        ? bg ? `одобри новото име и снимка на ${b(p.team)}` : `accepted the new name and picture of ${b(p.team)}`
+        : bg ? `отказа новото име и снимка на ${b(p.team)}: ${String(p.note ?? "")}` : `declined the new name and picture of ${b(p.team)}: ${String(p.note ?? "")}`;
 
     case "match.save": {
       const score = p.score1 != null && p.score2 != null ? ` ${p.score1}-${p.score2}` : "";
@@ -402,6 +406,7 @@ const SUMMARY: Record<string, [string, string]> = {
   "lobby.update": ["edited qualifier lobbies", "промени лобита"],
   "lobby.create": ["created qualifier lobbies", "създаде лобита"],
   "lobby.delete": ["deleted qualifier lobbies", "изтри лобита"],
+  "team.request": ["reviewed team name and picture changes", "прегледа смени на име и снимка"],
   "qual.import": ["imported qualifier scores", "вкара квалификационни резултати"],
   "sponsor.update": ["edited sponsors", "промени спонсори"],
   "sponsor.add": ["added sponsors", "добави спонсори"],
