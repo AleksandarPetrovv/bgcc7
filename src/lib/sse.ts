@@ -3,8 +3,9 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { ipOf } from "@/lib/ip";
 import { globalStore } from "@/lib/global-store";
 
-// open streams per ip, so one client can't pile up connections that each poll the db
-const MAX_PER_IP = 30;
+// open streams per ip, so one client can't pile up connections that each poll the db. a host's pc alone holds a lot
+// (every site tab's alerts, admin, /draw, each obs overlay source), and viewers behind one shared ip add up, so this stays roomy
+const MAX_PER_IP = 120;
 const openPerIp = globalStore("bgccSseOpen", () => new Map<string, number>());
 
 export const SSE_HEADERS = { "Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no" };

@@ -10,6 +10,8 @@ export function OverlayPreview({ slug, title, label, offline, clientsLabel, dela
   const [at, setAt] = useState<number | null>(initialAt);
   const [clients, setClients] = useState(initialClients);
   const [now, setNow] = useState(0);
+  // each preview holds two streams (its own + the overlay's); every match at once would pass the per-ip stream cap in lib/sse.ts
+  const [inView, setInView] = useState(false);
 
   useEffect(() => {
     const el = box.current;
@@ -18,10 +20,15 @@ export function OverlayPreview({ slug, title, label, offline, clientsLabel, dela
     resize();
     const observer = new ResizeObserver(resize);
     observer.observe(el);
-    return () => observer.disconnect();
+    const seen = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { rootMargin: "200px 0px" });
+    seen.observe(el);
+    return () => {
+      observer.disconnect();
+      seen.disconnect();
+    };
   }, []);
 
-  useSSE(`/api/overlay/${encodeURIComponent(slug)}`, (data) => {
+  useSSE(inView ? `/api/overlay/${encodeURIComponent(slug)}` : null, (data) => {
     try {
       const feed: OverlayFeed | null = JSON.parse(data);
       setAt(feed?.live?.at ?? null);
@@ -39,7 +46,7 @@ export function OverlayPreview({ slug, title, label, offline, clientsLabel, dela
   return (
     <div className="grid gap-2">
       <div ref={box} className={styles.preview}>
-        <iframe src={`/overlay/${encodeURIComponent(slug)}`} title={title} width="1920" height="1080" loading="lazy" tabIndex={-1} className={styles.frame} />
+        {inView && <iframe src={`/overlay/${encodeURIComponent(slug)}`} title={title} width="1920" height="1080" tabIndex={-1} className={styles.frame} />}
       </div>
       <span className="flex items-center gap-2 text-xs font-bold text-ash" role="status">
         <span className={`size-2 shrink-0 rotate-45 ${live ? "bg-balkan" : "bg-line"}`} aria-hidden />
