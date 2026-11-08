@@ -9,10 +9,8 @@ import { GF, GF_RESET } from "@/lib/format";
 
 type Q = Pick<typeof db, "select" | "update">;
 
-/** a downstream match that would get a different team although it was already played or started */
 export type Blocked = { id: string; team1Id: string | null; team2Id: string | null };
 
-/** the one rule for "this match has been played": a result, mp links, or a started lobby or draft */
 export async function playedIds(q: Q = db) {
   const rows = await q.select({ id: matches.id, winner: matches.winner, score1: matches.score1, score2: matches.score2, mpLinks: matches.mpLinks }).from(matches);
   return new Set([
@@ -42,7 +40,6 @@ export async function advance(q: Q = db) {
     const team1Id = noReset ? null : result(feed[0].from, feed[0].take);
     const team2Id = noReset ? null : result(feed[1].from, feed[1].take);
     if (team1Id === r.team1Id && team2Id === r.team2Id) continue;
-    // filling an empty slot is always fine; replacing a team that already played or started is not
     const replaces = (r.team1Id && r.team1Id !== team1Id) || (r.team2Id && r.team2Id !== team2Id);
     if (replaces && played.has(r.id)) {
       blocked.push({ id: r.id, team1Id, team2Id });

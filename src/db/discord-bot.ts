@@ -18,7 +18,6 @@ export const later = (what: string, fn: () => Promise<unknown>) => {
   if (ready()) detached(`discord ${what}`, fn);
 };
 
-// ---- stored state ----
 
 type State = { channelId: string; messageId: string; stamp: string };
 const getState = async (key: string) => (await db.select().from(discordState).where(eq(discordState.key, key)).limit(1))[0] ?? null;
@@ -33,7 +32,6 @@ export async function getCfg(): Promise<DiscordCfg> {
 }
 export const setCfg = (k: keyof DiscordCfg, channelId: string) => setState(`cfg:${k}`, { channelId });
 
-// ---- team roles + channels ----
 
 const VIEW = 1 << 10;
 const SEND = 1 << 11;
@@ -45,7 +43,6 @@ const slug = (name: string) => name.toLowerCase().replace(/[^a-z0-9Ѐ-ӿ]+/g, "-
 
 const g = globalThis as unknown as { bgccDcSync?: Promise<void>; bgccDcSynced?: number };
 
-/** creates missing team roles/channels, renames, removes ones of deleted teams and fixes who has which role. queued, never parallel */
 export function syncTeams() {
   if (!ready()) return Promise.resolve();
   const ed = currentEdition();
@@ -72,7 +69,6 @@ async function runSync() {
   const ids = new Set(ts.map((t) => t.id));
   const have = new Map<string, TeamRow>();
   for (const r of rows) {
-    // deleted by hand in discord: rebuild the whole section
     if (!ids.has(r.teamId) || !roleName.has(r.roleId) || !chanName.has(r.channelId)) {
       await dropTeam(r);
       await db.delete(discordTeams).where(eq(discordTeams.teamId, r.teamId));
@@ -82,7 +78,6 @@ async function runSync() {
     await db.insert(discordTeams).values(row).onConflictDoUpdate({ target: discordTeams.teamId, set: row });
     have.set(row.teamId, row);
   };
-  // each team: a category named after it with #team (text) and "team vc" (voice)
   for (const t of ts) {
     const vcName = t.name;
     let r = have.get(t.id);
@@ -125,13 +120,11 @@ async function runSync() {
   }
 }
 
-/** strips every team role from a discord account the site stops tracking (unlink / relink) */
 export async function dropTeamRoles(discordId: string) {
   const ours = new Set((await db.select({ r: discordTeams.roleId }).from(discordTeams)).map((x) => x.r));
   for (const rid of (await memberRoles(discordId)) ?? []) if (ours.has(rid)) await removeRole(discordId, rid);
 }
 
-/** after the cup: deletes every team section (category, text, voice) + role, forgets sent posts (picked channels stay) */
 export async function cleanupDiscord() {
   if (!ready()) return;
   await g.bgccDcSync;
@@ -140,12 +133,10 @@ export async function cleanupDiscord() {
   await db.delete(discordState).where(not(inArray(discordState.key, ["cfg:results", "cfg:pool"])));
 }
 
-// ---- posts ----
 
 const teamLinks = async () => new Map((await db.select().from(discordTeams)).map((r) => [r.teamId, r]));
 const ping = (roleId: string) => ({ roles: [roleId] });
 
-// posts a new message for this key and deletes the one it replaces
 async function chain(key: string, channelId: string, content: string, stamp: string, roleId?: string) {
   const prev = await getState(key);
   if (prev?.messageId) await deleteMessage(prev.channelId, prev.messageId).catch(log("delete"));
@@ -159,7 +150,6 @@ const sides = (m: Pick<MatchRow, "team1Id" | "team2Id">) =>
     [m.team2Id!, m.team1Id!],
   ] as const;
 
-/** every minute: 35 / 10 min invite reminders in both team channels + the ref DM */
 export async function tick() {
   if (!ready()) return;
   // shortcut: team edits/draws reach discord through this 5 min resync instead of hooks in every admin team action
@@ -203,7 +193,6 @@ async function refDm(m: MatchRow, name: (id: string) => string) {
   await setState(key, { stamp: start });
 }
 
-/** the ref opened the lobby, osu! invites just went out. once per match */
 export async function invitesSent(matchId: string) {
   if (await getState(`invited:${matchId}`)) return;
   await setState(`invited:${matchId}`, { stamp: new Date().toISOString() });
@@ -237,7 +226,6 @@ export async function postResult(matchId: string) {
   await setState(key, { channelId: results, messageId, stamp });
 }
 
-/** mappool channel, @everyone, once per stage */
 export async function postPool(stageId: number) {
   const { pool } = await getCfg();
   if (!pool) return;

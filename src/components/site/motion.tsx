@@ -29,7 +29,6 @@ function watchFrames(onLite: () => void) {
 
 export function MotionProvider({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  // lite: small loops wait until the page intro (every finite animation) has finished (presentation.css .lite-loops)
   useEffect(() => {
     if (!isLite()) return;
     const html = document.documentElement;
@@ -47,7 +46,6 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isLite()) return;
     return watchFrames(() => {
-      // the intro is long over by now, so the loops start right away
       document.documentElement.classList.add(LITE, "lite-loops");
       try {
         sessionStorage.setItem(LITE, "1");
@@ -134,7 +132,6 @@ export function CountUp({ to, className, decimals = 0, suffix = "", delay = 0, d
   const shown = useTransform(value, (v) => v.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + suffix);
   useLayoutEffect(() => {
     if (skip === null) return;
-    // snap: lands on the final number right away in lite / reduced motion
     if (skip || (snap && (isLite() || matchMedia("(prefers-reduced-motion: reduce)").matches))) {
       value.set(to);
       return;

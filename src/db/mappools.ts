@@ -31,14 +31,12 @@ export async function blueprintFor(stageId: number) {
   return s ?? null;
 }
 
-/** a real mod and a slot inside the stage's saved blueprint */
 export async function slotInBlueprint(stageId: number, mod: string, slot: number) {
   if (!MODS[mod] || !Number.isInteger(slot) || slot < 0) return false;
   const s = await blueprintFor(stageId);
   return !!s && slot < (s.blueprint[mod] ?? 0);
 }
 
-// a changed pool makes the uploaded pack stale, so it goes completely
 export async function clearPack(stageId: number, ed: Edition = currentEdition()) {
   const [s] = await dbOf(ed).update(stages).set({ packSize: null, packAt: null }).where(eq(stages.id, stageId)).returning({ slug: stages.slug });
   if (s) await rm(packPath(s.slug, ed), { force: true });
@@ -85,10 +83,8 @@ export const getPoolStages = cache(() =>
   }, [] as PoolStage[]),
 );
 
-/** a stage's maps in pool order */
 export const poolMaps = (stages: PoolStage[], slug: string) => (stages.find((s) => s.slug === slug)?.pools ?? []).flatMap((p) => p.maps);
 
-/** first to how many wins a match on this stage is played */
 export const firstToOf = (stages: PoolStage[], slug: string) => stages.find((s) => s.slug === slug)?.firstTo ?? getFormat().firstTo;
 
 export async function getQualifierMaps() {

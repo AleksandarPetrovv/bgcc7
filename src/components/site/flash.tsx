@@ -10,7 +10,6 @@ const KEY = "bgcc7-flash";
 const DELAY_MS = 300;
 const LIFE_MS = 5000;
 
-/** shows the "signed up" toast after the next navigation */
 export function flashSignedUp() {
   try {
     sessionStorage.setItem(KEY, "signedUp");

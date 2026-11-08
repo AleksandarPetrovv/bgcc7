@@ -49,7 +49,6 @@ export type Match = {
   team2: MatchSide;
   winner: 1 | 2 | null;
   links: string[];
-  /** pick and ban page or lobby is open */
   running?: boolean;
   round: string;
   bracket: "winners" | "losers" | "grand";
@@ -68,9 +67,7 @@ export type QualPlayer = { id: number; username: string; avatar: string; cc: str
 
 export const fmtNum = (n: number) => n.toLocaleString("en-US");
 export const teamHref = (t: { seed: number }) => `/teams/${t.seed}`;
-/** the team a /teams/<seg> url points at */
 export const teamFromHref = <T extends { seed: number }>(teams: T[], seg: string) => (/^[1-9]\d*$/.test(seg) ? teams.find((t) => t.seed === Number(seg)) : undefined);
-/** a user's url segment (/pickems/x, /overlay/x) */
 export const userPath = (name: string) => nameKey(name);
 export const pickemsHref = (name: string) => `/pickems/${encodeURIComponent(userPath(name)).replace(/%5B/g, "[").replace(/%5D/g, "]")}`;
 export const cardCover = (url: string) => url.replace(/\/covers\/cover(@2x)?\.jpg/, "/covers/card@2x.jpg");

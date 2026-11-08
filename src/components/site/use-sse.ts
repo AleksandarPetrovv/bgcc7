@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 
-// url null = not connected
 export function useSSE(url: string | null, onData: (data: string) => void, onState?: (online: boolean) => void) {
   const data = useRef(onData);
   const state = useRef(onState);

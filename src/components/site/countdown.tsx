@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import { useDict } from "./lang";
 import { EASE } from "@/lib/ease";
 
-// now floored to the tick so the snapshot stays stable between ticks
 const ticker = (tick: number) => ({
   subscribe: (cb: () => void) => {
     const id = setInterval(cb, tick);
@@ -78,7 +77,6 @@ export function Countdown({ to, from, className }: { to: string; from?: string; 
   );
 }
 
-// m:ss draft clock in the nav; offset = server time minus local time
 export function MatchClock({ end, offset, pause }: { end: number; offset: number; pause: boolean }) {
   const now = useSyncExternalStore(fast.subscribe, fast.get, getServerNow);
   if (now === null) return null;

@@ -3,7 +3,6 @@ import { fmtRange, type phaseStates, type TimelineRow } from "@/lib/dates";
 import { InView } from "./in-view";
 import { cn } from "@/lib/utils";
 
-// d: when the steps start drawing
 export function Timeline({ t, timeline, locale, states, d = 0.85, className }: { t: Dict; timeline: TimelineRow[]; locale: string; states: ReturnType<typeof phaseStates>; d?: number; className?: string }) {
   return (
     <InView as="ol" className={cn("relative mt-6", className)}>
@@ -19,7 +18,6 @@ export function Timeline({ t, timeline, locale, states, d = 0.85, className }: {
             )}
             style={{ "--d": `${d}s`, "--i": i, "--s": "0.08s" } as React.CSSProperties}
           >
-            {/* the dashed line draws a piece at a time, together with its step */}
             <span className={cn("in-stitch absolute left-0 flex w-4 justify-center", i === 0 ? "top-3" : "top-0", i === timeline.length - 1 ? "bottom-3" : "bottom-0")} aria-hidden>
               <span className="border-l-2 border-dashed border-line" />
             </span>

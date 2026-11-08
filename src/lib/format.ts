@@ -3,7 +3,6 @@ export type Edition = (typeof EDITIONS)[number];
 export const isEdition = (v: unknown): v is Edition => typeof v === "string" && (EDITIONS as readonly string[]).includes(v);
 /** every stage except bgcc6's qualifiers is played as bracket matches */
 export const isBracketStage = (slug: string) => slug !== "qualifiers";
-/** "7" for bgcc7 */
 export const editionNumber = (e: string) => e.replace(/^\D+/, "");
 
 export type Src = { from: string; take: "W" | "L" };
@@ -223,13 +222,11 @@ export const FORMATS: Record<Edition, Format> = { bgcc6: formatBGCC6, bgcc7: FOR
 
 export const GF = "grand-final";
 export const GF_RESET = "grand-final-reset";
-/** a team is out after this many losses (double elimination) */
 export const KO_LOSSES = 2;
 export const bestOf = (firstTo: number) => 2 * firstTo - 1;
 
 const ROUNDS = new Set(Object.values(FORMATS).flatMap((f) => Object.keys(f.rounds)));
 export const roundOf = (matchId: string) => (ROUNDS.has(matchId) ? matchId : matchId.replace(/-\d+$/, ""));
-/** the match's number inside its round ("3" for winners-r1-3), null when the round is a single match */
 export const matchNum = (f: Format, matchId: string) => (f.rounds[roundOf(matchId)]?.single ? null : (matchId.match(/-(\d+)$/)?.[1] ?? null));
 
 export const winTargets = (f: Format) => {
@@ -248,5 +245,4 @@ export const lobbySize =(f: Format) => f.teamSize * 2;
 export const versus = (f: Format) => `${f.teamSize}v${f.teamSize}`;
 export const playerCount = (f: Format) => f.teams * f.teamSize;
 
-// match ids are their url slugs
 export const matchIdFromSlug = (f: Format, slug: string) => (slug === TEST_MATCH.id || f.order.includes(slug) ? slug : "");

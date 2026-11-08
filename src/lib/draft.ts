@@ -43,7 +43,6 @@ export type Turn =
 
 export const other = (s: Side): Side => (s === 1 ? 2 : 1);
 
-/** roll numbers spin this long, and the winner shows this long after the second roll lands */
 export const ROLL_SPIN_MS = 1300;
 export const ROLL_REVEAL_MS = 1600;
 
@@ -87,7 +86,6 @@ export function plan(d: DraftView): { team: Side; kind: "ban" }[] {
   return Array.from({ length: d.bans * 2 }, (_, i) => ({ team: banTeam(d.banOrder, i, firstBan), kind: "ban" as const }));
 }
 
-/** the tiebreaker's slot label; it is played, never picked */
 export const TB = MODS.Tiebreaker.short;
 export const pickable = (slot: string) => slot !== TB;
 export const pickableSlots = (maps: { slot: string }[]) => maps.map((m) => m.slot).filter(pickable);

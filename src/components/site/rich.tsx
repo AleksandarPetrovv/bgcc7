@@ -53,7 +53,6 @@ export function Letters({ text, d = 0, s = 0.035, plain, className }: { text: st
       const start = n.i;
       n.i += w.length;
       return s < 0.01 ? (
-        // long fast text: one span per word keeps the same timing with far fewer nodes
         <span key={k} className="ltr whitespace-nowrap" style={{ "--i": start } as React.CSSProperties}>
           {w}
         </span>

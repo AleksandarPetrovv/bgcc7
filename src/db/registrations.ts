@@ -75,7 +75,6 @@ export const getRegistration = (osuId: number) =>
   }, null as Status | null);
 
 /** copies the players' current rank and badges into their registration, so later osu! changes don't move seeds */
-/** a registration's status changes; anyone not approved also loses their qualifier lobby booking */
 export async function setRegistrationStatus(osuId: number, status: Status, note: string | null, by: number) {
   await db
     .update(registrations)

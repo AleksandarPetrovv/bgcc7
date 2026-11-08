@@ -1,4 +1,3 @@
-/** the one mod table, in pool order; every mod list, colour, label and lobby setting derives from it */
 const TABLE = [
   { name: "NoMod", short: "NM", label: "No Mod", color: "var(--mod-nm)", lobby: "NF" },
   { name: "Hidden", short: "HD", label: "Hidden", color: "var(--mod-hd)", lobby: "HD NF", sr: true },
@@ -11,7 +10,6 @@ const TABLE = [
 type Mod = { name: string; short: string; label: string; color: string; lobby?: string; sr?: boolean };
 const rows: readonly Mod[] = TABLE;
 
-/** long names in pool order ("NoMod", "Hidden", …) */
 export const MOD_ORDER = rows.map((m) => m.name);
 export const MODS: Record<string, { label: string; short: string; color: string }> = Object.fromEntries(rows.map((m) => [m.name, { label: m.label, short: m.short, color: m.color }]));
 /** colour by acronym; NC plays as DT, NF has no colour of its own */

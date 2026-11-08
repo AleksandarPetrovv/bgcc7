@@ -81,7 +81,6 @@ export const getSettings = cache(() =>
   }, DEFAULT_SETTINGS),
 );
 
-/** writes the given settings fields (plus the columns that live outside Settings), creating the row on first write */
 export async function saveSettings(patch: Partial<Settings> & Partial<Pick<typeof settings.$inferInsert, "formatPlan" | "bwsLockedAt">>) {
   // only write the given fields, so a failed read can't overwrite the row with defaults; the edition column is never written here
   const set = { ...patch, updatedAt: new Date() };

@@ -11,7 +11,6 @@ import type { Side } from "./draft";
 import { getFormat } from "@/db/edition";
 import { matchIdFromSlug } from "./format";
 
-/** who runs the match: its referees, whether one of them is live (helper online or owning the open lobby), and whether it is played through the site */
 export async function siteRun(m: { id: string; referee: string | null }) {
   const refs = await staffIds(m.referee);
   const [lob] = await db.select({ owner: mpLobbies.owner, open: mpLobbies.open }).from(mpLobbies).where(eq(mpLobbies.matchId, m.id)).limit(1);
@@ -19,7 +18,6 @@ export async function siteRun(m: { id: string; referee: string | null }) {
   return { refs, refLive, onSite: refLive || !!lob };
 }
 
-/** hosts run any match, a referee only the ones assigned to them (and, with `unassigned`, ones nobody has yet) */
 export async function canRunMatch(matchId: string, opts: { unassigned?: boolean } = {}) {
   const v = await getViewer();
   if (!v) return false;
@@ -31,7 +29,6 @@ export async function canRunMatch(matchId: string, opts: { unassigned?: boolean 
   return (await staffIds(m.referee)).includes(v.osuId);
 }
 
-/** a match url's id and what the viewer may do there (null = nothing) */
 export async function withMatch(slug: string) {
   const id = matchIdFromSlug(getFormat(), slug);
   return { id, access: await draftAccess(id) };

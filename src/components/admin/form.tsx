@@ -229,7 +229,6 @@ export function ErrorNote({ children }: { children?: React.ReactNode }) {
   );
 }
 
-// centered in-site confirm instead of the browser's window.confirm
 function Confirm({ open, text, yes, no, onYes, onClose, children }: { open: boolean; text: string; yes: string; no?: string; onYes: () => void; onClose: () => void; children?: React.ReactNode }) {
   const t = useDict();
   return (

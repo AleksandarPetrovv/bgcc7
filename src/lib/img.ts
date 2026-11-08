@@ -13,6 +13,5 @@ export function optImg(src: string, w = 384) {
 /** s-ul.eu links die without notice, so /api/img checks them and falls back */
 export const isSulImg = (src: string) => /^https:\/\/([\w-]+\.)?s-ul\.eu\//.test(src);
 
-/** a team's picture, else its first player's avatar */
 export const teamImg = (image: string | null, avatar = "") =>
   image && isSulImg(image) ? `/api/img?u=${encodeURIComponent(image)}&f=${encodeURIComponent(avatar)}` : optImg(image || avatar);

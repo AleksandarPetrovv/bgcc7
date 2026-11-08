@@ -19,9 +19,7 @@ type Props = {
   required?: boolean;
   "aria-label"?: string;
   className?: string;
-  /** skewed background layer (border, fill; hover/focus via group-hover/dt, group-focus-within/dt) */
   box: string;
-  /** text style of the shown value */
   text: string;
 };
 
@@ -31,9 +29,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const iso = (y: number, m: number, d: number) => `${y}-${pad(m)}-${pad(d)}`;
 const monthDays = (y: number, m: number) => new Date(Date.UTC(y, m, 0)).getUTCDate();
 
-/** date / datetime-local field that reads "10 Nov, Tuesday, 11:11" (", 2026" when outside the tournament year; the weekday shortens only if it doesn't fit).
- *  the date opens a one-click calendar (stays in the set year), the time a wheel picker, the year a list of the tournament year and the one before; the weekday does nothing.
- *  once the real date is in the tournament year the year is hidden, so new admins can't pick the wrong one. */
+/** date / datetime-local field that reads "10 Nov, Tuesday, 11:11"; the year is hidden inside the tournament year so new admins can't pick the wrong one */
 export function WeekdayInput({ value, onValue, kind = "datetime-local", name, required, "aria-label": aria, className, box, text }: Props) {
   const t = useDict();
   const lang = useLang();
@@ -163,7 +159,6 @@ export function WeekdayInput({ value, onValue, kind = "datetime-local", name, re
   );
 }
 
-/** popup under its anchor (always below), width in rem so it scales with the site */
 function Pop({ anchor, open, onClose, width, children }: { anchor: React.RefObject<HTMLElement | null>; open: boolean; onClose: () => void; width: number; children: React.ReactNode }) {
   const place = (r: DOMRect) => {
     const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
@@ -177,7 +172,6 @@ function Pop({ anchor, open, onClose, width, children }: { anchor: React.RefObje
   );
 }
 
-/** one month at a time, monday first, never leaves `year`; a click picks the day */
 function Calendar({
   year,
   start,
@@ -276,7 +270,6 @@ const WHEEL_STEP = 30;
 // wait for smooth scroll and snap to finish before committing, so passing rows don't each fire onPick
 const SETTLE_MS = 120;
 
-/** apple-style wheels: scroll either column, the centre row is the value; rows further out shrink and fade (sizes, not transforms, so text stays crisp) */
 function TimeWheel({ h, mi, onHour, onMinute }: { h: number; mi: number; onHour: (h: number) => void; onMinute: (m: number) => void }) {
   return (
     <div className="relative flex h-[12.5rem] items-stretch">

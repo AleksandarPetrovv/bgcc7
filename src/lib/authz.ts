@@ -19,7 +19,6 @@ async function readRoles(osuId: number) {
 }
 const rolesOf = cache(readRoles);
 
-/** what a staff member's helper may do: ref lobbies, stream scores, get host alerts */
 export const helperAccess = (roles: readonly Role[]) => {
   const ref = can(roles, "matches");
   const stream = can(roles, "overlay");

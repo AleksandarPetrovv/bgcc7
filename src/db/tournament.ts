@@ -71,7 +71,6 @@ export const getMatchRows = cache(async () => (await getAllMatchRows()).filter((
 
 export const getMatches = cache(async (): Promise<Match[]> => (await getAllMatches()).filter((m) => m.id !== TEST_MATCH.id));
 
-// matches with an open pick and ban page or an open lobby
 const openMatchIds = () =>
   safe(async () => {
     const [d, l] = await Promise.all([

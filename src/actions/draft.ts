@@ -121,7 +121,6 @@ export async function resumeDraft(matchId: string) {
   }, { match: matchId });
 }
 
-/** ref/host answers the oldest captain timeout request. accept pauses the draft and sends !mp timer to the lobby */
 export async function answerTimeoutAct(matchId: string, side: 1 | 2, accept: boolean) {
   return guard("matches", accept ? "draft.timeoutAccept" : "draft.timeoutDecline", async () => {
     if (side !== 1 && side !== 2) return { ok: false, error: "forbidden" };

@@ -7,10 +7,8 @@ import type { Embed } from "./discord";
 import type { Match } from "./data";
 import type { Scoreboard } from "./scoreboard";
 
-/** how every discord message writes a match time */
 export const when = (d: Date) => `${fmtSofia(d, "en-GB")} (BG time)`;
 
-/** "Quarterfinals Match 2", always in english */
 export function matchLabel(f: Format, id: string, round: string) {
   const num = matchNum(f, id);
   return `${roundName(dicts.en, round)}${num ? ` Match ${num}` : ""}`;
@@ -20,7 +18,6 @@ const esc = (s: string) => s.replace(/[\\*_~`|[\]<>]/g, "\\$&");
 const SQ = ["⬛", "🟥", "🟦"] as const;
 const num = (n: number) => n.toLocaleString("en-US");
 
-/** the /results popup as an embed: every counted map with team totals, then match costs. team 1 = red, team 2 = blue */
 export function resultMessage(f: Format, m: Match, sb: Scoreboard | null, tag: (teamId: string) => string | null) {
   const url = `${siteUrl()}/results/${m.id}`;
   const [n1, n2] = [m.team1.name, m.team2.name];

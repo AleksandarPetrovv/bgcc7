@@ -17,7 +17,6 @@ export function lossesByTeam(results: Result[]) {
   return losses;
 }
 
-/** out of the bracket: KO_LOSSES losses in double elimination */
 export const isKnockedOut = (teamId: string, results: Result[] | Map<string, number>) => ((results instanceof Map ? results : lossesByTeam(results)).get(teamId) ?? 0) >= KO_LOSSES;
 
 export const teamOfPlayer = (teams: Team[], osuId: number) => teams.find((t) => t.players.some((p) => p.userId === osuId));

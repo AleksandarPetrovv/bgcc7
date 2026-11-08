@@ -23,7 +23,6 @@ export function mondayOf(iso: string) {
   return addDays(iso, -((d.getUTCDay() + 6) % 7));
 }
 
-/** a day of the match week (0 = its monday) at a sofia time */
 export type WeekPoint = { day: number; time: string };
 export const MATCH_FROM: WeekPoint = { day: 4, time: "18:00" };
 export const MATCH_TO: WeekPoint = { day: 6, time: "21:00" };
@@ -31,7 +30,6 @@ export const DEADLINE: WeekPoint = { day: 2, time: "23:59" };
 
 const pointOf = (monday: string, p: WeekPoint) => `${addDays(monday, p.day)}T${p.time}`;
 
-/** "Friday 18:00" / "петък 18:00"; short keeps 3 letters of the day ("Fri", "пет") */
 export function pointLabel(locale: string, p: WeekPoint, short = false) {
   // 2024-01-01 is a monday
   const day = fmtDate(new Date(Date.UTC(2024, 0, 1 + p.day)), locale, { weekday: "long" }, "UTC");
@@ -54,7 +52,6 @@ export function weekOf(monday: string | null | undefined): Week | null {
 export const inWindow = (w: Week, at: Date) => at.getTime() >= w.from.getTime() && at.getTime() <= w.to.getTime();
 export const isOpen = (w: Week | null, now = Date.now()) => !!w && now <= w.deadline.getTime();
 
-/** minutes between pickable times */
 export const PICK_STEP = 30;
 /** first and last time players can't pick (sofia); 00:00 is the latest slot of a night. staff can still set any time */
 export const OFF_HOURS = { from: "00:30", to: "11:30" } as const;
@@ -65,7 +62,6 @@ export const offHours = (v: string) => {
   return m > toMin(OFF_HOURS.from) - PICK_STEP && m < toMin(OFF_HOURS.to) + PICK_STEP;
 };
 
-/** every playable hour of the window as "YYYY-MM-DDTHH" (sofia) */
 export function hourKeys(min: string, max: string) {
   const out: string[] = [];
   for (let d = new Date(`${min.slice(0, 13)}:00Z`); ; d.setUTCHours(d.getUTCHours() + 1)) {
@@ -75,5 +71,4 @@ export function hourKeys(min: string, max: string) {
   }
 }
 
-/** the hour key a datetime-local value ("YYYY-MM-DDTHH:mm") falls in */
 export const hourOf = (v: string) => v.slice(0, 13);

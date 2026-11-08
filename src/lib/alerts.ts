@@ -7,7 +7,6 @@ import { matches, teams } from "@/db/schema";
 import { roundOf } from "./format";
 import type { Alert, AlertKind } from "./relay-contract";
 
-/** who sees an alert: hosts, and/or these osu ids */
 export type Audience = { hosts?: boolean; osuIds?: (number | null | undefined)[] };
 type Entry = { alert: Alert; hosts: boolean; osuIds: number[] };
 type Store = { list: Map<string, Entry>; bus: EventEmitter; since: Map<string, number> };
@@ -16,7 +15,6 @@ const g = globalThis as unknown as { bgccAlerts?: Store };
 const store = () => (g.bgccAlerts ??= { list: new Map(), bus: new EventEmitter().setMaxListeners(0), since: new Map() });
 
 export const alertId = (kind: AlertKind, key: string) => `${kind}:${currentEdition()}:${key}`;
-/** an alert about one match that belongs to one staff member, so all of theirs can be cleared together */
 export const ownerAlertId = (kind: AlertKind, matchId: string, osuId: number) => alertId(kind, `${matchId}:${osuId}`);
 export const ownedBy = (kind: AlertKind, osuId: number) => (a: Alert) => a.kind === kind && a.id.endsWith(`:${osuId}`);
 
@@ -51,7 +49,6 @@ export function clearWhere(test: (a: Alert) => boolean) {
   if (hit) s.bus.emit("change");
 }
 
-/** for problems that only count once they last: true when `id` has been failing for at least `ms` */
 export function failingFor(id: string, ms: number) {
   const s = store();
   const t = s.since.get(id) ?? Date.now();
@@ -72,7 +69,6 @@ export function onAlerts(fn: () => void) {
   return () => void bus.off("change", fn);
 }
 
-/** "Quarterfinals · Team A vs Team B" plus the slug, for the popup header and links */
 export async function describeMatch(matchId: string): Promise<NonNullable<Alert["match"]>> {
   const f = getFormat();
   const slug = matchId;

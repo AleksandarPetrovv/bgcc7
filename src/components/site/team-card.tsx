@@ -44,7 +44,6 @@ export function TeamCard({ team }: { team: Team }) {
         delay={0}
         closeDelay={0}
         render={
-          // no box: the picture fades into the page, a dashed rule with a diamond closes the card
           <Link href={teamHref(team)} {...meT(team.id)} className="group relative flex border-b-2 border-dashed border-line outline-offset-4 transition-colors hover:border-balkan sm:block">
             <MeTag t={team.id} corner className="me-corner-lg" />
             <RuleDiamond className="transition-colors group-hover:bg-balkan" />

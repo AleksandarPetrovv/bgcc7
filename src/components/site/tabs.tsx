@@ -8,7 +8,6 @@ import { Sparkle } from "./graphics";
 
 const spring = { type: "spring", stiffness: 520, damping: 42 } as const;
 
-// the active tab's underline, sliding between tabs that share an id; className restyles the bar
 export function TabMark({ id, active, spark, className }: { id: string; active: boolean; spark?: boolean; className?: string }) {
   if (!active) return null;
   return (
@@ -65,7 +64,6 @@ export function Tabs({
   );
 }
 
-// spark: the nav sparkle on the active tab, only on a few public pages
 export function LinkTabs({ items, label, className, spark }: { items: { href: string; label: React.ReactNode; active: boolean; disabled?: boolean }[]; label?: string; className?: string; spark?: boolean }) {
   const id = useId();
   return (

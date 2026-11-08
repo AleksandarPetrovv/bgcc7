@@ -13,7 +13,6 @@ const stride = (el: HTMLElement) => {
 };
 const ease = (k: number) => (k < 0.5 ? 4 * k ** 3 : 1 - (-2 * k + 2) ** 3 / 2);
 
-// underline tab bar (nav sparkle optional); pos can be fractional (scroll-driven) or whole with `animate` for an eased slide
 export function UnderlineTabs({ names, colors, pos, onPick, animate, spark, className, style }: { names: string[]; colors: string[]; pos: number; onPick: (i: number) => void; animate?: boolean; spark?: boolean; className?: string; style?: React.CSSProperties }) {
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const [rects, setRects] = useState<{ l: number; w: number }[]>([]);
@@ -69,7 +68,6 @@ export function UnderlineTabs({ names, colors, pos, onPick, animate, spark, clas
   );
 }
 
-// one skill group per page, snapping a whole page per swipe; the tab bar slides with the scroll like the main nav
 export function PoolPager({ pages }: { pages: { name: string; color: string; node: React.ReactNode }[] }) {
   const box = useRef<HTMLDivElement>(null);
   const anim = useRef(0);

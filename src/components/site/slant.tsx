@@ -28,7 +28,6 @@ export function SlantButton({
   disabled?: boolean;
   fill?: string;
 }) {
-  // [text, skewed background]: skew on an absolute span so the text is never transformed (blurry otherwise)
   const [text, bg] = {
     rose: ["text-white", "bg-rose group-hover/sk:bg-rose-hi"],
     balkan: ["text-on-fill hover:text-ink", "bg-balkan group-hover/sk:bg-paper"],

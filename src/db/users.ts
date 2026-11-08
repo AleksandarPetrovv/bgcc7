@@ -8,7 +8,6 @@ import { EDITIONS } from "@/lib/format";
 import { ircName } from "@/lib/names";
 import { joinStaff, staffNames } from "@/lib/staff-names";
 
-/** osu ids of everyone named in a staff field (referee, streamer); names match case-insensitively */
 export async function staffIds(field: string | null | undefined) {
   const names = staffNames(field).map((n) => n.toLowerCase());
   if (!names.length) return [];
@@ -16,7 +15,6 @@ export async function staffIds(field: string | null | undefined) {
   return rows.map((r) => r.osuId);
 }
 
-/** an osu! user from a profile link, id or name typed by staff; null when empty or not found */
 export async function resolveOsuUser(input: FormDataEntryValue | null) {
   const s = String(input ?? "").trim().slice(0, 200);
   const m = /osu\.ppy\.sh\/(?:users|u)\/([^/?#\s]+)/i.exec(s);
@@ -43,7 +41,6 @@ export async function refreshUsers(ids: number[]) {
 
 type OsuUserIn = Pick<OsuUserFull, "id" | "username" | "avatar_url" | "country_code"> & Partial<Pick<OsuUserFull, "statistics" | "badges">>;
 
-/** the one writer of users rows; stats are only touched when the source carries them (the sign-in profile may not) */
 export async function saveOsuUser(u: OsuUserIn) {
   const stats =
     u.statistics === undefined

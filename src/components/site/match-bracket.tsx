@@ -127,7 +127,6 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   const phone = isPhone(seen);
   const gap = phone ? 44 : G;
   const height = LOW + (lowRows - 1) * P + H + 12;
-  // overlay: the height sets the scale, then the columns widen to fill the width at that scale
   const fill = maxH && !phone ? Math.min(2, maxH / height) : 0;
   const W = phone ? Math.round(avail - gap) : colWidth(format, avail, fill);
   const shrink = shrinkScale(seen, (gfCol + 1) * minW + gfCol * G);

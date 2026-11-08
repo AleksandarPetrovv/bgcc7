@@ -5,7 +5,6 @@ import { useEffect } from "react";
 const DUR = 450;
 const EASING = "cubic-bezier(0.4, 0, 0.2, 1)";
 
-// every <details> on the site slides its height open and closed instead of snapping (js, so it works in every browser)
 export function DetailsMotion() {
   useEffect(() => {
     const running = new WeakMap<HTMLDetailsElement, { a: Animation; opening: boolean }>();
@@ -21,7 +20,6 @@ export function DetailsMotion() {
       e.preventDefault();
       const from = d.getBoundingClientRect().height;
       const prev = running.get(d);
-      // a click mid-animation reverses it from wherever it is
       const opening = prev ? !prev.opening : !d.open;
       prev?.a.cancel();
       d.open = true;

@@ -51,7 +51,6 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
   const decided = (score: [number, number]) => decideWinner(score, firstTo) !== null;
   const saved = await stored(match.id, links);
   if (saved) {
-    // a cached result whose finish never got saved: finish it now instead of serving it forever
     if (!match.winner && decided(saved.score)) await settleResult(match, saved.score, firstTo);
     return saved;
   }

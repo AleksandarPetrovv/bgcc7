@@ -40,22 +40,18 @@ export async function settleResult(match: Pick<Match, "id" | "referee">, score: 
   }
 }
 
-/** everything that hangs off a match; a bracket reset clears all of it except the permanent test match's */
 export async function clearMatchChildren(tx: Tx) {
   for (const t of [drafts, matchCache, scoreEdits, reschedules, availability, mpLobbies, mpChat]) await tx.delete(t).where(ne(t.matchId, TEST_MATCH.id));
 }
 
-/** SQL twin of isTestTeam: the real teams, without the permanent test ones */
 export const realTeams = notLike(teams.id, "test-%");
 
-/** staff sets a match time inside the caller's transaction: overrides the captains' requests and logs it in the reschedule history */
 export async function setMatchTime(tx: Tx, m: { id: string; team1Id: string | null }, at: Date | null, by: number) {
   await staffOverride(tx, m.id, by);
   await tx.update(matches).set({ startsAt: at }).where(eq(matches.id, m.id));
   if (at && m.team1Id) await tx.insert(reschedules).values({ matchId: m.id, teamId: m.team1Id, requestedBy: by, proposedAt: at, status: "staff", decidedBy: by });
 }
 
-/** after a staff time change: a note in both team channels, and a DM to each captain when asked */
 export function announceMatchTime(teams: [string | null, string | null], at: Date, { dm }: { dm: boolean }) {
   const [t1, t2] = teams;
   detached("schedule", async () => {

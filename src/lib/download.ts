@@ -3,7 +3,6 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { Readable } from "node:stream";
 
-/** streams a file from disk as a download, 404 when it is missing */
 export async function fileDownload(file: string, name: string, type: string) {
   const info = await stat(file).catch(() => null);
   if (!info) return new Response("not found", { status: 404 });

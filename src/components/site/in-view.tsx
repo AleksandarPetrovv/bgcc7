@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 
 export const belowFold = (el: Element) => el.getBoundingClientRect().top >= window.innerHeight;
 
-/** null until measured; true when the element mounted below the fold, so its intro is skipped */
 export function useIntroSkip(ref: React.RefObject<Element | null>) {
   const [skip, setSkip] = useState<boolean | null>(null);
   useLayoutEffect(() => {

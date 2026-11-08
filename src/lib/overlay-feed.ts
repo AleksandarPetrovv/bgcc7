@@ -31,9 +31,7 @@ function settleSometimes(matchId: string) {
   return settle(matchId);
 }
 
-// after the roll winner chooses pick/ban the intro stays up this long, then the pool
 const CHOICE_HOLD = 20_000;
-// final scores stay on the gameplay scene this long after a map ends
 const RESULTS_HOLD = 20_000;
 const ABORT_HOLD = 5_000;
 const gl = globalThis as unknown as { bgccLastLive?: Map<string, LiveScore> };
@@ -195,7 +193,6 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
   const rolled = draft?.roll1 != null && draft?.roll2 != null && draft.roll1 !== draft.roll2;
   const chosenAt = rolled && draft.choice ? rolledSince(matchId, `${draft.roll1}:${draft.roll2}:${draft.choice}`, draft.steps.length ? 0 : Date.parse(draft.turnAt ?? "") || now) : null;
   if (rolled && !draft.choice) rolledSince(matchId, `${draft.roll1}:${draft.roll2}`, now);
-  // the intro waits for the roll winner's pick/ban choice, holds a bit, then the pool
   const introDone = (chosenAt !== null && now - chosenAt >= CHOICE_HOLD) || !!draft?.steps.length;
 
   const cue = currentEdition() === siteEdition() ? getCue(matchId) : null;

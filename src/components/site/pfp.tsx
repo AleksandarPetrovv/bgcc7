@@ -5,7 +5,6 @@ import { SlantBg } from "./slant";
 
 type PicProps = Omit<React.ImgHTMLAttributes<HTMLImageElement>, "src"> & { src: string; lazy?: boolean };
 
-/** the img basics shared by avatars, flags and team images */
 export function Pic({ lazy, alt = "", ...rest }: PicProps) {
   // eslint-disable-next-line @next/next/no-img-element
   return <img alt={alt} {...(lazy && { loading: "lazy" as const, decoding: "async" as const })} {...rest} />;

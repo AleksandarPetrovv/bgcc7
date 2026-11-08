@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-/** every `ms` (and on `wake`) fetches a signature while the tab is visible; refreshes the page data when it differs from the last one */
 export function usePollRefresh(sig: string, sigFn: () => Promise<string | null | undefined>, ms: number, wake?: "focus" | "visible") {
   const router = useRouter();
   const last = useRef(sig);

@@ -27,7 +27,6 @@ export type FeedGroup = { name: string; color: string; slots: string[] };
 
 export type FeedStep = { team: 1 | 2; kind: "ban" | "pick"; slot: string; winner: 1 | 2 | null };
 
-// who acts next in the pick/ban phase; null while a map is being played or the draft has not started
 export type FeedTurn = { kind: "pick" | "ban"; team: 1 | 2 } | { kind: "tb" } | null;
 
 export type OverlayFeed = {

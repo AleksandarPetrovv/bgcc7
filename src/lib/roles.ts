@@ -16,7 +16,6 @@ const GRANTS: Record<Role, readonly Perm[]> = {
   designer: [],
 };
 
-// referees link the helper for lobbies, streamers for the overlay
 export const HELPER_PERMS = ["matches", "overlay"] as const satisfies readonly Perm[];
 
 export const can = (roles: readonly Role[] | null | undefined, perm: Perm) => !!roles?.some((r) => GRANTS[r].includes(perm));

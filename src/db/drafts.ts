@@ -35,7 +35,6 @@ export async function timers(): Promise<Timers> {
 
 const stageCfg = (c: Timers, slug: string) => c.stages.find((s) => s.slug === slug) ?? { firstTo: getFormat().firstTo, hasTb: false };
 
-/** snapshot of the stage's rules and maps, stored on the draft when it opens or resets */
 export async function rulesFor(stageSlug: string): Promise<DraftRules> {
   const [c, stages] = await Promise.all([timers(), getPoolStages()]);
   const { firstTo, hasTb } = stageCfg(c, stageSlug);
@@ -50,13 +49,11 @@ export async function rulesFor(stageSlug: string): Promise<DraftRules> {
   };
 }
 
-/** everything a draft starts from on a stage: its frozen rules and bans plus empty progress. opening on a new stage and resetting both use it */
 export async function freshDraft(stageSlug: string) {
   const [rules, s, layouts] = await Promise.all([rulesFor(stageSlug), getSettings(), getSkillLayouts()]);
   return { stageSlug, rules, bans: layouts?.[stageSlug]?.bans ?? s.bans, banOrder: s.banOrder, steps: [], redo: [], turnAt: new Date(), pausedAt: null, pauseUntil: null, timeouts: NO_TIMEOUTS };
 }
 
-/** the draft's maps and pickable slots: its frozen snapshot while it is on that stage, else the stage's current pool */
 export async function rulesOf(matchId: string, stageSlug: string) {
   const [r] = await db.select({ rules: drafts.rules, stageSlug: drafts.stageSlug }).from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
   if (r?.rules && r.stageSlug === stageSlug) return { maps: Object.values(r.rules.maps), slots: r.rules.slots };
@@ -210,7 +207,6 @@ export async function lobbyTimer(matchId: string, secs: number | null) {
   emitDraft(matchId);
 }
 
-/** a captain asks for their one timeout; it waits in the queue until the ref accepts or declines */
 export async function requestTimeout(matchId: string, side: Side) {
   const res = await db.transaction(async (tx) => {
     const [row] = await tx.select({ open: drafts.open, timeouts: drafts.timeouts }).from(drafts).where(eq(drafts.matchId, matchId)).for("update");
@@ -227,7 +223,6 @@ export async function requestTimeout(matchId: string, side: Side) {
   return res;
 }
 
-/** the ref answers the oldest request; accept uses the team's timeout and pauses the draft. null when that side isn't first in line anymore */
 export async function answerTimeout(matchId: string, side: Side, accept: boolean) {
   const ok = await db.transaction(async (tx) => {
     const [row] = await tx.select({ timeouts: drafts.timeouts }).from(drafts).where(eq(drafts.matchId, matchId)).for("update");

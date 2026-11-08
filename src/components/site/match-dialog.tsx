@@ -24,7 +24,6 @@ import { MOD_COLOR, MODS } from "@/lib/mods";
 
 const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
 const cache = new Map<string, Scoreboard>();
-// a cache miss opens with just the header after this wait if the maps haven't arrived
 const OPEN_WAIT_MS = 350;
 const still = () => () => {};
 const TEAM = [TEAMS[1].border, TEAMS[2].border];
@@ -202,7 +201,6 @@ function Board({ match, data, names }: { match: Match; data: Scoreboard; names: 
               <LineDiamond line="border-t" />
             </div>
           )}
-          {/* bleed through the board padding (and under the overlay scrollbar) so the cover and separator span the popup; content stays put */}
           <MapCard m={m} i={i} className="-ml-(--px) -mr-[calc(var(--px)+var(--sbw,0px))] pl-(--px) pr-[calc(var(--px)+var(--sbw,0px))]" />
         </div>
       ))}
@@ -225,7 +223,6 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  // no loading screen: open as soon as the maps are in, or after a short wait with the header we already have (maps fill in)
   const [loads, setLoads] = useState(0);
   const load = () => {
     const hit = cache.get(slug);
@@ -371,8 +368,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
   );
 }
 
-// the native scrollbar takes a lane the map rows can't paint under, so it's hidden and this thumb floats over the edge.
-// --sbw keeps the content where it sat next to the native scrollbar.
+// the native scrollbar takes a lane the map rows can't paint under, so it's hidden and this thumb floats over the edge; --sbw keeps the content where it sat
 function ScrollThumb() {
   const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {

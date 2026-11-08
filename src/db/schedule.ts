@@ -28,7 +28,6 @@ export type SchedMatch = {
   mine: string;
   opp: string;
   history: Proposal[];
-  /** osu id -> hours that player can't play */
   busy: Record<number, string[]>;
 };
 
@@ -60,7 +59,6 @@ export async function busyOf(ids: string[]) {
   return out;
 }
 
-/** team = the viewer's alive team (getMe().myTeam) */
 export const mySchedule = cache(async (team: string | null): Promise<SchedMatch[]> => {
   if (!team) return [];
   const [rows, weeks] = await Promise.all([getMatchRows(), stageWeeks()]);
@@ -82,14 +80,11 @@ export const mySchedule = cache(async (team: string | null): Promise<SchedMatch[
 
 export const waitingOnMe = (m: SchedMatch) => isOpen(weekOf(m.week)) && m.history.some((p) => p.status === "pending" && p.teamId === m.opp);
 
-/** still open, no agreed time, and the match week starts within 14 days */
 const soon = (m: SchedMatch, now = Date.now()) => {
   const w = weekOf(m.week);
   return !!w && isOpen(w, now) && !m.startsAt && w.from.getTime() - now <= 14 * 864e5;
 };
-/** captain: a close match with no time and no proposal from us yet */
 export const needsTime = (m: SchedMatch) => soon(m) && !m.history.some((p) => p.status === "pending" && p.teamId === m.mine);
-/** any player: a close match and they never saved their availability for it */
 export const needsHours = (m: SchedMatch, osuId: number) => soon(m) && !(osuId in m.busy);
 
 // anyone logged in can link from registration on (linking early is fine; team roles only follow once they're on a team)

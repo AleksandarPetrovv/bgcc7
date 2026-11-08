@@ -105,7 +105,6 @@ function MatchLink({ slug, path, big, onClick, clock }: { slug: string; path: st
   );
 }
 
-// the me / scheduling dot sits where the sparkle would
 const dotAt = (base: string, me: boolean, sched: boolean) => (me && base === "/me") || (sched && base === "/scheduling");
 
 function Dot({ className }: { className?: string }) {
@@ -122,7 +121,6 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
   const [pending, start] = useTransition();
   const t = useDict();
   const [open, setOpen] = useState(false);
-  // the menu keeps highlighting the page it opened on while it closes over the new one
   const [menuPath, setMenuPath] = useState(path);
   const navRef = useRef<HTMLElement>(null);
   const barRef = useRef<HTMLSpanElement>(null);
@@ -131,9 +129,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
   const placed = useRef(false);
   const rowRef = useRef<HTMLDivElement>(null);
   const rightRef = useRef<HTMLDivElement>(null);
-  // null until measured: css decides (xl), then the full nav only shows when it fits with room to spare
   const [fit, setFit] = useState<boolean | null>(null);
-  // null = centered; a number = left offset when only the spot right after the theme toggle has room
   const [shift, setShift] = useState<number | null>(null);
   const [tight, setTight] = useState(false);
   const wideW = useRef(0);
@@ -181,7 +177,6 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
     if (!row || !nav || !right) return;
     const measure = () => {
       const rowGap = parseFloat(getComputedStyle(row).columnGap) || 0;
-      // where the toggle ends when it sits in the row (it's centered while the menu button shows)
       const toggle = nav.previousElementSibling as HTMLElement | null;
       const left = (toggle?.previousElementSibling?.getBoundingClientRect().right ?? 0) + rowGap + (toggle?.offsetWidth ?? 0);
       const kids = [...right.children].filter((k) => !(k as HTMLElement).dataset.compact && k.getBoundingClientRect().width > 0);
@@ -197,7 +192,6 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
       };
       if (!tight) wideW.current = nav.offsetWidth;
       const wide = check(wideW.current || nav.offsetWidth);
-      // too wide at normal size: try smaller links before falling back to the menu
       if (!tight && !wide.ok) return setTight(true);
       if (tight && wide.ok) return setTight(false);
       const c = tight ? check(nav.offsetWidth) : wide;
@@ -218,14 +212,12 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
         <Link href="/" className="group flex h-full items-center gap-1 pl-3 sm:pl-4 lg:pl-6" aria-label={t.nav.homeLabel}>
           <Wordmark size="md" className="text-paper max-sm:text-[1.6rem]" />
         </Link>
-        {/* with the menu button instead of the nav, the toggle sits in the middle of the bar */}
         <ThemeToggle className={fit === null ? "max-[1699px]:absolute max-[1699px]:left-1/2 max-[1699px]:-translate-x-1/2" : fit ? undefined : "absolute left-1/2 -translate-x-1/2"} />
 
         <nav
           ref={navRef}
           className={cn(
             "h-full items-stretch",
-            // before measuring, guess by width (same centered spot) so the first paint doesn't jump
             fit === null ? "absolute left-1/2 top-0 hidden -translate-x-1/2 min-[1700px]:flex" : fit ? (shift === null ? "absolute left-1/2 top-0 flex -translate-x-1/2" : "absolute top-0 flex") : "pointer-events-none invisible absolute right-0 top-0 flex w-max", // anchored right so it overflows left, which never widens the page on phones
           )}
           style={fit && shift !== null ? { left: shift } : undefined}

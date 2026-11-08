@@ -11,7 +11,6 @@ import { avatarCol } from "./avatar";
 
 export type QualResults = { maps: QualMap[]; players: QualPlayer[] };
 
-/** the map fields result tables show */
 export const toQualMap = (m: Beatmap): QualMap => ({ slot: m.slot, title: m.title, version: m.version, creator: m.creator, sr: m.sr, bpm: m.bpm, cover: m.cover, id: m.id, length: m.length });
 
 export const getQualResults = cache(async (): Promise<QualResults> => {

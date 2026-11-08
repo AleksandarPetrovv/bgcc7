@@ -43,7 +43,6 @@ export const isBGCC6 = () => currentEdition() === "bgcc6";
 
 export const withEdition = <T>(ed: Edition | "site", fn: () => T): T => pin.run(ed, fn);
 
-/** runs a job after the request without waiting for it, in the edition it was started from; errors are logged */
 export const detached = (what: string, fn: () => Promise<unknown>) => {
   const ed = currentEdition();
   void withEdition(ed, fn).catch((e) => console.error(`[${what}]`, e));

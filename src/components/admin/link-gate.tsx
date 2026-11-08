@@ -8,7 +8,6 @@ import { ActionForm, Field, Panel } from "./form";
 import { labelCls } from "./label";
 import { useDict } from "@/components/site/lang";
 
-// link panel collapses once the helper is linked and comes back after an unlink
 export function LinkGate({ linked, children }: { linked: boolean; children: React.ReactNode }) {
   return (
     <div
@@ -23,13 +22,11 @@ export function LinkGate({ linked, children }: { linked: boolean; children: Reac
   );
 }
 
-// the helper reports to the server on its own; re-fetch the page data in place when its state changes
 export function HelperPoll({ sig }: { sig: string }) {
   usePollRefresh(sig, helperState, 3000);
   return null;
 }
 
-/** the link-code panel, folded away while the helper is linked */
 export function HelperLink({ linked, i }: { linked: boolean; i: number }) {
   const r = useDict().admin.refApp;
   return (

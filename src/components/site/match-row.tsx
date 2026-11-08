@@ -35,7 +35,6 @@ function Side({ id, flip, lost, small, at }: { id: string; flip?: boolean; lost?
     >
       {team ? (
         <>
-          {/* on desktop the badge sits above the picture in a slot both sides keep, so nothing below it shifts */}
           {!small && (
             <span className="-mb-1 hidden h-4 items-end justify-center sm:flex">
               <MeTag t={team.id} className="me-tag-plain text-[0.65rem]" />
@@ -75,7 +74,7 @@ function Side({ id, flip, lost, small, at }: { id: string; flip?: boolean; lost?
   );
 }
 
-// small: the home page size; the round name gets the top line (label = longest to shortest), the date sits under the score unless the results eye is there; delay shifts the whole intro
+// small: the home page size; the round name gets the top line, the date sits under the score unless the results eye is there
 export function MatchRow({ match, live, small, label, delay = 0 }: { match: Match; live?: [number, number] | null; small?: boolean; label?: string[]; delay?: number }) {
   const lbl = useRef<HTMLSpanElement>(null);
   const [level, setLevel] = useState(0);
@@ -120,10 +119,8 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
   const card = (
     <div
       className={cn(
-        // small: no box, only a dashed rule underneath with a diamond in the middle (like the timeline)
         "group/row relative isolate grid",
         small ? "border-b" : "overflow-hidden border bg-coal",
-        // small: the label line spans the card (row 2) and stops 2rem short of the pictures, label + score stay centred together
         small
           ? "grid-cols-[minmax(0,1fr)_var(--mid)_minmax(0,1fr)] grid-rows-[1fr_auto_auto_1fr] [--mid:6.5rem] sm:[--mid:11rem]"
           : "grid-cols-[minmax(0,1fr)_6.5rem_minmax(0,1fr)] sm:grid-cols-[minmax(0,1fr)_11rem_minmax(0,1fr)]",
@@ -144,7 +141,6 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
                 className={cn(
                   "row-thumb size-full scale-110 object-cover blur-[1px] transition-transform duration-700 ease-out group-hover/row:scale-125 motion-reduce:transition-none",
                   i ? "[mask-image:linear-gradient(to_left,black_10%,transparent_85%)]" : "[mask-image:linear-gradient(to_right,black_10%,transparent_85%)]",
-                  // light: multiplied in so the picture darkens the card like ink instead of washing it out
                   "mix-blend-multiply contrast-125 dark:mix-blend-normal dark:contrast-100",
                   played && match.winner === i + 1 ? "opacity-35 grayscale-[30%] dark:opacity-20 dark:grayscale-[40%]" : "opacity-25 grayscale dark:opacity-10",
                 )}
@@ -182,7 +178,6 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
             )}
           </div>
           {eye && small ? (
-            // bare pink eye, grows on hover
             <MatchDialog match={match} className="group flex h-7 items-center justify-center">
               <span className="flex size-7 items-center justify-center text-rose transition-[color,scale] duration-200 group-hover:scale-125 group-hover:text-rose-hi">
                 <Eye className="size-[1.3rem]" strokeWidth={2.25} aria-hidden />

@@ -7,11 +7,9 @@ const UPSCALE_FROM = 1280;
 const UPSCALE_MAX = 2;
 const SHRINK_FROM = 768;
 
-/** width before the first measure; both brackets guess the same so the intro does not jump */
 export const availOr = (avail: number) => avail || FALLBACK_W;
 export const isPhone = (avail: number) => avail > 0 && avail < PHONE_W;
 
-/** column width that fills avail; fill = a known scale the columns widen against (no cap) */
 export function colWidth(f: Format, avail: number, fill = 0) {
   const { gfCol } = f.layout;
   const { g, minW } = f.layout.box;
@@ -25,5 +23,4 @@ export const shrinkScale = (avail: number, width: number) => (avail < SHRINK_FRO
 
 export const wirePath = (x1: number, y1: number, x2: number, y2: number, gap: number) => `M${x1} ${y1} H${x2 - gap / 2} V${y2} H${x2}`;
 
-/** the round key the grand final headers use (display text goes through roundName) */
 export const gfRound = (f: Format) => f.rounds[GF].name;

@@ -13,10 +13,8 @@ import { isKnockedOut, teamOfPlayer } from "@/lib/alive";
 import { windowState } from "@/lib/time";
 
 export const regState = (s: Pick<Settings, "regOpensAt" | "regClosesAt">) => windowState(s.regOpensAt, s.regClosesAt);
-/** the register button shows: section on, registration phase, window open */
 export const regOpen = (s: Pick<Settings, "phase" | "regOpensAt" | "regClosesAt">, sections: { register: boolean }) => sections.register && s.phase === "registration" && regState(s) === "open";
 
-/** the viewer's users row bits for the connections card; throws on db errors */
 export const userLink = cache(async (osuId: number) => (await db.select({ id: users.discordId, name: users.discordName, username: users.username }).from(users).where(eq(users.osuId, osuId)).limit(1))[0] ?? null);
 
 export const getMe = cache(async () => {
@@ -40,14 +38,12 @@ export const getMe = cache(async () => {
   };
 });
 
-// show = scheduling nav item; discord = red dot on "me" + link popup for everyone without a linked discord
 export const schedNav = cache(async () => {
   const me = await getMe();
   if (!me) return null;
   const discord = canLinkDiscord() && !me.discordLinked;
   if (!me.teamOf) return { show: false, dot: false, discord };
   const show = me.canSchedule;
-  // captains: an answer waits on them, or a close match has no time. everyone: a close match where they never saved their hours
   const list = show ? await mySchedule(me.myTeam) : [];
   const dot = list.some((m) => (!!me.captainOf && (waitingOnMe(m) || needsTime(m))) || needsHours(m, me.osuId));
   return { show, dot, discord };

@@ -11,7 +11,6 @@ export type PopPlace = { left: number; top: number; width: number; up?: boolean 
 
 const noop = () => () => {};
 
-/** fixed position from the anchor rect (kept in place on scroll/resize), closes on outside press or Escape */
 export function useAnchoredPopup(anchor: React.RefObject<HTMLElement | null>, open: boolean, onClose: () => void, place: (r: DOMRect) => PopPlace, box: React.RefObject<HTMLElement | null>) {
   const mounted = useSyncExternalStore(noop, () => true, () => false);
   const [pos, setPos] = useState<PopPlace | null>(null);
@@ -67,7 +66,6 @@ type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "style" | keyof React.DO
   children: React.ReactNode;
 };
 
-/** portal popup with the dropdown's slide entrance and (by default) its chrome */
 export function AnchoredPopup({ anchor, open, onClose, place, chrome = true, popKey, ref, className, children, ...rest }: Props) {
   const own = useRef<HTMLDivElement>(null);
   const box = ref ?? own;

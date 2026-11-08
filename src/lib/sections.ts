@@ -39,7 +39,6 @@ export const PRESETS: Record<Phase, Section[]> = {
 export const presetSections = (p: Phase) => Object.fromEntries(SECTIONS.map((s) => [s, PRESETS[p].includes(s)])) as Record<Section, boolean>;
 
 export const TIMELINE_KEYS = ["reg", "scr", "qual", "seed", "play", "done"] as const;
-/** a phase and its timeline row share their position in PHASES / TIMELINE_KEYS */
 export const phaseKey = (p: string): string | undefined => TIMELINE_KEYS[PHASES.indexOf(p as Phase)];
 export const keyPhase = (k: string): Phase | undefined => PHASES[TIMELINE_KEYS.indexOf(k as (typeof TIMELINE_KEYS)[number])];
 
@@ -122,11 +121,9 @@ const NAV: NavGroup[] = [
   },
 ];
 
-/** the sub-nav tabs of the group at `base` */
 export const subNavOf = (base: string, t: Dict) =>
   (NAV.find((g) => g.base === base)?.items ?? []).flatMap((i) => (i.label ? [{ href: i.href, label: i.label(t) }] : []));
 
-/** public pages for the sitemap: every top-nav entry everyone can reach */
 export const PUBLIC_PAGES = NAV.filter((g) => g.top !== false && !g.sched && g.key !== "me" && !NAV_BGCC6.includes(g)).map((g) => g.base);
 
 export type NavItem = { key: NavKey; href: string; base: string; alias?: string; hidden: boolean };

@@ -5,7 +5,6 @@ import { GF, GF_RESET, roundOf, type Format } from "@/lib/format";
 const pointsFor = (f: Format, id: string) => f.points[roundOf(id)] ?? 0;
 
 export type Seeding = Record<string, readonly [string, string]>;
-// first-round matches are the ones nothing feeds into
 export const seedingOf = (f: Format, matches: Match[]): Seeding =>
   Object.fromEntries(matches.filter((m) => f.order.includes(m.id) && !f.feed[m.id]).map((m) => [m.id, [m.team1.id, m.team2.id] as const]));
 export const actualOf = (matches: Match[]): Picks =>
@@ -13,10 +12,8 @@ export const actualOf = (matches: Match[]): Picks =>
 
 export type Picks = Record<string, string>;
 
-/** decided or already started matches can't be picked any more */
 export const lockedOf = (matches: Match[], now = Date.now()) => matches.filter((m) => m.winner || (m.datetime && new Date(m.datetime).getTime() <= now)).map((m) => m.id);
 
-/** picks open once every first-round matchup is known and close when the first bracket match starts or has a result */
 export function pickemsWindow(f: Format, matches: Match[], now = Date.now()) {
   const bracket = matches.filter((m) => f.order.includes(m.id));
   const seeded = seedingOf(f, matches);
