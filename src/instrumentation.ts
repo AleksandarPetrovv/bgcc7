@@ -1,11 +1,10 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs" || !process.env.DATABASE_URL) return;
   const { default: postgres } = await import("postgres");
-  const { normEdition, tickKey } = await import("./lib/boot");
+  const { bootEdition, tickKey } = await import("./lib/boot");
   const sql = postgres(process.env.DATABASE_URL, { max: 1 });
   try {
-    const [row] = await sql<{ edition: string }[]>`select edition from public.settings where id = 1`;
-    (globalThis as { bgccEdition?: string }).bgccEdition = normEdition(row?.edition);
+    await bootEdition(sql);
   } catch (e) {
     // db/index.ts asks again on first use
     console.error("[boot] edition", e);

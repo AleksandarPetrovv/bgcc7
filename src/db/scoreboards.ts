@@ -1,4 +1,4 @@
-import { currentEdition, db } from "./index";
+import { db, editionKey } from "./index";
 import "server-only";
 import { eq } from "drizzle-orm";
 import { matchCache, scoreEdits } from "./schema";
@@ -12,11 +12,11 @@ import { staffIds } from "./users";
 import { decideWinner } from "@/lib/result";
 import { within } from "@/lib/utils";
 import { SCORES_STALE_AFTER } from "@/lib/relay-contract";
+import { globalStore } from "@/lib/global-store";
 
 const LIVE_TTL = 30_000;
 // on globalThis so dev reloads and every route bundle share one cache
-const g = globalThis as unknown as { bgccLiveBoards?: Map<string, { at: number; data: Scoreboard }> };
-const live = (g.bgccLiveBoards ??= new Map());
+const live = globalStore("bgccLiveBoards", () => new Map<string, { at: number; data: Scoreboard }>());
 
 async function stored(id: string, links: string) {
   try {
@@ -39,7 +39,7 @@ export async function getEdits(matchId: string): Promise<ScoreEdit[]> {
 }
 
 export async function forgetScoreboard(matchId: string) {
-  live.delete(`${currentEdition()}:${matchId}`);
+  live.delete(editionKey(matchId));
   await db.delete(matchCache).where(eq(matchCache.matchId, matchId));
 }
 
@@ -55,7 +55,7 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
     return saved;
   }
 
-  const key = `${currentEdition()}:${match.id}`;
+  const key = editionKey(match.id);
   const hit = live.get(key);
   if (hit && Date.now() - hit.at < LIVE_TTL) return hit.data;
 
@@ -80,7 +80,7 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
     console.error("[match]", match.id, e);
     if (isLive(match) && failingFor(staleId, SCORES_STALE_AFTER)) {
       const info = await describeMatch(match.id);
-      raise({ id: staleId, kind: "scoresStale", level: "gold", match: info, href: `/admin/matches/${info.slug}`, detail: e instanceof Error ? e.message : String(e) }, { hosts: true, osuIds: await staffIds(match.referee) });
+      raise({ id: staleId, kind: "scoresStale", level: "gold", match: info, href: `/admin/matches/${info.slug}`, detail: e instanceof Error ? e.message : String(e) }, { hosts: true, osuIds: await staffIds(match.referee).catch(() => []) });
     }
     return hit?.data ?? null;
   }

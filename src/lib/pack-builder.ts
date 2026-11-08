@@ -9,6 +9,7 @@ import { crc32 } from "node:zlib";
 import { revalidatePath } from "next/cache";
 import { asc, eq } from "drizzle-orm";
 import { currentEdition, dbOf } from "@/db";
+import { globalStore } from "./global-store";
 import type { Edition } from "@/lib/format";
 import { maps as mapsTable, stages } from "@/db/schema";
 import { clearPack, slotOf } from "@/db/mappools";
@@ -25,6 +26,7 @@ export type PackJob = {
   total: number;
   missing: string[];
   error?: string;
+  lastError?: string;
   size?: number;
   zipping?: boolean;
   at: number;
@@ -33,6 +35,9 @@ export type PackJob = {
 const UA = "bgcc7-mappack/1.0";
 const MAP_MAX = 200 * 1024 * 1024;
 const PARALLEL = 6;
+const MIRROR_TRIES = 3;
+const MIRROR_TIMEOUT_MS = 180_000;
+const MIRROR_BACKOFF_MS = 1500;
 const MIRRORS = [
   (id: number) => `https://catboy.best/d/${id}`,
   (id: number) => `https://osu.direct/api/d/${id}`,
@@ -40,9 +45,8 @@ const MIRRORS = [
   (id: number) => `https://beatconnect.io/b/${id}/`,
 ];
 
-const g = globalThis as unknown as { packJobs?: Map<string, PackJob>; packSlots?: { free: number; queue: (() => void)[] } };
-const jobs = (g.packJobs ??= new Map());
-const slots = (g.packSlots ??= { free: PARALLEL, queue: [] });
+const jobs = globalStore("packJobs", () => new Map<string, PackJob>());
+const slots = globalStore("packSlots", () => ({ free: PARALLEL, queue: [] as (() => void)[] }));
 
 export const packJob = (slug: string, ed: Edition = currentEdition()) => jobs.get(`${ed}:${slug}`) ?? null;
 export const packJobs = (ed: Edition = currentEdition()) =>
@@ -73,20 +77,23 @@ const setIdOf = async (beatmapId: number, cover: string) => {
 const clean = (s: string) => s.replace(/[\\/:*?"<>|\x00-\x1f]/g, "").replace(/\s+/g, " ").trim().slice(0, 120);
 
 async function fetchMirror(url: string) {
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await fetch(url, { headers: { "user-agent": UA }, redirect: "follow", signal: AbortSignal.timeout(180_000) });
+  for (let attempt = 0; attempt < MIRROR_TRIES; attempt++) {
+    const res = await fetch(url, { headers: { "user-agent": UA }, redirect: "follow", signal: AbortSignal.timeout(MIRROR_TIMEOUT_MS) });
     if (res.status !== 429 && res.status < 500) return res;
     await res.body?.cancel().catch(() => {});
-    await sleep(1500 * (attempt + 1));
+    await sleep(MIRROR_BACKOFF_MS * (attempt + 1));
   }
   return null;
 }
 
-async function download(setId: number, dest: string) {
+/** true on success, otherwise the last mirror error */
+async function download(setId: number, dest: string): Promise<true | string> {
+  let last = "no mirror had it";
   for (const url of MIRRORS) {
     try {
       const res = await fetchMirror(url(setId));
       if (!res?.ok || !res.body) {
+        last = res ? `http ${res.status}` : "mirror busy";
         await res?.body?.cancel().catch(() => {});
         continue;
       }
@@ -102,10 +109,13 @@ async function download(setId: number, dest: string) {
       await fh.read(head, 0, 2, 0);
       await fh.close();
       if (size > 22 && head.toString("latin1") === "PK") return true;
-    } catch {}
+      last = "not a valid osz";
+    } catch (e) {
+      last = e instanceof Error ? e.message : String(e);
+    }
     await rm(dest, { force: true });
   }
-  return false;
+  return last;
 }
 
 function write(out: WriteStream, buf: Buffer) {
@@ -195,8 +205,12 @@ async function build(slug: string, osuId: number, job: PackJob, ed: Edition) {
       sets.map((s) =>
         withSlot(async () => {
           const file = path.join(work, `${s.setId}.osz`);
-          if (await download(s.setId, file)) got.set(s.setId, file);
-          else job.missing.push(s.slot);
+          const r = await download(s.setId, file);
+          if (r === true) got.set(s.setId, file);
+          else {
+            job.lastError = r;
+            job.missing.push(s.slot);
+          }
           job.done++;
         }),
       ),

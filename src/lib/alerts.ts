@@ -5,18 +5,19 @@ import { currentEdition, db } from "@/db";
 import { getFormat } from "@/db/edition";
 import { matches, teams } from "@/db/schema";
 import { roundOf } from "./format";
+import { globalStore } from "./global-store";
 import type { Alert, AlertKind } from "./relay-contract";
 
 export type Audience = { hosts?: boolean; osuIds?: (number | null | undefined)[] };
 type Entry = { alert: Alert; hosts: boolean; osuIds: number[] };
 type Store = { list: Map<string, Entry>; bus: EventEmitter; since: Map<string, number> };
 
-const g = globalThis as unknown as { bgccAlerts?: Store };
-const store = () => (g.bgccAlerts ??= { list: new Map(), bus: new EventEmitter().setMaxListeners(0), since: new Map() });
+const store = () => globalStore<Store>("bgccAlerts", () => ({ list: new Map(), bus: new EventEmitter().setMaxListeners(0), since: new Map() }));
 
 export const alertId = (kind: AlertKind, key: string) => `${kind}:${currentEdition()}:${key}`;
 export const ownerAlertId = (kind: AlertKind, matchId: string, osuId: number) => alertId(kind, `${matchId}:${osuId}`);
-export const ownedBy = (kind: AlertKind, osuId: number) => (a: Alert) => a.kind === kind && a.id.endsWith(`:${osuId}`);
+export const parseOwner = (id: string) => Number(id.slice(id.lastIndexOf(":") + 1));
+export const ownedBy = (kind: AlertKind, osuId: number) => (a: Alert) => a.kind === kind && parseOwner(a.id) === osuId;
 
 export function raise(alert: Omit<Alert, "since">, who: Audience) {
   const s = store();

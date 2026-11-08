@@ -1,22 +1,15 @@
 import "server-only";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { matches, mpLobbies, teamMembers } from "@/db/schema";
+import { matches, teamMembers } from "@/db/schema";
 import { staffIds } from "@/db/users";
 import { getViewer } from "./authz";
 import { can } from "./roles";
-import { relayOnline } from "./relay";
+import { siteRun } from "@/db/site-run";
 import { staffNames } from "./staff-names";
 import type { Side } from "./draft";
 import { getFormat } from "@/db/edition";
 import { matchIdFromSlug } from "./format";
-
-export async function siteRun(m: { id: string; referee: string | null }) {
-  const refs = await staffIds(m.referee);
-  const [lob] = await db.select({ owner: mpLobbies.owner, open: mpLobbies.open }).from(mpLobbies).where(eq(mpLobbies.matchId, m.id)).limit(1);
-  const refLive = refs.some((ref) => relayOnline(ref) || (!!lob?.open && lob.owner === String(ref)));
-  return { refs, refLive, onSite: refLive || !!lob };
-}
 
 export async function canRunMatch(matchId: string, opts: { unassigned?: boolean } = {}) {
   const v = await getViewer();

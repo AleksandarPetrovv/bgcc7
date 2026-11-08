@@ -4,6 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { BanchoClient, type BanchoLobby, type BanchoLobbyPlayerScore, type BanchoMultiplayerChannel } from "bancho.js";
 import { RateLimiterMemory, RateLimiterQueue } from "rate-limiter-flexible";
 import { db, withEdition } from "@/db";
+import { globalStore, peekStore } from "@/lib/global-store";
 import { matches, mpChat, mpLobbies, users } from "@/db/schema";
 import { getAllTeams } from "@/db/tournament";
 import { getHosts } from "@/db/admin";
@@ -60,19 +61,28 @@ export type State = { conns: Map<number, Conn>; live: Map<string, Live>; bus: Ev
 type Sync = { last: number; quietUntil: number; timer?: ReturnType<typeof setTimeout> };
 type Keep = { synced: Map<string, Sync>; paceQ: Map<number, { q: Promise<unknown>; last: number }>; lastSent: Map<number, number>; typed: Map<string, number>; playStart: Map<string, number> };
 
-export const g = globalThis as unknown as { bgccIrc?: State; bgccIrcKeep?: Keep };
+const KEY = "bgccIrc";
+const cur = () => peekStore<State>(KEY);
 
-const keep = (g.bgccIrcKeep ??= { synced: new Map(), paceQ: new Map(), lastSent: new Map(), typed: new Map(), playStart: new Map() });
+const keep = globalStore<Keep>("bgccIrcKeep", () => ({ synced: new Map(), paceQ: new Map(), lastSent: new Map(), typed: new Map(), playStart: new Map() }));
 const { synced, paceQ } = keep;
 export const { lastSent, typed, playStart } = keep;
 
-// bancho.ts fills these on load; it is the only importer of this file, so they are set before any lobby event
-export const actions = {} as { closeLobby: (matchId: string) => Promise<void>; react: (matchId: string) => void };
+type Handlers = { closeLobby: (matchId: string) => Promise<void>; react: (matchId: string) => void };
+let handlers: Handlers | null = null;
+
+/** bancho.ts hands over its lobby actions once on load, before any lobby event can fire */
+export function init(h: Handlers) {
+  handlers = h;
+}
+
+export const liveLobby = (matchId: string) => cur()?.live.get(matchId);
+export const liveConns = () => cur()?.conns.values() ?? [];
 
 export function retire(l: Live) {
   l.lobby.removeAllListeners();
   l.lobby.channel.removeAllListeners("message");
-  g.bgccIrc?.live.delete(l.matchId);
+  cur()?.live.delete(l.matchId);
 }
 
 export const coolingDown = (by: number) => (lastSent.get(by) ?? 0) + CHAT_GAP - Date.now() > 0;
@@ -92,17 +102,19 @@ export const ownerOf = (owner: string) => Number(owner) || 0;
 
 export function state(): State | null {
   if (!apiKey()) return null;
-  if (!g.bgccIrc)
-    withEdition("site", () => {
-      g.bgccIrc = { conns: new Map(), live: new Map(), bus: new EventEmitter().setMaxListeners(0), restored: false };
-      console.log(`[bancho] state created pid=${process.pid}`);
-      setInterval(sweepIdle, 30_000).unref();
-      setInterval(syncIdle, 5_000).unref();
-      // events can come from a bgcc6 view with the same match id; lobbies only follow the site edition
-      onDraft((id) => withEdition("site", () => actions.react(id)));
-      onRelay((osuId, up) => withEdition("site", () => (up ? void restoreOwner(osuId) : dropConn(osuId))));
-    });
-  return g.bgccIrc ?? null;
+  if (!cur())
+    withEdition("site", () =>
+      globalStore<State>(KEY, () => {
+        console.log(`[bancho] state created pid=${process.pid}`);
+        setInterval(sweepIdle, 30_000).unref();
+        setInterval(syncIdle, 5_000).unref();
+        // events can come from a bgcc6 view with the same match id; lobbies only follow the site edition
+        onDraft((id) => withEdition("site", () => handlers?.react(id)));
+        onRelay((osuId, up) => withEdition("site", () => (up ? void restoreOwner(osuId) : dropConn(osuId))));
+        return { conns: new Map(), live: new Map(), bus: new EventEmitter().setMaxListeners(0), restored: false };
+      }),
+    );
+  return cur() ?? null;
 }
 
 export function conn(owner: number): Conn | null {
@@ -118,7 +130,7 @@ export function conn(owner: number): Conn | null {
 }
 
 function dropConn(owner: number) {
-  const s = g.bgccIrc;
+  const s = cur();
   const c = s?.conns.get(owner);
   if (!c) return;
   s!.conns.delete(owner);
@@ -213,7 +225,7 @@ export async function online(owner: number) {
   return c;
 }
 
-export const ping = (matchId?: string) => g.bgccIrc?.bus.emit("change", matchId ?? "*");
+export const ping = (matchId?: string) => cur()?.bus.emit("change", matchId ?? "*");
 
 export function onLobby(fn: () => void) {
   const s = state();
@@ -275,7 +287,7 @@ export async function sayLocal(matchId: string, by: number, raw: string, side: 1
   if (!text) return "empty" as const;
   if (blocked(text)) return "blocked" as const;
   if (coolingDown(by)) return "cooldown" as const;
-  const l = g.bgccIrc?.live.get(matchId);
+  const l = cur()?.live.get(matchId);
   if (!l) return "closed" as const;
   lastSent.set(by, Date.now());
   const [u] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, by)).limit(1);
@@ -321,9 +333,9 @@ async function dropIfGone(matchId: string, e: unknown) {
 const IDLE = 10 * 60_000;
 
 function sweepIdle() {
-  const s = g.bgccIrc;
+  const s = cur();
   if (!s) return;
-  for (const l of s.live.values()) if (!l.lobby.playing && Date.now() - l.active > IDLE) void actions.closeLobby(l.matchId).catch(() => {});
+  for (const l of s.live.values()) if (!l.lobby.playing && Date.now() - l.active > IDLE) void handlers?.closeLobby(l.matchId).catch(() => {});
 }
 
 const SYNC_GAP = 10_000;
@@ -337,7 +349,7 @@ const quiet = (matchId: string) => void (syncOf(matchId).quietUntil = Date.now()
 
 function runSync(l: Live) {
   const s = syncOf(l.matchId);
-  if (g.bgccIrc?.live.get(l.matchId) !== l) return void synced.delete(l.matchId);
+  if (cur()?.live.get(l.matchId) !== l) return void synced.delete(l.matchId);
   s.last = Date.now();
   s.quietUntil = s.last + 5_000;
   void l.lobby.updateSettings().then(() => ping(l.matchId)).catch(() => {});
@@ -355,7 +367,7 @@ function autoSync(l: Live) {
 }
 
 function syncIdle() {
-  for (const l of g.bgccIrc?.live.values() ?? []) {
+  for (const l of cur()?.live.values() ?? []) {
     const s = syncOf(l.matchId);
     if (!l.lobby.playing && l.lobby.slots.some(Boolean) && !s.timer && Date.now() - s.last >= SYNC_IDLE) runSync(l);
   }
@@ -444,7 +456,9 @@ export function attach(l: Live) {
       l.placed.add(id);
       const from = lb.slots.findIndex((p) => p?.user.id === id);
       if (from >= 0 && from !== seat) await swapSlots(l, (m) => lb.channel.sendMessage(m), from, seat);
-    } catch {}
+    } catch (e) {
+      console.error("[bancho] seat", l.matchId, e);
+    }
   });
 }
 
@@ -459,7 +473,7 @@ async function timerBy(matchId: string, self: boolean, from: string) {
 
 export async function markClosed(matchId: string) {
   console.log(`[bancho] closed ${matchId}`);
-  const s = g.bgccIrc;
+  const s = cur();
   const l = s?.live.get(matchId);
   if (l) retire(l);
   await db.update(mpLobbies).set({ open: false, closedAt: new Date() }).where(and(eq(mpLobbies.matchId, matchId), eq(mpLobbies.open, true)));
@@ -470,7 +484,7 @@ export async function markClosed(matchId: string) {
 type ScoreLine = { score: number; pass: boolean; team?: string; userId?: number };
 
 async function onFinished(matchId: string, scores: ScoreLine[]) {
-  const l = g.bgccIrc?.live.get(matchId);
+  const l = cur()?.live.get(matchId);
   if (!l) return null;
   const d = await getDraft(matchId);
   if (!d) return null;

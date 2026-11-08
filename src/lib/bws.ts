@@ -9,7 +9,7 @@ export const bws = (rank: number, badges: number) => Math.round(rank ** (0.9937 
 
 export type BwsIn = { osuId: number; rank: number | null; badges: number | null; badgeOverride: number | null };
 
-export const badgesOf = (p: BwsIn) => p.badgeOverride ?? p.badges ?? 0;
+const badgesOf = (p: BwsIn) => p.badgeOverride ?? p.badges ?? 0;
 
 export function rankBws<T extends BwsIn>(rows: T[]) {
   return rows

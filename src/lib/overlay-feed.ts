@@ -1,6 +1,6 @@
 import "server-only";
 import { eq } from "drizzle-orm";
-import { currentEdition, db, siteEdition } from "@/db";
+import { currentEdition, db, editionKey, siteEdition } from "@/db";
 import { matches } from "@/db/schema";
 import { getAllMatches, getAllTeams } from "@/db/tournament";
 import { matchIdFromSlug } from "@/lib/format";
@@ -19,30 +19,29 @@ import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup, FeedMatch, Fe
 import { scoreOf, tbDue, turnOf, type DraftView } from "@/lib/draft";
 import { TEST_MATCH } from "@/lib/format";
 import { canSee } from "@/lib/authz";
+import { globalStore } from "@/lib/global-store";
 
 const BUILD = String(Date.now());
 
 // feeds rebuild several times a second; the draft timer check (which can write) only needs ~1/s
-const gs = globalThis as unknown as { bgccSettledAt?: Map<string, number> };
+const settledAt = globalStore("bgccSettledAt", () => new Map<string, number>());
 function settleSometimes(matchId: string) {
-  const m = (gs.bgccSettledAt ??= new Map());
-  if (Date.now() - (m.get(matchId) ?? 0) < 1000) return getDraft(matchId);
-  m.set(matchId, Date.now());
+  const k = editionKey(matchId);
+  if (Date.now() - (settledAt.get(k) ?? 0) < 1000) return getDraft(matchId);
+  settledAt.set(k, Date.now());
   return settle(matchId);
 }
 
 const CHOICE_HOLD = 20_000;
 const RESULTS_HOLD = 20_000;
 const ABORT_HOLD = 5_000;
-const gl = globalThis as unknown as { bgccLastLive?: Map<string, LiveScore> };
-const lastLive = () => (gl.bgccLastLive ??= new Map());
-const gr = globalThis as unknown as { bgccRolledAt?: Map<string, { key: string; at: number }> };
+const lastLive = globalStore("bgccLastLive", () => new Map<string, LiveScore>());
+const rolledAt = globalStore("bgccRolledAt", () => new Map<string, { key: string; at: number }>());
 function rolledSince(matchId: string, key: string, fallback: number) {
-  const m = (gr.bgccRolledAt ??= new Map());
-  const hit = m.get(matchId);
+  const hit = rolledAt.get(editionKey(matchId));
   if (hit?.key === key) return hit.at;
   const at = hit ? Date.now() : fallback;
-  m.set(matchId, { key, at });
+  rolledAt.set(editionKey(matchId), { key, at });
   return at;
 }
 
@@ -196,12 +195,12 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
   const introDone = (chosenAt !== null && now - chosenAt >= CHOICE_HOLD) || !!draft?.steps.length;
 
   const cue = currentEdition() === siteEdition() ? getCue(matchId) : null;
-  if (live && live.ipcState === IPC_PLAYING) lastLive().set(matchId, live);
+  if (live && live.ipcState === IPC_PLAYING) lastLive.set(editionKey(matchId), live);
   const results = cue?.finishedAt != null && now - cue.finishedAt < RESULTS_HOLD;
   const aborted = !!cue?.abortHold && cue.abortAt != null && now - cue.abortAt < ABORT_HOLD;
   // !mp start N: the gameplay scene comes up PLAY_LEAD before the countdown ends
   const countingIn = cue?.countdownEnd != null && now >= cue.countdownEnd - PLAY_LEAD && now < cue.countdownEnd + 30_000;
-  const held = results && !inPlay ? lastLive().get(matchId) : undefined;
+  const held = results && !inPlay ? lastLive.get(editionKey(matchId)) : undefined;
   const shownLive = held ? { ...held, at: now } : live;
   const auto: Scene = inPlay || countingIn || results || aborted ? "gameplay" : winner !== null ? "winner" : draft?.open ? (introDone ? "mappool" : "intro") : "soon";
 

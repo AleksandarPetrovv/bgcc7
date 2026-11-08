@@ -10,7 +10,7 @@ export type StageStats = { maps: QualMap[]; players: QualPlayer[]; plays: number
 export type TopCost = { id: number; username: string; avatar: string; cost: number; matches: number; maps: number; acc: number; score: number; plays: number };
 
 // equal cost at two decimals: more maps played ranks higher
-export const rankCosts = (xs: TopCost[]) => xs.sort((a, b) => Math.round(b.cost * 100) - Math.round(a.cost * 100) || b.maps - a.maps);
+const rankCosts = (xs: TopCost[]) => xs.sort((a, b) => Math.round(b.cost * 100) - Math.round(a.cost * 100) || b.maps - a.maps);
 
 // several rounds into one: cost weighted by matches, acc/score by plays
 export function mergeCosts(lists: TopCost[][]): TopCost[] {

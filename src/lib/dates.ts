@@ -9,7 +9,7 @@ export { sofiaDate };
 
 export type TimelineState = "done" | "now" | "next";
 
-export function timelineStates(rows: TimelineRow[], today = sofiaDate(new Date())): TimelineState[] {
+function timelineStates(rows: TimelineRow[], today = sofiaDate(new Date())): TimelineState[] {
   return rows.map((r) => (!r.from || today < r.from ? "next" : today > (r.to ?? r.from) ? "done" : "now"));
 }
 

@@ -1,15 +1,18 @@
 import "server-only";
+import { editionKey, siteEdition } from "@/db/edition-context";
+import { globalStore } from "./global-store";
 
 // lobby moments the auto overlay scene follows: countdowns from !mp start N, map start/finish, aborts
 export type Cue = { countdownEnd?: number; playing?: boolean; finishedAt?: number; abortAt?: number; abortHold?: boolean };
 
 export const PLAY_LEAD = 10_000;
 
-const g = globalThis as unknown as { bgccCues?: Map<string, Cue> };
-const cues = () => (g.bgccCues ??= new Map());
-const of = (id: string) => cues().get(id) ?? cues().set(id, {}).get(id)!;
+// lobbies only follow the site edition, so cues are keyed by it whatever the caller context
+const cues = globalStore("bgccCues", () => new Map<string, Cue>());
+const key = (id: string) => editionKey(id, siteEdition());
+const of = (id: string) => cues.get(key(id)) ?? cues.set(key(id), {}).get(key(id))!;
 
-export const getCue = (id: string): Cue | null => cues().get(id) ?? null;
+export const getCue = (id: string): Cue | null => cues.get(key(id)) ?? null;
 
 export function cueCountdown(id: string, secs: number) {
   Object.assign(of(id), { countdownEnd: Date.now() + secs * 1000, finishedAt: undefined, abortAt: undefined });

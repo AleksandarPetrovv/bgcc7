@@ -4,6 +4,7 @@ import { asc, eq } from "drizzle-orm";
 import { rm } from "node:fs/promises";
 import { currentEdition, db, dbOf } from "./index";
 import { packPath } from "@/lib/uploads";
+import { parseBeatmapId } from "@/lib/fetch-map";
 import type { Edition } from "@/lib/format";
 import { maps, stages } from "./schema";
 import { safe } from "./safe";
@@ -35,6 +36,15 @@ export async function slotInBlueprint(stageId: number, mod: string, slot: number
   if (!MODS[mod] || !Number.isInteger(slot) || slot < 0) return false;
   const s = await blueprintFor(stageId);
   return !!s && slot < (s.blueprint[mod] ?? 0);
+}
+
+export async function slotBeatmapId(stageId: number, mod: string, slot: number, raw: FormDataEntryValue | null) {
+  const id = parseBeatmapId(raw);
+  return Number.isInteger(id) && id > 0 && (await slotInBlueprint(stageId, mod, slot)) ? id : null;
+}
+
+export async function setPack(stageId: number, size: number) {
+  await db.update(stages).set({ packSize: size, packAt: new Date() }).where(eq(stages.id, stageId));
 }
 
 export async function clearPack(stageId: number, ed: Edition = currentEdition()) {

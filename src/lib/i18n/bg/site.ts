@@ -70,6 +70,8 @@ export const site: typeof en = {
     meTeam: "Твоят отбор",
     eet: "EET / EEST",
     tbd: "Предстои",
+    close: "Затвори",
+    live: "На живо",
     units: ["дни", "часа", "мин"],
     wins: (n: number) => `${n}П`,
     losses: (n: number) => `${n}З`,

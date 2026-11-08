@@ -10,7 +10,7 @@ import { other, rollWinner, scoreOf, turnOf, type DraftView } from "@/lib/draft"
 import { getUser } from "@/lib/osu-api";
 import { lobbySize } from "@/lib/format";
 
-import { actions, attach, canLobby, conn, coolingDown, ensureBot, g, lastSent, lobbyOwner, markClosed, membersOf, online, ownerOf, ping, playStart, retire, state, swapSlots, syncOf, target, typed, type Live, type LobbySlot, type LobbyView } from "./bancho-irc";
+import { attach, canLobby, conn, coolingDown, ensureBot, init, lastSent, liveConns, liveLobby, lobbyOwner, markClosed, membersOf, online, ownerOf, ping, playStart, retire, state, swapSlots, syncOf, target, typed, type Live, type LobbySlot, type LobbyView } from "./bancho-irc";
 import { CHAT_SHOWN, cleanChat } from "./lobby-chat";
 import { MOD_LOBBY } from "./mods";
 import { nameKey } from "@/lib/names";
@@ -22,10 +22,15 @@ import { mpIds, mpCsv } from "@/lib/mp-links";
 export { canLobby, ensureBot, lobbyOwner, onLobby, sayLocal, type LobbySlot, type LobbyView } from "./bancho-irc";
 export type { ChatLine } from "./lobby-chat";
 
-Object.assign(actions, { closeLobby, react });
+init({ closeLobby, react });
+
+// bancho can be slow to answer !mp close; stop waiting after this
+const CLOSE_WAIT = 8000;
+// the site rolls animate for ~3s; chat posts the result after this so it does not spoil them (not the same as ROLL_*_MS)
+const ROLL_CHAT_DELAY = 2000;
 
 export function react(matchId: string) {
-  const l = g.bgccIrc?.live.get(matchId);
+  const l = liveLobby(matchId);
   if (!l) return;
   l.active = Date.now();
   const snap = getDraft(matchId);
@@ -35,12 +40,12 @@ export function react(matchId: string) {
 async function narrate(l: Live, n: DraftView | null) {
   const p = l.seen;
   l.seen = n;
-  if (!n || !p || g.bgccIrc?.live.get(l.matchId) !== l) return;
+  if (!n || !p || liveLobby(l.matchId) !== l) return;
   const name = (s: 1 | 2) => l.names[s - 1];
   const say = (text: string) => l.lobby.channel.sendMessage(text).catch(() => {});
   const { slots } = await rulesOf(l.matchId, n.stageSlug);
 
-  if ((n.roll1 != null && n.roll1 !== p.roll1) || (n.roll2 != null && n.roll2 !== p.roll2)) await new Promise((r) => setTimeout(r, 2000));
+  if ((n.roll1 != null && n.roll1 !== p.roll1) || (n.roll2 != null && n.roll2 !== p.roll2)) await new Promise((r) => setTimeout(r, ROLL_CHAT_DELAY));
   for (const s of [1, 2] as const) {
     const v = s === 1 ? n.roll1 : n.roll2;
     if (v != null && v !== (s === 1 ? p.roll1 : p.roll2)) await say(`${name(s)} rolled ${v}`);
@@ -93,7 +98,7 @@ export async function lobbyView(matchId: string, viewer?: number): Promise<Lobby
   const [m] = await db.select({ links: matches.mpLinks }).from(matches).where(eq(matches.id, matchId)).limit(1);
   const past = mpIds(m?.links).map(Number).reverse().filter((mp) => !row?.open || mp !== row.mpId);
   const base: LobbyView = { bot: status, state: row ? (row.open ? "open" : "closed") : "none", mpId: row?.mpId ?? null, past, password: row?.password ?? "", size: 0, slots: [], mapId: null, mapName: null, mods: [], freemod: false, playing: false, chat: [], owner, ...(viewer != null ? { mine, helper: canLobby(viewer) } : {}) };
-  const l = g.bgccIrc?.live.get(matchId);
+  const l = liveLobby(matchId);
   if (!l || !row?.open) return base;
   const lb = l.lobby;
   const size = Math.max(lobbySize(getFormat()) + 1, ...lb.slots.map((p, i) => (p ? i + 1 : 0)));
@@ -136,7 +141,7 @@ export async function lobbyRefNames() {
     .innerJoin(users, eq(users.osuId, staff.osuId))
     .catch(() => []);
   const names = new Set(rows.filter((r) => r.roles.some((x) => x === "host" || x === "referee")).map((r) => nameKey(r.username)));
-  for (const c of g.bgccIrc?.conns.values() ?? []) names.add(nameKey(c.client.getSelf().ircUsername));
+  for (const c of liveConns()) names.add(nameKey(c.client.getSelf().ircUsername));
   refCache = { at: Date.now(), names };
   return names;
 }
@@ -215,7 +220,7 @@ export async function abortLobby(matchId: string) {
 export function nowPlaying(matchId: string) {
   // live lobbies only exist for the site edition; an archived edition shares match ids
   if (currentEdition() !== siteEdition()) return null;
-  const l = g.bgccIrc?.live.get(matchId);
+  const l = liveLobby(matchId);
   if (!l?.lobby.playing) return null;
   if (!playStart.has(matchId)) playStart.set(matchId, Date.now());
   return { at: playStart.get(matchId)!, mapId: l.lobby.beatmapId ?? 0 };
@@ -265,13 +270,13 @@ export async function closeLobby(matchId: string) {
   try {
     if (s?.live.has(matchId)) {
       const { lb } = await lobbyAs(matchId);
-      await within(lb.channel.sendMessage("!mp close"), 8000);
+      await within(lb.channel.sendMessage("!mp close"), CLOSE_WAIT);
     } else {
       const [row] = await db.select().from(mpLobbies).where(eq(mpLobbies.matchId, matchId)).limit(1);
       if (row?.open) {
         const c = await online(ownerOf(row.owner));
         const ch = c.client.getChannel(`#mp_${row.mpId}`);
-        await within(ch.join().then(() => ch.sendMessage("!mp close")), 8000);
+        await within(ch.join().then(() => ch.sendMessage("!mp close")), CLOSE_WAIT);
       }
     }
   } catch {}
@@ -285,12 +290,12 @@ export async function handOff(matchId: string, referee: string | null) {
   if (!owner) return;
   if ((await staffIds(referee)).includes(owner)) return;
   await db.update(mpLobbies).set({ open: false, closedAt: new Date() }).where(and(eq(mpLobbies.matchId, matchId), eq(mpLobbies.open, true)));
-  const l = g.bgccIrc?.live.get(matchId);
+  const l = liveLobby(matchId);
   if (l) {
     retire(l);
     const say = (m: string) => l.lobby.channel.sendMessage(m).catch(() => {});
-    void say("The referee changed. This lobby closes in 5 minutes, a new invite is on its way.");
-    setTimeout(() => void within(say("!mp close"), 8000), HANDOFF).unref();
+    void say(`The referee changed. This lobby closes in ${HANDOFF / 60_000} minutes, a new invite is on its way.`);
+    setTimeout(() => void within(say("!mp close"), CLOSE_WAIT), HANDOFF).unref();
   }
   console.log(`[bancho] handoff ${matchId} from ${owner}`);
   ping(matchId);
@@ -341,8 +346,8 @@ export async function spareSlot(matchId: string, by: number, open: boolean) {
   await lb.channel.sendMessage(`!mp size ${open ? base + 1 : base}`);
 }
 
-export async function lobbyPick(matchId: string, stageSlug: string, slot: string) {
-  if (!g.bgccIrc?.live.has(matchId)) return;
+async function lobbyPick(matchId: string, stageSlug: string, slot: string) {
+  if (!liveLobby(matchId)) return;
   const map = (await rulesOf(matchId, stageSlug)).maps.find((m) => m.slot === slot);
   if (!map) return;
   const l = await liveOf(matchId);

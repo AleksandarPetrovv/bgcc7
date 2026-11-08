@@ -1,6 +1,6 @@
 import { GF, type Format } from "./format";
 
-export const PHONE_W = 640;
+const PHONE_W = 640;
 const FALLBACK_W = 1500;
 const COL_MAX = 290;
 const UPSCALE_FROM = 1280;

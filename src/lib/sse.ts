@@ -1,14 +1,13 @@
 import "server-only";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { ipOf } from "@/lib/ip";
+import { globalStore } from "@/lib/global-store";
 
 // open streams per ip, so one client can't pile up connections that each poll the db
 const MAX_PER_IP = 30;
-const g = globalThis as unknown as { bgccSseOpen?: Map<string, number> };
-const openPerIp = (g.bgccSseOpen ??= new Map());
+const openPerIp = globalStore("bgccSseOpen", () => new Map<string, number>());
 
 export const SSE_HEADERS = { "Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no" };
-export { sseFrame } from "./relay-contract";
 
 /**
  * a read-and-diff stream: `read` runs on every `subscribe` event and every `every` ms, only changed results go out.

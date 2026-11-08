@@ -9,7 +9,7 @@ import { buildTokens, fill } from "@/lib/dates";
 import { isBGCC6 } from "./index";
 import { localeOf } from "@/lib/i18n/locale";
 
-export const getTokens = cache(async () => {
+const getTokens = cache(async () => {
   const [s, stages, lang, skills] = await Promise.all([getSettings(), getPoolStages(), getLang(), getSkillLayouts()]);
   return buildTokens({
     locale: localeOf(lang),

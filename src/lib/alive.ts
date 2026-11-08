@@ -8,7 +8,7 @@ const loserOf = (m: Result) => {
   return "team1" in m ? (m.winner === 1 ? m.team2.id : m.team1.id) : m.winner === 1 ? m.team2Id : m.team1Id;
 };
 
-export function lossesByTeam(results: Result[]) {
+function lossesByTeam(results: Result[]) {
   const losses = new Map<string, number>();
   for (const m of results) {
     const loser = loserOf(m);

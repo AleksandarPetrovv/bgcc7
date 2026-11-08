@@ -1,6 +1,6 @@
 import "server-only";
 import { asc, eq, inArray, sql } from "drizzle-orm";
-import { currentEdition, db } from "./index";
+import { db, editionKey } from "./index";
 import { matches, staff, userNames, users } from "./schema";
 import { getAllMatches } from "./tournament";
 import { nameKey } from "@/lib/names";
@@ -9,11 +9,11 @@ import { can, cleanRoles } from "@/lib/roles";
 import { getLive } from "@/lib/live-scores";
 import { IPC_PLAYING } from "@/lib/relay-contract";
 import { staffNames } from "@/lib/staff-names";
+import { globalStore } from "@/lib/global-store";
 
-const g = globalThis as unknown as { bgccStreamFocus?: Map<string, string> };
-const focus = () => (g.bgccStreamFocus ??= new Map());
+const focus = () => globalStore("bgccStreamFocus", () => new Map<string, string>());
 
-export async function usernameOf(osuId: number) {
+async function usernameOf(osuId: number) {
   const [u] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, osuId)).limit(1);
   return u?.username ?? null;
 }
@@ -37,7 +37,7 @@ export async function streamMatches(osuId: number, all: boolean) {
 export async function currentStreamMatch(osuId: number) {
   const me = nameKey((await usernameOf(osuId)) ?? "");
   const list = (await getAllMatches()).filter((m) => streamersOf(m).includes(me));
-  const key = `${currentEdition()}:${osuId}`;
+  const key = editionKey(osuId);
   if (!list.length) {
     focus().delete(key);
     return null;

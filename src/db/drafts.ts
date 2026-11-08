@@ -7,18 +7,20 @@ import { drafts, matches, teamMembers, NO_TIMEOUTS, type DraftRules, type DraftU
 import { getPoolStages, poolMaps } from "./mappools";
 import { DEFAULT_SETTINGS, getSettings } from "./settings";
 import { getSkillLayouts } from "./format-plan";
-import { siteRun } from "@/lib/match-access";
+import { siteRun } from "./site-run";
+import { globalStore } from "@/lib/global-store";
 import { getFormat } from "./edition";
 import { deadline, pickableSlots, scoreOf, TB, tbDue, turnOf, type DraftView, type Side } from "@/lib/draft";
 
-const g = globalThis as unknown as { draftBus?: EventEmitter };
-const bus = (g.draftBus ??= new EventEmitter().setMaxListeners(0));
+const bus = globalStore("draftBus", () => new EventEmitter().setMaxListeners(0));
 
 export const emitDraft = (matchId: string) => bus.emit("change", matchId);
 export function onDraft(fn: (matchId: string) => void) {
   bus.on("change", fn);
   return () => void bus.off("change", fn);
 }
+
+export const bumpDraft = () => ({ rev: sql`${drafts.rev} + 1`, updatedAt: new Date() });
 
 type Row = typeof drafts.$inferSelect;
 
@@ -35,7 +37,7 @@ export async function timers(): Promise<Timers> {
 
 const stageCfg = (c: Timers, slug: string) => c.stages.find((s) => s.slug === slug) ?? { firstTo: getFormat().firstTo, hasTb: false };
 
-export async function rulesFor(stageSlug: string): Promise<DraftRules> {
+async function rulesFor(stageSlug: string): Promise<DraftRules> {
   const [c, stages] = await Promise.all([timers(), getPoolStages()]);
   const { firstTo, hasTb } = stageCfg(c, stageSlug);
   const maps = poolMaps(stages, stageSlug);
@@ -86,7 +88,7 @@ export const toView = (r: Row, c: Timers = { banSecs: DEFAULT_SETTINGS.banSecs, 
   redo: r.redo?.at(-1) ?? null,
 });
 
-export function undoPlan(r: Pick<Row, "steps" | "choice" | "roll1" | "roll2">): DraftUndo | null {
+function undoPlan(r: Pick<Row, "steps" | "choice" | "roll1" | "roll2">): DraftUndo | null {
   const tail = r.steps.at(-1);
   const core = tail?.auto && tail.slot === TB && !tail.winner ? r.steps.slice(0, -1) : r.steps;
   const last = core.at(-1);
@@ -109,7 +111,7 @@ export async function undoStep(matchId: string) {
     const patch = u.kind === "step" ? { steps: d.steps.slice(0, -1) } : u.kind === "choice" ? { choice: null } : { roll1: null, roll2: null };
     await tx
       .update(drafts)
-      .set({ ...patch, redo, turnAt: d.pausedAt ?? new Date(), rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+      .set({ ...patch, redo, turnAt: d.pausedAt ?? new Date(), ...bumpDraft() })
       .where(eq(drafts.matchId, matchId));
     return { u, redo: null };
   });
@@ -129,7 +131,7 @@ export async function redoStep(matchId: string) {
     const patch = r.kind === "step" ? { steps: [...d.steps, r.step] } : r.kind === "choice" ? { choice: r.choice } : { roll1: r.roll1, roll2: r.roll2 };
     await tx
       .update(drafts)
-      .set({ ...patch, redo, turnAt: d.pausedAt ?? new Date(), rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+      .set({ ...patch, redo, turnAt: d.pausedAt ?? new Date(), ...bumpDraft() })
       .where(eq(drafts.matchId, matchId));
     return { r, redo: null };
   });
@@ -184,7 +186,7 @@ export async function settle(matchId: string) {
     }
     const [out] = await tx
       .update(drafts)
-      .set({ steps, ...(steps.length !== row.steps.length ? { redo: [] } : {}), turnAt: new Date(turnAt), pausedAt, pauseUntil, timeouts, rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+      .set({ steps, ...(steps.length !== row.steps.length ? { redo: [] } : {}), turnAt: new Date(turnAt), pausedAt, pauseUntil, timeouts, ...bumpDraft() })
       .where(eq(drafts.matchId, matchId))
       .returning();
     return toView(out, c);
@@ -202,7 +204,7 @@ export async function lobbyTimer(matchId: string, secs: number | null) {
   const pause = secs ? { pausedAt: new Date(now), pauseUntil: new Date(now + secs * 1000) } : { pausedAt: null, pauseUntil: null, timeouts: { ...d.timeouts, on: null } };
   await db
     .update(drafts)
-    .set({ turnAt, ...pause, rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+    .set({ turnAt, ...pause, ...bumpDraft() })
     .where(eq(drafts.matchId, matchId));
   emitDraft(matchId);
 }
@@ -215,7 +217,7 @@ export async function requestTimeout(matchId: string, side: Side) {
     if (t.used.includes(side) || t.queue.includes(side)) return "used" as const;
     await tx
       .update(drafts)
-      .set({ timeouts: { ...t, queue: [...t.queue, side] }, rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+      .set({ timeouts: { ...t, queue: [...t.queue, side] }, ...bumpDraft() })
       .where(eq(drafts.matchId, matchId));
     return "ok" as const;
   });
@@ -229,7 +231,7 @@ export async function answerTimeout(matchId: string, side: Side, accept: boolean
     const t = row?.timeouts;
     if (!t || t.queue[0] !== side) return false;
     const next = { queue: t.queue.slice(1), used: accept ? [...t.used, side] : t.used, on: accept ? side : t.on };
-    await tx.update(drafts).set({ timeouts: next, rev: sql`${drafts.rev} + 1`, updatedAt: new Date() }).where(eq(drafts.matchId, matchId));
+    await tx.update(drafts).set({ timeouts: next, ...bumpDraft() }).where(eq(drafts.matchId, matchId));
     return true;
   });
   if (!ok) return null;
@@ -300,7 +302,7 @@ export async function applyDraft(matchId: string, side: Side, a: DraftAct) {
     }
     const [next] = await tx
       .update(drafts)
-      .set({ ...patch, redo: [], turnAt: new Date(), rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+      .set({ ...patch, redo: [], turnAt: new Date(), ...bumpDraft() })
       .where(eq(drafts.matchId, matchId))
       .returning();
     return toView(next, c);
@@ -328,7 +330,7 @@ export async function setResult(matchId: string, slot: string, winner: Side | nu
     }
     const [next] = await tx
       .update(drafts)
-      .set({ steps, redo, ...(lastPick || steps.length !== row.steps.length ? { turnAt: new Date() } : {}), rev: sql`${drafts.rev} + 1`, updatedAt: new Date() })
+      .set({ steps, redo, ...(lastPick || steps.length !== row.steps.length ? { turnAt: new Date() } : {}), ...bumpDraft() })
       .where(eq(drafts.matchId, matchId))
       .returning();
     return toView(next, c);

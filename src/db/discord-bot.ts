@@ -10,6 +10,7 @@ import { siteUrl } from "@/lib/links";
 import { matchLabel, resultMessage, when } from "@/lib/discord-text";
 import { addRole, botUser, createChannel, createRole, deleteChannel, deleteMessage, deleteRole, discordReady, dm, editChannel, editRole, guildChannels, guildId, guildRoles, memberRoles, post, removeRole, type Overwrite } from "@/lib/discord";
 import { staffNames } from "@/lib/staff-names";
+import { globalStore } from "@/lib/global-store";
 
 const ready = () => discordReady() && !isBGCC6();
 const log = (what: string) => (e: unknown) => console.error(`[discord] ${what}`, e);
@@ -41,13 +42,13 @@ const SPEAK = 1 << 21;
 const bits = (...p: number[]) => String(p.reduce((a, b) => a | b, 0));
 const slug = (name: string) => name.toLowerCase().replace(/[^a-z0-9Ѐ-ӿ]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 90) || "team";
 
-const g = globalThis as unknown as { bgccDcSync?: Promise<void>; bgccDcSynced?: number };
+const dc = globalStore<{ sync?: Promise<void>; synced?: number }>("bgccDc", () => ({}));
 
 export function syncTeams() {
   if (!ready()) return Promise.resolve();
   const ed = currentEdition();
-  g.bgccDcSync = (g.bgccDcSync ?? Promise.resolve()).then(() => withEdition(ed, runSync)).catch(log("sync"));
-  return g.bgccDcSync;
+  dc.sync = (dc.sync ?? Promise.resolve()).then(() => withEdition(ed, runSync)).catch(log("sync"));
+  return dc.sync;
 }
 
 type TeamRow = typeof discordTeams.$inferSelect;
@@ -127,7 +128,7 @@ export async function dropTeamRoles(discordId: string) {
 
 export async function cleanupDiscord() {
   if (!ready()) return;
-  await g.bgccDcSync;
+  await dc.sync;
   for (const r of await db.select().from(discordTeams)) await dropTeam(r);
   await db.delete(discordTeams);
   await db.delete(discordState).where(not(inArray(discordState.key, ["cfg:results", "cfg:pool"])));
@@ -153,8 +154,8 @@ const sides = (m: Pick<MatchRow, "team1Id" | "team2Id">) =>
 export async function tick() {
   if (!ready()) return;
   // shortcut: team edits/draws reach discord through this 5 min resync instead of hooks in every admin team action
-  if (Date.now() - (g.bgccDcSynced ?? 0) > 5 * 60_000) {
-    g.bgccDcSynced = Date.now();
+  if (Date.now() - (dc.synced ?? 0) > 5 * 60_000) {
+    dc.synced = Date.now();
     await syncTeams();
   }
   const [rows, ts, links] = await Promise.all([getMatchRows(), getTeams(), teamLinks()]);

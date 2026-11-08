@@ -67,8 +67,8 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `отложи смяната на етапа към ${b(h.phase(String(p.phase)))}` : `put off switching the stage to ${b(h.phase(String(p.phase)))}`;
     case "settings.draft":
       return bg
-        ? `смени баните на ${b(p.bans)} на отбор, ред ${b(String(p.banOrder).toUpperCase())}, ${b(`${p.banSecs ?? 90}с`)} за бан, ${b(`${p.pickSecs ?? 120}с`)} за пик, таймаут ${b(`${p.timeoutSecs ?? 180}с`)}`
-        : `set bans to ${b(p.bans)} per team, order ${b(String(p.banOrder).toUpperCase())}, ${b(`${p.banSecs ?? 90}s`)} per ban, ${b(`${p.pickSecs ?? 120}s`)} per pick, timeout ${b(`${p.timeoutSecs ?? 180}s`)}`;
+        ? `смени баните на ${b(p.bans)} на отбор${p.banOrder ? `, ред ${b(String(p.banOrder).toUpperCase())}` : ""}, ${b(`${p.banSecs ?? 90}с`)} за бан, ${b(`${p.pickSecs ?? 120}с`)} за пик, таймаут ${b(`${p.timeoutSecs ?? 180}с`)}`
+        : `set bans to ${b(p.bans)} per team${p.banOrder ? `, order ${b(String(p.banOrder).toUpperCase())}` : ""}, ${b(`${p.banSecs ?? 90}s`)} per ban, ${b(`${p.pickSecs ?? 120}s`)} per pick, timeout ${b(`${p.timeoutSecs ?? 180}s`)}`;
     case "draft.open":
       return bg ? `отвори пик и бан за ${match()} с пула ${stage()}` : `opened pick and ban for ${match()} with the ${stage()} pool`;
     case "draft.close":

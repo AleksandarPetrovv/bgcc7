@@ -4,11 +4,12 @@ import { LINK_NAMES } from "./link-names";
 import { EventEmitter } from "node:events";
 import { and, eq } from "drizzle-orm";
 import { db, withEdition } from "@/db";
+import { globalStore } from "./global-store";
 import { mpLobbies, refApps, users } from "@/db/schema";
 import { alertsFor, clearWhere, describeMatch, onAlerts, ownedBy, ownerAlertId, raise } from "./alerts";
 import { ircName } from "@/lib/names";
-import { SSE_HEADERS, sseFrame } from "@/lib/sse";
-import { APP_SEEN_MS, LINK_TTL, OFFLINE_GRACE, SSE_PING_MS, validState, frame, type RelayEv, type RelayFrame, type RelayMsg } from "@/lib/relay-contract";
+import { SSE_HEADERS } from "@/lib/sse";
+import { APP_SEEN_MS, LINK_TTL, OFFLINE_GRACE, SSE_PING_MS, sseFrame, validState, frame, type RelayEv, type RelayFrame, type RelayMsg } from "@/lib/relay-contract";
 
 export class RelaySocket extends EventEmitter {
   private opened?: () => void;
@@ -52,8 +53,7 @@ export class RelaySocket extends EventEmitter {
 type Relay = { osuId: number; ircName: string; push?: (m: RelayMsg) => void; sock?: RelaySocket };
 type Store = { relays: Map<number, Relay>; codes: Map<string, { osuId: number; exp: number }>; bus: EventEmitter };
 
-const g = globalThis as unknown as { bgccRelay?: Store };
-const store = () => (g.bgccRelay ??= { relays: new Map(), codes: new Map(), bus: new EventEmitter().setMaxListeners(0) });
+const store = () => globalStore<Store>("bgccRelay", () => ({ relays: new Map(), codes: new Map(), bus: new EventEmitter().setMaxListeners(0) }));
 
 const hash = (t: string) => createHash("sha256").update(t).digest("hex");
 
@@ -62,9 +62,8 @@ const hash = (t: string) => createHash("sha256").update(t).digest("hex");
 const MAX_PENDING = 2000;
 const MAX_FAILS = 5;
 type Pending = { state: string; code: string; exp: number };
-const gp = globalThis as unknown as { bgccLinkPending?: Map<string, Pending>; bgccLinkFails?: Map<number, { n: number; until: number }> };
-const pending = () => (gp.bgccLinkPending ??= new Map());
-const fails = () => (gp.bgccLinkFails ??= new Map());
+const pending = () => globalStore("bgccLinkPending", () => new Map<string, Pending>());
+const fails = () => globalStore("bgccLinkFails", () => new Map<number, { n: number; until: number }>());
 const codeKey = (c: string) => c.trim().toLowerCase();
 
 const sweep = () => {
@@ -127,8 +126,7 @@ export async function relayAuth(req: Request) {
   return row ?? null;
 }
 
-const gs = globalThis as unknown as { bgccHelperSeen?: Map<number, number> };
-const seen = () => (gs.bgccHelperSeen ??= new Map());
+const seen = () => globalStore("bgccHelperSeen", () => new Map<number, number>());
 // the helper polls /api/relay/me, so this covers streamers that never open the irc relay
 export const appRunning = (osuId: number) => relayOnline(osuId) || Date.now() - (seen().get(osuId) ?? 0) < APP_SEEN_MS;
 

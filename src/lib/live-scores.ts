@@ -1,20 +1,20 @@
 import "server-only";
 import { EventEmitter } from "node:events";
-import { currentEdition } from "@/db";
+import { currentEdition, editionKey } from "@/db/edition-context";
+import { globalStore } from "./global-store";
 import type { LiveScore } from "./overlay-types";
 import { LIVE_STALE_MS, type LiveReject, type ScorePacket } from "./relay-contract";
 
 type Store = { scores: Map<string, LiveScore>; rejects?: Map<string, { why: LiveReject; at: number }>; bus: EventEmitter };
-const g = globalThis as unknown as { bgccLive?: Store };
-const store = (): Store => (g.bgccLive ??= { scores: new Map(), bus: new EventEmitter().setMaxListeners(0) });
+const store = () => globalStore<Store>("bgccLive", () => ({ scores: new Map(), bus: new EventEmitter().setMaxListeners(0) }));
 const rejects = () => (store().rejects ??= new Map());
 
 export function rejectLive(matchId: string, why: LiveReject) {
-  rejects().set(`${currentEdition()}:${matchId}`, { why, at: Date.now() });
+  rejects().set(editionKey(matchId), { why, at: Date.now() });
 }
 
 export function getReject(matchId: string) {
-  const r = rejects().get(`${currentEdition()}:${matchId}`);
+  const r = rejects().get(editionKey(matchId));
   return r && Date.now() - r.at < LIVE_STALE_MS ? r.why : null;
 }
 
@@ -23,14 +23,14 @@ export function putLive(matchId: string, p: ScorePacket) {
   for (const c of p.clients) totals[c.team === "left" ? 0 : 1] += c.score;
   const live: LiveScore = { ...p, matchId, totals, at: Date.now() };
   const edition = currentEdition();
-  store().scores.set(`${edition}:${matchId}`, live);
-  rejects().delete(`${edition}:${matchId}`);
+  store().scores.set(editionKey(matchId, edition), live);
+  rejects().delete(editionKey(matchId, edition));
   store().bus.emit("live", edition, matchId);
   return live;
 }
 
 export function getLive(matchId: string) {
-  const l = store().scores.get(`${currentEdition()}:${matchId}`);
+  const l = store().scores.get(editionKey(matchId));
   return l && Date.now() - l.at < LIVE_STALE_MS ? l : null;
 }
 

@@ -49,7 +49,7 @@ export const ROLL_REVEAL_MS = 1600;
 export const rollWinner = (d: Pick<DraftView, "roll1" | "roll2">): Side | null =>
   d.roll1 == null || d.roll2 == null || d.roll1 === d.roll2 ? null : d.roll1 > d.roll2 ? 1 : 2;
 
-export function banTeam(order: DraftView["banOrder"], i: number, first: Side): Side {
+function banTeam(order: DraftView["banOrder"], i: number, first: Side): Side {
   const a = order === "abba" ? [0, 1, 1, 0][i % 4] : i % 2;
   return a === 0 ? first : other(first);
 }

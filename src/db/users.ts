@@ -11,7 +11,7 @@ import { joinStaff, staffNames } from "@/lib/staff-names";
 export async function staffIds(field: string | null | undefined) {
   const names = staffNames(field).map((n) => n.toLowerCase());
   if (!names.length) return [];
-  const rows = await db.select({ osuId: users.osuId }).from(users).where(inArray(sql`lower(${users.username})`, names)).catch(() => []);
+  const rows = await db.select({ osuId: users.osuId }).from(users).where(inArray(sql`lower(${users.username})`, names));
   return rows.map((r) => r.osuId);
 }
 

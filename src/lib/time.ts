@@ -1,6 +1,6 @@
 import { localeOf } from "./i18n/locale";
 
-export const TZ = "Europe/Sofia";
+const TZ = "Europe/Sofia";
 
 const fmt = new Intl.DateTimeFormat("en-US", {
   timeZone: TZ,

@@ -1,7 +1,7 @@
 export const ROLES = ["host", "technical", "leadDesign", "referee", "mappooler", "playtester", "streamer", "commentator", "designer"] as const;
 export type Role = (typeof ROLES)[number];
 
-export const PERMS = ["host", "phase", "screening", "lobbies", "qualifiers", "mappools", "poolEdit", "poolVote", "teams", "matches", "staff", "log", "settings", "format", "formatEdit", "stream", "overlay", "discord"] as const;
+const PERMS = ["host", "phase", "screening", "lobbies", "qualifiers", "mappools", "poolEdit", "poolVote", "teams", "matches", "staff", "log", "settings", "format", "formatEdit", "stream", "overlay", "discord"] as const;
 export type Perm = (typeof PERMS)[number];
 
 const GRANTS: Record<Role, readonly Perm[]> = {

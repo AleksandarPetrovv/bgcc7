@@ -1,4 +1,5 @@
 import "server-only";
+import { globalStore } from "./global-store";
 
 const API = "https://discord.com/api/v10";
 const token = () => process.env.DISCORD_BOT_TOKEN ?? "";
@@ -22,7 +23,7 @@ async function call<T>(path: string, init?: RequestInit, tries = 3): Promise<T> 
 }
 
 export const guildId = guild;
-export const isMissing = (e: unknown) => e instanceof Error && / 404 /.test(e.message);
+const isMissing = (e: unknown) => e instanceof Error && / 404 /.test(e.message);
 
 type Mentions = { parse?: ("everyone" | "roles" | "users")[]; roles?: string[]; users?: string[] };
 export type Embed = { title?: string; description?: string; url?: string; color?: number; fields?: { name: string; value: string; inline?: boolean }[]; footer?: { text: string }; author?: { name: string }; timestamp?: string };
@@ -97,8 +98,7 @@ export async function dm(userId: string, content: string) {
 
 type Profile = { name: string; avatar: string };
 const PROFILE_TTL = 60 * 60_000;
-const gp = globalThis as unknown as { bgccDcProfiles?: Map<string, { at: number; p: Profile | null }> };
-const profiles = (gp.bgccDcProfiles ??= new Map());
+const profiles = globalStore("bgccDcProfiles", () => new Map<string, { at: number; p: Profile | null }>());
 
 // avatar + display name, cached an hour so avatar changes show up without asking discord on every page view
 export async function discordProfile(id: string, fresh = false): Promise<Profile | null> {
