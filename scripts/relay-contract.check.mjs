@@ -15,7 +15,7 @@ console.log("ok: error codes, statuses and live rejects");
 
 const L = f.limits;
 const want = {
-  linkTtlMs: c.LINK_TTL, claimPollMs: c.CLAIM_POLL_MS, claimPolls: c.CLAIM_POLLS, mePollMs: c.ME_POLL_MS, appSeenMs: c.APP_SEEN_MS,
+  linkTtlMs: c.LINK_TTL, claimPollMs: c.CLAIM_POLL_MS, claimPolls: c.CLAIM_POLLS, mePollMs: c.ME_POLL_MS, meRetryMs: c.ME_RETRY_MS, appSeenMs: c.APP_SEEN_MS,
   siteDownAfterMs: c.SITE_DOWN_AFTER, relayInMax: c.RELAY_IN_MAX, relayInBatch: c.RELAY_IN_BATCH, relayLineMax: c.RELAY_LINE_MAX,
   liveStaleMs: c.LIVE_STALE_MS, scoreKeepaliveMs: c.SCORE_KEEPALIVE_MS, ipcPlaying: c.IPC_PLAYING,
 };
@@ -25,6 +25,7 @@ assert.ok(c.RELAY_IN_BATCH <= c.RELAY_IN_MAX);
 assert.equal(c.CLAIM_POLL_MS * c.CLAIM_POLLS, c.LINK_TTL);
 assert.ok(2 * c.ME_POLL_MS < c.APP_SEEN_MS, "two missed /me polls still count as running");
 assert.ok(3 * c.SCORE_KEEPALIVE_MS < c.LIVE_STALE_MS);
+assert.ok(c.ME_RETRY_MS < c.ME_POLL_MS);
 console.log("ok: limits and timings");
 
 const state = f.start.req.state;
@@ -53,4 +54,8 @@ assert.equal(c.validEv({ t: "line", l: "x".repeat(c.RELAY_LINE_MAX + 1) }), fals
 assert.deepEqual(c.parseScore(f.score.req), f.score.req);
 assert.deepEqual(c.scoreOk(f.score.ok.match), f.score.ok);
 assert.equal(c.parseScore({ ...f.score.req, clients: [{ ...f.score.req.clients[0], mods: ["hd"] }] }), null);
+assert.ok(f.modFormat.valid.every(c.validMod) && !f.modFormat.invalid.some(c.validMod));
+const over = { ...f.score.req.clients[0], accuracy: L.score.accuracyMax + 0.01 };
+assert.equal(c.parseScore({ ...f.score.req, clients: [over] }), null);
+assert.ok(c.parseScore({ ...f.score.req, clients: [{ ...over, accuracy: L.score.accuracyMax }] }));
 console.log("ok: /in events and score packets");

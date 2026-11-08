@@ -10,7 +10,9 @@ pub(crate) const MAX_CLIENTS: usize = 16;
 pub(crate) const NAME_UNITS: usize = 32;
 pub(crate) const MAX_MODS: usize = 16;
 pub(crate) const IPC_STATE_MAX: i32 = 10;
+pub(crate) const ACCURACY_MAX: f64 = 100.0;
 pub(crate) const KEEPALIVE: Duration = Duration::from_secs(2);
+const SCORE_TIMEOUT: Duration = Duration::from_secs(5);
 pub(crate) const LIVE_REJECTS: [&str; 4] = ["noplayers", "players", "swapped", "map"];
 
 /// POST /api/relay/score
@@ -39,6 +41,10 @@ struct LiveClient {
     failed: bool,
 }
 
+pub(crate) fn valid_mod(m: &str) -> bool {
+    m.len() == 2 && m.bytes().all(|b| b.is_ascii_uppercase() || b.is_ascii_digit())
+}
+
 fn packet(source: &TosuV2Packet) -> ScorePacket {
     let clients = source.tourney.clients.iter()
         .filter(|c| c.team == "left" || c.team == "right")
@@ -51,7 +57,7 @@ fn packet(source: &TosuV2Packet) -> ScorePacket {
             }).collect();
             let mods = c.play.mods.array.iter()
                 .map(|m| m.acronym.to_ascii_uppercase())
-                .filter(|m| m.len() == 2 && m.bytes().all(|b| b.is_ascii_uppercase() || b.is_ascii_digit()))
+                .filter(|m| valid_mod(m))
                 .take(MAX_MODS).collect();
             LiveClient {
                 ipc_id: (c.ipc_id as u64).min(9_007_199_254_740_991),
@@ -59,7 +65,7 @@ fn packet(source: &TosuV2Packet) -> ScorePacket {
                 user_id: c.user.id.max(0),
                 name,
                 score: c.play.score.max(0),
-                accuracy: if c.play.accuracy.is_finite() { c.play.accuracy.clamp(0.0, 100.0) } else { 0.0 },
+                accuracy: if c.play.accuracy.is_finite() { c.play.accuracy.clamp(0.0, ACCURACY_MAX) } else { 0.0 },
                 combo: c.play.combo.current.max(0),
                 max_combo: c.play.combo.max.max(0),
                 mods,
@@ -158,7 +164,7 @@ pub async fn run(sh: Arc<Shared>, token: String, mut stop: watch::Receiver<bool>
         }
         let result = tokio::select! {
             result = async {
-                let response = http().post(format!("{SITE}/api/relay/score")).bearer_auth(&token).json(&p).timeout(Duration::from_secs(5)).send().await?;
+                let response = http().post(format!("{SITE}/api/relay/score")).bearer_auth(&token).json(&p).timeout(SCORE_TIMEOUT).send().await?;
                 let code = response.status().as_u16();
                 let body = response.json::<ScoreReply>().await.unwrap_or_default();
                 Ok::<_, reqwest::Error>((code, body.matched, body.error.unwrap_or_default()))

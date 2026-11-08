@@ -1,5 +1,8 @@
 import { alertText } from "../../src/lib/i18n/en/alerts";
-import type { AlertKind, HelperAlertKind } from "../../src/lib/relay-contract";
+import { SITE_DOWN_AFTER, type AlertKind, type HelperAlertKind } from "../../src/lib/relay-contract";
+
+const downMinutes = SITE_DOWN_AFTER / 60_000;
+const downFor = downMinutes === 1 ? "a minute" : `${downMinutes} minutes`;
 
 export const ERR: Record<string, string> = {
   badpass: "Wrong IRC username or password; get your IRC password from osu! settings",
@@ -40,7 +43,7 @@ export const ALERT_TEXT: Record<HelperAlertKind, { title: string; means: string;
   overlayFailing: site("overlayFailing", "Open stream admin"),
   siteDown: {
     title: "Can't reach the site",
-    means: "The helper hasn't reached the site for over a minute.",
+    means: `The helper hasn't reached the site for over ${downFor}.`,
     steps: ["The osu! lobby keeps running, keep refereeing in osu! directly.", "Check this PC's internet.", "Picks and scores can be fixed on the site once it's back."],
   },
 };

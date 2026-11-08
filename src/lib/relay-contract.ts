@@ -43,8 +43,9 @@ export const CLAIM_PENDING = { pending: true } as const;
 /** GET /api/relay/me, the helper's role + alerts poll */
 export type RelayMe = { id: number; name: string; ref: boolean; stream: boolean; alerts: Alert[] };
 export const relayMe = (id: number, name: string, a: { ref: boolean; stream: boolean }, alerts: Alert[]): RelayMe => ({ id, name, ref: a.ref, stream: a.stream, alerts });
-/** the helper polls /me this often once roles are known (5s before), so the site counts it running for APP_SEEN_MS */
+/** the helper polls /me this often once roles are known (ME_RETRY_MS before), so the site counts it running for APP_SEEN_MS */
 export const ME_POLL_MS = 20_000;
+export const ME_RETRY_MS = 5_000;
 export const APP_SEEN_MS = 45_000;
 /** the helper raises siteDown after /me fails this long */
 export const SITE_DOWN_AFTER = 60_000;
@@ -109,6 +110,9 @@ export type LiveReject = (typeof LIVE_REJECTS)[number];
 const LIVE_REJECT_STATUS = 409;
 export const scoreOk = (match: string) => ({ ok: true, match });
 
+/** a mod acronym as the helper sends it: two chars, A-Z or 0-9 */
+export const validMod = (m: unknown): m is string => typeof m === "string" && /^[A-Z0-9]{2}$/.test(m);
+
 const isInt = (x: unknown, min = 0, max = Infinity): x is number => Number.isInteger(x) && (x as number) >= min && (x as number) <= max;
 const isNum = (x: unknown, min: number, max: number): x is number => typeof x === "number" && isFinite(x) && x >= min && x <= max;
 
@@ -125,7 +129,7 @@ export function parseScore(b: unknown): ScorePacket | null {
     if (typeof x.name !== "string" || x.name.length > SCORE_LIMITS.nameUnits) return null;
     if (!isNum(x.score, 0, SCORE_LIMITS.scoreMax) || !isNum(x.accuracy, 0, SCORE_LIMITS.accuracyMax)) return null;
     if (!isInt(x.combo) || !isInt(x.maxCombo) || typeof x.failed !== "boolean") return null;
-    if (!Array.isArray(x.mods) || x.mods.length > SCORE_LIMITS.mods || !x.mods.every((m) => typeof m === "string" && /^[A-Z0-9]{2}$/.test(m))) return null;
+    if (!Array.isArray(x.mods) || x.mods.length > SCORE_LIMITS.mods || !x.mods.every(validMod)) return null;
     clients.push({ ipcId: x.ipcId, team: x.team, userId: x.userId, name: x.name, score: Math.floor(x.score), accuracy: x.accuracy, combo: x.combo, maxCombo: x.maxCombo, mods: [...(x.mods as string[])], failed: x.failed });
   }
   return { ipcState: obj.ipcState, mapId: obj.mapId, clients };

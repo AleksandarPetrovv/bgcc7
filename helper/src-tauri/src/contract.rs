@@ -1,7 +1,7 @@
 // the same fixture scripts/relay-contract.check.mjs checks against src/lib/relay-contract.ts
 use crate::relay::{site_down_alert, Ev, Msg, RELAY_IN_BATCH};
-use crate::streaming::{ScorePacket, ScoreReply, IPC_STATE_MAX, KEEPALIVE, LIVE_REJECTS, MAX_CLIENTS, MAX_MODS, NAME_UNITS};
-use crate::{Claimed, Roles, Started, CLAIM_POLL, CLAIM_POLLS, ME_POLL, SITE_DOWN_AFTER, STATE_BYTES};
+use crate::streaming::{ScorePacket, ScoreReply, ACCURACY_MAX, IPC_STATE_MAX, KEEPALIVE, LIVE_REJECTS, MAX_CLIENTS, MAX_MODS, NAME_UNITS, valid_mod};
+use crate::{Claimed, Roles, Started, CLAIM_POLL, CLAIM_POLLS, ME_POLL, ME_RETRY, SITE_DOWN_AFTER, STATE_BYTES};
 use base64::Engine;
 use serde_json::{from_value, to_value, Value};
 
@@ -22,6 +22,7 @@ fn limits_match_the_site() {
     assert_eq!(l["claimPollMs"], ms(CLAIM_POLL));
     assert_eq!(l["claimPolls"], CLAIM_POLLS);
     assert_eq!(l["mePollMs"], ms(ME_POLL));
+    assert_eq!(l["meRetryMs"], ms(ME_RETRY));
     assert_eq!(l["siteDownAfterMs"], ms(SITE_DOWN_AFTER));
     assert_eq!(l["relayInBatch"], RELAY_IN_BATCH);
     assert!(RELAY_IN_BATCH as u64 <= l["relayInMax"].as_u64().unwrap());
@@ -32,7 +33,15 @@ fn limits_match_the_site() {
     assert_eq!(s["mods"], MAX_MODS);
     assert_eq!(s["ipcStateMax"], IPC_STATE_MAX);
     assert_eq!(s["scoreMax"], i32::MAX);
+    assert_eq!(s["accuracyMax"], ACCURACY_MAX);
     assert_eq!(f["liveRejects"], to_value(LIVE_REJECTS).unwrap());
+}
+
+#[test]
+fn mod_format() {
+    let m = &fixture()["modFormat"];
+    assert!(m["valid"].as_array().unwrap().iter().all(|v| valid_mod(v.as_str().unwrap())));
+    assert!(!m["invalid"].as_array().unwrap().iter().any(|v| valid_mod(v.as_str().unwrap())));
 }
 
 #[test]

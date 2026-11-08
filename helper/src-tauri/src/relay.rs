@@ -76,6 +76,8 @@ impl Status {
     }
 }
 
+const IN_TIMEOUT: Duration = Duration::from_secs(15);
+
 /// one client for every site call; each request sets its own timeout, the /stream SSE has none
 pub fn http() -> &'static reqwest::Client {
     static HTTP: std::sync::OnceLock<reqwest::Client> = std::sync::OnceLock::new();
@@ -457,7 +459,7 @@ async fn post_loop(sh: Arc<Shared>, token: String, mut rx: mpsc::UnboundedReceiv
                 Err(_) => break,
             }
         }
-        let response = http().post(format!("{SITE}/api/relay/in")).bearer_auth(&token).json(&json!({ "ev": ev })).timeout(Duration::from_secs(15)).send().await;
+        let response = http().post(format!("{SITE}/api/relay/in")).bearer_auth(&token).json(&json!({ "ev": ev })).timeout(IN_TIMEOUT).send().await;
         match response.map(|r| r.status().as_u16()) {
             Ok(401) => { crate::invalidate(&sh, &token); return; }
             Ok(403) => {
