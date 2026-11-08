@@ -150,10 +150,6 @@ html.lite .iv:not(.in) [data-letters] {
   from { color: transparent; }
 }
 
-html.lite .row-thumb {
-  scale: 1.1 !important;
-  transition: none !important;
-}
 html.lite :is(.lift, .lift-sm):hover {
   translate: none;
 }

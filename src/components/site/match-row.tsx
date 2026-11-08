@@ -79,7 +79,7 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
   const lbl = useRef<HTMLSpanElement>(null);
   const [level, setLevel] = useState(0);
   const [fonts, recheck] = useState(0);
-  // steps to the next shorter label while it overflows; shortcut: rechecked once fonts load, not on resize
+  // steps to the next shorter label while it overflows; shortcut: rechecked when fonts load and on resize
   useLayoutEffect(() => {
     const el = lbl.current;
     if (!el || !label || level >= label.length - 1) return;
@@ -132,7 +132,7 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
                 src={team.image}
                 alt=""
                 className={cn(
-                  "row-thumb size-full scale-110 object-cover blur-[1px]",
+                  "absolute -inset-[5%] h-[110%] w-[110%] max-w-none object-cover blur-[1px]",
                   i ? "[mask-image:linear-gradient(to_left,black_10%,transparent_85%)]" : "[mask-image:linear-gradient(to_right,black_10%,transparent_85%)]",
                   "mix-blend-multiply contrast-125 dark:mix-blend-normal dark:contrast-100",
                   played && match.winner === i + 1 ? "opacity-35 grayscale-[30%] dark:opacity-20 dark:grayscale-[40%]" : "opacity-25 grayscale dark:opacity-10",

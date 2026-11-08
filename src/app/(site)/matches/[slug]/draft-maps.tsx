@@ -71,27 +71,18 @@ export function MapGrid({
                 const grey = u?.kind === "ban" || !!u?.winner || tbu;
                 const peek = u?.kind === "pick" && (admin || !!u.winner);
                 return (
-                  <div key={m.slot} className="relative">
+                  <motion.div
+                    key={m.slot}
+                    className="relative"
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45, ease: EASE, delay: 0.35 + pi * 0.06 + k * 0.03 }}
+                  >
                     <motion.button
                       type="button"
                       disabled={!tap}
                       onClick={() => tap && onSel(chosen ? null : m.slot)}
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{
-                        opacity: 1,
-                        y: chosen ? -3 : 0,
-                        transition: {
-                          opacity: {
-                            duration: 0.45,
-                            delay: 0.35 + pi * 0.06 + k * 0.03,
-                          },
-                          y: {
-                            duration: 0.45,
-                            ease: EASE,
-                            delay: 0.35 + pi * 0.06 + k * 0.03,
-                          },
-                        },
-                      }}
+                      animate={{ y: chosen ? -3 : 0 }}
                       whileHover={tap ? { y: -3 } : undefined}
                       whileTap={tap ? { scale: 0.97 } : undefined}
                       transition={{ duration: 0.18 }}
@@ -233,7 +224,7 @@ export function MapGrid({
                         </span>
                       </motion.button>
                     )}
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>

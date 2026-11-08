@@ -11,7 +11,7 @@ import { EASE } from "@/lib/ease";
 export type PopPlace = { left: number; top: number; width: number; up?: boolean };
 
 
-export function useAnchoredPopup(anchor: React.RefObject<HTMLElement | null>, open: boolean, onClose: () => void, place: (r: DOMRect) => PopPlace, box: React.RefObject<HTMLElement | null>) {
+function useAnchoredPopup(anchor: React.RefObject<HTMLElement | null>, open: boolean, onClose: () => void, place: (r: DOMRect) => PopPlace, box: React.RefObject<HTMLElement | null>) {
   const mounted = useMounted();
   const [pos, setPos] = useState<PopPlace | null>(null);
   const cb = useRef({ onClose, place });
