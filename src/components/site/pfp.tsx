@@ -48,7 +48,7 @@ export function TeamPfp({ id, color, className }: { id: number | null; color: st
   );
 }
 
-// 10.63cqh =tan(12deg) / 2 of the frame height: how far a -skew-x-12 edge leans at the top and bottom
+// 10.63cqh = tan(12deg) / 2 of the frame height: how far a -skew-x-12 edge leans at the top and bottom
 const SLANT_CLIP = "[clip-path:polygon(10.63cqh_0,calc(100%_+_10.63cqh)_0,calc(100%_-_10.63cqh)_100%,-10.63cqh_100%)]";
 
 /** slanted avatar frame: the picture is cut with a clip-path and only the background and edge layers are skewed.

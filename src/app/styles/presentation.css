@@ -70,6 +70,7 @@ html.lite .site-header {
 }
 
 /* lite: software rendering (no gpu), every frame is painted and blended on the cpu: loops stepped, intros plain slides, no live blur */
+html.lite .grain::after {
   transform: none;
   opacity: 0.05;
   background-image: url("/noise.png");

@@ -97,7 +97,10 @@ async function download(setId: number, dest: string): Promise<true | string> {
         await res?.body?.cancel().catch(() => {});
         continue;
       }
-      if (Number(res.headers.get("content-length") ?? 0) > MAP_MAX) continue;
+      if (Number(res.headers.get("content-length") ?? 0) > MAP_MAX) {
+        last = "over 200 MB";
+        continue;
+      }
       let size = 0;
       const body = Readable.fromWeb(res.body as unknown as WebStream).on("data", (c: Buffer) => {
         size += c.length;

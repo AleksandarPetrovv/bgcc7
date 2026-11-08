@@ -49,11 +49,11 @@ export async function saveScore(matchId: string, gameId: number, fixedOsuId: num
   }, { match: matchId });
 }
 
-export async function removeScore(matchId: string, gameId: number, osuId: number) {
+// side is the row's scoreboard team: non-roster players are placed there by lobby colour, so the roster can't tell
+export async function removeScore(matchId: string, gameId: number, osuId: number, side: number) {
   return guard("matches", "match.score.remove", async ({ osuId: by }) => {
-    if (!Number.isInteger(osuId) || osuId <= 0 || !Number.isInteger(gameId)) return { ok: false, error: "invalid" };
-    const team = await rosterTeam(matchId, osuId);
-    if (!team) return { ok: false, error: "invalid" };
+    if (!Number.isInteger(osuId) || osuId <= 0 || !Number.isInteger(gameId) || (side !== 1 && side !== 2)) return { ok: false, error: "invalid" };
+    const team = (await rosterTeam(matchId, osuId)) ?? side;
     await upsertScore({ matchId, gameId, osuId, team, score: 0, acc: 0, mods: "", removed: true, editedBy: by, editedAt: new Date() });
     await sync(matchId);
     return { log: { matchId, gameId, osuId } };

@@ -3,7 +3,7 @@ import { bestOf } from "./format";
 import { LONG_MOD, MOD_COLOR } from "./mods";
 
 export const MAX_BANS = 6;
-export const PLAN_MODS =["NM", "HD", "HR", "DT"] as const;
+export const PLAN_MODS = ["NM", "HD", "HR", "DT"] as const;
 export type PlanMod = (typeof PLAN_MODS)[number];
 
 export type PlanMap = { id: string; mod: PlanMod; note: string; subcategoryIds?: string[] };
