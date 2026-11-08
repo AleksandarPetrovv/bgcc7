@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getFormat } from "@/db/edition";
-import { PageTitle } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { labelCls } from "@/components/admin/label";
 import { getSettings } from "@/db/settings";

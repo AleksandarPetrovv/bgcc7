@@ -1,6 +1,7 @@
 import { ArrowRight, CalendarClock, Crown, ExternalLink, Flag, Mic, Tv, Video } from "lucide-react";
-import { Container, PageTitle, SlantButton, Tag } from "@/components/site/page";
-import { SlantBg } from "@/components/site/slant";
+import { Container, Tag } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
+import { SlantBg, SlantButton } from "@/components/site/slant";
 import { Avatar } from "@/components/site/avatar";
 import { Countdown } from "@/components/site/countdown";
 import { canSee } from "@/lib/authz";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState, useSyncExternalStore } from "react";
 import { ExternalLink, Eye } from "lucide-react";
 import { Popup, PopupTitle } from "./popup";
 import { useDict, useLang } from "./lang";
@@ -16,12 +16,15 @@ import { matchCosts } from "@/lib/match-cost";
 import { MeTag, meP } from "./me";
 import { MEDAL, modHi, TEAM as TEAMS } from "@/lib/theme";
 import { osuMatch } from "@/lib/links";
-import { RuleDiamond } from "./rule";
+import { LineDiamond, RuleDiamond } from "./rule";
 import { localeOf } from "@/lib/i18n/locale";
 import { MOD_COLOR, MODS } from "@/lib/mods";
 
 const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
 const cache = new Map<string, Scoreboard>();
+// a cache miss opens with just the header after this wait if the maps haven't arrived
+const OPEN_WAIT_MS = 350;
+const still = () => () => {};
 const TEAM = [TEAMS[1].border, TEAMS[2].border];
 const TEAM_TEXT = [TEAMS[1].text, TEAMS[2].text];
 
@@ -193,8 +196,7 @@ function Board({ match, data, names }: { match: Match; data: Scoreboard; names: 
           {data.lobbies.length > 1 && (i === 0 || played[i - 1].lobby !== m.lobby) && (
             <div className="mb-3 mt-1 flex items-center gap-3 text-xs font-display font-bold text-ash">
               {t.match.lobby(m.lobby + 1)}
-              <span className="h-px flex-1 border-t border-line" />
-              <span className="size-2 shrink-0 rotate-45 bg-rose" aria-hidden />
+              <LineDiamond line="border-t" />
             </div>
           )}
           {/* bleed through the board padding (and under the overlay scrollbar) so the cover and separator span the popup; content stays put */}
@@ -221,7 +223,16 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
   const [busy, setBusy] = useState(false);
 
   // no loading screen: open as soon as the maps are in, or after a short wait with the header we already have (maps fill in)
+  const [loads, setLoads] = useState(0);
   const load = () => {
+    const hit = cache.get(slug);
+    if (hit) {
+      setData(hit);
+      setOpen(true);
+    } else setBusy(true);
+    setLoads((n) => n + 1);
+  };
+  const fetchScores = useEffectEvent(() => {
     const hit = cache.get(slug);
     let shown = !!hit;
     const show = () => {
@@ -231,13 +242,8 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
       setOpen(true);
     };
     if (hit) {
-      setData(hit);
-      setOpen(true);
       if (match.winner) return;
-    } else {
-      setBusy(true);
-      setTimeout(show, 350);
-    }
+    } else setTimeout(show, OPEN_WAIT_MS);
     fetch(`/api/matches/${slug}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d: Scoreboard) => {
@@ -246,16 +252,20 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
       })
       .catch(() => !hit && setData("error"))
       .finally(show);
-  };
+  });
+  useEffect(() => {
+    if (loads) fetchScores();
+  }, [loads]);
 
   // the open popup lives at /results/<slug> so it can be linked (discord #results); back closes it
   const url = `/results/${slug}`;
-  useEffect(() => {
-    // opening from the url can only happen after mount (no location on the server)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+  // opening from the url can only happen after mount (no location on the server)
+  const mounted = useSyncExternalStore(still, () => true, () => false);
+  const [urlChecked, setUrlChecked] = useState(false);
+  if (mounted && !urlChecked) {
+    setUrlChecked(true);
     if (location.pathname === url) load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }
   useEffect(() => {
     if (!open) return;
     const pushed = location.pathname !== url;

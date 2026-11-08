@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { PageTitle } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { getSponsors } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";

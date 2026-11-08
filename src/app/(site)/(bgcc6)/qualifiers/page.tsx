@@ -1,4 +1,5 @@
-import { Container, PageTitle, SectionHeading, Tag } from "@/components/site/page";
+import { Container, SectionHeading, Tag } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { Letters, Words } from "@/components/site/rich";
 import { InView } from "@/components/site/in-view";
 import { getDict, getLang } from "@/lib/i18n/server";

@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { Notes } from "@/components/site/page";
+import { Notes } from "@/components/site/title-marks";
 import { slotColor } from "@/lib/format-plan";
 import { modHi } from "@/lib/theme";
 import type { FeedMap, OverlayFeed } from "@/lib/overlay-types";

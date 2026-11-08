@@ -1,5 +1,7 @@
 import { pageMeta } from "@/lib/page-meta";
-import { Container, SectionHeading, SlantButton, PageTitle } from "@/components/site/page";
+import { Container, SectionHeading } from "@/components/site/page";
+import { SlantButton } from "@/components/site/slant";
+import { PageTitle } from "@/components/site/page-title";
 import { Rich, Words } from "@/components/site/rich";
 import { InView } from "@/components/site/in-view";
 import { getDict } from "@/lib/i18n/server";

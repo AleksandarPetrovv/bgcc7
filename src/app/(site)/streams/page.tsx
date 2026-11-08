@@ -1,6 +1,8 @@
 import { pageMeta } from "@/lib/page-meta";
 import { ExternalLink, Mic, User, Video } from "lucide-react";
-import { Container, PageTitle, SlantButton, SubHeading, Tag } from "@/components/site/page";
+import { Container, SubHeading, Tag } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
+import { SlantButton } from "@/components/site/slant";
 import { TwitchEmbed } from "@/components/site/twitch-embed";
 import { getDict } from "@/lib/i18n/server";
 import { roundName, type Dict } from "@/lib/i18n/dict";

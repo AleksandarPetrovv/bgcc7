@@ -1,5 +1,6 @@
 import { ExternalLink } from "lucide-react";
-import { Container, PageTitle, SubHeading } from "@/components/site/page";
+import { Container, SubHeading } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { ScoreMatrix } from "@/components/site/score-matrix";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { requireSection } from "@/lib/authz";

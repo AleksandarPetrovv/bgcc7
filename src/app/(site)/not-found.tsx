@@ -1,4 +1,4 @@
-import { SlantButton } from "@/components/site/page";
+import { SlantButton } from "@/components/site/slant";
 import { getDict } from "@/lib/i18n/server";
 
 export default async function NotFound() {

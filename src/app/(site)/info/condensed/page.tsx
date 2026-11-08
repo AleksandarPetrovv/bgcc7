@@ -1,5 +1,6 @@
 import { pageMeta } from "@/lib/page-meta";
-import { Container, PageTitle } from "@/components/site/page";
+import { Container } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { Words } from "@/components/site/rich";
 import { getDict } from "@/lib/i18n/server";
 import { getFill } from "@/db/copy";

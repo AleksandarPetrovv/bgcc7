@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { Words } from "@/components/site/rich";
-import { PageTitle } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { Panel } from "@/components/admin/form";
 import { getPoolStages } from "@/db/mappools";
 import { getFormat } from "@/db/edition";

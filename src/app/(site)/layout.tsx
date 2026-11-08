@@ -35,7 +35,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <TournamentProvider teams={teams} matches={matches} edition={currentEdition()}>
         <main className="flex-1">{children}</main>
       </TournamentProvider>
-      <SiteFooter />
+      <SiteFooter edition={currentEdition()} />
       <Flash />
       <DetailsMotion />
       {viewer?.roles.length ? <AlertPopups /> : null}

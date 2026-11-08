@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { CalendarClock, Radio } from "lucide-react";
-import { PageTitle } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { Panel } from "@/components/admin/form";
 import { CopyLink } from "@/components/admin/copy-link";
 import { getViewer } from "@/lib/authz";

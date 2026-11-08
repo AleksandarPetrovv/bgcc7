@@ -1,7 +1,7 @@
 import { Crown } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Words } from "@/components/site/rich";
-import { PageTitle } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { labelCls } from "@/components/admin/label";
 import { getQualResults } from "@/db/qualifiers";

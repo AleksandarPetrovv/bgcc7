@@ -1,6 +1,7 @@
 import { pageMeta } from "@/lib/page-meta";
 import { Check } from "lucide-react";
-import { Container, PageTitle, Tag } from "@/components/site/page";
+import { Container, Tag } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { RegisterForm } from "@/components/site/register-form";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils";

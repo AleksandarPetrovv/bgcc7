@@ -1,6 +1,7 @@
 import { pageMeta } from "@/lib/page-meta";
 import { User } from "lucide-react";
-import { Container, PageTitle, Tag } from "@/components/site/page";
+import { Container, Tag } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { Rhombus } from "@/components/site/graphics";
 import { Cascade } from "@/components/site/cascade";
 import { getDict } from "@/lib/i18n/server";

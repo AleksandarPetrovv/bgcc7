@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowUpRight, Check, Hourglass, Scale, Trash2 } from "lucide-react";
 import { LinkTabs } from "@/components/site/tabs";
-import { PageTitle } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, IconAction } from "@/components/admin/form";
 import { getPoolStages } from "@/db/mappools";
 import { getPlan, getSkillLayouts } from "@/db/format-plan";

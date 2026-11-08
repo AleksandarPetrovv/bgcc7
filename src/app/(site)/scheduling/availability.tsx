@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Pencil } from "lucide-react";
-import { SlantButton } from "@/components/site/page";
+import { SlantButton } from "@/components/site/slant";
 import { AnimatePresence, motion } from "motion/react";
 import { avatarPath } from "@/lib/avatar";
 import { useDict, useLang } from "@/components/site/lang";

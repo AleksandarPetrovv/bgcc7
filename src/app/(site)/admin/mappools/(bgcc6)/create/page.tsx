@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { LinkTabs } from "@/components/site/tabs";
-import { PageTitle } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { getPoolStages } from "@/db/mappools";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";

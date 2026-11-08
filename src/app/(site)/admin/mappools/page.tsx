@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, Eye, LayoutGrid, ListChecks, PencilRuler } from "lucide-react";
-import { PageTitle } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { getPoolStages } from "@/db/mappools";
 import { getSheet } from "@/db/pool-sheet";
 import { getViewer } from "@/lib/authz";

@@ -1,4 +1,4 @@
-import { SubNav } from "./page";
+import { SubNav } from "./sub-nav";
 import { getVisibility } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { subNav, subNavOf } from "@/lib/sections";

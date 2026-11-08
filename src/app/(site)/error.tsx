@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { SlantButton } from "@/components/site/page";
+import { SlantButton } from "@/components/site/slant";
 import { useDict } from "@/components/site/lang";
 
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {

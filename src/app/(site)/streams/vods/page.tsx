@@ -1,6 +1,7 @@
 import { pageMeta } from "@/lib/page-meta";
 import { Play } from "lucide-react";
-import { Container, PageTitle } from "@/components/site/page";
+import { Container } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { getDict } from "@/lib/i18n/server";
 import { roundName } from "@/lib/i18n/dict";
 import { getMatches, getTeams } from "@/db/tournament";

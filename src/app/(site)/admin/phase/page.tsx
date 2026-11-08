@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { PageTitle, Tag } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
+import { Tag } from "@/components/site/page";
 import { ActionForm, DateTimeField, Panel } from "@/components/admin/form";
 import { getSettings } from "@/db/settings";
 import { getViewer } from "@/lib/authz";

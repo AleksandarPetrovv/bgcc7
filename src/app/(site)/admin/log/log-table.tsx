@@ -12,6 +12,7 @@ import { fmtSofia, fmtSofiaDay, fmtSofiaTime, sofiaDate, tzLabel } from "@/lib/t
 import { cn } from "@/lib/utils";
 import { localeOf } from "@/lib/i18n/locale";
 import { roundName } from "@/lib/i18n/dict";
+import { LineDiamond } from "@/components/site/rule";
 
 const DOT: Record<LogGroup, string> = {
   players: "bg-balkan",
@@ -111,8 +112,7 @@ export function LogTable({ rows, ctx, lang, t, empty }: { rows: LogRow[]; ctx: L
         <section key={day}>
           <h3 className="in-left mb-2 flex items-center gap-3 text-xs font-display font-bold text-ash" style={step(n)}>
             <span>{list.label}</span>
-            <span className="h-px flex-1 border-t border-line" aria-hidden />
-            <span className="size-2 shrink-0 rotate-45 bg-rose" aria-hidden />
+            <LineDiamond line="border-t" />
           </h3>
           <ol className="relative border-y border-line">
             {list.entries.map((entry) => {

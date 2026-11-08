@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Download } from "lucide-react";
 import { helperView } from "@/lib/helper-sig";
 import { HelperLink, HelperPoll, UnlinkHelper } from "@/components/admin/link-gate";
-import { PageTitle, SlantButton } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { Panel } from "@/components/admin/form";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
@@ -12,7 +12,7 @@ import { Cascade } from "@/components/site/cascade";
 import { getLang } from "@/lib/i18n/server";
 import { fmtSofia } from "@/lib/time";
 import { localeOf } from "@/lib/i18n/locale";
-import { SlantBg } from "@/components/site/slant";
+import { SlantBg, SlantButton } from "@/components/site/slant";
 
 export const dynamic = "force-dynamic";
 

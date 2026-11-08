@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getRegistrations } from "@/db/registrations";
 import { Words } from "@/components/site/rich";
-import { PageTitle } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { getStaff } from "@/db/admin";
 import { getViewer } from "@/lib/authz";

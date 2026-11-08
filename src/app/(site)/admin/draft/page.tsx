@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { safe } from "@/db/safe";
 import { notFound } from "next/navigation";
-import { PageTitle } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { Words } from "@/components/site/rich";
 import { drafts } from "@/db/schema";
 import { timers, toView } from "@/db/drafts";

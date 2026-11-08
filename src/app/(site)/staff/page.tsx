@@ -1,5 +1,7 @@
 import { pageMeta } from "@/lib/page-meta";
-import { Container, PageTitle, SectionHeading, SlantButton } from "@/components/site/page";
+import { Container, SectionHeading } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
+import { SlantButton } from "@/components/site/slant";
 import { getDict } from "@/lib/i18n/server";
 import { DISCORD_URL, osuUser } from "@/lib/links";
 import { flagUrl } from "@/lib/data";

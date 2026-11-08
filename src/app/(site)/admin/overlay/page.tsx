@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { Download, ExternalLink } from "lucide-react";
-import { PageTitle, SlantButton } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { Panel } from "@/components/admin/form";
 import { CopyLink } from "@/components/admin/copy-link";
 import { getViewer } from "@/lib/authz";
@@ -14,7 +14,7 @@ import { getFormat } from "@/db/edition";
 import { overlayName } from "@/db/stream";
 import { HelperLink, HelperPoll, UnlinkHelper } from "@/components/admin/link-gate";
 import { helperView } from "@/lib/helper-sig";
-import { SlantBg } from "@/components/site/slant";
+import { SlantBg, SlantButton } from "@/components/site/slant";
 
 export const dynamic = "force-dynamic";
 

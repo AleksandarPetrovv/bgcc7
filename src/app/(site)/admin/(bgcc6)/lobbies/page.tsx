@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { InView } from "@/components/site/in-view";
-import { PageTitle } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { RuleDiamond } from "@/components/site/rule";
 import { ActionForm, DateTimeField, Panel, Field } from "@/components/admin/form";
 import { labelCls } from "@/components/admin/label";

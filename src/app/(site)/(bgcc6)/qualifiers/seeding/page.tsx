@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Container, PageTitle, Tag } from "@/components/site/page";
+import { Container, Tag } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { SeedingChart } from "@/components/site/seeding-chart";
 import { getDict } from "@/lib/i18n/server";
 import { fmtNum, teamHref } from "@/lib/data";

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { PageTitle } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { getPlan } from "@/db/format-plan";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";

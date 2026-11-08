@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { PageTitle } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { getLog, getLogCtx, getStaff } from "@/db/admin";
 import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";

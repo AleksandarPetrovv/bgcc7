@@ -1,8 +1,7 @@
 import Image from "next/image";
 import { Star } from "lucide-react";
-import { SlantButton } from "@/components/site/page";
 import { Letters } from "@/components/site/rich";
-import { SlantBg } from "@/components/site/slant";
+import { SlantBg, SlantButton } from "@/components/site/slant";
 import { InView } from "@/components/site/in-view";
 import type { Dict } from "@/lib/i18n/dict";
 import { DISCORD_URL } from "@/lib/links";

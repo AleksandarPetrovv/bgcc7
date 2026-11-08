@@ -1,6 +1,6 @@
 import { LinkTabs } from "@/components/site/tabs";
 import { Words } from "@/components/site/rich";
-import { PageTitle } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { notFound } from "next/navigation";
 import { Download } from "lucide-react";
 import { ActionForm, Panel, Field } from "@/components/admin/form";

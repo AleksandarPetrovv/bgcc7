@@ -359,5 +359,6 @@ export const site = {
       ["Team draw", "%seed%"],
       ["Playoffs", "%play%"],
     ],
+    edit: { hint: "Click to edit", save: "Save", saving: "Saving…", cancel: "Cancel", failed: "Couldn't save", empty: "Empty = default text" },
   },
 };

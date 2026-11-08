@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Check, Crown } from "lucide-react";
 import { Sparkle } from "@/components/site/graphics";
-import { SlantButton } from "@/components/site/page";
-import { SlantBg } from "@/components/site/slant";
+import { SlantBg, SlantButton } from "@/components/site/slant";
 import { RuleDiamond } from "@/components/site/rule";
 import { Words } from "@/components/site/rich";
 import { Avatar } from "@/components/site/avatar";
@@ -73,6 +72,19 @@ function HeroLockup({ num }: { num: string }) {
           {num}
         </span>
       </span>
+    </div>
+  );
+}
+
+function SectionHead({ d, title, className, href, link }: { d: string; title: React.ReactNode; className: string; href?: string; link?: string }) {
+  return (
+    <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3" style={{ "--d": d } as React.CSSProperties}>
+      <h2 className={`heading-slam ${className} xl:text-[clamp(1.25rem,1.65vw,1.65rem)]`}>{title}</h2>
+      {href && (
+        <Link href={href} className="group inline-flex shrink-0 items-center gap-1.5 text-sm font-display font-bold text-ash transition-colors hover:text-paper">
+          {link} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+        </Link>
+      )}
     </div>
   );
 }
@@ -155,12 +167,7 @@ function TopList({ t, top, teams }: { t: Dict; top: TopCost[]; teams: Team[] }) 
 function TopPerformers({ t, pages, teams }: { t: Dict; pages: { name: string; top: TopCost[] }[]; teams: Team[] }) {
   return (
     <InView>
-      <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3" style={{ "--d": "1.5s" } as React.CSSProperties}>
-        <h2 className="heading-slam text-2xl sm:whitespace-nowrap sm:text-3xl xl:text-[clamp(1.25rem,1.65vw,1.65rem)]">{t.home.topPerformers}</h2>
-        <Link href="/stats" className="group inline-flex shrink-0 items-center gap-1.5 text-sm font-display font-bold text-ash transition-colors hover:text-paper">
-          {t.home.allStats} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-        </Link>
-      </div>
+      <SectionHead d="1.5s" className="text-2xl sm:whitespace-nowrap sm:text-3xl" title={t.home.topPerformers} href="/stats" link={t.home.allStats} />
       <PoolPager pages={pages.map((p, i) => ({ name: p.name, color: i ? "var(--rose)" : "var(--gold)", node: <TopList t={t} top={p.top} teams={teams} /> }))} />
     </InView>
   );
@@ -176,12 +183,7 @@ function PoolRow({ t, stage, split }: { t: Dict; stage: Omit<PoolStage, "pools">
   return (
     // alone: two thirds wide and centred; next to top performers: the left half
     <InView className={cn(!split && "xl:mx-auto xl:w-2/3")}>
-      <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3" style={{ "--d": "1.5s" } as React.CSSProperties}>
-        <h2 className="heading-slam text-2xl sm:whitespace-nowrap sm:text-3xl xl:text-[clamp(1.25rem,1.65vw,1.65rem)]">{roundName(t, stage.title)}</h2>
-        <Link href={`/mappool/${stage.slug}`} className="group inline-flex shrink-0 items-center gap-1.5 text-sm font-display font-bold text-ash transition-colors hover:text-paper">
-          {t.home.fullPool} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-        </Link>
-      </div>
+      <SectionHead d="1.5s" className="text-2xl sm:whitespace-nowrap sm:text-3xl" title={roundName(t, stage.title)} href={`/mappool/${stage.slug}`} link={t.home.fullPool} />
       <PoolPager
         pages={groups.map((g) => ({
           name: g.name,
@@ -357,12 +359,7 @@ export default async function Home() {
         <div className="grid grid-cols-[minmax(0,1fr)] gap-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,1fr)] 2xl:gap-16">
           {see("schedule") && featured.length > 0 && (
             <InView className="order-3 flex flex-col xl:order-none">
-            <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3" style={{ "--d": "0.6s" } as React.CSSProperties}>
-              <h2 className="heading-slam whitespace-nowrap text-3xl xl:text-[clamp(1.25rem,1.65vw,1.65rem)]">{t.home.previously}</h2>
-              <Link href="/matches" className="group inline-flex shrink-0 items-center gap-1.5 text-sm font-display font-bold text-ash transition-colors hover:text-paper">
-                {t.home.fullSchedule} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
-            </div>
+            <SectionHead d="0.6s" className="whitespace-nowrap text-3xl" title={t.home.previously} href="/matches" link={t.home.fullSchedule} />
             <div className="mt-6 flex flex-1 flex-col gap-3">
               {featured.map((m, i) => (
                 <div key={m.id} className="in-up grid flex-1" style={{ "--d": `${0.7 + i * 0.1}s` } as React.CSSProperties}>
@@ -373,9 +370,7 @@ export default async function Home() {
             </InView>
           )}
           <InView className="order-1 xl:order-none xl:col-start-2">
-            <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3" style={{ "--d": "0.8s" } as React.CSSProperties}>
-              <h2 className="heading-slam whitespace-nowrap text-3xl xl:text-[clamp(1.25rem,1.65vw,1.65rem)]">{t.home.timeline}</h2>
-            </div>
+            <SectionHead d="0.8s" className="whitespace-nowrap text-3xl" title={t.home.timeline} />
             <Timeline t={t} timeline={settings.timeline} locale={locale} states={phaseStates(settings.timeline, phase)} />
             {regCloses && (
               <Reveal className="relative mt-8 border-b border-line pb-4" delay={0.2}>
@@ -387,12 +382,7 @@ export default async function Home() {
           </InView>
           {see("schedule") && upcoming.length > 0 && (
             <InView className="order-2 flex flex-col xl:order-none xl:col-start-3">
-            <div className="in-up flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3" style={{ "--d": "1.3s" } as React.CSSProperties}>
-              <h2 className="heading-slam min-w-0 text-3xl sm:whitespace-nowrap xl:text-[clamp(1.25rem,1.65vw,1.65rem)]">{t.home.upcoming.split("/").map((w, i) => (i ? <Fragment key={i}>/<wbr />{w}</Fragment> : w))}</h2>
-              <Link href="/matches" className="group inline-flex shrink-0 items-center gap-1.5 text-sm font-display font-bold text-ash transition-colors hover:text-paper">
-                {t.home.fullSchedule} <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
-            </div>
+            <SectionHead d="1.3s" className="min-w-0 text-3xl sm:whitespace-nowrap" title={t.home.upcoming.split("/").map((w, i) => (i ? <Fragment key={i}>/<wbr />{w}</Fragment> : w))} href="/matches" link={t.home.fullSchedule} />
             <div className="mt-6 flex flex-1 flex-col gap-3">
               {upcoming.map((m, i) => (
                 <div key={m.id} className="in-up grid flex-1" style={{ "--d": `${1.4 + i * 0.1}s` } as React.CSSProperties}>

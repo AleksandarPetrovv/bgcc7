@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ExternalLink, Link2, LogOut, Pencil, Unlink } from "lucide-react";
-import { SlantButton } from "@/components/site/page";
+import { SlantButton } from "@/components/site/slant";
 import { DiscordLogo } from "@/components/site/discord-logo";
 import { OsuLogo } from "@/components/site/osu-logo";
 import { useDict } from "@/components/site/lang";

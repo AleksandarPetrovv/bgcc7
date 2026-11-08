@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { Container, PageTitle } from "@/components/site/page";
+import { Container } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { getAllTeams } from "@/db/tournament";
 import { mySchedule } from "@/db/schedule";
 import { getMe } from "@/db/viewer";

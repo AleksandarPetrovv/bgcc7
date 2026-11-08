@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { PageTitle } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, DateTimeField, Panel } from "@/components/admin/form";
 import { labelCls } from "@/components/admin/label";
 import { getPoolStages } from "@/db/mappools";

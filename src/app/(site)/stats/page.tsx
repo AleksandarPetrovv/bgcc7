@@ -1,5 +1,6 @@
 import { pageMeta } from "@/lib/page-meta";
-import { Container, PageTitle, SectionHeading } from "@/components/site/page";
+import { Container, SectionHeading } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
 import { CountUp } from "@/components/site/motion";
 import { MapDifficultyChart } from "@/components/site/map-chart";
 import { LinkTabs } from "@/components/site/tabs";

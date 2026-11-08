@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
 import { saveInfoText } from "./actions";
+import { useDict } from "@/components/site/lang";
 
 export function Editable({ path, raw, on, block, children }: { path: string; raw: string; on: boolean; block?: boolean; children: React.ReactNode }) {
   const [editing, setEditing] = useState(false);
@@ -12,6 +13,7 @@ export function Editable({ path, raw, on, block, children }: { path: string; raw
   const [failed, setFailed] = useState(false);
   const [pending, start] = useTransition();
   const router = useRouter();
+  const tx = useDict().info.edit;
   if (!on) return <>{children}</>;
 
   if (!editing) {
@@ -20,7 +22,7 @@ export function Editable({ path, raw, on, block, children }: { path: string; raw
       <Tag
         role="button"
         tabIndex={0}
-        title="Click to edit"
+        title={tx.hint}
         onClick={(e) => {
           e.preventDefault();
           setText(raw);
@@ -59,14 +61,14 @@ export function Editable({ path, raw, on, block, children }: { path: string; raw
       <span className="flex items-center gap-2 text-xs font-display font-bold">
         <button type="button" disabled={pending} onClick={save} className="relative isolate px-3 py-1 text-on-fill disabled:opacity-50">
           <SlantBg className="bg-gold" />
-          {pending ? "Saving…" : "Save"}
+          {pending ? tx.saving : tx.save}
         </button>
         <button type="button" disabled={pending} onClick={() => setEditing(false)} className="relative isolate border border-transparent px-3 py-1 text-ash hover:text-paper">
           <SlantBg className="-inset-px border border-line" />
-          Cancel
+          {tx.cancel}
         </button>
-        {failed && <span className="text-rose-hi">Couldn&apos;t save</span>}
-        <span className="ml-auto font-bold normal-case tracking-normal text-ash">Empty = default text</span>
+        {failed && <span className="text-rose-hi">{tx.failed}</span>}
+        <span className="ml-auto font-bold normal-case tracking-normal text-ash">{tx.empty}</span>
       </span>
     </span>
   );
