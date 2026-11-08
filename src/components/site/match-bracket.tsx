@@ -11,6 +11,8 @@ import { MatchDialog } from "./match-dialog";
 import { cn, cssVars } from "@/lib/utils";
 import { MeTag, meT } from "./me";
 import { fitBox, useFit } from "./use-fit";
+import { useBracketOptions, useResultsEye } from "./overlay-context";
+import { availOr, colWidth, gfRound, isPhone, shrinkScale, upscale, wirePath } from "@/lib/bracket-geometry";
 import { matchNum, winTargets, type Format, type Half } from "@/lib/format";
 import { fmtDate, fmtSofiaTime } from "@/lib/time";
 import { roundName } from "@/lib/i18n/dict";
@@ -19,6 +21,8 @@ import { HEX } from "@/lib/theme";
 import { localeOf } from "@/lib/i18n/locale";
 
 const TOP = 92;
+// no stream pushes bracket scores (live comes from the page render), so re-render the page while a match is live
+const LIVE_POLL_MS = 30_000;
 type Pos = Record<string, [number, number, Half]>;
 
 function bracketLayout(f: Format) {
@@ -65,12 +69,13 @@ function Line({ m, slot, live, slim }: { m: Match; slot: 1 | 2; live?: [number, 
   );
 }
 
-function Box({ id, m, live, slim, plain, className, style, onEnter, onLeave }: { id: string; m: Match; live?: [number, number] | null; slim?: boolean; plain?: boolean; className?: string; style?: React.CSSProperties; onEnter?: () => void; onLeave?: () => void }) {
+function Box({ id, m, live, slim, className, style, onEnter, onLeave }: { id: string; m: Match; live?: [number, number] | null; slim?: boolean; className?: string; style?: React.CSSProperties; onEnter?: () => void; onLeave?: () => void }) {
   const t = useDict();
   const lang = useLang();
   const locale = localeOf(lang);
   const day = (dt: string) => fmtDate(new Date(dt), locale, id === "grand-final-reset" ? { day: "2-digit", month: "short" } : { weekday: "short", day: "2-digit", month: "short" });
   const num = matchNum(useFormat(), id);
+  const eyes = useResultsEye();
   return (
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className={cn("flex flex-col overflow-hidden border bg-coal transition-[border-color] duration-200", className)} style={style}>
       <div className="flex h-7 shrink-0 items-center gap-2 border-b border-line bg-ink/70 px-2.5">
@@ -82,7 +87,7 @@ function Box({ id, m, live, slim, plain, className, style, onEnter, onLeave }: {
         )}
         <span className="ml-auto flex items-center gap-1">
           {live !== undefined && <LiveDot />}
-          {!plain && m.links.length > 0 && hasResults(m) && <MatchDialog match={m} compact />}
+          {eyes && m.links.length > 0 && hasResults(m) && <MatchDialog match={m} compact />}
         </span>
       </div>
       <Line m={m} slot={1} live={live} slim={slim} />
@@ -102,29 +107,30 @@ function LiveDot() {
   );
 }
 
-// overlay: maxH caps the scale so the whole bracket fits, reset=false hides the grand final reset, plain drops the results eyes
-export function MatchBracket({ live = {}, maxH, reset = true, plain }: { live?: Record<string, [number, number] | null>; maxH?: number; reset?: boolean; plain?: boolean }) {
+export function MatchBracket({ live = {} }: { live?: Record<string, [number, number] | null> }) {
   const t = useDict();
   const router = useRouter();
   const { matches, format } = useTournament();
+  const { maxH, reset } = useBracketOptions();
   const { G, H, P, minW, LOW, POS, top, WIN, DROPS, HEADERS, gfCol, lowRows } = bracketLayout(format);
   const [hover, setHover] = useState<string | null>(null);
   const [end, setEnd] = useState(false);
   const anyLive = Object.keys(live).length > 0;
   useEffect(() => {
     if (!anyLive) return;
-    const id = setInterval(() => router.refresh(), 30_000);
+    const id = setInterval(() => router.refresh(), LIVE_POLL_MS);
     return () => clearInterval(id);
   }, [anyLive, router]);
-  const { ref: box, avail: seen, scale: shrink } = useFit((gfCol + 1) * minW + gfCol * G, 768, 1);
-  const avail = seen || 1500;
+  const { ref: box, avail: seen } = useFit();
+  const avail = availOr(seen);
 
-  const phone = seen > 0 && seen < 640;
+  const phone = isPhone(seen);
   const gap = phone ? 44 : G;
   const height = LOW + (lowRows - 1) * P + H + 12;
   // overlay: the height sets the scale, then the columns widen to fill the width at that scale
   const fill = maxH && !phone ? Math.min(2, maxH / height) : 0;
-  const W = phone ? Math.round(avail - gap) : fill ? Math.floor(Math.max(minW, (avail / fill - gfCol * G - 8) / (gfCol + 1))) : Math.floor(Math.min(290, Math.max(minW, (avail - gfCol * G - 8) / (gfCol + 1))));
+  const W = phone ? Math.round(avail - gap) : colWidth(format, avail, fill);
+  const shrink = shrinkScale(seen, (gfCol + 1) * minW + gfCol * G);
   const col = (c: number) => c * (W + gap);
   const byId = new Map(matches.map((m) => [m.id, m]));
   const inner = useRef<HTMLDivElement>(null);
@@ -152,18 +158,13 @@ export function MatchBracket({ live = {}, maxH, reset = true, plain }: { live?: 
   if (hover) for (const [a, b] of DROPS) if (a === hover || b === hover) linked.add(a).add(b);
 
   const width = col(gfCol) + W + (phone ? gap : 0);
-  const fitW = shrink < 1 ? shrink : seen >= 1280 && width < seen ? Math.min(2, seen / width) : 1;
+  const fitW = shrink < 1 ? shrink : upscale(seen, width);
   const scale = maxH ? Math.min(fitW, maxH / height) : fitW;
   const fit = fitBox(width, height, scale);
   const lowCol = Math.min(...HEADERS.filter((h) => h.s === "l").map((h) => h.c));
   const midY = (id: string) => top(id) + H / 2;
   const firstTop = (c: number, s: Half) => Math.min(...Object.keys(POS).filter((id) => !id.startsWith("grand-") && POS[id][0] === c && POS[id][2] === s).map(top));
-  const wire = (a: string, b: string) => {
-    const x1 = col(POS[a][0]) + W;
-    const x2 = col(POS[b][0]);
-    const mx = x2 - gap / 2;
-    return `M${x1} ${midY(a)} H${mx} V${midY(b)} H${x2}`;
-  };
+  const wire = (a: string, b: string) => wirePath(col(POS[a][0]) + W, midY(a), col(POS[b][0]), midY(b), gap);
   const drop = (a: string, b: string) => {
     // same-column drops (LR1) are straight verticals that overlap each other and read as solid; spread them apart
     const srcs = POS[a][0] === POS[b][0] ? DROPS.filter(([, to]) => to === b).map(([from]) => from) : [a];
@@ -177,7 +178,7 @@ export function MatchBracket({ live = {}, maxH, reset = true, plain }: { live?: 
 
   const section = (s: "u" | "l") => (
     <div className="pointer-events-none absolute flex items-center gap-3" style={{ left: s === "u" ? 0 : col(lowCol), top: s === "u" ? 0 : LOW - 100 }}>
-      <span className={cn("in-wipe heading-slam whitespace-nowrap text-xl sm:text-3xl", (plain ? s === "u" : s === "l") && "text-rose-hi")} style={cssVars({ "--d": s === "u" ? "0.1s" : "0.4s" })}>
+      <span className={cn("in-wipe heading-slam whitespace-nowrap text-xl sm:text-3xl", s === "u" ? "bsec-u" : "bsec-l text-rose-hi")} style={cssVars({ "--d": s === "u" ? "0.1s" : "0.4s" })}>
         {s === "u" ? t.schedule.upper : t.schedule.lower}
       </span>
     </div>
@@ -246,7 +247,7 @@ export function MatchBracket({ live = {}, maxH, reset = true, plain }: { live?: 
           className="in-drop absolute flex snap-start items-center gap-2 border-b border-gold/20 pb-1 text-xs font-display font-bold text-gold-hi/80"
           style={{ left: col(gfCol), top: top("grand-final") - 30, width: W, ...cssVars({ "--d": "0.7s" }) }}
         >
-          <Crown className="size-3.5" /> {t.rounds["Grand Finals"]}
+          <Crown className="size-3.5" /> {roundName(t, gfRound(format))}
         </div>
 
         {Object.keys(POS).map((id) => {
@@ -261,7 +262,6 @@ export function MatchBracket({ live = {}, maxH, reset = true, plain }: { live?: 
               m={m}
               live={id in live ? live[id] : undefined}
               slim={W < 200}
-              plain={plain}
               onEnter={() => setHover(id)}
               onLeave={() => setHover(null)}
               className={cn("in-left-far absolute", gf ? "border-gold/70" : "border-line hover:border-paper/30", linked.has(id) && "z-10 border-rose shadow-[0_0_14px_-3px_var(--rose)]")}

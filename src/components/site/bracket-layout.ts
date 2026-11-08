@@ -1,4 +1,5 @@
 import { winTargets, type Format } from "@/lib/format";
+import { gfRound } from "@/lib/bracket-geometry";
 
 export function pickLayout(f: Format, w?: number) {
   const { upRows, gfRow, gfCol, lowRows } = f.layout;
@@ -14,7 +15,7 @@ export function pickLayout(f: Format, w?: number) {
   for (const [id, [c, r, s]] of Object.entries(f.layout.pos)) POS[id] = [c, (s === "u" ? 0 : LB) + r * pitch];
   const HEADERS = [
     ...f.layout.headers.map((h) => ({ c: h.c, y: h.s === "u" ? -34 : LB - 34, t: h.t, gold: false })),
-    { c: gfCol, y: GF1 - 34, t: "Grand Finals", gold: true },
+    { c: gfCol, y: GF1 - 34, t: gfRound(f), gold: true },
   ];
   return { W, G, H, x, LB, POS, WIN: winTargets(f), HEADERS, gfCol, width: x(gfCol) + W, height: LB + (lowRows - 1) * pitch + H + 8 };
 }

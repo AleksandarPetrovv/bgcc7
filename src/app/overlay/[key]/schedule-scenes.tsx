@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MatchBracket } from "@/components/site/match-bracket";
 import { MatchRow } from "@/components/site/match-row";
+import { BracketOptions, ResultsEye } from "@/components/site/overlay-context";
 import { useDict } from "@/components/site/lang";
 import { useTournament } from "@/components/site/tournament";
 import type { Match } from "@/lib/data";
@@ -25,7 +26,7 @@ function Column({ title, list }: { title: string; list: Match[] }) {
       <h2 className="heading-slam border-b border-line pb-3 text-[30px]">{title}</h2>
       <div className="mt-5 flex flex-col gap-3">
         {list.map((m, i) => (
-          <MatchRow key={m.id} match={m} small plain label={cardLabels(f, t, m)} live={m.running ? null : undefined} delay={0.2 + i * 0.06} />
+          <MatchRow key={m.id} match={m} small label={cardLabels(f, t, m)} live={m.running ? null : undefined} delay={0.2 + i * 0.06} />
         ))}
       </div>
     </section>
@@ -49,8 +50,10 @@ export function ScheduleScene({ feed }: { feed: OverlayFeed }) {
         <Rule className="absolute inset-x-0 bottom-0" />
       </div>
       <div className="absolute inset-x-[72px] top-[290px] grid grid-cols-2 gap-16">
-        <Column title="Up next" list={next} />
-        <Column title="Results" list={done} />
+        <ResultsEye value={false}>
+          <Column title="Up next" list={next} />
+          <Column title="Results" list={done} />
+        </ResultsEye>
       </div>
     </div>
   );
@@ -69,8 +72,12 @@ export function BracketScene({ feed }: { feed: OverlayFeed }) {
     <div className="absolute inset-0 overflow-hidden text-paper">
       <Backdrop num={editionNum(feed)} tint="var(--white)" />
       <Lockup num={editionNum(feed)} size={38} className="absolute right-[56px] top-[40px]" />
-      <div className="absolute inset-x-[40px]" style={{ top: TOP, bottom: BOTTOM }}>
-        <MatchBracket plain reset={reset} maxH={1080 - TOP - BOTTOM - 16} />
+      <div className="absolute inset-x-[40px] [&_.bsec-l]:text-inherit [&_.bsec-u]:text-rose-hi" style={{ top: TOP, bottom: BOTTOM }}>
+        <ResultsEye value={false}>
+          <BracketOptions value={{ reset, maxH: 1080 - TOP - BOTTOM - 16 }}>
+            <MatchBracket />
+          </BracketOptions>
+        </ResultsEye>
       </div>
     </div>
   );

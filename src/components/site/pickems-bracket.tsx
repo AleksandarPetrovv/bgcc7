@@ -3,7 +3,8 @@
 import { Check, Crown, X } from "lucide-react";
 import { pickLayout } from "./bracket-layout";
 import { useDict } from "./lang";
-import { flagUrl } from "@/lib/data";
+import { Pic } from "./pfp";
+import { PlayerRow } from "./player-row";
 import { resolve, seedingOf, type Picks } from "@/lib/pickems";
 import { useTournament } from "./tournament";
 import { roundName } from "@/lib/i18n/dict";
@@ -12,18 +13,17 @@ export type { Picks };
 import { cn } from "@/lib/utils";
 import { fitBox, useFit } from "./use-fit";
 import { HEX } from "@/lib/theme";
+import { availOr, colWidth, isPhone, upscale, wirePath } from "@/lib/bracket-geometry";
 
 export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; onPick?: (match: string, team: string) => void; locked?: string[] }) {
   const readOnly = !onPick;
   const t = useDict();
   const { teamById, matches, format: f } = useTournament();
-  const { ref, avail } = useFit(0);
-  const { box, gfCol: cols } = f.layout;
-  // same first guess as the matches bracket so the intro does not jump once the width is measured
-  const seen = avail || 1500;
-  const fill = seen >= 640 ? Math.floor(Math.min(290, Math.max(box.minW, (seen - cols * box.g - 8) / (cols + 1)))) : undefined;
+  const { ref, avail } = useFit();
+  const seen = availOr(avail);
+  const fill = isPhone(avail) ? undefined : colWidth(f, seen);
   const { W, G, H, x, LB, POS, WIN, HEADERS, gfCol, width, height } = pickLayout(f, fill);
-  const scale = seen >= 1280 && width < seen ? Math.min(2, seen / width) : 1;
+  const scale = upscale(seen, width);
   const fit = fitBox(width, height, scale);
   const { slots, picks: clean, resetLive, champion } = resolve(f, picks, seedingOf(f, matches));
   const champ = champion ? teamById(champion) : undefined;
@@ -39,8 +39,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
   const wire = (a: string, b: string) => {
     const [ca, ya] = POS[a];
     const [cb, yb] = POS[b];
-    const x1 = x(ca) + W, y1 = ya + H / 2, x2 = x(cb), y2 = yb + H / 2, mx = x2 - G / 2;
-    return `M${x1} ${y1} H${mx} V${y2} H${x2}`;
+    return wirePath(x(ca) + W, ya + H / 2, x(cb), yb + H / 2, G);
   };
 
   return (
@@ -73,21 +72,16 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
               <Crown className="size-3.5" /> {t.pickems.champion}
             </div>
             <div className="flex items-center gap-3 p-2.5">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={champ.image} alt="" className="size-16 shrink-0 object-cover" />
+              <Pic src={champ.image} className="size-16 shrink-0 object-cover" />
               <div className="min-w-0 flex-1 break-words text-center text-lg font-display font-black leading-tight">
                 {champ.name}
               </div>
             </div>
             <ul className="space-y-1.5 border-t border-line px-2.5 py-2.5">
               {champ.players.map((p) => (
-                <li key={p.userId} className="flex items-center gap-2 px-1 py-0.5 text-sm">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.avatar} alt="" className="size-6 shrink-0" />
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={flagUrl(p.country)} alt="" className="h-2.5 shrink-0" />
+                <PlayerRow key={p.userId} avatar={p.avatar} pfpClass="size-6" country={p.country} captain={p.isCaptain} className="gap-2 px-1 py-0.5 text-sm">
                   <span className="truncate font-display font-bold">{p.username}</span>
-                  {p.isCaptain && <Crown className="size-3.5 shrink-0 -translate-y-px text-gold-hi" aria-label={t.common.captain} />}                </li>
+                </PlayerRow>
               ))}
             </ul>
           </div>

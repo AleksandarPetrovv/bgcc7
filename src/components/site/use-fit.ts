@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 
-export function useFit(width: number, from = 768, grow = 1.4) {
+export function useFit() {
   const ref = useRef<HTMLDivElement>(null);
   const [avail, setAvail] = useState(0);
   useLayoutEffect(() => {
@@ -12,8 +12,7 @@ export function useFit(width: number, from = 768, grow = 1.4) {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const scale = avail < from ? 1 : width > avail ? avail / width : Math.min(grow, avail / width);
-  return { ref, avail, scale };
+  return { ref, avail };
 }
 
 export const fitBox = (width: number, height: number, scale: number) =>
