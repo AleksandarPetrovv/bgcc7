@@ -292,11 +292,11 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
             ? className
             : cn(
                 "group flex shrink-0 items-center justify-center",
-                compact ? "-mr-1 h-6" : "px-2 hover:bg-slate sm:px-3",
+                compact ? "-mr-1 size-6" : "px-2 hover:bg-slate sm:px-3",
               )
         }
       >
-        {children ?? <DetailsChip />}
+        {children ?? (compact ? <Eye className="size-[0.92rem] text-rose transition-colors duration-200 group-hover:text-rose-hi" strokeWidth={2.25} aria-hidden /> : <DetailsChip />)}
       </button>
       <Popup open={open} onClose={() => setOpen(false)} tone="line" shadow={0} className="grid w-full max-w-[calc(100%-2rem)] text-sm max-h-[88dvh] grid-cols-[minmax(0,1fr)] content-start gap-0 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [--px:0.75rem] sm:[--px:1.25rem] [touch-action:pan-y] rounded-none border border-line bg-ink p-0 ring-0 sm:max-w-4xl">
         {/* -top-px + the upward shadow close the sliver that let scrolled maps peek above the header */}
