@@ -41,7 +41,7 @@ export function PlayerRow({
   return (
     <Tag {...meP(id)} className={cn("flex items-center", hl && "me-hl", className)} style={style}>
       <Pfp src={avatar} look={look} lazy={lazy} className={pfpClass} />
-      {country !== undefined && <Pic src={flagUrl(country)} className="h-2.5 shrink-0" />}
+      {country && <Pic src={flagUrl(country)} className="h-2.5 shrink-0" />}
       {children}
       {captain && <Crown className="size-3.5 shrink-0 -translate-y-px text-gold-hi" aria-label={t.common.captain} />}
       {end}

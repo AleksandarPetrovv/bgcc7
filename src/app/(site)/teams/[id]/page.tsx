@@ -78,7 +78,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
                   {p.isCaptain && <Crown className="size-4 text-gold-hi" aria-label={t.common.captain} />}
                 </div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={flagUrl(p.country)} alt="" className="mt-1 h-3" />
+                {p.country && <img src={flagUrl(p.country)} alt="" className="mt-1 h-3" />}
                 <div className="num mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-paper/75">
                   <span>#{fmtNum(p.rank)}</span>
                   <span>{fmtNum(Math.round(p.pp))}pp</span>

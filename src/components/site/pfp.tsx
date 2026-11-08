@@ -7,6 +7,7 @@ import { SlantBg } from "./slant";
 type PicProps = Omit<React.ImgHTMLAttributes<HTMLImageElement>, "src"> & { src: string; lazy?: boolean };
 
 export function Pic({ lazy, alt = "", ...rest }: PicProps) {
+  if (!rest.src) return null;
   // eslint-disable-next-line @next/next/no-img-element
   return <img alt={alt} {...(lazy && { loading: "lazy" as const, decoding: "async" as const })} {...rest} />;
 }
