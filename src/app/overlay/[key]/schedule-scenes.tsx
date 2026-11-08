@@ -6,8 +6,9 @@ import { MatchBracket } from "@/components/site/match-bracket";
 import { MatchRow } from "@/components/site/match-row";
 import { BracketOptions, ResultsEye } from "@/components/site/overlay-context";
 import { useDict } from "@/components/site/lang";
-import { useTournament } from "@/components/site/tournament";
-import type { Match } from "@/lib/data";
+import { TournamentProvider, useTournament } from "@/components/site/tournament";
+import { DEMO_MATCH, DEMO_WINNERS, demoBracket } from "@/lib/demo-bracket";
+import type { Match, Team } from "@/lib/data";
 import { GF, GF_RESET } from "@/lib/format";
 import { cardLabels, recentResults } from "@/lib/matches";
 import type { OverlayFeed } from "@/lib/overlay-types";
@@ -64,7 +65,12 @@ const BOTTOM = 16;
 
 export function BracketScene({ feed }: { feed: OverlayFeed }) {
   useFresh();
+  const { teams, format } = useTournament();
   const { id, score, firstTo } = feed.match;
+  // the demo has no real result to show, so it plays a made-up bracket: its own losers match, then a winners one
+  const demo = feed.match.slug === "demo" && feed.match.winner !== null ? demoBracket(format, teams, DEMO_MATCH, [toTeam(feed.teams[0]), toTeam(feed.teams[1])], feed.match.winner, DEMO_WINNERS) : null;
+  // a finished match plays its result: shown unplayed first, then its teams move on (or out)
+  const reveal = demo ? [DEMO_MATCH, DEMO_WINNERS] : feed.match.winner !== null ? [id] : undefined;
   // the reset only matters on a grand final once the losers-side team (slot 2) has taken the first set
   const reset = id === GF_RESET || (id === GF &&score[1] >= firstTo);
   return (
@@ -73,11 +79,19 @@ export function BracketScene({ feed }: { feed: OverlayFeed }) {
       <Lockup num={editionNum(feed)} size={38} className="absolute right-[56px] top-[40px]" />
       <div className="absolute inset-x-[40px] [&_.bsec-l]:text-inherit [&_.bsec-u]:text-rose-hi" style={{ top: TOP, bottom: BOTTOM }}>
         <ResultsEye value={false}>
-          <BracketOptions value={{ reset, maxH: 1080 - TOP - BOTTOM - 16 }}>
-            <MatchBracket />
+          <BracketOptions value={{ reset, current: id, reveal, maxH: 1080 - TOP - BOTTOM - 16 }}>
+            {demo ? (
+              <TournamentProvider teams={demo.teams} matches={demo.matches} edition={format.edition}>
+                <MatchBracket />
+              </TournamentProvider>
+            ) : (
+              <MatchBracket />
+            )}
           </BracketOptions>
         </ResultsEye>
       </div>
     </div>
   );
 }
+
+const toTeam = (t: OverlayFeed["teams"][number]): Team => ({ id: t.id, name: t.name, image: t.image, players: [], avgRank: 0, avgPp: 0, seed: 0 });

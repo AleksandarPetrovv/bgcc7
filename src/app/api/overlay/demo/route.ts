@@ -5,6 +5,9 @@ import { sse } from "@/lib/sse";
 import { getPoolStages } from "@/db/mappools";
 import { poolFeed, scheduleFeed } from "@/lib/overlay-feed";
 import { TB } from "@/lib/draft";
+import { DEMO_MATCH } from "@/lib/demo-bracket";
+import { getFormat } from "@/db/edition";
+import { roundOf } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -74,10 +77,10 @@ const TIMELINE: [Scene, number][] = [
   ["mappool", 22],
   ["gameplay", 26],
   ["winner", 10],
+  ["bracket", 26],
+  ["end", 7],
   ["brb", 6],
   ["schedule", 8],
-  ["bracket", 8],
-  ["end", 7],
 ];
 const CYCLE = TIMELINE.reduce((n, [, d]) => n + d, 0);
 
@@ -136,7 +139,7 @@ function demo(pin: Scene | null, startedAt: number): OverlayFeed {
     score = [1, 1];
     current = POOL.find((m) => m.slot === "DT1") ?? null;
     live = gameplay(local, now);
-  } else if (scene === "winner" || scene === "end") {
+  } else if (scene === "winner" || scene === "bracket" || scene === "end") {
     steps = STEPS.map((x) => (x.winner === null && x.kind === "pick" ? { ...x, winner: 1 } : x));
     score = [5, 2];
     winner = 1;
@@ -149,9 +152,9 @@ function demo(pin: Scene | null, startedAt: number): OverlayFeed {
     edition: "bgcc7",
     tournament: "BGCC7",
     match: {
-      id: "DEMO",
+      id: DEMO_MATCH,
       slug: "demo",
-      round: "Quarterfinals",
+      round: getFormat().rounds[roundOf(DEMO_MATCH)]?.name ?? "Quarterfinals",
       startsAt: new Date(cycleStart + 8000 + (pin === "soon" ? 60_000 : 0)).toISOString(),
       firstTo: 5,
       score,

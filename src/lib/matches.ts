@@ -45,6 +45,37 @@ export function cardLabels(f: Format, t: Dict, m: Match): string[] {
   return [`${roundName(t, m.round)}, ${t.nav.match} ${k}`, `${short}, ${t.nav.match} ${k}`, `${short}, ${t.nav.match[0]}${k}`];
 }
 
+export type ResultMove = { to: string; slot: 1 | 2; from: 1 | 2; team: string };
+
+/** where a finished match sends its teams: the winner on, the loser down (nothing when the loser is out) */
+export function resultMoves(f: Format, m: Match): ResultMove[] {
+  if (!m.winner) return [];
+  return Object.entries(f.feed).flatMap(([to, srcs]) =>
+    srcs.flatMap((s, i) => {
+      if (s.from !== m.id) return [];
+      const from = (s.take === "W" ? m.winner : 3 - m.winner!) as 1 | 2;
+      const team = from === 1 ? m.team1.id : m.team2.id;
+      return team ? [{ to, slot: (i + 1) as 1 | 2, from, team }] : [];
+    }),
+  );
+}
+
+/** the bracket as it stood just before match `id` got its result; `scored` keeps the result itself, `landed` the teams already moved on */
+export function beforeResult(f: Format, matches: Match[], id: string, { scored = false, landed = [] as string[] } = {}): Match[] {
+  const m = matches.find((x) => x.id === id);
+  if (!m?.winner) return matches;
+  const moves = resultMoves(f, m).filter((v) => !landed.includes(v.team));
+  return matches.map((x) => {
+    if (x.id === id) return scored ? x : { ...x, winner: null, team1: { ...x.team1, score: null }, team2: { ...x.team2, score: null } };
+    let y = x;
+    for (const v of moves.filter((v) => v.to === x.id)) {
+      const k = v.slot === 1 ? "team1" : "team2";
+      if (y[k].id === v.team) y = { ...y, [k]: { id: "", name: "", score: null } };
+    }
+    return y;
+  });
+}
+
 export const recentResults = (matches: Match[]) => matches.filter((m) => m.winner).sort((a, b) => (b.datetime ?? "").localeCompare(a.datetime ?? ""));
 
 export function upcomingMatches(matches: Match[]) {

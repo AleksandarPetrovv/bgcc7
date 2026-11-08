@@ -322,3 +322,7 @@
 .in-sweep { animation-name: k-sweep; animation-duration: 1.1s; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
 
 .in-slow { animation-duration: 0.8s; }
+
+/* overlay bracket reveal: a team moving forward turns gold as it flies */
+@keyframes k-gild { to { color: var(--gold-hi); outline-color: var(--gold); } }
+.gild { animation: k-gild var(--gild, 0.9s) ease forwards; }
