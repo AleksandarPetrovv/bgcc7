@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useMounted } from "@/components/site/use-mounted";
 import { motion } from "motion/react";
 import { Ban, Check, Copy, Crown, DoorClosed, ListOrdered, Pause, RotateCcw, Swords, type LucideIcon } from "lucide-react";
 import { useDict } from "@/components/site/lang";
@@ -15,15 +16,8 @@ import { GOLD, modHi, TEAM, tint } from "@/lib/theme";
 import { Costs, MapCard } from "@/components/site/match-dialog";
 import type { MapResult, Scoreboard } from "@/lib/scoreboard";
 
-const noop = () => () => {};
-
 export function Portal({ children }: { children: React.ReactNode }) {
-  const ready = useSyncExternalStore(
-    noop,
-    () => true,
-    () => false,
-  );
-  return ready ? createPortal(children, document.body) : null;
+  return useMounted() ? createPortal(children, document.body) : null;
 }
 
 export function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onPick: (c: "pick" | "ban") => void }) {
@@ -55,7 +49,7 @@ export function ChoosePopup({ me, busy, onPick }: { me: Side; busy: boolean; onP
               >
                 <SlantBg className={cn("-skew-x-6 border-2 transition-colors duration-200", !on && "border-line")} style={on ? { borderColor: col.c, background: col.c, boxShadow: `5px 5px 0 0 ${col.deep}` } : undefined} />
                 <span className="relative flex flex-col items-center gap-2">
-                  <Icon className={cn("size-8 transition-transform duration-300", on ? "scale-110" : c === "pick" ? "group-hover:rotate-12" : "group-hover:-rotate-12")} />
+                  <Icon className={cn("size-8 transition-transform duration-300", !on && "group-hover:-translate-y-0.5")} />
                   <span className="heading-slam text-xl sm:text-2xl">{c === "pick" ? t.draft.firstPick : t.draft.firstBan}</span>
                 </span>
               </button>

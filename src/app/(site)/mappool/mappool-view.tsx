@@ -114,7 +114,7 @@ export function MappoolView({ stages, initial }: { stages: Stage[]; initial?: st
                       key={m.slot} className="group relative flex items-stretch overflow-hidden border-b border-line transition-colors hover:border-[var(--lift)]"
                       style={{ "--lift": modHi(mc), "--i": pi + k, "--s": "0.05s" } as React.CSSProperties}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-45 saturate-[1.15] [mask-image:linear-gradient(to_left,black,transparent_85%)] transition duration-500 group-hover:scale-105 group-hover:opacity-60 dark:opacity-25 dark:group-hover:opacity-35 [--d:0.15s]" />
+                      <img src={m.cover} alt="" className="in-wipe absolute inset-0 size-full object-cover opacity-45 saturate-[1.15] [mask-image:linear-gradient(to_left,black,transparent_85%)] transition duration-500 group-hover:opacity-60 dark:opacity-25 dark:group-hover:opacity-35 [--d:0.15s]" />
                       <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-ink/0" />
                       <div className="relative grid min-w-0 flex-1 grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 gap-y-3 p-3 sm:gap-x-5 sm:p-4 xl:flex xl:gap-6">
                       <span className="in-pop heading-slam shrink-0 text-lg sm:text-2xl [--d:0.3s]" style={{ color: modHi(mc) }}>

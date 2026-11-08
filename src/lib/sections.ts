@@ -67,7 +67,14 @@ const ROUTES: [string, Section][] = [
   ["/staff", "staff"],
 ];
 
-export const sectionOf = (path: string) => ROUTES.find(([p]) => path === p || path.startsWith(`${p}/`))?.[1] ?? null;
+export const under = (path: string, base: string) => path === base || path.startsWith(`${base}/`);
+
+export const activeItem = <T extends { href: string }>(items: T[], path: string): T | undefined =>
+  items.reduce<T | undefined>((best, i) => (under(path, i.href) && (!best || i.href.length > best.href.length) ? i : best), undefined);
+
+const ROUTE_ITEMS = ROUTES.map(([href, section]) => ({ href, section }));
+
+export const sectionOf = (path: string) => activeItem(ROUTE_ITEMS, path)?.section ?? null;
 
 export type NavKey = "home" | "me" | "register" | "info" | "qualifiers" | "teams" | "players" | "schedule" | "scheduling" | "mappool" | "pickems" | "stats" | "streams" | "staff";
 
@@ -129,7 +136,7 @@ export const PUBLIC_PAGES = NAV.filter((g) => g.top !== false && !g.sched && g.k
 export type NavItem = { key: NavKey; href: string; base: string; alias?: string; hidden: boolean };
 
 export const isActive = (path: string, n: { base: string; alias?: string }) =>
-  n.base === "/" ? path === "/" : [n.base, n.alias].some((b) => b && (path === b || path.startsWith(`${b}/`)));
+  n.base === "/" ? path === "/" : [n.base, n.alias].some((b) => b && under(path, b));
 
 export function buildNav(sections: Record<string, boolean>, staff: boolean, off: string[] = [], sched = false): NavItem[] {
   const open = (s: Section | null) => s === null || !!sections[s];

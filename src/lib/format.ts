@@ -222,6 +222,7 @@ export const FORMATS: Record<Edition, Format> = { bgcc6: formatBGCC6, bgcc7: FOR
 
 export const GF = "grand-final";
 export const GF_RESET = "grand-final-reset";
+export const isGfId = (id: string) => id.startsWith("grand-");
 export const KO_LOSSES = 2;
 export const bestOf = (firstTo: number) => 2 * firstTo - 1;
 

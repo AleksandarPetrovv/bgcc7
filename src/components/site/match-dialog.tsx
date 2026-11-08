@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useEffectEvent, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useMounted } from "./use-mounted";
 import { ExternalLink, Eye } from "lucide-react";
 import { Popup, PopupTitle } from "./popup";
 import { useDict, useLang } from "./lang";
@@ -25,7 +26,6 @@ import { MOD_COLOR, MODS } from "@/lib/mods";
 const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
 const cache = new Map<string, Scoreboard>();
 const OPEN_WAIT_MS = 350;
-const still = () => () => {};
 const TEAM = [TEAMS[1].border, TEAMS[2].border];
 const TEAM_TEXT = [TEAMS[1].text, TEAMS[2].text];
 
@@ -34,7 +34,7 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
   return (
     <ul className={cn("min-w-0 space-y-2", !won && "opacity-60")}>
       {players.map((p, r) => (
-        <PlayerRow key={p.id} id={p.id} avatar={p.avatar} lazy pfpClass="size-8" className={cn("min-w-0 gap-2 py-0.5", flip ? "in-right flex-row-reverse pr-1.5 text-right" : "in-left pl-1.5")} style={cssVars({ "--d": `${0.45 + r * 0.06}s` })}>
+        <PlayerRow key={p.id} id={p.id} avatar={p.avatar} look="plain" lazy pfpClass="size-8" className={cn("min-w-0 gap-2 py-0.5", flip ? "in-right flex-row-reverse pr-1.5 text-right" : "in-left pl-1.5")} style={cssVars({ "--d": `${0.45 + r * 0.06}s` })}>
           <div className="min-w-0 flex-1 leading-tight">
             <div className={cn("flex min-w-0 items-center text-[0.8rem] font-display font-bold", flip && "flex-row-reverse")}>
               <span className="truncate">{p.name}</span>
@@ -159,6 +159,7 @@ export function Costs({ data, names, finished }: { data: Scoreboard; names: (str
                     key={r.id}
                     id={r.id}
                     avatar={r.avatar}
+                    look="plain"
                     lazy
                     pfpClass="size-8"
                     className={cn("gap-3 border-b border-line py-2 last:border-b-0", k === 1 ? "in-left" : "in-right")}
@@ -260,7 +261,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
   // the open popup lives at /results/<slug> so it can be linked (discord #results); back closes it
   const url = `/results/${slug}`;
   // opening from the url can only happen after mount (no location on the server)
-  const mounted = useSyncExternalStore(still, () => true, () => false);
+  const mounted = useMounted();
   const [urlChecked, setUrlChecked] = useState(false);
   if (mounted && !urlChecked) {
     setUrlChecked(true);

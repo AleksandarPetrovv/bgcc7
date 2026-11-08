@@ -4,16 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useDict } from "./lang";
 import { cn } from "@/lib/utils";
+import { activeItem } from "@/lib/sections";
 import { TabMark } from "./tabs";
 
 export function SubNav({ items }: { items: { href: string; label: string; hidden?: boolean }[] }) {
   const path = usePathname();
   const t = useDict();
+  const current = activeItem(items, path);
   return (
     <div className="sub-nav sticky top-16 z-30 border-b border-line bg-coal/95 backdrop-blur lg:top-20">
       <nav className="mx-auto flex max-w-page items-stretch gap-1 overflow-x-auto px-2 sm:gap-6 sm:px-4 lg:px-8 2xl:px-12" aria-label={t.nav.section}>
         {items.map((i) => {
-          const active = path === i.href || (path.startsWith(`${i.href}/`) && !items.some((o) => o.href.length > i.href.length && (path === o.href || path.startsWith(`${o.href}/`))));
+          const active = i === current;
           return (
             <Link
               key={i.href}

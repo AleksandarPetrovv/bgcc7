@@ -224,7 +224,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
                     <span className="relative min-w-0 flex-1 truncate font-display font-bold">{o.label}</span>
                     {o.hint && <span className="num relative shrink-0 text-xs opacity-60">{o.hint}</span>}
                     {on && (
-                      <motion.span initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} className="relative shrink-0">
+                      <motion.span initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }} className="relative shrink-0">
                         <Check className="size-3.5" strokeWidth={3} />
                       </motion.span>
                     )}

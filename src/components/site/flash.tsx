@@ -60,7 +60,7 @@ export function Flash() {
                 <p className="mt-1 text-sm text-paper/80">{t.register.flashText}</p>
               </div>
             </div>
-            <button type="button" onClick={() => setShown(false)} aria-label={t.draft.close} className="absolute right-2 top-2 p-2 text-ash transition-colors hover:text-paper">
+            <button type="button" onClick={() => setShown(false)} aria-label={t.common.close} className="absolute right-2 top-2 p-2 text-ash transition-colors hover:text-paper">
               <X className="size-4" />
             </button>
             <motion.span

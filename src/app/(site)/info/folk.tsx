@@ -18,7 +18,7 @@ import { MOD_COLOR } from "@/lib/mods";
 import { MEDAL } from "@/lib/theme";
 import { DEFAULT_SETTINGS } from "@/db/settings";
 
-export type FolkProps = {
+type FolkProps = {
   t: Dict;
   f: (s: string) => string;
   raw: (path: string, fallback: string) => string;
@@ -192,7 +192,7 @@ function Hosts({ p, compact, d = 0 }: { p: FolkProps; compact?: boolean; d?: num
           <a key={h.osuId} href={osuUser(h.osuId)} target="_blank" rel="noreferrer" className="group flex min-w-0 flex-col">
             <span className={cn("in-up in-slow relative aspect-square overflow-hidden", !compact && "lg:w-[min(calc(100cqh_-_2.5rem_-_clamp(1.4rem,2vw,2.4rem)),calc(50cqw_-_0.75rem))]")} style={dv(d + i * 0.15)}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={h.avatarUrl ? avatarPath(h.osuId, true) : ""} alt="" className="absolute inset-0 size-full object-cover grayscale-[.3] transition duration-500 group-hover:scale-[1.03] group-hover:grayscale-0" />
+              <img src={h.avatarUrl ? avatarPath(h.osuId, true) : ""} alt="" className="absolute inset-0 size-full object-cover grayscale-[.3] transition duration-500 group-hover:grayscale-0" />
               <span className="absolute inset-0 bg-gradient-to-t from-well/45 via-transparent to-transparent" aria-hidden />
               <span className={cn("in-grow absolute inset-x-0 top-0 h-1", i === 0 ? "bg-rose" : "bg-balkan")} style={dv(d + i * 0.15 + 0.35)} aria-hidden />
             </span>

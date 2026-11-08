@@ -1,9 +1,9 @@
 import { Fragment } from "react";
 
-export type RichPart = { text: string; tone?: "rose" | "balkan" };
+type RichPart = { text: string; tone?: "rose" | "balkan" };
 
 // [[rose]] and {{balkan}} highlights
-export function parseRich(text: string): RichPart[] {
+function parseRich(text: string): RichPart[] {
   return text.split(/(\[\[.+?\]\]|\{\{.+?\}\})/g).map((p) => (p.startsWith("[[") ? { text: p.slice(2, -2), tone: "rose" } : p.startsWith("{{") ? { text: p.slice(2, -2), tone: "balkan" } : { text: p }));
 }
 

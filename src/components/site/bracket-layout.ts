@@ -1,4 +1,4 @@
-import { winTargets, type Format } from "@/lib/format";
+import { GF, GF_RESET, winTargets, type Format } from "@/lib/format";
 import { gfRound } from "@/lib/bracket-geometry";
 
 export function pickLayout(f: Format, w?: number) {
@@ -11,7 +11,7 @@ export function pickLayout(f: Format, w?: number) {
   const LB = upRows * pitch + 120;
   const GF1 = gfRow * pitch + H / 2 - H - 10;
   const GF2 = gfRow * pitch + H / 2 + 10;
-  const POS: Record<string, [number, number]> = { "grand-final": [gfCol, GF1], "grand-final-reset": [gfCol, GF2] };
+  const POS: Record<string, [number, number]> = { [GF]: [gfCol, GF1], [GF_RESET]: [gfCol, GF2] };
   for (const [id, [c, r, s]] of Object.entries(f.layout.pos)) POS[id] = [c, (s === "u" ? 0 : LB) + r * pitch];
   const HEADERS = [
     ...f.layout.headers.map((h) => ({ c: h.c, y: h.s === "u" ? -34 : LB - 34, t: h.t, gold: false })),

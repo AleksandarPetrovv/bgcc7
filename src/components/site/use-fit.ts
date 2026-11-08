@@ -17,5 +17,5 @@ export function useFit() {
 
 export const fitBox = (width: number, height: number, scale: number) =>
   scale !== 1
-    ? { outer: { width: width * scale, height: height * scale }, inner: { width, height, transform: `scale(${scale})`, transformOrigin: "top left" } }
+    ? { outer: { width: width * scale, height: height * scale }, inner: { width, height, zoom: scale } }
     : { outer: undefined, inner: { width, height } };

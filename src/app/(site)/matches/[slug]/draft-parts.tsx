@@ -8,6 +8,7 @@ import { EASE } from "@/lib/ease";
 import { plan, ROLL_SPIN_MS, type DraftStep, type DraftUndo, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
+import { SlantPfp } from "@/components/site/pfp";
 import { GOLD, TEAM, tint } from "@/lib/theme";
 import { holdDraft, redoDraft, resumeDraft, undoDraft } from "@/actions/draft";
 import { Waiting } from "./draft-popups";
@@ -100,7 +101,7 @@ function RollNumber({ value, side, win, lose }: { value: number | null; side: Si
             })}
             <motion.span
               initial={{ y: 10, opacity: 0, rotate: -30, scale: 0.4 }}
-              animate={{ y: 0, opacity: 1, rotate: -12, scale: 1 }}
+              animate={{ y: 0, opacity: 1, rotate: 0, scale: 1 }}
               transition={{
                 type: "spring",
                 stiffness: 400,
@@ -239,12 +240,7 @@ export function TeamsHeader({ teams, turn, me, score }: { teams: [TeamInfo, Team
         transition={{ duration: 0.8, ease: EASE, delay: 0.05, opacity: { duration: 0.5 } }}
         className={cn("flex min-w-0 flex-col items-center gap-2.5 text-center sm:flex-row sm:gap-5 sm:text-left", s === 2 && "sm:flex-row-reverse sm:text-right")}
       >
-        {tm.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={tm.image} alt="" className="size-12 shrink-0 -skew-x-6 border-2 object-cover sm:size-20" style={{ borderColor: TEAM[s].c, boxShadow: `5px 5px 0 0 ${TEAM[s].deep}` }} />
-        ) : (
-          <span className="size-12 shrink-0 -skew-x-6 border-2 bg-slate sm:size-20" style={{ borderColor: TEAM[s].c, boxShadow: `5px 5px 0 0 ${TEAM[s].deep}` }} />
-        )}
+        <SlantPfp src={tm.image} className="size-12 sm:size-20" bg="bg-slate" edge="border-2" edgeStyle={{ borderColor: TEAM[s].c, boxShadow: `5px 5px 0 0 ${TEAM[s].deep}` }} />
         <div className={cn("flex w-full min-w-0 flex-1 flex-col items-center gap-2 sm:items-start", s === 2 && "sm:items-end")}>
           <div className="heading-slam w-full truncate text-base leading-none text-paper sm:text-3xl">{tm.name}</div>
           <div className={cn("flex w-full items-center gap-2", s === 2 && "flex-row-reverse")}>
@@ -376,8 +372,8 @@ export function Rolls({
                         type="button"
                         disabled={busy || paused}
                         onClick={onRoll}
-                        whileHover={{ scale: 1.06 }}
-                        whileTap={{ scale: 0.9, rotate: -6 }}
+                        whileHover={{ y: -2 }}
+                        whileTap={{ scale: 0.95 }}
                         className="relative isolate inline-flex min-h-11 items-center gap-2 px-6 font-display font-bold text-white disabled:opacity-60"
                       >
                         <SlantBg style={{ background: TEAM[s].c }} />

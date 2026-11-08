@@ -79,8 +79,7 @@ export function MapGrid({
                       initial={{ opacity: 0, y: 16 }}
                       animate={{
                         opacity: 1,
-                        y: 0,
-                        scale: chosen ? 1.03 : 1,
+                        y: chosen ? -3 : 0,
                         transition: {
                           opacity: {
                             duration: 0.45,
@@ -90,11 +89,6 @@ export function MapGrid({
                             duration: 0.45,
                             ease: EASE,
                             delay: 0.35 + pi * 0.06 + k * 0.03,
-                          },
-                          scale: {
-                            type: "spring",
-                            stiffness: 500,
-                            damping: 30,
                           },
                         },
                       }}
@@ -123,7 +117,7 @@ export function MapGrid({
                             ? "opacity-15 grayscale"
                             : u?.kind === "pick"
                               ? "opacity-50"
-                              : "opacity-50 group-hover:scale-105 group-enabled:group-hover:opacity-70",
+                              : "opacity-50 group-enabled:group-hover:opacity-70",
                         )}
                       />
                       <span className="absolute inset-0 bg-gradient-to-r from-ink via-ink/75 to-transparent" aria-hidden />
@@ -183,7 +177,7 @@ export function MapGrid({
                             animate={{
                               scale: 1,
                               opacity: 1,
-                              rotate: u.kind === "ban" ? -10 : 6,
+                              rotate: 0,
                             }}
                             exit={{ opacity: 0, scale: 0.6 }}
                             transition={{
@@ -191,13 +185,18 @@ export function MapGrid({
                               stiffness: 420,
                               damping: 17,
                             }}
-                            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 border-[3px] px-2 py-0.5 text-center font-display font-bold leading-none"
-                            style={{
-                              borderColor: col.c,
-                              color: col.hi,
-                              background: "color-mix(in srgb, var(--ink) 80%, transparent)",
-                            }}
+                            className="pointer-events-none absolute right-3 top-1/2 isolate -translate-y-1/2 px-2 py-0.5 text-center font-display font-bold leading-none"
+                            style={{ color: col.hi }}
                           >
+                            <span
+                              className="absolute inset-0 -z-10 border-[3px]"
+                              style={{
+                                borderColor: col.c,
+                                background: "color-mix(in srgb, var(--ink) 80%, transparent)",
+                                rotate: u.kind === "ban" ? "-3deg" : "2deg",
+                              }}
+                              aria-hidden
+                            />
                             <span className="block text-base tracking-wider sm:text-lg">
                               {u.kind === "ban" ? t.draft.banned : u.slot === TB ? t.draft.tiebreaker : t.draft.pick(u.n)}
                             </span>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getUser } from "@/lib/osu-api";
+import { globalStore } from "@/lib/global-store";
 import { pickemsHref, userPath } from "@/lib/data";
 import { ArrowLeft } from "lucide-react";
 import { Container } from "@/components/site/page";
@@ -16,8 +17,7 @@ import { ScrollTop } from "./scroll-top";
 
 // names not in our db would otherwise hit the osu api on every request
 type Found = Awaited<ReturnType<typeof getUser>>;
-const g = globalThis as unknown as { bgccPickemsLookup?: Map<string, { exp: number; o: Found }> };
-const looked = (g.bgccPickemsLookup ??= new Map());
+const looked = globalStore("bgccPickemsLookup", () => new Map<string, { exp: number; o: Found }>());
 async function lookup(name: string) {
   const now = Date.now();
   const hit = looked.get(name);

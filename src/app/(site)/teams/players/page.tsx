@@ -46,7 +46,7 @@ export default async function Players() {
       </span>
       <span className="absolute inset-y-0 left-0 w-0.5 origin-top scale-y-0 bg-balkan transition-transform duration-300 group-hover:scale-y-100" aria-hidden />
       <span className="in-spin shrink-0" style={cssVars({ "--d": "0.12s" })}>
-        <Pfp src={p.avatarUrl} className="size-12 transition-transform duration-300 group-hover:scale-105" />
+        <Pfp src={p.avatarUrl} className="size-12" />
       </span>
       <div className="@container relative min-w-0 flex-1">
         <div className="flex items-center gap-2">

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useMounted } from "./use-mounted";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { EASE } from "@/lib/ease";
@@ -9,10 +10,9 @@ import { EASE } from "@/lib/ease";
 /** viewport coords; `up` = opens above, `top` is then the edge it hangs from */
 export type PopPlace = { left: number; top: number; width: number; up?: boolean };
 
-const noop = () => () => {};
 
 export function useAnchoredPopup(anchor: React.RefObject<HTMLElement | null>, open: boolean, onClose: () => void, place: (r: DOMRect) => PopPlace, box: React.RefObject<HTMLElement | null>) {
-  const mounted = useSyncExternalStore(noop, () => true, () => false);
+  const mounted = useMounted();
   const [pos, setPos] = useState<PopPlace | null>(null);
   const cb = useRef({ onClose, place });
   useEffect(() => {
@@ -59,14 +59,14 @@ type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "style" | keyof React.DO
   place: (r: DOMRect) => PopPlace;
   /** off = bring your own border/fill/z-index */
   chrome?: boolean;
-  /** a new key swaps the content with a fresh entrance */
-  popKey?: string;
   ref?: React.RefObject<HTMLDivElement | null>;
   onKeyDown?: React.KeyboardEventHandler<HTMLDivElement>;
+  onPointerEnter?: React.PointerEventHandler<HTMLDivElement>;
+  onPointerLeave?: React.PointerEventHandler<HTMLDivElement>;
   children: React.ReactNode;
 };
 
-export function AnchoredPopup({ anchor, open, onClose, place, chrome = true, popKey, ref, className, children, ...rest }: Props) {
+export function AnchoredPopup({ anchor, open, onClose, place, chrome = true, ref, className, children, ...rest }: Props) {
   const own = useRef<HTMLDivElement>(null);
   const box = ref ?? own;
   const { mounted, pos } = useAnchoredPopup(anchor, open, onClose, place, box);
@@ -75,7 +75,6 @@ export function AnchoredPopup({ anchor, open, onClose, place, chrome = true, pop
     <AnimatePresence>
       {open && pos && (
         <motion.div
-          key={popKey}
           ref={box}
           initial={{ opacity: 0, scaleY: 0.6, y: pos.up ? 8 : -8 }}
           animate={{ opacity: 1, scaleY: 1, y: 0 }}

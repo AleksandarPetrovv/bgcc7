@@ -1,13 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRefreshWhile } from "@/components/site/use-poll-refresh";
 
-export function RefreshWhileLive() {
-  const router = useRouter();
-  useEffect(() => {
-    const id = setInterval(() => router.refresh(), 30_000);
-    return () => clearInterval(id);
-  }, [router]);
+// no stream pushes live scores, so re-render the page while a match is live
+export function RefreshWhileLive({ active = true }: { active?: boolean }) {
+  useRefreshWhile(active, 30_000);
   return null;
 }

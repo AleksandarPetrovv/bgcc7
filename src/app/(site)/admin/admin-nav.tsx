@@ -65,7 +65,7 @@ export function AdminNav({ items }: { items: { key: AdminKey; href: string; labe
             <span
               className={cn(
                 "relative flex size-7 shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform,translate,scale,rotate] duration-300",
-                active ? "bg-rose/20 text-rose-hi" : key === "helper" ? "bg-balkan/20 group-hover:scale-110" : "bg-slate group-hover:scale-110 group-hover:bg-rose/20 group-hover:text-rose-hi",
+                active ? "bg-rose/20 text-rose-hi" : key === "helper" ? "bg-balkan/20 group-hover:-translate-y-0.5" : "bg-slate group-hover:-translate-y-0.5 group-hover:bg-rose/20 group-hover:text-rose-hi",
               )}
             >
               <Icon className="size-3.5" />

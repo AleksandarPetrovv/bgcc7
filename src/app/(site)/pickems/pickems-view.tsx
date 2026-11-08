@@ -1,7 +1,8 @@
 "use client";
 
 import { Flash } from "@/components/admin/flash";
-import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { useMounted } from "@/components/site/use-mounted";
 import { InView } from "@/components/site/in-view";
 import Link from "next/link";
 import { Check } from "lucide-react";
@@ -24,7 +25,6 @@ import { MeTag } from "@/components/site/me";
 import { roundName } from "@/lib/i18n/dict";
 
 
-const still = () => () => {};
 
 type Props = { osuId: number | null; saved: Picks | null; leaderboard: LeaderRow[]; open: boolean; closesAt: number | null; locked: string[] };
 
@@ -55,7 +55,7 @@ export function PickemsView({ osuId, saved, leaderboard, open: openAtLoad, close
     ? [...byStage].map(([slug, s]) => [roundName(t, stageName(slug)), [...s][0]])
     : t.pickems.points;
 
-  const mounted = useSyncExternalStore(still, () => true, () => false);
+  const mounted = useMounted();
   const [restoredFor, setRestoredFor] = useState<Picks | null | undefined>(undefined);
   if (mounted && restoredFor !== saved) {
     setRestoredFor(saved);

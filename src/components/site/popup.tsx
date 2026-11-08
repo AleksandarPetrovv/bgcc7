@@ -7,7 +7,7 @@ import { X } from "lucide-react";
 import { useDict } from "./lang";
 import { cn } from "@/lib/utils";
 
-export type PopupTone = "rose" | "gold" | "balkan" | "line" | { c: string; deep: string };
+type PopupTone = "rose" | "gold" | "balkan" | "line" | { c: string; deep: string };
 
 const TONES = {
   rose: { c: "var(--rose)", deep: "var(--rose-deep)" },
@@ -78,7 +78,7 @@ export function Popup({
         >
           {children}
           {onClose && closeButton && (
-            <Dialog.Close aria-label={t.draft.close} className="absolute right-2 top-2 z-10 p-2 text-ash transition-colors hover:text-paper">
+            <Dialog.Close aria-label={t.common.close} className="absolute right-2 top-2 z-10 p-2 text-ash transition-colors hover:text-paper">
               <X className="size-4" />
             </Dialog.Close>
           )}

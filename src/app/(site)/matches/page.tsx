@@ -7,6 +7,7 @@ import { getMatches, getTeams } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
 import { getLiveScores } from "@/db/scoreboards";
 import { getDict } from "@/lib/i18n/server";
+import { RefreshWhileLive } from "../refresh-while-live";
 
 export const generateMetadata = pageMeta("matches");
 
@@ -19,6 +20,7 @@ export default async function Matches() {
       <PageTitle mark="swords">
         {t.schedule.title}
       </PageTitle>
+      <RefreshWhileLive active={Object.keys(live).length > 0} />
       <MatchBracket live={live} />
     </Container>
   );

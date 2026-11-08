@@ -20,7 +20,7 @@ export default async function Sponsors() {
         {sponsors.map((s) => (
           <StaggerItem key={s.id} className="group relative flex items-center gap-4 border-b-2 border-dashed border-line py-4 transition-colors hover:border-paper/30 sm:gap-5 sm:py-5">
             <RuleDiamond />
-            <Pfp src={s.image} className="in-spin size-16 ring-offset-4 transition-transform duration-500 group-hover:rotate-[-4deg] group-hover:scale-105 sm:size-20" />
+            <Pfp src={s.image} className="in-spin size-16 ring-offset-4 transition-shadow duration-500 group-hover:ring-rose sm:size-20" />
             <div className="min-w-0">
               <div className="truncate text-xl font-display font-black sm:text-2xl">
                 {s.url ? (

@@ -29,7 +29,7 @@ export default async function Vods() {
             <a key={m.id} href={m.vodUrl!} target="_blank" rel="noreferrer" className="in-up group block" style={{ "--i": Math.min(i, 9), "--s": "0.08s", "--d": "0.15s" } as React.CSSProperties}>
               <div className="relative aspect-video overflow-hidden bg-coal">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={covers[i % covers.length] ?? ""} alt="" className="absolute inset-0 size-full object-cover opacity-40 transition duration-500 group-hover:scale-105" />
+                <img src={covers[i % covers.length] ?? ""} alt="" className="absolute inset-0 size-full object-cover opacity-40 transition duration-500 group-hover:opacity-60" />
                 <div className="absolute inset-0 flex items-center justify-center gap-4">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={a?.image} alt="" className="in-left size-16 border-2 border-paper object-cover" style={{ "--d": "0.35s" } as React.CSSProperties} />

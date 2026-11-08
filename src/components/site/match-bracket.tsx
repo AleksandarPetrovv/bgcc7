@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 import { ChevronRight, Crown } from "lucide-react";
 import type { Match } from "@/lib/data";
 import { TWITCH_URL } from "@/lib/links";
@@ -13,7 +12,7 @@ import { MeTag, meT } from "./me";
 import { fitBox, useFit } from "./use-fit";
 import { useBracketOptions, useResultsEye } from "./overlay-context";
 import { availOr, colWidth, gfRound, isPhone, shrinkScale, upscale, wirePath } from "@/lib/bracket-geometry";
-import { matchNum, winTargets, type Format, type Half } from "@/lib/format";
+import { GF, GF_RESET, isGfId, matchNum, winTargets, type Format, type Half } from "@/lib/format";
 import { fmtDate, fmtSofiaTime } from "@/lib/time";
 import { roundName } from "@/lib/i18n/dict";
 import { hasResults } from "@/lib/matches";
@@ -21,8 +20,6 @@ import { HEX } from "@/lib/theme";
 import { localeOf } from "@/lib/i18n/locale";
 
 const TOP = 92;
-// no stream pushes bracket scores (live comes from the page render), so re-render the page while a match is live
-const LIVE_POLL_MS = 30_000;
 type Pos = Record<string, [number, number, Half]>;
 
 function bracketLayout(f: Format) {
@@ -31,7 +28,7 @@ function bracketLayout(f: Format) {
   const P = H + gap;
   const LOW = TOP + (upRows - 1) * P + H + 130;
   const CENTER = gfRow * P + H / 2;
-  const POS: Pos = { "grand-final": [gfCol, CENTER - H - 12, "u"], "grand-final-reset": [gfCol, CENTER + 12, "u"] };
+  const POS: Pos = { [GF]: [gfCol, CENTER - H - 12, "u"], [GF_RESET]: [gfCol, CENTER + 12, "u"] };
   for (const [id, [c, r, h]] of Object.entries(f.layout.pos)) POS[id] = [c, r * P, h];
   const top = (id: string) => {
     const [, y, h] = POS[id];
@@ -73,17 +70,17 @@ function Box({ id, m, live, slim, className, style, onEnter, onLeave }: { id: st
   const t = useDict();
   const lang = useLang();
   const locale = localeOf(lang);
-  const day = (dt: string) => fmtDate(new Date(dt), locale, id === "grand-final-reset" ? { day: "2-digit", month: "short" } : { weekday: "short", day: "2-digit", month: "short" });
+  const day = (dt: string) => fmtDate(new Date(dt), locale, id === GF_RESET ? { day: "2-digit", month: "short" } : { weekday: "short", day: "2-digit", month: "short" });
   const num = matchNum(useFormat(), id);
   const eyes = useResultsEye();
   return (
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className={cn("flex flex-col overflow-hidden border bg-coal transition-[border-color] duration-200", className)} style={style}>
       <div className="flex h-7 shrink-0 items-center gap-2 border-b border-line bg-ink/70 px-2.5">
         <span className="num truncate text-[12.5px] text-paper/75">{m.datetime ? `${day(m.datetime)} · ${fmtSofiaTime(new Date(m.datetime))}` : m.winner ? "" : m.team1.id && m.team2.id ? t.common.tbd : "—"}</span>
-        {id === "grand-final-reset" ? (
+        {id === GF_RESET ? (
           <span className="shrink-0 whitespace-nowrap text-[9.6px] font-display font-bold text-gold-hi">{t.rounds.reset}</span>
         ) : (
-          !m.datetime && !m.winner && !(m.team1.id && m.team2.id) && <span className={cn("truncate whitespace-nowrap text-[12.5px]", id.startsWith("grand-") ? "font-display font-bold text-gold-hi" : "num text-paper/75")}>{roundName(t, m.round)}{num ? ` ${t.nav.match} ${num}` : ""}</span>
+          !m.datetime && !m.winner && !(m.team1.id && m.team2.id) && <span className={cn("truncate whitespace-nowrap text-[12.5px]", isGfId(id) ? "font-display font-bold text-gold-hi" : "num text-paper/75")}>{roundName(t, m.round)}{num ? ` ${t.nav.match} ${num}` : ""}</span>
         )}
         <span className="ml-auto flex items-center gap-1">
           {live !== undefined && <LiveDot />}
@@ -100,7 +97,7 @@ function Box({ id, m, live, slim, className, style, onEnter, onLeave }: { id: st
 function LiveDot() {
   const t = useDict();
   return (
-    <a href={TWITCH_URL} target="_blank" rel="noreferrer" title={t.home.live} aria-label={t.home.live} className="relative flex size-6 items-center justify-center">
+    <a href={TWITCH_URL} target="_blank" rel="noreferrer" title={t.common.live} aria-label={t.common.live} className="relative flex size-6 items-center justify-center">
       <span className="absolute size-2.5 animate-ping rounded-full bg-rose/60" aria-hidden />
       <span className="relative size-2 animate-pulse rounded-full bg-rose" aria-hidden />
     </a>
@@ -109,18 +106,11 @@ function LiveDot() {
 
 export function MatchBracket({ live = {} }: { live?: Record<string, [number, number] | null> }) {
   const t = useDict();
-  const router = useRouter();
   const { matches, format } = useTournament();
   const { maxH, reset } = useBracketOptions();
   const { G, H, P, minW, LOW, POS, top, WIN, DROPS, HEADERS, gfCol, lowRows } = bracketLayout(format);
   const [hover, setHover] = useState<string | null>(null);
   const [end, setEnd] = useState(false);
-  const anyLive = Object.keys(live).length > 0;
-  useEffect(() => {
-    if (!anyLive) return;
-    const id = setInterval(() => router.refresh(), LIVE_POLL_MS);
-    return () => clearInterval(id);
-  }, [anyLive, router]);
   const { ref: box, avail: seen } = useFit();
   const avail = availOr(seen);
 
@@ -143,7 +133,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
     lastCol.current = c;
     const ids = Object.keys(POS).filter((id) => POS[id][0] === c);
     if (!ids.length || !inner.current) return;
-    if (new Set(ids.map((id) => POS[id][2])).size > 1 && !ids.some((id) => id.startsWith("grand-"))) return;
+    if (new Set(ids.map((id) => POS[id][2])).size > 1 && !ids.some(isGfId)) return;
     const y0 = Math.min(...ids.map(top)) - 62;
     const y1 = Math.max(...ids.map(top)) + H;
     const base = inner.current.getBoundingClientRect().top + window.scrollY;
@@ -162,7 +152,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   const fit = fitBox(width, height, scale);
   const lowCol = Math.min(...HEADERS.filter((h) => h.s === "l").map((h) => h.c));
   const midY = (id: string) => top(id) + H / 2;
-  const firstTop = (c: number, s: Half) => Math.min(...Object.keys(POS).filter((id) => !id.startsWith("grand-") && POS[id][0] === c && POS[id][2] === s).map(top));
+  const firstTop = (c: number, s: Half) => Math.min(...Object.keys(POS).filter((id) => !isGfId(id) && POS[id][0] === c && POS[id][2] === s).map(top));
   const wire = (a: string, b: string) => wirePath(col(POS[a][0]) + W, midY(a), col(POS[b][0]), midY(b), gap);
   const drop = (a: string, b: string) => {
     // same-column drops (LR1) are straight verticals that overlap each other and read as solid; spread them apart
@@ -218,7 +208,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
               opacity={linked.has(a) && linked.has(b) ? 0.9 : 0}
             />
           ))}
-          {reset && <path d={`M${col(gfCol) + W / 2} ${top("grand-final") + H} V${top("grand-final-reset")}`} strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="3 4" className="in-up" style={cssVars({ "--d": "1.3s", stroke: "var(--gold)" })} />}
+          {reset && <path d={`M${col(gfCol) + W / 2} ${top(GF) + H} V${top(GF_RESET)}`} strokeOpacity={0.3} strokeWidth={1.5} strokeDasharray="3 4" className="in-up" style={cssVars({ "--d": "1.3s", stroke: "var(--gold)" })} />}
         </svg>
 
         {!phone && section("u")}
@@ -244,16 +234,16 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
         })}
         <div
           className="in-drop absolute flex snap-start items-center gap-2 border-b border-gold/20 pb-1 text-xs font-display font-bold text-gold-hi/80"
-          style={{ left: col(gfCol), top: top("grand-final") - 30, width: W, ...cssVars({ "--d": "0.7s" }) }}
+          style={{ left: col(gfCol), top: top(GF) - 30, width: W, ...cssVars({ "--d": "0.7s" }) }}
         >
           <Crown className="size-3.5" /> {roundName(t, gfRound(format))}
         </div>
 
         {Object.keys(POS).map((id) => {
           const m = byId.get(id);
-          if (!m || (!reset && id === "grand-final-reset")) return null;
+          if (!m || (!reset && id === GF_RESET)) return null;
           const [c] = POS[id];
-          const gf = id.startsWith("grand-");
+          const gf = isGfId(id);
           return (
             <Box
               key={id}

@@ -3,6 +3,15 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
+export function useRefreshWhile(active: boolean, ms: number) {
+  const router = useRouter();
+  useEffect(() => {
+    if (!active) return;
+    const id = setInterval(() => router.refresh(), ms);
+    return () => clearInterval(id);
+  }, [active, ms, router]);
+}
+
 export function usePollRefresh(sig: string, sigFn: () => Promise<string | null | undefined>, ms: number, wake?: "focus" | "visible") {
   const router = useRouter();
   const last = useRef(sig);

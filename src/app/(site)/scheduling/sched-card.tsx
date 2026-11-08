@@ -265,10 +265,16 @@ export function SchedCard({ m, round, me, opp, week, open, viewer, readOnly = fa
   const ref = useRef<HTMLElement>(null);
   const [settled, setSettled] = useState(false);
   useEffect(() => {
-    if (ref.current && belowFold(ref.current)) return setSettled(true);
-    const id = setTimeout(() => setSettled(true), 4000 + n * 220);
-    return () => clearTimeout(id);
-  }, [n]);
+    const el = ref.current;
+    if (!el) return;
+    if (belowFold(el)) return setSettled(true);
+    let live = true;
+    const intro = el.getAnimations({ subtree: true }).filter((a) => a instanceof CSSAnimation && a.effect?.getComputedTiming().iterations !== Infinity);
+    Promise.allSettled(intro.map((a) => a.finished)).then(() => live && setSettled(true));
+    return () => {
+      live = false;
+    };
+  }, []);
   const w = useWhen();
   const router = useRouter();
   const [pick, setPickState] = useState(false);

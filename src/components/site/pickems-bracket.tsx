@@ -6,6 +6,7 @@ import { useDict } from "./lang";
 import { Pic } from "./pfp";
 import { PlayerRow } from "./player-row";
 import { resolve, seedingOf, type Picks } from "@/lib/pickems";
+import { GF, GF_RESET, isGfId } from "@/lib/format";
 import { useTournament } from "./tournament";
 import { roundName } from "@/lib/i18n/dict";
 
@@ -50,7 +51,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
           {Object.entries(WIN).map(([a, b]) => (
             <path key={a} d={wire(a, b)} pathLength={1} className="in-draw" style={{ "--d": `${0.55 + POS[a][0] * 0.14}s` } as React.CSSProperties} fill="none" stroke={wireColor(a).stroke} strokeOpacity={wireColor(a).opacity} strokeWidth={2} />
           ))}
-          {resetLive && <path d={`M${x(gfCol) + W / 2} ${POS["grand-final"][1] + H} V${POS["grand-final-reset"][1]}`} style={{ stroke: "var(--gold)" }} strokeWidth={2} strokeDasharray="3 3" />}
+          {resetLive && <path d={`M${x(gfCol) + W / 2} ${POS[GF][1] + H} V${POS[GF_RESET][1]}`} style={{ stroke: "var(--gold)" }} strokeWidth={2} strokeDasharray="3 3" />}
         </svg>
 
         {HEADERS.map((h) => (
@@ -67,7 +68,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
         </div>
 
         {champ && (
-          <div key={champ.id} className="in-up absolute border border-gold/40 bg-coal [--d:1.3s]" style={{ left: x(gfCol), top: POS["grand-final-reset"][1] + H + 30, width: W }}>
+          <div key={champ.id} className="in-up absolute border border-gold/40 bg-coal [--d:1.3s]" style={{ left: x(gfCol), top: POS[GF_RESET][1] + H + 30, width: W }}>
             <div className="flex items-center gap-1.5 bg-gold px-2.5 py-1 text-[11.2px] font-display font-bold text-on-fill">
               <Crown className="size-3.5" /> {t.pickems.champion}
             </div>
@@ -79,7 +80,7 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
             </div>
             <ul className="space-y-1.5 border-t border-line px-2.5 py-2.5">
               {champ.players.map((p) => (
-                <PlayerRow key={p.userId} avatar={p.avatar} pfpClass="size-6" country={p.country} captain={p.isCaptain} className="gap-2 px-1 py-0.5 text-sm">
+                <PlayerRow key={p.userId} avatar={p.avatar} look="plain" pfpClass="size-6" country={p.country} captain={p.isCaptain} className="gap-2 px-1 py-0.5 text-sm">
                   <span className="truncate font-display font-bold">{p.username}</span>
                 </PlayerRow>
               ))}
@@ -87,10 +88,10 @@ export function PickemsBracket({ picks, onPick, locked = [] }: { picks: Picks; o
           </div>
         )}
 
-        {f.order.filter((id) => id !== "grand-final-reset" || resetLive).map((id) => {
+        {f.order.filter((id) => id !== GF_RESET || resetLive).map((id) => {
           const [c, y] = POS[id];
           const pair = slots[id];
-          const isGf = id.startsWith("grand-");
+          const isGf = isGfId(id);
           return (
             <div
               key={id}

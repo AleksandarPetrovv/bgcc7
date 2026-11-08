@@ -32,7 +32,7 @@ export function Pfp({
   return (
     <span className="relative shrink-0">
       {img}
-      <Crown className="absolute -top-3 left-1/2 size-4 -translate-x-1/2 -rotate-12 fill-gold text-gold-hi" aria-hidden />
+      <Crown className="absolute -top-3 left-1/2 size-4 -translate-x-1/2 fill-gold text-gold-hi" aria-hidden />
     </span>
   );
 }

@@ -2,6 +2,7 @@
 
 import { createHash, randomInt, timingSafeEqual } from "node:crypto";
 import { LINK_NAMES } from "@/lib/link-names";
+import { globalStore } from "@/lib/global-store";
 import { revalidatePath } from "next/cache";
 import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
@@ -18,8 +19,7 @@ const CODE_TTL = 10 * 60_000;
 const RESEND_AFTER = 60_000;
 const MAX_TRIES = 5;
 // one pending code per osu user, so linking proves the player owns that discord account
-const g = globalThis as unknown as { bgccDiscordCodes?: Map<number, Pending> };
-const codes = (g.bgccDiscordCodes ??= new Map());
+const codes = globalStore("bgccDiscordCodes", () => new Map<number, Pending>());
 
 async function player() {
   const v = await getViewer();

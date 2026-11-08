@@ -4,35 +4,6 @@ import { Sparkle } from "./graphics";
 import { DiscordLogo } from "./discord-logo";
 import { cn } from "@/lib/utils";
 
-function Blocks() {
-    return (
-      <span className="relative mb-[0.2em] inline-block h-[0.42em] w-[1.1em] self-end" aria-hidden>
-        <span className="anim-mark-in absolute inset-0 translate-x-[0.09em] translate-y-[0.09em] -skew-x-12 bg-rose-deep" style={{ animationDelay: "0.3s" }} />
-        <span className="anim-mark-in absolute inset-0 -skew-x-12 bg-rose" style={{ animationDelay: "0.22s" }} />
-      </span>
-    );
-}
-
-function Streaks() {
-    return (
-      <span className="mb-[0.22em] flex w-[1.4em] flex-col items-end gap-[0.07em] self-end" aria-hidden>
-        {["w-full bg-paper", "w-3/4 bg-balkan", "w-1/2 bg-rose"].map((c, i) => (
-          <span key={c} className={cn("anim-streak block h-[0.07em] origin-right -skew-x-[30deg]", c)} style={{ animationDelay: `${0.25 + i * 0.08}s` }} />
-        ))}
-      </span>
-    );
-}
-
-function Dots() {
-    return (
-      <span className="mb-[0.24em] flex gap-[0.14em] self-end" aria-hidden>
-        {["bg-paper", "bg-balkan", "bg-rose"].map((c, i) => (
-          <span key={c} className={cn("anim-pop block size-[0.2em] rotate-45", c)} style={{ animationDelay: `${0.25 + i * 0.1}s` }} />
-        ))}
-      </span>
-    );
-}
-
 function Glints() {
   return (
     <span className="relative mb-[0.08em] inline-block h-[0.85em] w-[1em] self-end text-paper" aria-hidden>
@@ -80,43 +51,6 @@ function Discord() {
   return (
     <span className="mb-[0.1em] block h-[0.62em] w-[0.62em] self-end" aria-hidden>
       <DiscordLogo className="mk-bubble block size-full overflow-visible text-rose" />
-    </span>
-  );
-}
-
-function Person({ className, delay }: { className: string; delay: number }) {
-  return (
-    <svg viewBox="0 0 24 24" className={cn("mk-pop block", className)} style={{ animationDelay: `${delay}s` }}>
-      <circle cx="12" cy="7" r="5" />
-      <path d="M2 24c0-6 4.5-10 10-10s10 4 10 10Z" />
-    </svg>
-  );
-}
-
-function People() {
-  return (
-    <span className="mb-[0.2em] flex items-end gap-[0.08em] self-end" aria-hidden>
-      <Person className="size-[0.34em] fill-paper" delay={0.25} />
-      <Person className="size-[0.27em] fill-balkan" delay={0.35} />
-      <Person className="size-[0.22em] fill-rose" delay={0.45} />
-    </span>
-  );
-}
-
-function Cards() {
-  return (
-    <span className="relative mb-[0.18em] inline-block h-[0.46em] w-[0.72em] self-end" aria-hidden>
-      {[
-        ["bg-paper", "-16deg"],
-        ["bg-balkan", "0deg"],
-        ["bg-rose", "16deg"],
-      ].map(([c, r], i) => (
-        <span
-          key={c}
-          className={cn("mk-fan absolute bottom-0 left-1/2 -ml-[0.13em] block h-[0.4em] w-[0.26em] origin-bottom border border-ink/60", c)}
-          style={{ "--r": r, animationDelay: `${0.25 + i * 0.07}s` } as React.CSSProperties}
-        />
-      ))}
     </span>
   );
 }
@@ -447,6 +381,5 @@ function Log() {
   );
 }
 
-export const MARKS = { gears: Gears, blocks: Blocks, streaks: Streaks, dots: Dots, glints: Glints, squiggle: Squiggle, chevrons: Chevrons, bubble: Bubble, discord: Discord, people: People, cards: Cards, notes: Notes, tick: Tick, bars: Bars, me: Me, team: Team, users: Users, swords: Swords, clock: Clock, stopwatch: Stopwatch, badge: Badge, whistle: Whistle, draft: Draft, camera: Camera, layers: Layers, plan: Plan, timeline: Timeline, screen: Screen, chain: Chain, log: Log };
+export const MARKS = { gears: Gears, glints: Glints, squiggle: Squiggle, chevrons: Chevrons, bubble: Bubble, discord: Discord, notes: Notes, tick: Tick, bars: Bars, me: Me, team: Team, users: Users, swords: Swords, clock: Clock, stopwatch: Stopwatch, badge: Badge, whistle: Whistle, draft: Draft, camera: Camera, layers: Layers, plan: Plan, timeline: Timeline, screen: Screen, chain: Chain, log: Log };
 export type Mark = keyof typeof MARKS;
-export const FALLBACK: Mark[] = ["blocks", "streaks", "dots", "glints", "squiggle", "chevrons", "bars"];

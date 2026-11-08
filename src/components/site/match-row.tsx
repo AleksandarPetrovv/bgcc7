@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Eye } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { type Match, fmtNum, teamHref } from "@/lib/data";
 import { useTournament } from "./tournament";
 import { useDict, useLang } from "./lang";
@@ -12,7 +12,7 @@ import { MeTag, meT } from "./me";
 import { LiveTag } from "./live-tag";
 import { useResultsEye } from "./overlay-context";
 import { fmtSofia } from "@/lib/time";
-import { fontsReady } from "@/lib/fonts-ready";
+import { useMeasure } from "@/lib/use-measure";
 import { hasResults } from "@/lib/matches";
 import { localeOf } from "@/lib/i18n/locale";
 import { RuleDiamond } from "@/components/site/rule";
@@ -88,14 +88,7 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
     r.selectNodeContents(el);
     if (r.getBoundingClientRect().width > el.getBoundingClientRect().width - parseFloat(getComputedStyle(el).paddingRight) + 0.5) setLevel(level + 1);
   }, [label, level, fonts]);
-  useEffect(() => {
-    const f = document.fonts;
-    if (!f) return;
-    const bump = () => recheck((n) => n + 1);
-    fontsReady().then(bump);
-    f.addEventListener("loadingdone", bump);
-    return () => f.removeEventListener("loadingdone", bump);
-  }, []);
+  useMeasure(() => recheck((n) => n + 1), []);
   const t = useDict();
   const lang = useLang();
   const at = (s: number) => d(`${s + delay}s`);
@@ -139,7 +132,7 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
                 src={team.image}
                 alt=""
                 className={cn(
-                  "row-thumb size-full scale-110 object-cover blur-[1px] transition-transform duration-700 ease-out group-hover/row:scale-125 motion-reduce:transition-none",
+                  "row-thumb size-full scale-110 object-cover blur-[1px]",
                   i ? "[mask-image:linear-gradient(to_left,black_10%,transparent_85%)]" : "[mask-image:linear-gradient(to_right,black_10%,transparent_85%)]",
                   "mix-blend-multiply contrast-125 dark:mix-blend-normal dark:contrast-100",
                   played && match.winner === i + 1 ? "opacity-35 grayscale-[30%] dark:opacity-20 dark:grayscale-[40%]" : "opacity-25 grayscale dark:opacity-10",
@@ -179,7 +172,7 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
           </div>
           {eye && small ? (
             <MatchDialog match={match} className="group flex h-7 items-center justify-center">
-              <span className="flex size-7 items-center justify-center text-rose transition-[color,scale] duration-200 group-hover:scale-125 group-hover:text-rose-hi">
+              <span className="flex size-7 items-center justify-center text-rose transition-colors duration-200 group-hover:text-rose-hi">
                 <Eye className="size-[1.3rem]" strokeWidth={2.25} aria-hidden />
               </span>
             </MatchDialog>

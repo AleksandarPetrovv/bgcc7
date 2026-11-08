@@ -20,7 +20,6 @@ export function Roster({ team }: { team: Team }) {
             id={p.userId}
             hl
             avatar={p.avatar}
-            look="ring"
             pfpClass="size-6 ring-1 ring-offset-1"
             country={p.country}
             captain={p.isCaptain}
@@ -48,7 +47,7 @@ export function TeamCard({ team }: { team: Team }) {
             <MeTag t={team.id} corner className="me-corner-lg" />
             <RuleDiamond className="transition-colors group-hover:bg-balkan" />
             <div className="relative w-24 shrink-0 overflow-hidden sm:h-32 sm:w-auto [mask-image:linear-gradient(to_right,black_60%,transparent)] sm:[mask-image:linear-gradient(to_bottom,black_55%,transparent)]">
-              <Pic src={team.image} className="in-wipe absolute inset-0 size-full object-cover sm:static transition duration-500 group-hover:scale-105 [--d:0.1s]" />
+              <Pic src={team.image} className="in-wipe absolute inset-0 size-full object-cover sm:static transition duration-500 group-hover:brightness-110 [--d:0.1s]" />
               <span className="in-pop num absolute bottom-0 left-0 flex size-8 origin-bottom-left items-center justify-center bg-ink text-lg sm:size-10 sm:text-2xl text-paper [--d:0.45s]" aria-label={`${t.common.seed} ${team.seed}`}>
                 {team.seed}
               </span>

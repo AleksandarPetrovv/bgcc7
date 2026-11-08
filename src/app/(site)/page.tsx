@@ -196,7 +196,7 @@ function PoolRow({ t, stage, split }: { t: Dict; stage: Omit<PoolStage, "pools">
               style={{ "--d": `${1.6 + i * 0.03}s`, "--c": m.color } as React.CSSProperties}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={m.cover} alt="" loading="lazy" className="absolute inset-0 -z-10 size-full object-cover opacity-40 saturate-[1.15] transition duration-500 group-hover:scale-105 group-hover:opacity-55 dark:opacity-25 dark:group-hover:opacity-40" />
+              <img src={m.cover} alt="" loading="lazy" className="absolute inset-0 -z-10 size-full object-cover opacity-40 saturate-[1.15] transition duration-500 group-hover:opacity-55 dark:opacity-25 dark:group-hover:opacity-40" />
               <span className="absolute inset-0 -z-10 bg-gradient-to-t from-coal via-coal/70 to-coal/10" aria-hidden />
               <span className="flex items-start justify-between gap-2">
                 <span className="relative isolate px-2 py-1">
