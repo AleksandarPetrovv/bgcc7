@@ -8,11 +8,12 @@ import { Sparkle } from "./graphics";
 
 const spring = { type: "spring", stiffness: 520, damping: 42 } as const;
 
-function Pill({ id, active, spark }: { id: string; active: boolean; spark?: boolean }) {
+// the active tab's underline, sliding between tabs that share an id; className restyles the bar
+export function TabMark({ id, active, spark, className }: { id: string; active: boolean; spark?: boolean; className?: string }) {
   if (!active) return null;
   return (
     <>
-      <motion.span layoutId={`${id}-bar`} transition={spring} className="absolute inset-x-1.5 bottom-0 h-[3px] -skew-x-12 bg-rose" aria-hidden />
+      <motion.span layoutId={`${id}-bar`} transition={spring} className={cn("absolute inset-x-1.5 bottom-0 h-[3px] -skew-x-12 bg-rose", className)} aria-hidden />
       {spark && <motion.span layoutId={`${id}-spark`} transition={spring} className="absolute -top-0.5 right-0 size-3" aria-hidden>
         <Sparkle className="inset-0 size-full text-rose-hi" />
       </motion.span>}
@@ -56,7 +57,7 @@ export function Tabs({
           onClick={() => onChange(i)}
           className={item(i === index, "disabled:cursor-not-allowed disabled:opacity-35")}
         >
-          <Pill id={id} active={i === index} />
+          <TabMark id={id} active={i === index} />
           <span className="relative inline-flex items-center gap-2">{o}</span>
         </button>
       ))}
@@ -76,7 +77,7 @@ export function LinkTabs({ items, label, className, spark }: { items: { href: st
           </span>
         ) : (
         <Link key={t.href} href={t.href} scroll={false} aria-current={t.active ? "page" : undefined} className={item(t.active)}>
-          <Pill id={id} active={t.active} spark={spark} />
+          <TabMark id={id} active={t.active} spark={spark} />
           <span className="relative inline-flex items-center gap-2">{t.label}</span>
         </Link>
         ),

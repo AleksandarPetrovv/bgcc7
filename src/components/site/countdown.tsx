@@ -6,12 +6,16 @@ import { cn } from "@/lib/utils";
 import { useDict } from "./lang";
 import { EASE } from "@/lib/ease";
 
-const TICK = 30_000;
-const subscribe = (cb: () => void) => {
-  const id = setInterval(cb, TICK);
-  return () => clearInterval(id);
-};
-const getNow = () => Math.floor(Date.now() / TICK) * TICK;
+// now floored to the tick so the snapshot stays stable between ticks
+const ticker = (tick: number) => ({
+  subscribe: (cb: () => void) => {
+    const id = setInterval(cb, tick);
+    return () => clearInterval(id);
+  },
+  get: () => Math.floor(Date.now() / tick) * tick,
+});
+const slow = ticker(30_000);
+const fast = ticker(500);
 const getServerNow = () => null;
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -38,7 +42,7 @@ function Roll({ value }: { value: string }) {
 
 export function Countdown({ to, from, className }: { to: string; from?: string; className?: string }) {
   const t = useDict();
-  const now = useSyncExternalStore(subscribe, getNow, getServerNow);
+  const now = useSyncExternalStore(slow.subscribe, slow.get, getServerNow);
   const left = now === null ? 0 : Math.max(0, new Date(to).getTime() - now);
   const d = Math.floor(left / 86_400_000);
   const h = Math.floor(left / 3_600_000) % 24;
@@ -71,5 +75,18 @@ export function Countdown({ to, from, className }: { to: string; from?: string; 
       </span>
     )}
     </>
+  );
+}
+
+// m:ss draft clock in the nav; offset = server time minus local time
+export function MatchClock({ end, offset, pause }: { end: number; offset: number; pause: boolean }) {
+  const now = useSyncExternalStore(fast.subscribe, fast.get, getServerNow);
+  if (now === null) return null;
+  const s = Math.ceil(Math.max(0, end - (now + offset)) / 1000);
+  const low = !pause && s <= 10;
+  return (
+    <span className={cn("num ml-0.5 tabular-nums", pause ? "text-white/70" : low ? "text-white" : "text-white/85")}>
+      {Math.floor(s / 60)}:{pad(s % 60)}
+    </span>
   );
 }

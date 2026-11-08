@@ -8,6 +8,7 @@ import { isAlert, snoozeMs, type Alert } from "@/lib/relay-contract";
 import { cn } from "@/lib/utils";
 import { useDict } from "./lang";
 import { SlantBg } from "./slant";
+import { useSSE } from "./use-sse";
 
 const KEY = "bgcc-alert-snooze";
 type Snoozes = Record<string, number>;
@@ -106,41 +107,38 @@ export function AlertPopups() {
   const [expanded, setExpanded] = useState(false);
   const latest = useRef<Alert[]>([]);
   const snoozed = useRef<Snoozes>({});
+  const received = useRef(false);
 
   useEffect(() => {
     try {
       snoozed.current = readSnoozes(localStorage.getItem(KEY));
     } catch {}
-    let received = false;
-    const source = new EventSource("/api/alerts");
-    source.onmessage = (event) => {
-      let value: unknown;
-      try {
-        value = JSON.parse(event.data);
-      } catch {
-        return;
-      }
-      if (!Array.isArray(value)) return;
-      const next = value.filter(isAlert);
-      received = true;
-      latest.current = next;
-      snoozed.current = currentSnoozes(snoozed.current, next);
-      writeSnoozes(snoozed.current);
-      setSnoozes(snoozed.current);
-      setAlerts(next);
-    };
     const sync = (event: StorageEvent) => {
       if (event.storageArea !== localStorage || (event.key !== KEY && event.key !== null)) return;
       const value = readSnoozes(event.newValue);
-      snoozed.current = received ? currentSnoozes(value, latest.current) : value;
+      snoozed.current = received.current ? currentSnoozes(value, latest.current) : value;
       setSnoozes(snoozed.current);
     };
     window.addEventListener("storage", sync);
-    return () => {
-      source.close();
-      window.removeEventListener("storage", sync);
-    };
+    return () => window.removeEventListener("storage", sync);
   }, []);
+
+  useSSE("/api/alerts", (data) => {
+    let value: unknown;
+    try {
+      value = JSON.parse(data);
+    } catch {
+      return;
+    }
+    if (!Array.isArray(value)) return;
+    const next = value.filter(isAlert);
+    received.current = true;
+    latest.current = next;
+    snoozed.current = currentSnoozes(snoozed.current, next);
+    writeSnoozes(snoozed.current);
+    setSnoozes(snoozed.current);
+    setAlerts(next);
+  });
 
   useEffect(() => {
     const until = Math.min(...Object.values(snoozes));

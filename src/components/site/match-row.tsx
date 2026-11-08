@@ -9,7 +9,9 @@ import { useDict, useLang } from "./lang";
 import { DetailsChip, MatchDialog } from "./match-dialog";
 import { cn } from "@/lib/utils";
 import { MeTag, meT } from "./me";
+import { LiveTag } from "./live-tag";
 import { fmtSofia } from "@/lib/time";
+import { fontsReady } from "@/lib/fonts-ready";
 import { hasResults } from "@/lib/matches";
 import { localeOf } from "@/lib/i18n/locale";
 import { RuleDiamond } from "@/components/site/rule";
@@ -72,16 +74,6 @@ function Side({ id, flip, lost, small, at }: { id: string; flip?: boolean; lost?
   );
 }
 
-export function LiveTag({ className }: { className?: string }) {
-  const t = useDict();
-  return (
-    <span className={cn("inline-flex items-center gap-1 bg-rose px-1.5 py-0.5 text-[0.6rem] font-display font-bold leading-none text-white", className)}>
-      <span className="size-1.5 animate-pulse rounded-full bg-white" aria-hidden />
-      {t.home.live}
-    </span>
-  );
-}
-
 // small: the home page size; the round name gets the top line (label = longest to shortest), the date sits under the score unless the results eye is there; delay shifts the whole intro
 // plain: no results eye, the date always shows (stream overlay)
 export function MatchRow({ match, live, small, label, delay = 0, plain }: { match: Match; live?: [number, number] | null; small?: boolean; label?: string[]; delay?: number; plain?: boolean }) {
@@ -101,7 +93,7 @@ export function MatchRow({ match, live, small, label, delay = 0, plain }: { matc
     const f = document.fonts;
     if (!f) return;
     const bump = () => recheck((n) => n + 1);
-    f.ready.then(bump);
+    fontsReady().then(bump);
     f.addEventListener("loadingdone", bump);
     return () => f.removeEventListener("loadingdone", bump);
   }, []);
@@ -150,7 +142,7 @@ export function MatchRow({ match, live, small, label, delay = 0, plain }: { matc
                 src={team.image}
                 alt=""
                 className={cn(
-                  "size-full scale-110 object-cover blur-[1px] transition-transform duration-700 ease-out group-hover/row:scale-125 motion-reduce:transition-none",
+                  "row-thumb size-full scale-110 object-cover blur-[1px] transition-transform duration-700 ease-out group-hover/row:scale-125 motion-reduce:transition-none",
                   i ? "[mask-image:linear-gradient(to_left,black_10%,transparent_85%)]" : "[mask-image:linear-gradient(to_right,black_10%,transparent_85%)]",
                   // light: multiplied in so the picture darkens the card like ink instead of washing it out
                   "mix-blend-multiply contrast-125 dark:mix-blend-normal dark:contrast-100",

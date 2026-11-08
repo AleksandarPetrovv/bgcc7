@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
+import { Fragment, useLayoutEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
@@ -11,6 +11,9 @@ import { useDict } from "./lang";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "./slant";
+import { LiveTag } from "./live-tag";
+import { MatchClock } from "./countdown";
+import { useSSE } from "./use-sse";
 import { login, logout } from "@/actions/auth";
 import { isActive, type NavItem } from "@/lib/sections";
 
@@ -43,38 +46,16 @@ type Clock = { end: number | null; pause: boolean; offset: number };
 function useMatch(captain: boolean, initial: string | null) {
   const [slug, setSlug] = useState(initial);
   const [clock, setClock] = useState<Clock>({ end: null, pause: false, offset: 0 });
-  useEffect(() => {
-    if (!captain) return;
-    const es = new EventSource("/api/draft/mine");
-    es.onmessage = (e) => {
-      try {
-        const m = JSON.parse(e.data) as { slug: string | null; end: number | null; pause: boolean; now: number } | null;
-        setSlug(m?.slug ?? null);
-        setClock({ end: m?.end ?? null, pause: !!m?.pause, offset: m ? m.now - Date.now() : 0 });
-      } catch (err) {
-        console.error("[draft/mine]", err);
-      }
-    };
-    return () => es.close();
-  }, [captain]);
+  useSSE(captain ? "/api/draft/mine" : null, (data) => {
+    try {
+      const m = JSON.parse(data) as { slug: string | null; end: number | null; pause: boolean; now: number } | null;
+      setSlug(m?.slug ?? null);
+      setClock({ end: m?.end ?? null, pause: !!m?.pause, offset: m ? m.now - Date.now() : 0 });
+    } catch (err) {
+      console.error("[draft/mine]", err);
+    }
+  });
   return { slug, clock };
-}
-
-function Countdown({ clock }: { clock: Clock }) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 500);
-    return () => clearInterval(id);
-  }, []);
-  if (clock.end == null) return null;
-  const left = Math.max(0, clock.end - (now + clock.offset));
-  const s = Math.ceil(left / 1000);
-  const low = !clock.pause && s <= 10;
-  return (
-    <span className={cn("num ml-0.5 tabular-nums", clock.pause ? "text-white/70" : low ? "text-white" : "text-white/85")}>
-      {Math.floor(s / 60)}:{String(s % 60).padStart(2, "0")}
-    </span>
-  );
 }
 
 function MatchLink({ slug, path, big, onClick, clock }: { slug: string; path: string; big?: boolean; onClick?: () => void; clock: Clock }) {
@@ -115,7 +96,7 @@ function MatchLink({ slug, path, big, onClick, clock }: { slug: string; path: st
                 <Pause className="size-3 fill-current" /> {t.draft.paused}
               </span>
             ) : (
-              clock.end != null && <Countdown clock={clock} />
+              clock.end != null && <MatchClock end={clock.end} offset={clock.offset} pause={clock.pause} />
             ))}
         </span>
       </Link>
@@ -123,20 +104,8 @@ function MatchLink({ slug, path, big, onClick, clock }: { slug: string; path: st
   );
 }
 
-function LivePill({ big }: { big?: boolean }) {
-  const t = useDict();
-  return (
-    <span
-      className={cn(
-        "inline-flex shrink-0 items-center gap-1 bg-rose px-1.5 py-0.5 font-display font-bold leading-none text-white",
-        big ? "ml-2 text-xs" : "pointer-events-none absolute bottom-2.5 left-1/2 -translate-x-1/2 text-[0.55rem]",
-      )}
-    >
-      <span className="size-1.5 animate-pulse rounded-full bg-white" aria-hidden />
-      {t.home.live}
-    </span>
-  );
-}
+// the me / scheduling dot sits where the sparkle would
+const dotAt = (base: string, me: boolean, sched: boolean) => (me && base === "/me") || (sched && base === "/scheduling");
 
 function Dot({ className }: { className?: string }) {
   return <span className={cn("size-2 shrink-0 rounded-full bg-rose shadow-[0_0_0_2px_var(--ink)]", className)} aria-hidden />;
@@ -194,8 +163,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
       set(barRef.current, `translate3d(${x}px,0,0) scaleX(${w})`);
       set(shadowRef.current, `translate3d(${x + 3}px,0,0) scaleX(${w})`);
       set(glintRef.current, `translate3d(${el.offsetLeft + el.offsetWidth - 12}px,0,0)`);
-      // the me / scheduling dot sits where the sparkle would
-      if (glintRef.current && ((meDot && activeBase === "/me") || (schedDot && activeBase === "/scheduling"))) glintRef.current.style.opacity = "0";
+      if (glintRef.current && dotAt(activeBase, meDot, schedDot)) glintRef.current.style.opacity = "0";
       placed.current = true;
       navRef.current?.setAttribute("data-placed", "");
     };
@@ -244,7 +212,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
   }, [desk.length, user, register, match, tight]);
   const compact = fit === null ? "min-[1700px]:hidden" : fit ? "hidden" : "";
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-field/90 backdrop-blur-md">
+    <header className="site-header sticky top-0 z-40 border-b border-line bg-field/90 backdrop-blur-md">
       <div ref={rowRef} className="relative flex h-16 items-center gap-1.5 pr-3 sm:gap-6 lg:h-20 lg:pr-6">
         <Link href="/" className="group flex h-full items-center gap-1 pl-3 sm:pl-4 lg:pl-6" aria-label={t.nav.homeLabel}>
           <Wordmark size="md" className="text-paper max-sm:text-[1.6rem]" />
@@ -294,11 +262,11 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
                     <span className="pointer-events-none [nav[data-placed]_&]:hidden" aria-hidden>
                       <span className="absolute inset-x-2 bottom-0 block h-1 translate-x-[3px] -skew-x-[30deg] bg-rose-deep" />
                       <span className="absolute inset-x-2 bottom-1 block h-1 -skew-x-[30deg] bg-rose" />
-                      {!((meDot && n.base === "/me") || (schedDot && n.base === "/scheduling")) && <Sparkle className="absolute -right-0.5 top-4 size-3.5 text-rose-hi" />}
+                      {!dotAt(n.base, meDot, schedDot) && <Sparkle className="absolute -right-0.5 top-4 size-3.5 text-rose-hi" />}
                     </span>
                   )}
                   <span className={cn("relative transition-transform duration-200 group-hover:-translate-y-px", n.hidden && "opacity-40")}>{t.nav[n.key]}</span>
-                  {live.includes(n.key) && <LivePill />}
+                  {live.includes(n.key) && <LiveTag className="pointer-events-none absolute bottom-2.5 left-1/2 shrink-0 -translate-x-1/2 text-[0.55rem]" />}
                   {dots.includes(n.key) && <Dot className="absolute right-1 top-5" />}
                 </Link>
               </Fragment>
@@ -404,7 +372,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
                     )}
                   >
                     {t.nav[n.key]}
-                    {live.includes(n.key) && <LivePill big />}
+                    {live.includes(n.key) && <LiveTag className="ml-2 shrink-0 text-xs" />}
                     {dots.includes(n.key) && <Dot className="ml-3" />}
                   </Link>
                 ))}
