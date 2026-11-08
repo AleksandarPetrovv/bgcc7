@@ -1,5 +1,4 @@
 import { db } from "@/db";
-import { safe } from "@/db/safe";
 import { notFound } from "next/navigation";
 import { PageTitle } from "@/components/site/page-title";
 import { Words } from "@/components/site/rich";
@@ -27,18 +26,17 @@ export default async function AdminDraft() {
     getAllMatchRows(),
     getAllTeams(),
     getPoolStages(),
-    safe(() => db.select().from(drafts), []),
+    db.select().from(drafts),
   ]);
   const cfg = await timers();
   if (!can(viewer?.roles, "matches")) notFound();
-  const control = can(viewer?.roles, "matches");
   const locale = localeOf(lang);
   const team = (id: string | null) => teams.find((x) => x.id === id);
   const pools = stages.filter((s) => isBracketStage(s.slug) && s.pools.length);
 
   const time = (d: Date | null) => d?.getTime() ?? Infinity;
   const live = rows
-    .filter((m) => m.team1Id && m.team2Id && (control ? !m.winner || all.some((d) => d.matchId === m.id && d.open) : all.some((d) => d.matchId === m.id && d.open)))
+    .filter((m) => m.team1Id && m.team2Id && (!m.winner || all.some((d) => d.matchId === m.id && d.open)))
     .sort((a, b) => time(a.startsAt) - time(b.startsAt) || a.order - b.order);
   const list: DraftRow[] = live.map((m) => {
     const raw = all.find((d) => d.matchId === m.id);
@@ -63,7 +61,7 @@ export default async function AdminDraft() {
       <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
         <Words text={t.admin.dr.help} d={0.15} s={0.012} />
       </p>
-      <DraftAdmin control={control} rows={list} pools={pools.map((p) => ({ slug: p.slug, title: roundName(t, p.title) }))} />
+      <DraftAdmin rows={list} pools={pools.map((p) => ({ slug: p.slug, title: roundName(t, p.title) }))} />
     </>
   );
 }

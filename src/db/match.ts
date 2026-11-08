@@ -5,7 +5,9 @@ import { availability, drafts, matchCache, matches, mpChat, mpLobbies, reschedul
 import { TEST_MATCH } from "@/lib/format";
 import { advance } from "./bracket";
 import { lockMatch, notifyCaptain, staffOverride } from "./schedule";
-import { getAllTeams } from "./tournament";
+import { getAllTeams, getMatches, getTeams } from "./tournament";
+import { firstToOf, getPoolStages } from "./mappools";
+import { forgetScoreboard, getScoreboard } from "./scoreboards";
 import type { Match } from "@/lib/data";
 import { decideWinner, type Score } from "@/lib/result";
 import { alertId, clear, describeMatch, raise } from "@/lib/alerts";
@@ -34,10 +36,28 @@ export async function settleResult(match: Pick<Match, "id" | "referee">, score: 
     console.error("[match result]", match.id, e);
     if (winner) {
       const info = await describeMatch(match.id);
-      raise({ id: alert, kind: "finishFailed", level: "red", match: info, href: `/admin/matches/${info.slug}`, detail: e instanceof Error ? e.message : String(e) }, { hosts: true, osuIds: await staffIds(match.referee) });
+      raise({ id: alert, kind: "finishFailed", level: "red", match: info, href: `/admin/matches/${info.slug}`, detail: e instanceof Error ? e.message : String(e) }, { hosts: true, osuIds: await staffIds(match.referee).catch(() => []) });
     }
     return false;
   }
+}
+
+export type Refinish = "notFound" | "won" | "noBoard" | "undecided" | "failed" | "partial" | "ok";
+
+/** re-reads the scoreboard and saves it. strict (retry): skips decided matches and saves only a decided result; otherwise a partial score is saved too ("partial") */
+export async function refinishFromScoreboard(matchId: string, strict = false): Promise<Refinish> {
+  await forgetScoreboard(matchId);
+  const [all, teams, stages] = await Promise.all([getMatches(), getTeams(), getPoolStages()]);
+  const match = all.find((m) => m.id === matchId);
+  if (!match) return "notFound";
+  if (strict && match.winner) return "won";
+  const sb = await getScoreboard(match, teams, stages);
+  if (!sb) return "noBoard";
+  const firstTo = firstToOf(stages, match.stage);
+  const decided = !!decideWinner(sb.score, firstTo);
+  if (strict && !decided) return "undecided";
+  if (!(await settleResult(match, sb.score, firstTo))) return "failed";
+  return decided ? "ok" : "partial";
 }
 
 export async function clearMatchChildren(tx: Tx) {

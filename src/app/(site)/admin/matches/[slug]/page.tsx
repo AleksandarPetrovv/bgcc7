@@ -112,7 +112,7 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
                                       <Field name="mods" defaultValue={p.mods.join("")} placeholder="HDHR" className="w-20" />
                                     </label>
                                   </ActionForm>
-                                  <ActionForm action={removeScore.bind(null, id, m.gameId, p.id, (k + 1) as 1 | 2)} submit={t.admin.ms.remove} ghost />
+                                  <ActionForm action={removeScore.bind(null, id, m.gameId, p.id)} submit={t.admin.ms.remove} ghost />
                                   {p.edited && <ActionForm action={undoScore.bind(null, id, m.gameId, p.id)} submit={t.admin.ms.undo} ghost />}
                                 </div>
                               </details>

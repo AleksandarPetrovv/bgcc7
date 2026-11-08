@@ -35,10 +35,12 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
 
   const setMsg = useCallback((m: { ok: boolean; text: string } | null, key = slug) => setMsgs((all) => ({ ...all, [key]: m })), [slug]);
 
-  const sync = useCallback(async () => {
+  const load = useCallback(async () => {
     const res = await fetch("/api/admin/mappack/jobs", { cache: "no-store" }).catch(() => null);
-    if (!res?.ok) return;
-    const all: Record<string, Job> = await res.json();
+    return res?.ok ? ((await res.json()) as Record<string, Job>) : null;
+  }, []);
+
+  const apply = useCallback((all: Record<string, Job>) => {
     let finished = false;
     for (const [key, j] of Object.entries(all)) {
       if (prev.current[key] === "running" && j.state !== "running") {
@@ -57,12 +59,22 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
     if (finished) router.refresh();
   }, [router, t]);
 
+  const sync = useCallback(async () => {
+    const all = await load();
+    if (all) apply(all);
+  }, [load, apply]);
+
   const anyRunning = Object.values(jobs).some((j) => j.state === "running");
 
   useEffect(() => {
-    const first = setTimeout(sync, 0);
-    return () => clearTimeout(first);
-  }, [sync]);
+    let off = false;
+    void load().then((all) => {
+      if (all && !off) apply(all);
+    });
+    return () => {
+      off = true;
+    };
+  }, [load, apply]);
 
   useEffect(() => {
     if (!anyRunning) return;
@@ -217,7 +229,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
             over ? "border-rose bg-rose/10" : "border-line hover:border-paper/40",
           )}
         >
-          <motion.span animate={over ? { y: -4, scale: 1.1 } : { y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 400, damping: 20 }}>
+          <motion.span animate={over ? { y: -4 } : { y: 0 }} transition={{ type: "spring", stiffness: 400, damping: 20 }}>
             <UploadCloud className={cn("size-8 transition-colors", over ? "text-rose-hi" : "text-ash group-hover:text-paper")} />
           </motion.span>
           <span className="text-sm font-display font-bold">{pack ? t.admin.packReplace(name(stage)) : t.admin.packDrop(name(stage))}</span>

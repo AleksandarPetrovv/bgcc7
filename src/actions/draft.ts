@@ -1,16 +1,14 @@
 "use server";
 
 import { db } from "@/db";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { drafts, matches, type DraftUndo } from "@/db/schema";
-import { answerTimeout, emitDraft, freshDraft, redoStep, settle, undoStep } from "@/db/drafts";
+import { answerTimeout, bumpDraft, emitDraft, freshDraft, redoStep, settle, undoStep } from "@/db/drafts";
 import { abortTimer, sayTimer } from "@/lib/bancho";
 import { getPoolStages } from "@/db/mappools";
 import { getSettings } from "@/db/settings";
 import { guard, unchanged } from "@/lib/admin-action";
-
-const bump = { rev: sql`${drafts.rev} + 1`, updatedAt: new Date() };
 
 export async function openDraft(matchId: string, stageSlug: string) {
   return guard("matches", "draft.open", async () => {
@@ -25,7 +23,7 @@ export async function openDraft(matchId: string, stageSlug: string) {
       const reopen = same && !cur.open ? { turnAt: new Date(), pausedAt: null, pauseUntil: null } : {};
       await db
         .update(drafts)
-        .set({ open: true, ...(same ? { ...reopen, ...(cur.rules ? {} : { rules: fresh.rules }) } : fresh), ...bump })
+        .set({ open: true, ...(same ? { ...reopen, ...(cur.rules ? {} : { rules: fresh.rules }) } : fresh), ...bumpDraft() })
         .where(eq(drafts.matchId, matchId));
     } else await db.insert(drafts).values({ matchId, ...fresh });
     emitDraft(matchId);
@@ -35,7 +33,7 @@ export async function openDraft(matchId: string, stageSlug: string) {
 
 export async function closeDraft(matchId: string) {
   return guard("matches", "draft.close", async () => {
-    await db.update(drafts).set({ open: false, ...bump }).where(eq(drafts.matchId, matchId));
+    await db.update(drafts).set({ open: false, ...bumpDraft() }).where(eq(drafts.matchId, matchId));
     emitDraft(matchId);
     return { log: { matchId } };
   }, { match: matchId });
@@ -44,7 +42,7 @@ export async function closeDraft(matchId: string) {
 export async function resetDraft(matchId: string) {
   return guard("matches", "draft.reset", async () => {
     const [cur] = await db.select({ stageSlug: drafts.stageSlug }).from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
-    if (cur) await db.update(drafts).set({ ...(await freshDraft(cur.stageSlug)), roll1: null, roll2: null, choice: null, ...bump }).where(eq(drafts.matchId, matchId));
+    if (cur) await db.update(drafts).set({ ...(await freshDraft(cur.stageSlug)), roll1: null, roll2: null, choice: null, ...bumpDraft() }).where(eq(drafts.matchId, matchId));
     emitDraft(matchId);
     return { log: { matchId } };
   }, { match: matchId });
@@ -86,7 +84,7 @@ export async function pauseDraft(matchId: string) {
     const { timeoutSecs } = await getSettings();
     await db
       .update(drafts)
-      .set({ pausedAt: now, pauseUntil: new Date(now.getTime() + timeoutSecs * 1000), ...bump })
+      .set({ pausedAt: now, pauseUntil: new Date(now.getTime() + timeoutSecs * 1000), ...bumpDraft() })
       .where(eq(drafts.matchId, matchId));
     emitDraft(matchId);
     return { log: { matchId } };
@@ -100,7 +98,7 @@ export async function holdDraft(matchId: string) {
     if (!d) return { ok: false, error: "notFound" };
     await db
       .update(drafts)
-      .set({ pausedAt: d.pausedAt ?? new Date(), pauseUntil: null, ...bump })
+      .set({ pausedAt: d.pausedAt ?? new Date(), pauseUntil: null, ...bumpDraft() })
       .where(eq(drafts.matchId, matchId));
     emitDraft(matchId);
     return { log: { matchId } };
@@ -113,7 +111,7 @@ export async function resumeDraft(matchId: string) {
     if (!d?.pausedAt) return unchanged;
     const now = Date.now();
     const turnAt = new Date((d.turnAt?.getTime() ?? now) + (now - d.pausedAt.getTime()));
-    await db.update(drafts).set({ turnAt, pausedAt: null, pauseUntil: null, timeouts: { ...d.timeouts, on: null }, ...bump }).where(eq(drafts.matchId, matchId));
+    await db.update(drafts).set({ turnAt, pausedAt: null, pauseUntil: null, timeouts: { ...d.timeouts, on: null }, ...bumpDraft() }).where(eq(drafts.matchId, matchId));
     // a timed pause is also an !mp timer in the lobby: stop that one too (no lobby = nothing to stop)
     if (d.pauseUntil) await abortTimer(matchId).catch(() => {});
     emitDraft(matchId);

@@ -4,6 +4,7 @@ import { abortLobby, canLobby, closeLobby, lobbyOwner, ensureBot, inviteMissing,
 import { sse } from "@/lib/sse";
 import { visibleChatLine } from "@/lib/chat-visibility";
 import { withMatch } from "@/lib/match-access";
+import type { ActionName } from "@/lib/action-names";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,24 @@ export async function GET(req: Request, ctx: Ctx) {
 
 const int = (v: unknown) => (typeof v === "number" && Number.isInteger(v) ? v : -1);
 
+const LOBBY_ACTS = {
+  make: "lobby.make",
+  chat: "lobby.chat",
+  invite: "lobby.invite",
+  refresh: "lobby.refresh",
+  start: "lobby.start",
+  abort: "lobby.abort",
+  close: "lobby.close",
+  aborttimer: "lobby.aborttimer",
+  kick: "lobby.kick",
+  spare: "lobby.spare",
+  team: "lobby.team",
+  move: "lobby.move",
+} as const satisfies Record<string, ActionName>;
+
+type LobbyAct = keyof typeof LOBBY_ACTS;
+const isLobbyAct = (a: string): a is LobbyAct => Object.hasOwn(LOBBY_ACTS, a);
+
 export async function POST(req: Request, ctx: Ctx) {
   const off = otherEdition();
   if (off) return off;
@@ -46,6 +65,7 @@ export async function POST(req: Request, ctx: Ctx) {
   const { osuId } = a;
   const owner = await lobbyOwner(id);
   if (act === "make" ? (owner !== null && owner !== osuId) || !canLobby(osuId) : owner !== osuId) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+  if (!isLobbyAct(act)) return Response.json({ ok: false, error: "invalid" }, { status: 400 });
   try {
     switch (act) {
       case "chat": {
@@ -86,13 +106,11 @@ export async function POST(req: Request, ctx: Ctx) {
       case "move":
         if ((await moveSlot(id, osuId, int(b?.slot), int(b?.to))) === "empty") return Response.json({ ok: false, error: "empty" }, { status: 409 });
         break;
-      default:
-        return Response.json({ ok: false, error: "invalid" }, { status: 400 });
     }
   } catch (e) {
     console.error("[lobby]", act, e);
     return Response.json({ ok: false, error: "failed" }, { status: 500 });
   }
-  if (act !== "refresh") void log(osuId, `lobby.${act}`, { ...(b ?? {}), matchId: id });
+  if (act !== "refresh") void log(osuId, LOBBY_ACTS[act], { slot: b?.slot, to: b?.to, team: b?.team, secs: b?.secs, text: b?.text, open: b?.open, matchId: id });
   return Response.json({ ok: true });
 }

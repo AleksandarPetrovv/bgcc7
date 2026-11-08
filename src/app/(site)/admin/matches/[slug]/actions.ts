@@ -4,26 +4,25 @@ import { db } from "@/db";
 import { and, eq } from "drizzle-orm";
 
 import { scoreEdits } from "@/db/schema";
-import { firstToOf, getPoolStages } from "@/db/mappools";
-import { settleResult } from "@/db/match";
-import { forgetScoreboard, getScoreboard } from "@/db/scoreboards";
+import { refinishFromScoreboard } from "@/db/match";
+import { forgetScoreboard } from "@/db/scoreboards";
 import { getMatches, getTeams } from "@/db/tournament";
 import { guard } from "@/lib/admin-action";
-import { decideWinner } from "@/lib/result";
 import type { ActionResult } from "@/lib/action-result";
 
 const parseMods = (v: string) => (v.toUpperCase().replace(/[^A-Z]/g, "").match(/.{2}/g) ?? []).filter((m) => m !== "NM").join(",");
 
 async function sync(matchId: string) {
-  await forgetScoreboard(matchId);
-  const [all, teams, stages] = await Promise.all([getMatches(), getTeams(), getPoolStages()]);
-  const match = all.find((m) => m.id === matchId);
-  if (!match) return;
-  const sb = await getScoreboard(match, teams, stages);
-  if (!sb) return;
-  const firstTo = firstToOf(stages, match.stage);
-  if (!(await settleResult(match, sb.score, firstTo))) throw new Error("saving the result failed");
-  if (!decideWinner(sb.score, firstTo)) await forgetScoreboard(matchId);
+  const r = await refinishFromScoreboard(matchId);
+  if (r === "failed") throw new Error("saving the result failed");
+  if (r === "partial") await forgetScoreboard(matchId);
+}
+
+async function upsertScore(values: typeof scoreEdits.$inferInsert) {
+  await db
+    .insert(scoreEdits)
+    .values(values)
+    .onConflictDoUpdate({ target: [scoreEdits.matchId, scoreEdits.gameId, scoreEdits.osuId], set: values });
 }
 
 async function rosterTeam(matchId: string, osuId: number) {
@@ -44,22 +43,18 @@ export async function saveScore(matchId: string, gameId: number, fixedOsuId: num
     const team = await rosterTeam(matchId, osuId);
     if (!team) return { ok: false, error: "invalid" };
     const values = { matchId, gameId, osuId, team, score, acc: accIn / 100, mods: parseMods(String(fd.get("mods") ?? "")), removed: false, editedBy: by, editedAt: new Date() };
-    await db
-      .insert(scoreEdits)
-      .values(values)
-      .onConflictDoUpdate({ target: [scoreEdits.matchId, scoreEdits.gameId, scoreEdits.osuId], set: values });
+    await upsertScore(values);
     await sync(matchId);
     return { log: { matchId, gameId, osuId, score, acc: accIn } };
   }, { match: matchId });
 }
 
-export async function removeScore(matchId: string, gameId: number, osuId: number, team: 1 | 2) {
+export async function removeScore(matchId: string, gameId: number, osuId: number) {
   return guard("matches", "match.score.remove", async ({ osuId: by }) => {
-    const values = { matchId, gameId, osuId, team, score: 0, acc: 0, mods: "", removed: true, editedBy: by, editedAt: new Date() };
-    await db
-      .insert(scoreEdits)
-      .values(values)
-      .onConflictDoUpdate({ target: [scoreEdits.matchId, scoreEdits.gameId, scoreEdits.osuId], set: values });
+    if (!Number.isInteger(osuId) || osuId <= 0 || !Number.isInteger(gameId)) return { ok: false, error: "invalid" };
+    const team = await rosterTeam(matchId, osuId);
+    if (!team) return { ok: false, error: "invalid" };
+    await upsertScore({ matchId, gameId, osuId, team, score: 0, acc: 0, mods: "", removed: true, editedBy: by, editedAt: new Date() });
     await sync(matchId);
     return { log: { matchId, gameId, osuId } };
   }, { match: matchId });

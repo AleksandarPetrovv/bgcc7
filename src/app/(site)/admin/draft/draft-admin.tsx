@@ -13,6 +13,7 @@ import { EASE } from "@/lib/ease";
 import type { ActionResult } from "@/lib/action-result";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
+import { SlantPfp } from "@/components/site/pfp";
 import { closeDraft, endDraft, openDraft, pauseDraft, resetDraft, resumeDraft, undoDraft } from "@/actions/draft";
 
 type TeamLite = { name: string; image: string } | null;
@@ -30,16 +31,13 @@ function Team({ team, side }: { team: TeamLite; side: 1 | 2 }) {
   const t = useDict();
   return (
     <span className={cn("flex min-w-0 items-center gap-2", side === 1 && "flex-row-reverse justify-start text-right")}>
-      {team?.image && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={team.image} alt="" className={cn("size-8 shrink-0 -skew-x-6 border-2 object-cover", side === 1 ? "border-crimson" : "border-azure")} />
-      )}
+      {team?.image && <SlantPfp src={team.image} className="size-8" edge={cn("border-2", side === 1 ? "border-crimson" : "border-azure")} />}
       <span className={cn("truncate text-sm font-display font-black", !team && "text-ash")}>{team?.name ?? t.common.tbd}</span>
     </span>
   );
 }
 
-function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; title: string }[]; i: number; control: boolean }) {
+function Row({ r, pools, i }: { r: DraftRow; pools: { slug: string; title: string }[]; i: number }) {
   const t = useDict();
   const [picked, setPool] = useState<string | null>(null);
   const pool = r.draft?.stage ?? (picked && pools.some((p) => p.slug === picked) ? picked : pools.some((p) => p.slug === r.stage) ? r.stage : (pools[0]?.slug ?? ""));
@@ -117,18 +115,7 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2 border-t border-line px-3 py-2.5 pl-5">
-        {!control ? (
-          <Link
-            href={`/matches/${r.slug}`}
-            target="_blank"
-            rel="noopener"
-            className="group relative isolate ml-auto inline-flex min-h-9 items-center gap-1.5 px-3 text-xs font-display font-bold text-ink"
-          >
-            <SlantBg className="bg-paper group-hover:bg-rose-deep" />
-              {t.admin.dr.view}
-              <ArrowUpRight className="size-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-          </Link>
-        ) : !ready ? (
+        {!ready ? (
           <span className="text-xs font-display font-bold text-ash">{t.admin.dr.noTeams}</span>
         ) : (
           <>
@@ -228,21 +215,21 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
   );
 }
 
-export function DraftAdmin({ rows, pools, control }: { rows: DraftRow[]; pools: { slug: string; title: string }[]; control: boolean }) {
+export function DraftAdmin({ rows, pools }: { rows: DraftRow[]; pools: { slug: string; title: string }[] }) {
   const t = useDict();
   const router = useRouter();
   const live = rows.some((r) => r.draft?.open);
   useEffect(() => {
-    if (!live && control) return;
+    if (!live) return;
     const id = setInterval(() => router.refresh(), 4000);
     return () => clearInterval(id);
-  }, [live, control, router]);
+  }, [live, router]);
 
   if (!rows.length) return <p className="border border-dashed border-line px-4 py-8 text-center text-sm font-display font-bold text-ash">{t.admin.dr.none}</p>;
   return (
     <ul className="space-y-2.5">
       {rows.map((r, i) => (
-        <Row key={r.id} r={r} pools={pools} i={i} control={control} />
+        <Row key={r.id} r={r} pools={pools} i={i} />
       ))}
     </ul>
   );
