@@ -9,6 +9,7 @@ import { getFill } from "@/db/copy";
 import { getFormat } from "@/db/edition";
 import "./globals.css";
 import { LITE } from "@/lib/lite";
+import { FONTS_CAP_MS } from "@/lib/fonts-ready";
 import { THEME_COOKIE } from "@/lib/i18n/locale";
 import { currentEdition, ensureEdition } from "@/db";
 
@@ -39,7 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // css animations stay paused until the streamed html and fonts are in; safari restarted them mid-load (title flashed)
-const BOOT = "var h=document.documentElement;h.setAttribute(\"data-booting\",\"\");addEventListener(\"DOMContentLoaded\",function(){Promise.race([document.fonts.ready,new Promise(function(r){setTimeout(r,1000)})]).then(function(){requestAnimationFrame(function(){h.removeAttribute(\"data-booting\")})})});";
+const BOOT = `var h=document.documentElement;h.setAttribute("data-booting","");window.__fontsReady=new Promise(function(d){addEventListener("DOMContentLoaded",function(){Promise.race([document.fonts.ready,new Promise(function(r){setTimeout(r,${FONTS_CAP_MS})})]).then(d)})});window.__fontsReady.then(function(){requestAnimationFrame(function(){h.removeAttribute("data-booting")})});`;
 const LITE_BOOT = `try{var h=document.documentElement,S=sessionStorage,L="${LITE}",q=location.search.match(/[?&]lite=([01])/);if(q)S.setItem(L,q[1]);var v=S.getItem(L);if(v===null){var c=document.createElement("canvas"),g=c.getContext("webgl"),r="";if(g){var e=g.getExtension("WEBGL_debug_renderer_info");r=e?String(g.getParameter(e.UNMASKED_RENDERER_WEBGL)):"";var x=g.getExtension("WEBGL_lose_context");x&&x.loseContext()}v=!g||/swiftshader|llvmpipe|software|basic render/i.test(r)?"1":"0";S.setItem(L,v)}if(v==="1")h.classList.add(L)}catch(_){}`;
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

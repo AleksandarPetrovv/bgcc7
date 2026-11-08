@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { fontsReady } from "@/lib/fonts-ready";
 import { Sparkle } from "./graphics";
 
 const GAP = 24;
@@ -20,7 +21,7 @@ export function UnderlineTabs({ names, colors, pos, onPick, animate, spark, clas
   useEffect(() => {
     const measure = () => setRects(tabs.current.map((b) => ({ l: b?.offsetLeft ?? 0, w: b?.offsetWidth ?? 0 })));
     measure();
-    document.fonts?.ready.then(measure);
+    fontsReady().then(measure);
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
   }, [key]);

@@ -1,15 +1,13 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { fontsReady } from "@/lib/fonts-ready";
 
 export function HeroGate({ className, children }: { className?: string; children: React.ReactNode }) {
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     const ready = () => ref.current?.setAttribute("data-ready", "");
-    const go = () => requestAnimationFrame(() => requestAnimationFrame(ready));
-    const fallback = setTimeout(ready, 1200);
-    (document.fonts?.ready ?? Promise.resolve()).then(go);
-    return () => clearTimeout(fallback);
+    fontsReady().then(() => requestAnimationFrame(() => requestAnimationFrame(ready)));
   }, []);
   return (
     <section ref={ref} className={`hero-gate ${className ?? ""}`}>

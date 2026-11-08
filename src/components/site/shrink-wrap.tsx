@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
+import { fontsReady } from "@/lib/fonts-ready";
 
 export function ShrinkWrap({ className, children }: { className?: string; children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -26,7 +27,7 @@ export function ShrinkWrap({ className, children }: { className?: string; childr
       }
     };
     fit();
-    if (document.fonts && document.fonts.status !== "loaded") document.fonts.ready.then(fit);
+    fontsReady().then(fit);
     window.addEventListener("resize", fit);
     wide.addEventListener("change", fit);
     return () => {
