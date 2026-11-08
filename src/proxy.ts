@@ -50,5 +50,6 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon).*)"],
+  // uploads skip the proxy: with it Next buffers only the first 10MB of a body and the route gets a cut-off file
+  matcher: ["/((?!_next/static|_next/image|favicon|api/admin/mappack/[^/]+$|api/team-request$).*)"],
 };

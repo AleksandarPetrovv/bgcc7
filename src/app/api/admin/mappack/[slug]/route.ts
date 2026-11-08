@@ -42,6 +42,8 @@ export async function PUT(req: Request, { params }: RouteContext<"/api/admin/map
     await fh.read(head, 0, 4, 0);
     await fh.close();
     if (size < 22 || head.readUInt32LE(0) !== 0x04034b50) throw new Error("notZip");
+    const sent = Number(req.headers.get("content-length") ?? 0);
+    if (sent && sent !== size) throw new Error("cut off: got " + size + " of " + sent);
     await rename(tmp, dest);
   } catch (e) {
     await rm(tmp, { force: true });
