@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePresence } from "motion/react";
 import { Dialog } from "@base-ui/react/dialog";
 import { X } from "lucide-react";
 import { useDict } from "./lang";
@@ -19,7 +20,8 @@ const TONES = {
  * the one centred popup: backdrop, house chrome (tone border + offset shadow), the dialog entrance.
  * no `onClose` = forced choice (Escape, backdrop and X do nothing).
  * `closeButton={false}` keeps Escape/backdrop dismissal but draws no X.
- * `open` omitted = open while mounted; a user close then plays the exit before calling `onClose`.
+ * `open` omitted = open while mounted; a user close plays the exit before calling `onClose`.
+ * mount it conditionally inside `<AnimatePresence>` so a close from code also plays the exit.
  */
 export function Popup({
   open,
@@ -44,15 +46,25 @@ export function Popup({
 }) {
   const t = useDict();
   const [closing, setClosing] = useState(false);
-  const shown = (open ?? true) && !closing;
+  // removed from an AnimatePresence: stay mounted, play the exit, then let it unmount
+  const [present, safeToRemove] = usePresence();
+  const shown = (open ?? true) && !closing && present;
   const c = typeof tone === "string" ? TONES[tone] : tone;
   const close = () => (open === undefined ? setClosing(true) : onClose?.());
+  // already closed when the parent removed it: nothing left to animate
+  useEffect(() => {
+    if (!present && (closing || open === false)) safeToRemove?.();
+  }, [present, closing, open, safeToRemove]);
   return (
     <Dialog.Root
       open={shown}
       disablePointerDismissal={!onClose}
       onOpenChange={(next) => !next && onClose && close()}
-      onOpenChangeComplete={(next) => !next && closing && onClose?.()}
+      onOpenChangeComplete={(next) => {
+        if (next) return;
+        if (!present) safeToRemove?.();
+        else if (closing) onClose?.();
+      }}
     >
       <Dialog.Portal>
         <Dialog.Backdrop className="pop-backdrop fixed inset-0 z-50 bg-black/55 backdrop-blur-sm transition-opacity duration-200 ease-out data-[starting-style]:opacity-0 data-[ending-style]:opacity-0" />

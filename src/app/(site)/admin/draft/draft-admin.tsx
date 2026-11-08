@@ -201,25 +201,29 @@ function Row({ r, pools, i, control }: { r: DraftRow; pools: { slug: string; tit
           </>
         )}
       </div>
-      <Popup open={!!ask} onClose={() => setAsk(null)} shadow={6} className="p-5 sm:p-6">
-        <p className="pr-6 text-sm font-bold text-paper">{ask?.text}</p>
+      <AnimatePresence>
+      {ask && (
+      <Popup key="ask" onClose={() => setAsk(null)} shadow={6} className="p-5 sm:p-6">
+        <p className="pr-6 text-sm font-bold text-paper">{ask.text}</p>
         <div className="mt-5 flex justify-end gap-2">
           <Btn type="button" tone="outline" small onClick={() => setAsk(null)}>
             {t.draft.cancel}
           </Btn>
           <Btn
             type="button"
-            tone={ask?.danger ? "danger" : "rose"}
+            tone={ask.danger ? "danger" : "rose"}
             small
             onClick={() => {
-              ask?.go();
+              ask.go();
               setAsk(null);
             }}
           >
-            {ask?.label}
+            {ask.label}
           </Btn>
         </div>
       </Popup>
+      )}
+      </AnimatePresence>
     </motion.li>
   );
 }

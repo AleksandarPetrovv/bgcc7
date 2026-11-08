@@ -2,9 +2,11 @@
 
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import Link from "next/link";
+import { AnimatePresence, motion } from "motion/react";
 import { LoaderCircle, X } from "lucide-react";
 import { retryFinish } from "@/actions/retry-finish";
 import { isAlert, snoozeMs, type Alert } from "@/lib/relay-contract";
+import { EASE } from "@/lib/ease";
 import { cn } from "@/lib/utils";
 import { useDict } from "./lang";
 import { SlantBg } from "./slant";
@@ -159,12 +161,16 @@ export function AlertPopups() {
   };
 
   const visible = alerts.filter((a) => !snoozes[a.id]).sort((a, b) => b.since - a.since);
-  if (!visible.length) return null;
-
   return (
     <aside aria-label={t.label} aria-live="polite" aria-relevant="additions" className="pointer-events-none fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[90] sm:left-auto sm:right-6 sm:w-[26rem]">
-      <div className="pointer-events-auto flex max-h-[calc(100dvh-6rem)] flex-col gap-3 overflow-y-auto overscroll-contain p-2 [scrollbar-color:var(--ash)_var(--coal)]">
-        {(expanded ? visible : visible.slice(0, 3)).map((alert) => <AlertCard key={alert.id} alert={alert} onSnooze={snooze} />)}
+      <div className={cn("flex max-h-[calc(100dvh-6rem)] flex-col gap-3 overflow-y-auto overscroll-contain p-2 [scrollbar-color:var(--ash)_var(--coal)]", visible.length > 0 && "pointer-events-auto")}>
+        <AnimatePresence>
+          {(expanded ? visible : visible.slice(0, 3)).map((alert) => (
+            <motion.div key={alert.id} layout initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8, transition: { duration: 0.15 } }} transition={{ duration: 0.3, ease: EASE }} className="shrink-0">
+              <AlertCard alert={alert} onSnooze={snooze} />
+            </motion.div>
+          ))}
+        </AnimatePresence>
         {visible.length > 3 && <button type="button" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)} className="min-h-10 shrink-0 border border-line bg-coal px-3 text-sm font-display font-bold text-paper hover:border-gold focus-visible:outline-2 focus-visible:outline-paper">{expanded ? t.less : t.more(visible.length - 3)}</button>}
       </div>
     </aside>

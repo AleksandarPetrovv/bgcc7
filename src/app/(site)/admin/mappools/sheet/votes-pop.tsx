@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "motion/react";
 import { Hourglass } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import type { Pooler, Voter } from "@/db/pool-sheet";
 import { scoreColor, scoreText } from "@/lib/score-color";
 import { SlantBg } from "@/components/site/slant";
+
+const noop = () => () => {};
 
 export function VotesPop({ label, votes, waiting, avg }: { label: string; votes: Voter[]; waiting: Pooler[]; avg: number | null }) {
   const t = useDict();
@@ -14,6 +17,7 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
   const pop = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [at, setAt] = useState<{ top: number; left: number; up: boolean } | null>(null);
+  const mounted = useSyncExternalStore(noop, () => true, () => false);
 
   const open = () => {
     clearTimeout(timer.current);
@@ -71,10 +75,14 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
       >
         {label}
       </button>
-      {at &&
+      {mounted &&
         createPortal(
-          <div
+          <AnimatePresence>
+          {at && (
+          <motion.div
+            key="votes"
             ref={pop}
+            exit={{ opacity: 0, transition: { duration: 0.12 } }}
             role="dialog"
             aria-label={t.admin.whoVoted}
             onPointerEnter={stay}
@@ -144,7 +152,9 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
                 {votes.length === 0 && waiting.length === 0 && <li className="px-3 py-3 text-sm text-ash">{t.admin.noVotes}</li>}
               </ul>
             </div>
-          </div>,
+          </motion.div>
+          )}
+          </AnimatePresence>,
           document.body,
         )}
     </>

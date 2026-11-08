@@ -279,9 +279,11 @@ export function DraftRoom({
       {admin && (
         <AdminBar d={d} matchId={matchId} names={names} acting={acting} onActing={setActing} pending={pending} adminAct={adminAct} onHelp={() => setHelp(true)} onReset={() => setAskReset(true)} />
       )}
-      {help && <LobbyHelp onClose={() => setHelp(false)} />}
+      <AnimatePresence>
+        {help && <LobbyHelp key="help" onClose={() => setHelp(false)} />}
         {askReset && (
           <ResetPopup
+            key="reset"
             lobby
             busy={pending}
             onCancel={() => setAskReset(false)}
@@ -294,6 +296,7 @@ export function DraftRoom({
             }}
           />
         )}
+      </AnimatePresence>
 
       <div className={cn((admin || lobbyShown) && "xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(26rem,30%)] xl:items-start xl:gap-8 2xl:gap-10")}>
       <motion.aside
@@ -401,6 +404,7 @@ export function DraftRoom({
             left != null && "team" in turn && <TimerDock key="turn" left={left} total={limit} color={TEAM[turn.team]} label={headline} raised={!!sel && mine} />
           )}
         </AnimatePresence>
+        <AnimatePresence>
           {ask && mapOf.get(ask) && (
             <WinnerPopup
               key={`w${ask}`}
@@ -413,7 +417,8 @@ export function DraftRoom({
               onScores={used.get(ask)?.winner ? () => (setScores(ask), setAsk(null)) : undefined}
             />
           )}
-        {scores && <ScoresPopup key={`s${scores}`} slug={slug} slot={scores} names={[name(1), name(2)]} onClose={() => setScores(null)} />}
+          {scores && <ScoresPopup key={`s${scores}`} slug={slug} slot={scores} names={[name(1), name(2)]} onClose={() => setScores(null)} />}
+        </AnimatePresence>
         <AnimatePresence>
           {sel && (turn.kind === "ban" || turn.kind === "pick") && mine && me && (
             <motion.div
@@ -466,6 +471,7 @@ export function DraftRoom({
             {to.queue.includes(side) ? t.draft.toWaiting : to.used.includes(side) ? t.draft.toUsed : t.draft.toBtn}
           </motion.button>
         )}
+        <AnimatePresence>
           {toAsk === "ask" && side && (
             <AskPopup
               key="to-ask"
@@ -498,6 +504,7 @@ export function DraftRoom({
             />
           )}
           {turn.kind === "choose" && turn.team === me && <ChoosePopup key="choose" me={me} busy={busy} onPick={(c) => act({ act: "choose", value: c })} />}
+        </AnimatePresence>
 
         <AnimatePresence>
           {(err || offline) && (

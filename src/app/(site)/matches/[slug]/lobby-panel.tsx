@@ -379,9 +379,10 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
           </div>
         </div>
       )}
-      {noHelper && <HelperMissing onClose={() => setNoHelper(false)} />}
-      {order && <StreamOrder onClose={() => setOrder(false)} />}
-      {ask && (
+      <AnimatePresence>
+        {noHelper && <HelperMissing key="helper" onClose={() => setNoHelper(false)} />}
+        {order && <StreamOrder key="order" onClose={() => setOrder(false)} />}
+        {ask && (
         <LobbyAsk
           key={ask}
           kind={ask}
@@ -392,7 +393,8 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
             run(ask === "start" ? { act: "start", secs } : { act: ask });
           }}
         />
-      )}
+        )}
+      </AnimatePresence>
 
       <AnimatePresence initial={false}>
         {open && (
