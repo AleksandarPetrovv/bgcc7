@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { getFormat } from "@/db/edition";
 import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { labelCls } from "@/components/admin/label";
@@ -71,7 +70,7 @@ export default async function AdminSettings() {
             <ActionForm key={rounds.map((r) => r.firstTo).join()} action={setRounds} className="space-y-4">
               <div className="divide-y divide-line border border-line">
                 {rounds.map((st, i) => {
-                  const ft = st.firstTo ?? getFormat().firstTo;
+                  const ft = st.firstTo;
                   return (
                     <label
                       key={st.id}

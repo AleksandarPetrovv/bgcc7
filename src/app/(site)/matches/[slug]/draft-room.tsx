@@ -96,6 +96,7 @@ export function DraftRoom({
     const [a, b] = scoreOf(v);
     return v.firstTo && a >= v.firstTo ? 1 : v.firstTo && b >= v.firstTo ? 2 : null;
   };
+  const gone = useRef(false);
   const won = useRef(!admin && !!side && wonBy(initial) === side);
   const [party, setParty] = useState(false);
 
@@ -134,7 +135,9 @@ export function DraftRoom({
       const w = !!side && wonBy(next) === side;
       if (w && !won.current) setParty(true);
       won.current = w;
-      setD((cur) => (next.rev >= cur.rev ? next : cur));
+      const fresh = gone.current;
+      gone.current = false;
+      setD((cur) => (fresh || next.rev >= cur.rev ? next : cur));
     },
     [side],
   );
@@ -165,7 +168,8 @@ export function DraftRoom({
           router.refresh();
           if (next) stageRef.current = next.stageSlug;
         }
-        if (next) {
+        if (!next) gone.current = true;
+        else {
           setOffset(next.now - Date.now());
           take(next);
         }

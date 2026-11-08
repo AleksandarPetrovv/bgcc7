@@ -1,7 +1,7 @@
 "use server";
 
 import { and, eq, sql } from "drizzle-orm";
-import { db } from "@/db";
+import { db, isBGCC6 } from "@/db";
 import { lobbies, qualScores, users } from "@/db/schema";
 import { getQualifierMaps } from "@/db/mappools";
 import { saveOsuUser } from "@/db/users";
@@ -57,11 +57,15 @@ async function importLobby(lobbyId: number) {
 }
 
 export async function importOne(lobbyId: number) {
-  return guard("qualifiers", "qual.import", async () => ({ log: { lobbyId, scores: await importLobby(lobbyId) } }));
+  return guard("qualifiers", "qual.import", async () => {
+    if (!isBGCC6()) return { ok: false, error: "invalid" };
+    return { log: { lobbyId, scores: await importLobby(lobbyId) } };
+  });
 }
 
 export async function importAll() {
   return guard("qualifiers", "qual.importAll", async () => {
+    if (!isBGCC6()) return { ok: false, error: "invalid" };
     const all = await db.select({ id: lobbies.id, mpLinks: lobbies.mpLinks }).from(lobbies);
     let scores = 0;
     for (const l of all) if (mpIds(l.mpLinks).length) scores += await importLobby(l.id);
@@ -71,6 +75,7 @@ export async function importAll() {
 
 export async function updateScore(id: number, _: ActionResult, fd: FormData) {
   return guard("qualifiers", "qual.setScore", async () => {
+    if (!isBGCC6()) return { ok: false, error: "invalid" };
     const score = Math.round(Number(String(fd.get("score") ?? "").replace(/[s,]/g, "")));
     const acc = Number(String(fd.get("acc") ?? "").replace("%", ""));
     const mods = String(fd.get("mods") ?? "").toUpperCase().replace(/[^A-Z,]/g, "").slice(0, 30);
@@ -83,6 +88,7 @@ export async function updateScore(id: number, _: ActionResult, fd: FormData) {
 
 export async function setScore(_: ActionResult, fd: FormData) {
   return guard("qualifiers", "qual.setScore", async () => {
+    if (!isBGCC6()) return { ok: false, error: "invalid" };
     const q = String(fd.get("player") ?? "").trim();
     const beatmapId = Number(fd.get("beatmapId"));
     const score = Math.round(Number(fd.get("score")));
@@ -114,6 +120,7 @@ export async function setScore(_: ActionResult, fd: FormData) {
 
 export async function deleteScore(id: number) {
   return guard("qualifiers", "qual.deleteScore", async () => {
+    if (!isBGCC6()) return { ok: false, error: "invalid" };
     const [row] = await db.delete(qualScores).where(eq(qualScores.id, id)).returning();
     return { log: row ?? { id } };
   });
@@ -121,6 +128,7 @@ export async function deleteScore(id: number) {
 
 export async function clearPlayer(osuId: number) {
   return guard("qualifiers", "qual.clearPlayer", async () => {
+    if (!isBGCC6()) return { ok: false, error: "invalid" };
     await db.delete(qualScores).where(and(eq(qualScores.osuId, osuId)));
     return { log: { osuId } };
   });

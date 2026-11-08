@@ -14,7 +14,7 @@ export const TEAM = [SIDE[1], SIDE[2]] as const;
 
 export const editionNum = (feed: OverlayFeed) => editionNumber(feed.edition) || "7";
 
-export function Img({ src, className, style }: { src: string; className?: string; style?: React.CSSProperties }) {
+function Img({ src, className, style }: { src: string; className?: string; style?: React.CSSProperties }) {
   const [failed, setFailed] = useState<string | null>(null);
   if (!src.trim() || failed === src) return null;
   // eslint-disable-next-line @next/next/no-img-element
@@ -160,7 +160,7 @@ export function Slant({ className, layer, style, children }: { className?: strin
   );
 }
 
-export function SlabPlate({ team, side, className }: { team: FeedTeam; side: 0 | 1; className?: string }) {
+function SlabPlate({ team, side, className }: { team: FeedTeam; side: 0 | 1; className?: string }) {
   const c = TEAM[side];
   return (
     <Slant className={cn("min-w-0 shrink items-center px-5 py-2", className)} layer="border-2 bg-coal/95" style={{ borderColor: c.c, boxShadow: `6px 6px 0 0 ${c.deep}` }}>
@@ -172,7 +172,7 @@ export function SlabPlate({ team, side, className }: { team: FeedTeam; side: 0 |
   );
 }
 
-export function Points({ score, firstTo, side }: { score: number; firstTo: number; side: 0 | 1 }) {
+function Points({ score, firstTo, side }: { score: number; firstTo: number; side: 0 | 1 }) {
   return (
     <span className={cn("flex items-center gap-2", side === 1 && "flex-row-reverse")} aria-label={`${score} of ${firstTo}`}>
       {Array.from({ length: firstTo }, (_, i) => (

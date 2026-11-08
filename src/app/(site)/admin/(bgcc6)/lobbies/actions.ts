@@ -1,7 +1,7 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
+import { db, isBGCC6 } from "@/db";
 import { lobbies, lobbyBookings, registrations } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/action-result";
@@ -20,6 +20,7 @@ function parse(fd: FormData) {
 
 export async function createLobby(_: ActionResult, fd: FormData) {
   return guard("lobbies", "lobby.create", async () => {
+    if (!isBGCC6()) return { ok: false, error: "invalid" };
     const v = parse(fd);
     if (!v) return { ok: false, error: "invalid" };
     await db.insert(lobbies).values(v);
@@ -29,6 +30,7 @@ export async function createLobby(_: ActionResult, fd: FormData) {
 
 export async function updateLobby(id: number, _: ActionResult, fd: FormData) {
   return guard("lobbies", "lobby.update", async () => {
+    if (!isBGCC6()) return { ok: false, error: "invalid" };
     const v = parse(fd);
     if (!v) return { ok: false, error: "invalid" };
     await db.update(lobbies).set(v).where(eq(lobbies.id, id));
@@ -38,6 +40,7 @@ export async function updateLobby(id: number, _: ActionResult, fd: FormData) {
 
 export async function deleteLobby(id: number) {
   return guard("lobbies", "lobby.delete", async () => {
+    if (!isBGCC6()) return { ok: false, error: "invalid" };
     const [row] = await db.delete(lobbies).where(eq(lobbies.id, id)).returning({ name: lobbies.name });
     return { log: { id, name: row?.name ?? null } };
   });
@@ -45,6 +48,7 @@ export async function deleteLobby(id: number) {
 
 export async function placePlayer(_: ActionResult, fd: FormData) {
   return guard("lobbies", "lobby.place", async () => {
+    if (!isBGCC6()) return { ok: false, error: "invalid" };
     const osuId = Number(fd.get("osuId"));
     const lobbyId = Number(fd.get("lobbyId"));
     if (!Number.isInteger(osuId) || !Number.isInteger(lobbyId)) return { ok: false, error: "invalid" };
@@ -60,6 +64,7 @@ export async function placePlayer(_: ActionResult, fd: FormData) {
 
 export async function unbook(osuId: number) {
   return guard("lobbies", "lobby.unbook", async () => {
+    if (!isBGCC6()) return { ok: false, error: "invalid" };
     await db.delete(lobbyBookings).where(eq(lobbyBookings.osuId, osuId));
     return { log: { osuId } };
   });

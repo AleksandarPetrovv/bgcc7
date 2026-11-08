@@ -9,7 +9,7 @@ import { ActionForm, Field, Panel } from "./form";
 import { labelCls } from "./label";
 import { useDict } from "@/components/site/lang";
 
-export function LinkGate({ linked, children }: { linked: boolean; children: React.ReactNode }) {
+function LinkGate({ linked, children }: { linked: boolean; children: React.ReactNode }) {
   return (
     <div
       inert={linked}

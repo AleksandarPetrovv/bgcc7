@@ -3,7 +3,6 @@ import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page-title";
 import { Panel } from "@/components/admin/form";
 import { getPoolStages } from "@/db/mappools";
-import { getFormat } from "@/db/edition";
 import { getMatchRows, getTeams } from "@/db/tournament";
 import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
@@ -37,7 +36,7 @@ export default async function AdminMatches() {
 
       <Cascade className="space-y-8" step={0.04}>
         {shown.map(({ s, list: inStage }, n) => (
-          <Panel key={s.slug} i={n < 3 ? n + 1 : 0} title={`${roundName(t, s.title)} · ${t.admin.firstToShort(s.firstTo ?? getFormat().firstTo)}`}>
+          <Panel key={s.slug} i={n < 3 ? n + 1 : 0} title={`${roundName(t, s.title)} · ${t.admin.firstToShort(s.firstTo)}`}>
             <div className="space-y-6">
               {[...new Set(inStage.map((m) => m.round))]
                 .map((round) => inStage.filter((m) => m.round === round).sort((a, b) => key(a) - key(b)))

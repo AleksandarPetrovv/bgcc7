@@ -52,16 +52,29 @@ function Stepper({ value, min, max, onChange, label }: { value: number; min: num
 
 function ModPick({ mod, onMod, label }: { mod: PlanMod; onMod: (mod: PlanMod) => void; label: string }) {
   const [open, setOpen] = useState(false);
-  const box = useRef<HTMLSpanElement>(null);
+  const btn = useRef<HTMLButtonElement>(null);
+  const list = useRef<HTMLDivElement>(null);
+  const place = useCallback((r: DOMRect): PopPlace => ({ left: r.left, top: r.bottom + 6, width: 78 }), []);
+  const close = useCallback(() => setOpen(false), []);
   useEffect(() => {
     if (!open) return;
-    const down = (e: PointerEvent) => e.target instanceof Node && !box.current?.contains(e.target) && setOpen(false);
-    window.addEventListener("pointerdown", down);
-    return () => window.removeEventListener("pointerdown", down);
+    const key = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      setOpen(false);
+    };
+    const down = (e: PointerEvent) => e.target instanceof Node && list.current?.contains(e.target) && e.stopPropagation();
+    window.addEventListener("keydown", key, true);
+    window.addEventListener("pointerdown", down, true);
+    return () => {
+      window.removeEventListener("keydown", key, true);
+      window.removeEventListener("pointerdown", down, true);
+    };
   }, [open]);
   return (
-    <span ref={box} className="relative">
+    <>
       <button
+        ref={btn}
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
@@ -76,17 +89,7 @@ function ModPick({ mod, onMod, label }: { mod: PlanMod; onMod: (mod: PlanMod) =>
           <ChevronDown className={cn("size-3 transition-transform duration-200", open && "rotate-180")} strokeWidth={3} />
         </span>
       </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            role="listbox"
-            aria-label={label}
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.12 }}
-            className="absolute left-0 top-full z-10 mt-1.5 flex flex-col gap-1 border border-line bg-ink p-1.5 shadow-[3px_3px_0_0_var(--rose-deep)]"
-          >
+      <AnchoredPopup anchor={btn} open={open} onClose={close} place={place} chrome={false} ref={list} role="listbox" aria-label={label} className="z-[80] flex flex-col gap-1 border border-line bg-ink p-1.5 shadow-[3px_3px_0_0_var(--rose-deep)]">
             {PLAN_MODS.map((m) => (
               <button
                 key={m}
@@ -104,10 +107,8 @@ function ModPick({ mod, onMod, label }: { mod: PlanMod; onMod: (mod: PlanMod) =>
                 {m}
               </button>
             ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </span>
+      </AnchoredPopup>
+    </>
   );
 }
 

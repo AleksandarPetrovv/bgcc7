@@ -173,7 +173,7 @@ export function IconAction({
   bare,
   children,
 }: {
-  action: () => Promise<unknown>;
+  action: () => Promise<ActionResult | void>;
   label: string;
   confirm?: string;
   danger?: boolean;
@@ -187,7 +187,8 @@ export function IconAction({
     start(async () => {
       try {
         setFail(false);
-        await action();
+        const r = await action();
+        if (r && r.ok === false) setFail(true);
       } catch {
         setFail(true);
       }
