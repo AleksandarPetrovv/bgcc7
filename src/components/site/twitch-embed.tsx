@@ -4,10 +4,14 @@ import { useEffect, useState } from "react";
 import { TWITCH_CHANNEL } from "@/lib/links";
 import { isLite } from "@/lib/lite";
 
+// the player loads once the frame's .in-wipe intro (0.15s delay + 0.9s, streams/page.tsx) is mostly in, later on lite
+const LOAD_MS = 700;
+const LOAD_LITE_MS = 1300;
+
 export function TwitchEmbed({ title }: { title: string }) {
   const [host, setHost] = useState<string | null>(null);
   useEffect(() => {
-    const t = setTimeout(() => setHost(window.location.hostname), isLite() ? 1300 : 700);
+    const t = setTimeout(() => setHost(window.location.hostname), isLite() ? LOAD_LITE_MS : LOAD_MS);
     return () => clearTimeout(t);
   }, []);
   return (

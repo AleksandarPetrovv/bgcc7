@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { setFlash } from "./flash";
+import { flashSignedUp } from "./flash";
 import { Check } from "lucide-react";
-import { SlantButton } from "./page";
+import { SlantButton } from "./slant";
 import { useDict } from "./lang";
 import { login } from "@/actions/auth";
 import { signUp, withdraw } from "@/app/(site)/register/actions";
@@ -33,7 +33,7 @@ export function RegisterForm({ user, status, state, opensAt }: Props) {
       const res = await fn();
       if (!res.ok) return setError(res.error === "notBg" ? t.register.notBg : res.error === "closed" ? t.register.closedError : t.register.error);
       if (fn === signUp) {
-        setFlash("signedUp");
+        flashSignedUp();
         router.push("/");
       }
     });

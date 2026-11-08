@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { slotColor } from "@/lib/format-plan";
 import { modOn } from "@/lib/theme";
@@ -117,6 +117,7 @@ function Player({ c, p, side, reduced }: { c?: LiveClient; p?: OverlayFeed["team
   );
 }
 
+const still = () => () => {};
 const len = (s: number) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.floor(Math.max(0, s)) % 60).padStart(2, "0")}`;
 
 export function GameplayScene({ feed }: { feed: OverlayFeed }) {
@@ -127,11 +128,7 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
   const lead = Math.max(-1, Math.min(1, diff / 300_000));
   const share = total > 0 ? 0.5 + 0.48 * Math.sign(lead) * Math.abs(lead) ** 0.6 : 0.5;
   const slotC = current ? slotColor(current.slot.toUpperCase()) : "var(--paper)";
-  const [setup, setSetup] = useState(false);
-  useEffect(() => {
-    const id = window.setTimeout(() => setSetup(new URLSearchParams(window.location.search).has("setup")), 0);
-    return () => window.clearTimeout(id);
-  }, []);
+  const setup = useSyncExternalStore(still, () => new URLSearchParams(window.location.search).has("setup"), () => false);
   const clients = (side: 0 | 1) => (live?.clients ?? []).filter((c) => c.team === (side === 0 ? "left" : "right")).sort((a, b) => a.ipcId - b.ipcId);
   const holes = BOXES.map((b) => `M${b.x} ${b.y}h${CW}v${CH}h-${CW}Z`).join("");
   const playerOf = (side: 0 | 1, row: number) => {

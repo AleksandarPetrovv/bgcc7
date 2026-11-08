@@ -16,8 +16,8 @@ export function EditionView({ className }: { className?: string }) {
   const pick = (e: Edition) =>
     start(async () => {
       await viewEdition(e);
-      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-      window.location.assign(`/${path.split("/")[1] ?? ""}`);
+      // full reload on purpose: the edition cookie changes the whole layout
+      window.location.assign(new URL(`/${path.split("/")[1] ?? ""}`, window.location.origin));
     });
   return (
     <div className={cn("relative isolate flex h-8 shrink-0 border border-transparent text-[0.75rem] font-display font-black lg:h-9 lg:text-[0.8rem]", pending && "opacity-60", className)} role="group" aria-label={t.nav.edition}>

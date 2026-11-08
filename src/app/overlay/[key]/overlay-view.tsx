@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, MotionGlobalConfig, useReducedMotion } from "motion/react";
 import type { OverlayFeed } from "@/lib/overlay-types";
 import type { Scene } from "@/lib/scenes";
+import { useSSE } from "@/components/site/use-sse";
 import { CalmScene } from "./calm-scenes";
 import { MappoolScene } from "./mappool-scene";
 import { GameplayScene } from "./gameplay-scene";
@@ -20,52 +21,44 @@ export function OverlayView({ overlayKey, scene, stage }: { overlayKey: string; 
   return <OverlaySubscription key={JSON.stringify([overlayKey, scene, stage])} url={url} />;
 }
 
+// the scene swaps while the sweep covers the screen
+const WIPE_S = 1.05;
+const SWAP_MS = 520;
+
 function OverlaySubscription({ url }: { url: string }) {
   const [feed, setFeed] = useState<OverlayFeed | null>(null);
   const reducedMotion = useReducedMotion();
+  const build = useRef<string | undefined>(undefined);
+  const expiry = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  useEffect(() => {
-    const source = new EventSource(url);
-    let active = true;
-    let expiry: ReturnType<typeof setTimeout> | undefined;
-    let build: string | undefined;
-    source.onmessage = (event) => {
-      if (!active || event.currentTarget !== source) return;
-      try {
-        const next: OverlayFeed | null = JSON.parse(event.data);
-        if (next?.build) {
-          // new deploy: OBS has nobody to click, so pick up the new bundle on its own
-          if (build && build !== next.build) return window.location.reload();
-          build = next.build;
-        }
-        clearTimeout(expiry);
-        if (!next?.live) {
-          setFeed(next);
-          return;
-        }
-
-        const age = Math.max(0, next.at - next.live.at);
-        const remaining = Math.max(0, 10000 - age);
-        if (remaining === 0) {
-          setFeed({ ...next, live: null });
-          return;
-        }
-
-        setFeed(next);
-        expiry = setTimeout(() => {
-          if (!active) return;
-          setFeed((current) => current === next ? { ...current, live: null } : current);
-        }, remaining);
-      } catch {
-        // keep the last complete feed while the stream reconnects.
+  useEffect(() => () => clearTimeout(expiry.current), []);
+  useSSE(url, (data) => {
+    try {
+      const next: OverlayFeed | null = JSON.parse(data);
+      if (next?.build) {
+        // new deploy: OBS has nobody to click, so pick up the new bundle on its own
+        if (build.current && build.current !== next.build) return window.location.reload();
+        build.current = next.build;
       }
-    };
-    return () => {
-      active = false;
-      clearTimeout(expiry);
-      source.close();
-    };
-  }, [url]);
+      clearTimeout(expiry.current);
+      if (!next?.live) {
+        setFeed(next);
+        return;
+      }
+
+      const age = Math.max(0, next.at - next.live.at);
+      const remaining = Math.max(0, 10000 - age);
+      if (remaining === 0) {
+        setFeed({ ...next, live: null });
+        return;
+      }
+
+      setFeed(next);
+      expiry.current = setTimeout(() => setFeed((current) => current === next ? { ...current, live: null } : current), remaining);
+    } catch {
+      // keep the last complete feed while the stream reconnects.
+    }
+  });
 
   // a hidden tab doesn't save up animations: whatever changed while away just shows when you come back
   useEffect(() => {
@@ -80,19 +73,17 @@ function OverlaySubscription({ url }: { url: string }) {
   const target = feed ? `${feed.match.id}:${feed.scene}` : null;
   const [shown, setShown] = useState<string | null>(target);
   const [wipe, setWipe] = useState(0);
+  const [prevTarget, setPrevTarget] = useState(target);
+  if (target !== shown) {
+    if (shown === null || target === null || reducedMotion || document.hidden) setShown(target);
+    else if (target !== prevTarget) setWipe((w) => w + 1);
+  }
+  if (target !== prevTarget) setPrevTarget(target);
   useEffect(() => {
     if (target === shown) return;
-    if (shown === null || target === null || reducedMotion || document.hidden) {
-      const id = setTimeout(() => setShown(target), 0);
-      return () => clearTimeout(id);
-    }
-    const start = setTimeout(() => setWipe((w) => w + 1), 0);
-    const swap = setTimeout(() => setShown(target), 520);
-    return () => {
-      clearTimeout(start);
-      clearTimeout(swap);
-    };
-  }, [target, shown, reducedMotion]);
+    const swap = setTimeout(() => setShown(target), SWAP_MS);
+    return () => clearTimeout(swap);
+  }, [target, shown]);
 
   // during the wipe the outgoing scene keeps its own last data, so it never redraws with the next scene's feed
   const [held, setHeld] = useState<OverlayFeed | null>(null);
@@ -131,7 +122,7 @@ function Wipe() {
           style={{ background: s.c, boxShadow: "-24px 0 0 0 color-mix(in srgb, var(--black) 35%, transparent)" }}
           initial={{ x: -2900 }}
           animate={{ x: 2300 }}
-          transition={{ duration: 1.05, delay: s.d, ease: [0.76, 0, 0.24, 1] }}
+          transition={{ duration: WIPE_S, delay: s.d, ease: [0.76, 0, 0.24, 1] }}
         />
       ))}
     </motion.div>

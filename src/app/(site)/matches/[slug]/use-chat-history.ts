@@ -66,9 +66,8 @@ export function useChatHistory(slug: string, mpId: number | null, recent: ChatLi
 
   useEffect(() => {
     mounted.current = true;
-    const id = setTimeout(() => void loadMore(), 0);
+    void loadMore();
     return () => {
-      clearTimeout(id);
       mounted.current = false;
       invalidate();
     };

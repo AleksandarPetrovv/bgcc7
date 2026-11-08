@@ -9,7 +9,7 @@ import { useDict } from "@/components/site/lang";
 import { EASE } from "@/lib/ease";
 import type { Match } from "@/lib/data";
 import { Confetti } from "@/components/site/confetti";
-import { deadline, limitOf, pickable, rollWinner, scoreOf, turnOf, type DraftView, type Side, type Turn } from "@/lib/draft";
+import { deadline, limitOf, pickable, ROLL_REVEAL_MS, rollWinner, scoreOf, turnOf, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
 import { TEAM } from "@/lib/theme";
@@ -130,7 +130,7 @@ export function DraftRoom({
   const take = useCallback(
     (next: DraftView) => {
       const both = next.roll1 != null && next.roll2 != null;
-      if (both && !rolled.current) setHoldUntil(Date.now() + 1600);
+      if (both && !rolled.current) setHoldUntil(Date.now() + ROLL_REVEAL_MS);
       rolled.current = both;
       const w = !!side && wonBy(next) === side;
       if (w && !won.current) setParty(true);

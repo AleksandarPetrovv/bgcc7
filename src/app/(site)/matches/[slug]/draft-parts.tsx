@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Ban, CircleHelp, Crown, Dices, Lock, Pause, Play, Redo2, RotateCcw, Swords, TimerOff, Undo2 } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import { EASE } from "@/lib/ease";
-import { plan, type DraftStep, type DraftUndo, type DraftView, type Side, type Turn } from "@/lib/draft";
+import { plan, ROLL_SPIN_MS, type DraftStep, type DraftUndo, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
 import { GOLD, TEAM, tint } from "@/lib/theme";
@@ -23,20 +23,26 @@ function RollNumber({ value, side, win, lose }: { value: number | null; side: Si
   const seen = useRef(value);
   const [shown, setShown] = useState<number | null>(value);
   const [spinning, setSpinning] = useState(false);
+  const [prev, setPrev] = useState(value);
+  if (value !== prev) {
+    setPrev(value);
+    if (value == null) setShown(null);
+    else {
+      setSpinning(true);
+      // first spin frame; the effect's ticks take over with Math.random
+      setShown(1 + ((value * 37 + (shown ?? 0)) % 100));
+    }
+  }
   useEffect(() => {
     if (value === seen.current) return;
     seen.current = value;
-    if (value == null) {
-      const id = setTimeout(() => setShown(null), 0);
-      return () => clearTimeout(id);
-    }
+    if (value == null) return;
     let alive = true;
-    let delay = 30;
-    let timer: ReturnType<typeof setTimeout>;
+    let delay = 30 * 1.14;
     const start = performance.now();
     const tick = () => {
       if (!alive) return;
-      if (performance.now() - start > 1300) {
+      if (performance.now() - start > ROLL_SPIN_MS) {
         setShown(value);
         setSpinning(false);
         return;
@@ -45,10 +51,7 @@ function RollNumber({ value, side, win, lose }: { value: number | null; side: Si
       delay *= 1.14;
       timer = setTimeout(tick, delay);
     };
-    timer = setTimeout(() => {
-      setSpinning(true);
-      tick();
-    }, 0);
+    let timer = setTimeout(tick, delay);
     return () => {
       alive = false;
       clearTimeout(timer);

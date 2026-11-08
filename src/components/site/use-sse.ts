@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
-export function useSSE(url: string, onData: (data: string) => void, onState?: (online: boolean) => void) {
+// url null = not connected
+export function useSSE(url: string | null, onData: (data: string) => void, onState?: (online: boolean) => void) {
   const data = useRef(onData);
   const state = useRef(onState);
   useEffect(() => {
@@ -10,6 +11,7 @@ export function useSSE(url: string, onData: (data: string) => void, onState?: (o
     state.current = onState;
   });
   useEffect(() => {
+    if (!url) return;
     let es: EventSource | null = null;
     let retry: ReturnType<typeof setTimeout> | undefined;
     let wait = 1000;

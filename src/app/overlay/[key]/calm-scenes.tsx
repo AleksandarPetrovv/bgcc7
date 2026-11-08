@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Confetti } from "@/components/site/confetti";
 import { Glyph } from "@/components/site/graphics";
@@ -8,21 +8,24 @@ import type { FeedTeam, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
 import { Backdrop, Blend, Echo, editionNum, LABEL, Lockup, PlayerCard, Rule, ScoreNum, TEAM, TeamPic, TeamPlate, TopBar, Versus } from "./chrome";
 import { EASE } from "@/lib/ease";
+import { ROLL_REVEAL_MS, ROLL_SPIN_MS } from "@/lib/draft";
 
+
+let clock: number | null = null;
+const tickEverySecond = (cb: () => void) => {
+  const tick = () => {
+    clock = Date.now();
+    cb();
+  };
+  tick();
+  const id = window.setInterval(tick, 1000);
+  return () => window.clearInterval(id);
+};
+const still = () => () => {};
 
 function useNow(active: boolean) {
-  const [now, setNow] = useState<number | null>(null);
-  useEffect(() => {
-    if (!active) return;
-    const tick = () => setNow(Date.now());
-    const first = window.setTimeout(tick, 0);
-    const id = window.setInterval(tick, 1000);
-    return () => {
-      window.clearTimeout(first);
-      window.clearInterval(id);
-    };
-  }, [active]);
-  return now;
+  const now = useSyncExternalStore(active ? tickEverySecond : still, () => clock, () => null);
+  return active ? now : null;
 }
 
 function Countdown({ startsAt, at }: { startsAt: string | null; at: number }) {
@@ -112,22 +115,24 @@ function Soon({ feed }: { feed: OverlayFeed }) {
   );
 }
 
-// counts up to the roll over ~1.3s, winner revealed 1.6s after the second roll
+// counts up to the roll over ROLL_SPIN_MS, winner revealed ROLL_REVEAL_MS after the second roll
 function useSpin(value: number | null) {
   const seen = useRef(value);
   const [shown, setShown] = useState<number | null>(value);
   const [spinning, setSpinning] = useState(false);
+  const [prev, setPrev] = useState(value);
+  if (value !== prev) {
+    setPrev(value);
+    if (value == null) setShown(null);
+  }
   useEffect(() => {
     if (value === seen.current) return;
     seen.current = value;
-    if (value == null) {
-      const id = setTimeout(() => setShown(null), 0);
-      return () => clearTimeout(id);
-    }
+    if (value == null) return;
     let frame = 0;
     const start = performance.now();
     const tick = (now: number) => {
-      const p = Math.min(1, (now - start) / 1300);
+      const p = Math.min(1, (now - start) / ROLL_SPIN_MS);
       if (p >= 1) {
         setShown(value);
         setSpinning(false);
@@ -146,10 +151,16 @@ function useSpin(value: number | null) {
 function useReveal(both: boolean) {
   const was = useRef(both);
   const [ready, setReady] = useState(both);
+  const [prev, setPrev] = useState(both);
+  if (both !== prev) {
+    setPrev(both);
+    if (!both) setReady(false);
+  }
   useEffect(() => {
     if (both === was.current) return;
     was.current = both;
-    const id = setTimeout(() => setReady(both), both ? 1600 : 0);
+    if (!both) return;
+    const id = setTimeout(() => setReady(true), ROLL_REVEAL_MS);
     return () => clearTimeout(id);
   }, [both]);
   return ready;

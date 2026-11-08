@@ -1,11 +1,13 @@
 "use client";
 
 import { Flash } from "@/components/admin/flash";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
 import { InView } from "@/components/site/in-view";
 import Link from "next/link";
 import { Check } from "lucide-react";
-import { Container, PageTitle, SectionHeading, SlantButton, Tag } from "@/components/site/page";
+import { Container, SectionHeading, Tag } from "@/components/site/page";
+import { PageTitle } from "@/components/site/page-title";
+import { SlantButton } from "@/components/site/slant";
 import { useDict, useIsBGCC6 } from "@/components/site/lang";
 import { PickemsBracket } from "@/components/site/pickems-bracket";
 import { resolve, seedingOf, type Picks } from "@/lib/pickems";
@@ -21,6 +23,8 @@ import { login } from "@/actions/auth";
 import { MeTag } from "@/components/site/me";
 import { roundName } from "@/lib/i18n/dict";
 
+
+const still = () => () => {};
 
 type Props = { osuId: number | null; saved: Picks | null; leaderboard: LeaderRow[]; open: boolean; closesAt: number | null; locked: string[] };
 
@@ -51,18 +55,21 @@ export function PickemsView({ osuId, saved, leaderboard, open: openAtLoad, close
     ? [...byStage].map(([slug, s]) => [roundName(t, stageName(slug)), [...s][0]])
     : t.pickems.points;
 
-  useEffect(() => {
-    if (saved) return;
-    try {
-      const raw = localStorage.getItem(DRAFT);
-      if (raw) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setPicks(resolve(f, JSON.parse(raw), seeding).picks);
-        setDirty(true);
-      }
-    } catch {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saved]);
+  // the unsaved draft lives in localStorage, so it can only be restored after mount
+  const mounted = useSyncExternalStore(still, () => true, () => false);
+  const [restoredFor, setRestoredFor] = useState<Picks | null | undefined>(undefined);
+  if (mounted && restoredFor !== saved) {
+    setRestoredFor(saved);
+    if (!saved) {
+      try {
+        const raw = localStorage.getItem(DRAFT);
+        if (raw) {
+          setPicks(resolve(f, JSON.parse(raw), seeding).picks);
+          setDirty(true);
+        }
+      } catch {}
+    }
+  }
 
   const pick = (match: string, team: string) => {
     const next = resolve(f, { ...clean, [match]: team }, seeding).picks;

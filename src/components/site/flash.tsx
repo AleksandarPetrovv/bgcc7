@@ -7,27 +7,30 @@ import { Hourglass, X } from "lucide-react";
 import { useDict } from "./lang";
 
 const KEY = "bgcc7-flash";
+const DELAY_MS = 300;
+const LIFE_MS = 5000;
 
-export function setFlash(kind: string) {
+/** shows the "signed up" toast after the next navigation */
+export function flashSignedUp() {
   try {
-    sessionStorage.setItem(KEY, kind);
+    sessionStorage.setItem(KEY, "signedUp");
   } catch {}
 }
 
 export function Flash() {
   const t = useDict();
   const path = usePathname();
-  const [kind, setKind] = useState<string | null>(null);
+  const [shown, setShown] = useState(false);
 
   useEffect(() => {
-    let k: string | null = null;
+    let due = false;
     try {
-      k = sessionStorage.getItem(KEY);
-      if (k) sessionStorage.removeItem(KEY);
+      due = sessionStorage.getItem(KEY) === "signedUp";
+      sessionStorage.removeItem(KEY);
     } catch {}
-    if (!k) return;
-    const show = setTimeout(() => setKind(k), 300);
-    const hide = setTimeout(() => setKind(null), 5300);
+    if (!due) return;
+    const show = setTimeout(() => setShown(true), DELAY_MS);
+    const hide = setTimeout(() => setShown(false), DELAY_MS + LIFE_MS);
     return () => {
       clearTimeout(show);
       clearTimeout(hide);
@@ -36,7 +39,7 @@ export function Flash() {
 
   return (
     <AnimatePresence>
-      {kind === "signedUp" && (
+      {shown && (
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -58,14 +61,14 @@ export function Flash() {
                 <p className="mt-1 text-sm text-paper/80">{t.register.flashText}</p>
               </div>
             </div>
-            <button type="button" onClick={() => setKind(null)} aria-label={t.draft.close} className="absolute right-2 top-2 p-2 text-ash transition-colors hover:text-paper">
+            <button type="button" onClick={() => setShown(false)} aria-label={t.draft.close} className="absolute right-2 top-2 p-2 text-ash transition-colors hover:text-paper">
               <X className="size-4" />
             </button>
             <motion.span
               className="absolute inset-x-0 bottom-0 h-1 origin-left bg-balkan"
               initial={{ scaleX: 1 }}
               animate={{ scaleX: 0 }}
-              transition={{ duration: 5, ease: "linear" }}
+              transition={{ duration: LIFE_MS / 1000, ease: "linear" }}
               aria-hidden
             />
           </div>

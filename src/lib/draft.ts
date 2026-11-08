@@ -43,6 +43,10 @@ export type Turn =
 
 export const other = (s: Side): Side => (s === 1 ? 2 : 1);
 
+/** roll numbers spin this long, and the winner shows this long after the second roll lands */
+export const ROLL_SPIN_MS = 1300;
+export const ROLL_REVEAL_MS = 1600;
+
 export const rollWinner = (d: Pick<DraftView, "roll1" | "roll2">): Side | null =>
   d.roll1 == null || d.roll2 == null || d.roll1 === d.roll2 ? null : d.roll1 > d.roll2 ? 1 : 2;
 

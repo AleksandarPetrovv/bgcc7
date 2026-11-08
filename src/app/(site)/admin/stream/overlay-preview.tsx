@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { OverlayFeed } from "@/lib/overlay-types";
+import { useSSE } from "@/components/site/use-sse";
 import styles from "./overlay-preview.module.css";
 
 export function OverlayPreview({ slug, title, label, offline, clientsLabel, delayLabel, initialAt, initialClients }: { slug: string; title: string; label: string; offline: string; clientsLabel: string; delayLabel: string; initialAt: number | null; initialClients: number }) {
@@ -20,25 +21,20 @@ export function OverlayPreview({ slug, title, label, offline, clientsLabel, dela
     return () => observer.disconnect();
   }, []);
 
+  useSSE(`/api/overlay/${encodeURIComponent(slug)}`, (data) => {
+    try {
+      const feed: OverlayFeed | null = JSON.parse(data);
+      setAt(feed?.live?.at ?? null);
+      setClients(feed?.live?.clients.length ?? 0);
+      setNow(Date.now());
+    } catch {
+      // the expiry timer clears stale status during a reconnect.
+    }
+  });
   useEffect(() => {
-    const source = new EventSource(`/api/overlay/${encodeURIComponent(slug)}`);
-    source.onmessage = (event) => {
-      try {
-        const feed: OverlayFeed | null = JSON.parse(event.data);
-        setAt(feed?.live?.at ?? null);
-        setClients(feed?.live?.clients.length ?? 0);
-        setNow(Date.now());
-      } catch {
-        // the expiry timer clears stale status during a reconnect.
-      }
-    };
-    source.onerror = () => {};
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => {
-      source.close();
-      window.clearInterval(timer);
-    };
-  }, [slug]);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const live = at !== null && now - at < 10_000;
   return (
