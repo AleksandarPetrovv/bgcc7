@@ -4,6 +4,7 @@ import { Bar, BarChart, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis
 import type { QualPlayer } from "@/lib/data";
 import { useDict } from "./lang";
 import { HEX } from "@/lib/theme";
+import { tooltipStyle, xAxisLine, yAxisStyle } from "./chart-style";
 
 export function SeedingChart({ players, cut }: { players: QualPlayer[]; cut: number }) {
   const t = useDict();
@@ -12,13 +13,10 @@ export function SeedingChart({ players, cut }: { players: QualPlayer[]; cut: num
     <div className="h-[20rem] sm:h-[26.25rem] 2xl:h-[33.75rem]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 60, left: -12 }}>
-          <XAxis dataKey="name" angle={-55} textAnchor="end" interval={0} tick={{ fill: HEX.ash, fontSize: "0.625rem", fontWeight: 700 }} axisLine={{ stroke: HEX.line }} tickLine={false} />
-          <YAxis tick={{ fill: HEX.ash, fontSize: "0.6875rem" }} axisLine={false} tickLine={false} />
+          <XAxis dataKey="name" angle={-55} textAnchor="end" interval={0} tick={{ fill: HEX.ash, fontSize: "0.625rem", fontWeight: 700 }} {...xAxisLine} />
+          <YAxis {...yAxisStyle} />
           <Tooltip
-            cursor={{ fill: "color-mix(in srgb, var(--rose) 10%, transparent)" }}
-            contentStyle={{ background: HEX.coal, border: `1px solid ${HEX.line}`, borderRadius: 0, fontWeight: 700, color: HEX.paper }}
-            labelStyle={{ color: HEX.paper, marginBottom: 2 }}
-            itemStyle={{ color: HEX.paper }}
+            {...tooltipStyle}
             formatter={(v) => [Number(v).toFixed(2), t.qual.percentile]}
           />
           <ReferenceLine x={data[11]?.name} stroke={HEX.rose} strokeDasharray="4 4" label={{ value: t.qual.top12, fill: HEX.roseHi, fontSize: "0.6875rem", fontWeight: 800, position: "insideTopRight" }} />

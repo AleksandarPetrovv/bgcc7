@@ -110,7 +110,7 @@ export function state(): State | null {
         setInterval(syncIdle, 5_000).unref();
         // events can come from a bgcc6 view with the same match id; lobbies only follow the site edition
         onDraft((id) => withEdition("site", () => handlers?.react(id)));
-        onRelay((osuId, up) => withEdition("site", () => (up ? void restoreOwner(osuId) : dropConn(osuId))));
+        onRelay((osuId, up) => withEdition("site", () => (up ? void restoreOwner(osuId).catch((e) => console.error("[bancho] restoreOwner", osuId, e)) : dropConn(osuId))));
         return { conns: new Map(), live: new Map(), bus: new EventEmitter().setMaxListeners(0), restored: false };
       }),
     );

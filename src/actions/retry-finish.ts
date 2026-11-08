@@ -1,6 +1,6 @@
 "use server";
 
-import { refinishFromScoreboard } from "@/db/match";
+import { refinishFromScoreboard } from "@/db/refinish";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/action-result";
 

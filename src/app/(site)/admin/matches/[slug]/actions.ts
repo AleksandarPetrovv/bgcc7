@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { and, eq } from "drizzle-orm";
 
 import { scoreEdits } from "@/db/schema";
-import { refinishFromScoreboard } from "@/db/match";
+import { refinishFromScoreboard } from "@/db/refinish";
 import { forgetScoreboard } from "@/db/scoreboards";
 import { getMatches, getTeams } from "@/db/tournament";
 import { guard } from "@/lib/admin-action";

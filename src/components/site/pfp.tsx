@@ -1,5 +1,6 @@
 import { Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { avatarPath } from "@/lib/avatar";
 import { meP } from "./me";
 import { SlantBg } from "./slant";
 
@@ -37,7 +38,17 @@ export function Pfp({
   );
 }
 
-// 10.63cqh = tan(12deg) / 2 of the frame height: how far a -skew-x-12 edge leans at the top and bottom
+/** round avatar with a team-coloured border; null id draws the empty placeholder. `className` sets size. */
+export function TeamPfp({ id, color, className }: { id: number | null; color: string; className?: string }) {
+  const cls = cn("shrink-0 rounded-full border-2", className);
+  return id == null ? (
+    <span className={cn(cls, "bg-slate")} style={{ borderColor: color }} aria-hidden />
+  ) : (
+    <Pic src={avatarPath(id)} className={cn(cls, "object-cover")} style={{ borderColor: color }} />
+  );
+}
+
+// 10.63cqh =tan(12deg) / 2 of the frame height: how far a -skew-x-12 edge leans at the top and bottom
 const SLANT_CLIP = "[clip-path:polygon(10.63cqh_0,calc(100%_+_10.63cqh)_0,calc(100%_-_10.63cqh)_100%,-10.63cqh_100%)]";
 
 /** slanted avatar frame: the picture is cut with a clip-path and only the background and edge layers are skewed.

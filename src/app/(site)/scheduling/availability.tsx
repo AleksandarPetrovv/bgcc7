@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, Pencil } from "lucide-react";
 import { SlantButton } from "@/components/site/slant";
 import { AnimatePresence, motion } from "motion/react";
-import { avatarPath } from "@/lib/avatar";
+import { TeamPfp } from "@/components/site/pfp";
 import { useDict, useLang } from "@/components/site/lang";
 import { hourKeys } from "@/lib/schedule";
 import { addDays, dayFmt as fmt, dayHead } from "@/lib/time";
@@ -94,8 +94,7 @@ export function Availability({ matchId, week, busy, me, opp, viewer, editable }:
       <div className="mb-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
         {players.map((p, i) => (
           <span key={p.id} style={at(2.3, i, 0.08)} className={cn("in-up inline-flex items-end gap-1.5 text-xs font-display", p.id === viewer ? "font-black text-paper" : "font-bold text-ash")}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={avatarPath(p.id)} alt="" className="size-5 rounded-full border-2 object-cover" style={{ borderColor: color(p.team) }} />
+            <TeamPfp id={p.id} color={color(p.team)} className="size-5" />
             <span className="flex flex-col items-center gap-1">
               <span className="grid h-3.5 place-items-center">
                 {saved(p.id) && !(p.id === viewer && editing) ? <Check className="size-3.5 text-balkan-hi" strokeWidth={3.5} aria-hidden /> : <span className="text-[0.75rem] font-black leading-none text-paper">?</span>}
@@ -155,8 +154,7 @@ export function Availability({ matchId, week, busy, me, opp, viewer, editable }:
                 >
                   {out.length ? (
                     out.map((p) => (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img key={p.id} src={avatarPath(p.id)} alt="" className="size-[1.15rem] rounded-full border-2 object-cover" style={{ borderColor: color(p.team) }} />
+                      <TeamPfp key={p.id} id={p.id} color={color(p.team)} className="size-[1.15rem]" />
                     ))
                   ) : (
                     <Check className="size-3.5 text-white/25" strokeWidth={3} aria-hidden />
@@ -204,8 +202,7 @@ function Tip({ tip, out, color, lang }: { tip: { d: string; h: number; r: DOMRec
       <ul className="grid shrink-0 gap-1">
         {out.map((p) => (
           <li key={p.id} className="flex items-center gap-1.5 text-xs font-display font-bold text-paper">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={avatarPath(p.id)} alt="" className="size-[1.15rem] rounded-full border-2 object-cover" style={{ borderColor: color(p.team) }} />
+            <TeamPfp id={p.id} color={color(p.team)} className="size-[1.15rem]" />
             {p.name}
           </li>
         ))}
