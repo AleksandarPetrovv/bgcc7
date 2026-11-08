@@ -91,7 +91,7 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     if (gone === "stale") return { ok: false, error: "stale" };
     if (gone) return { ok: false, error: "notFound" };
     if (cacheStale) await forgetScoreboard(id);
-    if (patch.referee !== m.referee) await handOff(id, patch.referee).catch((e) => console.error("[handoff]", e));
+    if (patch.referee !== m.referee) await handOff(id, patch.referee).catch((e) => console.error("[handoff]", id, e));
     if (winner && (winner !== m.winner || score1 !== m.score1 || score2 !== m.score2)) later("result", () => postResult(id));
     if (patch.startsAt && patch.startsAt.getTime() !== m.startsAt?.getTime()) announceMatchTime([patch.team1Id, patch.team2Id], patch.startsAt, { dm: false });
     if (patch.team1Id !== m.team1Id || patch.team2Id !== m.team2Id) await resetPickems();

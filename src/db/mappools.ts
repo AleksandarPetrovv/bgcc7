@@ -32,7 +32,7 @@ export async function blueprintFor(stageId: number) {
   return s ?? null;
 }
 
-export async function slotInBlueprint(stageId: number, mod: string, slot: number) {
+async function slotInBlueprint(stageId: number, mod: string, slot: number) {
   if (!MODS[mod] || !Number.isInteger(slot) || slot < 0) return false;
   const s = await blueprintFor(stageId);
   return !!s && slot < (s.blueprint[mod] ?? 0);

@@ -14,7 +14,7 @@ import { roundName } from "@/lib/i18n/dict";
 import { SlantBg } from "@/components/site/slant";
 
 type StageInfo = { slug: string; title: string; pack: Pack | null };
-type Job = { state: "running" | "done" | "error"; done: number; total: number; missing: string[]; error?: string; size?: number; zipping?: boolean };
+type Job = { state: "running" | "done" | "error"; done: number; total: number; missing: string[]; error?: string; lastError?: string; size?: number; zipping?: boolean };
 
 const mb = (n: number) => `${(n / 1024 / 1024).toFixed(n > 100 * 1024 * 1024 ? 0 : 1)} MB`;
 
@@ -49,7 +49,7 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
           setMade((p) => ({ ...p, [key]: { size: j.size ?? 0, at: new Date().toISOString() } }));
           setMsgs((m) => ({ ...m, [key]: { ok: true, text: t.admin.packGenerated } }));
         } else {
-          const text = j.error === "missing" ? t.admin.packMissing(j.missing.join(", ")) : j.error === "empty" ? t.admin.packEmpty : t.admin.packGenFailed;
+          const text = j.error === "missing" ? t.admin.packMissing(j.missing.join(", ")) + (j.lastError ? ` (${j.lastError})` : "") : j.error === "empty" ? t.admin.packEmpty : t.admin.packGenFailed;
           setMsgs((m) => ({ ...m, [key]: { ok: false, text } }));
         }
       }

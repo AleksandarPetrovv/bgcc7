@@ -4,7 +4,7 @@ import type { Edition } from "./format";
 
 // shared by instrumentation.ts (before the app modules load), db/index.ts and the tick route, so it imports nothing of the app
 
-export const normEdition = (v: unknown): Edition => (v === "bgcc6" ? "bgcc6" : "bgcc7");
+const normEdition = (v: unknown): Edition => (v === "bgcc6" ? "bgcc6" : "bgcc7");
 
 const slot = globalThis as unknown as { bgccEdition?: Edition };
 

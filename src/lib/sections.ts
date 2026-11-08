@@ -27,7 +27,7 @@ export const phasesFor = (bgcc6: boolean): Phase[] => PHASES.filter((p) => bgcc6
 const base: Section[] = ["info", "staff", "sponsors"];
 const seeded: Section[] = [...base, "players", "qualScores", "seeding", "teams", "mappool", "stats"];
 
-export const PRESETS: Record<Phase, Section[]> = {
+const PRESETS: Record<Phase, Section[]> = {
   registration: [...base, "register", "players"],
   screening: [...base, "players"],
   qualifiers: [...base, "players", "lobbies", "mappool"],

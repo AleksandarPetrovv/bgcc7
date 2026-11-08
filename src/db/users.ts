@@ -60,7 +60,7 @@ export async function saveOsuUser(u: OsuUserIn) {
 }
 
 /** staff slots and the helper's irc login are stored by name; call before saving the new username */
-export async function carryRename(osuId: number, name: string) {
+async function carryRename(osuId: number, name: string) {
   const [old] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, osuId)).limit(1);
   if (!old || old.username === name) return;
   const was = old.username.toLowerCase();

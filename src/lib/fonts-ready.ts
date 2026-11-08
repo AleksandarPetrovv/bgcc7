@@ -1,5 +1,5 @@
 // fonts or this cap, whichever first, measured from DOMContentLoaded; a slow font must not hold the intro back
-export const FONTS_CAP_MS = 1000;
+const FONTS_CAP_MS = 1000;
 
 const FONTS_KEY = "__fontsReady";
 

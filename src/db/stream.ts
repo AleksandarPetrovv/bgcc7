@@ -23,7 +23,7 @@ export async function overlayName(osuId: number) {
   return first?.username ?? (await usernameOf(osuId));
 }
 
-export const streamersOf = (m: { streamer: string | null }) => staffNames(m.streamer).map(nameKey);
+const streamersOf = (m: { streamer: string | null }) => staffNames(m.streamer).map(nameKey);
 
 export async function streamMatches(osuId: number, all: boolean) {
   const me = nameKey((await usernameOf(osuId)) ?? "");

@@ -11,7 +11,7 @@ import { ircName } from "@/lib/names";
 import { SSE_HEADERS } from "@/lib/sse";
 import { APP_SEEN_MS, LINK_TTL, OFFLINE_GRACE, SSE_PING_MS, sseFrame, validState, frame, type RelayEv, type RelayFrame, type RelayMsg } from "@/lib/relay-contract";
 
-export class RelaySocket extends EventEmitter {
+class RelaySocket extends EventEmitter {
   private opened?: () => void;
   private dead = false;
   constructor(private r: Relay) {

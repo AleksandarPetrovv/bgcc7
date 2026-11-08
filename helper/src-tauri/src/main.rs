@@ -139,21 +139,23 @@ fn apply_roles(ctl: &Ctl, before: &Status, roles: &Roles) {
     if !roles.can_stream && before.can_stream { stop_streaming(ctl); }
 }
 
-async fn fetch_me(token: &str) -> Result<Roles, u16> {
-    let r = http().get(format!("{SITE}/api/relay/me")).bearer_auth(token).timeout(ME_TIMEOUT).send().await.map_err(|_| 0u16)?;
-    if !r.status().is_success() { return Err(r.status().as_u16()); }
-    r.json::<Roles>().await.map_err(|e| if e.is_decode() { 200u16 } else { 0u16 })
+enum MeErr { Status(u16), Net, Decode }
+
+async fn fetch_me(token: &str) -> Result<Roles, MeErr> {
+    let r = http().get(format!("{SITE}/api/relay/me")).bearer_auth(token).timeout(ME_TIMEOUT).send().await.map_err(|_| MeErr::Net)?;
+    if !r.status().is_success() { return Err(MeErr::Status(r.status().as_u16())); }
+    r.json::<Roles>().await.map_err(|e| if e.is_decode() { MeErr::Decode } else { MeErr::Net })
 }
 
 /// false when the poll should stop (token gone or rejected)
-fn apply_me(sh: &Shared, token: &str, result: Result<Roles, u16>, failed_since: &mut Option<(Instant, u64)>) -> bool {
+fn apply_me(sh: &Shared, token: &str, result: Result<Roles, MeErr>, failed_since: &mut Option<(Instant, u64)>) -> bool {
     if sh.store.load().token.as_deref() != Some(token) { return false; }
     match &result {
         Ok(roles) => {
             *failed_since = None;
             sh.server_alerts(roles.alerts.clone(), true);
         }
-        Err(0 | 500..=599) => {
+        Err(MeErr::Net | MeErr::Status(500..=599)) => {
             let (start, since) = failed_since.get_or_insert_with(|| {
                 let since = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0);
                 (Instant::now(), since)
@@ -162,7 +164,7 @@ fn apply_me(sh: &Shared, token: &str, result: Result<Roles, u16>, failed_since: 
                 sh.site_down(Some(*since));
             }
         }
-        Err(200) => {
+        Err(MeErr::Decode) => {
             *failed_since = None;
             sh.site_down(None);
         }
@@ -192,7 +194,7 @@ fn apply_me(sh: &Shared, token: &str, result: Result<Roles, u16>, failed_since: 
             start_relay(&ctl);
             start_streaming(&ctl);
         }
-        Err(401) => { invalidate(sh, token); return false; }
+        Err(MeErr::Status(401)) => { invalidate(sh, token); return false; }
         _ => sh.set(|s| { s.site = "off"; s.stream_state = if s.streaming { "error" } else { "off" }.into(); }),
     }
     true

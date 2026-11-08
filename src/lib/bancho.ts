@@ -185,7 +185,7 @@ export async function makeLobby(matchId: string, by: number) {
   await lb.setPassword(password);
   await lb.setSettings(BanchoLobbyTeamModes.TeamVs, BanchoLobbyWinConditions.ScoreV2, lobbySize(getFormat()));
   await lb.channel.sendMessage("!mp lock");
-  await lb.addRef([...new Set([by, ...(await staffIds(match.referee))])].map((id) => `#${id}`)).catch(() => {});
+  await lb.addRef([...new Set([by, ...(await staffIds(match.referee).catch(() => []))])].map((id) => `#${id}`)).catch(() => {});
   for (const id of map.keys()) await lb.invitePlayer(`#${id}`).catch(() => {});
   void import("@/db/discord-bot").then((d) => d.later("invites", () => d.invitesSent(matchId)));
   await lb.updateSettings().catch(() => {});

@@ -5,9 +5,9 @@ import { globalStore } from "./global-store";
 import type { LiveScore } from "./overlay-types";
 import { LIVE_STALE_MS, type LiveReject, type ScorePacket } from "./relay-contract";
 
-type Store = { scores: Map<string, LiveScore>; rejects?: Map<string, { why: LiveReject; at: number }>; bus: EventEmitter };
-const store = () => globalStore<Store>("bgccLive", () => ({ scores: new Map(), bus: new EventEmitter().setMaxListeners(0) }));
-const rejects = () => (store().rejects ??= new Map());
+type Store = { scores: Map<string, LiveScore>; rejects: Map<string, { why: LiveReject; at: number }>; bus: EventEmitter };
+const store = () => globalStore<Store>("bgccLive", () => ({ scores: new Map(), rejects: new Map(), bus: new EventEmitter().setMaxListeners(0) }));
+const rejects = () => store().rejects;
 
 export function rejectLive(matchId: string, why: LiveReject) {
   rejects().set(editionKey(matchId), { why, at: Date.now() });
