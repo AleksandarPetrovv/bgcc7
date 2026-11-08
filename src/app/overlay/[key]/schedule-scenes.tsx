@@ -8,6 +8,7 @@ import { BracketOptions, ResultsEye } from "@/components/site/overlay-context";
 import { useDict } from "@/components/site/lang";
 import { useTournament } from "@/components/site/tournament";
 import type { Match } from "@/lib/data";
+import { GF, GF_RESET } from "@/lib/format";
 import { cardLabels, recentResults } from "@/lib/matches";
 import type { OverlayFeed } from "@/lib/overlay-types";
 import { Backdrop, Echo, editionNum, Lockup, Rule, TopBar } from "./chrome";
@@ -65,7 +66,7 @@ export function BracketScene({ feed }: { feed: OverlayFeed }) {
   useFresh();
   const { id, score, firstTo } = feed.match;
   // the reset only matters on a grand final once the losers-side team (slot 2) has taken the first set
-  const reset = id === "grand-final-reset" || (id === "grand-final" && score[1] >= firstTo);
+  const reset = id === GF_RESET || (id === GF &&score[1] >= firstTo);
   return (
     <div className="absolute inset-0 overflow-hidden text-paper">
       <Backdrop num={editionNum(feed)} tint="var(--white)" />

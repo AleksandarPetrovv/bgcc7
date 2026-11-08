@@ -5,9 +5,9 @@ import { db } from "@/db";
 import { maps, stages } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
 import { later, postPool } from "@/db/discord-bot";
-import { fetchMap, parseBeatmapId } from "@/lib/fetch-map";
+import { fetchMap } from "@/lib/fetch-map";
 import type { ActionResult } from "@/lib/action-result";
-import { blueprintFor, clearPack, slotInBlueprint } from "@/db/mappools";
+import { blueprintFor, clearPack, slotBeatmapId } from "@/db/mappools";
 
 export async function renameStage(id: number, _: ActionResult, fd: FormData) {
   return guard("host", "stage.rename", async () => {
@@ -31,12 +31,14 @@ export async function setReleased(id: number, poolReleased: boolean) {
 
 export async function setSlotMap(stageId: number, mod: string, slot: number, _: ActionResult, fd: FormData) {
   return guard("poolEdit", "map.add", async () => {
-    const beatmapId = parseBeatmapId(fd.get("beatmap"));
-    if (!Number.isInteger(beatmapId) || beatmapId <= 0 || !(await slotInBlueprint(stageId, mod, slot))) return { ok: false, error: "invalid" };
+    const beatmapId = await slotBeatmapId(stageId, mod, slot, fd.get("beatmap"));
+    if (!beatmapId) return { ok: false, error: "invalid" };
     const data = await fetchMap(beatmapId, mod);
     if (!data) return { ok: false, error: "notFound" };
-    await db.delete(maps).where(and(eq(maps.stageId, stageId), eq(maps.mod, mod), eq(maps.order, slot)));
-    await db.insert(maps).values({ stageId, mod, order: slot, ...data });
+    await db.transaction(async (tx) => {
+      await tx.delete(maps).where(and(eq(maps.stageId, stageId), eq(maps.mod, mod), eq(maps.order, slot)));
+      await tx.insert(maps).values({ stageId, mod, order: slot, ...data });
+    });
     await clearPack(stageId);
     return { log: { stageId, mod, slot: slot + 1, beatmapId, title: data.title } };
   });
@@ -54,8 +56,10 @@ export async function moveMap(id: number, dir: -1 | 1) {
       .from(maps)
       .where(and(eq(maps.stageId, m.stageId), eq(maps.mod, m.mod), eq(maps.order, to)))
       .limit(1);
-    if (other) await db.update(maps).set({ order: m.order }).where(eq(maps.id, other.id));
-    await db.update(maps).set({ order: to }).where(eq(maps.id, id));
+    await db.transaction(async (tx) => {
+      if (other) await tx.update(maps).set({ order: m.order }).where(eq(maps.id, other.id));
+      await tx.update(maps).set({ order: to }).where(eq(maps.id, id));
+    });
     await clearPack(m.stageId);
     return { log: { id, dir, title: m.title, version: m.version } };
   });

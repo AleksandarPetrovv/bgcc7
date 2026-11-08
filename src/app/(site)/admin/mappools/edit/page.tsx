@@ -236,7 +236,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                             />
                           )}
                           <IconAction action={deleteMap.bind(null, m.rowId)} label={t.admin.clearSlot} confirm={t.admin.confirmClearSlot} danger>
-                            <Trash2 className="size-4 transition-transform group-hover:rotate-12" />
+                            <Trash2 className="size-4 transition-transform group-hover:-translate-y-px" />
                           </IconAction>
                         </div>
                       )}

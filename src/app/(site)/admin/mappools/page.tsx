@@ -48,7 +48,7 @@ export default async function MappoolsHub() {
             >
               <RuleDiamond />
               <Icon
-                className="pointer-events-none absolute bottom-2 right-0 size-40 text-paper/[0.04] transition-[color,transform,translate,scale,rotate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-rotate-6 group-hover:scale-110 group-hover:text-rose/10"
+                className="pointer-events-none absolute bottom-2 right-0 size-40 text-paper/[0.04] transition-[color,transform,translate,scale,rotate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-1 group-hover:text-rose/10"
                 strokeWidth={1.25}
                 aria-hidden
               />

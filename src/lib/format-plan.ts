@@ -2,7 +2,8 @@ import { DEFAULT_CATALOG, DEFAULT_ROUNDS } from "./format-defaults";
 import { bestOf } from "./format";
 import { LONG_MOD, MOD_COLOR } from "./mods";
 
-export const PLAN_MODS = ["NM", "HD", "HR", "DT"] as const;
+export const MAX_BANS = 6;
+export const PLAN_MODS =["NM", "HD", "HR", "DT"] as const;
 export type PlanMod = (typeof PLAN_MODS)[number];
 
 export type PlanMap = { id: string; mod: PlanMod; note: string; subcategoryIds?: string[] };
@@ -20,7 +21,7 @@ export type PlanRound = { slug: string; name: string; firstTo: number; bans: num
 export type SubcategoryGroup = { id: string; name: string; items: { id: string; name: string }[] };
 export type Plan = { rounds: PlanRound[]; subcategories: SubcategoryGroup[] };
 
-export const DEFAULT_SUBCATEGORIES: SubcategoryGroup[] = DEFAULT_CATALOG;
+const DEFAULT_SUBCATEGORIES: SubcategoryGroup[] = DEFAULT_CATALOG;
 
 export function selectedSubcategories(rounds: PlanRound[], catId: string, mapId?: string): string[] {
   for (const r of [...rounds].reverse()) {
@@ -54,7 +55,7 @@ export function roundStats(r: PlanRound) {
 const int = (v: unknown, lo: number, hi: number, d: number) => (typeof v === "number" && Number.isInteger(v) ? Math.min(hi, Math.max(lo, v)) : d);
 const str = (v: unknown, max: number, d: string) => (typeof v === "string" ? v.trim().slice(0, max) : d);
 // category names are labels: "AIM" or "aim" typed in admin shows as "Aim"; mixed case is kept as typed
-export const catName = (s: string) => (s === s.toUpperCase() || s === s.toLowerCase() ? s.toLowerCase().replace(/(^|[\s/-])\p{L}/gu, (c) => c.toUpperCase()) : s);
+const catName = (s: string) => (s === s.toUpperCase() || s === s.toLowerCase() ? s.toLowerCase().replace(/(^|[\s/-])\p{L}/gu, (c) => c.toUpperCase()) : s);
 const isMod = (v: unknown): v is PlanMod => typeof v === "string" && (PLAN_MODS as readonly string[]).includes(v);
 
 type Loose = { id?: unknown; name?: unknown; maps?: unknown; mods?: Record<string, unknown> };
@@ -91,7 +92,7 @@ export function cleanPlan(v: unknown): Plan | null {
       slug: st.slug,
       name: st.name,
       firstTo: int(r.firstTo, 1, 15, d.firstTo),
-      bans: int(r.bans, 0, 6, d.bans),
+      bans: int(r.bans, 0, MAX_BANS, d.bans),
       sr: typeof r.sr === "number" && Number.isFinite(r.sr) && r.sr > 0 ? Math.round(Math.min(15, r.sr) * 100) / 100 : null,
       tbNote: "",
       tbSubcategoryIds: cleanIds(r.tbSubcategoryIds, seen),
@@ -101,7 +102,7 @@ export function cleanPlan(v: unknown): Plan | null {
   return { rounds, subcategories };
 }
 
-export const SKILLS: Record<string, { abbr: string; color: string }> = {
+const SKILLS: Record<string, { abbr: string; color: string }> = {
   aim: { abbr: "AIM", color: "var(--mod-nm)" },
   speed: { abbr: "SPD", color: "var(--mod-dt)" },
   reading: { abbr: "RDG", color: "var(--rose-light)" },

@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState, useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { Pencil, Plus, X } from "lucide-react";
 import { Btn, Field } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
@@ -9,45 +8,21 @@ import { errorText, type ActionResult } from "@/lib/action-result";
 import { modHi } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
+import { AnchoredPopup, type PopPlace } from "@/components/site/anchored-popup";
 import type { SubcategoryGroup } from "@/lib/format-plan";
 
 type Action = (prev: ActionResult, fd: FormData) => Promise<ActionResult>;
 type Props = { action: Action; title: string; slot: string; color: string; submit: string; icon?: "plus" | "pencil"; tags?: { groups: SubcategoryGroup[]; preset: string[] } };
 
-function Pop({ action, title, slot, color, submit, tags, onClose, at, closing }: Omit<Props, "icon"> & { onClose: () => void; at: { top: number; left: number }; closing: boolean }) {
+function Pop({ action, title, slot, color, submit, tags, onClose }: Omit<Props, "icon"> & { onClose: () => void }) {
   const t = useDict();
-  const box = useRef<HTMLDivElement>(null);
   const [state, formAction, pending] = useActionState(action, null);
   useEffect(() => {
     if (state?.ok) onClose();
   }, [state, onClose]);
-  useEffect(() => {
-    const down = (e: PointerEvent) => e.target instanceof Node && !box.current?.contains(e.target) && onClose();
-    const key = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    const scroll = (e: Event) => e.target instanceof Node && !box.current?.contains(e.target) && onClose();
-    window.addEventListener("pointerdown", down);
-    window.addEventListener("keydown", key);
-    window.addEventListener("resize", onClose);
-    window.addEventListener("scroll", scroll, { passive: true, capture: true });
-    return () => {
-      window.removeEventListener("pointerdown", down);
-      window.removeEventListener("keydown", key);
-      window.removeEventListener("resize", onClose);
-      window.removeEventListener("scroll", scroll, { capture: true });
-    };
-  }, [onClose]);
   const err = state && !state.ok ? errorText(t, state.error) : null;
   return (
-    <div
-      ref={box}
-      role="dialog"
-      aria-label={`${title} ${slot}`}
-      className={cn(
-        "fixed z-[80] w-[min(26rem,calc(100vw-1.5rem))] overflow-hidden border border-line bg-coal shadow-[5px_5px_0_0_var(--rose-deep)]",
-        closing ? "slot-pop-out" : "slot-pop-in",
-      )}
-      style={at}
-    >
+    <>
       <span className="absolute inset-x-0 top-0 h-0.5" style={{ background: color }} aria-hidden />
       <div className="flex items-center gap-3 border-b border-line bg-ink/60 px-4 py-3">
         <span className="heading-slam relative isolate px-2 py-0.5 text-xl leading-none" style={{ color: modHi(color) }}>
@@ -83,37 +58,30 @@ function Pop({ action, title, slot, color, submit, tags, onClose, at, closing }:
         )}
       </form>
       {err && <p className="-mt-1.5 px-4 pb-3 text-xs font-display font-bold text-rose-hi">{err}</p>}
-    </div>
+    </>
   );
 }
 
 export function SlotPop({ icon = "plus", ...props }: Props) {
   const btn = useRef<HTMLButtonElement>(null);
-  const [at, setAt] = useState<{ top: number; left: number } | null>(null);
-  const [closing, setClosing] = useState(false);
+  const [at, setAt] = useState(false);
   const [n, setN] = useState(0);
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const close = useCallback(() => {
-    setClosing(true);
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      setAt(null);
-      setClosing(false);
-    }, 140);
-  }, []);
-  useEffect(() => () => clearTimeout(timer.current), []);
+  const close = useCallback(() => setAt(false), []);
   const Icon = icon === "plus" ? Plus : Pencil;
+  const h = props.tags ? 380 : 150;
+
+  const place = useCallback(
+    (r: DOMRect): PopPlace => {
+      const width = Math.min(416, window.innerWidth - 24);
+      const left = Math.max(12, Math.min(window.innerWidth - width - 12, r.right - width));
+      return r.bottom + 8 + h < window.innerHeight ? { left, top: r.bottom + 8, width } : { left, top: r.top - 8, width, up: true };
+    },
+    [h],
+  );
 
   const open = () => {
-    const r = btn.current?.getBoundingClientRect();
-    if (!r) return;
-    const w = Math.min(416, window.innerWidth - 24);
-    const h = props.tags ? 380 : 150;
-    const below = r.bottom + 8 + h < window.innerHeight;
-    clearTimeout(timer.current);
-    setClosing(false);
     setN((x) => x + 1);
-    setAt({ top: below ? r.bottom + 8 : Math.max(12, r.top - 8 - h), left: Math.max(12, Math.min(window.innerWidth - w - 12, r.right - w)) });
+    setAt(true);
   };
 
   return (
@@ -122,37 +90,41 @@ export function SlotPop({ icon = "plus", ...props }: Props) {
         ref={btn}
         type="button"
         onPointerDown={(e) => e.stopPropagation()}
-        onClick={() => (at && !closing ? close() : open())}
+        onClick={() => (at ? close() : open())}
         aria-expanded={!!at}
         aria-label={`${props.title} ${props.slot}`}
         title={props.title}
         className={cn(
           "group relative isolate grid shrink-0 place-items-center transition-[color,transform,translate,scale,rotate] duration-200 hover:-translate-y-0.5",
           "size-10",
-          at ? (closing ? "text-rose-hi" : "text-white") : icon === "plus" ? "text-rose-hi hover:text-white" : "text-ash hover:text-paper",
+          at ? "text-white" : icon === "plus" ? "text-rose-hi hover:text-white" : "text-ash hover:text-paper",
         )}
       >
         <SlantBg
           className={cn(
             "border transition-[background-color,border-color] duration-200",
             at
-              ? closing
-                ? "border-rose/60"
-                : "border-rose bg-rose"
+              ? "border-rose bg-rose"
               : icon === "plus"
                 ? "border-rose/60 group-hover:border-rose group-hover:bg-rose"
                 : "border-line group-hover:border-paper/40",
           )}
         />
-        <Icon
-          className={cn(
-            "size-4 transition-transform duration-200",
-            at && !closing ? (icon === "plus" ? "rotate-45" : "-rotate-12") : icon === "pencil" && "group-hover:-rotate-12",
-          )}
-          strokeWidth={icon === "plus" ? 3 : 2}
-        />
+        <Icon className={cn("col-start-1 row-start-1 size-4 transition-opacity duration-200", icon === "plus" && at && "opacity-0")} strokeWidth={icon === "plus" ? 3 : 2} />
+        {icon === "plus" && <X className={cn("col-start-1 row-start-1 size-4 transition-opacity duration-200", at ? "opacity-100" : "opacity-0")} strokeWidth={3} aria-hidden />}
       </button>
-      {at && createPortal(<Pop key={n} {...props} onClose={close} at={at} closing={closing} />, document.body)}
+      <AnchoredPopup
+        anchor={btn}
+        open={at}
+        onClose={close}
+        place={place}
+        chrome={false}
+        role="dialog"
+        aria-label={`${props.title} ${props.slot}`}
+        className="z-[80] overflow-hidden border border-line bg-coal shadow-[5px_5px_0_0_var(--rose-deep)]"
+      >
+        <Pop key={n} {...props} onClose={close} />
+      </AnchoredPopup>
     </>
   );
 }

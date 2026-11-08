@@ -14,7 +14,8 @@ import { fmtNum } from "@/lib/data";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
-import { createTeam, deleteTeam, seedTeams, generateTeams, placeMember, setBadges, updateTeam } from "./actions";
+import { createTeam, deleteTeam, seedTeams, placeMember, setBadges, updateTeam } from "./actions";
+import { generateTeams } from "./(bgcc6)/actions";
 import { getFormat } from "@/db/edition";
 import { rankBws } from "@/lib/bws";
 import { Dropdown } from "@/components/admin/dropdown";
@@ -187,7 +188,7 @@ export default async function AdminTeams() {
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={p.avatar} alt="" className="size-7 shrink-0 grayscale transition group-has-[:checked]:grayscale-0" />
                             <span className="min-w-0 flex-1 truncate text-sm font-display font-black">{p.username}</span>
-                            <Crown className="size-4 shrink-0 scale-50 fill-current text-gold-hi opacity-0 transition-[opacity,transform,translate,scale,rotate] duration-300 group-has-[:checked]:scale-100 group-has-[:checked]:opacity-100" />
+                            <Crown className="size-4 shrink-0 translate-y-1 fill-current text-gold-hi opacity-0 transition-[opacity,translate] duration-300 group-has-[:checked]:translate-y-0 group-has-[:checked]:opacity-100" />
                           </span>
                         </label>
                       ))}

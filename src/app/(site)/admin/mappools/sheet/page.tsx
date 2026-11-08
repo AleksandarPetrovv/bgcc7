@@ -193,12 +193,12 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                         />
                         {host && s.tie && m.avg === s.items[0].avg && (
                           <IconAction action={pickSuggestion.bind(null, m.id)} label={t.admin.pickThis} confirm={t.admin.confirmPickThis}>
-                            <Check className="size-4 transition-transform group-hover:scale-110" strokeWidth={3} />
+                            <Check className="size-4 transition-transform group-hover:-translate-y-px" strokeWidth={3} />
                           </IconAction>
                         )}
                         {edit && !m.picked && (own || host) ? (
                           <IconAction action={removeSuggestion.bind(null, m.id)} label={t.admin.remove} confirm={t.admin.confirmRemoveSuggestion} danger bare>
-                            <Trash2 className="size-4 transition-transform group-hover:rotate-12" />
+                            <Trash2 className="size-4 transition-transform group-hover:-translate-y-px" />
                           </IconAction>
                         ) : (
                           <span className="size-10" aria-hidden />

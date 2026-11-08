@@ -1,96 +1,73 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AnchoredPopup, type PopPlace } from "@/components/site/anchored-popup";
 import { Hourglass } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import type { Pooler, Voter } from "@/db/pool-sheet";
 import { scoreColor, scoreText } from "@/lib/score-color";
 import { SlantBg } from "@/components/site/slant";
 
-const noop = () => () => {};
 
 export function VotesPop({ label, votes, waiting, avg }: { label: string; votes: Voter[]; waiting: Pooler[]; avg: number | null }) {
   const t = useDict();
   const btn = useRef<HTMLButtonElement>(null);
-  const pop = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const [at, setAt] = useState<{ top: number; left: number; up: boolean } | null>(null);
-  const mounted = useSyncExternalStore(noop, () => true, () => false);
+  const [open, setOpen] = useState(false);
+  const [up, setUp] = useState(false);
 
-  const open = () => {
+  const show = () => {
     clearTimeout(timer.current);
     const r = btn.current?.getBoundingClientRect();
-    if (!r) return;
-    const w = Math.min(416, window.innerWidth - 24);
-    const up = r.top > window.innerHeight / 2;
-    setAt({ top: up ? r.top - 10 : r.bottom + 10, left: Math.max(12, Math.min(window.innerWidth - w - 12, r.right - w)), up });
+    if (r) setUp(r.top > window.innerHeight / 2);
+    setOpen(true);
   };
-  const close = () => {
+  const close = useCallback(() => {
     clearTimeout(timer.current);
-    setAt(null);
-  };
+    setOpen(false);
+  }, []);
   const later = () => {
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setAt(null), 220);
+    timer.current = setTimeout(() => setOpen(false), 220);
   };
   const stay = () => clearTimeout(timer.current);
-
-  useEffect(() => {
-    if (!at) return;
-    const onScroll = (e: Event) => {
-      if (e.target instanceof Node && pop.current?.contains(e.target)) return;
-      setAt(null);
-    };
-    const onDown = (e: PointerEvent) => {
-      if (e.target instanceof Node && (pop.current?.contains(e.target) || btn.current?.contains(e.target))) return;
-      setAt(null);
-    };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setAt(null);
-    window.addEventListener("scroll", onScroll, { passive: true, capture: true });
-    window.addEventListener("resize", close);
-    window.addEventListener("pointerdown", onDown);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("scroll", onScroll, { capture: true });
-      window.removeEventListener("resize", close);
-      window.removeEventListener("pointerdown", onDown);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [at]);
   useEffect(() => () => clearTimeout(timer.current), []);
+
+  const place = useCallback(
+    (r: DOMRect): PopPlace => {
+      const width = Math.min(416, window.innerWidth - 24);
+      return { left: Math.max(12, Math.min(window.innerWidth - width - 12, r.right - width)), top: up ? r.top - 10 : r.bottom + 10, width, up };
+    },
+    [up],
+  );
 
   return (
     <>
       <button
         ref={btn}
         type="button"
-        onPointerEnter={(e) => e.pointerType === "mouse" && open()}
+        onPointerEnter={(e) => e.pointerType === "mouse" && show()}
         onPointerLeave={(e) => e.pointerType === "mouse" && later()}
-        onFocus={open}
-        onClick={() => (at ? close() : open())}
-        aria-expanded={!!at}
+        onFocus={show}
+        onClick={() => (open ? close() : show())}
+        aria-expanded={open}
         className="num block cursor-help border-b border-dashed border-ash/60 text-[0.68rem] font-display font-bold uppercase text-ash transition-colors hover:border-paper hover:text-paper"
       >
         {label}
       </button>
-      {mounted &&
-        createPortal(
-          <AnimatePresence>
-          {at && (
-          <motion.div
-            key="votes"
-            ref={pop}
-            exit={{ opacity: 0, transition: { duration: 0.12 } }}
-            role="dialog"
-            aria-label={t.admin.whoVoted}
-            onPointerEnter={stay}
-            onPointerLeave={(e) => e.pointerType === "mouse" && later()}
-            className="fixed z-[80] w-[min(26rem,calc(100vw-1.5rem))] overscroll-contain"
-            style={{ top: at.top, left: at.left, transform: at.up ? "translateY(-100%)" : undefined }}
-          >
-            <span className={at.up ? "absolute inset-x-0 -bottom-3 h-3" : "absolute inset-x-0 -top-3 h-3"} aria-hidden />
+      <AnchoredPopup
+        anchor={btn}
+        open={open}
+        onClose={close}
+        place={place}
+        chrome={false}
+        role="dialog"
+        aria-label={t.admin.whoVoted}
+        onPointerEnter={stay}
+        onPointerLeave={(e) => e.pointerType === "mouse" && later()}
+        className="z-[80] overscroll-contain"
+      >
+            <span className={up ? "absolute inset-x-0 -bottom-3 h-3" : "absolute inset-x-0 -top-3 h-3"} aria-hidden />
             <div className="vote-pop border border-line bg-coal shadow-[5px_5px_0_0_var(--rose-deep)]">
               <div className="flex items-center justify-between gap-3 border-b border-line bg-ink/60 px-3 py-2">
                 <span className="text-[0.68rem] font-display font-bold text-ash">{t.admin.whoVoted}</span>
@@ -152,11 +129,7 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
                 {votes.length === 0 && waiting.length === 0 && <li className="px-3 py-3 text-sm text-ash">{t.admin.noVotes}</li>}
               </ul>
             </div>
-          </motion.div>
-          )}
-          </AnimatePresence>,
-          document.body,
-        )}
+      </AnchoredPopup>
     </>
   );
 }

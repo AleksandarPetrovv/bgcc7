@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Download, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { PageTitle } from "@/components/site/page-title";
 import { Panel } from "@/components/admin/form";
 import { CopyLink } from "@/components/admin/copy-link";
@@ -9,12 +9,11 @@ import { can } from "@/lib/roles";
 import { userPath } from "@/lib/data";
 import { fill } from "@/lib/dates";
 import { overlayUrl } from "@/lib/links";
-import { cn } from "@/lib/utils";
 import { getFormat } from "@/db/edition";
 import { overlayName } from "@/db/stream";
-import { HelperLink, HelperPoll, UnlinkHelper } from "@/components/admin/link-gate";
+import { HelperLink, HelperPoll, HelperStatus } from "@/components/admin/link-gate";
 import { helperView } from "@/lib/helper-sig";
-import { SlantBg, SlantButton } from "@/components/site/slant";
+import { SlantBg } from "@/components/site/slant";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +22,6 @@ export default async function Overlay() {
   if (!viewer || !can(viewer.roles, "overlay")) notFound();
   const [{ app, online, sig }, name] = await Promise.all([helperView(viewer.osuId), overlayName(viewer.osuId)]);
   const o = t.admin.overlay;
-  const r = t.admin.refApp;
   const url = overlayUrl(userPath(name ?? String(viewer.osuId)));
   let i = 1;
 
@@ -42,18 +40,7 @@ export default async function Overlay() {
           </div>
         </Panel>
         <Panel title={o.helper} i={i++}>
-          <div className="flex flex-wrap items-center gap-4">
-            <span className="flex items-center gap-2.5 text-sm font-display font-bold">
-              <span className={cn("size-2.5 rotate-45", online ? "bg-balkan" : app ? "bg-gold" : "bg-line")} aria-hidden />
-              <span className={online ? "text-paper" : "text-ash"}>{online ? r.online : app ? r.offline : r.none}</span>
-            </span>
-            <span className="ml-auto flex flex-wrap items-center gap-3">
-              <SlantButton href="/download/helper" download tone="rose">
-                <Download className="size-4" /> {r.download}
-              </SlantButton>
-              {app && <UnlinkHelper />}
-            </span>
-          </div>
+          <HelperStatus linked={!!app} online={online} state />
         </Panel>
         <Panel title={o.setup} i={i++}>
           <ol className="grid gap-3">

@@ -2,7 +2,8 @@
 
 import { cn } from "@/lib/utils";
 import { usePollRefresh } from "@/components/site/use-poll-refresh";
-import { Link2, Unlink } from "lucide-react";
+import { Download, Link2, Unlink } from "lucide-react";
+import { SlantButton } from "@/components/site/slant";
 import { helperState, linkHelper, unlinkHelper } from "@/actions/helper-link";
 import { ActionForm, Field, Panel } from "./form";
 import { labelCls } from "./label";
@@ -43,7 +44,29 @@ export function HelperLink({ linked, i }: { linked: boolean; i: number }) {
   );
 }
 
-export function UnlinkHelper() {
+function UnlinkHelper() {
   const r = useDict().admin.refApp;
   return <ActionForm action={unlinkHelper} submit={r.unlink} ghost confirm={r.unlinkAsk} icon={<Unlink className="size-3.5" />} />;
+}
+
+export function HelperStatus({ linked, online, state }: { linked: boolean; online: boolean; state?: boolean }) {
+  const r = useDict().admin.refApp;
+  const actions = (
+    <>
+      <SlantButton href="/download/helper" download tone="rose">
+        <Download className="size-4" /> {r.download}
+      </SlantButton>
+      {linked && <UnlinkHelper />}
+    </>
+  );
+  if (!state) return actions;
+  return (
+    <div className="flex flex-wrap items-center gap-4">
+      <span className="flex items-center gap-2.5 text-sm font-display font-bold">
+        <span className={cn("size-2.5 rotate-45", online ? "bg-balkan" : linked ? "bg-gold" : "bg-line")} aria-hidden />
+        <span className={online ? "text-paper" : "text-ash"}>{online ? r.online : linked ? r.offline : r.none}</span>
+      </span>
+      <span className="ml-auto flex flex-wrap items-center gap-3">{actions}</span>
+    </div>
+  );
 }

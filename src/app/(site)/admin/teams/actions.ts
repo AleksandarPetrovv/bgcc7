@@ -1,48 +1,21 @@
 "use server";
 
 import { and, asc, eq, ne, or } from "drizzle-orm";
-import { db, isBGCC6 } from "@/db";
+import { db } from "@/db";
 import { matches, teamMembers, teams, users } from "@/db/schema";
 import { newTeamId, seedBracket } from "@/db/draw";
-import { getQualResults } from "@/db/qualifiers";
-import { getSettings } from "@/db/settings";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/action-result";
 import { isTestTeam } from "@/lib/format";
 import { playedIds } from "@/db/bracket";
 import { resetPickems } from "@/db/pickems";
 
-const newId = newTeamId;
-
-export async function generateTeams() {
-  return guard("teams", "teams.generate", async () => {
-    if (!isBGCC6()) return { ok: false, error: "invalid" };
-    const [{ players }, settings] = await Promise.all([getQualResults(), getSettings()]);
-    const size = Math.floor(settings.qualifyCount / 3);
-    const top = players.slice(0, size * 3);
-    if (top.length < 6) return { ok: false, error: "invalid" };
-    const n = Math.floor(top.length / 3);
-    await db.transaction(async (tx) => {
-      await tx.update(matches).set({ team1Id: null, team2Id: null, score1: null, score2: null, winner: null, manual: false });
-      await tx.delete(teams);
-      for (let k = 0; k < n; k++) {
-        const picks = [top[k], top[2 * n - 1 - k], top[2 * n + k]].filter(Boolean);
-        const id = newId();
-        await tx.insert(teams).values({ id, name: picks[0].username, seed: k + 1 });
-        for (const [i, p] of picks.entries()) await tx.insert(teamMembers).values({ osuId: p.id, teamId: id, isCaptain: i === 0 });
-      }
-    });
-    await resetPickems();
-    return { log: { teams: n } };
-  });
-}
-
 export async function createTeam(_: ActionResult, fd: FormData) {
   return guard("teams", "team.create", async () => {
     const name = String(fd.get("name") ?? "").trim().slice(0, 40);
     if (!name) return { ok: false, error: "invalid" };
     const all = (await db.select({ id: teams.id, seed: teams.seed }).from(teams)).filter((t) => !isTestTeam(t.id));
-    const id = newId();
+    const id = newTeamId();
     await db.insert(teams).values({ id, name, seed: Math.max(all.length, ...all.map((t) => t.seed)) + 1 });
     await resetPickems();
     return { log: { id, name } };

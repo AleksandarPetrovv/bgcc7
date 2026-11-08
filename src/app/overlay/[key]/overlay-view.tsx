@@ -54,7 +54,8 @@ function OverlaySubscription({ url }: { url: string }) {
 
       setFeed(next);
       expiry.current = setTimeout(() => setFeed((current) => current === next ? { ...current, live: null } : current), remaining);
-    } catch {
+    } catch (e) {
+      console.warn("overlay frame dropped", e);
     }
   });
 

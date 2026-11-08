@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
-import { Download } from "lucide-react";
 import { helperView } from "@/lib/helper-sig";
-import { HelperLink, HelperPoll, UnlinkHelper } from "@/components/admin/link-gate";
+import { HelperLink, HelperPoll, HelperStatus } from "@/components/admin/link-gate";
 import { PageTitle } from "@/components/site/page-title";
 import { Panel } from "@/components/admin/form";
 import { getViewer } from "@/lib/authz";
@@ -12,7 +11,7 @@ import { Cascade } from "@/components/site/cascade";
 import { getLang } from "@/lib/i18n/server";
 import { fmtSofia } from "@/lib/time";
 import { localeOf } from "@/lib/i18n/locale";
-import { SlantBg, SlantButton } from "@/components/site/slant";
+import { SlantBg } from "@/components/site/slant";
 
 export const dynamic = "force-dynamic";
 
@@ -39,14 +38,7 @@ export default async function HelperPage() {
         <Panel
           title={t.admin.menu.helper}
           i={2}
-          aside={
-            <>
-              <SlantButton href="/download/helper" download tone="rose">
-                <Download className="size-4" /> {r.download}
-              </SlantButton>
-              {app && <UnlinkHelper />}
-            </>
-          }
+          aside={<HelperStatus linked={!!app} online={online} />}
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <div data-cascade className={tile}>

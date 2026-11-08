@@ -1,14 +1,15 @@
 "use client";
 
-import { useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, Reorder, useDragControls } from "motion/react";
 import { ChevronDown, GripVertical, Star, Minus, Plus, Trash2, X } from "lucide-react";
 import { useDict } from "@/components/site/lang";
-import { selectedSubcategories, subcategoryNames, newId, PLAN_MODS, roundStats, sortMaps, type PlanCat, type PlanMod, type PlanRound } from "@/lib/format-plan";
+import { selectedSubcategories, subcategoryNames, newId, MAX_BANS, PLAN_MODS, roundStats, sortMaps, type PlanCat, type PlanMod, type PlanRound } from "@/lib/format-plan";
 import { cn, cssVars } from "@/lib/utils";
 import { modHi, modOn } from "@/lib/theme";
 import { RuleDiamond } from "@/components/site/rule";
 import { SlantBg } from "@/components/site/slant";
+import { AnchoredPopup, type PopPlace } from "@/components/site/anchored-popup";
 import { Catalog, Edit, Intro, useFresh, useIntroWindow } from "./format-context";
 import { roundName } from "@/lib/i18n/dict";
 
@@ -163,30 +164,24 @@ function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "
   const t = useDict();
   const edit = useContext(Edit);
   const [open, setOpen] = useState(false);
-  const box = useRef<HTMLSpanElement>(null);
+  const btn = useRef<HTMLButtonElement>(null);
   const c = COLOR[mod];
   const groups = useContext(Catalog);
   const [query, setQuery] = useState("");
-  const [popupLeft, setPopupLeft] = useState(0);
   const names = subcategoryNames(groups, ids);
   const fresh = useFresh();
-  useEffect(() => {
-    if (!open) return;
-    const down = (e: PointerEvent) => e.target instanceof Node && !box.current?.contains(e.target) && setOpen(false);
-    const key = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    window.addEventListener("pointerdown", down);
-    window.addEventListener("keydown", key);
-    return () => {
-      window.removeEventListener("pointerdown", down);
-      window.removeEventListener("keydown", key);
-    };
-  }, [open]);
+  const close = useCallback(() => setOpen(false), []);
+  const place = useCallback((r: DOMRect): PopPlace => {
+    const width = Math.min(288, window.innerWidth - 24);
+    return { left: Math.max(12, Math.min(window.innerWidth - width - 12, r.left)), top: r.bottom + 8, width };
+  }, []);
 
   return (
-    <motion.span ref={box} layout data-cascade={fresh || undefined} initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }} transition={{ type: "spring", stiffness: 520, damping: 34 }} className={cn("relative inline-flex min-w-0 max-w-full basis-[calc(50%-0.1875rem)] sm:basis-auto", fresh && "in-pop", open && "z-30")}>
+    <motion.span layout data-cascade={fresh || undefined} initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }} transition={{ type: "spring", stiffness: 520, damping: 34 }} className={cn("relative inline-flex min-w-0 max-w-full basis-[calc(50%-0.1875rem)] sm:basis-auto", fresh && "in-pop")}>
       <button
+        ref={btn}
         type="button"
-        onClick={(e) => { setPopupLeft(Math.min(0, window.innerWidth - e.currentTarget.getBoundingClientRect().left - 304)); setOpen((o) => !o); }}
+        onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         className="relative isolate flex min-h-16 w-full max-w-full sm:w-40 flex-col items-start justify-start gap-0.5 px-2.5 py-1.5 text-left sm:px-3"
       >
@@ -196,18 +191,16 @@ function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "
         </span>
         <span className="flex w-full min-w-0 flex-col text-[0.66rem] font-display sm:text-[0.72rem] font-semibold leading-snug text-paper/85">{names.length ? names.map((name, i) => <span key={i} className="truncate">{name}</span>) : <span className="text-ash/50">—</span>}</span>
       </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -4, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.97 }}
-            transition={{ duration: 0.14 }}
-            style={{ left: popupLeft }}
-            role="dialog"
-            aria-label={title}
-            className="absolute top-full z-30 mt-2 w-72 origin-top-left border border-line bg-coal shadow-[5px_5px_0_0_var(--rose-deep)]"
-          >
+      <AnchoredPopup
+        anchor={btn}
+        open={open}
+        onClose={close}
+        place={place}
+        chrome={false}
+        role="dialog"
+        aria-label={title}
+        className="z-[70] border border-line bg-coal shadow-[5px_5px_0_0_var(--rose-deep)]"
+      >
             <span className="absolute inset-x-0 top-0 h-0.5" style={{ background: c }} aria-hidden />
             <div className="flex items-center gap-2 border-b border-line bg-ink/60 px-3 py-2">
               {edit && onMod && mod !== "FM" ? (
@@ -248,9 +241,7 @@ function Tile({ mod, ids, title, onSelect, onMod, onRemove }: { mod: PlanMod | "
                 </button>
               </div>
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </AnchoredPopup>
     </motion.span>
   );
 }
@@ -333,7 +324,7 @@ export function RoundCard({ r, onChange, prev }: { r: PlanRound; onChange: (r: P
         </div>
         <div data-cascade className="in-drop flex items-center gap-2 text-[0.65rem] font-display font-bold text-ash">
           {t.admin.fp.bans}
-          <Stepper value={r.bans} min={0} max={6} onChange={(n) => onChange({ ...r, bans: n })} label={t.admin.fp.bans} />
+          <Stepper value={r.bans} min={0} max={MAX_BANS} onChange={(n) => onChange({ ...r, bans: n })} label={t.admin.fp.bans} />
         </div>
         <div data-cascade className="in-drop flex items-center gap-2 text-[0.65rem] font-display font-bold text-ash">
           {t.admin.fp.targetSr}

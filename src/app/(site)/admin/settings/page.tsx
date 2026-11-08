@@ -15,6 +15,7 @@ import { setQualify, setRounds } from "./(bgcc6)/actions";
 import { isBGCC6 } from "@/db";
 import { cssVars } from "@/lib/utils";
 import { bestOf, isBracketStage } from "@/lib/format";
+import { MAX_BANS } from "@/lib/format-plan";
 
 
 export default async function AdminSettings() {
@@ -45,7 +46,7 @@ export default async function AdminSettings() {
               <div className="flex flex-wrap items-end justify-center gap-5">
                 <label className={labelCls}>
                   {t.admin.set.bans}
-                  <Field type="number" name="bans" min={0} max={4} defaultValue={s.bans} className="num w-20 text-lg" />
+                  <Field type="number" name="bans" min={0} max={MAX_BANS} defaultValue={s.bans} className="num w-20 text-lg" />
                 </label>
                 {(
                   [

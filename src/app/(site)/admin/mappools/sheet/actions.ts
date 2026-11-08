@@ -4,10 +4,10 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { poolSuggestions, poolVotes } from "@/db/schema";
 import { resolveSlot, slotPicked } from "@/db/pool-sheet";
-import { slotInBlueprint } from "@/db/mappools";
+import { slotBeatmapId } from "@/db/mappools";
 import { guard } from "@/lib/admin-action";
 import { log } from "@/lib/authz";
-import { fetchMap, parseBeatmapId } from "@/lib/fetch-map";
+import { fetchMap } from "@/lib/fetch-map";
 import { can } from "@/lib/roles";
 import type { ActionResult } from "@/lib/action-result";
 import { getPlan } from "@/db/format-plan";
@@ -19,8 +19,8 @@ async function settle(osuId: number, stageId: number, mod: string, slot: number,
 
 export async function suggestMap(stageId: number, mod: string, slot: number, _: ActionResult, fd: FormData) {
   return guard("poolEdit", "pool.suggest", async ({ osuId }) => {
-    const beatmapId = parseBeatmapId(fd.get("beatmap"));
-    if (!Number.isInteger(beatmapId) || beatmapId <= 0 || !(await slotInBlueprint(stageId, mod, slot))) return { ok: false, error: "invalid" };
+    const beatmapId = await slotBeatmapId(stageId, mod, slot, fd.get("beatmap"));
+    if (!beatmapId) return { ok: false, error: "invalid" };
     if (await slotPicked(stageId, mod, slot)) return { ok: false, error: "taken" };
     const [dupe] = await db
       .select({ id: poolSuggestions.id })

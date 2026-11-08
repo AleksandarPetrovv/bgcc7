@@ -50,7 +50,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ key: str
         clear(id);
         return feed;
       } catch (e) {
-        if (failingFor(id, FAILING_AFTER)) await overlayFailing(id, matchId, e).catch(() => {});
+        if (failingFor(id, FAILING_AFTER)) await overlayFailing(id, matchId, e).catch((err) => console.error("overlayFailing alert failed", err));
         throw e;
       }
     },
@@ -63,6 +63,6 @@ async function overlayFailing(id: string, matchId: string | null, e: unknown) {
   const [m] = matchId ? await db.select({ streamer: matches.streamer }).from(matches).where(eq(matches.id, matchId)).limit(1) : [];
   raise(
     { id, kind: "overlayFailing", level: "gold", match: matchId ? await describeMatch(matchId) : undefined, href: "/admin/stream", detail: e instanceof Error ? e.message : String(e) },
-    { hosts: true, osuIds: await staffIds(m?.streamer) },
+    { hosts: true, osuIds: await staffIds(m?.streamer).catch(() => []) },
   );
 }

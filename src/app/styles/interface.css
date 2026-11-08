@@ -211,13 +211,9 @@ label:not(:has(input[type="checkbox"], input[type="radio"])) > * { pointer-event
 
 @keyframes vote-pop-in { from { opacity: 0; transform: translateY(4px); } }
 .vote-pop { animation: vote-pop-in 0.16s ease-out; }
-@keyframes slot-pop-out { to { opacity: 0; transform: translateY(6px) scale(0.98); } }
-.slot-pop-out { animation: slot-pop-out 0.14s ease-in forwards; pointer-events: none; }
 @keyframes vote-row-in { from { opacity: 0; transform: translateX(-6px); } }
 .vote-pop-row { animation: vote-row-in 0.22s ease-out backwards; animation-delay: calc(var(--i, 0) * 0.03s); }
-@keyframes slot-pop-in { from { opacity: 0; transform: translateY(10px) scale(0.98); } }
-.slot-pop-in { animation: slot-pop-in 0.32s var(--ease); }
-@media (prefers-reduced-motion: reduce) { .vote-pop, .vote-pop-row, .slot-pop-in, .slot-pop-out { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .vote-pop, .vote-pop-row { animation: none; } }
 
 
 .me-tag, .me-corner { display: none; }

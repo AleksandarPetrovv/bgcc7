@@ -7,7 +7,7 @@ import type { ReadableStream as WebStream } from "node:stream/web";
 import { eq } from "drizzle-orm";
 import { currentEdition, db } from "@/db";
 import { stages } from "@/db/schema";
-import { clearPack } from "@/db/mappools";
+import { clearPack, setPack } from "@/db/mappools";
 import { staffFor } from "@/lib/authz";
 import { logWrite } from "@/lib/admin-action";
 import { PACK_MAX, packPath } from "@/lib/uploads";
@@ -46,9 +46,10 @@ export async function PUT(req: Request, { params }: RouteContext<"/api/admin/map
   } catch (e) {
     await rm(tmp, { force: true });
     const msg = e instanceof Error ? e.message : "";
+    if (msg !== "tooBig" && msg !== "notZip") console.error("mappack upload failed", e);
     return Response.json({ error: msg === "tooBig" ? "tooBig" : msg === "notZip" ? "notZip" : "failed" }, { status: 400 });
   }
-  await db.update(stages).set({ packSize: size, packAt: new Date() }).where(eq(stages.id, stage.id));
+  await setPack(stage.id, size);
   await logWrite(who.osuId, "pack.upload", { stage: stage.title, size });
   return Response.json({ ok: true, size });
 }
