@@ -41,13 +41,13 @@ export async function draftAccess(matchId: string) {
   if (!m) return null;
   const staff = can(v.roles, "matches");
   const { refs, onSite } = await siteRun(m);
-  const admin = staff && refs.includes(v.osuId);
+  const host = v.roles.includes("host");
+  // hosts run every lobby and draft, refs only the ones they're named on
+  const admin = staff && (host || refs.includes(v.osuId));
   const [mem] = await db.select({ teamId: teamMembers.teamId, isCaptain: teamMembers.isCaptain }).from(teamMembers).where(eq(teamMembers.osuId, v.osuId)).limit(1);
   const team: Side | null = mem && mem.teamId === m.team1Id ? 1 : mem && mem.teamId === m.team2Id ? 2 : null;
   const side = team && mem?.isCaptain ? team : null;
   if (!staff && !(team && onSite)) return null;
-  const streams = !!v.roles?.includes("host") || (!!v.roles?.includes("referee") && !!v.roles?.includes("streamer"));
-  // hosts answer timeout requests too, not only the assigned ref
-  const runs = admin || !!v.roles?.includes("host");
-  return { osuId: v.osuId, admin, runs, staff, streams, side, team, match: m };
+  const streams = host || (v.roles.includes("referee") && v.roles.includes("streamer"));
+  return { osuId: v.osuId, admin, staff, streams, side, team, match: m };
 }

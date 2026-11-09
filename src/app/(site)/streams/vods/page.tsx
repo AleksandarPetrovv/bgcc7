@@ -16,7 +16,7 @@ export default async function Vods() {
   const [t, matches, teams, stages] = await Promise.all([getDict(), getMatches(), getTeams(), getPoolStages()]);
   const teamById = (id: string) => teams.find((x) => x.id === id);
   const played = matches.filter((m) => m.winner && m.vodUrl);
-  const covers = stages.flatMap((s) => s.pools.flatMap((p) => p.maps.map((m) => m.cover)));
+  const covers = stages.filter((s) => s.released).flatMap((s) => s.pools.flatMap((p) => p.maps.map((m) => m.cover)));
   return (
     <Container plain>
       <PageTitle mark="camera">{t.streams.vods}</PageTitle>

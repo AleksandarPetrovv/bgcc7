@@ -28,7 +28,7 @@ function runAction(action: () => Promise<{ ok: boolean } | null>) {
   });
 }
 
-export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }) {
+export function FormatEditor({ initial }: { initial: Plan }) {
   const t = useDict();
   const [plan, setPlan] = useState(initial);
   const [ws, setWriteState] = useState<WriteState>({ status: "idle", resetting: false });
@@ -53,9 +53,7 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
     onPlan: setPlan,
     onState: setWriteState,
   }));
-  const change = (update: (current: Plan) => Plan) => {
-    if (edit) writer.change(update);
-  };
+  const change = (update: (current: Plan) => Plan) => writer.change(update);
   const setRound = (k: number, r: PlanRound) => change((p) => ({ ...p, rounds: p.rounds.map((x, j) => (j === k ? r : x)) }));
 
   useEffect(() => {
@@ -64,22 +62,21 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
   }, [writer]);
 
   useEffect(() => {
-    if (!edit) return;
     const warn = (e: BeforeUnloadEvent) => {
       if (writer.dirty) e.preventDefault();
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [edit, writer]);
+  }, [writer]);
 
   const [ask, dialog] = useConfirm();
   const reset = () => {
-    if (!edit || resetting) return;
+    if (resetting) return;
     ask({ text: t.admin.fp.confirmReset, yes: t.admin.fp.reset, onYes: () => writer.reset() });
   };
 
   return (
-    <Edit.Provider value={edit && !resetting}>
+    <Edit.Provider value={!resetting}>
       <Catalog.Provider value={plan.subcategories}>
       <div className="space-y-6 pb-24" aria-busy={resetting}>
         <Tabs
@@ -104,32 +101,30 @@ export function FormatEditor({ initial, edit }: { initial: Plan; edit: boolean }
           <SubcategoryEditor groups={plan.subcategories} onChange={(subcategories) => change((p) => ({ ...p, subcategories }))} />
         </div>
 
-        {edit && (
-          <div className="fixed inset-x-4 bottom-4 z-40 flex justify-end gap-3 sm:inset-x-auto sm:right-6">
-            <AnimatePresence mode="wait">
-              {status !== "idle" && staleFor !== ws && (
-                <motion.span
-                  key={status}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.15 }}
-                  className={cn("flex items-center gap-2 self-center text-xs font-display font-bold", status === "saved" ? "text-balkan-hi" : status === "err" ? "text-rose-hi" : "text-ash")}
-                >
-                  {status === "saving" ? t.admin.saving : status === "saved" ? t.admin.saved : t.admin.error}
-                  {status === "err" && (
-                    <button type="button" onClick={() => writer.retry()} className="underline underline-offset-2 hover:text-paper">
-                      {t.error.retry}
-                    </button>
-                  )}
-                </motion.span>
-              )}
-            </AnimatePresence>
-            <Btn type="button" tone="outline" onClick={reset} disabled={resetting} fill="bg-ink">
-              <RotateCcw className="size-3.5" /> {t.admin.fp.reset}
-            </Btn>
-          </div>
-        )}
+        <div className="fixed inset-x-4 bottom-4 z-40 flex justify-end gap-3 sm:inset-x-auto sm:right-6">
+          <AnimatePresence mode="wait">
+            {status !== "idle" && staleFor !== ws && (
+              <motion.span
+                key={status}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.15 }}
+                className={cn("flex items-center gap-2 self-center text-xs font-display font-bold", status === "saved" ? "text-balkan-hi" : status === "err" ? "text-rose-hi" : "text-ash")}
+              >
+                {status === "saving" ? t.admin.saving : status === "saved" ? t.admin.saved : t.admin.error}
+                {status === "err" && (
+                  <button type="button" onClick={() => writer.retry()} className="underline underline-offset-2 hover:text-paper">
+                    {t.error.retry}
+                  </button>
+                )}
+              </motion.span>
+            )}
+          </AnimatePresence>
+          <Btn type="button" tone="outline" onClick={reset} disabled={resetting} fill="bg-ink">
+            <RotateCcw className="size-3.5" /> {t.admin.fp.reset}
+          </Btn>
+        </div>
         {dialog}
       </div>
       </Catalog.Provider>

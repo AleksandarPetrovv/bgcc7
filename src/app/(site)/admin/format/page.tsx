@@ -10,11 +10,11 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminFormat() {
   const [t, viewer, plan] = await Promise.all([getDict(), getViewer(), getPlan()]);
-  if (!can(viewer?.roles, "format")) notFound();
+  if (!can(viewer?.roles, "host")) notFound();
   return (
     <>
       <PageTitle mark="plan">{t.admin.menu.format}</PageTitle>
-      <FormatEditor initial={plan} edit={can(viewer?.roles, "formatEdit")} />
+      <FormatEditor initial={plan} />
     </>
   );
 }

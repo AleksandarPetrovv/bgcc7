@@ -10,6 +10,7 @@ import { matchIdFromSlug } from "@/lib/format";
 import { DraftRoom } from "./draft-room";
 import { roundName } from "@/lib/i18n/dict";
 import { draftAccess } from "@/lib/match-access";
+import { poolOpen } from "@/lib/authz";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,7 @@ export default async function DraftPage({ params }: PageProps<"/matches/[slug]">
   if (!access || !draft || (!draft.open && !access.staff)) notFound();
   const [t, teams, stages, skills, all] = await Promise.all([getDict(), getAllTeams(), getPoolStages(), getSkillLayouts(), getAllMatches()]);
   const live = stages.find((s) => s.slug === draft.stageSlug);
-  if (!live) notFound();
+  if (!live || !(await poolOpen(live.released))) notFound();
   const frozen = new Map((await rulesOf(id, draft.stageSlug)).maps.map((m) => [m.slot, m]));
   const stage = { ...live, pools: live.pools.map((p) => ({ ...p, maps: p.maps.map((m) => frozen.get(m.slot) ?? m) })) };
   const side = (tid: string | null) => {
@@ -46,7 +47,7 @@ export default async function DraftPage({ params }: PageProps<"/matches/[slug]">
       title={stage.slug === (access.match.poolSlug ?? access.match.stageSlug) ? round : `${round} · ${roundName(t, stage.title)}`}
       firstTo={firstTo}
       admin={access.admin}
-      runs={access.runs}
+      runs={access.admin}
       streams={access.streams}
       side={access.side}
       canSay={access.admin || !!access.team}

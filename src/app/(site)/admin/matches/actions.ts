@@ -57,6 +57,8 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     const rawStartsAt = String(fd.get("startsAt") ?? "").trim();
     const startsAt = fromSofiaInput(rawStartsAt);
     if (rawStartsAt && !startsAt) return { ok: false, error: "invalid" };
+    // only hosts assign refs, streamers and commentators
+    const host = roles.includes("host");
     const base = {
       team1Id: manual || !f.feed[id] ? team("team1Id") : m.team1Id,
       team2Id: manual || !f.feed[id] ? team("team2Id") : m.team2Id,
@@ -64,10 +66,9 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
       score2,
       winner,
       mpLinks,
-      // only hosts assign refs
-      referee: roles.includes("host") ? text(fd, "referee") : m.referee,
-      streamer: text(fd, "streamer"),
-      commentators: text(fd, "commentators"),
+      referee: host ? text(fd, "referee") : m.referee,
+      streamer: host ? text(fd, "streamer") : m.streamer,
+      commentators: host ? text(fd, "commentators") : m.commentators,
       vodUrl,
       manual,
       poolSlug,

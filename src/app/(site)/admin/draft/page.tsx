@@ -6,37 +6,39 @@ import { drafts } from "@/db/schema";
 import { timers, toView } from "@/db/drafts";
 import { getPoolStages, poolMaps } from "@/db/mappools";
 import { getAllMatchRows, getAllTeams } from "@/db/tournament";
-import { getViewer } from "@/lib/authz";
+import { refScope } from "@/lib/match-access";
 import { pickableSlots, turnOf } from "@/lib/draft";
 import { getDict, getLang } from "@/lib/i18n/server";
-import { can } from "@/lib/roles";
 import { fmtSofia } from "@/lib/time";
 import { DraftAdmin, type DraftRow } from "./draft-admin";
 import { localeOf } from "@/lib/i18n/locale";
 import { roundName } from "@/lib/i18n/dict";
+import { getFormat } from "@/db/edition";
 import { isBracketStage } from "@/lib/format";
+import { matchLabel } from "@/lib/matches";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDraft() {
-  const [t, lang, viewer, rows, teams, stages, all] = await Promise.all([
+  const [t, lang, scope, rows, teams, stages, all] = await Promise.all([
     getDict(),
     getLang(),
-    getViewer(),
+    refScope(),
     getAllMatchRows(),
     getAllTeams(),
     getPoolStages(),
     db.select().from(drafts),
   ]);
   const cfg = await timers();
-  if (!can(viewer?.roles, "matches")) notFound();
+  if (!scope) notFound();
   const locale = localeOf(lang);
+  const f = getFormat();
   const team = (id: string | null) => teams.find((x) => x.id === id);
-  const pools = stages.filter((s) => isBracketStage(s.slug) && s.pools.length);
+  const pools = stages.filter((s) => isBracketStage(s.slug) && s.released && s.pools.length);
 
   const time = (d: Date | null) => d?.getTime() ?? Infinity;
   const live = rows
-    .filter((m) => m.team1Id && m.team2Id && (!m.winner || all.some((d) => d.matchId === m.id && d.open)))
+    .filter((m) => scope.runs(m.referee) && m.team1Id && m.team2Id && (!m.winner || all.some((d) => d.matchId === m.id && d.open)))
     .sort((a, b) => time(a.startsAt) - time(b.startsAt) || a.order - b.order);
   const list: DraftRow[] = live.map((m) => {
     const raw = all.find((d) => d.matchId === m.id);
@@ -47,7 +49,7 @@ export default async function AdminDraft() {
     return {
       id: m.id,
       slug: m.id,
-      round: roundName(t, m.round),
+      round: matchLabel(f, t, m.id),
       stage: m.poolSlug ?? m.stageSlug,
       when: m.startsAt ? fmtSofia(m.startsAt, locale) : null,
       teams: [a ? { name: a.name, image: a.image } : null, b ? { name: b.name, image: b.image } : null],

@@ -13,7 +13,7 @@ import type { ActionName } from "./action-names";
 
 export type Viewer = { osuId: number; roles: Role[] };
 
-async function readRoles(osuId: number) {
+export async function readRoles(osuId: number) {
   const [row] = await db.select({ roles: staff.permRoles }).from(staff).where(eq(staff.osuId, osuId)).limit(1);
   return cleanRoles(row?.roles ?? []);
 }
@@ -59,8 +59,17 @@ export const getVisibility = cache(async () => {
   const [s, v] = await Promise.all([getSettings(), getViewer()]);
   const off = getFormat().sectionsOff;
   const sections = Object.fromEntries(Object.entries(s.sections).map(([k, on]) => [k, on && !off.includes(k)])) as typeof s.sections;
-  return { sections, staff: hasAdmin(v?.roles), off };
+  return { sections, staff: hasAdmin(v?.roles), pools: can(v?.roles, "poolEdit"), off };
 });
+
+/** unreleased pools and packs are for hosts and mappoolers only */
+export const poolOpen = async (released: boolean) => released || (await getVisibility()).pools;
+
+/** a pool on the public mappool page and its pack download */
+export async function poolListed(released: boolean) {
+  const { sections, staff, pools } = await getVisibility();
+  return pools || (released && (staff || sections.mappool));
+}
 
 export async function requireSection(section: Section) {
   const { sections, staff, off } = await getVisibility();

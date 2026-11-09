@@ -13,7 +13,7 @@ import { guard, unchanged } from "@/lib/admin-action";
 export async function openDraft(matchId: string, stageSlug: string) {
   return guard("matches", "draft.open", async () => {
     const [m] = await db.select().from(matches).where(eq(matches.id, matchId)).limit(1);
-    const stage = (await getPoolStages()).find((s) => s.slug === stageSlug && s.pools.length);
+    const stage = (await getPoolStages()).find((s) => s.slug === stageSlug && s.released && s.pools.length);
     if (!m || !stage) return { ok: false, error: "invalid" };
     const [cur] = await db.select().from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
     const fresh = await freshDraft(stageSlug);

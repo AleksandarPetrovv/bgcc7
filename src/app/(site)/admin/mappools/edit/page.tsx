@@ -106,12 +106,12 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
               simple
               stages={[{ slug: stage.slug, title: stage.title, pack: stage.pack }]}
               locale={localeOf(lang)}
-              lead={<ReleaseToggle key={`${stage.id}-${stage.released}`} stageId={stage.id} released={stage.released} className="w-full justify-center" />}
+              lead={<ReleaseToggle key={`${stage.id}-${stage.released}`} stageId={stage.id} released={stage.released} disabled={!host} className="w-full justify-center" />}
             />
           </div>
         </Panel>
       ) : (
-        stage.pack && (
+        stage.pack && stage.released && (
           <a
             href={`/download/${stage.slug}?v=${stage.pack.at ?? stage.pack.size}`}
             download

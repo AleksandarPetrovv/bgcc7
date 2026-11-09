@@ -21,7 +21,7 @@ export async function renameStage(id: number, _: ActionResult, fd: FormData) {
 }
 
 export async function setReleased(id: number, poolReleased: boolean) {
-  return guard("poolEdit", "stage.update", async () => {
+  return guard("host", "stage.update", async () => {
     await db.update(stages).set({ poolReleased: !!poolReleased }).where(eq(stages.id, id));
     if (poolReleased) later("pool", () => postPool(id));
     return { log: { id, poolReleased: !!poolReleased } };

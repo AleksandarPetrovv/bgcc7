@@ -20,7 +20,7 @@ const SECTIONS = [
   { key: "log", perm: ["log"] },
   { key: "settings", perm: ["settings"] },
   { key: "discord", perm: ["discord"] },
-  { key: "format", perm: ["format"] },
+  { key: "format", perm: ["host"] },
 ] as const satisfies readonly { key: string; perm: readonly Perm[]; bgcc6?: boolean; bgcc7?: boolean }[];
 
 export type AdminKey = (typeof SECTIONS)[number]["key"];
