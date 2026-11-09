@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion } from "motion/react";
+import { animate, motion, useMotionValue, useTransform } from "motion/react";
 import { ChevronRight, Crown } from "lucide-react";
 import type { Match } from "@/lib/data";
 import { TWITCH_URL } from "@/lib/links";
@@ -102,7 +102,7 @@ function Box({ id, m, live, slim, moved = [], quiet, out, className, style, onEn
           !m.datetime && !m.winner && !(m.team1.id && m.team2.id) && <span className={cn("truncate whitespace-nowrap text-[12.5px]", isGfId(id) ? "font-display font-bold text-gold-hi" : "num text-paper/75")}>{roundName(t, m.round)}{num ? `, ${t.nav.match} ${num}` : ""}</span>
         )}
         <span className="ml-auto flex items-center gap-1">
-          {live !== undefined && <LiveDot />}
+          {eyes && live !== undefined && <LiveDot />}
           {eyes && m.links.length > 0 && hasResults(m) && <MatchDialog match={m} compact />}
         </span>
       </div>
@@ -126,7 +126,8 @@ function LiveDot() {
 export function MatchBracket({ live = {} }: { live?: Record<string, [number, number] | null> }) {
   const t = useDict();
   const { matches: real, format, teamById } = useTournament();
-  const { maxH, reset, current, reveal } = useBracketOptions();
+  const { maxH, reset: forceReset, current, reveal } = useBracketOptions();
+  const reset = forceReset ?? real.find((m) => m.id === GF)?.winner === 2;
   const [play, setPlay] = useState<Play | null>(() => (reveal?.length ? { id: reveal[0], scored: false, loser: false, zoom: false, landed: [], flying: [] } : null));
   // lines a flight landed on ("matchId:slot"): they never replay their intro, also after later cases and the end
   const [kept, setKept] = useState<string[]>([]);
@@ -239,6 +240,17 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
     const clamp = (v: number, lo: number) => Math.min(0, Math.max(lo, v));
     return { scale: z, x: clamp(width / 2 - ((x0 + x1) / 2) * z, width - width * z), y: clamp(height / 2 - ((y0 + y1) / 2) * z, height - height * z) };
   })();
+  // the zoom uses css zoom, not a scale transform: safari draws a scaled layer as a stretched bitmap (blurry) once anything inside it animates
+  const zoomZ = useMotionValue(1);
+  const zoomX = useMotionValue(0);
+  const zoomY = useMotionValue(0);
+  const zoomLeft = useTransform(() => zoomX.get() / zoomZ.get());
+  const zoomTop = useTransform(() => zoomY.get() / zoomZ.get());
+  useEffect(() => {
+    const o = { duration: ZOOM_S, ease: EASE_IO };
+    const runs = [animate(zoomZ, zoom.scale, o), animate(zoomX, zoom.x, o), animate(zoomY, zoom.y, o)];
+    return () => runs.forEach((r) => r.stop());
+  }, [zoom.scale, zoom.x, zoom.y, zoomZ, zoomX, zoomY]);
   const fitW = shrink < 1 ? shrink : upscale(seen, width);
   const scale = maxH ? Math.min(fitW, maxH / height) : fitW;
   const fit = fitBox(width, height, scale);
@@ -271,7 +283,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
     <div ref={box} onScroll={onScroll} className="snap-x snap-mandatory overflow-x-auto overflow-y-hidden pb-4 md:snap-none">
       <div className="mx-auto mt-4" style={fit.outer}>
       <div ref={inner} className={cn("relative [--spacing:4px] [--text-xs:12px] [--text-base:16px] [--text-xl:20px] [--text-3xl:30px]", scale === 1 && "mx-auto", reveal && "overflow-hidden")} style={fit.inner}>
-      <motion.div className="absolute inset-0" style={{ originX: 0, originY: 0 }} initial={false} animate={zoom} transition={{ duration: ZOOM_S, ease: EASE_IO }}>
+      <motion.div className="absolute" style={{ width, height, zoom: zoomZ, left: zoomLeft, top: zoomTop }}>
         <svg className="pointer-events-none absolute inset-0 overflow-visible" width={width} height={height} aria-hidden>
           {Object.entries(WIN).map(([a, b]) => {
             const done = !!byId.get(a)?.winner;
@@ -361,14 +373,15 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
             if (!team) return null;
             const x0 = col(POS[playing.id][0]);
             const y0 = lineY(playing.id, v.from);
-            // lands exactly on the line it becomes, which then shows without an intro
+            // lands exactly on the line it becomes, which then shows without an intro.
+            // moves by left/top, not transform: a transformed child makes safari flatten the zoomed bracket into a stretched, blurry bitmap
             return (
               <motion.div
                 key={v.to + v.slot}
                 className="pointer-events-none absolute z-20 flex items-center gap-1.5 pl-2 pr-2.5"
-                style={{ left: x0, top: y0, width: W, height: lineH }}
-                initial={{ x: 0, y: 0 }}
-                animate={{ x: col(POS[v.to][0]) - x0, y: lineY(v.to, v.slot) - y0 }}
+                style={{ width: W, height: lineH }}
+                initial={{ left: x0, top: y0 }}
+                animate={{ left: col(POS[v.to][0]), top: lineY(v.to, v.slot) }}
                 transition={{ duration: FLY_S, ease: EASE_IO }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}

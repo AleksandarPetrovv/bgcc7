@@ -72,7 +72,9 @@ export function BracketScene({ feed }: { feed: OverlayFeed }) {
   // a finished match plays its result: shown unplayed first, then its teams move on (or out)
   const reveal = demo ? [DEMO_MATCH, DEMO_WINNERS] : feed.match.winner !== null ? [id] : undefined;
   // the reset only matters on a grand final once the losers-side team (slot 2) has taken the first set
-  const reset = id === GF_RESET || (id === GF &&score[1] >= firstTo);
+  const reset = id === GF_RESET || (id === GF && score[1] >= firstTo);
+  // switched to mid-match: the gold box already holds the running score, no animation
+  const live = !reveal && score[0] + score[1] > 0 ? { [id]: score } : undefined;
   return (
     <div className="absolute inset-0 overflow-hidden text-paper">
       <Backdrop num={editionNum(feed)} tint="var(--white)" />
@@ -85,7 +87,7 @@ export function BracketScene({ feed }: { feed: OverlayFeed }) {
                 <MatchBracket />
               </TournamentProvider>
             ) : (
-              <MatchBracket />
+              <MatchBracket live={live} />
             )}
           </BracketOptions>
         </ResultsEye>
