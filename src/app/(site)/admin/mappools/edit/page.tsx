@@ -111,7 +111,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
           </div>
         </Panel>
       ) : (
-        stage.pack && stage.released && (
+        stage.pack && (
           <a
             href={`/download/${stage.slug}?v=${stage.pack.at ?? stage.pack.size}`}
             download

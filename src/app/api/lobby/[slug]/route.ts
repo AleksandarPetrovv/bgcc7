@@ -9,6 +9,7 @@ import type { ActionName } from "@/lib/action-names";
 export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ slug: string }> };
+const RECHECK = 3000;
 
 // live lobbies are keyed by bare match id and only exist for the site edition; bgcc6 shares those ids
 const otherEdition = () => (currentEdition() !== siteEdition() ? Response.json({ error: "notFound" }, { status: 404 }) : null);
@@ -16,13 +17,21 @@ const otherEdition = () => (currentEdition() !== siteEdition() ? Response.json({
 export async function GET(req: Request, ctx: Ctx) {
   const off = otherEdition();
   if (off) return off;
-  const { id, access: a } = await withMatch((await ctx.params).slug);
+  const slug = (await ctx.params).slug;
+  const { id, access: a } = await withMatch(slug);
   if (!a) return Response.json({ error: "forbidden" }, { status: 403 });
   void ensureBot().catch((e) => console.error("[bancho]", e));
-  if (a.admin) return sse(req, () => lobbyView(id, a.osuId), onLobby);
+  // a ref taken off the match mid-stream drops to the players' view (no password, filtered chat) within RECHECK
+  let admin = a.admin;
+  let checked = Date.now();
   return sse(
     req,
     async () => {
+      if (admin && Date.now() - checked > RECHECK) {
+        checked = Date.now();
+        admin = !!(await withMatch(slug)).access?.admin;
+      }
+      if (admin) return lobbyView(id, a.osuId);
       const v = await lobbyView(id);
       return { ...v, password: "", chat: v.chat.filter(visibleChatLine) };
     },

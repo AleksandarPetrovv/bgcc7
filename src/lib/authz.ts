@@ -59,17 +59,20 @@ export const getVisibility = cache(async () => {
   const [s, v] = await Promise.all([getSettings(), getViewer()]);
   const off = getFormat().sectionsOff;
   const sections = Object.fromEntries(Object.entries(s.sections).map(([k, on]) => [k, on && !off.includes(k)])) as typeof s.sections;
-  return { sections, staff: hasAdmin(v?.roles), pools: can(v?.roles, "poolEdit"), off };
+  return { sections, staff: hasAdmin(v?.roles), pools: can(v?.roles, "poolEdit"), tests: can(v?.roles, "poolVote"), off };
 });
 
 /** unreleased pools and packs are for hosts and mappoolers only */
 export const poolOpen = async (released: boolean) => released || (await getVisibility()).pools;
 
-/** a pool on the public mappool page and its pack download */
+/** a pool on the public mappool page */
 export async function poolListed(released: boolean) {
   const { sections, staff, pools } = await getVisibility();
   return pools || (released && (staff || sections.mappool));
 }
+
+/** a pool's pack: like the listing, plus playtesters, who need the maps in game before release */
+export const poolPack = async (released: boolean) => (await poolListed(released)) || (await getVisibility()).tests;
 
 export async function requireSection(section: Section) {
   const { sections, staff, off } = await getVisibility();
