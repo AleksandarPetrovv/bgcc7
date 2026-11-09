@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarClock, Crown, ExternalLink, Flag, Mic, Tv, Video } from "lucide-react";
+import { ArrowRight, CalendarClock, Crown, ExternalLink, Flag, Tv, Video } from "lucide-react";
 import { Container, Tag } from "@/components/site/page";
 import { PageTitle } from "@/components/site/page-title";
 import { SlantBg, SlantButton } from "@/components/site/slant";
@@ -24,7 +24,7 @@ import { avatarPath } from "@/lib/avatar";
 import { scoreboardOrNull } from "@/db/scoreboards";
 import { phaseStates } from "@/lib/dates";
 import { Timeline } from "@/components/site/timeline";
-import { fmtSofia, fmtSofiaTime, isFuture, windowState, tzLabel } from "@/lib/time";
+import { fmtSofia, fmtSofiaDay, fmtSofiaTime, isFuture, windowState, tzLabel } from "@/lib/time";
 import { fmtNum, type Match } from "@/lib/data";
 import { rankBws } from "@/lib/bws";
 import { cardLabels, sourceLabel, isLive, wonBy, recordOf, upcomingMatches, finalResult } from "@/lib/matches";
@@ -374,6 +374,10 @@ export default async function Me() {
               </a>
             )}
           </div>
+          <div className="in-up in-slow mt-1.5 flex items-center justify-center gap-1.5 text-sm font-display font-bold text-paper sm:text-base" style={at(0.2)}>
+            <CalendarClock className="size-4 shrink-0 text-rose-hi" />
+            <span className="num">{m.datetime ? `${fmtSofiaDay(new Date(m.datetime), locale)}, ${fmtSofiaTime(new Date(m.datetime))}` : t.common.tbd}</span>
+          </div>
           <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 py-5 sm:gap-5 sm:py-6">
             <div className="in-left-far in-slow min-w-0" style={at(0.3)}>
               <Side team={team} />
@@ -389,11 +393,9 @@ export default async function Me() {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2 border-y border-line sm:grid-cols-4">
-          <Info icon={CalendarClock} k={t.me.when} n={m.datetime ? fmt(m.datetime) : t.common.tbd} i={0} />
-          <Info icon={Flag} k={t.me.referee} n={m.referee ?? t.common.tbd} i={1} />
-          <Info icon={Video} k={t.me.stream} n={m.streamer ?? t.common.tbd} i={2} />
-          <Info icon={Mic} k={t.me.casters} n={m.commentators ?? t.common.tbd} i={3} />
+        <div className="flex justify-center gap-x-8 border-y border-line sm:gap-x-16">
+          <Info icon={Flag} k={t.me.referee} n={m.referee ?? t.common.tbd} i={0} />
+          <Info icon={Video} k={t.me.stream} n={m.streamer ?? t.common.tbd} i={1} />
         </div>
         <div className="grid grid-cols-2 gap-3 pt-5 sm:flex sm:flex-wrap sm:items-center">
           {stage?.released && (
