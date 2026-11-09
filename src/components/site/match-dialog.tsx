@@ -380,7 +380,9 @@ function ScrollThumb() {
     const lane = 100 - probe.clientWidth;
     probe.remove();
     const sync = () => {
-      const { scrollTop: t, scrollHeight: s, clientHeight: c } = box;
+      const { scrollHeight: s, clientHeight: c } = box;
+      // rubber-band scrolling (mac trackpads, iOS) reports a scrollTop past the end; an unclamped thumb would then grow the scroll area forever
+      const t = Math.min(Math.max(box.scrollTop, 0), s - c);
       const over = s > c + 1;
       const h = Math.max(32, (c * c) / s);
       box.style.setProperty("--sbw", over ? `${lane}px` : "0px");
