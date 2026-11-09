@@ -17,7 +17,9 @@ export async function saveChannels(_: ActionResult, fd: FormData) {
     const pool = pick("pool");
     await setCfg("results", results);
     await setCfg("pool", pool);
-    return { log: { results, pool } };
+    const hosts = pick("hosts");
+    await setCfg("hosts", hosts);
+    return { log: { results, pool, hosts } };
   });
 }
 

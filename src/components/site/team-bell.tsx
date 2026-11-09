@@ -8,14 +8,15 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/s
 import { Popup, PopupTitle } from "./popup";
 import { SlantBg, SlantButton } from "./slant";
 import { useDict, useLang } from "./lang";
-import { clearTeamNotes, decideTeamRequest } from "@/actions/team-requests";
+import { clearTeamNotes, decideTeamRequest, seeHostNote } from "@/actions/team-requests";
 import { errorText } from "@/lib/action-result";
 import { localeOf } from "@/lib/i18n/locale";
 import { fmtSofia } from "@/lib/time";
 import type { CaptainNote, HostReq } from "@/db/team-requests";
+import type { HostNote } from "@/db/host-notes";
 
 // requests: hosts only. notes: answers to the viewer's own team requests
-export type BellFeed = { requests: HostReq[]; notes: CaptainNote[] };
+export type BellFeed = { requests: HostReq[]; notes: CaptainNote[]; hostNotes: HostNote[] };
 
 const d = (s: number) => ({ "--d": `${s}s` }) as React.CSSProperties;
 
@@ -40,7 +41,7 @@ export function TeamBell({ feed }: { feed: BellFeed | null }) {
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
-  const count = (feed?.requests.length ?? 0) + (feed?.notes.length ?? 0);
+  const count = (feed?.requests.length ?? 0) + (feed?.notes.length ?? 0) + (feed?.hostNotes.length ?? 0);
   if (!count && !view) return null;
 
   const decide = (accept: boolean) =>
@@ -117,6 +118,38 @@ export function TeamBell({ feed }: { feed: BellFeed | null }) {
                   </div>
                 </Fragment>
               ))}
+              {feed.hostNotes.map((n, i) => {
+                const before = feed.notes.length + feed.requests.length;
+                return (
+                  <Fragment key={`h${n.id}`}>
+                    {(i > 0 || before > 0) && <Diamond />}
+                    <div className="in-up flex flex-col gap-3 px-5 py-4" style={d(0.25 + (before + i) * 0.07)}>
+                      <div className="flex flex-col gap-1">
+                        <p className="text-sm font-bold text-paper">{n.title}</p>
+                        {n.lines.map((l, j) => (
+                          <p key={j} className="break-all text-sm text-paper">
+                            {l}
+                          </p>
+                        ))}
+                      </div>
+                      <SlantButton
+                        tone="outline"
+                        className="self-start px-4 py-1.5"
+                        disabled={pending}
+                        onClick={() =>
+                          start(async () => {
+                            await seeHostNote(n.id).catch(() => null);
+                            setOpen(false);
+                            router.push(n.href);
+                          })
+                        }
+                      >
+                        {r.open}
+                      </SlantButton>
+                    </div>
+                  </Fragment>
+                );
+              })}
             </div>
           </SheetContent>
         </Sheet>

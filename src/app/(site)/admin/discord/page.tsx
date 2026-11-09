@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, Panel } from "@/components/admin/form";
 import { labelCls } from "@/components/admin/label";
@@ -14,7 +14,7 @@ import { saveChannels, syncNow } from "@/actions/discord";
 
 export default async function AdminDiscord() {
   const [t, viewer] = await Promise.all([getDict(), getViewer()]);
-  if (!can(viewer?.roles, "discord")) notFound();
+  if (!can(viewer?.roles, "discord")) forbidden();
   const d = t.admin.dc;
   if (!discordReady()) {
     return (
@@ -48,6 +48,10 @@ export default async function AdminDiscord() {
               <label className={labelCls}>
                 {d.pool}
                 <Dropdown name="pool" defaultValue={cfg.pool} placeholder={d.none} aria-label={d.pool} className="w-full" options={options} />
+              </label>
+              <label className={labelCls}>
+                {d.hosts}
+                <Dropdown name="hosts" defaultValue={cfg.hosts} placeholder={d.none} aria-label={d.hosts} className="w-full" options={options} />
               </label>
             </ActionForm>
           ) : (

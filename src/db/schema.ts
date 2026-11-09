@@ -151,6 +151,7 @@ export const stages = pgTable("stages", {
   packSize: integer("pack_size"),
   packAt: timestamp("pack_at", { withTimezone: true }),
   blueprint: jsonb("blueprint").$type<Record<string, number>>().notNull().default({}),
+  settledAt: timestamp("settled_at", { withTimezone: true }),
 });
 
 export const maps = pgTable("maps", {
@@ -173,6 +174,7 @@ export const maps = pgTable("maps", {
   cs: doublePrecision("cs").notNull(),
   cover: text("cover").notNull(),
   seeded: boolean("seeded").notNull().default(false),
+  subcategoryIds: text("subcategory_ids").array().notNull().default(sql`'{}'::text[]`),
 });
 
 export const poolSuggestions = pgTable("pool_suggestions", {
@@ -332,7 +334,16 @@ export const teamRequests = pgTable("team_requests", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const reschedules = pgTable("reschedules", {
+export const hostNotes = pgTable("host_notes", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  lines: text("lines").array().notNull().default(sql`'{}'::text[]`),
+  href: text("href").notNull().default(""),
+  at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+  seenBy: integer("seen_by").array().notNull().default(sql`'{}'::integer[]`),
+});
+
+export const reschedules =pgTable("reschedules", {
   id: serial("id").primaryKey(),
   matchId: text("match_id")
     .notNull()

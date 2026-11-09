@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { getViewer } from "@/lib/authz";
 import { guard } from "@/lib/admin-action";
+import { can } from "@/lib/roles";
 import { decideRequest, seeNotes } from "@/db/team-requests";
+import { seeHostNote as seeNote } from "@/db/host-notes";
 
 export async function decideTeamRequest(id: number, accept: boolean, note: string) {
   const reason = note.trim().slice(0, 500);
@@ -13,6 +15,14 @@ export async function decideTeamRequest(id: number, accept: boolean, note: strin
     if (!r) return { ok: false, error: "stale" };
     return { log: { team: r.team, accept, note: accept ? undefined : reason } };
   });
+}
+
+export async function seeHostNote(id: number) {
+  if (!Number.isInteger(id)) return;
+  const v = await getViewer();
+  if (!v || !can(v.roles, "host")) return;
+  await seeNote(id, v.osuId);
+  revalidatePath("/", "layout");
 }
 
 export async function clearTeamNotes() {
