@@ -4,6 +4,8 @@ import { useEffect } from "react";
 
 const DUR = 450;
 const EASING = "cubic-bezier(0.4, 0, 0.2, 1)";
+// the intro classes from motion.css
+const INTRO = ".in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .in-left-far, .in-right-far, .in-slam, .in-launch, .in-grow-y, .in-stitch, .in-sweep";
 
 export function DetailsMotion() {
   useEffect(() => {
@@ -26,12 +28,20 @@ export function DetailsMotion() {
       const cs = getComputedStyle(d);
       const closed = summary.getBoundingClientRect().height + (d.offsetHeight - d.clientHeight) + parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
       const to = opening ? d.scrollHeight + (d.offsetHeight - d.clientHeight) : closed;
-      d.style.overflow = "clip";
+      // height only: clipping x too cut the slanted edges that poke past the sides
+      d.style.overflowY = "clip";
+      // replay the content's intros on every open (they already ran while it was collapsed)
+      if (opening && !prev) {
+        const els = [...d.querySelectorAll<HTMLElement>(INTRO)].filter((el) => !summary.contains(el));
+        for (const el of els) el.style.animation = "none";
+        void d.offsetHeight;
+        for (const el of els) el.style.animation = "";
+      }
       const a = d.animate({ height: [`${from}px`, `${to}px`] }, { duration: DUR, easing: EASING });
       running.set(d, { a, opening });
       a.onfinish = () => {
         if (!opening) d.open = false;
-        d.style.overflow = "";
+        d.style.overflowY = "";
         running.delete(d);
       };
     };

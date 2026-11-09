@@ -95,7 +95,8 @@ html.lite .mdlg[data-closed] {
   to { opacity: 0; }
 }
 
-html.lite .fixed.inset-0:not(canvas):not(.pointer-events-none) {
+/* backdrops only: the popup box itself is fixed inset-0 too */
+html.lite .fixed.inset-0.bg-black\/55 {
   background-color: color-mix(in srgb, black 66%, transparent);
 }
 

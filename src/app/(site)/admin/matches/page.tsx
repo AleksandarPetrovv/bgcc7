@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page-title";
 import { ChevronDown } from "lucide-react";
@@ -19,7 +19,7 @@ import { isBracketStage } from "@/lib/format";
 
 export default async function AdminMatches() {
   const [t, lang, scope, all, teams, stages, refs, live] = await Promise.all([getDict(), getLang(), refScope(), getMatchRows(), getTeams(), getPoolStages(), refList(), liveList()]);
-  if (!scope) notFound();
+  if (!scope) forbidden();
   const bracketStages = stages.filter((s) => isBracketStage(s.slug));
   const rows = byDistance(all.filter((m) => scope.runs(m.referee) && bracketStages.some((s) => s.slug === m.stageSlug)));
   const locale = localeOf(lang);
