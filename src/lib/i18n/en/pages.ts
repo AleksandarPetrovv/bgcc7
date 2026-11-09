@@ -181,10 +181,18 @@ export const pages = {
     title: "Nothing here",
     text: "This page doesn't exist, or it isn't open yet. Pages show up as the tournament gets to them.",
     home: "Back home",
+    pool: { title: "Mappool not found", text: "There's no mappool at this address." },
+    poolHidden: { title: "Not released yet", text: "This pool isn't released yet. It shows up here once the hosts release it." },
+    packMissing: { title: "No pack yet", text: "This mappool's pack isn't generated yet. Check back soon." },
+    download: { title: "Download not found", text: "There's nothing to download at this address." },
+    team: { title: "Team not found", text: "There's no team at this address." },
+    match: { title: "Match not found", text: "This match doesn't exist or isn't open yet." },
+    pickems: { title: "Pick'ems not found", text: "There are no pick'ems for this player." },
   },
   forbidden: {
     title: "No access",
     text: "You don't have access to this page.",
+    admin: "This part of the admin panel isn't part of your role.",
     home: "Back home",
   },
   error: {

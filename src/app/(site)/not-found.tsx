@@ -1,29 +1,37 @@
+import { headers } from "next/headers";
 import { SlantButton } from "@/components/site/slant";
+import { ErrorPage } from "@/components/site/error-page";
+import { getPoolStages } from "@/db/mappools";
+import { poolPack } from "@/lib/authz";
+import { PATH_HEADER } from "@/lib/links";
 import { getDict } from "@/lib/i18n/server";
 
+type Why = "pool" | "poolHidden" | "packMissing" | "download" | "team" | "match" | "pickems";
+
+/** notFound() carries no reason, so the path says which thing is missing (and for pools and packs, why) */
+async function why(path: string): Promise<Why | null> {
+  const [, section, slug] = path.split("/");
+  if (section === "mappool" || section === "download") {
+    const stage = slug ? (await getPoolStages()).find((s) => s.slug === slug) : undefined;
+    if (!stage) return section === "mappool" ? "pool" : "download";
+    if (!(await poolPack(stage.released))) return "poolHidden";
+    return section === "download" && !stage.pack ? "packMissing" : null;
+  }
+  return ({ teams: "team", results: "match", matches: "match", pickems: "pickems" } as const)[section] ?? null;
+}
+
 export default async function NotFound() {
-  const t = await getDict();
+  const [t, path] = await Promise.all([getDict(), headers().then((h) => h.get(PATH_HEADER) ?? "")]);
+  const w = await why(path);
+  const { title, text } = w ? t.notFound[w] : t.notFound;
   return (
-    <section className="grain relative flex min-h-[70vh] items-center overflow-hidden">
-      <div
-        className="pointer-events-none absolute right-[4%] top-1/2 -translate-y-1/2 select-none font-display text-[clamp(14rem,34vw,30rem)] font-black italic leading-[0.8] text-paper/[0.05]"
-        aria-hidden
-      >
-        404
-      </div>
-      <div className="relative mx-auto w-full max-w-page px-4 sm:px-6 lg:px-10 2xl:px-14">
-        <div className="num text-[clamp(5rem,16vw,10rem)] leading-[0.85] text-rose">404</div>
-        <h1 className="heading-slam mt-4 text-[clamp(2rem,6vw,3.5rem)]">{t.notFound.title}</h1>
-        <p className="mt-3 max-w-[46ch] text-pretty text-lg text-paper/70">{t.notFound.text}</p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <SlantButton href="/" tone="paper" className="px-5 py-2.5 text-base">
-            {t.notFound.home}
-          </SlantButton>
-          <SlantButton href="/info" tone="outline" className="px-5 py-2.5 text-base">
-            {t.home.readRules}
-          </SlantButton>
-        </div>
-      </div>
-    </section>
+    <ErrorPage code={404} title={title} text={text}>
+      <SlantButton href="/" tone="paper" className="px-5 py-2.5 text-base">
+        {t.notFound.home}
+      </SlantButton>
+      <SlantButton href="/info" tone="outline" className="px-5 py-2.5 text-base">
+        {t.home.readRules}
+      </SlantButton>
+    </ErrorPage>
   );
 }

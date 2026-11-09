@@ -21,7 +21,8 @@ function bucket(req: NextRequest, path: string): keyof typeof LIMITS {
   if (path.startsWith("/api/auth") || path === "/api/relay/start") return "auth";
   // the helper's busy calls; its /me and /stream polls are GETs (page tier) and /bye is a POST (write tier) on purpose
   if (path === "/api/relay/in" || path === "/api/relay/claim" || path === "/api/relay/score") return "relay";
-  if (path.startsWith("/download/")) return "download";
+  // only the file itself: /download/<slug> is a page that redirects to /zip
+  if (path === "/download/helper" || (path.startsWith("/download/") && path.endsWith("/zip"))) return "download";
   if (req.method !== "GET" && req.method !== "HEAD") return "write";
   if (path.startsWith("/api/matches/")) return "osu";
   if (path.startsWith("/api/draft/") || path.startsWith("/api/lobby/")) return "stream";

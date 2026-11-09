@@ -6,7 +6,8 @@ import { getFormat } from "@/db/edition";
 import { packPath } from "@/lib/uploads";
 import { fileDownload } from "@/lib/download";
 
-export async function GET(_: Request, { params }: RouteContext<"/download/[slug]">) {
+/** the pack file itself; /download/<slug> checks first and sends people here, or shows why there's nothing */
+export async function GET(_: Request, { params }: RouteContext<"/download/[slug]/zip">) {
   const { slug } = await params;
   const [stage] = await db.select().from(stages).where(eq(stages.slug, slug)).limit(1);
   const open = stage && stage.packSize && (await poolPack(stage.poolReleased));
