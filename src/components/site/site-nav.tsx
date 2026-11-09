@@ -197,7 +197,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
       if (tight && wide.ok) return setTight(false);
       const c = tight ? check(nav.offsetWidth) : wide;
       setFit(c.ok);
-      setShift(c.centered ? null : flowStart - r.left);
+      setShift(c.centered ? null : Math.round(flowStart - r.left));
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -213,13 +213,14 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
         <Link href="/" className="group flex h-full items-center gap-1 pl-3 sm:pl-4 lg:pl-6" aria-label={t.nav.homeLabel}>
           <Wordmark size="md" className="text-paper max-sm:text-[1.6rem]" />
         </Link>
-        <ThemeToggle className={fit === null ? "max-[1699px]:absolute max-[1699px]:left-1/2 max-[1699px]:-translate-x-1/2" : fit ? undefined : "absolute left-1/2 -translate-x-1/2"} />
+        {/* centred by margins, not -translate-x-1/2: a half-pixel translate draws the text blurry (safari) */}
+        <ThemeToggle className={fit === null ? "max-[1699px]:absolute max-[1699px]:inset-x-0 max-[1699px]:mx-auto max-[1699px]:w-fit" : fit ? undefined : "absolute inset-x-0 mx-auto w-fit"} />
 
         <nav
           ref={navRef}
           className={cn(
             "h-full items-stretch",
-            fit === null ? "absolute left-1/2 top-0 hidden -translate-x-1/2 min-[1700px]:flex" : fit ? (shift === null ? "absolute left-1/2 top-0 flex -translate-x-1/2" : "absolute top-0 flex") : "pointer-events-none invisible absolute right-0 top-0 flex w-max", // anchored right so it overflows left, which never widens the page on phones
+            fit === null ? "absolute inset-x-0 top-0 mx-auto hidden w-max min-[1700px]:flex" : fit ? (shift === null ? "absolute inset-x-0 top-0 mx-auto flex w-max" : "absolute top-0 flex") : "pointer-events-none invisible absolute right-0 top-0 flex w-max", // anchored right so it overflows left, which never widens the page on phones
           )}
           style={fit && shift !== null ? { left: shift } : undefined}
           aria-label={t.nav.main}
@@ -260,7 +261,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
                     </span>
                   )}
                   <span className={cn("relative transition-transform duration-200 group-hover:-translate-y-px", n.hidden && "opacity-40")}>{t.nav[n.key]}</span>
-                  {live.includes(n.key) && <LiveTag className="pointer-events-none absolute bottom-2.5 left-1/2 shrink-0 -translate-x-1/2 text-[0.55rem]" />}
+                  {live.includes(n.key) && <LiveTag className="pointer-events-none absolute inset-x-0 bottom-2.5 mx-auto w-fit shrink-0 text-[0.55rem]" />}
                   {dots.includes(n.key) && <Dot className="absolute right-1 top-5" />}
                 </Link>
               </Fragment>
