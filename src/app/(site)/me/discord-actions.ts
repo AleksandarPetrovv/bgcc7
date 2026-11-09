@@ -16,7 +16,8 @@ type Fail = "notFound" | "taken" | "failed" | "forbidden" | "dm" | "wait";
 type Pending = { id: string; name: string; code: string; exp: number; sentAt: number; tries: number };
 
 const CODE_TTL = 10 * 60_000;
-const RESEND_AFTER = 60_000;
+const RESEND_AFTER = 30_000;
+const leftSecs = (p: Pending) => Math.max(1, Math.ceil((p.sentAt + RESEND_AFTER - Date.now()) / 1000));
 const MAX_TRIES = 5;
 // one pending code per osu user, so linking proves the player owns that discord account
 const codes = globalStore("bgccDiscordCodes", () => new Map<number, Pending>());
@@ -31,14 +32,11 @@ const linkedId = async (osuId: number) => (await db.select({ d: users.discordId 
 const takenBy =async (discordId: string, osuId: number) =>
   !!(await db.select({ id: users.osuId }).from(users).where(and(eq(users.discordId, discordId), ne(users.osuId, osuId))).limit(1))[0];
 
-export async function linkDiscord(name: string): Promise<{ ok: true; name: string } | { ok: false; error: Fail }> {
+export async function linkDiscord(name: string): Promise<{ ok: true; name: string; left: number } | { ok: false; error: Fail; left?: number; name?: string }> {
   const osuId = await player();
   if (!osuId) return { ok: false, error: "forbidden" };
   const prev = codes.get(osuId);
-  if (prev && Date.now() - prev.sentAt < RESEND_AFTER) {
-    const same = String(name).trim().replace(/^@/, "").toLowerCase() === prev.name.toLowerCase();
-    return same && prev.exp > Date.now() ? { ok: true, name: prev.name } : { ok: false, error: "wait" };
-  }
+  if (prev && Date.now() - prev.sentAt < RESEND_AFTER) return { ok: false, error: "wait", left: leftSecs(prev), name: prev.exp > Date.now() ? prev.name : undefined };
   try {
     const m = await findMember(String(name).slice(0, 40));
     if (!m) return { ok: false, error: "notFound" };
@@ -50,8 +48,9 @@ export async function linkDiscord(name: string): Promise<{ ok: true; name: strin
       console.error("[discord] code dm", e);
       return { ok: false, error: "dm" };
     }
-    codes.set(osuId, { id: m.id, name: m.name, code, exp: Date.now() + CODE_TTL, sentAt: Date.now(), tries: 0 });
-    return { ok: true, name: m.name };
+    const p = { id: m.id, name: m.name, code, exp: Date.now() + CODE_TTL, sentAt: Date.now(), tries: 0 };
+    codes.set(osuId, p);
+    return { ok: true, name: m.name, left: leftSecs(p) };
   } catch (e) {
     console.error("[discord] link", e);
     return { ok: false, error: "failed" };

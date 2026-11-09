@@ -37,7 +37,7 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
         <PlayerRow key={p.id} id={p.id} avatar={p.avatar} lazy pfpClass="size-8" className={cn("min-w-0 gap-2 py-0.5", flip ? "in-right flex-row-reverse pr-1.5 text-right" : "in-left pl-1.5")} style={cssVars({ "--d": `${0.45 + r * 0.06}s` })}>
           <div className="min-w-0 flex-1 leading-tight">
             <div className={cn("flex min-w-0 items-center text-[0.8rem] font-display font-bold", flip && "flex-row-reverse")}>
-              <span className="truncate">{p.name}</span>
+              <span className="min-w-0 truncate">{p.name}</span>
               <MeTag p={p.id} />
             </div>
             <div className={cn("num flex flex-wrap items-baseline gap-x-1.5", flip && "flex-row-reverse")}>
@@ -120,9 +120,11 @@ export function MapCard({ m, i, className }: { m: MapResult; i: number; classNam
               {fmtNum(m.team2)}
             </span>
           </div>
-          <div className="mt-2 flex h-1 gap-0.5">
+          <div className="relative mt-2 flex h-1 gap-0.5">
             <span className={cn("in-grow h-full bg-crimson", m.winner !== 1 && "opacity-40")} style={{ width: `${share}%`, ...cssVars({ "--d": "0.35s" }) }} />
             <span className={cn("in-grow h-full flex-1 bg-azure", m.winner !== 2 && "opacity-40")} style={{ transformOrigin: "100% 50%", ...cssVars({ "--d": "0.35s" }) }} />
+            {/* the halfway mark: the overlay gameplay divider, scaled down (ink edges, rose core) */}
+            <span className="in-pop pointer-events-none absolute -inset-y-1 left-1/2 w-1 -translate-x-1/2 border-x border-ink bg-rose" style={cssVars({ "--d": "0.5s" })} aria-hidden />
           </div>
           <div className="mt-3.5 grid grid-cols-2 gap-x-4">
             <Side players={m.players[0]} won={m.winner !== 2} />
@@ -171,7 +173,7 @@ export function Costs({ data, names, finished }: { data: Scoreboard; names: (str
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 items-center font-display font-bold">
-                        <span className="truncate">{r.name}</span>
+                        <span className="min-w-0 truncate">{r.name}</span>
                         <MeTag p={r.id} />
                       </div>
                       <div className="num truncate text-xs text-ash">

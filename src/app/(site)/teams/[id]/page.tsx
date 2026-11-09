@@ -43,7 +43,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
             <h1 className="heading-slam mt-2 max-w-3xl text-4xl sm:text-6xl">
               <Words text={team.name} d={0.4} s={0.08} />
             </h1>
-            <div className="mt-3 grid grid-cols-[repeat(3,auto)] justify-start gap-x-5 sm:flex sm:gap-8">
+            <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 sm:gap-8">
               {(
                 [
                   [t.common.avgRank, `#${fmtNum(team.avgRank)}`],

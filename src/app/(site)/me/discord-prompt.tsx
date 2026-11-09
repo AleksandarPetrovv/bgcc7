@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { Popup } from "@/components/site/popup";
@@ -10,9 +10,9 @@ import { DISCORD_URL } from "@/lib/links";
 import { cn } from "@/lib/utils";
 import { confirmDiscord, linkDiscord } from "./discord-actions";
 
-type Fail = "notFound" | "taken" | "failed" | "dm" | "wait" | "expired";
+type Fail = "notFound" | "taken" | "failed" | "dm" | "expired";
 type Step = { k: "input" } | { k: "code"; name: string; wrong?: boolean } | { k: "ok"; name: string } | { k: Fail };
-const FAILS: string[] = ["notFound", "taken", "dm", "wait", "expired"];
+const FAILS: string[] = ["notFound", "taken", "dm", "expired"];
 
 export function DiscordPrompt({ open: ctl, onClose }: { open?: boolean; onClose?: () => void }) {
   const t = useDict();
@@ -24,13 +24,32 @@ export function DiscordPrompt({ open: ctl, onClose }: { open?: boolean; onClose?
   const [code, setCode] = useState("");
   const [step, setStep] = useState<Step>({ k: "input" });
   const [pending, start] = useTransition();
+  const [until, setUntil] = useState(0);
+  const [now, setNow] = useState(0);
+  const left = Math.max(0, Math.ceil((until - now) / 1000));
   const fail = (e: string): Step => ({ k: (FAILS.includes(e) ? e : "failed") as Fail });
+
+  useEffect(() => {
+    if (!until) return;
+    const id = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(id);
+  }, [until]);
 
   const check = () =>
     start(async () => {
-      const res = await linkDiscord(name).catch(() => ({ ok: false as const, error: "failed" as const }));
-      setCode("");
-      setStep(res.ok ? { k: "code", name: res.name } : fail(res.error));
+      const res: Awaited<ReturnType<typeof linkDiscord>> = await linkDiscord(name).catch(() => ({ ok: false as const, error: "failed" as const }));
+      if (res.ok || res.error === "wait") {
+        if (res.left) {
+          setNow(Date.now());
+          setUntil(Date.now() + res.left * 1000);
+        }
+        if (res.name) {
+          setCode("");
+          setStep({ k: "code", name: res.name });
+        }
+        return;
+      }
+      setStep(fail(res.error));
     });
 
   const verify = (shown: string) =>
@@ -39,7 +58,7 @@ export function DiscordPrompt({ open: ctl, onClose }: { open?: boolean; onClose?
       setStep(res.ok ? { k: "ok", name: res.name } : res.error === "wrong" ? { k: "code", name: shown, wrong: true } : fail(res.error));
     });
 
-  const msg: Record<Fail, string> = { notFound: d.notFound, taken: d.taken, failed: d.failed, dm: d.dmFailed, wait: d.wait, expired: d.expired };
+  const msg: Record<Fail, string> = { notFound: d.notFound, taken: d.taken, failed: d.failed, dm: d.dmFailed, expired: d.expired };
   const wrap = "group/dcf relative isolate flex min-h-11 min-w-0 flex-1 border border-transparent";
   const box = "-inset-px border border-line bg-ink group-focus-within/dcf:border-balkan";
   const field = "adm-bare min-w-0 flex-1 border-0 bg-transparent px-4 text-base text-paper outline-none placeholder:text-ash";
@@ -116,7 +135,7 @@ export function DiscordPrompt({ open: ctl, onClose }: { open?: boolean; onClose?
             className="mt-5 flex gap-2"
             onSubmit={(e) => {
               e.preventDefault();
-              if (name.trim() && !pending) check();
+              if (name.trim() && !pending && !left) check();
             }}
           >
             <label className="sr-only" htmlFor="dc-name">
@@ -134,8 +153,8 @@ export function DiscordPrompt({ open: ctl, onClose }: { open?: boolean; onClose?
               className={field}
             />
             </span>
-            <SlantButton type="submit" tone="balkan" disabled={pending} className="shrink-0 px-4">
-              {pending ? d.checking : d.check}
+            <SlantButton type="submit" tone="balkan" disabled={pending || left > 0} className="shrink-0 px-4">
+              {pending ? d.checking : left > 0 ? d.waitIn(left) : d.check}
             </SlantButton>
           </form>
           <div className="mt-6 flex flex-col items-center gap-2.5 border-t border-line pt-5 text-center">
