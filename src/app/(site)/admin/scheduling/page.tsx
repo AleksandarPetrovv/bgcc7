@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, DateTimeField, Panel } from "@/components/admin/form";
 import { labelCls } from "@/components/admin/label";
@@ -11,6 +11,8 @@ import { historyLabel, isOpen, weekOf } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
 import { setTime, setWeek } from "./actions";
+import { WeekGuard } from "./week-guard";
+import { poolState } from "@/db/pool-settle";
 import { localeOf } from "@/lib/i18n/locale";
 import { roundName } from "@/lib/i18n/dict";
 import { weekNum, weekNums } from "@/lib/format";
@@ -30,11 +32,13 @@ const TONE: Record<string, { bar: string; edge: string }> = {
 };
 
 export default async function AdminScheduling() {
-  const [t, lang, scope, all, teams, weeks] = await Promise.all([getDict(), getLang(), refScope(), getMatchRows(), getTeams(), matchWeeks()]);
-  if (!scope) notFound();
+  const [t, lang, scope, all, teams, weeks, pools] = await Promise.all([getDict(), getLang(), refScope(), getMatchRows(), getTeams(), matchWeeks(), poolState()]);
+  if (!scope) forbidden();
   const rows = all.filter((m) => scope.runs(m.referee));
   const s = t.sched;
   const format = getFormat();
+  // reversed so a stage takes its first (winners) round's name
+  const stageNames = Object.fromEntries(Object.values(format.rounds).map((r) => [r.stage, roundName(t, r.name)]).reverse());
   const locale = localeOf(lang);
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? "—";
   const captain = (osuId: number | null) => (osuId == null ? s.staffName : (teams.flatMap((x) => x.players).find((p) => p.userId === osuId)?.username ?? s.staffName));
@@ -138,6 +142,7 @@ export default async function AdminScheduling() {
                     {s.admin.week}
                     <DateTimeField kind="date" name="week" defaultValue={weeks[wn] ?? ""} className="w-[18rem]" />
                   </label>
+                  <WeekGuard n={wn} weeks={weeks} rounds={format.rounds} settled={[...pools.settled]} names={stageNames} />
                 </ActionForm>
               )}
               {groups.length ? (
@@ -147,8 +152,8 @@ export default async function AdminScheduling() {
                       <summary className="group/sum flex cursor-pointer list-none items-center gap-3 border-b border-line pb-2.5 [&::-webkit-details-marker]:hidden">
                         <span className="text-sm font-display font-black text-paper">{s.admin.groups[g.key]}</span>
                         <span className="num text-xs text-ash">{g.list.length}</span>
-                        <span className="relative isolate ml-auto grid size-8 shrink-0 place-items-center text-ash transition-colors group-hover/sum:text-paper group-open/seed:text-white">
-                          <SlantBg className="border border-line transition-colors group-hover/sum:border-paper/40 group-open/seed:border-rose group-open/seed:bg-rose" />
+                        <span className="relative isolate ml-auto grid size-8 shrink-0 place-items-center text-ash transition-colors group-hover/sum:text-paper">
+                          <SlantBg className="border border-line transition-colors group-hover/sum:border-paper/40" />
                           <ChevronDown className="size-4 transition-transform duration-300 group-open/seed:rotate-180" aria-hidden />
                         </span>
                       </summary>

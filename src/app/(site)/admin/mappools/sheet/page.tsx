@@ -1,8 +1,7 @@
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import { ArrowUpRight, Check, Hourglass, Scale, Trash2 } from "lucide-react";
+import { Fragment } from "react";
+import { forbidden } from "next/navigation";
+import { Check, Hourglass, Scale, Trash2 } from "lucide-react";
 import { LinkTabs } from "@/components/site/tabs";
-import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, IconAction } from "@/components/admin/form";
 import { getPoolStages } from "@/db/mappools";
 import { getPlan, getSkillLayouts } from "@/db/format-plan";
@@ -10,13 +9,16 @@ import { subcategoryNames } from "@/lib/format-plan";
 import { TagChips } from "../tag-chips";
 import { getSheet, sheetVersion } from "@/db/pool-sheet";
 import { getViewer } from "@/lib/authz";
-import { getDict } from "@/lib/i18n/server";
+import { getDict, getLang } from "@/lib/i18n/server";
+import { poolState } from "@/db/pool-settle";
+import { getSettings } from "@/db/settings";
+import { dayTime, fromSofiaInput, toSofiaInput } from "@/lib/time";
+import { PoolClock } from "./pool-clock";
 import { can } from "@/lib/roles";
 import { modHi } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
-import { PoolMode } from "../pool-mode";
-import { pickNow, pickSuggestion, removeSuggestion, suggestMap } from "./actions";
+import { pickIntoPool, pickNow, pickSuggestion, removeSuggestion, suggestMap } from "./actions";
 import { VoteCell } from "./vote-cell";
 import { SlotPop } from "../slot-pop";
 import { SheetView, SlotBox } from "./sheet-view";
@@ -35,35 +37,50 @@ const places = (items: { picked: boolean; avg: number | null }[]) => {
 };
 
 export default async function PoolSheet({ searchParams }: PageProps<"/admin/mappools/sheet">) {
-  const [t, viewer, stages, sp] = await Promise.all([getDict(), getViewer(), getPoolStages(), searchParams]);
-  if (!viewer || !can(viewer.roles, "mappools")) notFound();
-  const stage = stages.find((s) => s.slug === sp.stage) ?? stages[0];
-  if (!stage) return null;
+  const [t, lang, viewer, stages, sp, { now: at, ws, access }, settings] = await Promise.all([getDict(), getLang(), getViewer(), getPoolStages(), searchParams, poolState(), getSettings()]);
+  if (!viewer || !can(viewer.roles, "mappools")) forbidden();
   const host = can(viewer.roles, "host");
+  // poolers and testers reach one stage at a time, inside its window; after the last pool settles, nothing
+  if (!host && access.done) forbidden();
+  const open = access.open?.stage;
+  const reach = (slug: string) => host || slug === open;
+  const name = (s: { title: string }) => roundName(t, s.title);
+  const when = (d: Date) => dayTime(toSofiaInput(d), lang);
+  if (!host && !open) {
+    const next = stages.find((s) => s.slug === access.next?.stage);
+    const play = settings.timeline.find((r) => r.key === "play")?.from;
+    const opens = access.next?.opens ?? (play ? fromSofiaInput(`${play}T00:00`) : null);
+    return (
+      next && <PoolClock big title={t.admin.pf.nextIn(name(next))} when={opens ? when(opens) : ""} to={opens?.getTime() ?? null} at={at} />
+    );
+  }
+  const stage = stages.find((s) => s.slug === (host ? sp.stage : open)) ?? (host ? stages[0] : undefined);
+  if (!stage) return null;
+  const win = access.open?.stage === stage.slug ? ws.find((w) => w.stage === stage.slug) : undefined;
   const edit = can(viewer.roles, "poolEdit");
   const vote = can(viewer.roles, "poolVote");
   const [sheets, version, layouts, plan] = await Promise.all([Promise.all(stages.map((s) => getSheet(s.id, viewer.osuId, s.blueprint))), sheetVersion(stage.id), getSkillLayouts(), getPlan()]);
   const sheet = sheets[stages.indexOf(stage)];
-  const name = (s: { title: string }) => roundName(t, s.title);
   const skill = layouts?.[stage.slug];
   const info = new Map(skill?.groups.flatMap((g, gi) => g.slots.map((x, k) => [`${x.mod}-${x.slot}`, { group: g, label: x.label, ids: x.ids, at: gi * 100 + k }] as const)) ?? []);
   const unset = (s: (typeof sheet.slots)[number]) => {
     const win = s.items.find((x) => x.picked);
     return !!win && stage.pools.find((p) => p.category === s.mod)?.maps.find((m) => m.order === s.slot)?.id !== win.beatmapId;
   };
+  // elected winners (vote done), whether or not a host has put them in the pool yet
+  const won = sheet.slots.filter((s) => s.picked && !s.out).map((s) => s.items[0]);
   const slots = skill ? [...sheet.slots].sort((a, b) => (info.get(`${a.mod}-${a.slot}`)?.at ?? 1e6) - (info.get(`${b.mod}-${b.slot}`)?.at ?? 1e6)) : sheet.slots;
 
+  // the round tabs stay mounted; everything under them is keyed by stage so it plays its intro again
   return (
     <>
-      <PageTitle mark="notes">{t.admin.menu.mappools}</PageTitle>
-      <PoolMode t={t} on="sheet" stage={stage.slug} edit={edit} />
-
       <LinkTabs
-        className="mb-6"
+        className="in-left mb-6 [--d:0.15s]"
         label={t.admin.menu.mappools}
         items={stages.map((s, i) => ({
           href: `/admin/mappools/sheet?stage=${s.slug}`,
           active: s.id === stage.id,
+          disabled: !reach(s.slug),
           label: (
             <>
               {name(s)}
@@ -73,12 +90,16 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
         }))}
       />
 
+      <Fragment key={stage.slug}>
       {sheet.slots.length === 0 && <p className="in-up border-y border-line py-4 text-sm text-ash [--d:0.3s]">{t.admin.noLayout}</p>}
 
       <SheetView
         key={stage.id}
         stageId={stage.id}
         version={version}
+        clock={win && <PoolClock title={t.admin.pf.until} when={when(win.closes)} to={win.closes.getTime()} at={at} />}
+        order={slots.map((s) => info.get(`${s.mod}-${s.slot}`)?.group.id ?? s.mod)}
+        sr={{ target: plan.rounds.find((r) => r.slug === stage.slug)?.sr ?? null, now: won.length ? won.reduce((n, m) => n + m.sr, 0) / won.length : null }}
         mods={
           skill
             ? skill.groups.map((g) => ({ key: g.id, short: g.name, color: g.color, count: g.slots.length }))
@@ -103,6 +124,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
               picked={s.picked}
               empty={s.items.length === 0}
               color={color}
+              pick={s.picked && host && unset(s) && <ActionForm action={pickIntoPool.bind(null, stage.id, s.mod, s.slot)} submit={t.admin.pf.pick} ghost tone="danger" className="[&_button]:min-h-7 [&_button]:px-2.5 [&_button]:text-[11px]" />}
               header={
                 <>
                   <span className={cn("in-slam heading-slam shrink-0 whitespace-nowrap text-2xl [--d:0.2s]", s.mod !== "Tiebreaker" && "w-24")} style={{ color: modHi(color) }}>
@@ -110,13 +132,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                   </span>
                   {sk && s.mod !== "Tiebreaker" && <ModChip mod={s.mod} />}
                   {sk && <TagChips names={subcategoryNames(plan.subcategories, sk.ids)} color={color} />}
-                  {s.picked ? (
-                    unset(s) && (
-                      <Link href={`/admin/mappools/edit?stage=${stage.slug}`} className="in-pop flex items-center gap-1.5 text-xs font-display font-bold text-gold-hi underline-offset-4 hover:underline [--d:0.3s]">
-                        {t.admin.pickedNotSet} <ArrowUpRight className="size-3.5" />
-                      </Link>
-                    )
-                  ) : s.tie ? (
+                  {s.picked ? null : s.tie ? (
                     <span className="in-pop relative isolate flex items-center px-2.5 py-1 text-xs font-display font-bold text-rose-hi [--d:0.3s]">
                       <SlantBg className="border border-rose/70 bg-rose/15" />
                       <span className="flex items-center gap-1.5">
@@ -153,8 +169,11 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                     <li
                       key={m.id}
                       style={{ "--i": i, "--s": "0.04s", "--d": "0.25s" } as React.CSSProperties}
-                      className={cn("in-left relative flex flex-wrap items-center gap-3 py-3.5 pl-4 pr-3 max-sm:pb-8", green && "bg-balkan/[0.07]")}
+                      className={cn("in-left relative isolate flex flex-wrap items-center gap-3 overflow-hidden py-3.5 pl-4 pr-5 max-sm:pb-8", green && "bg-balkan/[0.07]")}
                     >
+                      {/* the home mappool row's cover, across the whole row */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={m.cover} alt="" className="pointer-events-none absolute inset-0 -z-10 size-full object-cover opacity-[0.09] dark:opacity-[0.06]" />
                       {(green || lead) && <span className={cn("absolute inset-y-0 left-0 w-1", green ? "bg-balkan" : "bg-rose")} aria-hidden />}
                       <span
                         className={cn(
@@ -163,11 +182,11 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                         )}
                         title={m.picked ? t.admin.slotPicked : undefined}
                       >
-                        <SlantBg className={cn("border", m.picked ? "border-balkan bg-balkan" : tiedWin ? "border-paper/25 bg-paper/10" : lead ? "border-rose/70" : "border-line")} />
+                        <SlantBg className={cn(m.picked ? "bg-balkan" : tiedWin && "bg-paper/10")} />
                         <span className="num">{m.picked ? <Check className="size-4" strokeWidth={3.5} /> : tiedWin ? "–" : `#${place}`}</span>
                       </span>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={cardCover(m.cover)} alt="" loading="lazy" decoding="async" className="hidden h-12 w-28 shrink-0 object-cover sm:block" />
+                      <img src={cardCover(m.cover)} alt="" className="hidden h-12 w-28 shrink-0 object-cover sm:block" />
                       <div className="min-w-0 flex-1 basis-56">
                         <MapMeta id={m.beatmapId} map={m}>
                           <span className="text-ash">
@@ -212,6 +231,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
           );
         })}
       </SheetView>
+      </Fragment>
     </>
   );
 }

@@ -9,17 +9,6 @@ import { fetchMap } from "@/lib/fetch-map";
 import type { ActionResult } from "@/lib/action-result";
 import { blueprintFor, clearPack, slotBeatmapId } from "@/db/mappools";
 
-export async function renameStage(id: number, _: ActionResult, fd: FormData) {
-  return guard("host", "stage.rename", async () => {
-    const title = String(fd.get("title") ?? "")
-      .trim()
-      .slice(0, 40);
-    if (!title) return { ok: false, error: "invalid" };
-    await db.update(stages).set({ title }).where(eq(stages.id, id));
-    return { log: { id, title } };
-  });
-}
-
 export async function setReleased(id: number, poolReleased: boolean) {
   return guard("host", "stage.update", async () => {
     await db.update(stages).set({ poolReleased: !!poolReleased }).where(eq(stages.id, id));
@@ -30,7 +19,7 @@ export async function setReleased(id: number, poolReleased: boolean) {
 
 
 export async function setSlotMap(stageId: number, mod: string, slot: number, _: ActionResult, fd: FormData) {
-  return guard("poolEdit", "map.add", async () => {
+  return guard("host", "map.add", async () => {
     const beatmapId = await slotBeatmapId(stageId, mod, slot, fd.get("beatmap"));
     if (!beatmapId) return { ok: false, error: "invalid" };
     const data = await fetchMap(beatmapId, mod);
@@ -45,7 +34,7 @@ export async function setSlotMap(stageId: number, mod: string, slot: number, _: 
 }
 
 export async function moveMap(id: number, dir: -1 | 1) {
-  return guard("poolEdit", "map.move", async () => {
+  return guard("host", "map.move", async () => {
     const [m] = await db.select().from(maps).where(eq(maps.id, id)).limit(1);
     if (!m) return { ok: false, error: "notFound" };
     const s = await blueprintFor(m.stageId);
@@ -66,7 +55,7 @@ export async function moveMap(id: number, dir: -1 | 1) {
 }
 
 export async function deleteMap(id: number) {
-  return guard("poolEdit", "map.delete", async () => {
+  return guard("host", "map.delete", async () => {
     const [row] = await db.delete(maps).where(eq(maps.id, id)).returning({ title: maps.title, version: maps.version, stageId: maps.stageId });
     if (row) await clearPack(row.stageId);
     return { log: { id, ...row } };

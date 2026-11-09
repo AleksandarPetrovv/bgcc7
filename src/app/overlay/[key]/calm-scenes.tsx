@@ -1,75 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { Confetti } from "@/components/site/confetti";
+import { FlipCountdown } from "@/components/site/flip-countdown";
 import { Glyph } from "@/components/site/graphics";
 import type { FeedTeam, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
-import { Backdrop, Blend, Echo, editionNum, LABEL, Lockup, PlayerCard, Rule, ScoreNum, TEAM, TeamPic, TeamPlate, TopBar, Versus } from "./chrome";
+import { Backdrop, Blend, Echo, editionNum, Lockup, PlayerCard, Rule, ScoreNum, TEAM, TeamPic, TeamPlate, TopBar, Versus } from "./chrome";
 import { EASE } from "@/lib/ease";
 import { ROLL_REVEAL_MS, ROLL_SPIN_MS } from "@/lib/draft";
 
-
-let clock: number | null = null;
-const tickEverySecond = (cb: () => void) => {
-  const tick = () => {
-    clock = Date.now();
-    cb();
-  };
-  tick();
-  const id = window.setInterval(tick, 1000);
-  return () => window.clearInterval(id);
-};
-const still = () => () => {};
-
-function useNow(active: boolean) {
-  const now = useSyncExternalStore(active ? tickEverySecond : still, () => clock, () => null);
-  return active ? now : null;
-}
-
-function Countdown({ startsAt, at }: { startsAt: string | null; at: number }) {
-  const start = startsAt ? Date.parse(startsAt) : NaN;
-  const now = useNow(Number.isFinite(start));
-  const diff = Math.ceil((start - Math.max(at, now ?? at)) / 1000);
-  const left = Number.isFinite(diff) ? Math.max(0, diff) : 0;
-  const parts = [Math.floor(left / 3600), Math.floor(left / 60) % 60, left % 60];
-  const labels = ["Hours", "Minutes", "Seconds"];
-  const reduce = useReducedMotion();
-  return (
-    <div className="flex items-start gap-8" role="timer" aria-live="off">
-      {parts.map((p, i) => (
-        <div key={i} className="flex items-start gap-8">
-          {i > 0 && <span className="num mt-[12px] text-[110px] leading-none text-ash/50" aria-hidden>:</span>}
-          <div className="flex flex-col items-center gap-[76px]">
-            <span className="num -my-[64px] flex h-[278px] items-center overflow-hidden text-[150px] leading-none tabular-nums text-paper [mask-image:linear-gradient(transparent,rgb(0_0_0/0.35)_32px,black_64px,black_calc(100%-64px),rgb(0_0_0/0.35)_calc(100%-32px),transparent)]">
-              {String(p)
-                .padStart(2, "0")
-                .split("")
-                .map((d, k) => (
-                  <span key={k} className="relative inline-block">
-                    <AnimatePresence initial={false} mode="popLayout">
-                      <motion.span
-                        key={d}
-                        className="block py-[64px]"
-                        initial={reduce ? { opacity: 0 } : { transform: "translateY(-100%)", opacity: 0 }}
-                        animate={reduce ? { opacity: 1 } : { transform: "translateY(0%)", opacity: 1 }}
-                        exit={reduce ? { opacity: 0 } : { transform: "translateY(100%)", opacity: 0 }}
-                        transition={{ duration: 0.72, ease: [0.65, 0, 0.35, 1] }}
-                      >
-                        {d}
-                      </motion.span>
-                    </AnimatePresence>
-                  </span>
-                ))}
-            </span>
-            <span className={LABEL}>{labels[i]}</span>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function Matchup({ feed, score }: { feed: OverlayFeed; score?: boolean }) {
   return (
@@ -102,7 +43,7 @@ function Soon({ feed }: { feed: OverlayFeed }) {
         <Lockup num={editionNum(feed)} size={150} animate />
       </motion.div>
       <div className="absolute inset-x-0 bottom-[230px] top-[280px] flex items-center justify-center">
-        <Countdown key={`${feed.match.id}:${feed.match.startsAt}`} startsAt={feed.match.startsAt} at={feed.at} />
+        <FlipCountdown key={`${feed.match.id}:${feed.match.startsAt}`} to={feed.match.startsAt ? Date.parse(feed.match.startsAt) : NaN} at={feed.at} />
       </div>
       <div className="absolute inset-x-[72px] bottom-[110px] flex flex-col gap-12">
         <Rule />

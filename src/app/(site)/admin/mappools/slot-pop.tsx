@@ -14,7 +14,7 @@ import type { SubcategoryGroup } from "@/lib/format-plan";
 type Action = (prev: ActionResult, fd: FormData) => Promise<ActionResult>;
 type Props = { action: Action; title: string; slot: string; color: string; submit: string; icon?: "plus" | "pencil"; tags?: { groups: SubcategoryGroup[]; preset: string[] } };
 
-function Pop({ action, title, slot, color, submit, tags, onClose }: Omit<Props, "icon"> & { onClose: () => void }) {
+function Pop({ action, slot, color, submit, tags, onClose }: Omit<Props, "icon"> & { onClose: () => void }) {
   const t = useDict();
   const [state, formAction, pending] = useActionState(action, null);
   useEffect(() => {
@@ -29,14 +29,13 @@ function Pop({ action, title, slot, color, submit, tags, onClose }: Omit<Props, 
           <SlantBg className="border" style={{ borderColor: modHi(color) }} />
           {slot}
         </span>
-        <span className="min-w-0 flex-1 text-sm font-display font-bold text-paper">{title}</span>
-        <button type="button" onClick={onClose} aria-label={t.admin.close} className="grid size-8 place-items-center text-ash transition-colors hover:text-paper">
+        <button type="button" onClick={onClose} aria-label={t.admin.close} className="ml-auto grid size-8 place-items-center text-ash transition-colors hover:text-paper">
           <X className="size-4" />
         </button>
       </div>
       <form action={formAction}>
         <div className="flex items-stretch gap-3 p-4">
-          <Field name="beatmap" required autoFocus placeholder={t.admin.pasteMap} aria-label={t.admin.beatmap} className="min-w-0 flex-1 focus-within:before:!shadow-none" inputClassName="pr-3" />
+          <Field name="beatmap" required autoFocus placeholder={t.admin.linkOrId} aria-label={t.admin.beatmap} className="min-w-0 flex-1 focus-within:before:!shadow-none" inputClassName="pr-3 placeholder:text-sm placeholder:text-ash/60" />
           <Btn type="submit" disabled={pending} className="h-10 min-h-0 shrink-0 px-5">
             {pending ? t.admin.saving : submit}
           </Btn>
@@ -72,7 +71,7 @@ export function SlotPop({ icon = "plus", ...props }: Props) {
 
   const place = useCallback(
     (r: DOMRect): PopPlace => {
-      const width = Math.min(416, window.innerWidth - 24);
+      const width = Math.min(480, window.innerWidth - 24);
       const left = Math.max(12, Math.min(window.innerWidth - width - 12, r.right - width));
       return r.bottom + 8 + h < window.innerHeight ? { left, top: r.bottom + 8, width } : { left, top: r.top - 8, width, up: true };
     },

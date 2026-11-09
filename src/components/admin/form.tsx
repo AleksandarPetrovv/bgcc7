@@ -38,7 +38,8 @@ export function Btn({ tone = "rose", small, fill, className, children, ...props 
   );
 }
 
-export type ConfirmAsk = { text: string; yes: string; no?: string; body?: React.ReactNode };
+/** `skip`: a second answer that still submits, sent as confirm=skip (yes sends confirm=yes) */
+export type ConfirmAsk = { text: string; yes: string; no?: string; skip?: string; body?: React.ReactNode };
 type Guard = (fd: FormData) => ConfirmAsk | null;
 const GuardSlot = createContext<((g: Guard) => () => void) | null>(null);
 
@@ -51,12 +52,12 @@ export function useConfirmWhen(guard: Guard | null) {
 /** in-site confirm: call ask({ text, yes, onYes }) and render the returned dialog once */
 export function useConfirm() {
   const [open, setOpen] = useState(false);
-  const [req, setReq] = useState<(ConfirmAsk & { onYes: () => void }) | null>(null);
-  const ask = useCallback((r: ConfirmAsk & { onYes: () => void }) => {
+  const [req, setReq] = useState<(ConfirmAsk & { onYes: () => void; onSkip?: () => void }) | null>(null);
+  const ask = useCallback((r: ConfirmAsk & { onYes: () => void; onSkip?: () => void }) => {
     setReq(r);
     setOpen(true);
   }, []);
-  const dialog = <Confirm open={open} text={req?.text ?? ""} yes={req?.yes ?? ""} no={req?.no} onYes={() => req?.onYes()} onClose={() => setOpen(false)}>{req?.body}</Confirm>;
+  const dialog = <Confirm open={open} text={req?.text ?? ""} yes={req?.yes ?? ""} no={req?.skip ?? req?.no} onYes={() => req?.onYes()} onNo={req?.onSkip} onClose={() => setOpen(false)}>{req?.body}</Confirm>;
   return [ask, dialog] as const;
 }
 
@@ -68,13 +69,20 @@ type Props = {
   ghost?: boolean;
   confirm?: string;
   icon?: React.ReactNode;
+  tone?: keyof typeof TONES;
 };
 
-export function ActionForm({ action, children, className, submit, ghost, confirm, icon }: Props) {
+export function ActionForm({ action, children, className, submit, ghost, confirm, icon, tone }: Props) {
   const t = useDict();
   const [state, formAction, pending] = useActionState(action, null);
   const formRef = useRef<HTMLFormElement>(null);
   const confirmed = useRef(false);
+  const answer = useRef<HTMLInputElement>(null);
+  const send = (a: string) => {
+    if (answer.current) answer.current.value = a;
+    confirmed.current = true;
+    formRef.current?.requestSubmit();
+  };
   const guard = useRef<Guard | null>(null);
   const register = useCallback((g: Guard) => {
     guard.current = g;
@@ -91,21 +99,17 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
       className={className}
       onSubmit={(e) => {
         if (confirmed.current) return void (confirmed.current = false);
+        if (answer.current) answer.current.value = "";
         const q = guard.current?.(new FormData(e.currentTarget)) ?? (confirm ? { text: confirm, yes: submit ?? t.admin.save } : null);
         if (!q) return;
         e.preventDefault();
-        ask({
-          ...q,
-          onYes: () => {
-            confirmed.current = true;
-            formRef.current?.requestSubmit();
-          },
-        });
+        ask({ ...q, onYes: () => send("yes"), onSkip: q.skip ? () => send("skip") : undefined });
       }}
     >
+      <input ref={answer} type="hidden" name="confirm" />
       <GuardSlot.Provider value={register}>{children}</GuardSlot.Provider>
       <div className="flex flex-wrap items-center gap-3">
-        <Btn type="submit" disabled={pending} tone={ghost ? "outline" : "rose"} small={ghost}>
+        <Btn type="submit" disabled={pending} tone={tone ?? (ghost ? "outline" : "rose")} small={ghost}>
           {icon}
           {pending ? t.admin.saving : (submit ?? t.admin.save)}
         </Btn>
@@ -230,7 +234,7 @@ export function ErrorNote({ children }: { children?: React.ReactNode }) {
   );
 }
 
-function Confirm({ open, text, yes, no, onYes, onClose, children }: { open: boolean; text: string; yes: string; no?: string; onYes: () => void; onClose: () => void; children?: React.ReactNode }) {
+function Confirm({ open, text, yes, no, onYes, onNo, onClose, children }: { open: boolean; text: string; yes: string; no?: string; onYes: () => void; onNo?: () => void; onClose: () => void; children?: React.ReactNode }) {
   const t = useDict();
   return (
     <Popup open={open} onClose={onClose} shadow={6} className="p-5 sm:p-6">
@@ -246,7 +250,14 @@ function Confirm({ open, text, yes, no, onYes, onClose, children }: { open: bool
         >
           {yes}
         </Btn>
-        <Btn type="button" tone="outline" onClick={onClose}>
+        <Btn
+          type="button"
+          tone="outline"
+          onClick={() => {
+            onClose();
+            onNo?.();
+          }}
+        >
           {no ?? t.sched.cancel}
         </Btn>
       </div>

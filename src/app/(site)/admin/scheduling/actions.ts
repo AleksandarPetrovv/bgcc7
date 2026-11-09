@@ -8,6 +8,7 @@ import { weekNum, weekNums } from "@/lib/format";
 import { lockMatch, staffOverride } from "@/db/schedule";
 import { announceMatchTime, setMatchTime } from "@/db/match";
 import { guard } from "@/lib/admin-action";
+import { settleLate } from "@/db/pool-settle";
 import type { ActionResult } from "@/lib/action-result";
 import { fromSofiaInput } from "@/lib/time";
 import { inWindow, mondayOf, weekOf } from "@/lib/schedule";
@@ -39,7 +40,9 @@ export async function setWeek(n: number, _: ActionResult, fd: FormData) {
         await tx.update(reschedules).set({ status: "cancelled", decidedBy: osuId }).where(and(inArray(reschedules.matchId, off), eq(reschedules.status, "accepted")));
       }
     });
-    return { log: { n, week } };
+    const answer = String(fd.get("confirm") ?? "");
+    if (answer === "yes" || answer === "skip") await settleLate(answer === "yes");
+    return { log: { n, week, pools: answer || undefined } };
   });
 }
 

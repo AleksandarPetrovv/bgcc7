@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
 import { setReleased } from "./actions";
 
-export function ReleaseToggle({ stageId, released, disabled, className }: { stageId: number; released: boolean; disabled: boolean; className?: string }) {
+export function ReleaseToggle({ stageId, released, className }: { stageId: number; released: boolean; className?: string }) {
   const t = useDict();
   const [on, setOn] = useState(released);
   const [pending, start] = useTransition();
@@ -16,22 +16,22 @@ export function ReleaseToggle({ stageId, released, disabled, className }: { stag
     <label
       className={cn(
         "group/rel relative isolate flex h-10 w-fit items-center px-3.5 transition-[color,opacity] duration-200",
-        disabled ? "cursor-not-allowed" : "cursor-pointer",
-        on ? "text-white" : cn("text-ash", !disabled && "hover:text-paper"),
-        (pending || disabled) && "opacity-60",
+        "cursor-pointer",
+        on ? "text-white" : "text-ash hover:text-paper",
+        pending && "opacity-60",
         className,
       )}
     >
       <SlantBg
         className={cn(
           "border transition-[background-color,border-color,box-shadow] duration-200 group-has-[:focus-visible]/rel:ring-2 group-has-[:focus-visible]/rel:ring-rose",
-          on ? "border-rose bg-rose shadow-[3px_3px_0_0_var(--rose-deep)]" : cn("border-line bg-ink/40", !disabled && "group-hover/rel:border-paper/40"),
+          on ? "border-rose bg-rose shadow-[3px_3px_0_0_var(--rose-deep)]" : "border-line bg-ink/40 group-hover/rel:border-paper/40",
         )}
       />
       <input
         type="checkbox"
         checked={on}
-        disabled={pending || disabled}
+        disabled={pending}
         className="sr-only"
         onChange={(e) => {
           const next = e.target.checked;

@@ -3,10 +3,12 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { poolSuggestions, poolVotes } from "@/db/schema";
-import { resolveSlot, slotPicked } from "@/db/pool-sheet";
+import { placeSuggestion, resolveSlot, slotPicked } from "@/db/pool-sheet";
+import { poolState } from "@/db/pool-settle";
+import { stages } from "@/db/schema";
 import { slotBeatmapId } from "@/db/mappools";
 import { guard } from "@/lib/admin-action";
-import { log } from "@/lib/authz";
+import { log, type Viewer } from "@/lib/authz";
 import { fetchMap } from "@/lib/fetch-map";
 import { can } from "@/lib/roles";
 import type { ActionResult } from "@/lib/action-result";
@@ -17,8 +19,16 @@ async function settle(osuId: number, stageId: number, mod: string, slot: number,
   if (res) await log(osuId, "pool.pick", res);
 }
 
+// poolers and testers act only on the stage whose window is open; hosts always
+async function inWindow(roles: Viewer["roles"], stageId: number) {
+  if (can(roles, "host")) return true;
+  const [st] = await db.select({ slug: stages.slug }).from(stages).where(eq(stages.id, stageId)).limit(1);
+  return !!st && (await poolState()).access.open?.stage === st.slug;
+}
+
 export async function suggestMap(stageId: number, mod: string, slot: number, _: ActionResult, fd: FormData) {
-  return guard("poolEdit", "pool.suggest", async ({ osuId }) => {
+  return guard("poolEdit", "pool.suggest", async ({ osuId, roles }) => {
+    if (!(await inWindow(roles, stageId))) return { ok: false, error: "forbidden" };
     const beatmapId = await slotBeatmapId(stageId, mod, slot, fd.get("beatmap"));
     if (!beatmapId) return { ok: false, error: "invalid" };
     if (await slotPicked(stageId, mod, slot)) return { ok: false, error: "taken" };
@@ -44,13 +54,14 @@ export async function suggestMap(stageId: number, mod: string, slot: number, _: 
 }
 
 export async function voteSuggestion(id: number, score: number, note: string) {
-  return guard("poolVote", "pool.vote", async ({ osuId }) => {
+  return guard("poolVote", "pool.vote", async ({ osuId, roles }) => {
     const text = String(note ?? "")
       .trim()
       .slice(0, 300);
     if (!Number.isInteger(score) || score < 1 || score > 10 || text.length < 2) return { ok: false, error: "invalid" };
     const [s] = await db.select().from(poolSuggestions).where(eq(poolSuggestions.id, id)).limit(1);
     if (!s) return { ok: false, error: "notFound" };
+    if (!(await inWindow(roles, s.stageId))) return { ok: false, error: "forbidden" };
     if (s.osuId === osuId || (await slotPicked(s.stageId, s.mod, s.slot))) return { ok: false, error: "taken" };
     await db
       .insert(poolVotes)
@@ -65,7 +76,7 @@ export async function removeSuggestion(id: number) {
   return guard("poolEdit", "pool.unsuggest", async ({ osuId, roles }) => {
     const [s] = await db.select().from(poolSuggestions).where(eq(poolSuggestions.id, id)).limit(1);
     if (!s) return { ok: false, error: "notFound" };
-    if (s.picked || (s.osuId !== osuId && !can(roles, "host"))) return { ok: false, error: "forbidden" };
+    if (s.picked || (s.osuId !== osuId && !can(roles, "host")) || !(await inWindow(roles, s.stageId))) return { ok: false, error: "forbidden" };
     await db.delete(poolSuggestions).where(eq(poolSuggestions.id, id));
     await settle(osuId, s.stageId, s.mod, s.slot);
     return { log: { id, title: s.title, version: s.version } };
@@ -85,5 +96,19 @@ export async function pickSuggestion(id: number) {
     if (!s) return { ok: false, error: "notFound" };
     await settle(osuId, s.stageId, s.mod, s.slot, true, id);
     return { log: { stageId: s.stageId, mod: s.mod, slot: s.slot + 1 } };
+  });
+}
+
+/** the slot's elected winner goes into the stage's pool (hosts only) */
+export async function pickIntoPool(stageId: number, mod: string, slot: number) {
+  return guard("host", "pool.pick", async () => {
+    const [s] = await db
+      .select()
+      .from(poolSuggestions)
+      .where(and(eq(poolSuggestions.stageId, stageId), eq(poolSuggestions.mod, mod), eq(poolSuggestions.slot, slot), eq(poolSuggestions.picked, true)))
+      .limit(1);
+    if (!s) return { ok: false, error: "notFound" };
+    await placeSuggestion(s);
+    return { log: { stageId, mod, slot: slot + 1, title: s.title, version: s.version } };
   });
 }

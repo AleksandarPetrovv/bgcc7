@@ -18,7 +18,7 @@ async function stageOf(slug: string) {
 }
 
 export async function PUT(req: Request, { params }: RouteContext<"/api/admin/mappack/[slug]">) {
-  const who = await staffFor("poolEdit");
+  const who = await staffFor("host");
   if (!who) return Response.json({ error: "forbidden" }, { status: 403 });
   const stage = await stageOf((await params).slug);
   if (!stage) return Response.json({ error: "notFound" }, { status: 404 });
@@ -57,7 +57,7 @@ export async function PUT(req: Request, { params }: RouteContext<"/api/admin/map
 }
 
 export async function DELETE(_: Request, { params }: RouteContext<"/api/admin/mappack/[slug]">) {
-  const who = await staffFor("poolEdit");
+  const who = await staffFor("host");
   if (!who) return Response.json({ error: "forbidden" }, { status: 403 });
   const stage = await stageOf((await params).slug);
   if (!stage) return Response.json({ error: "notFound" }, { status: 404 });

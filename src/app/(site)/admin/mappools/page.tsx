@@ -1,74 +1,226 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { ArrowUpRight, Eye, LayoutGrid, ListChecks, PencilRuler } from "lucide-react";
-import { PageTitle } from "@/components/site/page-title";
-import { getPoolStages } from "@/db/mappools";
-import { getSheet } from "@/db/pool-sheet";
-import { getViewer } from "@/lib/authz";
-import { getDict } from "@/lib/i18n/server";
-import { can } from "@/lib/roles";
-import { cn } from "@/lib/utils";
-import { isBGCC6 } from "@/db";
+import { LinkTabs } from "@/components/site/tabs";
+import { Fragment } from "react";
 import { RuleDiamond } from "@/components/site/rule";
-import { SlantBg } from "@/components/site/slant";
+import { forbidden, redirect } from "next/navigation";
+import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
+import { Panel, IconAction } from "@/components/admin/form";
+import { getPoolStages, slotOf } from "@/db/mappools";
+import { getPlan, getSkillLayouts } from "@/db/format-plan";
+import { subcategoryNames } from "@/lib/format-plan";
+import { getMapChecks } from "@/lib/osu-api";
+import { getViewer } from "@/lib/authz";
+import { cardCover } from "@/lib/data";
+import { TagChips } from "./tag-chips";
+import { MapMeta, ModChip } from "./map-meta";
+import { getDict, getLang } from "@/lib/i18n/server";
+import { PackUploader } from "@/components/admin/pack-uploader";
+import { can } from "@/lib/roles";
+import { modHi } from "@/lib/theme";
+import { cn } from "@/lib/utils";
+import { deleteMap, moveMap, setSlotMap } from "./actions";
+import { SlotInput } from "./slot-input";
+import { SlotPop } from "./slot-pop";
+import { ReleaseToggle } from "./release-toggle";
+import { SwapRow } from "./swap-row";
+import Link from "next/link";
+import { localeOf } from "@/lib/i18n/locale";
+import { roundName } from "@/lib/i18n/dict";
+import { MOD_ORDER, MODS } from "@/lib/mods";
 
-export default async function MappoolsHub() {
-  const [t, viewer, stages] = await Promise.all([getDict(), getViewer(), getPoolStages()]);
-  if (!viewer || !can(viewer.roles, "mappools")) notFound();
-  const sheets = await Promise.all(stages.map((s) => getSheet(s.id, viewer.osuId, s.blueprint)));
-  const edit = can(viewer.roles, "poolEdit");
-  const host = can(viewer.roles, "host");
-  const vote = can(viewer.roles, "poolVote");
-  const owed = vote ? sheets.reduce((n, s) => n + s.owed, 0) : 0;
-  const mapCount = stages.reduce((n, s) => n + s.pools.reduce((k, p) => k + p.maps.length, 0), 0);
-  const tiles = [
-    {
-      href: "/admin/mappools/sheet",
-      Icon: ListChecks,
-      title: t.admin.poolSheet,
-      sub: vote ? t.admin.owedVotes(owed) : t.admin.slotsOpen(sheets.reduce((n, s) => n + s.slots.filter((x) => !x.picked).length, 0)),
-      hot: owed > 0,
-    },
-    { href: "/admin/mappools/edit", Icon: edit ? PencilRuler : Eye, title: edit ? t.admin.poolEdit : t.admin.poolView, sub: t.admin.mapsInPools(mapCount), hot: false },
-    ...(host && isBGCC6() ? [{ href: "/admin/mappools/create", Icon: LayoutGrid, title: t.admin.poolCreate, sub: t.admin.poolCreateSub, hot: false }] : []),
-  ];
+export default async function AdminMappools({ searchParams }: PageProps<"/admin/mappools">) {
+  const [t, lang, viewer, stages, sp] = await Promise.all([getDict(), getLang(), getViewer(), getPoolStages(), searchParams]);
+  if (!viewer || !can(viewer.roles, "mappools")) forbidden();
+  // only hosts put maps into a pool; poolers and testers work in the sheet
+  if (!can(viewer.roles, "host")) redirect("/admin/mappools/sheet");
+  const stage = stages.find((s) => s.slug === sp.stage) ?? stages[0];
+  if (!stage) return null;
+  const name = (s: { title: string }) => roundName(t, s.title);
+  const [checks, layouts, plan] = await Promise.all([getMapChecks(stage.pools.flatMap((p) => p.maps.map((m) => m.id))), getSkillLayouts(), getPlan()]);
+  const skill = layouts?.[stage.slug];
+  const poolMaps = stage.pools.flatMap((p) => p.maps);
+  const mapsOf = (mod: string) => stage.pools.find((p) => p.category === mod)?.maps ?? [];
+  const countOf = (mod: string) => stage.blueprint[mod] ?? 0;
+  type Item = { mod: string; slot: number; out: boolean; note?: string; label?: string };
+  const extras = (mod: string): Item[] => mapsOf(mod).filter((m) => m.order >= countOf(mod)).map((m) => ({ mod, slot: m.order, out: true }));
+  const sections: { key: string; title: string; color: string; items: Item[] }[] = skill
+    ? [
+        ...skill.groups.map((g) => ({ key: g.id, title: g.name, color: g.color, items: g.slots.map((x) => ({ ...x, out: false })) })),
+        { key: "out", title: t.admin.outsideLayout, color: "var(--rose)", items: MOD_ORDER.flatMap(extras) },
+      ].filter((x) => x.items.length)
+    : MOD_ORDER.filter((mod) => countOf(mod) > 0 || mapsOf(mod).length).map((mod) => ({
+        key: mod,
+        title: MODS[mod].label,
+        color: MODS[mod].color,
+        items: [...Array.from({ length: countOf(mod) }, (_, slot) => ({ mod, slot, out: false })), ...extras(mod)],
+      }));
+
+  // the round tabs stay mounted; everything under them is keyed by stage so it plays its intro again
   return (
     <>
-      <PageTitle mark="notes">{t.admin.menu.mappools}</PageTitle>
-      <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
-        {tiles.map(({ href, Icon, title, sub, hot }, i) => (
-          <div
-            key={href}
-            style={{ "--i": i, "--s": "0.12s", "--d": "0.15s" } as React.CSSProperties}
-            className={cn("in-flip", i === 2 && "sm:col-span-2 sm:mx-auto sm:w-[calc(50%-0.5rem)]")}
-          >
-            <Link
-              href={href}
-              className="group relative flex h-full min-h-48 flex-col justify-between border-b border-line py-6 transition-colors duration-300 hover:border-rose sm:min-h-60 sm:py-8"
-            >
-              <RuleDiamond />
-              <Icon
-                className="pointer-events-none absolute bottom-2 right-0 size-40 text-paper/[0.04] transition-[color,transform,translate,scale,rotate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-1 group-hover:text-rose/10"
-                strokeWidth={1.25}
-                aria-hidden
-              />
-              <span className="flex items-start justify-between gap-4">
-                <span className="relative isolate grid size-14 place-items-center text-white">
-                  <SlantBg className="border border-rose bg-rose shadow-[3px_3px_0_0_var(--rose-deep)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105" />
-                  <Icon className="size-7" strokeWidth={2} />
-                </span>
-                <ArrowUpRight className="size-6 text-ash transition-[color,transform,translate,scale,rotate] duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-rose-hi" />
-              </span>
-              <span className="relative">
-                <span className="heading-slam block text-4xl sm:text-5xl">{title}</span>
-                <span className={hot ? "mt-2 block text-sm font-display font-bold text-rose-hi" : "mt-2 block text-sm font-display font-bold text-ash"}>
-                  {sub}
-                </span>
-              </span>
-            </Link>
+      <LinkTabs
+        className="in-left mb-6 [--d:0.15s]"
+        label={t.admin.menu.mappools}
+        items={stages.map((s) => ({
+          href: `/admin/mappools?stage=${s.slug}`,
+          active: s.id === stage.id,
+          label: name(s),
+        }))}
+      />
+      <Fragment key={stage.slug}>
+      {stage.released && <p className="in-up mb-5 text-xs font-display font-bold text-gold-hi [--d:0.2s]">{t.admin.pf.released}</p>}
+
+        <Panel title={t.admin.poolDone} help={t.admin.poolDoneHelp} className="mb-6 border-rose/60" i={1}>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { k: t.admin.poolStatMaps, v: String(poolMaps.length) },
+                { k: t.admin.poolStatSr, v: poolMaps.length ? `${(poolMaps.reduce((n, m) => n + m.sr, 0) / poolMaps.length).toFixed(2)}★` : "–" },
+              ].map((s) => (
+                <div key={s.k} className="border-l border-line pl-3">
+                  <div>
+                    <div className="text-[0.62rem] font-display font-bold text-ash">{s.k}</div>
+                    <div className="num text-2xl text-paper">{s.v}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <PackUploader
+              key={stage.slug}
+              simple
+              stages={[{ slug: stage.slug, title: stage.title, pack: stage.pack }]}
+              locale={localeOf(lang)}
+              lead={<ReleaseToggle key={`${stage.id}-${stage.released}`} stageId={stage.id} released={stage.released} className="w-full justify-center" />}
+            />
           </div>
-        ))}
+        </Panel>
+
+      {sections.length === 0 && (
+        <p className="flex flex-wrap items-center gap-3 border-y border-line py-4 text-sm text-ash">
+          {t.admin.noLayout}
+          {
+            <Link href={`/admin/mappools/create?stage=${stage.slug}`} className="font-display font-bold text-rose-hi hover:text-paper">
+              {t.admin.poolCreate} →
+            </Link>
+          }
+        </p>
+      )}
+      {/* a diamond rule half way between one section's last slot and the next section's label */}
+      <div className="space-y-7">
+        {sections.map(({ key, title, color: accent, items }, pi) => {
+          const filled = items.filter((x) => !x.out && mapsOf(x.mod).some((m) => m.order === x.slot)).length;
+          const total = items.filter((x) => !x.out).length;
+          // sections start once the "done with this pool" panel above has played
+          const at = 0.55 + Math.min(pi, 12) * 0.12;
+          return (
+            <Fragment key={key}>
+            {pi > 0 && (
+              <div className="in-up relative border-b border-line" style={{ "--d": `${at - 0.06}s` } as React.CSSProperties}>
+                <RuleDiamond />
+              </div>
+            )}
+            <section className="in-up relative overflow-x-clip" style={{ "--d": `${at}s` } as React.CSSProperties}>
+              <h2 className="flex items-center gap-3 border-b border-line pb-2 pl-1 text-sm font-display font-bold" style={{ color: modHi(accent) }}>
+                <span className="size-2 shrink-0 rotate-45" style={{ background: accent }} aria-hidden />
+                <span className="in-wipe inline-block" style={{ "--d": `${at + 0.1}s` } as React.CSSProperties}>{title}</span>
+                {total > 0 && (
+                  <span className="num text-xs text-ash">
+                    {filled}/{total}
+                  </span>
+                )}
+              </h2>
+              <ul className="divide-y divide-line">
+                {items.map(({ mod, slot, out, note, label: tagLabel }, i) => {
+                  const color = skill && !out ? accent : MODS[mod].color;
+                  const chip = skill && mod !== "Tiebreaker" ? <ModChip mod={mod} /> : null;
+                  const count = countOf(mod);
+                  const m = mapsOf(mod).find((x) => x.order === slot);
+                  // a Pick keeps its suggester's tags; a map set by link falls back to the format's
+                  const names = m?.tags.length ? subcategoryNames(plan.subcategories, m.tags) : note ? note.split("\n") : [];
+                  const tag = names.length ? <TagChips names={names} color={color} className="mt-1" /> : null;
+                  if (!m)
+                    return (
+                      <SwapRow
+                        key={`empty-${mod}-${slot}`}
+                        style={{ "--i": i, "--s": "0.04s", "--d": `${at + 0.1}s` } as React.CSSProperties}
+                        className="in-left flex flex-wrap items-center gap-3 bg-[repeating-linear-gradient(135deg,transparent_0_10px,color-mix(in_srgb,var(--rose)_5%,transparent)_10px_20px)] px-3 py-2.5"
+                      >
+                        <span className={cn("heading-slam shrink-0 whitespace-nowrap text-xl opacity-60", skill ? "w-20" : "w-12")} style={{ color: modHi(color) }}>
+                          {tagLabel ?? slotOf(mod, slot)}
+                        </span>
+                        {chip}
+                        <div className="min-w-0 flex-1 basis-60">
+                          <SlotInput action={setSlotMap.bind(null, stage.id, mod, slot)} />
+                          {tag}
+                        </div>
+                      </SwapRow>
+                    );
+                  return (
+                    <SwapRow
+                      key={m.rowId}
+                      style={{ "--i": i, "--s": "0.04s", "--d": `${at + 0.1}s` } as React.CSSProperties}
+                      className={cn("in-left flex flex-wrap items-center gap-3 px-3 py-2", out && "bg-rose/[0.06]")}
+                    >
+                      <span className={cn("in-slam heading-slam shrink-0 whitespace-nowrap text-xl", skill ? "w-20" : "w-12")} style={{ color: modHi(color), "--d": `${at + 0.15}s` } as React.CSSProperties}>
+                        {m.slot}
+                      </span>
+                      {chip}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={cardCover(m.cover)} alt="" loading="lazy" decoding="async" className="in-wipe hidden h-10 w-24 object-cover sm:block" style={{ "--d": `${at + 0.2}s` } as React.CSSProperties} />
+                      <div className="min-w-0 basis-full max-sm:order-last sm:flex-1 sm:basis-0">
+                        <MapMeta
+                          id={m.id}
+                          map={m}
+                          diff
+                          note={
+                            <>
+                              {out && <div className="text-xs font-display font-bold text-rose-hi">{t.admin.outsideLayout}</div>}
+                              {tag}
+                              {checks.get(m.id)?.dmca && <div className="text-xs font-display font-bold text-rose-hi">{t.admin.mapDmca}</div>}
+                            </>
+                          }
+                        />
+                      </div>
+                      {(
+                        <div className="ml-auto flex items-center gap-1.5">
+                          {skill ? null : !out && slot > 0 ? (
+                            <IconAction action={moveMap.bind(null, m.rowId, -1)} label={t.admin.up}>
+                              <ArrowUp className="size-4 transition-transform group-hover:-translate-y-0.5" strokeWidth={2.5} />
+                            </IconAction>
+                          ) : (
+                            <span className="size-10" aria-hidden />
+                          )}
+                          {skill ? null : !out && slot < count - 1 ? (
+                            <IconAction action={moveMap.bind(null, m.rowId, 1)} label={t.admin.down}>
+                              <ArrowDown className="size-4 transition-transform group-hover:translate-y-0.5" strokeWidth={2.5} />
+                            </IconAction>
+                          ) : (
+                            <span className="size-10" aria-hidden />
+                          )}
+                          {!out && (
+                            <SlotPop
+                              icon="pencil"
+                              action={setSlotMap.bind(null, stage.id, mod, slot)}
+                              title={t.admin.changeMap}
+                              slot={m.slot}
+                              color={color}
+                              submit={t.admin.replace}
+                            />
+                          )}
+                          <IconAction action={deleteMap.bind(null, m.rowId)} label={t.admin.clearSlot} confirm={t.admin.confirmClearSlot} danger>
+                            <Trash2 className="size-4 transition-transform group-hover:-translate-y-px" />
+                          </IconAction>
+                        </div>
+                      )}
+                    </SwapRow>
+                  );
+                })}
+              </ul>
+            </section>
+            </Fragment>
+          );
+        })}
       </div>
+      </Fragment>
     </>
   );
 }

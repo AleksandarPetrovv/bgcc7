@@ -1,8 +1,8 @@
 import "server-only";
 import { and, arrayOverlaps, asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "./index";
-import { poolSuggestions, poolVotes, staff, users } from "./schema";
-import { slotOf } from "./mappools";
+import { maps, poolSuggestions, poolVotes, staff, users } from "./schema";
+import { clearPack, slotOf } from "./mappools";
 import { avatarCol } from "./avatar";
 import { MOD_ORDER } from "@/lib/mods";
 
@@ -127,4 +127,47 @@ export async function sheetVersion(stageId: number) {
       coalesce((select string_agg(st.osu_id || ':' || array_to_string(st.perm_roles, '+'), ',' order by st.osu_id) from staff st), '')
     ) as v`);
   return row?.v ?? "";
+}
+
+/** after a role change: a slot that only waited on someone who lost the role passes now */
+export async function resolveAll() {
+  const open = await db
+    .selectDistinct({ stageId: poolSuggestions.stageId, mod: poolSuggestions.mod, slot: poolSuggestions.slot })
+    .from(poolSuggestions)
+    .where(eq(poolSuggestions.picked, false));
+  for (const s of open) await resolveSlot(s.stageId, s.mod, s.slot);
+}
+
+/** the deadline rule: an elected winner, else the best average (one suggestion wins even without votes); equal tops = tie */
+export async function slotLeader(stageId: number, mod: string, slot: number) {
+  const list = await db
+    .select()
+    .from(poolSuggestions)
+    .where(and(eq(poolSuggestions.stageId, stageId), eq(poolSuggestions.mod, mod), eq(poolSuggestions.slot, slot)));
+  if (!list.length) return { kind: "empty" as const };
+  const won = list.find((s) => s.picked);
+  if (won) return { kind: "win" as const, s: won };
+  const votes = await db.select().from(poolVotes).where(inArray(poolVotes.suggestionId, list.map((s) => s.id)));
+  const ranked = list.map((s) => ({ s, avg: avgOf(votes.filter((v) => v.suggestionId === s.id)) })).sort((a, b) => (b.avg ?? -1) - (a.avg ?? -1));
+  if (ranked.length > 1 && (ranked[0].avg ?? -1) === (ranked[1].avg ?? -1)) return { kind: "tie" as const };
+  return { kind: "win" as const, s: ranked[0].s };
+}
+
+/** puts a suggestion into its stage's pool slot (with its suggester's tags) and marks it the slot's winner.
+ *  returns null when the slot already holds that map, else the map it replaced (if any) */
+export async function placeSuggestion(s: typeof poolSuggestions.$inferSelect) {
+  const [old] = await db
+    .select()
+    .from(maps)
+    .where(and(eq(maps.stageId, s.stageId), eq(maps.mod, s.mod), eq(maps.order, s.slot)))
+    .limit(1);
+  await db.update(poolSuggestions).set({ picked: true }).where(eq(poolSuggestions.id, s.id));
+  if (old?.beatmapId === s.beatmapId) return null;
+  const { beatmapId, title, artist, version, creator, sr, bpm, length, ar, od, cs, cover, subcategoryIds } = s;
+  await db.transaction(async (tx) => {
+    await tx.delete(maps).where(and(eq(maps.stageId, s.stageId), eq(maps.mod, s.mod), eq(maps.order, s.slot)));
+    await tx.insert(maps).values({ stageId: s.stageId, mod: s.mod, order: s.slot, beatmapId, title, artist, version, creator, sr, bpm, length, ar, od, cs, cover, subcategoryIds });
+  });
+  await clearPack(s.stageId);
+  return { replaced: old ?? null };
 }

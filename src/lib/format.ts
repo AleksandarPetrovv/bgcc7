@@ -180,7 +180,7 @@ function buildFormat(): Format {
       "winners-quarterfinals": { name: "Quarterfinals", stage: "quarterfinals", week: 2 },
       "winners-semifinals": { name: "Semifinals", stage: "semifinals", week: 4 },
       "winners-final": { name: "Winners Finals", stage: "finals", week: 6, single: true },
-      "losers-round-1": { name: "Losers Round 1", stage: "round-of-16", week: 2 },
+      "losers-round-1": { name: "Losers Round 1", stage: "quarterfinals", week: 2 },
       "losers-round-2": { name: "Losers Round 2", stage: "quarterfinals", week: 3 },
       "losers-round-3": { name: "Losers Round 3", stage: "semifinals", week: 4 },
       "losers-round-4": { name: "Losers Round 4", stage: "semifinals", week: 5 },

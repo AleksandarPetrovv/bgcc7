@@ -24,7 +24,7 @@ export type PoolStage = {
   released: boolean;
   pack: Pack | null;
   blueprint: Record<string, number>;
-  pools: { category: string; maps: (Beatmap & { rowId: number; order: number })[] }[];
+  pools: { category: string; maps: (Beatmap & { rowId: number; order: number; tags: string[] })[] }[];
 };
 
 export async function blueprintFor(stageId: number) {
@@ -74,6 +74,7 @@ export const getPoolStages = cache(() =>
           .map((m) => ({
             rowId: m.id,
             order: m.order,
+            tags: m.subcategoryIds,
             slot: skillSlot(skills?.[s.slug], mod, m.order)?.label ?? slotOf(mod, m.order),
             mod,
             title: m.title,

@@ -1,25 +1,37 @@
-import { Eye, ListChecks, PencilRuler } from "lucide-react";
-import type { Dict } from "@/lib/i18n/dict";
-import { LinkTabs } from "@/components/site/tabs";
+"use client";
 
-export function PoolMode({ t, on, stage, edit }: { t: Dict; on: "sheet" | "edit"; stage?: string; edit: boolean }) {
+import { usePathname, useSearchParams } from "next/navigation";
+import { ListChecks, PencilRuler } from "lucide-react";
+import { LinkTabs } from "@/components/site/tabs";
+import { PageTitle } from "@/components/site/page-title";
+import { useDict } from "@/components/site/lang";
+
+export function PoolMode({ edit }: { edit: boolean }) {
+  const t = useDict();
+  const path = usePathname();
+  const stage = useSearchParams().get("stage");
   const items = [
-    { k: "sheet" as const, Icon: ListChecks, label: t.admin.poolSheet },
-    { k: "edit" as const, Icon: edit ? PencilRuler : Eye, label: edit ? t.admin.poolEdit : t.admin.poolView },
+    { href: "/admin/mappools", Icon: PencilRuler, label: t.admin.poolEdit },
+    { href: "/admin/mappools/sheet", Icon: ListChecks, label: t.admin.poolSheet },
   ];
+  // the bgcc6 create page shares this folder's layout but not the switch
+  if (!items.some((x) => x.href === path)) return null;
   return (
-    <LinkTabs
-      className="in-left mb-5 [--d:0.1s]"
-      items={items.map(({ k, Icon, label }) => ({
-        href: `/admin/mappools/${k}${stage ? `?stage=${stage}` : ""}`,
-        active: on === k,
-        label: (
-          <>
-            <Icon className="size-3.5" />
-            {label}
-          </>
-        ),
-      }))}
-    />
+    <>
+      <PageTitle mark="notes">{t.admin.menu.mappools}</PageTitle>
+      {edit && <LinkTabs
+        className="in-left mb-5 [--d:0.1s]"
+        items={items.map(({ href, Icon, label }) => ({
+          href: `${href}${stage ? `?stage=${stage}` : ""}`,
+          active: path === href,
+          label: (
+            <>
+              <Icon className="size-3.5" />
+              {label}
+            </>
+          ),
+        }))}
+      />}
+    </>
   );
 }

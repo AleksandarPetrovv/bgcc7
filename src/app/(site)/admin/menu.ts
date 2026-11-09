@@ -25,5 +25,6 @@ const SECTIONS = [
 
 export type AdminKey = (typeof SECTIONS)[number]["key"];
 
-export const adminMenu = (roles: readonly Role[] | null | undefined) =>
-  SECTIONS.filter((s) => (!("bgcc6" in s) || isBGCC6()) && (!("bgcc7" in s) || !isBGCC6()) && s.perm.some((p) => can(roles, p))).map((s) => ({ key: s.key as AdminKey, href: `/admin/${s.key}` }));
+/** `hide`: sections closed for this viewer for now (mappools once the last pool settled, for poolers and testers) */
+export const adminMenu = (roles: readonly Role[] | null | undefined, hide: readonly AdminKey[] = []) =>
+  SECTIONS.filter((s) => (!("bgcc6" in s) || isBGCC6()) && (!("bgcc7" in s) || !isBGCC6()) && s.perm.some((p) => can(roles, p)) && !hide.includes(s.key)).map((s) => ({ key: s.key as AdminKey, href: `/admin/${s.key}` }));
