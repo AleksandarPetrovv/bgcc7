@@ -14,12 +14,12 @@ export async function logWrite(osuId: number, action: ActionName, payload?: Reco
   revalidatePath("/", "layout");
 }
 
-type Opts = { match?: string; unassigned?: boolean };
+type Opts = { match?: string };
 
 export async function guard(perm: Perm | readonly Perm[], action: ActionName, fn: (v: Viewer) => Promise<Outcome>, opts: Opts = {}): Promise<ActionResult> {
   try {
     const v = await staffFor(perm);
-    if (!v || (opts.match !== undefined && !(await canRunMatch(opts.match, { unassigned: opts.unassigned })))) return { ok: false, error: "forbidden" };
+    if (!v || (opts.match !== undefined && !(await canRunMatch(opts.match)))) return { ok: false, error: "forbidden" };
     const res = await fn(v);
     if (res && "ok" in res) return res.ok ? { ok: true } : res;
     await logWrite(v.osuId, action, res?.log);

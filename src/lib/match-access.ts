@@ -1,8 +1,7 @@
 import "server-only";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { matches, teamMembers } from "@/db/schema";
-import { staffIds } from "@/db/users";
+import { matches, teamMembers, users } from "@/db/schema";
 import { getViewer } from "./authz";
 import { can } from "./roles";
 import { siteRun } from "@/db/site-run";
@@ -11,15 +10,23 @@ import type { Side } from "./draft";
 import { getFormat } from "@/db/edition";
 import { matchIdFromSlug } from "./format";
 
-export async function canRunMatch(matchId: string, opts: { unassigned?: boolean } = {}) {
+/** which matches the viewer may run: hosts all, refs only the ones assigned to them */
+export async function refScope() {
   const v = await getViewer();
-  if (!v) return false;
-  if (v.roles.includes("host")) return true;
-  if (!can(v.roles, "matches")) return false;
+  if (!v) return null;
+  if (v.roles.includes("host")) return { host: true, runs: (() => true) as (referee: string | null) => boolean };
+  if (!can(v.roles, "matches")) return null;
+  const [u] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, v.osuId)).limit(1);
+  const me = u?.username.toLowerCase();
+  return { host: false, runs: (referee: string | null) => !!me && staffNames(referee).some((n) => n.toLowerCase() === me) };
+}
+
+export async function canRunMatch(matchId: string) {
+  const s = await refScope();
+  if (!s) return false;
+  if (s.host) return true;
   const [m] = await db.select({ referee: matches.referee }).from(matches).where(eq(matches.id, matchId)).limit(1);
-  if (!m) return false;
-  if (!staffNames(m.referee).length) return !!opts.unassigned;
-  return (await staffIds(m.referee)).includes(v.osuId);
+  return !!m && s.runs(m.referee);
 }
 
 export async function withMatch(slug: string) {

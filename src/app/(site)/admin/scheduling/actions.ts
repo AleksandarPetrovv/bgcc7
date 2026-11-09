@@ -11,7 +11,7 @@ import { fromSofiaInput } from "@/lib/time";
 import { inWindow, mondayOf, weekOf } from "@/lib/schedule";
 
 export async function setWeek(slug: string, _: ActionResult, fd: FormData) {
-  return guard("matches", "schedule.week", async ({ osuId }) => {
+  return guard("host", "schedule.week", async ({ osuId }) => {
     const raw = String(fd.get("week") ?? "").trim();
     const week = raw ? mondayOf(raw) : null;
     if (raw && !week) return { ok: false, error: "invalid" };
@@ -57,5 +57,5 @@ export async function setTime(id: string, _: ActionResult, fd: FormData) {
     if (!out) return { ok: false, error: "notFound" };
     if (!out.same && at) announceMatchTime([out.team1Id, out.team2Id], at, { dm: true });
     return { log: { match: id, at: at?.toISOString() ?? null } };
-  });
+  }, { match: id });
 }

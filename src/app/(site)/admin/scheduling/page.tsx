@@ -5,9 +5,8 @@ import { labelCls } from "@/components/admin/label";
 import { getPoolStages } from "@/db/mappools";
 import { getMatchRows, getTeams } from "@/db/tournament";
 import { historyOf, stageWeeks } from "@/db/schedule";
-import { getViewer } from "@/lib/authz";
+import { refScope } from "@/lib/match-access";
 import { getDict, getLang } from "@/lib/i18n/server";
-import { can } from "@/lib/roles";
 import { fmtSofia, toSofiaInput } from "@/lib/time";
 import { historyLabel, isOpen, weekOf } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
@@ -27,14 +26,15 @@ const TONE: Record<string, { bar: string; chip: string; ink: string }> = {
 };
 
 export default async function AdminScheduling() {
-  const [t, lang, viewer, rows, teams, stages, weeks] = await Promise.all([getDict(), getLang(), getViewer(), getMatchRows(), getTeams(), getPoolStages(), stageWeeks()]);
-  if (!can(viewer?.roles, "matches")) notFound();
+  const [t, lang, scope, all, teams, stages, weeks] = await Promise.all([getDict(), getLang(), refScope(), getMatchRows(), getTeams(), getPoolStages(), stageWeeks()]);
+  if (!scope) notFound();
+  const rows = all.filter((m) => scope.runs(m.referee));
   const s = t.sched;
   const locale = localeOf(lang);
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? "—";
   const captain = (osuId: number | null) => (osuId == null ? s.staffName : (teams.flatMap((x) => x.players).find((p) => p.userId === osuId)?.username ?? s.staffName));
   const hist = await historyOf(rows.map((m) => m.id));
-  const list = stages.filter((x) => isBracketStage(x.slug));
+  const list = stages.filter((x) => isBracketStage(x.slug) && (scope.host || rows.some((m) => m.stageSlug === x.slug)));
   const Side = ({ id, side }: { id: string | null; side: 0 | 1 }) => {
     const team = teams.find((x) => x.id === id);
     return (
@@ -55,18 +55,21 @@ export default async function AdminScheduling() {
       <PageTitle mark="clock">{t.admin.menu.scheduling}</PageTitle>
       <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">{s.admin.help}</p>
       <Cascade className="space-y-8" step={0.035}>
+        {!list.length && <p data-cascade className="in-up text-sm font-bold text-ash">{t.admin.stream.none}</p>}
         {list.map((st, n) => {
           const wk = weekOf(weeks[st.slug]);
           const rank = (m: (typeof rows)[number]) => (!m.team1Id || !m.team2Id ? 2 : m.startsAt ? 1 : 0);
           const ms = rows.filter((m) => m.stageSlug === st.slug).sort((a, b) => rank(a) - rank(b));
           return (
             <Panel key={st.slug} i={n < 3 ? n + 1 : 0} title={roundName(t, st.title)} help={wk ? s.admin.deadline(fmtSofia(wk.deadline, locale)) : undefined}>
-              <ActionForm action={setWeek.bind(null, st.slug)} className="mb-6 flex flex-wrap items-end gap-3" ghost>
-                <label className={labelCls}>
-                  {s.admin.week}
-                  <DateTimeField kind="date" name="week" defaultValue={weeks[st.slug] ?? ""} className="w-[18rem]" />
-                </label>
-              </ActionForm>
+              {scope.host && (
+                <ActionForm action={setWeek.bind(null, st.slug)} className="mb-6 flex flex-wrap items-end gap-3" ghost>
+                  <label className={labelCls}>
+                    {s.admin.week}
+                    <DateTimeField kind="date" name="week" defaultValue={weeks[st.slug] ?? ""} className="w-[18rem]" />
+                  </label>
+                </ActionForm>
+              )}
               {ms.length ? (
                 <div className="space-y-3">
                   {ms.map((m) => {

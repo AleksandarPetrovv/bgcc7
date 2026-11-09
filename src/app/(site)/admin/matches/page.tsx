@@ -4,9 +4,8 @@ import { PageTitle } from "@/components/site/page-title";
 import { Panel } from "@/components/admin/form";
 import { getPoolStages } from "@/db/mappools";
 import { getMatchRows, getTeams } from "@/db/tournament";
-import { getViewer } from "@/lib/authz";
+import { refScope } from "@/lib/match-access";
 import { getDict, getLang } from "@/lib/i18n/server";
-import { can } from "@/lib/roles";
 import { MatchCard } from "./match-card";
 import { Cascade } from "@/components/site/cascade";
 import { db } from "@/db";
@@ -17,14 +16,16 @@ import { roundName } from "@/lib/i18n/dict";
 import { isBracketStage } from "@/lib/format";
 
 export default async function AdminMatches() {
-  const [t, lang, viewer, rows, teams, stages, refs, live] = await Promise.all([getDict(), getLang(), getViewer(), getMatchRows(), getTeams(), getPoolStages(), refList(), liveList()]);
-  if (!can(viewer?.roles, "matches")) notFound();
+  const [t, lang, scope, all, teams, stages, refs, live] = await Promise.all([getDict(), getLang(), refScope(), getMatchRows(), getTeams(), getPoolStages(), refList(), liveList()]);
+  if (!scope) notFound();
+  const rows = all.filter((m) => scope.runs(m.referee));
   const locale = localeOf(lang);
   const key = (m: (typeof rows)[number]) => (m.winner ? 2e15 : 0) + (m.startsAt ? new Date(m.startsAt).getTime() : 1e15);
   const first = (list: typeof rows) => Math.min(...list.map(key));
   const bracketStages = stages.filter((s) => isBracketStage(s.slug));
   const shown = bracketStages
     .map((s) => ({ s, list: rows.filter((m) => m.stageSlug === s.slug) }))
+    .filter((x) => x.list.length)
     .sort((a, b) => first(a.list) - first(b.list));
 
   return (
@@ -35,6 +36,7 @@ export default async function AdminMatches() {
       </p>
 
       <Cascade className="space-y-8" step={0.04}>
+        {!shown.length && <p data-cascade className="in-up text-sm font-bold text-ash">{t.admin.stream.none}</p>}
         {shown.map(({ s, list: inStage }, n) => (
           <Panel key={s.slug} i={n < 3 ? n + 1 : 0} title={`${roundName(t, s.title)} · ${t.admin.firstToShort(s.firstTo)}`}>
             <div className="space-y-6">
@@ -54,7 +56,7 @@ export default async function AdminMatches() {
                     </h3>
                     <div className="border-t border-line">
                       {list.map((m) => (
-                        <MatchCard key={m.id} m={m} t={t} locale={locale} teams={teams} refs={refs} pools={bracketStages.filter((x) => x.pools.length).map((x) => ({ slug: x.slug, title: roundName(t, x.title) }))} live={m.winner ? undefined : live.get(m.id)} />
+                        <MatchCard key={m.id} m={m} t={t} locale={locale} teams={teams} refs={refs} host={scope.host} pools={bracketStages.filter((x) => x.pools.length).map((x) => ({ slug: x.slug, title: roundName(t, x.title) }))} live={m.winner ? undefined : live.get(m.id)} />
                       ))}
                     </div>
                   </div>

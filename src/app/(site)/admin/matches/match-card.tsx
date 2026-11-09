@@ -8,7 +8,8 @@ import { RefSwapGuard } from "./ref-swap-guard";
 import type { MatchRow } from "@/db/tournament";
 import type { Dict } from "@/lib/i18n/dict";
 import { getFormat } from "@/db/edition";
-import { matchStamp } from "@/lib/matches";
+import { matchLabel, matchStamp } from "@/lib/matches";
+import { Pic } from "@/components/site/pfp";
 import { dayTime, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
@@ -27,9 +28,13 @@ function Legend({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: MatchRow; t: Dict; locale: string; teams: { id: string; name: string }[]; refs: { referee: string[]; streamer: string[]; commentator: string[] }; pools: { slug: string; title: string }[]; live?: { lobby: boolean } }) {
+export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m: MatchRow; t: Dict; locale: string; teams: { id: string; name: string; image: string }[]; refs: { referee: string[]; streamer: string[]; commentator: string[] }; host: boolean; pools: { slug: string; title: string }[]; live?: { lobby: boolean } }) {
   const f = getFormat();
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? t.common.tbd;
+  const teamPic = (id: string | null) => {
+    const src = teams.find((x) => x.id === id)?.image;
+    return src ? <Pic src={src} className="size-7 shrink-0 rounded-full object-cover" /> : <span className="size-7 shrink-0 rounded-full bg-slate" aria-hidden />;
+  };
   const mp = mpIds(m.mpLinks);
   const status = m.winner ? "done" : mp.length ? "live" : m.startsAt ? "soon" : "tbd";
   const tone = { done: "bg-balkan", live: "bg-crimson", soon: "bg-azure", tbd: "bg-line" }[status];
@@ -72,8 +77,8 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
     >
       <summary className="relative flex cursor-pointer list-none items-center gap-3 py-3 pl-4 pr-3 [&::-webkit-details-marker]:hidden">
         <span className={cn("absolute inset-y-0 left-0 w-1", tone)} aria-hidden />
-        <span className="hidden w-24 shrink-0 flex-col gap-1 md:flex">
-          <span className="num text-[0.65rem] font-display font-bold text-ash">{m.id}</span>
+        <span className="hidden w-40 shrink-0 flex-col gap-1 md:flex">
+          <span className="text-[0.65rem] font-display font-bold leading-tight text-ash">{matchLabel(f, t, m.id)}</span>
           <span
             className={cn(
               "relative isolate w-fit px-1.5 py-0.5 text-[0.6rem] font-display font-bold",
@@ -88,7 +93,7 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
         <span className="flex min-w-0 flex-1 flex-col gap-1.5 sm:hidden">
           {([1, 2] as const).map((n) => (
             <span key={n} className="flex items-center gap-2.5">
-              <span className={cn("h-5 w-1 shrink-0", n === 1 ? "bg-crimson" : "bg-azure")} aria-hidden />
+              {teamPic(n === 1 ? m.team1Id : m.team2Id)}
               <span className={cn(side(n), "flex-1")}>{name(n === 1 ? m.team1Id : m.team2Id)}</span>
               {score(n)}
             </span>
@@ -103,7 +108,7 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
         <span className="hidden min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 sm:grid">
           <span className="flex min-w-0 items-center justify-end gap-2">
             <span className={side(1)}>{name(m.team1Id)}</span>
-            <span className="h-5 w-1 shrink-0 bg-crimson" aria-hidden />
+            {teamPic(m.team1Id)}
           </span>
           <span className="flex items-center gap-1.5">
             {score(1)}
@@ -111,7 +116,7 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
             {score(2)}
           </span>
           <span className="flex min-w-0 items-center gap-2">
-            <span className="h-5 w-1 shrink-0 bg-azure" aria-hidden />
+            {teamPic(m.team2Id)}
             <span className={side(2)}>{name(m.team2Id)}</span>
           </span>
         </span>
@@ -209,8 +214,14 @@ export function MatchCard({ m, t, locale, teams, refs, pools, live }: { m: Match
                 </label>
                 <label className={labelCls}>
                   {t.admin.referee}
-                  <RefSwapGuard live={!!live} lobby={!!live?.lobby} from={m.referee ?? ""} />
-                  <Dropdown name="referee" defaultValue={m.referee ?? ""} options={[{ value: "", label: t.common.tbd }, ...refs.referee.map((r) => ({ value: r, label: r }))]} />
+                  {host ? (
+                    <>
+                      <RefSwapGuard live={!!live} lobby={!!live?.lobby} from={m.referee ?? ""} />
+                      <Dropdown name="referee" defaultValue={m.referee ?? ""} options={[{ value: "", label: t.common.tbd }, ...refs.referee.map((r) => ({ value: r, label: r }))]} />
+                    </>
+                  ) : (
+                    <Field value={m.referee ?? ""} disabled />
+                  )}
                 </label>
                 <label className={labelCls}>
                   {t.admin.streamer}

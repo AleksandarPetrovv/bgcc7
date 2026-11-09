@@ -29,7 +29,7 @@ const num = (fd: FormData, k: string) => {
 };
 
 export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
-  return guard("matches", "match.save", async ({ osuId }) => {
+  return guard("matches", "match.save", async ({ osuId, roles }) => {
     const f = getFormat();
     const [m] = await db.select().from(matches).where(eq(matches.id, id)).limit(1);
     if (!m) return { ok: false, error: "notFound" };
@@ -64,7 +64,8 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
       score2,
       winner,
       mpLinks,
-      referee: text(fd, "referee"),
+      // only hosts assign refs
+      referee: roles.includes("host") ? text(fd, "referee") : m.referee,
       streamer: text(fd, "streamer"),
       commentators: text(fd, "commentators"),
       vodUrl,
@@ -96,7 +97,7 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     if (patch.startsAt && patch.startsAt.getTime() !== m.startsAt?.getTime()) announceMatchTime([patch.team1Id, patch.team2Id], patch.startsAt, { dm: false });
     if (patch.team1Id !== m.team1Id || patch.team2Id !== m.team2Id) await resetPickems();
     return { log: { id, ...patch } };
-  }, { match: id, unassigned: true });
+  }, { match: id });
 }
 
 export async function clearCache(id: string) {
