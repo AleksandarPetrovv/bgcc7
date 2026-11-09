@@ -27,11 +27,12 @@ const streamersOf = (m: { streamer: string | null }) => staffNames(m.streamer).m
 
 export async function streamMatches(osuId: number, all: boolean) {
   const me = nameKey((await usernameOf(osuId)) ?? "");
-  const list = (await getAllMatches()).filter((m) => m.winner == null && (all || streamersOf(m).includes(me)));
+  // a match shows once both teams are known; finished ones stay (as past) so their after-match scenes can still be run
+  const list = (await getAllMatches()).filter((m) => m.team1.id && m.team2.id && (all || streamersOf(m).includes(me)));
   list.sort((a, b) => (a.datetime ? Date.parse(a.datetime) : Infinity) - (b.datetime ? Date.parse(b.datetime) : Infinity));
   const rows = list.length ? await db.select({ id: matches.id, scene: matches.scene }).from(matches).where(inArray(matches.id, list.map((m) => m.id))) : [];
   const scene = new Map(rows.map((r) => [r.id, isScene(r.scene) ? r.scene : null] as const));
-  return list.map((m) => ({ ...m, slug: m.id, scene: scene.get(m.id) ?? null, mine: streamersOf(m).includes(me) }));
+  return list.map((m) => ({ ...m, slug: m.id, scene: scene.get(m.id) ?? null, mine: streamersOf(m).includes(me), past: m.winner != null }));
 }
 
 export async function currentStreamMatch(osuId: number) {
