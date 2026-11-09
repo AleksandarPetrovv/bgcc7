@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { quietFocus } from "@/lib/dialog-focus";
 import { usePresence } from "motion/react";
 import { Dialog } from "@base-ui/react/dialog";
 import { X } from "lucide-react";
@@ -46,6 +47,7 @@ export function Popup({
 }) {
   const t = useDict();
   const [closing, setClosing] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
   // removed from an AnimatePresence: stay mounted, play the exit, then let it unmount
   const [present, safeToRemove] = usePresence();
   const shown = (open ?? true) && !closing && present;
@@ -69,9 +71,11 @@ export function Popup({
       <Dialog.Portal>
         <Dialog.Backdrop className="pop-backdrop fixed inset-0 z-50 bg-black/55 backdrop-blur-sm transition-opacity duration-200 ease-out data-[starting-style]:opacity-0 data-[ending-style]:opacity-0" />
         <Dialog.Popup
+          ref={box}
+          initialFocus={(type) => quietFocus(type, box.current)}
           aria-label={label}
           className={cn(
-            "mdlg fixed left-1/2 top-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto border-2 bg-coal p-6 outline-none transition-opacity duration-200 data-[nested-dialog-open]:opacity-0",
+            "mdlg fixed inset-0 z-50 m-auto h-fit max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto border-2 bg-coal p-6 outline-none transition-opacity duration-200 data-[nested-dialog-open]:opacity-0",
             className,
           )}
           style={{ borderColor: c.c, boxShadow: `${shadow}px ${shadow}px 0 0 ${c.deep}`, ...style }}
