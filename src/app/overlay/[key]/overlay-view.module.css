@@ -14,3 +14,14 @@
   position: absolute;
   inset: 0;
 }
+
+/* the display font fakes its italic, so slanted glyphs poke out of their box top-right; an animating layer is cut to that box.
+   room on both sides, cancelled by margins so nothing moves. layered so a component's own padding (the lockup 7) still wins */
+@layer components {
+  .stage :global(:where(.italic, .heading-slam)) {
+    padding-top: 0.2em;
+    margin-top: -0.2em;
+    padding-right: 0.3em;
+    margin-right: -0.3em;
+  }
+}

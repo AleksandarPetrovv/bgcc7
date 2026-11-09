@@ -33,13 +33,14 @@ export function Lockup({ num, size, className, animate, invert }: { num: string;
           </motion.span>
         ))}
       </span>
+      {/* the italic 7 overhangs its box top-right; padding keeps it inside (negative margins keep the layout) so an animating layer never clips it */}
       <motion.span
-        className="relative mb-[-0.06em] ml-[0.04em] mr-[0.2em] text-[1.45em] italic leading-[0.74] tracking-[-0.06em]"
+        className="relative -mt-[0.25em] mb-[-0.06em] ml-[0.04em] -mr-[0.15em] pr-[0.35em] pt-[0.25em] text-[1.45em] italic leading-[0.74] tracking-[-0.06em]"
         initial={animate ? { scale: 1.8, opacity: 0, rotate: -8 } : false}
         animate={{ scale: 1, opacity: 1, rotate: 0 }}
         transition={{ type: "spring", stiffness: 380, damping: 16, delay: 0.35 }}
       >
-        <span className="absolute left-[0.05em] top-[0.035em] text-transparent [-webkit-text-stroke:2px_color-mix(in_srgb,var(--rose-deep)_45%,transparent)]" aria-hidden>
+        <span className="absolute left-[0.05em] top-[0.285em] text-transparent [-webkit-text-stroke:2px_color-mix(in_srgb,var(--rose-deep)_45%,transparent)]" aria-hidden>
           {num}
         </span>
         <span className={cn("relative", invert ? "text-gold" : "text-rose")}>{num}</span>
@@ -96,16 +97,6 @@ export function ScoreNum({ value, side, className, style }: { value: number; sid
   );
 }
 
-export function FlagBar({ className }: { className?: string }) {
-  return (
-    <div className={cn("flex h-[6px]", className)} aria-hidden>
-      <span className="flex-1 bg-paper" />
-      <span className="flex-1 bg-balkan" />
-      <span className="flex-1 bg-rose" />
-    </div>
-  );
-}
-
 export function Backdrop({ num, tint }: { num: string; tint?: string }) {
   return (
     <div className="grain absolute inset-0 overflow-hidden bg-ink" aria-hidden>
@@ -113,8 +104,7 @@ export function Backdrop({ num, tint }: { num: string; tint?: string }) {
       <div className="absolute inset-y-0 right-0 w-[75%] overflow-hidden [mask-image:linear-gradient(to_left,black,transparent)]">
         <div className="anim-drift h-full w-[calc(100%+120px)] bg-[repeating-linear-gradient(115deg,transparent_0_52.4px,color-mix(in_srgb,var(--rose)_6%,transparent)_52.4px_54.4px)]" />
       </div>
-      <div className="absolute right-[-160px] top-1/2 -translate-y-1/2 font-display text-[1500px] font-black italic leading-[0.8] text-rose/[0.07] blur-[14px]">{num}</div>
-      <FlagBar className="absolute inset-x-0 bottom-0" />
+      <div className="absolute right-[-160px] top-1/2 m-0 -translate-y-1/2 p-0 font-display text-[1500px] font-black italic leading-[0.8] text-rose/[0.07] blur-[14px]">{num}</div>
     </div>
   );
 }
@@ -173,13 +163,16 @@ function SlabPlate({ team, side, className }: { team: FeedTeam; side: 0 | 1; cla
 }
 
 function Points({ score, firstTo, side }: { score: number; firstTo: number; side: 0 | 1 }) {
+  // fewer points get bigger diamonds
+  const size = firstTo <= 5 ? 24 : firstTo === 6 ? 22 : 20;
   return (
     <span className={cn("flex items-center gap-2", side === 1 && "flex-row-reverse")} aria-label={`${score} of ${firstTo}`}>
       {Array.from({ length: firstTo }, (_, i) => (
-        <span key={i} className="relative size-[19px] rotate-45 border-[3px]" style={{ borderColor: TEAM[side].c }}>
+        <span key={i} className="relative rotate-45 border-[3px]" style={{ borderColor: TEAM[side].c, width: size, height: size }}>
           {i < score && (
+            // covers the border too: a fill only inside it leaves a light seam on the rotated edge
             <motion.span
-              className="absolute inset-0"
+              className="absolute -inset-[3px]"
               style={{ background: TEAM[side].c }}
               initial={{ scale: 0.3, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}

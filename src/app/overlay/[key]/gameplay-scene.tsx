@@ -6,7 +6,7 @@ import { slotColor } from "@/lib/format-plan";
 import { modOn } from "@/lib/theme";
 import type { LiveClient, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
-import { editionNum, FlagBar, HeaderSide, LABEL, Lockup, Slant, TEAM } from "./chrome";
+import { editionNum, HeaderSide, LABEL, Lockup, Slant, TEAM } from "./chrome";
 import { Pfp } from "@/components/site/pfp";
 import { EASE } from "@/lib/ease";
 
@@ -231,7 +231,6 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
             )}
           </div>
         </div>
-        <FlagBar className="absolute inset-x-0 bottom-0 h-[4px]" />
       </motion.header>
 
       <motion.footer
@@ -240,7 +239,6 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
         animate={{ y: 0 }}
         transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
       >
-        <FlagBar className="absolute inset-x-0 top-0 h-[4px]" />
         <motion.div
           key={current?.id ?? "none"}
           className="flex h-full items-center gap-4 px-[var(--gp-side)] pt-[4px]"
@@ -278,7 +276,8 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
           ) : (
             <span className="text-[14px] font-display font-bold text-ash">{feed.match.round}</span>
           )}
-          <Lockup num={editionNum(feed)} size={22} className="ml-auto shrink-0 pl-3" />
+          {/* mb lifts the wordmark ~3.5px so its letters (not the taller 7) centre on the stat numbers */}
+          <Lockup num={editionNum(feed)} size={22} className="mb-[7px] ml-auto shrink-0 pl-3" />
         </motion.div>
       </motion.footer>
     </div>

@@ -132,7 +132,8 @@ function Fit({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const fit = () => {
       setScale(Math.min(window.innerWidth / 1920, window.innerHeight / 1080));
-      setBoxed(Math.abs(window.innerWidth / window.innerHeight - 16 / 9) > 0.01);
+      // only an exact 16:9 window (the OBS source) stays transparent; anything else gets ink behind the stage so no page shows at the edges
+      setBoxed(window.innerWidth * 9 !== window.innerHeight * 16);
     };
     fit();
     window.addEventListener("resize", fit);
