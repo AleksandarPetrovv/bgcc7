@@ -4,7 +4,7 @@ import { dicts, roundName } from "./i18n/dict";
 import { siteUrl } from "./links";
 import { matchCosts } from "./match-cost";
 import type { Embed } from "./discord";
-import type { Match } from "./data";
+import type { Beatmap, Match } from "./data";
 import type { Scoreboard } from "./scoreboard";
 
 export const when = (d: Date) => `${fmtSofia(d, "en-GB")} (BG time)`;
@@ -66,4 +66,34 @@ export function resultMessage(f: Format, m: Match, sb: Scoreboard | null, tag: (
   const t1 = tag(m.team1.id) ?? `**${n1}**`;
   const t2 = tag(m.team2.id) ?? `**${n2}**`;
   return { content: `${t1}  **${m.team1.score} – ${m.team2.score}**  ${t2}`, embed };
+}
+
+const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
+// whole lines only, up to discord's 1024-character field limit
+const fit = (lines: string[]) => lines.reduce((v, l) => (v.length + l.length + 1 <= 1024 ? (v ? `${v}\n${l}` : l) : v), "");
+const cut = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+
+/** the mappool release post: the plain line plus an embed with every section, each slot linked to its map with stats */
+export function poolMessage(f: Format, stage: { slug: string; title: string; firstTo: number }, sections: { name: string; maps: Beatmap[] }[]) {
+  const url = `${siteUrl()}/mappool/${stage.slug}`;
+  const round = roundName(dicts.en, stage.title);
+  const all = sections.flatMap((s) => s.maps);
+  const shown = sections.filter((s) => s.maps.length);
+  const avg = all.length ? all.reduce((n, m) => n + m.sr, 0) / all.length : 0;
+  // one line per map: slot linked to the map, then a subtext stat row; titles are cut so a whole section fits one field
+  const line = (m: Beatmap) =>
+    `**${m.slot}** [${esc(cut(m.title, 36))}](https://osu.ppy.sh/b/${m.id}) \\[${esc(cut(m.version, 22))}\\]\n-# ${m.sr.toFixed(2)}★ ·${Math.round(m.bpm)} BPM · ${clock(m.length)} · AR ${m.ar} · OD ${m.od} · CS ${m.cs}`;
+  const embed: Embed = {
+    author: { name: `${f.name}  ·  Mappool` },
+    title: round,
+    url,
+    color: 0xc4577f,
+    description: [`**${all.length}** Maps  ·  **${avg.toFixed(2)}** ⭐  ·  First to **${stage.firstTo}**`, `[Open](${url})`, `[Download pack](${siteUrl()}/download/${stage.slug})`].join("\n"),
+    // a zero-width line under every section but the last leaves an empty row between them
+    fields: shown.map((s, i) => ({ name: s.name, value: i < shown.length - 1 ? `${fit(s.maps.map(line))}\n​` : fit(s.maps.map(line)) })),
+    image: all.at(-1)?.cover ? { url: all.at(-1)!.cover } : undefined,
+    footer: { text: "Mappool released" },
+    timestamp: new Date().toISOString(),
+  };
+  return { content: `@everyone The **${round}** mappool is out: <${url}>`, embed };
 }

@@ -1,13 +1,15 @@
 import "server-only";
 import { and, eq, inArray, isNotNull, like, not, sql } from "drizzle-orm";
 import { currentEdition, db, detached, isBGCC6, withEdition } from "./index";
-import { discordState, discordTeams, drafts, stages, users } from "./schema";
+import { discordState, discordTeams, drafts, users } from "./schema";
 import { getMatchRows, getMatches, getTeams, type MatchRow } from "./tournament";
 import { getPoolStages } from "./mappools";
 import { getScoreboard } from "./scoreboards";
 import { getFormat } from "./edition";
 import { siteUrl } from "@/lib/links";
-import { matchLabel, resultMessage, when } from "@/lib/discord-text";
+import { matchLabel, poolMessage, resultMessage, when } from "@/lib/discord-text";
+import { getSkillLayouts } from "./format-plan";
+import { MODS, MOD_ORDER } from "@/lib/mods";
 import { addRole, botUser, createChannel, createRole, deleteChannel, deleteMessage, deleteRole, discordReady, dm, editChannel, editRole, guildChannels, guildId, guildRoles, memberRoles, post, removeRole, type Overwrite } from "@/lib/discord";
 import { staffNames } from "@/lib/staff-names";
 import { globalStore } from "@/lib/global-store";
@@ -25,11 +27,11 @@ const getState = async (key: string) => (await db.select().from(discordState).wh
 const setState = (key: string, v: Partial<State>) =>
   db.insert(discordState).values({ key, ...v, updatedAt: new Date() }).onConflictDoUpdate({ target: discordState.key, set: { ...v, updatedAt: new Date() } });
 
-export type DiscordCfg = { results: string; pool: string };
+export type DiscordCfg = { results: string; pool: string; hosts: string };
 export async function getCfg(): Promise<DiscordCfg> {
   const rows = await db.select().from(discordState).where(like(discordState.key, "cfg:%"));
   const v = (k: string) => rows.find((r) => r.key === `cfg:${k}`)?.channelId ?? "";
-  return { results: v("results"), pool: v("pool") };
+  return { results: v("results"), pool: v("pool"), hosts: v("hosts") };
 }
 export const setCfg = (k: keyof DiscordCfg, channelId: string) => setState(`cfg:${k}`, { channelId });
 
@@ -131,7 +133,7 @@ export async function cleanupDiscord() {
   await dc.sync;
   for (const r of await db.select().from(discordTeams)) await dropTeam(r);
   await db.delete(discordTeams);
-  await db.delete(discordState).where(not(inArray(discordState.key, ["cfg:results", "cfg:pool"])));
+  await db.delete(discordState).where(not(inArray(discordState.key, ["cfg:results", "cfg:pool", "cfg:hosts"])));
 }
 
 
@@ -230,9 +232,15 @@ export async function postResult(matchId: string) {
 export async function postPool(stageId: number) {
   const { pool } = await getCfg();
   if (!pool) return;
-  const [s] = await db.select({ slug: stages.slug, title: stages.title }).from(stages).where(eq(stages.id, stageId)).limit(1);
+  const [s, layouts] = await Promise.all([getPoolStages().then((all) => all.find((x) => x.id === stageId)), getSkillLayouts()]);
   if (!s || (await getState(`pool:${s.slug}`))) return;
-  const messageId = await post(pool, `@everyone The **${s.title}** mappool is out: <${siteUrl()}/mappool>`, { mentions: { parse: ["everyone"] } });
+  const map = (mod: string, slot: number) => s.pools.find((p) => p.category === mod)?.maps.find((m) => m.order === slot);
+  const layout = layouts?.[s.slug];
+  const sections = layout
+    ? layout.groups.map((g) => ({ name: g.name, maps: g.slots.flatMap((x) => map(x.mod, x.slot) ?? []) }))
+    : MOD_ORDER.map((mod) => ({ name: MODS[mod].label, maps: [...(s.pools.find((p) => p.category === mod)?.maps ?? [])].sort((a, b) => a.order - b.order) }));
+  const { content, embed } = poolMessage(getFormat(), { slug: s.slug, title: s.title, firstTo: s.firstTo }, sections);
+  const messageId = await post(pool, content, { mentions: { parse: ["everyone"] }, embeds: [embed] });
   await setState(`pool:${s.slug}`, { channelId: pool, messageId });
 }
 
