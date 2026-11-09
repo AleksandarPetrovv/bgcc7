@@ -20,7 +20,8 @@ export type Format = {
   points: Record<string, number>;
   r1: [number, number][];
   /** keyed by round slug; a match id is `<round>-<n>`, or just `<round>` when the round is a single match */
-  rounds: Record<string, { name: string; stage: string; single?: boolean }>;
+  /** stage = the pool it plays; week = the match week (1-based) it is scheduled in */
+  rounds: Record<string, { name: string; stage: string; week: number; single?: boolean }>;
   losersFinal: string;
   winnersFinal: string;
   sectionsOff: string[];
@@ -72,15 +73,15 @@ const formatBGCC6: Format = {
   points: { "winners-quarterfinals": 10, "losers-round-1": 10, "winners-semifinals": 15, "losers-round-2": 15, "winners-final": 25, "losers-round-3": 25, "losers-final": 35, "grand-final": 50, "grand-final-reset": 50 },
   r1: [[1, 8], [4, 5], [2, 7], [3, 6]],
   rounds: {
-    "winners-quarterfinals": { name: "Round 1 (Quarter-Finals)", stage: "quarterfinals" },
-    "winners-semifinals": { name: "Round 2 (Semi-Finals)", stage: "semifinals" },
-    "winners-final": { name: "Winners Finals", stage: "finals", single: true },
-    "losers-round-1": { name: "Losers Round 1", stage: "quarterfinals" },
-    "losers-round-2": { name: "Losers Round 2", stage: "semifinals" },
-    "losers-round-3": { name: "Losers Round 3", stage: "finals", single: true },
-    "losers-final": { name: "Losers Finals", stage: "finals", single: true },
-    "grand-final": { name: "Grand Finals", stage: "grand-finals", single: true },
-    "grand-final-reset": { name: "Grand Finals", stage: "grand-finals", single: true },
+    "winners-quarterfinals": { name: "Round 1 (Quarter-Finals)", stage: "quarterfinals", week: 1 },
+    "winners-semifinals": { name: "Round 2 (Semi-Finals)", stage: "semifinals", week: 2 },
+    "winners-final": { name: "Winners Finals", stage: "finals", week: 3, single: true },
+    "losers-round-1": { name: "Losers Round 1", stage: "quarterfinals", week: 1 },
+    "losers-round-2": { name: "Losers Round 2", stage: "semifinals", week: 2 },
+    "losers-round-3": { name: "Losers Round 3", stage: "finals", week: 3, single: true },
+    "losers-final": { name: "Losers Finals", stage: "finals", week: 3, single: true },
+    "grand-final": { name: "Grand Finals", stage: "grand-finals", week: 4, single: true },
+    "grand-final-reset": { name: "Grand Finals", stage: "grand-finals", week: 4, single: true },
   },
   losersFinal: "losers-final",
   winnersFinal: "winners-final",
@@ -175,18 +176,18 @@ function buildFormat(): Format {
     points: { "winners-round-of-16": 5, "losers-round-1": 5, "winners-quarterfinals": 10, "losers-round-2": 10, "winners-semifinals": 15, "losers-round-3": 15, "losers-round-4": 15, "winners-final": 25, "losers-round-5": 25, "losers-final": 25, "grand-final": 50, "grand-final-reset": 50 },
     r1: [[1, 16], [8, 9], [5, 12], [4, 13], [6, 11], [3, 14], [7, 10], [2, 15]],
     rounds: {
-      "winners-round-of-16": { name: "Round of 16", stage: "round-of-16" },
-      "winners-quarterfinals": { name: "Quarterfinals", stage: "quarterfinals" },
-      "winners-semifinals": { name: "Semifinals", stage: "semifinals" },
-      "winners-final": { name: "Winners Finals", stage: "finals", single: true },
-      "losers-round-1": { name: "Losers Round 1", stage: "round-of-16" },
-      "losers-round-2": { name: "Losers Round 2", stage: "quarterfinals" },
-      "losers-round-3": { name: "Losers Round 3", stage: "semifinals" },
-      "losers-round-4": { name: "Losers Round 4", stage: "semifinals" },
-      "losers-round-5": { name: "Losers Round 5", stage: "finals", single: true },
-      "losers-final": { name: "Losers Finals", stage: "finals", single: true },
-      "grand-final": { name: "Grand Finals", stage: "grand-finals", single: true },
-      "grand-final-reset": { name: "Grand Finals", stage: "grand-finals", single: true },
+      "winners-round-of-16": { name: "Round of 16", stage: "round-of-16", week: 1 },
+      "winners-quarterfinals": { name: "Quarterfinals", stage: "quarterfinals", week: 2 },
+      "winners-semifinals": { name: "Semifinals", stage: "semifinals", week: 4 },
+      "winners-final": { name: "Winners Finals", stage: "finals", week: 6, single: true },
+      "losers-round-1": { name: "Losers Round 1", stage: "round-of-16", week: 2 },
+      "losers-round-2": { name: "Losers Round 2", stage: "quarterfinals", week: 3 },
+      "losers-round-3": { name: "Losers Round 3", stage: "semifinals", week: 4 },
+      "losers-round-4": { name: "Losers Round 4", stage: "semifinals", week: 5 },
+      "losers-round-5": { name: "Losers Round 5", stage: "finals", week: 6, single: true },
+      "losers-final": { name: "Losers Finals", stage: "finals", week: 7, single: true },
+      "grand-final": { name: "Grand Finals", stage: "grand-finals", week: 8, single: true },
+      "grand-final-reset": { name: "Grand Finals", stage: "grand-finals", week: 8, single: true },
     },
     losersFinal: "losers-final",
     winnersFinal: "winners-final",
@@ -228,6 +229,8 @@ export const bestOf = (firstTo: number) => 2 * firstTo - 1;
 
 const ROUNDS = new Set(Object.values(FORMATS).flatMap((f) => Object.keys(f.rounds)));
 export const roundOf = (matchId: string) => (ROUNDS.has(matchId) ? matchId : matchId.replace(/-\d+$/, ""));
+export const weekNum = (f: Format, matchId: string) => f.rounds[roundOf(matchId)]?.week ?? null;
+export const weekNums = (f: Format) => [...new Set(Object.values(f.rounds).map((r) => r.week))].sort((a, b) => a - b);
 export const matchNum = (f: Format, matchId: string) => (f.rounds[roundOf(matchId)]?.single ? null : (matchId.match(/-(\d+)$/)?.[1] ?? null));
 
 export const winTargets = (f: Format) => {

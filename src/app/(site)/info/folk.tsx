@@ -6,7 +6,6 @@ import { InView } from "@/components/site/in-view";
 import type { Dict } from "@/lib/i18n/dict";
 import { DISCORD_URL } from "@/lib/links";
 import { fmtRange, sofiaDate } from "@/lib/dates";
-import { weekOf } from "@/lib/schedule";
 import { roundStats, skillOf, type Plan } from "@/lib/format-plan";
 import type { Match } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -26,7 +25,8 @@ type FolkProps = {
   locale: string;
   plan: Plan;
   matches: Match[];
-  weeks?: Record<string, string | null>;
+  /** first and last day each pool stage is played */
+  days?: Record<string, [string, string]>;
   hosts?: { osuId: number; username: string; avatarUrl: string | null; roles: string[] }[];
   timer?: number;
   timeout?: number;
@@ -127,8 +127,7 @@ function E({ p, path, value, fill = true, s = 0.03 }: { p: FolkProps; path: stri
 function stageRows(p: FolkProps) {
   return p.plan.rounds.map((r) => {
     const s = roundStats(r);
-    const wk = weekOf(p.weeks?.[r.slug]);
-    const days = wk ? [wk.min.slice(0, 10), wk.max.slice(0, 10)] : p.matches.filter((m) => m.stage === r.slug && m.datetime).map((m) => sofiaDate(new Date(m.datetime!))).sort();
+    const days = p.days?.[r.slug] ?? p.matches.filter((m) => m.stage === r.slug && m.datetime).map((m) => sofiaDate(new Date(m.datetime!))).sort();
     return {
       slug: r.slug,
       name: roundName(p.t, r.name),

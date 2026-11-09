@@ -9,7 +9,7 @@ import { availability, matches, reschedules } from "@/db/schema";
 import { getSettings } from "@/db/settings";
 import { getAllTeams } from "@/db/tournament";
 import { when } from "@/lib/discord-text";
-import { busyOf, lockMatch, mySchedule, notifyCaptain, pendingOf, schedulable, stageWeeks } from "@/db/schedule";
+import { busyOf, lockMatch, mySchedule, notifyCaptain, pendingOf, schedulable, matchWeek, matchWeeks } from "@/db/schedule";
 import { getMe } from "@/db/viewer";
 import { siteUrl } from "@/lib/links";
 import { teamNote } from "@/db/discord-bot";
@@ -41,10 +41,10 @@ async function captain() {
   return { osuId: v.osuId, team };
 }
 
-async function openMatch(tx: Tx, matchId: string, team: string, weeks: Record<string, string | null>) {
+async function openMatch(tx: Tx, matchId: string, team: string, weeks: Record<string, string>) {
   const m = await lockMatch(tx, matchId);
   if (!m || !schedulable(m) || (m.team1Id !== team && m.team2Id !== team)) throw new Stop("gone");
-  const w = weekOf(weeks[m.stageSlug]);
+  const w = weekOf(matchWeek(weeks, m.id));
   if (!w || !isOpen(w)) throw new Stop("closed");
   return { m, w };
 }
@@ -70,7 +70,7 @@ export async function propose(matchId: string, input: string, noteIn: string): P
     const { osuId, team } = await captain();
     const note = noteOf(noteIn);
     const at = fromSofiaInput(input);
-    const weeks = await stageWeeks();
+    const weeks = await matchWeeks();
     const { opp, counter } = await db.transaction(async (tx) => {
       const { m, w } = await openMatch(tx, matchId, team, weeks);
       if (!at || !inWindow(w, at) || offHours(input)) throw new Stop("window");
@@ -101,7 +101,7 @@ export async function propose(matchId: string, input: string, noteIn: string): P
 export async function accept(matchId: string, proposalId: number): Promise<Res> {
   return run(async () => {
     const { osuId, team } = await captain();
-    const weeks = await stageWeeks();
+    const weeks = await matchWeeks();
     const { by, at } = await db.transaction(async (tx) => {
       const { m, w } = await openMatch(tx, matchId, team, weeks);
       const p = (await pendingOf(tx, m.id)).find((x) => x.id === proposalId);
@@ -124,7 +124,7 @@ export async function withdraw(matchId: string, noteIn: string): Promise<Res> {
   return run(async () => {
     const { osuId, team } = await captain();
     const note = noteOf(noteIn);
-    const weeks = await stageWeeks();
+    const weeks = await matchWeeks();
     const { opp, agreed } = await db.transaction(async (tx) => {
       const { m } = await openMatch(tx, matchId, team, weeks);
       const mine = (await pendingOf(tx, m.id)).find((p) => p.teamId === team);
@@ -153,7 +153,7 @@ export async function decline(matchId: string, proposalId: number, noteIn: strin
   return run(async () => {
     const { osuId, team } = await captain();
     const note = noteOf(noteIn);
-    const weeks = await stageWeeks();
+    const weeks = await matchWeeks();
     const by = await db.transaction(async (tx) => {
       const { m } = await openMatch(tx, matchId, team, weeks);
       const p = (await pendingOf(tx, m.id)).find((x) => x.id === proposalId);
@@ -174,10 +174,10 @@ export async function setBusy(matchId: string, hours: string[]): Promise<Res> {
     const v = await getMe();
     if (!v || (await getSettings()).phase !== "playoffs") throw new Stop("forbidden");
     const team = v.teamOf;
-    const weeks = await stageWeeks();
+    const weeks = await matchWeeks();
     const m = (await db.select().from(matches).where(eq(matches.id, matchId)).limit(1))[0];
     if (!m || !team || (m.team1Id !== team && m.team2Id !== team) || m.winner != null) throw new Stop("forbidden");
-    const w = weekOf(weeks[m.stageSlug]);
+    const w = weekOf(matchWeek(weeks, m.id));
     if (!w || !isOpen(w)) throw new Stop("closed");
     const ok = new Set(hourKeys(w.min, w.max));
     const busy = [...new Set(Array.isArray(hours) ? hours.filter((h) => typeof h === "string" && ok.has(h)) : [])].sort();

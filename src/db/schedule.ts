@@ -2,19 +2,37 @@ import "server-only";
 import { cache } from "react";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db, isBGCC6, type Tx } from "./index";
-import { availability, matches, reschedules, stages, users } from "./schema";
+import { availability, matches, reschedules, settings, users } from "./schema";
 import { safe } from "./safe";
 import { getAllTeams, getMatchRows, type MatchRow } from "./tournament";
 import { siteUrl } from "@/lib/links";
 import { dm, discordReady } from "@/lib/discord";
 import { isOpen, weekOf, type Proposal, type SchedStatus } from "@/lib/schedule";
+import { weekNum } from "@/lib/format";
+import { getFormat } from "./edition";
 import type { Team } from "@/lib/data";
 
 export const captainOf = (t: Team | undefined) => t?.players[0]?.userId ?? null;
 
-export const stageWeeks = cache(() =>
-  safe(async () => Object.fromEntries((await db.select({ slug: stages.slug, week: stages.week }).from(stages)).map((s) => [s.slug, s.week])) as Record<string, string | null>, {} as Record<string, string | null>),
-);
+/** match week number → its monday */
+export const matchWeeks = cache(() => safe(async () => (await db.select({ weeks: settings.weeks }).from(settings).where(eq(settings.id, 1)).limit(1))[0]?.weeks ?? {}, {} as Record<string, string>));
+
+/** the monday of the week a match is played in */
+export const matchWeek = (weeks: Record<string, string>, matchId: string) => weeks[String(weekNum(getFormat(), matchId))] ?? null;
+
+/** first and last day a pool stage is played: the span of its rounds' weeks */
+export function stageDays(weeks: Record<string, string>) {
+  const out: Record<string, [string, string]> = {};
+  for (const r of Object.values(getFormat().rounds)) {
+    const w = weekOf(weeks[String(r.week)]);
+    if (!w) continue;
+    const lo = w.min.slice(0, 10);
+    const hi = w.max.slice(0, 10);
+    const had = out[r.stage];
+    out[r.stage] = had ? [had[0] < lo ? had[0] : lo, had[1] > hi ? had[1] : hi] : [lo, hi];
+  }
+  return out;
+}
 
 export const schedulable = (m: MatchRow) => !!m.team1Id && !!m.team2Id && m.winner == null;
 
@@ -61,7 +79,7 @@ export async function busyOf(ids: string[]) {
 
 export const mySchedule = cache(async (team: string | null): Promise<SchedMatch[]> => {
   if (!team) return [];
-  const [rows, weeks] = await Promise.all([getMatchRows(), stageWeeks()]);
+  const [rows, weeks] = await Promise.all([getMatchRows(), matchWeeks()]);
   const mine = rows.filter((m) => schedulable(m) && (m.team1Id === team || m.team2Id === team));
   const [hist, busy] = await Promise.all([safe(() => historyOf(mine.map((m) => m.id)), new Map<string, Proposal[]>()), safe(() => busyOf(mine.map((m) => m.id)), new Map<string, Record<number, string[]>>())]);
   return mine.map((m) => ({
@@ -69,7 +87,7 @@ export const mySchedule = cache(async (team: string | null): Promise<SchedMatch[
     slug: m.id,
     round: m.round,
     stage: m.stageSlug,
-    week: weeks[m.stageSlug] ?? null,
+    week: matchWeek(weeks, m.id),
     startsAt: m.startsAt?.toISOString() ?? null,
     mine: team,
     opp: m.team1Id === team ? m.team2Id! : m.team1Id!,

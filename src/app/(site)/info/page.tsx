@@ -15,7 +15,7 @@ import { InfoFolk } from "./folk";
 import { getPlan } from "@/db/format-plan";
 import { getMatches } from "@/db/tournament";
 import { getHosts } from "@/db/admin";
-import { stageWeeks } from "@/db/schedule";
+import { matchWeeks, stageDays } from "@/db/schedule";
 import { getSettings } from "@/db/settings";
 import { localeOf } from "@/lib/i18n/locale";
 import { MEDAL_BG } from "@/lib/theme";
@@ -58,10 +58,10 @@ export default async function InfoPage() {
   };
   const intro = ed("info.intro", t.info.intro);
   if (!isBGCC6()) {
-    const [plan, matches, hosts, weeks, settings] = await Promise.all([getPlan(), getMatches(), getHosts(), stageWeeks(), getSettings()]);
+    const [plan, matches, hosts, weeks, settings] = await Promise.all([getPlan(), getMatches(), getHosts(), matchWeeks(), getSettings()]);
     return (
       <Container plain>
-        <InfoFolk t={t} f={f} raw={(path, fallback) => ed(path, fallback).raw} on={on} locale={localeOf(lang)} plan={plan} matches={matches} weeks={weeks} hosts={hosts} timer={settings.banSecs} timeout={settings.timeoutSecs} />
+        <InfoFolk t={t} f={f} raw={(path, fallback) => ed(path, fallback).raw} on={on} locale={localeOf(lang)} plan={plan} matches={matches} days={stageDays(weeks)} hosts={hosts} timer={settings.banSecs} timeout={settings.timeoutSecs} />
       </Container>
     );
   }

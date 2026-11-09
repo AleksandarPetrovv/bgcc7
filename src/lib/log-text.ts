@@ -209,6 +209,9 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
         : bg ? `смени стрийм сцената за ${match()}` : `changed the stream scene for ${match()}`;
     }
 
+    case "stream.zoom":
+      return bg ? `приближи схемата на стрийма за ${match()}` : `zoomed the stream bracket for ${match()}`;
+
     case "qual.import":
       return bg ? `вкара ${num(p.scores)} резултата от лоби ${lobby()}` : `imported ${num(p.scores)} scores from lobby ${lobby()}`;
     case "qual.importAll":
@@ -335,13 +338,17 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
     case "reschedule.deny":
       return bg ? `отказа смяната на часа за ${match()}` : `denied the reschedule for ${match()}`;
     case "schedule.week":
-      return p.week
-        ? bg
-          ? `зададе седмицата за ${stage()} на ${b(h.date(String(p.week)))}`
-          : `set the match week for ${stage()} to ${b(h.date(String(p.week)))}`
-        : bg
-          ? `изчисти седмицата за ${stage()}`
-          : `cleared the match week for ${stage()}`;
+      // older entries name a pool stage, newer ones the week number
+      {
+        const wk = p.n != null ? b(bg ? `седмица ${num(p.n)}` : `week ${num(p.n)}`) : stage();
+        return p.week
+          ? bg
+            ? `зададе ${wk} на ${b(h.date(String(p.week)))}`
+            : `set match ${wk} to ${b(h.date(String(p.week)))}`
+          : bg
+            ? `изчисти ${wk}`
+            : `cleared match ${wk}`;
+      }
     case "schedule.set":
       return p.at
         ? bg

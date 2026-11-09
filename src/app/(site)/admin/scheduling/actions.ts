@@ -2,7 +2,9 @@
 
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { matches, reschedules, stages } from "@/db/schema";
+import { matches, reschedules, settings } from "@/db/schema";
+import { getFormat } from "@/db/edition";
+import { weekNum, weekNums } from "@/lib/format";
 import { lockMatch, staffOverride } from "@/db/schedule";
 import { announceMatchTime, setMatchTime } from "@/db/match";
 import { guard } from "@/lib/admin-action";
@@ -10,19 +12,23 @@ import type { ActionResult } from "@/lib/action-result";
 import { fromSofiaInput } from "@/lib/time";
 import { inWindow, mondayOf, weekOf } from "@/lib/schedule";
 
-export async function setWeek(slug: string, _: ActionResult, fd: FormData) {
+export async function setWeek(n: number, _: ActionResult, fd: FormData) {
   return guard("host", "schedule.week", async ({ osuId }) => {
     const raw = String(fd.get("week") ?? "").trim();
     const week = raw ? mondayOf(raw) : null;
     if (raw && !week) return { ok: false, error: "invalid" };
-    const found = await db.transaction(async (tx) => {
-      const [st] = await tx.select({ week: stages.week }).from(stages).where(eq(stages.slug, slug)).for("update").limit(1);
-      if (!st) return false;
-      await tx.update(stages).set({ week }).where(eq(stages.slug, slug));
-      if (st.week === week) return true;
+    const f = getFormat();
+    if (!weekNums(f).includes(n)) return { ok: false, error: "notFound" };
+    await db.transaction(async (tx) => {
+      const [row] = await tx.select({ weeks: settings.weeks }).from(settings).where(eq(settings.id, 1)).for("update").limit(1);
+      const weeks = { ...row?.weeks };
+      if ((weeks[n] ?? null) === week) return;
+      if (week) weeks[n] = week;
+      else delete weeks[n];
+      await tx.update(settings).set({ weeks }).where(eq(settings.id, 1));
       const w = weekOf(week);
-      const ms = await tx.select({ id: matches.id, startsAt: matches.startsAt }).from(matches).where(eq(matches.stageSlug, slug)).for("update");
-      if (!ms.length) return true;
+      const ms = (await tx.select({ id: matches.id, startsAt: matches.startsAt }).from(matches).for("update")).filter((m) => weekNum(f, m.id) === n);
+      if (!ms.length) return;
       const ids = ms.map((m) => m.id);
       const pend = await tx.select().from(reschedules).where(and(inArray(reschedules.matchId, ids), eq(reschedules.status, "pending")));
       const drop = pend.filter((p) => !w || !inWindow(w, p.proposedAt)).map((p) => p.id);
@@ -32,10 +38,8 @@ export async function setWeek(slug: string, _: ActionResult, fd: FormData) {
         await tx.update(matches).set({ startsAt: null }).where(inArray(matches.id, off));
         await tx.update(reschedules).set({ status: "cancelled", decidedBy: osuId }).where(and(inArray(reschedules.matchId, off), eq(reschedules.status, "accepted")));
       }
-      return true;
     });
-    if (!found) return { ok: false, error: "notFound" };
-    return { log: { stage: slug, week } };
+    return { log: { n, week } };
   });
 }
 

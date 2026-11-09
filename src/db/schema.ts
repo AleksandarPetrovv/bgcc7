@@ -76,6 +76,8 @@ export const settings = pgTable("settings", {
   copy: jsonb("copy").$type<Record<string, string>>().notNull().default({}),
   bwsLockedAt: timestamp("bws_locked_at", { withTimezone: true }),
   draw: jsonb("draw").$type<DrawState>(),
+  // match week number → its monday (yyyy-mm-dd)
+  weeks: jsonb("weeks").$type<Record<string, string>>().notNull().default({}),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -149,7 +151,6 @@ export const stages = pgTable("stages", {
   packSize: integer("pack_size"),
   packAt: timestamp("pack_at", { withTimezone: true }),
   blueprint: jsonb("blueprint").$type<Record<string, number>>().notNull().default({}),
-  week: text("week"),
 });
 
 export const maps = pgTable("maps", {
