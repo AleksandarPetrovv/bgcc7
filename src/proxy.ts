@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { RateLimiterMemory } from "rate-limiter-flexible";
 import { ipOf } from "@/lib/ip";
-import { siteUrl } from "@/lib/links";
+import { PATH_HEADER, siteUrl } from "@/lib/links";
 
 const tier = (points: number) => new RateLimiterMemory({ points, duration: 60 });
 
@@ -43,7 +43,12 @@ export async function proxy(req: NextRequest) {
   }
   if (path.startsWith("/api/") || /\.[a-zA-Z0-9]+$/.test(path)) return NextResponse.next();
   const lower = path.toLowerCase();
-  if (path === lower) return NextResponse.next();
+  if (path === lower) {
+    // the root layout's canonical link reads the clean path (no ?lang= etc.) from here
+    const headers = new Headers(req.headers);
+    headers.set(PATH_HEADER, path);
+    return NextResponse.next({ request: { headers } });
+  }
   const url = req.nextUrl.clone();
   url.pathname = lower;
   return NextResponse.redirect(url, 308);

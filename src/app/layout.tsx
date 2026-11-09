@@ -3,7 +3,8 @@ import { Archivo, Montserrat, Unbounded } from "next/font/google";
 import { LangProvider } from "@/components/site/lang";
 import { MotionProvider } from "@/components/site/motion";
 import { LabelGuard } from "@/components/site/label-guard";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { PATH_HEADER, siteUrl } from "@/lib/links";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { getFill } from "@/db/copy";
 import { getFormat } from "@/db/edition";
@@ -35,8 +36,12 @@ const unbounded = Unbounded({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [t, f] = await Promise.all([getDict(), getFill()]);
-  return { title: { default: f(t.meta.title), template: `%s · ${getFormat().name}` }, description: f(t.meta.description) };
+  const [t, f, h] = await Promise.all([getDict(), getFill(), headers()]);
+  const site = siteUrl();
+  const path = h.get(PATH_HEADER);
+  // one canonical url per page, so google stops treating ?lang= and similar variants as duplicates
+  const canonical = site && path ? `${site}${path === "/" ? "" : path}` : undefined;
+  return { title: { default: f(t.meta.title), template: `%s · ${getFormat().name}` }, description: f(t.meta.description), ...(canonical && { alternates: { canonical } }) };
 }
 
 // css animations stay paused until the streamed html and fonts are in; safari restarted them mid-load (title flashed)
