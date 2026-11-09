@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { PageTitle } from "@/components/site/page-title";
 import { getPlan } from "@/db/format-plan";
 import { getViewer } from "@/lib/authz";
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminFormat() {
   const [t, viewer, plan] = await Promise.all([getDict(), getViewer(), getPlan()]);
-  if (!can(viewer?.roles, "host")) notFound();
+  if (!can(viewer?.roles, "host")) forbidden();
   return (
     <>
       <PageTitle mark="plan">{t.admin.menu.format}</PageTitle>

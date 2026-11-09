@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { CalendarClock, ChevronDown, Radio } from "lucide-react";
 import { PageTitle } from "@/components/site/page-title";
 import { Panel } from "@/components/admin/form";
@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Stream() {
   const [t, lang, viewer] = await Promise.all([getDict(), getLang(), getViewer()]);
-  if (!viewer || !can(viewer.roles, "stream")) notFound();
+  if (!viewer || !can(viewer.roles, "stream")) forbidden();
   const all = can(viewer.roles, "host");
   const list = await streamMatches(viewer.osuId, all);
   const upcoming = list.filter((m) => !m.past);

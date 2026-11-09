@@ -1,7 +1,7 @@
 import { LinkTabs } from "@/components/site/tabs";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page-title";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { Download } from "lucide-react";
 import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { getRegistrations, STATUSES, isStatus } from "@/db/registrations";
@@ -16,7 +16,7 @@ import { SlantBg } from "@/components/site/slant";
 
 export default async function AdminScreening({ searchParams }: PageProps<"/admin/screening">) {
   const [t, lang, viewer, rows, sp] = await Promise.all([getDict(), getLang(), getViewer(), getRegistrations(), searchParams]);
-  if (!can(viewer?.roles, "screening")) notFound();
+  if (!can(viewer?.roles, "screening")) forbidden();
   const filter = isStatus(sp.status) ? sp.status : null;
   const shown = filter ? rows.filter((r) => r.status === filter) : rows;
   const count = (s: string | null) => (s ? rows.filter((r) => r.status === s).length : rows.length);

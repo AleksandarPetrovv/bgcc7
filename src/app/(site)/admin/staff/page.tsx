@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { getRegistrations } from "@/db/registrations";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page-title";
@@ -14,7 +14,7 @@ export default async function AdminStaff() {
   const [t, viewer, rows, regs] = await Promise.all([getDict(), getViewer(), getStaff(), getRegistrations()]);
   const playing = new Set(regs.filter((r) => r.status !== "denied").map((r) => r.osuId));
   const clash = (s: (typeof rows)[number]) => playing.has(s.osuId) && s.permRoles.some((r) => !PLAYABLE.includes(r as Role));
-  if (!can(viewer?.roles, "staff")) notFound();
+  if (!can(viewer?.roles, "staff")) forbidden();
   return (
     <>
       <PageTitle mark="badge">{t.admin.menu.staff}</PageTitle>

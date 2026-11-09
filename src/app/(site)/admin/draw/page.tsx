@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden, notFound } from "next/navigation";
 import { PageTitle } from "@/components/site/page-title";
 import { DrawNote } from "@/components/site/draw/draw-stage";
 import { drawFeed } from "@/db/draw";
@@ -12,7 +12,8 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminDraw() {
   const [t, viewer, feed] = await Promise.all([getDict(), getViewer(), drawFeed()]);
-  if (!can(viewer?.roles, "host") || isBGCC6()) notFound();
+  if (isBGCC6()) notFound();
+  if (!can(viewer?.roles, "host")) forbidden();
   return (
     <>
       <PageTitle mark="team">{t.admin.menu.draw}</PageTitle>

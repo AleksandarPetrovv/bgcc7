@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { PageTitle } from "@/components/site/page-title";
 import { Words } from "@/components/site/rich";
 import { drafts } from "@/db/schema";
@@ -30,7 +30,7 @@ export default async function AdminDraft() {
     db.select().from(drafts),
   ]);
   const cfg = await timers();
-  if (!scope) notFound();
+  if (!scope) forbidden();
   const locale = localeOf(lang);
   const f = getFormat();
   const team = (id: string | null) => teams.find((x) => x.id === id);

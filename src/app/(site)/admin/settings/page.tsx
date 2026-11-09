@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { labelCls } from "@/components/admin/label";
@@ -19,7 +19,7 @@ import { MAX_BANS } from "@/lib/format-plan";
 
 export default async function AdminSettings() {
   const [t, s, viewer, stages, matches] = await Promise.all([getDict(), getSettings(), getViewer(), getPoolStages(), getMatches()]);
-  if (!can(viewer?.roles, "settings")) notFound();
+  if (!can(viewer?.roles, "settings")) forbidden();
   const rounds = stages.filter((st) => isBracketStage(st.slug));
   const usedBy = (slug: string) => [...new Set(matches.filter((m) => m.stage === slug).map((m) => roundName(t, m.round)))];
 

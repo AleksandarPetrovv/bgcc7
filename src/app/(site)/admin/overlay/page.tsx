@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { PageTitle } from "@/components/site/page-title";
 import { Panel } from "@/components/admin/form";
@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Overlay() {
   const [t, viewer] = await Promise.all([getDict(), getViewer()]);
-  if (!viewer || !can(viewer.roles, "overlay")) notFound();
+  if (!viewer || !can(viewer.roles, "overlay")) forbidden();
   const [{ app, online, sig }, name] = await Promise.all([helperView(viewer.osuId), overlayName(viewer.osuId)]);
   const o = t.admin.overlay;
   const url = overlayUrl(userPath(name ?? String(viewer.osuId)));

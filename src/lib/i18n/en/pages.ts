@@ -182,6 +182,11 @@ export const pages = {
     text: "This page doesn't exist, or it isn't open yet. Pages show up as the tournament gets to them.",
     home: "Back home",
   },
+  forbidden: {
+    title: "No access",
+    text: "You don't have access to this page.",
+    home: "Back home",
+  },
   error: {
     title: "Something broke",
     text: "That one's on us. Give it another go in a moment.",

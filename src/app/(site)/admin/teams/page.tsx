@@ -1,5 +1,5 @@
 import { ChevronDown, Crown } from "lucide-react";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, Panel, Field } from "@/components/admin/form";
@@ -30,7 +30,7 @@ import { PHASES } from "@/lib/sections";
 const bwsGrid = "grid grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_4rem] items-center gap-x-2 px-2 sm:gap-x-3 sm:px-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_6rem_4rem_6rem]";
 export default async function AdminTeams() {
   const [t, viewer, teams, results, regs, settings, f] = await Promise.all([getDict(), getViewer(), getTeams(), getQualResults(), getRegistrations(), getSettings(), getFormat()]);
-  if (!can(viewer?.roles, "teams")) notFound();
+  if (!can(viewer?.roles, "teams")) forbidden();
   const suiji = !isBGCC6();
   const need = f.teams * f.teamSize;
   const ranked = rankBws(regs.filter((r) => r.status === "approved"));

@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import { notFound } from "next/navigation";
+import { forbidden, notFound } from "next/navigation";
 import { InView } from "@/components/site/in-view";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page-title";
@@ -20,7 +20,8 @@ import { mpIds } from "@/lib/mp-links";
 
 export default async function AdminQualifiers() {
   const [t, viewer, lobbies, results, rows, settings] = await Promise.all([getDict(), getViewer(), getLobbies(), getQualResults(), getQualScoreRows(), getSettings()]);
-  if (!can(viewer?.roles, "qualifiers") || !isBGCC6()) notFound();
+  if (!isBGCC6()) notFound();
+  if (!can(viewer?.roles, "qualifiers")) forbidden();
   const slotOf = new Map(results.maps.map((m) => [m.id, m.slot]));
 
   return (

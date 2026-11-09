@@ -397,6 +397,7 @@ export const site: typeof en = {
     bell: "Известия",
     asked: (team: string) => `${team} поиска смяна на името и снимката на отбора`,
     view: "Виж",
+    open: "Отвори",
     review: (team: string) => `${team} иска да смени името и снимката на отбора си с това:`,
     accept: "Одобри",
     decline: "Откажи",

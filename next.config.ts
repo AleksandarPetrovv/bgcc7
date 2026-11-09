@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
   },
   devIndicators: false,
   poweredByHeader: false,
-  experimental: { serverActions: { allowedOrigins: publicHost ? [publicHost] : [] } },
+  experimental: { authInterrupts: true, serverActions:{ allowedOrigins: publicHost ? [publicHost] : [] } },
   async headers() {
     return [
       {

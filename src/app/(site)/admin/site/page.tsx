@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { getSponsors } from "@/db/tournament";
@@ -15,7 +15,7 @@ import { localeOf } from "@/lib/i18n/locale";
 
 export default async function AdminSite() {
   const [t, lang, viewer, sponsors, stages] = await Promise.all([getDict(), getLang(), getViewer(), getSponsors(), getPoolStages()]);
-  if (!can(viewer?.roles, "host")) notFound();
+  if (!can(viewer?.roles, "host")) forbidden();
 
   return (
     <>

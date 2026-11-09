@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { forbidden, notFound } from "next/navigation";
 import { ArrowLeft, TriangleAlert } from "lucide-react";
 import { PageTitle } from "@/components/site/page-title";
 import { Words } from "@/components/site/rich";
@@ -24,7 +24,7 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
   const id = matchIdFromSlug(f, slug);
   if (id !== slug) notFound();
   const [t, runs, all, teams, stages] = await Promise.all([getDict(), canRunMatch(id), getMatches(), getTeams(), getPoolStages()]);
-  if (!runs) notFound();
+  if (!runs) forbidden();
   const match = all.find((m) => m.id === id);
   if (!match) notFound();
   const [sb, edits] = match.links.length ? await Promise.all([getScoreboard(match, teams, stages), getEdits(id)]) : [null, []];

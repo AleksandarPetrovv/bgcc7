@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { PageTitle } from "@/components/site/page-title";
 import { Tag } from "@/components/site/page";
 import { ActionForm, DateTimeField, Panel } from "@/components/admin/form";
@@ -20,7 +20,7 @@ const check = "size-4 shrink-0 accent-rose";
 
 export default async function AdminPhase() {
   const [t, s, viewer] = await Promise.all([getDict(), getSettings(), getViewer()]);
-  if (!can(viewer?.roles, "phase")) notFound();
+  if (!can(viewer?.roles, "phase")) forbidden();
   const suiji = !isBGCC6();
   const off = getFormat().sectionsOff;
   const sections = SECTIONS.filter((k) => !off.includes(k));

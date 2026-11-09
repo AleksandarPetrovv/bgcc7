@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { helperView } from "@/lib/helper-sig";
 import { HelperLink, HelperPoll, HelperStatus } from "@/components/admin/link-gate";
 import { PageTitle } from "@/components/site/page-title";
@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 export default async function HelperPage() {
   const [t, viewer] = await Promise.all([getDict(), getViewer()]);
   const access = viewer && helperAccess(viewer.roles);
-  if (!viewer || !access?.any) notFound();
+  if (!viewer || !access?.any) forbidden();
   const { ref, stream: streamer } = access;
   const r = t.admin.refApp;
   const [h, lang] = await Promise.all([helperView(viewer.osuId), getLang()]);

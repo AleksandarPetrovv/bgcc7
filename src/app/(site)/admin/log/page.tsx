@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { PageTitle } from "@/components/site/page-title";
 import { getLog, getLogCtx, getStaff } from "@/db/admin";
 import { getViewer } from "@/lib/authz";
@@ -10,7 +10,7 @@ import { avatarPath } from "@/lib/avatar";
 
 export default async function AdminLog({ searchParams }: PageProps<"/admin/log">) {
   const [t, lang, viewer, sp] = await Promise.all([getDict(), getLang(), getViewer(), searchParams]);
-  if (!can(viewer?.roles, "log")) notFound();
+  if (!can(viewer?.roles, "log")) forbidden();
   const staff = await getStaff();
   const raw = typeof sp.user === "string" && /^\d+$/.test(sp.user) ? Number(sp.user) : null;
   const filter = raw !== null && Number.isSafeInteger(raw) && raw > 0 && (raw === viewer?.osuId || staff.some((s) => s.osuId === raw)) ? raw : undefined;

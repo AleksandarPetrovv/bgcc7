@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden, notFound } from "next/navigation";
 import { InView } from "@/components/site/in-view";
 import { PageTitle } from "@/components/site/page-title";
 import { RuleDiamond } from "@/components/site/rule";
@@ -50,7 +50,8 @@ function LobbyFields({ t, l }: { t: Dict; l?: Lobby }) {
 
 export default async function AdminLobbies() {
   const [t, lang, viewer, lobbies, regs] = await Promise.all([getDict(), getLang(), getViewer(), getLobbies(), getRegistrations()]);
-  if (!can(viewer?.roles, "lobbies") || !isBGCC6()) notFound();
+  if (!isBGCC6()) notFound();
+  if (!can(viewer?.roles, "lobbies")) forbidden();
   const locale = localeOf(lang);
   const booked = new Set(lobbies.flatMap((l) => l.players.map((p) => p.osuId)));
   const approved = regs.filter((r) => r.status === "approved");

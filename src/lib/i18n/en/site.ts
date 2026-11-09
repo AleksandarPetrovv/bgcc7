@@ -395,6 +395,7 @@ export const site = {
     bell: "Notifications",
     asked: (team: string) => `${team} has requested a team name and profile picture change`,
     view: "View",
+    open: "Open",
     review: (team: string) => `${team} is requesting to change their team name and profile picture to this:`,
     accept: "Accept",
     decline: "Decline",
