@@ -69,19 +69,22 @@ export function BracketScene({ feed }: { feed: OverlayFeed }) {
   const { id, score, firstTo } = feed.match;
   // the demo has no real result to show, so it plays a made-up bracket: its own losers match, then a winners one
   const demo = feed.match.slug === "demo" && feed.match.winner !== null ? demoBracket(format, teams, DEMO_MATCH, [toTeam(feed.teams[0]), toTeam(feed.teams[1])], feed.match.winner, DEMO_WINNERS) : null;
-  // a finished match plays its result: shown unplayed first, then its teams move on (or out)
-  const reveal = demo ? [DEMO_MATCH, DEMO_WINNERS] : feed.match.winner !== null ? [id] : undefined;
+  // on auto, a finished match plays its result: shown unplayed first, then its teams move on (or out). picked by hand it just shows the bracket as it is
+  const reveal = demo ? [DEMO_MATCH, DEMO_WINNERS] : feed.sceneAuto && feed.match.winner !== null ? [id] : undefined;
   // the reset only matters on a grand final once the losers-side team (slot 2) has taken the first set
   const reset = id === GF_RESET || (id === GF && score[1] >= firstTo);
-  // switched to mid-match: the gold box already holds the running score, no animation
-  const live = !reveal && score[0] + score[1] > 0 ? { [id]: score } : undefined;
+  // mid-match: the gold box already holds the running score, no animation
+  const live = !reveal && feed.match.winner === null && score[0] + score[1] > 0 ? { [id]: score } : undefined;
+  // the server waits for these before showing the stream's zoom toggle / leaving the scene
+  const onSettled = (kind: "reveal" | "zoom", on?: boolean) =>
+    void fetch(`/api/overlay/${encodeURIComponent(feed.match.slug)}/settle`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind, on }) }).catch(() => {});
   return (
     <div className="absolute inset-0 overflow-hidden text-paper">
       <Backdrop num={editionNum(feed)} tint="var(--white)" />
       <Lockup num={editionNum(feed)} size={38} className="absolute right-[56px] top-[40px]" />
       <div className="absolute inset-x-[40px] [&_.bsec-l]:text-inherit [&_.bsec-u]:text-rose-hi" style={{ top: TOP, bottom: BOTTOM }}>
         <ResultsEye value={false}>
-          <BracketOptions value={{ reset, current: id, reveal, maxH: 1080 - TOP - BOTTOM - 16 }}>
+          <BracketOptions value={{ reset, current: id, reveal, maxH: 1080 - TOP - BOTTOM - 16, zoomed: !!feed.zoom?.on, onSettled: demo ? undefined : onSettled }}>
             {demo ? (
               <TournamentProvider teams={demo.teams} matches={demo.matches} edition={format.edition}>
                 <MatchBracket />

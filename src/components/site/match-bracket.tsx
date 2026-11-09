@@ -18,16 +18,12 @@ import { fmtDate, fmtSofiaTime } from "@/lib/time";
 import { roundName } from "@/lib/i18n/dict";
 import { beforeResult, hasResults, resultMoves, type ResultMove } from "@/lib/matches";
 import { HEX } from "@/lib/theme";
+import { REVEAL } from "@/lib/bracket-reveal";
 import { localeOf } from "@/lib/i18n/locale";
 
 const TOP = 92;
-// reveal, per match: a pause, a zoom onto the boxes that change, the score, a short settle, then the winner moves, then the loser
-const PAUSE_MS = 3000;
-const ZOOM_S = 1.4;
-const SETTLE_MS = 1000;
-const FLY_S = 0.9;
-const AFTER_MS = 600;
-const HOLD_MS = 1600;
+const ZOOM_S = REVEAL.zoom / 1000;
+const FLY_S = REVEAL.fly / 1000;
 const ZOOM_MAX = 2.2;
 const ZOOM_PAD = 70;
 const EASE_IO = [0.65, 0, 0.35, 1] as const;
@@ -126,7 +122,11 @@ function LiveDot() {
 export function MatchBracket({ live = {} }: { live?: Record<string, [number, number] | null> }) {
   const t = useDict();
   const { matches: real, format, teamById } = useTournament();
-  const { maxH, reset: forceReset, current, reveal } = useBracketOptions();
+  const { maxH, reset: forceReset, current, reveal, zoomed, onSettled } = useBracketOptions();
+  const settled = useRef(onSettled);
+  useEffect(() => {
+    settled.current = onSettled;
+  });
   const reset = forceReset ?? real.find((m) => m.id === GF)?.winner === 2;
   const [play, setPlay] = useState<Play | null>(() => (reveal?.length ? { id: reveal[0], scored: false, loser: false, zoom: false, landed: [], flying: [] } : null));
   // lines a flight landed on ("matchId:slot"): they never replay their intro, also after later cases and the end
@@ -148,11 +148,11 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
         setPlay({ id, scored: false, loser: false, zoom: false, landed: [], flying: [] });
         const m = latest.current.find((x) => x.id === id);
         const moves = m?.winner ? resultMoves(format, m) : [];
-        await sleep(PAUSE_MS);
+        await sleep(REVEAL.pause);
         step({ zoom: true });
         await sleep(ZOOM_S * 1000);
         step({ scored: true });
-        await sleep(SETTLE_MS);
+        await sleep(REVEAL.settle);
         // the winner moves first; the loser moves (or is knocked out) once it has landed
         for (const side of m?.winner ? [m.winner, 3 - m.winner] : []) {
           if (dead) return;
@@ -165,14 +165,16 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
             setPlay((cur) => (cur ? { ...cur, flying: [], landed: [...cur.landed, ...go.map((v) => v.team)] } : cur));
             setKept((k) => [...k, ...go.map((v) => `${v.to}:${v.slot}`)]);
           }
-          await sleep(AFTER_MS);
+          await sleep(REVEAL.after);
         }
-        await sleep(HOLD_MS);
+        await sleep(REVEAL.hold);
         step({ zoom: false });
         await sleep(ZOOM_S * 1000);
-        if (n < reveal.length - 1) await sleep(PAUSE_MS);
+        if (n < reveal.length - 1) await sleep(REVEAL.pause);
       }
-      if (!dead) setPlay(null);
+      if (dead) return;
+      setPlay(null);
+      settled.current?.("reveal");
     })();
     return () => {
       dead = true;
@@ -229,9 +231,14 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   if (hover) for (const [a, b] of DROPS) if (a === hover || b === hover) linked.add(a).add(b);
 
   const width = col(gfCol) + W + (phone ? gap : 0);
+  // the reveal zooms onto its match; after it, a manual zoom (the stream's toggle) goes to the same spot on the match on stream
+  const focus = play ? (play.zoom ? play.id : null) : zoomed && current ? current : null;
+  const focusMatch = focus ? real.find((m) => m.id === focus) : undefined;
   const zoom = (() => {
-    if (!play?.zoom || !POS[play.id]) return { x: 0, y: 0, scale: 1 };
-    const ids = [play.id, ...moves.map((v) => v.to)];
+    if (!focus || !POS[focus]) return { x: 0, y: 0, scale: 1 };
+    // an unfinished match zooms as if slot 1 won: the same boxes either way
+    const targets = focusMatch ? resultMoves(format, { ...focusMatch, winner: focusMatch.winner ?? 1 }).map((v) => v.to).filter((id) => POS[id]) : [];
+    const ids = [focus, ...targets];
     const x0 = Math.min(...ids.map((id) => col(POS[id][0]))) - ZOOM_PAD;
     const x1 = Math.max(...ids.map((id) => col(POS[id][0]) + W)) + ZOOM_PAD;
     const y0 = Math.min(...ids.map(top)) - ZOOM_PAD;
@@ -241,6 +248,10 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
     return { scale: z, x: clamp(width / 2 - ((x0 + x1) / 2) * z, width - width * z), y: clamp(height / 2 - ((y0 + y1) / 2) * z, height - height * z) };
   })();
   // the zoom uses css zoom, not a scale transform: safari draws a scaled layer as a stretched bitmap (blurry) once anything inside it animates
+  const manual = useRef({ play: !!play, zoomed: !!zoomed });
+  useEffect(() => {
+    manual.current = { play: !!play, zoomed: !!zoomed };
+  });
   const zoomZ = useMotionValue(1);
   const zoomX = useMotionValue(0);
   const zoomY = useMotionValue(0);
@@ -249,7 +260,12 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   useEffect(() => {
     const o = { duration: ZOOM_S, ease: EASE_IO };
     const runs = [animate(zoomZ, zoom.scale, o), animate(zoomX, zoom.x, o), animate(zoomY, zoom.y, o)];
-    return () => runs.forEach((r) => r.stop());
+    let dead = false;
+    void Promise.all(runs).then(() => !dead && !manual.current.play && settled.current?.("zoom", manual.current.zoomed));
+    return () => {
+      dead = true;
+      runs.forEach((r) => r.stop());
+    };
   }, [zoom.scale, zoom.x, zoom.y, zoomZ, zoomX, zoomY]);
   const fitW = shrink < 1 ? shrink : upscale(seen, width);
   const scale = maxH ? Math.min(fitW, maxH / height) : fitW;

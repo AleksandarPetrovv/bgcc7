@@ -26,6 +26,18 @@ async function sharedFeed(matchId: string) {
   return feed;
 }
 
+const g2 = globalThis as unknown as { bgccOverlayKeys?: Map<string, { at: number; res: ReturnType<typeof resolveOverlay> }> };
+const resolved = (g2.bgccOverlayKeys ??= new Map());
+function sharedResolve(key: string) {
+  const k = `${currentEdition()}:${key}`;
+  const hit = resolved.get(k);
+  if (hit && Date.now() - hit.at < 250) return hit.res;
+  const res = resolveOverlay(key);
+  resolved.set(k, { at: Date.now(), res });
+  res.catch(() => resolved.delete(k));
+  return res;
+}
+
 export async function GET(req: Request, { params }: { params: Promise<{ key: string }> }) {
   // proxy.ts only lowercases page urls, so the api does it for its own key
   const key = decodeURIComponent((await params).key).toLowerCase();
@@ -34,7 +46,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ key: str
   // live packets arrive ~10/s per streamer, only this overlay's own match should wake it
   let shown: string | null = null;
   const subscribe = (fn: () => void) => {
-    const offs = [onDraft(() => fn()), onLobby(() => fn()), onLive((id) => (shown === null || id === shown) && fn())];
+    const offs = [onDraft((id) => (shown === null || id === shown) && fn()), onLobby(() => fn()), onLive((id) => (shown === null || id === shown) && fn())];
     return () => offs.forEach((off) => off());
   };
 
@@ -44,7 +56,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ key: str
     async () => {
       let matchId: string | null = null;
       try {
-        matchId = (await resolveOverlay(key)).matchId;
+        matchId = (await sharedResolve(key)).matchId;
         shown = matchId;
         const feed = matchId ? await sharedFeed(matchId) : null;
         clear(id);

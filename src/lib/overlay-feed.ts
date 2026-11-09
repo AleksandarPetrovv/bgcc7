@@ -17,7 +17,8 @@ import { isScene, type Scene } from "@/lib/scenes";
 import { getCue, PLAY_LEAD } from "@/lib/overlay-cues";
 import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup, FeedMatch, FeedTurn, LiveScore } from "./overlay-types";
 import { scoreOf, tbDue, turnOf, type DraftView } from "@/lib/draft";
-import { TEST_MATCH } from "@/lib/format";
+import { TEST_MATCH, isGfId } from "@/lib/format";
+import { bracketZoom, zoomPause } from "@/lib/overlay-zoom";
 import { canSee } from "@/lib/authz";
 import { globalStore } from "@/lib/global-store";
 import { BUILD } from "@/lib/build";
@@ -33,9 +34,10 @@ function settleSometimes(matchId: string) {
 
 const CHOICE_HOLD = 20_000;
 const RESULTS_HOLD = 15_000;
-// on auto, after the last map: the winner, then the bracket playing the result, then "thanks for watching"
+// on auto, after the last map: the winner, the bracket playing the result (paused while zoomed by hand), the schedule, then "thanks for watching"
 const WINNER_HOLD = 30_000;
 const BRACKET_HOLD = 30_000;
+const SCHEDULE_HOLD = 30_000;
 const ABORT_HOLD = 5_000;
 const lastLive = globalStore("bgccLastLive", () => new Map<string, LiveScore>());
 // when a match's value (its rolls, its result) last changed; `fallback` the first time it is seen
@@ -211,12 +213,15 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
   const shownLive = held ? { ...held, at: now } : live;
   // the result counts from when the last map's results stop showing (or when it is first seen, for a score typed in by hand)
   const wonFor = winner === null ? 0 : now - wonSince(matchId, `${winner}:${score}`, cue?.finishedAt != null ? cue.finishedAt + RESULTS_HOLD : now);
-  const done: Scene = wonFor < WINNER_HOLD ? "winner" : wonFor < WINNER_HOLD + BRACKET_HOLD ? "bracket" : "end";
+  const pause = zoomPause(matchId, now);
+  const bracketFor = wonFor - WINNER_HOLD - pause.paused;
+  const done: Scene = wonFor < WINNER_HOLD ? "winner" : bracketFor < BRACKET_HOLD || pause.held ? "bracket" : bracketFor < BRACKET_HOLD + SCHEDULE_HOLD ? "schedule" : "end";
   const auto: Scene = inPlay || countingIn || results || aborted ? "gameplay" : winner !== null ? done : draft?.open ? (introDone ? "mappool" : "intro") : "soon";
 
   const o = sceneRow[0]?.scene;
   const scene: Scene = isScene(o) ? o : auto;
   const sceneAuto = !isScene(o);
+  const zoom = bracketZoom(matchId, scene === "bracket", sceneAuto && winner !== null,matchId in f.layout.pos || isGfId(matchId), now);
 
   return {
     edition: f.edition,
@@ -244,6 +249,7 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
     live: stage?.released ? shownLive : null,
     scene,
     sceneAuto,
+    zoom,
     at: Date.now(),
     build: BUILD,
   };

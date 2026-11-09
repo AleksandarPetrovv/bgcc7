@@ -55,6 +55,8 @@ export type OverlayFeed = {
   live: LiveScore | null;
   scene: Scene;
   sceneAuto: boolean;
+  /** bracket scene only, once its reveal is over and the match has a box: the manual zoom toggle. `settled` = the overlay finished zooming */
+  zoom?: { on: boolean; settled: boolean } | null;
   at: number;
   build?: string;
 };

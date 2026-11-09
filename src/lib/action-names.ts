@@ -17,7 +17,7 @@ const GROUPS = {
   site: [
     "discord.channels", "discord.cleanup", "discord.sync", "edition.clear", "edition.seed", "edition.switch", "format.reset", "format.save", "helper.link", "helper.unlink", "info.edit",
     "overlay.link", "overlay.unlink", "refapp.link", "refapp.unlink", "schedule.set", "schedule.week", "settings.draft", "settings.qualify", "settings.rounds",
-    "site.links", "site.wipeTestData", "sponsor.add", "sponsor.delete", "sponsor.reorder", "sponsor.update", "stream.scene",
+    "site.links", "site.wipeTestData", "sponsor.add", "sponsor.delete", "sponsor.reorder", "sponsor.update", "stream.scene", "stream.zoom",
   ],
 } as const;
 
