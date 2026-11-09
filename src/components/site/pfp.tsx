@@ -64,7 +64,7 @@ export function SlantPfp({
   return (
     <span className={cn("relative isolate inline-flex shrink-0 [container-type:size]", className)}>
       <SlantBg className={bg} />
-      <span className={cn("absolute inset-0", SLANT_CLIP)}>{src && <Pic src={src} className={cn("absolute object-cover", layer)} />}</span>
+      <span className={cn("absolute inset-0", SLANT_CLIP)}>{src && <Pic src={src} className={cn("absolute max-w-none object-cover", layer)} />}</span>
       {edge && <SlantBg className={cn("z-10", edge)} style={edgeStyle} />}
     </span>
   );
