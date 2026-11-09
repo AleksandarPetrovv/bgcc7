@@ -54,17 +54,8 @@ export default async function AdminMatches() {
                 {s.list.map((m, i) => (
                   <div key={m.id} className="relative mb-12 last:mb-0">
                     <MatchCard m={m} t={t} locale={locale} teams={teams} refs={refs} host={scope.host} pools={pools} live={m.winner ? undefined : live.get(m.id)} />
-                    {/* on the card's bottom line, under the VS: mirrors the summary's side columns and chevron */}
-                    {i < s.list.length - 1 && (
-                      <span className="pointer-events-none absolute inset-x-0 bottom-0 flex gap-3 pl-4 pr-3" aria-hidden>
-                        <span className="hidden w-40 shrink-0 md:block" />
-                        <span className="relative flex-1">
-                          <RuleDiamond />
-                        </span>
-                        <span className="hidden w-64 shrink-0 lg:block" />
-                        <span className="w-8 shrink-0" />
-                      </span>
-                    )}
+                    {/* on the card's bottom line, under the VS */}
+                    {i < s.list.length - 1 && <RuleDiamond />}
                   </div>
                 ))}
               </div>

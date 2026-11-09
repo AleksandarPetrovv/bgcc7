@@ -57,9 +57,11 @@ export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m:
       data-cascade
       className="adm-match group in-left relative border-b border-line transition-colors duration-200 hover:border-paper/25 open:border-paper/30"
     >
-      <summary className="relative flex cursor-pointer list-none items-center gap-3 py-3 pl-4 pr-3 [&::-webkit-details-marker]:hidden">
+      {/* equal side columns and a fixed-width middle keep the teams centred in the row */}
+      <summary className="relative grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] [&::-webkit-details-marker]:hidden">
         <span className={cn("absolute inset-y-0 left-0 w-1", tone)} aria-hidden />
-        <span className="hidden w-40 shrink-0 flex-col gap-1 md:flex">
+        <span className="hidden min-w-0 flex-col gap-1 sm:flex">
+          <span className="hidden flex-col gap-1 md:flex">
           <span className="text-[0.65rem] font-display font-bold leading-tight text-ash">{matchLabel(f, t, m.id)}</span>
           <span
             className={cn(
@@ -69,6 +71,7 @@ export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m:
           >
             <SlantBg className={{ done: "bg-balkan/15", live: "bg-rose/15", soon: "bg-azure/15", tbd: "bg-line/60" }[status]} />
             {t.admin.mStatus[status]}
+          </span>
           </span>
         </span>
 
@@ -87,7 +90,7 @@ export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m:
           </span>
         </span>
 
-        <span className="hidden min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 sm:grid">
+        <span className="hidden min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:grid sm:w-[18rem] lg:w-[22rem] xl:w-[28rem]">
           <span className="flex min-w-0 items-center justify-end gap-2">
             <span className={side(1)}>{name(m.team1Id)}</span>
             {teamPic(m.team1Id)}
@@ -96,7 +99,7 @@ export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m:
           {scored ? (
             <Scoreline score={[m.score1, m.score2]} winner={m.winner} className="text-3xl" />
           ) : (
-            <span className="heading-slam text-2xl leading-none text-paper">{t.common.vs}</span>
+            <span className="heading-slam w-8 text-center text-sm text-ash sm:text-lg">{t.common.vs}</span>
           )}
           <span className="flex min-w-0 items-center gap-2">
             {teamPic(m.team2Id)}
@@ -104,7 +107,8 @@ export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m:
           </span>
         </span>
 
-        <span className="hidden w-64 shrink-0 flex-col items-end gap-1 text-xs lg:flex">
+        <span className="flex min-w-0 items-center justify-end gap-3">
+        <span className="hidden min-w-0 flex-col items-end gap-1 text-xs lg:flex">
           <span className={cn("num flex items-center gap-1.5 whitespace-nowrap", m.startsAt ? "text-paper/85" : "text-ash")}>
             <CalendarClock className="size-3.5 text-ash" />
             {m.startsAt ? dayTime(toSofiaInput(m.startsAt), locale.startsWith("bg") ? "bg" : "en") : t.common.tbd}
@@ -128,6 +132,7 @@ export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m:
         <span className="relative isolate grid size-8 shrink-0 place-items-center text-ash transition-colors group-hover:text-paper group-open:text-white">
           <SlantBg className="border border-line transition-colors group-hover:border-paper/40 group-open:border-rose group-open:bg-rose" />
           <ChevronDown className="size-4 transition-transform duration-300 group-open:rotate-180" aria-hidden />
+        </span>
         </span>
       </summary>
 

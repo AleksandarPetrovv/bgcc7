@@ -6,7 +6,7 @@ import { getMatchRows, getTeams } from "@/db/tournament";
 import { historyOf, matchWeeks } from "@/db/schedule";
 import { refScope } from "@/lib/match-access";
 import { getDict, getLang } from "@/lib/i18n/server";
-import { fmtSofia, toSofiaInput } from "@/lib/time";
+import { dayTime, fmtSofia, toSofiaInput } from "@/lib/time";
 import { historyLabel, isOpen, weekOf } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
@@ -15,16 +15,18 @@ import { localeOf } from "@/lib/i18n/locale";
 import { roundName } from "@/lib/i18n/dict";
 import { weekNum, weekNums } from "@/lib/format";
 import { SlantBg } from "@/components/site/slant";
+import { RuleDiamond } from "@/components/site/rule";
 import { getFormat } from "@/db/edition";
 import { matchLabel } from "@/lib/matches";
-import { ChevronDown } from "lucide-react";
+import { CalendarClock, ChevronDown } from "lucide-react";
 
-const TONE: Record<string, { bar: string; chip: string; ink: string }> = {
-  agreed: { bar: "bg-balkan", chip: "bg-balkan", ink: "text-on-fill" },
-  staff: { bar: "bg-rose", chip: "bg-rose", ink: "text-white" },
-  proposed: { bar: "bg-gold", chip: "bg-gold", ink: "text-on-fill" },
-  tbd: { bar: "bg-line", chip: "border border-line", ink: "text-ash" },
-  waiting: { bar: "bg-line", chip: "border border-line", ink: "text-ash" },
+// state colour: the card's left bar and the state badge's outline
+const TONE: Record<string, { bar: string; edge: string }> = {
+  agreed: { bar: "bg-balkan", edge: "border-balkan" },
+  staff: { bar: "bg-rose", edge: "border-rose" },
+  proposed: { bar: "bg-gold", edge: "border-gold" },
+  tbd: { bar: "bg-line", edge: "border-line" },
+  waiting: { bar: "bg-line", edge: "border-line" },
 };
 
 export default async function AdminScheduling() {
@@ -45,7 +47,7 @@ export default async function AdminScheduling() {
   const Side = ({ id, side }: { id: string | null; side: 0 | 1 }) => {
     const team = teams.find((x) => x.id === id);
     return (
-      <span data-cascade className={cn("flex min-w-0 items-center gap-1.5 sm:gap-2.5", side === 1 ? "in-right flex-row-reverse text-right" : "in-left")}>
+      <span data-cascade className={cn("flex min-w-0 items-center gap-1.5 sm:gap-2.5", side === 0 ? "in-left flex-row-reverse text-right" : "in-right")}>
         {team?.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={team.image} alt="" className="size-7 shrink-0 rounded-full object-cover sm:size-9" />
@@ -81,23 +83,21 @@ export default async function AdminScheduling() {
             return (
               <div key={m.id} data-cascade className="in-up relative border border-line bg-ink/40">
                 <span className={cn("absolute inset-y-0 left-0 w-1", TONE[state].bar)} aria-hidden />
-                <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 py-3 pl-4 pr-3 sm:gap-3 sm:pl-5 sm:pr-4">
-                  <Side id={m.team1Id} side={0} />
-                  <span data-cascade className="in-pop heading-slam text-sm text-ash sm:text-lg">VS</span>
-                  <Side id={m.team2Id} side={1} />
-                </div>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line py-2.5 pl-5 pr-4 sm:grid sm:grid-cols-[1fr_auto_1fr]">
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                    <span data-cascade className="in-up num text-base font-display font-bold">
-                      {m.startsAt ? fmtSofia(m.startsAt, locale) : pend ? fmtSofia(new Date(pend.at), locale) : "—"}
-                      {!m.startsAt && pend && <span className="ml-2 text-xs text-ash">{name(pend.teamId)}</span>}
-                    </span>
+                {/* equal side columns and a fixed-width middle keep the teams centred in the row */}
+                <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 px-5 py-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+                  <span data-cascade className="in-left min-w-0 truncate text-xs font-display font-bold text-ash">{matchLabel(format, t, m.id)}</span>
+                  <div className="order-last col-span-2 grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 md:order-none md:col-span-1 md:w-[22rem] xl:w-[28rem]">
+                    <Side id={m.team1Id} side={0} />
+                    <span data-cascade className="in-pop heading-slam w-8 text-center text-sm text-ash sm:text-lg">{t.common.vs}</span>
+                    <Side id={m.team2Id} side={1} />
                   </div>
-                  <span data-cascade className="in-up mx-auto text-center text-xs font-display font-bold text-ash">{matchLabel(format, t, m.id)}</span>
-                  <span data-cascade className="in-pop ml-auto">
-                    <span className={cn("relative isolate inline-flex px-2.5 py-1 text-[0.68rem] font-display font-bold", TONE[state].ink)}>
-                      <SlantBg className={TONE[state].chip} />
-                      {s.admin.state[state]}
+                  {/* on the line below the teams, under the VS */}
+                  <RuleDiamond />
+                  <span data-cascade className={cn("in-right num flex min-w-0 items-center justify-end gap-1.5 text-right text-xs", m.startsAt ? "text-paper/85" : "text-ash")}>
+                    {(m.startsAt || pend) && <CalendarClock className="size-3.5 shrink-0 text-ash" />}
+                    <span className="min-w-0 truncate">
+                      {m.startsAt ? dayTime(toSofiaInput(m.startsAt), lang) : pend ? dayTime(toSofiaInput(new Date(pend.at)), lang) : t.common.tbd}
+                      {!m.startsAt && pend && <span className="ml-2">· {name(pend.teamId)}</span>}
                     </span>
                   </span>
                 </div>
@@ -122,6 +122,10 @@ export default async function AdminScheduling() {
                     {s.admin.at}
                     <DateTimeField name="at" defaultValue={toSofiaInput(m.startsAt)} className="w-[25rem]" />
                   </label>
+                  <span data-cascade className="in-pop relative isolate order-last ml-auto inline-flex min-h-10 items-center px-3.5 text-xs font-display font-bold text-paper">
+                    <SlantBg className={cn("border", TONE[state].edge)} />
+                    {s.admin.state[state]}
+                  </span>
                 </ActionForm>
               </div>
             );
