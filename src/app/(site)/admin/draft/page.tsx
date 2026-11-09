@@ -9,7 +9,7 @@ import { getAllMatchRows, getAllTeams } from "@/db/tournament";
 import { refScope } from "@/lib/match-access";
 import { pickableSlots, turnOf } from "@/lib/draft";
 import { getDict, getLang } from "@/lib/i18n/server";
-import { fmtSofia } from "@/lib/time";
+import { dayTime, toSofiaInput } from "@/lib/time";
 import { DraftAdmin, type DraftRow } from "./draft-admin";
 import { localeOf } from "@/lib/i18n/locale";
 import { roundName } from "@/lib/i18n/dict";
@@ -51,7 +51,7 @@ export default async function AdminDraft() {
       slug: m.id,
       round: matchLabel(f, t, m.id),
       stage: m.poolSlug ?? m.stageSlug,
-      when: m.startsAt ? fmtSofia(m.startsAt, locale) : null,
+      when: m.startsAt ? dayTime(toSofiaInput(m.startsAt), locale.startsWith("bg") ? "bg" : "en") : null,
       teams: [a ? { name: a.name, image: a.image } : null, b ? { name: b.name, image: b.image } : null],
       draft: d ? { open: d.open, stage: d.stageSlug, state: d.pausedAt ? "paused" : turn!.kind, steps: d.steps.length, rolled: d.roll1 != null || d.roll2 != null, paused: !!d.pausedAt } : null,
     };

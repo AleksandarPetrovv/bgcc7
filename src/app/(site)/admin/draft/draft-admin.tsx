@@ -31,8 +31,8 @@ function Team({ team, side }: { team: TeamLite; side: 1 | 2 }) {
   const t = useDict();
   return (
     <span className={cn("flex min-w-0 items-center gap-2", side === 1 && "flex-row-reverse justify-start text-right")}>
-      {team?.image && <Pfp src={team.image} className="size-8" />}
-      <span className={cn("truncate text-sm font-display font-black", !team && "text-ash")}>{team?.name ?? t.common.tbd}</span>
+      {team?.image && <Pfp src={team.image} className="size-8 shrink-0" />}
+      <span className={cn("min-w-0 truncate text-sm font-display font-black", !team && "text-ash")}>{team?.name ?? t.common.tbd}</span>
     </span>
   );
 }
@@ -76,9 +76,9 @@ function Row({ r, pools, i }: { r: DraftRow; pools: { slug: string; title: strin
           />
         )}
       </AnimatePresence>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-3 py-3 pl-5 sm:grid-cols-[16rem_minmax(0,1fr)_7.5rem] md:grid-cols-[16rem_minmax(0,1fr)_auto_7.5rem]">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-5 py-3 sm:grid-cols-[16rem_minmax(0,1fr)_auto] md:grid-cols-[16rem_minmax(0,1fr)_auto_auto]">
         <span className="min-w-0 text-xs font-display font-bold text-rose-hi sm:whitespace-nowrap">{r.round}</span>
-        <span className="num whitespace-nowrap text-right text-xs font-display font-bold text-ash sm:order-3 md:order-5">{r.when ?? t.common.tbd}</span>
+        <span className="num whitespace-nowrap text-right text-xs font-display font-bold text-ash sm:order-3 md:col-start-4 md:row-start-1">{r.when ?? t.common.tbd}</span>
         <div className="order-last col-span-2 grid min-w-0 sm:order-none sm:col-span-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
           <Team team={r.teams[0]} side={1} />
           <span className="heading-slam w-8 text-center text-sm text-ash">VS</span>
