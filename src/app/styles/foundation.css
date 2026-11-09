@@ -156,10 +156,17 @@
     letter-spacing: -0.01em;
     line-height: 1.05;
   }
-  /* unbounded has no italic: the faked slant pokes past the box and gets clipped by truncate / transform layers */
-  :where(.heading-slam, .anim-letter, .font-display.italic, .heading-slam .truncate, .italic .truncate) {
-    padding-inline-end: 0.16em;
-    margin-inline-end: -0.16em;
+  /* the display fonts have no italic: the faked slant pokes past the box top-right, and truncate or an animating (intro) layer cuts it to that box,
+     and a colour change does not repaint it. room on top and right (also for spans inside, which animate or recolour on their own), cancelled by margins
+     so nothing moves. skipped where it would show or shift: own spacing or size on that side, a background, border, ring, shadow or rounded box,
+     and on top for a `relative` box, whose absolute children are placed from its (now taller) padding edge */
+  :where(:is(.italic, .heading-slam, .anim-letter, :is(.italic, .heading-slam, .anim-letter) :not(svg, svg *, img, video, input, textarea)):not([class^="m-"], [class*=" m-"], [class^="p-"], [class*=" p-"], [class*="size-"], [class*="bg-"], [class*="border"], [class*="rounded"], [class*="ring-"], [class*="shadow"], [class*="outline-"], [style*="width"], [style*="height"], [style*="background"], [class*="relative"], [class*="mt-"], [class*="my-"], [class*="pt-"], [class*="py-"], [class^="h-"], [class*=" h-"], [class*=":h-"])) {
+    padding-top: 0.2em;
+    margin-top: -0.2em;
+  }
+  :where(:is(.italic, .heading-slam, .anim-letter, :is(.italic, .heading-slam, .anim-letter) :not(svg, svg *, img, video, input, textarea)):not([class^="m-"], [class*=" m-"], [class^="p-"], [class*=" p-"], [class*="size-"], [class*="bg-"], [class*="border"], [class*="rounded"], [class*="ring-"], [class*="shadow"], [class*="outline-"], [style*="width"], [style*="height"], [style*="background"], [class*="mr-"], [class*="mx-"], [class*="pr-"], [class*="px-"], [class^="w-"], [class*=" w-"], [class*=":w-"])) {
+    padding-right: 0.3em;
+    margin-right: -0.3em;
   }
   .num {
     font-family: var(--font-display);
