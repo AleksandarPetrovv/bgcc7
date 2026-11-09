@@ -53,6 +53,8 @@ export const adminPlay: typeof en = {
   confirmDeleteTeam: "Да се изтрие отборът? Играчите остават записани.",
   matchesHelp: "Победителите сами попълват следващите мачове. Заключи отборите на мач, ако искаш да ги избереш ръчно.",
   firstToShort: (n: number) => `До ${n}`,
+  matchesScheduled: "Предстоящи",
+  matchesPlayed: "Изиграни",
   prompt: {
     kicker: "Проверка на етапа",
     title: (p: string) => `Време е за ${p}`,

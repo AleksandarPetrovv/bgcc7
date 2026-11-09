@@ -76,17 +76,15 @@ function Row({ r, pools, i }: { r: DraftRow; pools: { slug: string; title: strin
           />
         )}
       </AnimatePresence>
-      <div className="grid grid-cols-1 items-center gap-x-4 gap-y-2 px-3 py-3 pl-5 md:grid-cols-[12rem_minmax(0,1fr)_8rem]">
-        <div className="flex min-w-0 items-center gap-2 text-xs font-display font-bold">
-          <span className="text-rose-hi">{r.round}</span>
-          <span className="num text-ash">{r.when ?? t.common.tbd}</span>
-        </div>
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-3 py-3 pl-5 sm:grid-cols-[16rem_minmax(0,1fr)_7.5rem] md:grid-cols-[16rem_minmax(0,1fr)_7.5rem_8rem]">
+        <span className="min-w-0 text-xs font-display font-bold text-rose-hi sm:whitespace-nowrap">{r.round}</span>
+        <span className="num whitespace-nowrap text-right text-xs font-display font-bold text-ash sm:order-3">{r.when ?? t.common.tbd}</span>
+        <div className="order-last col-span-2 grid min-w-0 sm:order-none sm:col-span-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
           <Team team={r.teams[0]} side={1} />
           <span className="heading-slam w-8 text-center text-sm text-ash">VS</span>
           <Team team={r.teams[1]} side={2} />
         </div>
-        <div className="flex justify-start md:justify-end">
+        <div className="order-last col-span-2 flex justify-start empty:hidden sm:col-span-3 md:order-4 md:col-span-1 md:justify-end">
           <AnimatePresence mode="popLayout">
             {r.draft && (
               <motion.span

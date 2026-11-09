@@ -12,6 +12,7 @@ const shortRound = (t: Dict, round: string) => {
 
 /** "Round of 16, Match 4"; `short` gives "Round of 16, M4" */
 export function matchLabel(f: Format, t: Dict, id: string, short = false) {
+  if (id === GF_RESET) return t.home.gfReset;
   const round = f.rounds[roundOf(id)]?.name;
   if (!round) return t.common.tbd;
   const k = matchNum(f, id);

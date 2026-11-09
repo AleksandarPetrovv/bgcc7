@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Scoreline } from "@/components/site/match-row";
 import { CalendarClock, ChevronDown, Gavel, Link2, Radio, Video } from "lucide-react";
 import { ActionForm, DateTimeField, Field } from "@/components/admin/form";
 import { labelCls } from "@/components/admin/label";
@@ -47,28 +48,9 @@ export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m:
       !(n === 1 ? m.team1Id : m.team2Id) && "italic text-ash",
     );
   };
-  const score = (n: 1 | 2) => {
-    const v = n === 1 ? m.score1 : m.score2;
-    const won = m.winner === n;
-    const c = n === 1 ? "crimson" : "azure";
-    return (
-      <span className={cn("relative isolate grid h-10 w-10 place-items-center sm:w-11", won ? "text-white" : c === "crimson" ? "text-crimson-hi" : "text-azure-hi")}>
-        <SlantBg
-          className={cn(
-            "border",
-            won
-              ? c === "crimson"
-                ? "border-crimson bg-crimson"
-                : "border-azure bg-azure"
-              : c === "crimson"
-                ? "border-crimson/40"
-                : "border-azure/40",
-          )}
-        />
-        <span className="heading-slam text-xl leading-none">{v ?? "–"}</span>
-      </span>
-    );
-  };
+  // no score yet: a plain VS instead of two empty boxes
+  const scored = m.score1 != null || m.score2 != null;
+  const score = (n: 1 | 2) => <span className={cn("num text-2xl italic leading-none", !m.winner || m.winner === n ? "text-paper" : "text-ash")}>{(n === 1 ? m.score1 : m.score2) ?? 0}</span>;
 
   return (
     <details
@@ -95,13 +77,13 @@ export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m:
             <span key={n} className="flex items-center gap-2.5">
               {teamPic(n === 1 ? m.team1Id : m.team2Id)}
               <span className={cn(side(n), "flex-1")}>{name(n === 1 ? m.team1Id : m.team2Id)}</span>
-              {score(n)}
+              {scored && score(n)}
             </span>
           ))}
           <span className="num flex items-center gap-1.5 pl-3.5 text-[0.7rem] text-ash">
-            <CalendarClock className="size-3" />
-            {m.startsAt ? dayTime(toSofiaInput(m.startsAt), locale.startsWith("bg") ? "bg" : "en") : t.common.tbd}
-            <span className="ml-auto font-display font-bold">{t.admin.mStatus[status]}</span>
+            <CalendarClock className="size-3 shrink-0" />
+            <span className="min-w-0 truncate">{m.startsAt ? dayTime(toSofiaInput(m.startsAt), locale.startsWith("bg") ? "bg" : "en") : t.common.tbd}</span>
+            <span className="ml-auto shrink-0 font-display font-bold">{t.admin.mStatus[status]}</span>
           </span>
         </span>
 
@@ -110,19 +92,20 @@ export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m:
             <span className={side(1)}>{name(m.team1Id)}</span>
             {teamPic(m.team1Id)}
           </span>
-          <span className="flex items-center gap-1.5">
-            {score(1)}
-            <span className="text-[0.6rem] font-display font-bold text-ash">VS</span>
-            {score(2)}
-          </span>
+          {/* the home match cards' scoreline and VS */}
+          {scored ? (
+            <Scoreline score={[m.score1, m.score2]} winner={m.winner} className="text-3xl" />
+          ) : (
+            <span className="heading-slam text-2xl leading-none text-paper">{t.common.vs}</span>
+          )}
           <span className="flex min-w-0 items-center gap-2">
             {teamPic(m.team2Id)}
             <span className={side(2)}>{name(m.team2Id)}</span>
           </span>
         </span>
 
-        <span className="hidden w-56 shrink-0 flex-col items-end gap-1 text-xs lg:flex">
-          <span className={cn("num flex items-center gap-1.5", m.startsAt ? "text-paper/85" : "text-ash")}>
+        <span className="hidden w-64 shrink-0 flex-col items-end gap-1 text-xs lg:flex">
+          <span className={cn("num flex items-center gap-1.5 whitespace-nowrap", m.startsAt ? "text-paper/85" : "text-ash")}>
             <CalendarClock className="size-3.5 text-ash" />
             {m.startsAt ? dayTime(toSofiaInput(m.startsAt), locale.startsWith("bg") ? "bg" : "en") : t.common.tbd}
           </span>
@@ -225,11 +208,19 @@ export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m:
                 </label>
                 <label className={labelCls}>
                   {t.admin.streamer}
-                  <Dropdown name="streamer" multiple placeholder={t.common.tbd} defaultValue={m.streamer ?? ""} options={refs.streamer.map((r) => ({ value: r, label: r }))} />
+                  {host ? (
+                    <Dropdown name="streamer" multiple placeholder={t.common.tbd} defaultValue={m.streamer ?? ""} options={refs.streamer.map((r) => ({ value: r, label: r }))} />
+                  ) : (
+                    <Field value={m.streamer ?? ""} placeholder={t.common.tbd} disabled />
+                  )}
                 </label>
                 <label className={cn(labelCls, "col-span-2")}>
                   {t.admin.commentators}
-                  <Dropdown name="commentators" multiple placeholder={t.common.tbd} defaultValue={m.commentators ?? ""} options={refs.commentator.map((r) => ({ value: r, label: r }))} />
+                  {host ? (
+                    <Dropdown name="commentators" multiple placeholder={t.common.tbd} defaultValue={m.commentators ?? ""} options={refs.commentator.map((r) => ({ value: r, label: r }))} />
+                  ) : (
+                    <Field value={m.commentators ?? ""} placeholder={t.common.tbd} disabled />
+                  )}
                 </label>
               </div>
             </fieldset>

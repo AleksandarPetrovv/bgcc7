@@ -75,6 +75,18 @@ function Side({ id, flip, lost, small, at }: { id: string; flip?: boolean; lost?
 }
 
 // small: the home page size; the round name gets the top line, the date sits under the score unless the results eye is there
+/** "5 – 0": the winner's number bright, the rest grey; no winner (live) keeps both bright */
+export function Scoreline({ score, winner, className }: { score: readonly [number | null, number | null]; winner?: number | null; className?: string }) {
+  const tone = (n: 1 | 2) => (winner == null || winner === n ? "text-paper" : "text-ash");
+  return (
+    <span className={cn("num whitespace-nowrap italic leading-none", className)}>
+      <span className={tone(1)}>{score[0] ?? 0}</span>
+      <span className="mx-2 text-ash">–</span>
+      <span className={tone(2)}>{score[1] ?? 0}</span>
+    </span>
+  );
+}
+
 export function MatchRow({ match, live, small, label, delay = 0 }: { match: Match; live?: [number, number] | null; small?: boolean; label?: string[]; delay?: number }) {
   const lbl = useRef<HTMLSpanElement>(null);
   const [level, setLevel] = useState(0);
@@ -152,20 +164,10 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
             {live !== undefined ? (
               <>
                 <LiveTag />
-                {live && (
-                  <span className={cn("num italic leading-none text-paper", small ? "text-3xl" : "text-[2.6rem] sm:text-5xl")}>
-                    {live[0]}
-                    <span className="mx-2 text-ash">–</span>
-                    {live[1]}
-                  </span>
-                )}
+                {live && <Scoreline score={live} className={small ? "text-3xl" : "text-[2.6rem] sm:text-5xl"} />}
               </>
             ) : played ? (
-              <span className={cn("num italic leading-none", small ? "text-3xl" : "text-[2.6rem] sm:text-5xl")}>
-                <span className={match.winner === 1 ? "text-paper" : "text-ash"}>{match.team1.score ?? 0}</span>
-                <span className="mx-2 text-ash">–</span>
-                <span className={match.winner === 2 ? "text-paper" : "text-ash"}>{match.team2.score ?? 0}</span>
-              </span>
+              <Scoreline score={[match.team1.score, match.team2.score]} winner={match.winner} className={small ? "text-3xl" : "text-[2.6rem] sm:text-5xl"} />
             ) : (
               <span className={cn("heading-slam leading-none text-paper", small ? "text-2xl" : "text-3xl sm:text-4xl")}>{t.common.vs}</span>
             )}

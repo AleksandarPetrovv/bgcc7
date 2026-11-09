@@ -51,6 +51,8 @@ export const adminPlay = {
   confirmDeleteTeam: "Delete this team? Its players stay signed up.",
   matchesHelp: "Winners fill the next matches by themselves. Lock the teams on a match if you want to pick them by hand.",
   firstToShort: (n: number) => `First to ${n}`,
+  matchesScheduled: "Scheduled",
+  matchesPlayed: "Played",
   prompt: {
     kicker: "Stage check",
     title: (p: string) => `Time for ${p}`,
