@@ -8,12 +8,13 @@ export type DrawPair = { a: number; b: number | null; team: string | null };
 export type DrawLast = { kind: "spin" | "undo" | "redo"; op: DrawOp } | null;
 /**
  * `ended`: the host closed a full draw and the final teams are on screen. `bracket`: after that, the winners bracket is open
- * with this many teams placed into the round of 16 (two per match, in match order). any pick drops both
+ * with this many teams placed into the round of 16 (two per match, in match order). `thanks`: the bracket is full and the host
+ * closed the show with the overlay's "thanks for watching". any pick drops all three
  */
-export type DrawState = { pairs: DrawPair[]; redo: DrawOp[]; seq: number; last: DrawLast; ended?: boolean; bracket?: number | null };
+export type DrawState = { pairs: DrawPair[]; redo: DrawOp[]; seq: number; last: DrawLast; ended?: boolean; bracket?: number | null; thanks?: boolean };
 
 /** what /draw and /admin/draw show. `taken`: players already on a team made outside the draw, `redo`: a taken back pick can be put back */
-export type DrawFeed = { open: boolean; a: DrawPlayer[]; b: DrawPlayer[]; taken: number[]; pairs: { a: number; b: number | null }[]; seq: number; last: DrawLast; redo: boolean; ended: boolean; seeds: DrawSeed[] | null; bracket: DrawBracket | null; build: string };
+export type DrawFeed = { open: boolean; a: DrawPlayer[]; b: DrawPlayer[]; taken: number[]; pairs: { a: number; b: number | null }[]; seq: number; last: DrawLast; redo: boolean; ended: boolean; seeds: DrawSeed[] | null; bracket: DrawBracket | null; thanks: boolean; build: string };
 
 /** the round of 16 being revealed: `r1` holds pair indexes per match (in feed.pairs), `shown` how many slots are filled */
 export type DrawBracket = { shown: number; r1: [number, number][] };
@@ -41,10 +42,13 @@ export function addPick(s: DrawState, op: DrawOp, kind: "spin" | "redo", team: s
 export const drawDone = (pairs: { b: number | null }[], teams: number) => pairs.filter((p) => p.b !== null).length >= teams;
 
 /** shows or hides the final teams; not a pick, so `last` is cleared and viewers just jump to it */
-export const setEnded = (s: DrawState, ended: boolean): DrawState => ({ ...s, ended, bracket: null, seq: s.seq + 1, last: null });
+export const setEnded = (s: DrawState, ended: boolean): DrawState => ({ ...s, ended, bracket: null, thanks: false, seq: s.seq + 1, last: null });
 
 /** opens (0), fills (+1) or takes back (-1, null closes) the bracket reveal; like `setEnded` not a pick */
-export const setBracket = (s: DrawState, bracket: number | null): DrawState => ({ ...s, bracket, seq: s.seq + 1, last: null });
+export const setBracket = (s: DrawState, bracket: number | null): DrawState => ({ ...s, bracket, thanks: false, seq: s.seq + 1, last: null });
+
+/** shows or takes back the closing "thanks for watching" once the bracket is full */
+export const setThanks = (s: DrawState, thanks: boolean): DrawState => ({ ...s, thanks, seq: s.seq + 1, last: null });
 
 /** takes back the newest pick: a finished pair loses its tier B player first, then the captain leaves the box */
 export function undoPick(s: DrawState): DrawState | null {

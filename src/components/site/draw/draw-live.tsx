@@ -6,7 +6,7 @@ import { useSSE } from "@/components/site/use-sse";
 import { DrawStage } from "./draw-stage";
 
 /** the live draw over /api/draw, or `closed` outside the draw phase. `onFeed` and `onIdle` let the admin controls follow it */
-export function DrawLive({ initial, closed, wordmark, admin, onFeed, onIdle }: { initial: DrawFeed; closed: React.ReactNode; wordmark?: boolean; admin?: boolean; onFeed?: (f: DrawFeed) => void; onIdle?: (idle: boolean) => void }) {
+export function DrawLive({ initial, closed, wordmark, admin, thanks, onFeed, onIdle }: { initial: DrawFeed; closed: React.ReactNode; wordmark?: boolean; admin?: boolean; thanks?: React.ReactNode; onFeed?: (f: DrawFeed) => void; onIdle?: (idle: boolean) => void }) {
   const [feed, setFeed] = useState(initial);
   const [fresh, setFresh] = useState(0);
   // the page and the stream are separate server bundles, so only builds seen on the stream are compared
@@ -44,5 +44,5 @@ export function DrawLive({ initial, closed, wordmark, admin, onFeed, onIdle }: {
       console.warn("draw frame dropped", e);
     }
   });
-  return feed.open ? <DrawStage key={fresh} feed={feed} wordmark={wordmark} admin={admin} onIdle={idle} /> : closed;
+  return feed.open ? <DrawStage key={fresh} feed={feed} wordmark={wordmark} admin={admin} thanks={thanks} onIdle={idle} /> : closed;
 }

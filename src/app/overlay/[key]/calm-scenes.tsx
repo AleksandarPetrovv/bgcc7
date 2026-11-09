@@ -303,46 +303,46 @@ function Winner({ feed }: { feed: OverlayFeed }) {
   );
 }
 
-function Break({ feed, end }: { feed: OverlayFeed; end?: boolean }) {
+function Break({ feed }: { feed: OverlayFeed }) {
   return (
     <>
-      {!end && <TopBar feed={feed} />}
+      <TopBar feed={feed} />
       <div className="absolute inset-x-0 top-[200px] flex flex-col items-center">
-        {end ? (
-          <motion.div initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, ease: EASE }}>
-            <Lockup num={editionNum(feed)} size={190} animate />
-          </motion.div>
-        ) : null}
-        <motion.div
-          className={cn("flex flex-col items-center", end ? "mt-28" : "mt-10")}
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.15, ease: EASE }}
-        >
-          {end ? (
-            <Echo text="Thanks for watching!" className="text-[84px]" />
-          ) : (
-            <div className="flex flex-col items-center">
-              <Echo text="Be right" className="text-[180px]" />
-              <Echo text="back" className="text-[180px]" color="var(--rose)" />
-            </div>
-          )}
+        <motion.div className="mt-10 flex flex-col items-center" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.15, ease: EASE }}>
+          <Echo text="Be right" className="text-[180px]" />
+          <Echo text="back" className="text-[180px]" color="var(--rose)" />
         </motion.div>
       </div>
-      {!end && (
-        <div className="absolute inset-x-[72px] bottom-[110px] flex flex-col gap-12">
-          <Rule />
-          <Matchup feed={feed} score />
-        </div>
-      )}
+      <div className="absolute inset-x-[72px] bottom-[110px] flex flex-col gap-12">
+        <Rule />
+        <Matchup feed={feed} score />
+      </div>
     </>
+  );
+}
+
+/** "thanks for watching": the end of a match on stream, and of the team draw (/draw shows it in the overlay's stage) */
+export function ThanksScene({ num }: { num: string }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden text-paper">
+      <Backdrop num={num} tint="var(--white)" />
+      <div className="absolute inset-x-0 top-[200px] flex flex-col items-center">
+        <motion.div initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, ease: EASE }}>
+          <Lockup num={num} size={190} animate />
+        </motion.div>
+        <motion.div className="mt-28 flex flex-col items-center" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.15, ease: EASE }}>
+          <Echo text="Thanks for watching!" className="text-[84px]" />
+        </motion.div>
+      </div>
+    </div>
   );
 }
 
 export function CalmScene({ feed }: { feed: OverlayFeed }) {
   const s = feed.scene;
-  if (s !== "soon" && s !== "intro" && s !== "winner" && s !== "brb" && s !== "end") return null;
-  const tint = s === "winner" && feed.match.winner ? TEAM[feed.match.winner - 1].c : s === "soon" || s === "end" ? "var(--white)" : "var(--rose)";
+  if (s === "end") return <ThanksScene num={editionNum(feed)} />;
+  if (s !== "soon" && s !== "intro" && s !== "winner" && s !== "brb") return null;
+  const tint = s === "winner" && feed.match.winner ? TEAM[feed.match.winner - 1].c : s === "soon" ? "var(--white)" : "var(--rose)";
   return (
     <div className="absolute inset-0 overflow-hidden text-paper">
       <Backdrop num={editionNum(feed)} tint={tint} />
@@ -350,7 +350,6 @@ export function CalmScene({ feed }: { feed: OverlayFeed }) {
       {s === "intro" && <Intro feed={feed} />}
       {s === "winner" && <Winner feed={feed} />}
       {s === "brb" && <Break feed={feed} />}
-      {s === "end" && <Break feed={feed} end />}
     </div>
   );
 }

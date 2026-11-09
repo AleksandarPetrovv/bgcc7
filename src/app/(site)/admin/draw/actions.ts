@@ -1,6 +1,6 @@
 "use server";
 
-import { endDraw, lastDraw, openBracket, redoDraw, revealBracket, spinDraw, undoDraw } from "@/db/draw";
+import { endDraw, finishDraw, lastDraw, openBracket, redoDraw, revealBracket, spinDraw, undoDraw } from "@/db/draw";
 import { guard } from "@/lib/admin-action";
 
 const run = (name: "draw.spin" | "draw.undo" | "draw.redo", fn: () => Promise<string | null>) =>
@@ -16,3 +16,4 @@ export const redo = async () => run("draw.redo", redoDraw);
 export const bracket = async () => guard("host", "draw.end", async () => ((await openBracket()) === null ? { ok: false, error: "invalid" } : { log: { on: true } }));
 export const reveal = async () => run("draw.spin", revealBracket);
 export const end = async () => guard("host", "draw.end", async () => ((await endDraw()) === null ? { ok: false, error: "invalid" } : { log: { on: true } }));
+export const finish = async () => guard("host", "draw.end", async () => ((await finishDraw()) === null ? { ok: false, error: "invalid" } : { log: { on: true } }));

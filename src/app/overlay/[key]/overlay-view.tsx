@@ -90,16 +90,14 @@ function OverlaySubscription({ url }: { url: string }) {
   const view = base && shown ? { ...base, scene } : null;
 
   return (
-    <Fit>
-    <div className={styles.stage}>
+    <StageFrame>
       {view && (
         <div key={shown} className={styles.scene}>
           {scene === "gameplay" ? <GameplayScene feed={view} /> : scene === "mappool" ? <MappoolScene feed={view} /> : scene === "schedule" ? <ScheduleScene feed={view} /> : scene === "bracket" ? <BracketScene feed={view} /> : <CalmScene feed={view} />}
         </div>
       )}
       <AnimatePresence>{wipe > 0 && <Wipe key={wipe} />}</AnimatePresence>
-    </div>
-    </Fit>
+    </StageFrame>
   );
 }
 
@@ -123,6 +121,31 @@ function Wipe() {
         />
       ))}
     </motion.div>
+  );
+}
+
+/** the overlay's 1920x1080 stage, fitted to the window (`inline`: to its own box instead, for a view inside a page) */
+export function StageFrame({ children, inline }: { children: React.ReactNode; inline?: boolean }) {
+  const stage = <div className={styles.stage}>{children}</div>;
+  return inline ? <InlineFit>{stage}</InlineFit> : <Fit>{stage}</Fit>;
+}
+
+function InlineFit({ children }: { children: React.ReactNode }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const fit = () => setScale(el.clientWidth / 1920);
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <div ref={box} className="relative aspect-video w-full overflow-hidden">
+      {scale > 0 && <div className="absolute left-0 top-0" style={{ zoom: scale }}>{children}</div>}
+    </div>
   );
 }
 

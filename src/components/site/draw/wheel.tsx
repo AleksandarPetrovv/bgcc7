@@ -19,7 +19,17 @@ const R = 96;
 
 type Entry = { p: DrawPlayer; w: number; to: number };
 
-const ease = (t: number) => 1 - Math.pow(1 - t, 4.2);
+// speed ramps up (sin²) for the first UP of the spin, then slows down like a power curve; this is the travelled share at t
+const UP = 0.16;
+const DOWN = 3.2;
+const SPUN = UP / 2 + (1 - UP) / (DOWN + 1);
+const ease = (t: number) => {
+  if (t <= 0) return 0;
+  if (t >= 1) return 1;
+  if (t < UP) return (t / 2 - (UP / (2 * Math.PI)) * Math.sin((Math.PI * t) / UP)) / SPUN;
+  const u = (t - UP) / (1 - UP);
+  return (UP / 2 + ((1 - UP) * (1 - Math.pow(1 - u, DOWN + 1))) / (DOWN + 1)) / SPUN;
+};
 const norm = (a: number) => ((a % 360) + 360) % 360;
 const pt = (a: number, r: number) => [100 + r * Math.sin((a * Math.PI) / 180), 100 - r * Math.cos((a * Math.PI) / 180)] as const;
 
@@ -41,7 +51,7 @@ function layout(es: Entry[]) {
   });
 }
 
-export function Wheel({ players, tone, spin, onLanded, onLive, dim, empty, hub }: {
+export function Wheel({ players, tone, spin, onLanded, onLive, dim, empty, hub, speed = 1 }: {
   players: DrawPlayer[];
   empty: string;
   /** the tier letter in the middle */
@@ -53,6 +63,8 @@ export function Wheel({ players, tone, spin, onLanded, onLive, dim, empty, hub }
   /** the player under the pointer while it turns, then the winner */
   onLive: (p: DrawPlayer | null) => void;
   dim?: boolean;
+  /** spins and settles this many times faster */
+  speed?: number;
 }) {
   const reduce = useReducedMotion();
   const es = useRef<Entry[]>(players.map((p) => ({ p, w: 1, to: 1 })));
@@ -65,9 +77,9 @@ export function Wheel({ players, tone, spin, onLanded, onLive, dim, empty, hub }
   const under = useRef<number | null>(null);
   const pointer = useRef<SVGSVGElement>(null);
   const [won, setWon] = useState<number | null>(null);
-  const cb = useRef({ onLanded, onLive });
+  const cb = useRef({ onLanded, onLive, speed });
   useEffect(() => {
-    cb.current = { onLanded, onLive };
+    cb.current = { onLanded, onLive, speed };
   });
 
   const tick = (now: number) => {
@@ -97,7 +109,7 @@ export function Wheel({ players, tone, spin, onLanded, onLive, dim, empty, hub }
         setTimeout(() => {
           setWon(null);
           cb.current.onLanded();
-        }, SETTLE_MS);
+        }, SETTLE_MS / cb.current.speed);
       } else busy = true;
     }
     setView({ rot: rot.current, es: es.current.map((e) => ({ ...e })) });
@@ -133,7 +145,7 @@ export function Wheel({ players, tone, spin, onLanded, onLive, dim, empty, hub }
     const jitter = (Math.random() - 0.5) * s.span * 0.6;
     const from = rot.current;
     const to = from + (reduce ? 0 : TURNS * 360) + norm(-(s.mid + jitter) - from);
-    run.current = { from, to, t0: performance.now(), ms: reduce ? 900 : SPIN_MS, id: spin.id };
+    run.current = { from, to, t0: performance.now(), ms: (reduce ? 900 : SPIN_MS) / cb.current.speed, id: spin.id };
     under.current = null;
     wake();
     // eslint-disable-next-line react-hooks/exhaustive-deps

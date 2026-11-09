@@ -10,7 +10,8 @@ import { useDict } from "@/components/site/lang";
 import { useFormat } from "@/components/site/tournament";
 import { Btn } from "@/components/admin/form";
 import { SlantButton } from "@/components/site/slant";
-import { bracket, end, last, redo, reveal, spin, undo } from "./actions";
+import { bracket, end, finish, last, redo, reveal, spin, undo } from "./actions";
+import { DrawThanks } from "@/app/draw/thanks";
 import { nextWheel, onWheel } from "@/lib/draw";
 
 export function DrawControls({ initial, closed }: { initial: DrawFeed; closed: React.ReactNode }) {
@@ -41,9 +42,9 @@ export function DrawControls({ initial, closed }: { initial: DrawFeed; closed: R
       {feed.open && (
         <div className="mb-8 flex flex-wrap items-center gap-3 [--d:0.15s]">
           <span className="in-left [--i:0]">
-            {/* each click shows the next step: the teams, the bracket, then the round of 16 one team at a time */}
-            <SlantButton onClick={act(b ? reveal : feed.ended ? bracket : full ? end : lastTeam ? last : spin)} disabled={busy || (!!b && b.shown >= slots)} className="min-w-[9rem] justify-center px-8 py-3 text-lg" fill="shadow-[4px_4px_0_0_var(--rose-deep)]">
-              {b ? (b.shown >= slots ? t.admin.wheel.drawn : t.admin.wheel.reveal(Math.floor(b.shown / 2) + 1, (b.shown % 2) + 1)) : feed.ended ? t.admin.wheel.bracket : full ? t.admin.wheel.end : lastTeam ? t.wheel.team(teams) : t.admin.wheel.spin}
+            {/* each click shows the next step: the teams, the bracket, the round of 16 one team at a time, then End closes the show */}
+            <SlantButton onClick={act(b ? (b.shown >= slots ? finish : reveal) : feed.ended ? bracket : full ? end : lastTeam ? last : spin)} disabled={busy || feed.thanks} className="min-w-[9rem] justify-center px-8 py-3 text-lg" fill="shadow-[4px_4px_0_0_var(--rose-deep)]">
+              {b ? (b.shown >= slots ? t.admin.wheel.finish : t.admin.wheel.reveal(Math.floor(b.shown / 2) + 1, (b.shown % 2) + 1)) : feed.ended ? t.admin.wheel.bracket : full ? t.admin.wheel.end : lastTeam ? t.wheel.team(teams) : t.admin.wheel.spin}
             </SlantButton>
           </span>
           <span className="in-left [--i:1]">
@@ -66,7 +67,7 @@ export function DrawControls({ initial, closed }: { initial: DrawFeed; closed: R
       )}
       {/* the stage's own top-to-bottom intro starts once the controls are in */}
       <div className="[--draw-d:0.4s]">
-        <DrawLive initial={initial} closed={closed} admin onFeed={setFeed} onIdle={setIdle} />
+        <DrawLive initial={initial} closed={closed} admin thanks={<DrawThanks inline />} onFeed={setFeed} onIdle={setIdle} />
       </div>
     </div>
   );

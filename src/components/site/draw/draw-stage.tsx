@@ -15,7 +15,9 @@ import { DrawBracket } from "./draw-bracket";
 import { Letters } from "@/components/site/rich";
 import { EASE } from "@/lib/ease";
 
-const FLY_MS = 750;
+const FLY_MS = 850;
+// flights ease in and out: the house ease-out shot them off the wheel too fast
+const FLY_EASE = "cubic-bezier(0.65, 0, 0.35, 1)";
 // a finished pair glows gold this long; it then waits in the box until the next spin (or End) sends it to the board
 const HOLD_MS = 2200;
 // a player taken back out of the middle (undo) fades out this long before the new state shows
@@ -42,7 +44,24 @@ const at = (i: number, d = 0.1, s = 0.07) =>
  * the draw as viewers see it. it plays every new spin it is handed, one after another, before showing the next state;
  * anything else (undo, redo, a refresh) just moves the players to where they now are. `onIdle` says when nothing is playing.
  */
-export function DrawStage({ feed, onIdle, wordmark, admin }: { feed: DrawFeed; onIdle?: (idle: boolean) => void; wordmark?: boolean; /** the host's page: a narrower column, so the board stays 4 wide, and the teams and bracket stay small views in the page */ admin?: boolean }) {
+export function DrawStage({
+  feed,
+  onIdle,
+  wordmark,
+  admin,
+  thanks,
+  speed = 1,
+}: {
+  feed: DrawFeed;
+  onIdle?: (idle: boolean) => void;
+  wordmark?: boolean;
+  /** the host's page: a narrower column, so the board stays 4 wide, and the teams and bracket stay small views in the page */
+  admin?: boolean;
+  /** the closing screen once the host ends the show (the overlay's "thanks for watching") */
+  thanks?: React.ReactNode;
+  /** plays spins, flights and holds this many times faster (the demo skips through the middle of the draw) */
+  speed?: number;
+}) {
   const t = useDict();
   const { teams } = useFormat();
   const [shown, setShown] = useState(feed);
@@ -76,7 +95,11 @@ export function DrawStage({ feed, onIdle, wordmark, admin }: { feed: DrawFeed; o
     idle.current = onIdle;
   });
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
-  const later = (ms: number, fn: () => void) => timers.current.push(setTimeout(fn, ms));
+  const pace = useRef(speed);
+  useEffect(() => {
+    pace.current = speed;
+  });
+  const later = (ms: number, fn: () => void) => timers.current.push(setTimeout(fn, ms / pace.current));
 
   const show = (f: DrawFeed) => {
     cur.current = f;
@@ -105,7 +128,7 @@ export function DrawStage({ feed, onIdle, wordmark, admin }: { feed: DrawFeed; o
           { opacity: 0, transform: "translateY(12px) scale(0.8)" },
           { opacity: 1, transform: "none" },
         ],
-        { duration: ENTER_FADE_MS, delay: delay * 1000, easing: EASE_CSS, fill: "backwards" },
+        { duration: ENTER_FADE_MS / pace.current, delay: (delay * 1000) / pace.current, easing: EASE_CSS, fill: "backwards" },
       );
     }
     const m = flights.current;
@@ -123,20 +146,22 @@ export function DrawStage({ feed, onIdle, wordmark, admin }: { feed: DrawFeed; o
         late.set(id, from);
         continue;
       }
+      // keeps its own stacking on top of the lift, so the board's captain is over the partner for the whole flight, not only once landed
+      const z = 30 + (Number(getComputedStyle(el).zIndex) || 0);
       el.animate(
         [
           {
             transformOrigin: "0 0",
             transform: `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / to.width})`,
-            zIndex: 30,
+            zIndex: z,
           },
-          { transformOrigin: "0 0", transform: "none", zIndex: 30 },
+          { transformOrigin: "0 0", transform: "none", zIndex: z },
         ],
-        { duration: FLY_MS, easing: EASE_CSS },
+        { duration: FLY_MS / pace.current, easing: FLY_EASE },
       );
       // board cells are their own stacking contexts, so the landing cell rises above its neighbours for the flight
       el.closest("li")?.animate([{ zIndex: 30 }, { zIndex: 30 }], {
-        duration: FLY_MS,
+        duration: FLY_MS / pace.current,
       });
     }
     if (late.size && tries < 6) requestAnimationFrame(() => land(late, tries + 1));
@@ -320,7 +345,7 @@ export function DrawStage({ feed, onIdle, wordmark, admin }: { feed: DrawFeed; o
           <div className="num text-xs text-ash">{t.wheel.seeds(from, from + n - 1)}</div>
         </div>
         <div className="in-pop w-[70%] max-w-[min(19rem,31vh)] pt-[5%]" style={at(3 + k)}>
-          <Wheel players={players} tone={tone} spin={spin?.w === w ? spin : null} dim={!!turn && turn !== w} onLanded={landed} onLive={(p) => setLive((l) => ({ ...l, [w]: p }))} empty={t.wheel.empty} hub={w.toUpperCase()} />
+          <Wheel players={players} tone={tone} speed={speed} spin={spin?.w === w ? spin : null} dim={!!turn && turn !== w} onLanded={landed} onLive={(p) => setLive((l) => ({ ...l, [w]: p }))} empty={t.wheel.empty} hub={w.toUpperCase()} />
         </div>
         <div className="in-up flex h-7 max-w-full items-center justify-center @3xl:h-8" style={at(5 + k)}>
           {name && spin?.w === w ? <span className="truncate text-base font-display font-black text-paper @3xl:text-2xl">{name.name}</span> : null}
@@ -365,14 +390,28 @@ export function DrawStage({ feed, onIdle, wordmark, admin }: { feed: DrawFeed; o
   const seeded = s.seeds?.map(({ pair, avg }) => ({ ...pairTeams[pair], avg })) ?? pairTeams;
 
   const bracket = final ? s.bracket : null;
+  const closing = final && s.thanks && !!thanks;
   const bracketView = (cover?: boolean) => bracket && <DrawBracket key="bracket" teams={pairTeams} r1={bracket.r1} shown={bracket.shown} cover={cover} />;
 
   return (
     <>
       {/* viewers: the bracket opens full screen over the teams */}
       {!admin && <AnimatePresence>{bracketView(true)}</AnimatePresence>}
+      {!admin && (
+        <AnimatePresence>
+          {closing && (
+            <motion.div key="thanks" className="fixed inset-0 z-[60]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }}>
+              {thanks}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
       <AnimatePresence mode="wait" initial={false}>
-      {admin && bracket ? (
+      {admin && closing ? (
+        <motion.div key="thanks" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
+          {thanks}
+        </motion.div>
+      ) : admin && bracket ? (
         bracketView()
       ) : final ? (
         <DrawFinale key="finale" teams={seeded} compact={admin} />
@@ -433,7 +472,8 @@ export function DrawStage({ feed, onIdle, wordmark, admin }: { feed: DrawFeed; o
                   return (
                     <li key={i} className="in-up relative isolate flex h-[4.25rem] min-w-0 items-center gap-2 px-2.5 @3xl:gap-2.5 @3xl:px-4" style={at(i, 0.85, 0.03)}>
                       <SlantBg className={cn("transition-colors duration-500", a ? "border border-line bg-coal" : "border-2 border-dashed border-line/80 bg-ink/70")} />
-                      <span className={cn("num absolute text-[0.65rem] text-ash", a ? "left-2 top-1" : "left-4 top-1/2 -translate-y-1/2 text-xs")}>{i + 1}</span>
+                      {/* top right once filled: the captain's crown sits top left */}
+                      <span className={cn("num absolute text-[0.65rem] text-ash", a ? "right-3 top-1" : "left-4 top-1/2 -translate-y-1/2 text-xs")}>{i + 1}</span>
                       {a && b ? (
                         <>
                           <span className="ml-1.5 flex shrink-0 @3xl:ml-2">

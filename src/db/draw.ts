@@ -4,7 +4,7 @@ import { EventEmitter } from "node:events";
 import { eq, ne, or } from "drizzle-orm";
 import { isTestTeam, TEST_MATCH } from "@/lib/format";
 import { BUILD } from "@/lib/build";
-import { addPick, canRedo, drawDone, EMPTY_DRAW, setBracket, setEnded, nextWheel, onWheel, undoPick, type DrawFeed, type DrawOp, type DrawPlayer, type DrawState } from "@/lib/draw";
+import { addPick, canRedo, drawDone, EMPTY_DRAW, setBracket, setEnded, setThanks, nextWheel, onWheel, undoPick, type DrawFeed, type DrawOp, type DrawPlayer, type DrawState } from "@/lib/draw";
 import { globalStore } from "@/lib/global-store";
 import { db, ensureEdition, isBGCC6, type Tx } from "./index";
 import { matches, pickems, settings, teamMembers, teams } from "./schema";
@@ -87,7 +87,8 @@ export async function drawFeed(): Promise<DrawFeed> {
   const ended = !!state.ended && drawDone(state.pairs, f.teams);
   const seeds = ended ? await seedFeed(state) : null;
   const bracket = seeds && state.bracket != null ? { shown: state.bracket, r1: f.r1.map(([s1, s2]) => [seeds[s1 - 1].pair, seeds[s2 - 1].pair] as [number, number]) } : null;
-  return { open, a: t.a, b: t.b, taken, pairs: state.pairs.map(({ a, b }) => ({ a, b })), seq: state.seq, last: state.last, redo: canRedo(state), ended, seeds, bracket, build: BUILD };
+  const thanks = !!state.thanks && !!bracket && bracket.shown >= 2 * f.r1.length;
+  return { open, a: t.a, b: t.b, taken, pairs: state.pairs.map(({ a, b }) => ({ a, b })), seq: state.seq, last: state.last, redo: canRedo(state), ended, seeds, bracket, thanks, build: BUILD };
 }
 
 // the seed order the bracket is filled with, mapped onto the drawn pairs
@@ -187,9 +188,13 @@ export async function revealBracket() {
   return name;
 }
 
+/** the bracket is full: close the show with "thanks for watching" */
+export const finishDraw = () => change(async ({ s }) => (s.ended && !s.thanks && s.bracket === 2 * getFormat().r1.length ? { next: setThanks(s, true), name: "" } : null), false);
+
 export const undoDraw = () =>
   change(async ({ tx, s, t }) => {
-    // after the draw, undo steps back through what was shown: bracket slots, the bracket, the final teams
+    // after the draw, undo steps back through what was shown: the thanks, bracket slots, the bracket, the final teams
+    if (s.thanks) return { next: setThanks(s, false), name: "thanks", same: true };
     if (s.ended) {
       if (s.bracket != null) {
         if (s.bracket === 2 * getFormat().r1.length) await clearBracket(tx);
