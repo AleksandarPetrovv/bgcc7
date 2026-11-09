@@ -76,15 +76,16 @@ function Row({ r, pools, i }: { r: DraftRow; pools: { slug: string; title: strin
           />
         )}
       </AnimatePresence>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-5 py-3 sm:grid-cols-[16rem_minmax(0,1fr)_auto] md:grid-cols-[16rem_minmax(0,1fr)_auto_auto]">
-        <span className="min-w-0 text-xs font-display font-bold text-rose-hi sm:whitespace-nowrap">{r.round}</span>
-        <span className="num whitespace-nowrap text-right text-xs font-display font-bold text-ash sm:order-3 md:col-start-4 md:row-start-1">{r.when ?? t.common.tbd}</span>
-        <div className="order-last col-span-2 grid min-w-0 sm:order-none sm:col-span-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+      {/* equal side columns and a fixed-width middle keep the teams centred in the row whatever the round, status and date take */}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-5 py-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        <span className="min-w-0 truncate text-xs font-display font-bold text-rose-hi">{r.round}</span>
+        <div className="order-last col-span-2 grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 md:order-none md:col-span-1 md:w-[22rem] xl:w-[28rem]">
           <Team team={r.teams[0]} side={1} />
           <span className="heading-slam w-8 text-center text-sm text-ash">VS</span>
           <Team team={r.teams[1]} side={2} />
         </div>
-        <div className="order-last col-span-2 flex justify-start empty:hidden sm:col-span-3 md:order-4 md:col-span-1 md:justify-end">
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1">
+        <div className="flex empty:hidden">
           <AnimatePresence mode="popLayout">
             {r.draft && (
               <motion.span
@@ -110,6 +111,8 @@ function Row({ r, pools, i }: { r: DraftRow; pools: { slug: string; title: strin
               </motion.span>
             )}
           </AnimatePresence>
+        </div>
+        <span className="num whitespace-nowrap text-xs font-display font-bold text-ash">{r.when ?? t.common.tbd}</span>
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2 border-t border-line px-3 py-2.5 pl-5">
