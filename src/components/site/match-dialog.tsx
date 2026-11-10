@@ -18,7 +18,7 @@ import { MeTag } from "./me";
 import { Pic } from "./pfp";
 import { PlayerRow } from "./player-row";
 import { MEDAL, modHi, TEAM as TEAMS } from "@/lib/theme";
-import { osuMatch } from "@/lib/links";
+import { osuMap, osuMatch } from "@/lib/links";
 import { LineDiamond, RuleDiamond } from "./rule";
 import { localeOf } from "@/lib/i18n/locale";
 import { MOD_COLOR, MODS } from "@/lib/mods";
@@ -62,33 +62,53 @@ function ModBadge({ mods }: { mods: string[] }) {
   );
 }
 
-export function MapCard({ m, i, className }: { m: MapResult; i: number; className?: string }) {
+// one half of the score bar: `pink` (0-1) of it is team 1's colour, the rest team 2's
+function BarHalf({ pink, lost1, lost2 }: { pink: number; lost1: boolean; lost2: boolean }) {
+  return (
+    <div className="flex h-full min-w-0 gap-0.5">
+      {pink > 0 && <span className={cn("h-full bg-crimson", pink === 1 ? "flex-1" : "", lost1 && "opacity-40")} style={pink < 1 ? { width: `${pink * 100}%` } : undefined} />}
+      {pink < 1 && <span className={cn("h-full flex-1 bg-azure", lost2 && "opacity-40")} />}
+    </div>
+  );
+}
+
+// a bell curve (exp(-((x-0.5)/0.22)^2)) with no flat top: a straight ramp or a plateau leaves a visible edge; `first` stretches the cover up under the sticky header
+// drawn as an opaque popup-coloured overlay on the cover rather than a mask: a masked low-opacity layer showed a hard line at the top
+const COVER_FADE = `linear-gradient(to bottom, ${Array.from({ length: 21 }, (_, i) => {
+  const d = (i / 20 - 0.5) / 0.27;
+  return `color-mix(in srgb, var(--ink) ${(i % 20 ? (1 - Math.exp(-d * d)) * 100 : 100).toFixed(1)}%, transparent) ${i * 5}%`;
+}).join(", ")})`;
+
+export function MapCard({ m, i, className, first }: { m: MapResult; i: number; className?: string; first?: boolean }) {
   const t = useDict();
   const color = modHi(m.slot ? slotColor(m.slot) : m.mod ? MODS[m.mod]?.color : undefined);
   const sum = m.team1 + m.team2;
-  const share = sum ? (m.team1 / sum) * 100 : 50;
+  const raw = sum ? (m.team1 / sum) * 100 : 50;
+  // a split within ~8px of the tick would leave a stray sliver of the other colour beside the hole, so it snaps to the tick
+  const share = Math.abs(raw - 50) < 1 ? 50 : raw;
   return (
     <article
       className={cn("in-up relative border-b-2 border-dashed border-line", m.note && "opacity-50", className)}
       style={cssVars({ "--i": Math.min(i, 6), "--s": "0.08s", "--d": "0.12s" })}
     >
-      <RuleDiamond />
+      <RuleDiamond className="z-10 left-[calc(50%-var(--sbw,0px)/2)]" />
       {m.cover && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={m.cover}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="pointer-events-none absolute inset-x-0 top-0 h-24 w-full object-cover opacity-20 [mask-image:linear-gradient(to_bottom,black,transparent)]"
-        />
+        <div aria-hidden className={cn("pointer-events-none absolute inset-x-0", first ? "-top-3 h-[calc(100%+0.75rem)] sm:-top-5 sm:h-[calc(100%+1.25rem)]" : "top-0 h-full")}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={m.cover} alt="" loading="lazy" decoding="async" className="size-full object-cover opacity-13 dark:opacity-5" />
+          <span className="absolute inset-0" style={{ backgroundImage: COVER_FADE }} />
+        </div>
       )}
       <header className="relative flex items-start gap-3 pt-3">
         <span className="in-slam heading-slam shrink-0 text-2xl leading-none" style={{ color: color ?? "var(--ash)", ...cssVars({ "--d": "0.22s" }) }}>
           {m.slot ?? "—"}
         </span>
         <div className="min-w-0 flex-1 pt-0.5">
-          <div className="truncate text-sm font-display font-bold leading-tight">{m.title}</div>
+          <div className="truncate text-sm font-display font-bold leading-tight">
+            <a href={osuMap(m.beatmapId)} target="_blank" rel="noreferrer" className="inline-block max-w-full truncate align-top transition-[color,transform] duration-200 hover:-translate-y-px hover:text-rose-hi">
+              {m.title}
+            </a>
+          </div>
           <div className="truncate text-xs text-ash">
             {m.version && `[${m.version}]`}
             {m.note && <span className="ml-1.5 font-display font-bold text-rose-hi">{t.match.notes[m.note]}</span>}
@@ -104,8 +124,8 @@ export function MapCard({ m, i, className }: { m: MapResult; i: number; classNam
       </header>
       {!m.note && (
         <div className="relative pb-4 pt-3">
-          <div className="flex items-end justify-between gap-3">
-            <span className={cn("in-left num text-xl leading-none", m.winner === 1 ? "text-crimson-hi" : "text-ash")} style={cssVars({ "--d": "0.3s" })}>
+          <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-3">
+            <span className={cn("in-left justify-self-start num text-xl leading-none", m.winner === 1 ? "text-crimson-hi" : "text-ash")} style={cssVars({ "--d": "0.3s" })}>
               {fmtNum(m.team1)}
             </span>
             <div className="flex flex-col items-center gap-1.5">
@@ -116,15 +136,15 @@ export function MapCard({ m, i, className }: { m: MapResult; i: number; classNam
                 </span>
               )}
             </div>
-            <span className={cn("in-right num text-xl leading-none", m.winner === 2 ? "text-azure-hi" : "text-ash")} style={cssVars({ "--d": "0.3s" })}>
+            <span className={cn("in-right justify-self-end num text-xl leading-none", m.winner === 2 ? "text-azure-hi" : "text-ash")} style={cssVars({ "--d": "0.3s" })}>
               {fmtNum(m.team2)}
             </span>
           </div>
-          <div className="relative mt-2 flex h-1 gap-0.5">
-            <span className={cn("in-grow h-full bg-crimson", m.winner !== 1 && "opacity-40")} style={{ width: `${share}%`, ...cssVars({ "--d": "0.35s" }) }} />
-            <span className={cn("in-grow h-full flex-1 bg-azure", m.winner !== 2 && "opacity-40")} style={{ transformOrigin: "100% 50%", ...cssVars({ "--d": "0.35s" }) }} />
-            {/* the halfway mark: the overlay gameplay divider, scaled down (ink edges, rose core) */}
-            <span className="in-pop pointer-events-none absolute -inset-y-1 left-1/2 w-1 -translate-x-1/2 border-x border-ink bg-rose" style={cssVars({ "--d": "0.5s" })} aria-hidden />
+          {/* two halves around a 7px middle column holding the tick, so the hole and the tick are real boxes (crisp, 2px each side) */}
+          <div className="in-wipe mt-2 grid h-1 grid-cols-[minmax(0,1fr)_7px_minmax(0,1fr)]" style={cssVars({ "--d": "0.35s" })}>
+            <BarHalf pink={Math.min(share, 50) / 50} lost1={m.winner !== 1} lost2={m.winner !== 2} />
+            <span className="pointer-events-none -my-1 h-3 w-[3px] justify-self-center bg-rose" aria-hidden />
+            <BarHalf pink={Math.max(share - 50, 0) / 50} lost1={m.winner !== 1} lost2={m.winner !== 2} />
           </div>
           <div className="mt-3.5 grid grid-cols-2 gap-x-4">
             <Side players={m.players[0]} won={m.winner !== 2} />
@@ -203,7 +223,7 @@ function Board({ match, data, names }: { match: Match; data: Scoreboard; names: 
               <LineDiamond line="border-t" />
             </div>
           )}
-          <MapCard m={m} i={i} className="-ml-(--px) -mr-[calc(var(--px)+var(--sbw,0px))] pl-(--px) pr-[calc(var(--px)+var(--sbw,0px))]" />
+          <MapCard m={m} i={i} first={i === 0 && data.lobbies.length <= 1} className="-ml-(--px) -mr-[calc(var(--px)+var(--sbw,0px))] pl-(--px) pr-[calc(var(--px)+var(--sbw,0px))]" />
         </div>
       ))}
       <Costs data={data} names={names} finished={!!match.winner} />

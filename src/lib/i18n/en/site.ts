@@ -52,7 +52,7 @@ export const site = {
     lobbies: "Lobbies",
     scores: "Scores",
     seeding: "Seeding",
-    teamList: "Team list",
+    teamList: "Teams",
     players: "Players",
     schedule: "Matches",
     bracket: "Bracket",

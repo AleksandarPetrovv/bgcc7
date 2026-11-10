@@ -73,7 +73,7 @@ export const pages = {
     detail: ["Score", "Accuracy", "Percentile", "Map place", "Mods", "Grade"],
   },
   teams: {
-    title: "Team list",
+    title: "Teams",
     playersTitle: "Players",
     playersEmpty: "Nobody has signed up yet.",
     playersAlive: "Only players still in the tournament.",

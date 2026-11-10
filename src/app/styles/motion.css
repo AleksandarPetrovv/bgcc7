@@ -218,7 +218,7 @@
 .mk-spark { transform-box: fill-box; transform-origin: center; animation: mk-spark-k 0.6s ease-out 0.75s both, mk-spark-k 0.6s ease-out 3.8s infinite; }
 @keyframes mk-hand-in { from { transform: rotate(-360deg); opacity: 0; } 12% { opacity: 1; } to { transform: rotate(0deg); } }
 @keyframes mk-turn { to { transform: rotate(360deg); } }
-.mk-hand-h, .mk-hand-m { will-change: transform; transform-origin: 50% 50%; backface-visibility: hidden; }
+.mk-hand-h, .mk-hand-m { will-change: transform; transform-box: view-box; transform-origin: 12px 12px; backface-visibility: hidden; }
 .mk-hand-h { animation: mk-hand-in 2.6s cubic-bezier(0.25, 0.6, 0.25, 1) 0.35s both, mk-turn 240s linear 2.95s infinite; }
 .mk-hand-m { animation: mk-hand-in 2.6s cubic-bezier(0.25, 0.6, 0.25, 1) 0.35s both, mk-turn 20s linear 2.95s infinite; }
 @keyframes mk-pen { from { stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; } 2% { opacity: 1; } to { stroke-dasharray: 1; stroke-dashoffset: 0; opacity: 1; } }
@@ -272,6 +272,7 @@
 @keyframes k-right { from { opacity: 0; transform: translate3d(22px, 0, 0); } }
 @keyframes k-drop { from { opacity: 0; transform: translate3d(0, -12px, 0); } }
 @keyframes k-pop { 0% { opacity: 0; transform: scale(0.6); } 70% { opacity: 1; transform: scale(1.06); } }
+@keyframes k-fade { from { opacity: 0; } }
 @keyframes k-flip { from { opacity: 0; transform: perspective(700px) rotateX(-75deg); } }
 @keyframes k-spin { from { opacity: 0; transform: scale(0.4) rotate(-120deg); } }
 @keyframes k-wipe { from { clip-path: inset(-0.3em 100% -0.3em -0.3em); } to { clip-path: inset(-0.3em); } }
@@ -281,7 +282,7 @@
 @keyframes k-word { from { opacity: 0; transform: translate3d(0, 0.5em, 0) rotate(5deg); } }
 @keyframes k-ltr { from { opacity: 0; transform: translate3d(0, 0.4em, 0) scale(0.7); } }
 
-:is(.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word, .ltr,
+:is(.in-up, .in-left, .in-right, .in-drop, .in-pop, .in-fade, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .word, .ltr,
     .in-left-far, .in-right-far, .in-slam, .in-launch, .in-grow-y, .in-stitch, .in-sweep) {
   animation-duration: 0.7s;
   animation-timing-function: var(--ease);
@@ -297,6 +298,7 @@
 .in-right { animation-name: k-right; }
 .in-drop { animation-name: k-drop; }
 .in-pop { animation-name: k-pop; animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+.in-fade { animation-name: k-fade; }
 .in-flip { animation-name: k-flip; transform-origin: 50% 0; }
 .in-spin { animation-name: k-spin; animation-duration: 0.9s; }
 .in-wipe { animation-name: k-wipe; animation-duration: 0.9s; }

@@ -205,20 +205,13 @@ function Swords() {
 }
 
 function Clock() {
-  const hand = (d: string, cls: string) => (
-    <span className={cn("absolute inset-0", cls)}>
-      <svg viewBox="0 0 24 24" className="size-full overflow-visible">
-        <path d={d} {...ln} className="stroke-paper" />
-      </svg>
-    </span>
-  );
   return (
     <span className="relative mb-[0.12em] block h-[0.6em] w-[0.6em] self-end" aria-hidden>
       <svg viewBox="0 0 24 24" className="absolute inset-0 size-full overflow-visible">
         <circle cx="12" cy="12" r="10" {...ln} strokeWidth={1.7} className="mk-pop stroke-rose" style={{ transformOrigin: "50% 50%", ...delays(0.2) }} />
+        <path d="M12.7 12h3.1" {...ln} className="mk-hand-h stroke-paper" />
+        <path d="M12 11.3V5.5" {...ln} className="mk-hand-m stroke-paper" />
       </svg>
-      {hand("M12.7 12h3.1", "mk-hand-h")}
-      {hand("M12 11.3V5.5", "mk-hand-m")}
     </span>
   );
 }

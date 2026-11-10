@@ -174,13 +174,15 @@ export function MatchRow({ match, live, small, label, delay = 0 }: { match: Matc
           </div>
           {eye && small ? (
             <MatchDialog match={match} className="group flex h-7 items-center justify-center">
-              <span className="flex size-7 items-center justify-center text-rose transition-colors duration-200 group-hover:text-rose-hi">
+              <span className="in-pop flex size-7 items-center justify-center text-rose transition-colors duration-200 group-hover:text-rose-hi" style={at(0.6)}>
                 <Eye className="size-[1.3rem]" strokeWidth={2.25} aria-hidden />
               </span>
             </MatchDialog>
           ) : eye ? (
             <MatchDialog match={match} className="group flex h-5 items-center justify-center">
-              <DetailsChip />
+              <span className="in-pop flex" style={at(0.6)}>
+                <DetailsChip />
+              </span>
             </MatchDialog>
           ) : small ? (
             <span className={cn("in-drop", dateCls)} style={at(0.55)}>{when}</span>
