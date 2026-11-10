@@ -158,8 +158,11 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                     <SwapRow
                       key={m.rowId}
                       style={{ "--i": i, "--s": "0.04s", "--d": `${at + 0.1}s` } as React.CSSProperties}
-                      className={cn("in-left flex flex-wrap items-center gap-3 px-3 py-2", out && "bg-rose/[0.06]")}
+                      className={cn("in-left relative isolate flex flex-wrap items-center gap-3 overflow-hidden px-3 py-2", out && "bg-rose/[0.06]")}
                     >
+                      {/* the same cover backdrop as the sheet's suggestion rows */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={m.cover} alt="" className="pointer-events-none absolute inset-0 -z-10 size-full object-cover opacity-[0.09] dark:opacity-[0.06]" />
                       <span className={cn("in-slam heading-slam shrink-0 whitespace-nowrap text-xl", skill ? "w-20" : "w-12")} style={{ color: modHi(color), "--d": `${at + 0.15}s` } as React.CSSProperties}>
                         {m.slot}
                       </span>
