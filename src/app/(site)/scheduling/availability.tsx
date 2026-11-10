@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Check, Pencil } from "lucide-react";
 import { SlantButton } from "@/components/site/slant";
@@ -187,7 +188,8 @@ function Tip({ tip, out, lang }: { tip: { d: string; h: number; r: DOMRect }; ou
   const t = useDict();
   if (!out.length) return null;
   const flip = tip.r.right + 280 > window.innerWidth;
-  return (
+  // portaled: an animated ancestor makes `fixed` position against itself, not the screen
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -207,6 +209,7 @@ function Tip({ tip, out, lang }: { tip: { d: string; h: number; r: DOMRect }; ou
         ))}
       </ul>
       <p className="text-xs text-ash">{t.sched.cantPlayOn(`${dayLong(tip.d, lang)}, ${String(tip.h).padStart(2, "0")}:00`, out.length)}</p>
-    </motion.div>
+    </motion.div>,
+    document.body,
   );
 }
