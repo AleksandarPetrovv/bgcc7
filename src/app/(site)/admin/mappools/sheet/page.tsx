@@ -3,16 +3,15 @@ import { forbidden } from "next/navigation";
 import { Check, Hourglass, Scale, Trash2 } from "lucide-react";
 import { LinkTabs } from "@/components/site/tabs";
 import { ActionForm, IconAction } from "@/components/admin/form";
-import { getPoolStages } from "@/db/mappools";
+import { earlierMapIds, getPoolStages } from "@/db/mappools";
 import { getPlan, getSkillLayouts } from "@/db/format-plan";
 import { subcategoryNames } from "@/lib/format-plan";
 import { TagChips } from "../tag-chips";
 import { getSheet, sheetVersion } from "@/db/pool-sheet";
 import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
-import { poolState } from "@/db/pool-settle";
-import { getSettings } from "@/db/settings";
-import { dayTime, fromSofiaInput, toSofiaInput } from "@/lib/time";
+import { poolState, sheetBlocked } from "@/db/pool-settle";
+import { dayTime, toSofiaInput } from "@/lib/time";
 import { PoolClock } from "./pool-clock";
 import { can } from "@/lib/roles";
 import { modHi } from "@/lib/theme";
@@ -37,8 +36,8 @@ const places = (items: { picked: boolean; avg: number | null }[]) => {
 };
 
 export default async function PoolSheet({ searchParams }: PageProps<"/admin/mappools/sheet">) {
-  const [t, lang, viewer, stages, sp, { now: at, ws, access }, settings] = await Promise.all([getDict(), getLang(), getViewer(), getPoolStages(), searchParams, poolState(), getSettings()]);
-  if (!viewer || !can(viewer.roles, "mappools")) forbidden();
+  const [t, lang, viewer, stages, sp, { now: at, ws, access }] = await Promise.all([getDict(), getLang(), getViewer(), getPoolStages(), searchParams, poolState()]);
+  if (!viewer || !can(viewer.roles, "mappools") || (await sheetBlocked(viewer))) forbidden();
   const host = can(viewer.roles, "host");
   // poolers and testers reach one stage at a time, inside its window; after the last pool settles, nothing
   if (!host && access.done) forbidden();
@@ -48,8 +47,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
   const when = (d: Date) => dayTime(toSofiaInput(d), lang);
   if (!host && !open) {
     const next = stages.find((s) => s.slug === access.next?.stage);
-    const play = settings.timeline.find((r) => r.key === "play")?.from;
-    const opens = access.next?.opens ?? (play ? fromSofiaInput(`${play}T00:00`) : null);
+    const opens = access.next?.opens;
     return (
       next && <PoolClock big title={t.admin.pf.nextIn(name(next))} when={opens ? when(opens) : ""} to={opens?.getTime() ?? null} at={at} />
     );
@@ -59,7 +57,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
   const win = access.open?.stage === stage.slug ? ws.find((w) => w.stage === stage.slug) : undefined;
   const edit = can(viewer.roles, "poolEdit");
   const vote = can(viewer.roles, "poolVote");
-  const [sheets, version, layouts, plan] = await Promise.all([Promise.all(stages.map((s) => getSheet(s.id, viewer.osuId, s.blueprint))), sheetVersion(stage.id), getSkillLayouts(), getPlan()]);
+  const [sheets, version, layouts, plan, earlier] = await Promise.all([Promise.all(stages.map((s) => getSheet(s.id, viewer.osuId, s.blueprint))), sheetVersion(stage.id), getSkillLayouts(), getPlan(), earlierMapIds(stage.id)]);
   const sheet = sheets[stages.indexOf(stage)];
   const skill = layouts?.[stage.slug];
   const info = new Map(skill?.groups.flatMap((g, gi) => g.slots.map((x, k) => [`${x.mod}-${x.slot}`, { group: g, label: x.label, ids: x.ids, at: gi * 100 + k }] as const)) ?? []);
@@ -67,7 +65,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
     const win = s.items.find((x) => x.picked);
     return !!win && stage.pools.find((p) => p.category === s.mod)?.maps.find((m) => m.order === s.slot)?.id !== win.beatmapId;
   };
-  // elected winners (vote done), whether or not a host has put them in the pool yet
+  // decided slots (a host's Pick), whether or not they are in the pool yet
   const won = sheet.slots.filter((s) => s.picked && !s.out).map((s) => s.items[0]);
   const slots = skill ? [...sheet.slots].sort((a, b) => (info.get(`${a.mod}-${a.slot}`)?.at ?? 1e6) - (info.get(`${b.mod}-${b.slot}`)?.at ?? 1e6)) : sheet.slots;
 
@@ -192,6 +190,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                           <span className="text-ash">
                             {t.admin.suggestedBy} <span className="font-bold text-paper/80">{m.by}</span>
                           </span>
+                          {earlier.has(m.beatmapId) && <span className="font-display font-bold text-rose-hi">{t.admin.pf.earlier}</span>}
                         </MapMeta>
                         <TagChips names={subcategoryNames(plan.subcategories, m.subcategoryIds)} color={color} filled className="mt-1.5" />
                       </div>

@@ -2,7 +2,7 @@ import "server-only";
 import { and, arrayOverlaps, asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "./index";
 import { maps, poolSuggestions, poolVotes, staff, users } from "./schema";
-import { clearPack, slotOf } from "./mappools";
+import { putMap, slotOf } from "./mappools";
 import { avatarCol } from "./avatar";
 import { MOD_ORDER } from "@/lib/mods";
 
@@ -87,7 +87,8 @@ export async function slotPicked(stageId: number, mod: string, slot: number) {
   return !!row;
 }
 
-export async function resolveSlot(stageId: number, mod: string, slot: number, force = false, chosen?: number) {
+/** a host's manual Pick: the chosen suggestion, else the top ranked one, becomes the slot's winner */
+export async function resolveSlot(stageId: number, mod: string, slot: number, chosen?: number) {
   if (await slotPicked(stageId, mod, slot)) return null;
   const list = await db
     .select()
@@ -103,17 +104,14 @@ export async function resolveSlot(stageId: number, mod: string, slot: number, fo
         list.map((s) => s.id),
       ),
     );
-  const voters = await poolers();
   const ranked = list
     .map((s) => {
       const v = votes.filter((x) => x.suggestionId === s.id);
       return { ...s, by: "", votes: v.map((x) => ({ ...x, username: "", avatar: null })), avg: avgOf(v), mine: null, mineNote: "" };
     })
     .sort(rank);
-  const done = allIn(ranked, voters);
-  if (!force && (!done || tied(ranked))) return null;
   const win = chosen ? ranked.find((s) => s.id === chosen) : ranked[0];
-  if (!win || (!win.votes.length && !force)) return null;
+  if (!win) return null;
   await db.update(poolSuggestions).set({ picked: true }).where(eq(poolSuggestions.id, win.id));
   return { stageId, mod, slot: slot + 1, title: win.title, version: win.version, avg: win.avg };
 }
@@ -127,15 +125,6 @@ export async function sheetVersion(stageId: number) {
       coalesce((select string_agg(st.osu_id || ':' || array_to_string(st.perm_roles, '+'), ',' order by st.osu_id) from staff st), '')
     ) as v`);
   return row?.v ?? "";
-}
-
-/** after a role change: a slot that only waited on someone who lost the role passes now */
-export async function resolveAll() {
-  const open = await db
-    .selectDistinct({ stageId: poolSuggestions.stageId, mod: poolSuggestions.mod, slot: poolSuggestions.slot })
-    .from(poolSuggestions)
-    .where(eq(poolSuggestions.picked, false));
-  for (const s of open) await resolveSlot(s.stageId, s.mod, s.slot);
 }
 
 /** the deadline rule: an elected winner, else the best average (one suggestion wins even without votes); equal tops = tie */
@@ -154,20 +143,18 @@ export async function slotLeader(stageId: number, mod: string, slot: number) {
 }
 
 /** puts a suggestion into its stage's pool slot (with its suggester's tags) and marks it the slot's winner.
- *  returns null when the slot already holds that map, else the map it replaced (if any) */
+ *  "same" = the slot already holds that map (nothing changes, so a retry is safe), "dupe" = the map is in another slot of the stage (not placed),
+ *  else the map it replaced (if any) */
 export async function placeSuggestion(s: typeof poolSuggestions.$inferSelect) {
   const [old] = await db
     .select()
     .from(maps)
     .where(and(eq(maps.stageId, s.stageId), eq(maps.mod, s.mod), eq(maps.order, s.slot)))
     .limit(1);
+  if (old?.beatmapId !== s.beatmapId) {
+    const { beatmapId, title, artist, version, creator, sr, bpm, length, ar, od, cs, cover, subcategoryIds } = s;
+    if (!(await putMap(s.stageId, s.mod, s.slot, { beatmapId, title, artist, version, creator, sr, bpm, length, ar, od, cs, cover, subcategoryIds }))) return "dupe" as const;
+  }
   await db.update(poolSuggestions).set({ picked: true }).where(eq(poolSuggestions.id, s.id));
-  if (old?.beatmapId === s.beatmapId) return null;
-  const { beatmapId, title, artist, version, creator, sr, bpm, length, ar, od, cs, cover, subcategoryIds } = s;
-  await db.transaction(async (tx) => {
-    await tx.delete(maps).where(and(eq(maps.stageId, s.stageId), eq(maps.mod, s.mod), eq(maps.order, s.slot)));
-    await tx.insert(maps).values({ stageId: s.stageId, mod: s.mod, order: s.slot, beatmapId, title, artist, version, creator, sr, bpm, length, ar, od, cs, cover, subcategoryIds });
-  });
-  await clearPack(s.stageId);
-  return { replaced: old ?? null };
+  return old?.beatmapId === s.beatmapId ? ("same" as const) : { replaced: old ?? null };
 }

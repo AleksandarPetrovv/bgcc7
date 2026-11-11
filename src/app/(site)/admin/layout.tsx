@@ -16,7 +16,7 @@ import { RuleDiamond } from "@/components/site/rule";
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const [viewer, session, t] = await Promise.all([getViewer(), auth(), getDict()]);
   if (!viewer || !hasAdmin(viewer.roles)) forbidden();
-  const items = adminMenu(viewer.roles, await menuHidden(viewer.roles)).map((m) => ({ ...m, label: t.admin.menu[m.key] }));
+  const items = adminMenu(viewer.roles, await menuHidden(viewer)).map((m) => ({ ...m, label: t.admin.menu[m.key] }));
   const hosts = viewer.roles.includes("host") ? await getHosts() : [];
   const hostIndex = hosts.findIndex((host) => host.osuId === viewer.osuId);
   const mainRoles: Role[] = ["referee", "commentator", "mappooler", "playtester"];
