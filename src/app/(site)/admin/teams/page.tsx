@@ -1,39 +1,44 @@
-import { ChevronDown, Crown } from "lucide-react";
+import { ChevronDown, Crown, TriangleAlert } from "lucide-react";
 import { forbidden } from "next/navigation";
 import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { labelCls } from "@/components/admin/label";
 import { getQualResults } from "@/db/qualifiers";
-import { getRegistrations } from "@/db/registrations";
+import { getBwsLock, getRegistrations } from "@/db/registrations";
 import { getSettings } from "@/db/settings";
-import { getTeams } from "@/db/tournament";
+import { getMatches, getTeams } from "@/db/tournament";
 import { getViewer } from "@/lib/authz";
 import { fmtNum } from "@/lib/data";
 import { getDict } from "@/lib/i18n/server";
+import { forfeitsOf, nextMatchOf } from "@/lib/matches";
+import { OUT_TAG } from "@/lib/out";
 import { can } from "@/lib/roles";
 import { cn } from "@/lib/utils";
-import { createTeam, deleteTeam, seedTeams, placeMember, updateTeam } from "./actions";
+import { placeMember, updateTeam } from "./actions";
 import { generateTeams } from "./(bgcc6)/actions";
 import { getFormat } from "@/db/edition";
 import { rankBws } from "@/lib/bws";
 import { Dropdown } from "@/components/admin/dropdown";
 import { RemoveMember } from "./remove-member";
+import { TeamOut } from "./team-out";
+import { BwsLock } from "./bws-lock";
 import { avatarPath } from "@/lib/avatar";
 import { isBGCC6 } from "@/db";
 import { Cascade } from "@/components/site/cascade";
 import { RuleDiamond } from "@/components/site/rule";
 import { SlantBg } from "@/components/site/slant";
-import { getPlayerSeeds } from "@/db/seeds";
-import { PHASES } from "@/lib/sections";
+import { bwsRanking, frozenSeeds, getPlayerSeeds } from "@/db/seeds";
 
 const bwsGrid = "grid grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_4rem] items-center gap-x-2 px-2 sm:gap-x-3 sm:px-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_6rem_4rem_6rem]";
 export default async function AdminTeams() {
-  const [t, viewer, teams, results, regs, settings, f] = await Promise.all([getDict(), getViewer(), getTeams(), getQualResults(), getRegistrations(), getSettings(), getFormat()]);
+  const [t, viewer, teams, results, regs, settings, f, matches, bwsLock, frozen] = await Promise.all([getDict(), getViewer(), getTeams(), getQualResults(), getRegistrations(), getSettings(), getFormat(), getMatches(), getBwsLock(), frozenSeeds()]);
+  const drawn = frozen.length > 0;
   if (!can(viewer?.roles, "teams")) forbidden();
+  const host = can(viewer?.roles, "host");
   const suiji = !isBGCC6();
   const need = f.teams * f.teamSize;
-  const ranked = rankBws(regs.filter((r) => r.status === "approved"));
+  const ranked = drawn ? await bwsRanking() : rankBws(regs.filter((r) => r.status === "approved"));
   const taken = new Set(teams.flatMap((x) => x.players.map((p) => p.userId)));
   const seedOf = await getPlayerSeeds();
   const tag = suiji ? "B#" : "Q#";
@@ -50,33 +55,22 @@ export default async function AdminTeams() {
     return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
   };
   const best = (ids: number[]) => Math.min(...ids.map((id) => seedOf.get(id) ?? Infinity));
-  // same order seedBracket gives: best average seed first, best single seed breaks ties, empty teams last
+  // same order seedBracket gives: best average seed first, best single seed breaks ties, empty teams last; disabled teams below all of them
   const sorted = [...teams].sort((a, b) => {
     const ia = a.players.map((p) => p.userId), ib = b.players.map((p) => p.userId);
-    return (avg(ia) ?? Infinity) - (avg(ib) ?? Infinity) || best(ia) - best(ib) || a.seed - b.seed;
+    return +!!a.out - +!!b.out || (avg(ia) ?? Infinity) - (avg(ib) ?? Infinity) || best(ia) - best(ib) || a.seed - b.seed;
   });
-  const seedingOpen = ranked.length > 0 && PHASES.indexOf(settings.phase) <= PHASES.indexOf("seeding");
+  const showTeams = !suiji || teams.length > 0;
 
-  return (
-    <>
-      <PageTitle mark="team">{t.admin.menu.teams}</PageTitle>
-      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
-        <Words text={suiji ? t.admin.bwsHelp(need) : t.admin.teamsHelp(settings.qualifyCount)} d={0.15} s={0.012} />
-      </p>
-
-      {suiji && (
-        <Panel title={t.admin.bwsRanking} className="mb-6">
-          <details open={seedingOpen} className="group/seed">
-            <summary className="group/sum flex cursor-pointer list-none items-center gap-3 border-b border-line pb-2.5 [&::-webkit-details-marker]:hidden">
-              <span className="text-sm font-display font-black text-paper">{t.admin.seedingList}</span>
-              <span className="num text-xs text-ash">{ranked.length}</span>
-              <span className="relative isolate ml-auto grid size-8 shrink-0 place-items-center text-ash transition-colors group-hover/sum:text-paper group-open/seed:text-white">
-                <SlantBg className="border border-line transition-colors group-hover/sum:border-paper/40 group-open/seed:border-rose group-open/seed:bg-rose" />
-                <ChevronDown className="size-4 transition-transform duration-300 group-open/seed:rotate-180" aria-hidden />
-              </span>
-            </summary>
+  const bwsPanel = suiji && (
+        <Panel
+          title={t.admin.bwsRanking}
+          i={showTeams ? 3 : 0}
+          aside={
+<BwsLock locked={!!bwsLock} host={host} drawn={drawn} />}
+        >
           {ranked.length === 0 ? (
-            <p className="pt-3 text-sm text-ash">{t.admin.noRegs}</p>
+            <p className="text-sm text-ash">{t.admin.noRegs}</p>
           ) : (
             <Cascade className="border-b border-line" step={0.03}>
               <div className={cn(bwsGrid, "border-b border-line py-2 text-[0.62rem] font-display font-bold text-ash")}>
@@ -121,31 +115,32 @@ export default async function AdminTeams() {
               </ol>
             </Cascade>
           )}
-          </details>
+        </Panel>
+  );
+
+  return (
+    <>
+      <PageTitle mark="team">{t.admin.menu.teams}</PageTitle>
+      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
+        <Words text={suiji ? t.admin.bwsHelp(need) : t.admin.teamsHelp(settings.qualifyCount)} d={0.15} s={0.012} />
+      </p>
+
+      {!suiji && (
+        <Panel title={t.admin.generate} help={t.admin.generateHelp} className="mb-6">
+          <ActionForm action={generateTeams} submit={t.admin.generate} confirm={t.admin.confirmGenerate} />
         </Panel>
       )}
 
-      <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
-        {suiji ? (
-          <Panel title={t.admin.draw} help={t.admin.drawHelp}>
-            {teams.length !== f.teams && <p className="mb-3 text-xs font-display font-bold text-rose-hi">{t.admin.teamsNeeded(teams.length, f.teams)}</p>}
-            <ActionForm action={seedTeams} submit={t.admin.draw} confirm={t.admin.confirmDraw} />
-          </Panel>
-        ) : (
-          <Panel title={t.admin.generate} help={t.admin.generateHelp}>
-            <ActionForm action={generateTeams} submit={t.admin.generate} confirm={t.admin.confirmGenerate} />
-          </Panel>
-        )}
-        <Panel title={t.admin.newTeam} i={1}>
-          <ActionForm action={createTeam} submit={t.admin.create} className="flex items-center gap-3">
-            <Field name="name" required maxLength={40} placeholder={t.admin.teamName} aria-label={t.admin.teamName} className="flex-1 sm:max-w-sm" />
-          </ActionForm>
-        </Panel>
-      </div>
-
+      {showTeams && (
+      <Panel title={t.admin.menu.teams} i={suiji ? 0 : 3}>
       {teams.length === 0 && <p className="border-b border-line py-4 text-sm text-ash">{t.admin.noTeams}</p>}
       <div className="mx-auto grid max-w-4xl grid-cols-1 gap-y-20 sm:gap-y-24">
-        {sorted.map((team, n) => (
+        {sorted.map((team, n) => {
+          const short = team.players.length < f.teamSize;
+          const moveTo = teams.filter((o) => o.id !== team.id && o.players.length < f.teamSize);
+          const gaveUp = forfeitsOf(matches, team.id);
+          const forfeit = team.out || !gaveUp.length ? null : gaveUp.some((m) => !m.winner) ? "next" : "done";
+          return (
           <section key={team.id} className="in-up relative border-b border-line" style={{ "--i": Math.min(n, 16), "--s": "0.07s", "--d": "0.2s" } as React.CSSProperties}>
             <RuleDiamond />
             <details className="group/team">
@@ -154,12 +149,9 @@ export default async function AdminTeams() {
               {team.image && <img src={team.image} alt="" className="size-9 rounded-full object-cover" />}
               <span className="num text-xl text-balkan-hi">#{n + 1}</span>
               <span className="heading-slam min-w-0 truncate text-xl sm:text-2xl">{team.name}</span>
-              {suiji && avg(team.players.map((p) => p.userId)) !== null && (
-                <span className="num ml-auto shrink-0 text-xs text-ash">
-                  {t.admin.avgBws} {avg(team.players.map((p) => p.userId))}
-                </span>
-              )}
-              <span className={cn("num shrink-0 text-sm text-ash", !suiji && "ml-auto")}>
+              {team.out && <span className="shrink-0 text-sm font-display font-black text-rose-hi">{OUT_TAG[team.out]}</span>}
+              <span className={cn("num ml-auto flex shrink-0 items-center gap-1.5 text-sm", short ? "text-rose-hi" : "text-ash")}>
+                {short && <TriangleAlert className="size-4 shrink-0" aria-hidden />}
                 {team.players.length}/{f.teamSize}
               </span>
               <span className="relative isolate grid size-8 shrink-0 place-items-center text-ash transition-colors group-hover/sum:text-paper group-open/team:text-white">
@@ -167,7 +159,7 @@ export default async function AdminTeams() {
                 <ChevronDown className="size-4 transition-transform duration-300 group-open/team:rotate-180" aria-hidden />
               </span>
             </summary>
-            <div className="space-y-4 border-t border-line py-4">
+            <fieldset disabled={!host} className="min-w-0 space-y-4 border-t border-line py-4 [&:disabled_label]:opacity-45 [&:disabled_input]:opacity-100! [&:disabled_:is(button,label)]:pointer-events-none">
               <ActionForm key={`${team.id}-${team.name}-${team.seed}-${team.players.map((p) => p.userId + String(p.isCaptain)).join()}`} action={updateTeam.bind(null, team.id)} className="space-y-3">
                 <div className="grid gap-2">
                   <label className={labelCls}>
@@ -213,10 +205,10 @@ export default async function AdminTeams() {
                     {seedOf.has(p.userId) && <span className="num text-xs text-ash">{tag}{seedOf.get(p.userId)}</span>}
                     {p.rank > 0 && <span className="num text-xs text-ash">#{fmtNum(p.rank)}</span>}
                     <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto">
-                      {teams.length > 1 && (
+                      {moveTo.length > 0 && (
                         <ActionForm action={placeMember} submit={t.admin.move} ghost className="flex flex-1 items-center gap-2 sm:flex-none">
                           <input type="hidden" name="osuId" value={p.userId} />
-                          <Dropdown name="teamId" required placeholder={t.admin.moveTo} aria-label={t.admin.moveTo} className="w-full sm:w-44" options={teams.filter((o) => o.id !== team.id).map((o) => ({ value: o.id, label: o.name, hint: String(o.players.length) }))} />
+                          <Dropdown name="teamId" required placeholder={t.admin.moveTo} aria-label={t.admin.moveTo} className="w-full sm:w-44" options={moveTo.map((o) => ({ value: o.id, label: o.name, hint: `${o.players.length}/${f.teamSize}` }))} />
                         </ActionForm>
                       )}
                       <RemoveMember osuId={p.userId} captain={p.isCaptain} mates={team.players.filter((o) => o.userId !== p.userId).map((o) => ({ id: o.userId, name: o.username, avatar: o.avatar }))} />
@@ -225,8 +217,8 @@ export default async function AdminTeams() {
                 ))}
               </ul>
 
-              <div className={cn("flex flex-wrap items-end gap-3", team.players.length < f.teamSize ? "justify-between" : "justify-center")}>
-                {team.players.length >= f.teamSize ? null : pool.length > 0 ? (
+              <div className={cn("flex flex-wrap items-end gap-3", short ? "justify-between" : "justify-center")}>
+                {!short ? null : pool.length > 0 ? (
                   <ActionForm action={placeMember} submit={t.admin.add} ghost className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                     <input type="hidden" name="teamId" value={team.id} />
                     <Dropdown name="osuId" required placeholder={t.admin.addToTeam} aria-label={t.admin.addToTeam} className="w-full sm:w-56" options={pool.map((p) => ({ value: String(p.osuId), label: p.username, hint: seedOf.has(p.osuId) ? `${tag}${seedOf.get(p.osuId)}` : undefined }))} />
@@ -234,13 +226,24 @@ export default async function AdminTeams() {
                 ) : (
                   <span />
                 )}
-                <ActionForm action={deleteTeam.bind(null, team.id)} submit={t.admin.deleteTeam} ghost confirm={t.admin.confirmDeleteTeam} />
+                <TeamOut id={team.id} name={team.name} out={team.out} askOnce={nextMatchOf(matches, team.id)?.bracket === "winners"} forfeit={forfeit} />
               </div>
-            </div>
+            </fieldset>
             </details>
           </section>
-        ))}
+          );
+        })}
       </div>
+      </Panel>
+      )}
+
+      {suiji && showTeams && (
+        <div className="py-8 sm:py-10" aria-hidden>
+          <div className="in-wipe border-t border-line [--d:0.3s]" />
+        </div>
+      )}
+
+      {bwsPanel}
     </>
   );
 }
