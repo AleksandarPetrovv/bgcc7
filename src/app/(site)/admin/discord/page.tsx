@@ -53,6 +53,10 @@ export default async function AdminDiscord() {
                 {d.hosts}
                 <Dropdown name="hosts" defaultValue={cfg.hosts} placeholder={d.none} aria-label={d.hosts} className="w-full" options={options} />
               </label>
+              <label className={labelCls}>
+                {d.staff}
+                <Dropdown name="staff" defaultValue={cfg.staff} placeholder={d.none} aria-label={d.staff} className="w-full" options={options} />
+              </label>
             </ActionForm>
           ) : (
             <p className="text-sm text-rose-hi">{d.failed}</p>

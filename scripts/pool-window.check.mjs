@@ -24,7 +24,7 @@ const show = (d) => (d ? toSofiaInput(d) : null);
 assert.deepEqual(
   ws.map((w) => [w.stage, show(w.opens), show(w.closes)]),
   [
-    ["round-of-16", null, "2027-09-12T23:59"],
+    ["round-of-16", "2027-09-07T00:00", "2027-09-12T23:59"],
     ["quarterfinals", "2027-09-14T00:00", "2027-09-19T23:59"],
     ["semifinals", "2027-09-21T00:00", "2027-10-03T23:59"],
     ["finals", "2027-10-05T00:00", "2027-10-17T23:59"],
@@ -34,10 +34,10 @@ assert.deepEqual(
 console.log("ok: windows match the agreed dates (31 Oct is the dst night, still 23:59 sofia)");
 
 const at = (s) => new Date(s).getTime();
-assert.equal(poolAccess(ws, new Set(), false, at("2027-09-01T12:00Z")).next?.stage, "round-of-16");
-assert.equal(poolAccess(ws, new Set(), true, at("2027-09-01T12:00Z")).open?.stage, "round-of-16");
-assert.equal(poolAccess(ws, new Set(["round-of-16"]), true, at("2027-09-13T12:00Z")).open, null, "monday gap");
-assert.equal(poolAccess(ws, new Set(["round-of-16"]), true, at("2027-09-13T12:00Z")).next?.stage, "quarterfinals");
-assert.equal(poolAccess(ws, new Set(["round-of-16", "quarterfinals"]), true, at("2027-09-28T12:00Z")).open?.stage, "semifinals");
-assert.equal(poolAccess(ws, new Set(ws.map((w) => w.stage)), true, at("2027-11-02T12:00Z")).done, true);
-console.log("ok: access opens with playoffs, one stage at a time, monday gap, done after gf");
+assert.equal(poolAccess(ws, new Set(), at("2027-09-01T12:00Z")).next?.stage, "round-of-16");
+assert.equal(poolAccess(ws, new Set(), at("2027-09-08T12:00Z")).open?.stage, "round-of-16");
+assert.equal(poolAccess(ws, new Set(["round-of-16"]), at("2027-09-13T12:00Z")).open, null, "monday gap");
+assert.equal(poolAccess(ws, new Set(["round-of-16"]), at("2027-09-13T12:00Z")).next?.stage, "quarterfinals");
+assert.equal(poolAccess(ws, new Set(["round-of-16", "quarterfinals"]), at("2027-09-28T12:00Z")).open?.stage, "semifinals");
+assert.equal(poolAccess(ws, new Set(ws.map((w) => w.stage)), at("2027-11-02T12:00Z")).done, true);
+console.log("ok: access opens a week before each pool's own week, one stage at a time, monday gap, done after gf");

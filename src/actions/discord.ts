@@ -1,6 +1,7 @@
 "use server";
 
 import { guard } from "@/lib/admin-action";
+import { snapshot } from "@/lib/snapshot";
 import { cleanupDiscord, setCfg, syncTeams } from "@/db/discord-bot";
 import { getSettings } from "@/db/settings";
 import { guildChannels } from "@/lib/discord";
@@ -19,7 +20,9 @@ export async function saveChannels(_: ActionResult, fd: FormData) {
     await setCfg("pool", pool);
     const hosts = pick("hosts");
     await setCfg("hosts", hosts);
-    return { log: { results, pool, hosts } };
+    const staff = pick("staff");
+    await setCfg("staff", staff);
+    return { log: { results, pool, hosts, staff } };
   });
 }
 
@@ -32,6 +35,7 @@ export async function syncNow() {
 
 export async function cleanup() {
   return guard("discord", "discord.cleanup", async () => {
+    await snapshot("discord-cleanup");
     if ((await getSettings()).phase !== "finished") return { ok: false, error: "invalid" };
     await cleanupDiscord();
     return;
