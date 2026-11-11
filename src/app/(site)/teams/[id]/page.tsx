@@ -19,7 +19,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[id]">) {
   const { id: raw } = await params;
   const [t, teams, allMatches, pos] = await Promise.all([getDict(), getTeams(), getMatches(), getPlayerSeeds()]);
   const team = teamFromHref(teams, raw);
-  if (!team) notFound();
+  if (!team || team.out) notFound();
   const seeds = team.players.map((p) => pos.get(p.userId)).filter((s) => s !== undefined);
   const avgSeed = seeds.length ? (seeds.reduce((a, b) => a + b, 0) / seeds.length).toFixed(1).replace(/\.0$/, "") : "-";
   const id = team.id;

@@ -12,14 +12,17 @@ import { cn, cssVars } from "@/lib/utils";
 import { MeTag, meT } from "./me";
 import { fitBox, useFit } from "./use-fit";
 import { useBracketOptions, useResultsEye } from "./overlay-context";
-import { availOr, colWidth, gfRound, isPhone, shrinkScale, upscale, wirePath } from "@/lib/bracket-geometry";
-import { GF, GF_RESET, isGfId, matchNum, winTargets, type Format, type Half } from "@/lib/format";
+import { availOr, colWidth, fitsPfp, gfRound, isPhone, shrinkScale, upscale, wirePath } from "@/lib/bracket-geometry";
+import { GF, GF_RESET, isGfId, winTargets, type Format, type Half } from "@/lib/format";
 import { fmtDate, fmtSofiaTime } from "@/lib/time";
 import { roundName } from "@/lib/i18n/dict";
-import { beforeResult, hasResults, resultMoves, type ResultMove } from "@/lib/matches";
+import { beforeResult, cardLabels, hasResults, resultMoves, type ResultMove } from "@/lib/matches";
+import { FitLabel } from "./fit-label";
 import { HEX } from "@/lib/theme";
 import { REVEAL } from "@/lib/bracket-reveal";
 import { localeOf } from "@/lib/i18n/locale";
+import { OUT_TAG } from "@/lib/out";
+import { OUT_TEXT } from "./match-row";
 
 const TOP = 92;
 const ZOOM_S = REVEAL.zoom / 1000;
@@ -61,6 +64,8 @@ function Line({ m, slot, live, slim, moved, quiet, out }: { m: Match; slot: 1 | 
   const tie = !!live && live[0] === live[1];
   const leads = !!live && !tie && live[slot - 1] > live[2 - slot];
   const score = live ? live[slot - 1] : m.winner !== null ? (side.score ?? 0) : null;
+  // the side that gave the match up shows its tag where the score would be, also before the opponent is known
+  const tag = !live && m.walkover?.side === slot ? OUT_TAG[m.walkover.kind] : null;
   return (
     <div {...meT(team.id)} className={cn("relative flex min-h-0 flex-1 items-center gap-1.5 pl-2 pr-2.5 transition-[opacity,background-color] duration-700", won && "bg-[color-mix(in_oklab,var(--balkan)_14%,var(--coal))]", leads && "bg-rose/10", lost && "opacity-45")}>
       {/* knocked out: a red flash as the line fades */}
@@ -68,13 +73,13 @@ function Line({ m, slot, live, slim, moved, quiet, out }: { m: Match; slot: 1 | 
       {(won || leads) && <span className={cn("absolute inset-y-1 left-0 w-0.5", won ? "bg-balkan" : "bg-rose/60")} aria-hidden />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {!slim && <img src={team.image} alt="" className={cn("size-4 shrink-0 rounded-full object-cover", moved ? "outline-1 outline-gold" : "in-pop")} style={cssVars({ "--d": "0.45s" })} />}
-      <span title={team.name} className={cn("min-w-0 flex-1 truncate text-[12.8px] font-display font-bold", moved ? "text-gold-hi" : "in-wipe", won && "font-display font-black text-paper", leads && "font-display font-black text-rose-hi")} style={cssVars({ "--d": "0.5s" })}>
+      <span title={team.name} className={cn("min-w-0 flex-1 truncate text-[12.8px] font-display font-bold", moved ? "text-gold-hi" : "in-wipe", won && "font-display font-black", team.out ? OUT_TEXT : cn(won && "text-paper", leads && "font-display font-black text-rose-hi"))} style={cssVars({ "--d": "0.5s" })}>
         {team.name}
       </span>
       <MeTag t={team.id} className="me-tag-plain me-tag-px -mx-1" />
-      {score !== null && (
-        <span className={cn("num ml-2 shrink-0 text-right text-base leading-none", !moved && "in-slam", won ? "text-balkan-hi" : leads || tie ? "text-rose-hi" : "text-paper/80")} style={cssVars({ "--d": play ? "0s" : "0.65s" })}>
-          {score}
+      {(tag || score !== null) && (
+        <span className={cn("num ml-2 shrink-0 text-right text-base leading-none", !moved && "in-slam", tag ? cn(OUT_TEXT, "opacity-80") : won ? "text-balkan-hi" : leads || tie ? "text-rose-hi" : "text-paper/80")} style={cssVars({ "--d": play ? "0s" : "0.65s" })}>
+          {tag ?? score}
         </span>
       )}
     </div>
@@ -86,16 +91,16 @@ function Box({ id, m, live, slim, moved = [], quiet, out, className, style, onEn
   const lang = useLang();
   const locale = localeOf(lang);
   const day = (dt: string) => fmtDate(new Date(dt), locale, id === GF_RESET ? { day: "2-digit", month: "short" } : { weekday: "short", day: "2-digit", month: "short" });
-  const num = matchNum(useFormat(), id);
+  const format = useFormat();
   const eyes = useResultsEye();
   return (
     <div onMouseEnter={onEnter} onMouseLeave={onLeave} className={cn("flex flex-col overflow-hidden border bg-coal transition-[border-color] duration-200", className)} style={style}>
       <div className="flex h-7 shrink-0 items-center gap-2 border-b border-line bg-ink/70 px-2.5">
         <span className="num truncate text-[12.5px] text-paper/75">{m.datetime ? `${day(m.datetime)} · ${fmtSofiaTime(new Date(m.datetime))}` : m.winner ? "" : m.team1.id && m.team2.id ? t.common.tbd : "—"}</span>
         {id === GF_RESET ? (
-          <span className="shrink-0 whitespace-nowrap text-[9.6px] font-display font-bold text-gold-hi">{t.rounds.reset}</span>
+          <FitLabel labels={cardLabels(format, t, m)} className="text-[9.6px] font-display font-bold text-gold-hi" />
         ) : (
-          !m.datetime && !m.winner && !(m.team1.id && m.team2.id) && <span className={cn("truncate whitespace-nowrap text-[12.5px]", isGfId(id) ? "font-display font-bold text-gold-hi" : "num text-paper/75")}>{roundName(t, m.round)}{num ? `, ${t.nav.match} ${num}` : ""}</span>
+          !m.datetime && !m.winner && !(m.team1.id && m.team2.id) && <FitLabel labels={cardLabels(format, t, m)} className={cn("text-[12.5px]", isGfId(id) ? "font-display font-bold text-gold-hi" : "num text-paper/75")} />
         )}
         <span className="ml-auto flex items-center gap-1">
           {eyes && live !== undefined && <LiveDot />}
@@ -371,7 +376,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
               id={id}
               m={m}
               live={id in live ? live[id] : undefined}
-              slim={W < 200}
+              slim={!fitsPfp(W)}
               moved={([1, 2] as const).filter((s) => kept.includes(`${id}:${s}`))}
               quiet={id === play?.id && !play.loser ? loserSlot : undefined}
               out={id === play?.id && play.loser ? knocked : undefined}
@@ -401,7 +406,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
                 transition={{ duration: FLY_S, ease: EASE_IO }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {W >= 200 && <img src={team.image} alt="" className="gild size-4 shrink-0 rounded-full object-cover outline-1 outline-transparent" style={cssVars({ "--gild": `${FLY_S}s` })} />}
+                {fitsPfp(W) && <img src={team.image} alt="" className="gild size-4 shrink-0 rounded-full object-cover outline-1 outline-transparent" style={cssVars({ "--gild": `${FLY_S}s` })} />}
                 <span className="gild min-w-0 flex-1 truncate text-[12.8px] font-display font-bold" style={cssVars({ "--gild": `${FLY_S}s` })}>{team.name}</span>
               </motion.div>
             );

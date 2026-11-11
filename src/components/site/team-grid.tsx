@@ -7,7 +7,7 @@ import { useTournament } from "./tournament";
 
 export function TeamGrid({ title }: { title: string }) {
   const t = useDict();
-  const { teams } = useTournament();
+  const teams = useTournament().teams.filter((t) => !t.out);
   return (
     <>
       <PageTitle mark="team">{title}</PageTitle>

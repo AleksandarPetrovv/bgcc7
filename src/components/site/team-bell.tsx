@@ -14,9 +14,10 @@ import { localeOf } from "@/lib/i18n/locale";
 import { fmtSofia } from "@/lib/time";
 import type { CaptainNote, HostReq } from "@/db/team-requests";
 import type { HostNote } from "@/db/host-notes";
+import type { OutNote } from "@/db/team-out";
 
 // requests: hosts only. notes: answers to the viewer's own team requests
-export type BellFeed = { requests: HostReq[]; notes: CaptainNote[]; hostNotes: HostNote[] };
+export type BellFeed = { requests: HostReq[]; notes: CaptainNote[]; outNotes: OutNote[]; hostNotes: HostNote[] };
 
 const d = (s: number) => ({ "--d": `${s}s` }) as React.CSSProperties;
 
@@ -41,7 +42,8 @@ export function TeamBell({ feed }: { feed: BellFeed | null }) {
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
-  const count = (feed?.requests.length ?? 0) + (feed?.notes.length ?? 0) + (feed?.hostNotes.length ?? 0);
+  const noted = (feed?.notes.length ?? 0) + (feed?.outNotes.length ?? 0);
+  const count = (feed?.requests.length ?? 0) + noted + (feed?.hostNotes.length ?? 0);
   if (!count && !view) return null;
 
   const decide = (accept: boolean) =>
@@ -88,8 +90,22 @@ export function TeamBell({ feed }: { feed: BellFeed | null }) {
                   </div>
                 </Fragment>
               ))}
-              {feed.notes.length > 0 && (
-                <div className="in-up flex justify-center px-5 pb-4 pt-1" style={d(0.18 + feed.notes.length * 0.07)}>
+              {feed.outNotes.map((n, i) => (
+                <Fragment key={`o${n.teamId}`}>
+                  {(i > 0 || feed.notes.length > 0) && <Diamond />}
+                  <div className="in-up flex flex-col gap-2 px-5 py-4" style={d(0.18 + (feed.notes.length + i) * 0.07)}>
+                    <p className="text-sm font-bold text-rose-hi">{r.disqualified(n.team)}</p>
+                    {n.reason && (
+                      <p className="text-sm text-paper">
+                        <span className="font-display font-bold text-ash">{r.reason}: </span>
+                        {n.reason}
+                      </p>
+                    )}
+                  </div>
+                </Fragment>
+              ))}
+              {noted > 0 && (
+                <div className="in-up flex justify-center px-5 pb-4 pt-1" style={d(0.18 + noted * 0.07)}>
                   <SlantButton onClick={goMe} disabled={pending} className="px-6 py-2.5">
                     {r.goMe}
                   </SlantButton>
@@ -97,8 +113,8 @@ export function TeamBell({ feed }: { feed: BellFeed | null }) {
               )}
               {feed.requests.map((q, i) => (
                 <Fragment key={`r${q.id}`}>
-                  {(i > 0 || feed.notes.length > 0) && <Diamond />}
-                  <div className="in-up flex flex-col gap-3 px-5 py-4" style={d(0.25 + (feed.notes.length + i) * 0.07)}>
+                  {(i > 0 || noted > 0) && <Diamond />}
+                  <div className="in-up flex flex-col gap-3 px-5 py-4" style={d(0.25 + (noted + i) * 0.07)}>
                     <p className="text-sm text-paper">
                       <span className="font-display font-bold">{q.team}</span> {r.asked(q.team).slice(q.team.length).trim()}
                     </p>
@@ -119,7 +135,7 @@ export function TeamBell({ feed }: { feed: BellFeed | null }) {
                 </Fragment>
               ))}
               {feed.hostNotes.map((n, i) => {
-                const before = feed.notes.length + feed.requests.length;
+                const before = noted + feed.requests.length;
                 return (
                   <Fragment key={`h${n.id}`}>
                     {(i > 0 || before > 0) && <Diamond />}

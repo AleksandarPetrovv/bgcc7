@@ -35,7 +35,7 @@ export function demoBracket(f: Format, teams: Team[], pairAt: string, pair: [Tea
       const l = m.winner === 1 ? m.team2.id : m.team1.id;
       return s.take === "W" ? w : l;
     };
-    let m: Match = { id, datetime: null, team1: side(from(0)), team2: side(from(1)), winner: null, links: [], round: r?.name ?? id, bracket: id.startsWith("winners") ? "winners" : id.startsWith("losers") ? "losers" : "grand", stage: r?.stage ?? "", referee: null, streamer: null, commentators: null, vodUrl: null };
+    let m: Match = { id, datetime: null, team1: side(from(0)), team2: side(from(1)), winner: null, walkover: null, links: [], round: r?.name ?? id, bracket: id.startsWith("winners") ? "winners" : id.startsWith("losers") ? "losers" : "grand", stage: r?.stage ?? "", referee: null, streamer: null, commentators: null, vodUrl: null };
     if (k === at) {
       rename.set(m.team1.id, pair[0].id).set(m.team2.id, pair[1].id);
       for (const [key, x] of byId) byId.set(key, { ...x, team1: { ...x.team1, id: rename.get(x.team1.id) ?? x.team1.id }, team2: { ...x.team2, id: rename.get(x.team2.id) ?? x.team2.id } });

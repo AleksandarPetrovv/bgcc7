@@ -28,10 +28,12 @@ async function stored(id: string, links: string) {
   }
 }
 
+export const toEdit = (r: typeof scoreEdits.$inferSelect): ScoreEdit => ({ gameId: r.gameId, osuId: r.osuId, team: r.team === 2 ? 2 : 1, score: r.score, acc: r.acc, mods: r.mods ? r.mods.split(",") : [], removed: r.removed });
+
 export async function getEdits(matchId: string): Promise<ScoreEdit[]> {
   try {
     const rows = await db.select().from(scoreEdits).where(eq(scoreEdits.matchId, matchId));
-    return rows.map((r) => ({ gameId: r.gameId, osuId: r.osuId, team: r.team === 2 ? 2 : 1, score: r.score, acc: r.acc, mods: r.mods ? r.mods.split(",") : [], removed: r.removed }));
+    return rows.map(toEdit);
   } catch (e) {
     console.error("[score edits]", e);
     return [];

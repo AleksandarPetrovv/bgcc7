@@ -3,6 +3,7 @@ import { getMpMatch, type OsuGame } from "./osu-api";
 import type { Match, Stage, Team } from "./data";
 import { avatarPath } from "@/lib/avatar";
 import { isBracketStage } from "./format";
+import { mapWinner } from "./result";
 
 export type PlayerLine = {
   id: number;
@@ -20,6 +21,13 @@ export type PlayerLine = {
 export type ScoreEdit = { gameId: number; osuId: number; team: 1 | 2; score: number; acc: number; mods: string[]; removed: boolean };
 
 export const SCOREBOARD_V = 6;
+
+/** what the staff editor loaded: it must still match the saved edits when the editor saves */
+export const editsStamp = (edits: readonly ScoreEdit[]) =>
+  edits
+    .map((e) => `${e.gameId}:${e.osuId}:${e.score}:${e.mods.join("+")}:${+e.removed}`)
+    .sort()
+    .join("|");
 
 export type MapResult = {
   lobby: number;
@@ -158,7 +166,7 @@ export async function buildScoreboard(match: Match, teams: Team[], pools: Pool[]
     for (const side of players) side.sort((a, b) => b.score - a.score);
     const team1 = players[0].reduce((n, p) => n + p.score, 0);
     const team2 = players[1].reduce((n, p) => n + p.score, 0);
-    const winner: MapResult["winner"] = note ? 0 : team1 > team2 ? 1 : team2 > team1 ? 2 : 0;
+    const winner: MapResult["winner"] = note ? 0 : mapWinner(team1, team2);
     if (winner) score[winner - 1]++;
     if (!note)
       players.forEach((side, k) =>

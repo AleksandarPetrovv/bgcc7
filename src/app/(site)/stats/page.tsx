@@ -22,6 +22,7 @@ import { MEDAL, modHi } from "@/lib/theme";
 import { roundName } from "@/lib/i18n/dict";
 import { RuleDiamond } from "@/components/site/rule";
 import { isBracketStage } from "@/lib/format";
+import { outPlayerIds } from "@/lib/alive";
 
 const TONES = ["bg-rose text-white", "bg-balkan text-on-fill", "border-b border-line", "border-b border-line"];
 
@@ -56,7 +57,8 @@ export default async function Stats({ searchParams }: { searchParams: Promise<{ 
     ) : null;
 
   const isQual = !!current && !isBracketStage(current.slug);
-  const data = !current ? null : isQual ? { ...qual, plays: 0, matches: 0 } : await getStageStats(bySkill(current, skills?.[current.slug]), matches, teams, stages);
+  const gone = outPlayerIds(teams);
+  const data = !current ? null : isQual ? { ...qual, players: qual.players.filter((p) => !gone.has(p.id)), plays: 0, matches: 0 } : await getStageStats(bySkill(current, skills?.[current.slug]), matches, teams, stages);
   const perfs = data ? data.players.flatMap((p) => Object.entries(p.perf).map(([mid, v]) => ({ ...v, mid, player: p }))) : [];
 
   if (!data || !perfs.length)

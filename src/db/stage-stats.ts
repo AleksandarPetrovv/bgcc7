@@ -4,6 +4,7 @@ import type { PoolStage } from "./mappools";
 import { scoreboardOrNull } from "./scoreboards";
 import { matchCosts } from "@/lib/match-cost";
 import { toQualMap } from "./qualifiers";
+import { outPlayerIds } from "@/lib/alive";
 
 export type StageStats = { maps: QualMap[]; players: QualPlayer[]; plays: number; matches: number; topCost?: { username: string; cost: number }; topCosts: TopCost[]; costs: TopCost[] };
 // acc/score: averages over the pool maps they played (plays of them)
@@ -47,9 +48,12 @@ export async function getStageStats(stage: PoolStage, matches: Match[], teams: T
   let plays = 0;
   let played = 0;
   const costs = new Map<number, { username: string; avatar: string; sum: number; n: number; maps: number }>();
+  // players of teams ruled out are left out of the ranked lists (their scores still show in the match popups)
+  const gone = outPlayerIds(teams);
   for (const sb of boards) {
     if (!sb) continue;
     for (const c of matchCosts(sb, true)) {
+      if (gone.has(c.id)) continue;
       const cur = costs.get(c.id) ?? { username: c.name, avatar: c.avatar, sum: 0, n: 0, maps: 0 };
       cur.sum += c.cost;
       cur.n++;
@@ -62,7 +66,7 @@ export async function getStageStats(stage: PoolStage, matches: Match[], teams: T
       any = true;
       for (const side of map.players)
         for (const p of side) {
-          if (p.score <= 0) continue;
+          if (p.score <= 0 || gone.has(p.id)) continue;
           plays++;
           const cur = byPlayer.get(p.id) ?? { id: p.id, username: p.name, avatar: p.avatar, cc: "", avgAcc: 0, avgScore: 0, zSum: 0, perf: {}, accSum: 0, scoreSum: 0, n: 0 };
           cur.accSum += p.acc * 100;
