@@ -6,7 +6,6 @@ import { getPoolStages } from "@/db/mappools";
 import { getViewer } from "@/lib/authz";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
-import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
 import { addSponsor } from "./actions";
 import { PackUploader } from "@/components/admin/pack-uploader";

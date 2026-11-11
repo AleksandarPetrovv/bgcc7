@@ -41,11 +41,11 @@ export default async function AdminScreening({ searchParams }: PageProps<"/admin
         </div>
         <Panel i={2} title={t.admin.exportPlayers} help={t.admin.exportHelp} className="xl:col-span-2">
           <div className="flex flex-wrap gap-3">
-            <a href="/admin/screening/export" className="group relative isolate inline-flex min-h-10 items-center gap-2 px-4 text-sm font-display font-bold text-on-fill hover:text-ink">
+            <a href="/admin/screening/export" download className="group relative isolate inline-flex min-h-10 items-center gap-2 px-4 text-sm font-display font-bold text-on-fill hover:text-ink">
               <SlantBg className="bg-balkan group-hover:bg-paper" />
               <Download className="size-4" /> {t.admin.exportPlayers}
             </a>
-            <a href="/admin/screening/export?teams=1" className="group relative isolate inline-flex min-h-10 items-center gap-2 px-4 text-sm font-display font-bold text-paper">
+            <a href="/admin/screening/export?teams=1" download className="group relative isolate inline-flex min-h-10 items-center gap-2 px-4 text-sm font-display font-bold text-paper">
               <SlantBg className="border border-line group-hover:border-rose" />
               <Download className="size-4" /> {t.admin.exportTeams}
             </a>

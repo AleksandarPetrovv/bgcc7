@@ -6,6 +6,8 @@ const COL_MAX = 290;
 const UPSCALE_FROM = 1280;
 const UPSCALE_MAX = 2;
 const SHRINK_FROM = 768;
+// a box line needs 20 edges + 22 picture + 28 score; under this the name keeps fewer than ~5 letters
+const PFP_MIN_W = 120;
 
 export const availOr = (avail: number) => avail || FALLBACK_W;
 export const isPhone = (avail: number) => avail > 0 && avail < PHONE_W;
@@ -16,6 +18,8 @@ export function colWidth(f: Format, avail: number, fill = 0) {
   const w = (avail / (fill || 1) - gfCol * g - 8) / (gfCol + 1);
   return Math.floor(fill ? Math.max(minW, w) : Math.min(COL_MAX, Math.max(minW, w)));
 }
+
+export const fitsPfp = (w: number) => w >= PFP_MIN_W;
 
 export const upscale = (avail: number, width: number) => (avail >= UPSCALE_FROM && width < avail ? Math.min(UPSCALE_MAX, avail / width) : 1);
 

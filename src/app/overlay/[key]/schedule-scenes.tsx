@@ -99,4 +99,4 @@ export function BracketScene({ feed }: { feed: OverlayFeed }) {
   );
 }
 
-const toTeam = (t: OverlayFeed["teams"][number]): Team => ({ id: t.id, name: t.name, image: t.image, players: [], avgRank: 0, avgPp: 0, seed: 0 });
+const toTeam = (t: OverlayFeed["teams"][number]): Team => ({ id: t.id, name: t.name, image: t.image, players: [], avgRank: 0, avgPp: 0, seed: 0, out: null });
