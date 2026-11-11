@@ -6,6 +6,10 @@ import { registrations, teamMembers } from "@/db/schema";
 import { getBwsLock, isStatus, removeRegistration as dropRegistration, setRegistrationStatus, snapshotBws } from "@/db/registrations";
 import { refreshUsers, resolveOsuUser, saveOsuUser } from "@/db/users";
 import { guard } from "@/lib/admin-action";
+import { snapshot } from "@/lib/snapshot";
+import { dmPlayer } from "@/db/discord-bot";
+import { getFormat } from "@/db/edition";
+import { signupDecidedMessage } from "@/lib/discord-text";
 import type { ActionResult } from "@/lib/action-result";
 
 // once teams are drawn a player is moved in admin/teams first, so seeds and rosters stay in sync
@@ -19,17 +23,20 @@ export async function decide(osuId: number, _: ActionResult, fd: FormData) {
     if (status === "denied" && !note) return { ok: false, error: "note" };
     if (status !== "approved" && (await onTeam(osuId))) return { ok: false, error: "invalid" };
     await setRegistrationStatus(osuId, status, note, by);
+    if (status !== "pending") dmPlayer(osuId, signupDecidedMessage(getFormat().name, status === "approved", note));
     return { log: { osuId, status, note } };
   });
 }
 
 export async function approveAllPending() {
   return guard("screening", "screening.approveAll", async ({ osuId: by }) => {
+    await snapshot("approve-all");
     const rows = await db
       .update(registrations)
       .set({ status: "approved", decidedBy: by, decidedAt: new Date() })
       .where(eq(registrations.status, "pending"))
       .returning({ osuId: registrations.osuId });
+    for (const r of rows) dmPlayer(r.osuId, signupDecidedMessage(getFormat().name, true, null));
     return { log: { approved: rows.length } };
   });
 }
