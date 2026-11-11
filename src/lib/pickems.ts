@@ -14,13 +14,14 @@ export type Picks = Record<string, string>;
 
 export const lockedOf = (matches: Match[], now = Date.now()) => matches.filter((m) => m.winner || (m.datetime && new Date(m.datetime).getTime() <= now)).map((m) => m.id);
 
-export function pickemsWindow(f: Format, matches: Match[], now = Date.now()) {
+/** `closed`: the stored fact that it already closed once, so moving the first match later can't reopen it */
+export function pickemsWindow(f: Format, matches: Match[], closed: boolean, now = Date.now()) {
   const bracket = matches.filter((m) => f.order.includes(m.id));
   const seeded = seedingOf(f, matches);
   const known = f.order.filter((id) => !f.feed[id]).every((id) => seeded[id]?.[0] && seeded[id]?.[1]);
   const starts = bracket.filter((m) => m.datetime).map((m) => new Date(m.datetime!).getTime());
   const closesAt = starts.length ? Math.min(...starts) : null;
-  const started = bracket.some((m) => m.winner) || (closesAt !== null && now >= closesAt);
+  const started = closed || bracket.some((m) => m.winner) || (closesAt !== null && now >= closesAt);
   return { open: known && !started, closesAt, started };
 }
 
