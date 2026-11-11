@@ -1,9 +1,9 @@
 import "server-only";
 import { eq, ne, notLike } from "drizzle-orm";
 import { db, detached, type Tx } from "./index";
-import { availability, drafts, matchCache, matches, mpChat, mpLobbies, reschedules, scoreEdits, teams } from "./schema";
+import { matches, reschedules, teams } from "./schema";
 import { TEST_MATCH } from "@/lib/format";
-import { advance } from "./bracket";
+import { advance, MATCH_CHILDREN } from "./bracket";
 import { lockMatch, notifyCaptain, staffOverride } from "./schedule";
 import { getAllTeams } from "./tournament";
 import type { Match } from "@/lib/data";
@@ -22,9 +22,10 @@ export async function settleResult(match: Pick<Match, "id" | "referee">, score: 
   try {
     const changed = await db.transaction(async (tx) => {
       const cur = await lockMatch(tx, match.id);
-      if (!cur || (cur.score1 === score[0] && cur.score2 === score[1] && cur.winner === winner)) return false;
+      // a walkover keeps its result whatever the lobby's scoreboard says
+      if (!cur || cur.ffSide != null || (cur.score1 === score[0] && cur.score2 === score[1] && cur.winner === winner)) return false;
       await tx.update(matches).set({ score1: score[0], score2: score[1], winner }).where(eq(matches.id, match.id));
-      await advance(tx);
+      await advance(tx, true);
       return true;
     });
     clear(alert);
@@ -41,7 +42,7 @@ export async function settleResult(match: Pick<Match, "id" | "referee">, score: 
 }
 
 export async function clearMatchChildren(tx: Tx) {
-  for (const t of [drafts, matchCache, scoreEdits, reschedules, availability, mpLobbies, mpChat]) await tx.delete(t).where(ne(t.matchId, TEST_MATCH.id));
+  for (const t of MATCH_CHILDREN) await tx.delete(t).where(ne(t.matchId, TEST_MATCH.id));
 }
 
 export const realTeams = notLike(teams.id, "test-%");
