@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ExternalLink, Redo2, Undo2 } from "lucide-react";
+import { ExternalLink, Redo2, TriangleAlert, Undo2 } from "lucide-react";
 import type { DrawFeed } from "@/lib/draw";
 import type { ActionResult } from "@/lib/action-result";
 import { errorText } from "@/lib/action-result";
@@ -10,6 +10,7 @@ import { useDict } from "@/components/site/lang";
 import { useFormat } from "@/components/site/tournament";
 import { Btn } from "@/components/admin/form";
 import { SlantButton } from "@/components/site/slant";
+import { Popup, PopupTitle } from "@/components/site/popup";
 import { bracket, end, finish, last, redo, reveal, spin, undo } from "./actions";
 import { DrawThanks } from "@/app/draw/thanks";
 import { nextWheel, onWheel } from "@/lib/draw";
@@ -21,6 +22,7 @@ export function DrawControls({ initial, closed }: { initial: DrawFeed; closed: R
   const [idle, setIdle] = useState(true);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [warn, setWarn] = useState(false);
   const done = feed.pairs.filter((p) => p.b !== null).length;
   const full = done === teams;
   const busy = pending || !idle;
@@ -35,6 +37,8 @@ export function DrawControls({ initial, closed }: { initial: DrawFeed; closed: R
       const r = await fn();
       if (!r?.ok) setError(errorText(t, r?.error));
     });
+  // the undo step from a full bracket clears every match result, draft, lobby, schedule and pickem (undoDraw in db/draw.ts)
+  const wipes = !feed.thanks && !!b && b.shown === slots;
 
   // one wrapper: the admin template animates its direct children as a whole, which would swallow these intros
   return (
@@ -48,7 +52,7 @@ export function DrawControls({ initial, closed }: { initial: DrawFeed; closed: R
             </SlantButton>
           </span>
           <span className="in-left [--i:1]">
-            <Btn tone="outline" onClick={act(undo)} disabled={busy || !feed.pairs.length}>
+            <Btn tone="outline" onClick={wipes ? () => setWarn(true) : act(undo)} disabled={busy || !feed.pairs.length}>
               <Undo2 className="size-4" aria-hidden />
               {t.admin.wheel.undo}
             </Btn>
@@ -69,6 +73,27 @@ export function DrawControls({ initial, closed }: { initial: DrawFeed; closed: R
       <div className="[--draw-d:0.4s]">
         <DrawLive initial={initial} closed={closed} admin thanks={<DrawThanks inline />} onFeed={setFeed} onIdle={setIdle} />
       </div>
+      <Popup open={warn} onClose={() => setWarn(false)} shadow={6} className="max-w-lg p-5 sm:p-7">
+        <div className="[--s:0.06s] [--d:0.1s]">
+          <TriangleAlert className="in-up size-8 text-rose-hi [--i:0]" aria-hidden />
+          <PopupTitle className="heading-slam in-up mt-2 pr-8 text-2xl sm:text-3xl [--i:1]">{t.admin.wheel.undoTitle}</PopupTitle>
+          <p className="in-up mt-2 text-sm text-ash [--i:2]">{t.admin.wheel.undoText}</p>
+          <div className="in-up mt-5 flex flex-wrap gap-3 [--i:3]">
+            <Btn
+              onClick={() => {
+                setWarn(false);
+                act(undo)();
+              }}
+            >
+              <Undo2 className="size-4" aria-hidden />
+              {t.admin.wheel.undo}
+            </Btn>
+            <Btn tone="outline" onClick={() => setWarn(false)}>
+              {t.sched.cancel}
+            </Btn>
+          </div>
+        </div>
+      </Popup>
     </div>
   );
 }
