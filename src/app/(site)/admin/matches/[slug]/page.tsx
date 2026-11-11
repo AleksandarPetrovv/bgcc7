@@ -1,36 +1,54 @@
 import Link from "next/link";
 import { forbidden, notFound } from "next/navigation";
-import { ArrowLeft, TriangleAlert } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { PageTitle } from "@/components/site/page-title";
 import { Words } from "@/components/site/rich";
-import { ActionForm, Panel, Field } from "@/components/admin/form";
-import { labelCls } from "@/components/admin/label";
-import { getPoolStages } from "@/db/mappools";
+import { firstToOf, getPoolStages } from "@/db/mappools";
 import { getEdits, getScoreboard } from "@/db/scoreboards";
 import { getMatches, getTeams } from "@/db/tournament";
+import { isBGCC6 } from "@/db";
+import { avatarPath } from "@/lib/avatar";
+import { getViewer } from "@/lib/authz";
 import { canRunMatch } from "@/lib/match-access";
-import { fmtNum } from "@/lib/data";
-import { slotColor } from "@/lib/format-plan";
+import { matchLabel, startedAfter } from "@/lib/matches";
 import { getDict } from "@/lib/i18n/server";
 import { matchIdFromSlug } from "@/lib/format";
 import { getFormat } from "@/db/edition";
-import { cn } from "@/lib/utils";
-import { removeScore, saveScore, undoScore } from "./actions";
-import { MODS } from "@/lib/mods";
+import { multiPick } from "@/lib/mods";
+import { editsStamp, type MapResult, type PlayerLine } from "@/lib/scoreboard";
+import { editLocked } from "./edit-lock";
+import { ScoreEditor } from "./score-editor";
 
 export default async function MatchScores({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const f = await getFormat();
   const id = matchIdFromSlug(f, slug);
   if (id !== slug) notFound();
-  const [t, runs, all, teams, stages] = await Promise.all([getDict(), canRunMatch(id), getMatches(), getTeams(), getPoolStages()]);
+  const [t, runs, all, teams, stages, viewer] = await Promise.all([getDict(), canRunMatch(id), getMatches(), getTeams(), getPoolStages(), getViewer()]);
   if (!runs) forbidden();
   const match = all.find((m) => m.id === id);
   if (!match) notFound();
+  if (editLocked(viewer?.roles ?? [], match.datetime)) forbidden();
+  const wiped = startedAfter(f, all, id).map((m) => matchLabel(f, t, m.id));
   const [sb, edits] = match.links.length ? await Promise.all([getScoreboard(match, teams, stages), getEdits(id)]) : [null, []];
   const sides = [teams.find((x) => x.id === match.team1.id), teams.find((x) => x.id === match.team2.id)] as const;
   const nameOf = (osuId: number) => sides.flatMap((s) => s?.players ?? []).find((p) => p.userId === osuId)?.username ?? String(osuId);
-  const maps = sb?.maps.filter((m) => !m.note) ?? [];
+  const bgcc6 = isBGCC6();
+
+  // players the scoreboard leaves out (never scored, or set to 0) still get a row, so a score can be given back
+  const maps = (sb?.maps.filter((m) => !m.note) ?? []).map((m) => {
+    const there = new Set(m.players.flat().map((p) => p.id));
+    const gone = new Map(edits.filter((e) => e.gameId === m.gameId && e.removed).map((e) => [e.osuId, e]));
+    const blank = (osuId: number, name: string, avatar: string): PlayerLine => ({ id: osuId, name, avatar, score: 0, acc: 0, combo: 0, miss: 0, mods: m.mods, rank: "", ...(gone.has(osuId) && { edited: true }) });
+    const players = m.players.map((lines, k) => {
+      const roster = (sides[k]?.players ?? []).filter((p) => !there.has(p.userId)).map((p) => blank(p.userId, p.username, p.avatar));
+      const rest = [...gone.values()]
+        .filter((e) => e.team === k + 1 && !there.has(e.osuId) && !roster.some((r) => r.id === e.osuId))
+        .map((e) => blank(e.osuId, nameOf(e.osuId), avatarPath(e.osuId)));
+      return [...lines, ...roster, ...rest];
+    }) as MapResult["players"];
+    return { m: { ...m, players }, multi: multiPick(m.mod, bgcc6) };
+  });
 
   return (
     <>
@@ -51,122 +69,7 @@ export default async function MatchScores({ params }: { params: Promise<{ slug: 
       ) : maps.length === 0 ? (
         <p className="py-10 text-center text-ash">{t.admin.ms.noMaps}</p>
       ) : (
-        <div className="space-y-6">
-          {maps.map((m, n) => {
-            const color = m.slot ? slotColor(m.slot) : m.mod ? MODS[m.mod]?.color : undefined;
-            const gone = edits.filter((e) => e.gameId === m.gameId && e.removed);
-            return (
-              <Panel key={m.gameId} i={Math.min(n, 4)} title={`${m.slot ?? "—"} · ${m.title} [${m.version}]`}>
-                <div className="mb-3 flex items-center gap-3 text-sm">
-                  <span className="h-4 w-1" style={{ background: color ?? "var(--line)" }} />
-                  <span className="num text-lg">
-                    <span className={m.winner === 1 ? "text-crimson-hi" : "text-ash"}>{fmtNum(m.team1)}</span>
-                    <span className="text-ash"> vs </span>
-                    <span className={m.winner === 2 ? "text-azure-hi" : "text-ash"}>{fmtNum(m.team2)}</span>
-                  </span>
-                  <span className="num ml-auto text-ash">{m.running.join(" - ")}</span>
-                </div>
-                <div className="grid gap-4 lg:grid-cols-2">
-                  {([0, 1] as const).map((k) => {
-                    const team = sides[k];
-                    const lines = m.players[k];
-                    const missing = Math.max(0, f.teamSize - lines.length);
-                    const out = new Set(gone.map((e) => e.osuId));
-                    const blank = (team?.players ?? []).filter((p) => !lines.some((l) => l.id === p.userId) && !out.has(p.userId));
-                    return (
-                      <div key={k} className={cn("border-l-[3px] bg-ink p-3", k === 0 ? "border-l-crimson" : "border-l-azure")}>
-                        <div className="mb-2 flex items-center gap-2">
-                          <span className={cn("text-xs font-display font-black", k === 0 ? "text-crimson-hi" : "text-azure-hi")}>{team?.name ?? t.common.tbd}</span>
-                          {missing > 0 && (
-                            <span className="ml-auto inline-flex items-center gap-1 bg-rose/15 px-1.5 py-0.5 text-[0.65rem] font-display font-bold text-rose-hi">
-                              <TriangleAlert className="size-3" /> {t.admin.ms.missing(missing)}
-                            </span>
-                          )}
-                        </div>
-                        <ul className="space-y-1.5">
-                          {lines.map((p) => (
-                            <li key={p.id}>
-                              <details className="group border border-line">
-                                <summary className="flex cursor-pointer list-none items-center gap-2 px-2 py-1.5 text-sm">
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={p.avatar} alt="" className="size-6 shrink-0 rounded-full object-cover" />
-                                  <span className="min-w-0 flex-1 truncate font-display font-bold">{p.name}</span>
-                                  {p.edited && <span className="text-[0.6rem] font-display font-bold text-gold-hi">{t.admin.ms.edited}</span>}
-                                  {p.mods.length > 0 && <span className="text-[0.65rem] font-display font-black uppercase text-ash">{p.mods.join("")}</span>}
-                                  <span className="num hidden w-14 text-right text-ash min-[400px]:block">{(p.acc * 100).toFixed(2)}%</span>
-                                  <span className="num w-20 text-right">{fmtNum(p.score)}</span>
-                                </summary>
-                                <div className="flex flex-wrap items-end gap-3 border-t border-line p-2">
-                                  <ActionForm action={saveScore.bind(null, id, m.gameId, p.id)} className="flex flex-wrap items-end gap-2">
-                                    <label className={labelCls}>
-                                      {t.admin.ms.score}
-                                      <Field name="score" inputMode="numeric" required defaultValue={p.score} className="w-28" />
-                                    </label>
-                                    <label className={labelCls}>
-                                      {t.admin.ms.acc}
-                                      <Field name="acc" inputMode="decimal" required defaultValue={(p.acc * 100).toFixed(2)} className="w-20" />
-                                    </label>
-                                    <label className={labelCls}>
-                                      {t.admin.ms.mods}
-                                      <Field name="mods" defaultValue={p.mods.join("")} placeholder="HDHR" className="w-20" />
-                                    </label>
-                                  </ActionForm>
-                                  <ActionForm action={removeScore.bind(null, id, m.gameId, p.id, k + 1)} submit={t.admin.ms.remove} ghost />
-                                  {p.edited && <ActionForm action={undoScore.bind(null, id, m.gameId, p.id)} submit={t.admin.ms.undo} ghost />}
-                                </div>
-                              </details>
-                            </li>
-                          ))}
-                          {blank.map((p) => (
-                            <li key={p.userId}>
-                              <details className="group border border-dashed border-rose/50">
-                                <summary className="flex cursor-pointer list-none items-center gap-2 px-2 py-1.5 text-sm">
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={p.avatar} alt="" className="size-6 shrink-0 rounded-full object-cover opacity-60" />
-                                  <span className="min-w-0 flex-1 truncate font-display font-bold text-paper/70">{p.username}</span>
-                                  <span className="text-[0.6rem] font-display font-bold text-rose-hi">{t.admin.ms.noScore}</span>
-                                  <span className="num hidden w-14 text-right text-ash min-[400px]:block">0.00%</span>
-                                  <span className="num w-20 text-right text-ash">0</span>
-                                </summary>
-                                <div className="border-t border-line p-2">
-                                  <ActionForm action={saveScore.bind(null, id, m.gameId, p.userId)} className="flex flex-wrap items-end gap-2">
-                                    <label className={labelCls}>
-                                      {t.admin.ms.score}
-                                      <Field name="score" inputMode="numeric" required defaultValue={0} className="w-28" />
-                                    </label>
-                                    <label className={labelCls}>
-                                      {t.admin.ms.acc}
-                                      <Field name="acc" inputMode="decimal" required defaultValue="0.00" className="w-20" />
-                                    </label>
-                                    <label className={labelCls}>
-                                      {t.admin.ms.mods}
-                                      <Field name="mods" placeholder="HD" className="w-20" />
-                                    </label>
-                                  </ActionForm>
-                                </div>
-                              </details>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    );
-                  })}
-                </div>
-                {gone.length > 0 && (
-                  <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
-                    <span className="font-display font-bold text-ash">{t.admin.ms.removed}</span>
-                    {gone.map((e) => (
-                      <span key={e.osuId} className="flex items-center gap-2 border border-line px-2 py-1">
-                        <span className="font-display font-bold">{nameOf(e.osuId)}</span>
-                        <ActionForm action={undoScore.bind(null, id, m.gameId, e.osuId)} submit={t.admin.ms.restore} ghost />
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </Panel>
-            );
-          })}
-        </div>
+        <ScoreEditor id={id} wiped={wiped} stamp={editsStamp(edits)} firstTo={firstToOf(stages, match.stage)} names={[sides[0]?.name ?? t.common.tbd, sides[1]?.name ?? t.common.tbd]} maps={maps} />
       )}
     </>
   );

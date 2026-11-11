@@ -20,6 +20,22 @@ export const MOD_LOBBY: Record<string, string> = Object.fromEntries(rows.flatMap
 /** mods that change star rating, as the acronyms the osu! api takes */
 export const MOD_ACRONYM: Record<string, string[]> = Object.fromEntries(rows.flatMap((m) => (m.sr ? [[m.name, [m.short]]] : [])));
 
+/** what a score editor can set on a player, in display order */
+export const PICK_MODS = ["NM", "HD", "HR", "DT"] as const;
+
+/** tiebreaker maps (and freemod ones on bgcc6) allow more than one mod; every other slot is exactly one */
+export const multiPick = (mod: string | null, bgcc6: boolean) => mod === "Tiebreaker" || (bgcc6 && mod === "FreeMod");
+
+/** NM and DT stand alone, HD and HR may pair up; the result stays in PICK_MODS order */
+export function togglePick(cur: readonly string[], m: string): string[] {
+  if (m !== "HD" && m !== "HR") return cur.includes(m) ? [] : [m];
+  const keep: string[] = cur.filter((x) => x === "HD" || x === "HR");
+  return PICK_MODS.filter((x) => (x === m ? !keep.includes(m) : keep.includes(x)));
+}
+
+export const validPick = (mods: readonly string[], multi: boolean) =>
+  mods.every((m) => (PICK_MODS as readonly string[]).includes(m)) && (mods.length === 1 || (multi && mods.length === 2 && mods[0] === "HD" && mods[1] === "HR"));
+
 const clamp = (v: number) => Math.min(11, Math.round(v * 100) / 100);
 const arToMs = (ar: number) => (ar < 5 ? 1800 - 120 * ar : 1200 - 150 * (ar - 5));
 const msToAr = (ms: number) => (ms > 1200 ? (1800 - ms) / 120 : 5 + (1200 - ms) / 150);

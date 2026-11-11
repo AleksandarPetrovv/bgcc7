@@ -1,16 +1,21 @@
 "use server";
 
-import { db } from "@/db";
+import { db, isBGCC6 } from "@/db";
 import { and, eq } from "drizzle-orm";
 
 import { scoreEdits } from "@/db/schema";
+import { getPoolStages } from "@/db/mappools";
 import { refinishFromScoreboard } from "@/db/refinish";
-import { forgetScoreboard } from "@/db/scoreboards";
+import { forgetScoreboard, getScoreboard, toEdit } from "@/db/scoreboards";
 import { getMatches, getTeams } from "@/db/tournament";
 import { guard } from "@/lib/admin-action";
-import type { ActionResult } from "@/lib/action-result";
+import { multiPick, validPick } from "@/lib/mods";
+import { MAX_SCORE } from "@/lib/result";
+import { editsStamp } from "@/lib/scoreboard";
+import { editLocked } from "./edit-lock";
 
-const parseMods = (v: string) => (v.toUpperCase().replace(/[^A-Z]/g, "").match(/.{2}/g) ?? []).filter((m) => m !== "NM").join(",");
+/** `mods` is null when the player's mods were not touched; `side` is the row's scoreboard team (non-roster players are placed there by lobby colour) */
+export type ScoreChange = { gameId: number; osuId: number; side: 1 | 2; score: number; mods: string[] | null };
 
 async function sync(matchId: string) {
   const r = await refinishFromScoreboard(matchId);
@@ -18,50 +23,73 @@ async function sync(matchId: string) {
   if (r === "partial") await forgetScoreboard(matchId);
 }
 
-async function upsertScore(values: typeof scoreEdits.$inferInsert) {
-  await db
-    .insert(scoreEdits)
-    .values(values)
-    .onConflictDoUpdate({ target: [scoreEdits.matchId, scoreEdits.gameId, scoreEdits.osuId], set: values });
-}
+const wellFormed = (c: ScoreChange) =>
+  Number.isInteger(c.gameId) &&
+  Number.isInteger(c.osuId) &&
+  c.osuId > 0 &&
+  (c.side === 1 || c.side === 2) &&
+  Number.isInteger(c.score) &&
+  c.score >= 0 &&
+  c.score <= MAX_SCORE &&
+  (c.mods === null || (Array.isArray(c.mods) && c.mods.every((m) => typeof m === "string")));
 
-async function rosterTeam(matchId: string, osuId: number) {
-  const [all, teams] = await Promise.all([getMatches(), getTeams()]);
-  const m = all.find((x) => x.id === matchId);
-  if (!m) return null;
-  const on = (id: string) => teams.find((t) => t.id === id)?.players.some((p) => p.userId === osuId);
-  return on(m.team1.id) ? 1 : on(m.team2.id) ? 2 : null;
-}
+// a score of 0 is "did not play": the same removed row the old Remove button wrote, so totals and match cost skip the player
+export async function saveMatchScores(matchId: string, stamp: string, changes: ScoreChange[]) {
+  return guard("matches", "match.score.save", async (v) => {
+    const by = v.osuId;
+    if (!Array.isArray(changes) || changes.length === 0 || changes.length > 500 || !changes.every(wellFormed)) return { ok: false, error: "invalid" };
+    if (new Set(changes.map((c) => `${c.gameId}:${c.osuId}`)).size !== changes.length) return { ok: false, error: "invalid" };
+    const [all, teams, stages] = await Promise.all([getMatches(), getTeams(), getPoolStages()]);
+    const match = all.find((x) => x.id === matchId);
+    const sb = match && (await getScoreboard(match, teams, stages));
+    if (!match || !sb) return { ok: false, error: "invalid" };
+    if (editLocked(v.roles, match.datetime)) return { ok: false, error: "forbidden" };
+    const bgcc6 = isBGCC6();
+    const rosterTeam = (osuId: number) => (teams.find((t) => t.id === match.team1.id)?.players.some((p) => p.userId === osuId) ? 1 : teams.find((t) => t.id === match.team2.id)?.players.some((p) => p.userId === osuId) ? 2 : null);
 
-export async function saveScore(matchId: string, gameId: number, fixedOsuId: number | null, _: ActionResult, fd: FormData) {
-  return guard("matches", "match.score.save", async ({ osuId: by }) => {
-    const osuId = fixedOsuId ?? Number(fd.get("osuId"));
-    const score = Math.round(Number(String(fd.get("score") ?? "").replace(/[\s,.]/g, "")));
-    const accIn = Number(String(fd.get("acc") ?? "").replace(",", "."));
-    if (!Number.isInteger(osuId) || osuId <= 0 || !Number.isInteger(score) || score < 0 || score > 100_000_000) return { ok: false, error: "invalid" };
-    if (!Number.isFinite(accIn) || accIn < 0 || accIn > 100) return { ok: false, error: "invalid" };
-    const team = await rosterTeam(matchId, osuId);
-    if (!team) return { ok: false, error: "invalid" };
-    const values = { matchId, gameId, osuId, team, score, acc: accIn / 100, mods: parseMods(String(fd.get("mods") ?? "")), removed: false, editedBy: by, editedAt: new Date() };
-    await upsertScore(values);
+    const maps = new Map(sb.maps.filter((m) => !m.note).map((m) => [m.gameId, m]));
+    for (const c of changes) {
+      const map = maps.get(c.gameId);
+      if (!map || (c.score > 0 && c.mods && !validPick(c.mods, multiPick(map.mod, bgcc6)))) return { ok: false, error: "invalid" };
+    }
+
+    const res = await db.transaction(async (tx) => {
+      const rows = await tx.select().from(scoreEdits).where(eq(scoreEdits.matchId, matchId));
+      if (editsStamp(rows.map(toEdit)) !== stamp) return "stale" as const;
+      const writes: (typeof scoreEdits.$inferInsert)[] = [];
+      for (const c of changes) {
+        const prev = rows.find((r) => r.gameId === c.gameId && r.osuId === c.osuId);
+        const line = maps.get(c.gameId)!.players.flat().find((p) => p.id === c.osuId);
+        const roster = rosterTeam(c.osuId);
+        if (!line && !prev && !roster) return "invalid" as const;
+        const keep = { acc: prev?.acc ?? line?.acc ?? 0, mods: prev?.mods ?? line?.mods.join(",") ?? "" };
+        writes.push({
+          matchId,
+          gameId: c.gameId,
+          osuId: c.osuId,
+          team: roster ?? c.side,
+          score: c.score,
+          acc: keep.acc,
+          mods: c.score > 0 && c.mods ? c.mods.join(",") : keep.mods,
+          removed: c.score === 0,
+          editedBy: by,
+          editedAt: new Date(),
+        });
+      }
+      for (const w of writes) await tx.insert(scoreEdits).values(w).onConflictDoUpdate({ target: [scoreEdits.matchId, scoreEdits.gameId, scoreEdits.osuId], set: w });
+      return "ok" as const;
+    });
+    if (res === "stale") return { ok: false, error: "stale" };
+    if (res === "invalid") return { ok: false, error: "invalid" };
     await sync(matchId);
-    return { log: { matchId, gameId, osuId, score, acc: accIn } };
-  }, { match: matchId });
-}
-
-// side is the row's scoreboard team: non-roster players are placed there by lobby colour, so the roster can't tell
-export async function removeScore(matchId: string, gameId: number, osuId: number, side: number) {
-  return guard("matches", "match.score.remove", async ({ osuId: by }) => {
-    if (!Number.isInteger(osuId) || osuId <= 0 || !Number.isInteger(gameId) || (side !== 1 && side !== 2)) return { ok: false, error: "invalid" };
-    const team = (await rosterTeam(matchId, osuId)) ?? side;
-    await upsertScore({ matchId, gameId, osuId, team, score: 0, acc: 0, mods: "", removed: true, editedBy: by, editedAt: new Date() });
-    await sync(matchId);
-    return { log: { matchId, gameId, osuId } };
+    return { log: { matchId, players: changes.length, maps: new Set(changes.map((c) => c.gameId)).size } };
   }, { match: matchId });
 }
 
 export async function undoScore(matchId: string, gameId: number, osuId: number) {
-  return guard("matches", "match.score.undo", async () => {
+  return guard("matches", "match.score.undo", async (v) => {
+    const match = (await getMatches()).find((x) => x.id === matchId);
+    if (!match || editLocked(v.roles, match.datetime)) return { ok: false, error: "forbidden" };
     await db.delete(scoreEdits).where(and(eq(scoreEdits.matchId, matchId), eq(scoreEdits.gameId, gameId), eq(scoreEdits.osuId, osuId)));
     await sync(matchId);
     return { log: { matchId, gameId, osuId } };
