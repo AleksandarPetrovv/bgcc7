@@ -1,17 +1,68 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, X } from "lucide-react";
+import { ArrowRight, Check, CornerUpLeft, TriangleAlert, X } from "lucide-react";
 import { Popup, PopupTitle } from "./popup";
-import { acceptPhase, dismissPhase } from "@/actions/phase";
-import { PHASES } from "@/lib/sections";
+import { acceptPhase, checkPhase, dismissPhase } from "@/actions/phase";
+import { PHASES, type Phase } from "@/lib/sections";
+import type { PhaseWarning } from "@/lib/phase-warnings";
 import { Glyph } from "./graphics";
 import { useDict } from "./lang";
 import { cn, cssVars } from "@/lib/utils";
 import { SlantBg } from "./slant";
 
+/** what the server says is not ready for a switch to `to`; null while it checks. a new `token` asks again */
+export function usePhaseWarnings(to: Phase | null, token = 0) {
+  const [res, setRes] = useState<{ to: Phase; token: number; list: PhaseWarning[] } | null>(null);
+  useEffect(() => {
+    if (!to) return;
+    let live = true;
+    const done = (list: PhaseWarning[]) => live && setRes({ to, token, list });
+    checkPhase(to).then(done, () => done([]));
+    return () => {
+      live = false;
+    };
+  }, [to, token]);
+  return res && res.to === to && res.token === token ? res.list : null;
+}
+
+export function PhaseWarningList({ list, to }: { list: PhaseWarning[]; to: Phase }) {
+  const t = useDict();
+  const w = t.admin.phaseSwitch.warn;
+  const text = (x: PhaseWarning) => {
+    switch (x.kind) {
+      case "pending":
+        return w.pending(x.n);
+      case "players":
+        return w.players(x.n, x.need);
+      case "teams":
+        return w.teams(x.n, x.need);
+      case "bracket":
+        return w.bracket(x.n);
+      case "pool":
+        return w.pool(x.title);
+      case "final":
+        return w.final;
+      case "back":
+        return w.back(t.admin.phases[to]);
+    }
+  };
+  return (
+    <ul className="grid gap-2.5">
+      {list.map((x, i) => {
+        const Icon = x.kind === "back" ? CornerUpLeft : TriangleAlert;
+        return (
+          <li key={x.kind} className="in-left flex items-start gap-2.5 text-sm text-paper" style={cssVars({ "--i": i, "--s": "0.06s", "--d": "0.2s" })}>
+            <Icon className={cn("mt-0.5 size-4 shrink-0", x.kind === "back" ? "text-ash" : "text-gold-hi")} aria-hidden />
+            {text(x)}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 export function PhasePrompt({ current, next }: { current: string; next: string }) {
   const t = useDict();
@@ -19,8 +70,9 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
   const [open, setOpen] = useState(true);
   const [pending, start] = useTransition();
   const name = t.admin.phases[next];
-  const from = PHASES.indexOf(current as (typeof PHASES)[number]);
-  const to = PHASES.indexOf(next as (typeof PHASES)[number]);
+  const from = PHASES.indexOf(current as Phase);
+  const to = PHASES.indexOf(next as Phase);
+  const warnings = usePhaseWarnings(next as Phase);
   const run = (fn: () => Promise<unknown>) =>
     start(async () => {
       await fn();
@@ -61,12 +113,19 @@ export function PhasePrompt({ current, next }: { current: string; next: string }
           <ArrowRight className="size-3.5 text-ash" />
           <span className="text-rose-hi">{name}</span>
         </div>
+        <div className={cn("relative grid transition-[grid-template-rows] duration-300 ease-out", warnings?.length ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
+          <div className="overflow-hidden">
+            <p className="mb-2.5 mt-5 text-xs font-display font-bold text-ash">{t.admin.phaseSwitch.lead}</p>
+            {warnings && <PhaseWarningList list={warnings} to={next as Phase} />}
+          </div>
+        </div>
       </div>
       <div className={cn("flex flex-col gap-2.5 p-5 sm:flex-row sm:flex-wrap sm:items-center sm:px-7", pending && "pointer-events-none opacity-60")}>
         <button
           type="button"
+          disabled={!warnings}
           onClick={() => run(() => acceptPhase(next))}
-          className="in-pop group relative isolate inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-display font-bold text-white"
+          className="in-pop group relative isolate inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-display font-bold text-white disabled:pointer-events-none disabled:opacity-60"
           style={cssVars({ "--d": "0.7s" })}
         >
           <SlantBg className="bg-rose shadow-[3px_3px_0_0_var(--rose-deep)] group-hover:bg-rose-hi" />

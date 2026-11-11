@@ -6,110 +6,66 @@ import { getSettings } from "@/db/settings";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
-import { PHASES, SECTIONS, TIMELINE_KEYS } from "@/lib/sections";
+import { TIMELINE_KEYS } from "@/lib/sections";
 import { toSofiaInput } from "@/lib/time";
 import { phaseStates } from "@/lib/dates";
-import { setDates, setPhase, setSections, setTimeline } from "@/actions/phase";
-import { getFormat } from "@/db/edition";
+import { setTimeline } from "@/actions/phase";
 import { isBGCC6 } from "@/db";
 import { discordReady } from "@/lib/discord";
-import { cleanup } from "@/actions/discord";
-import { SlantBg } from "@/components/site/slant";
+import { cn, cssVars } from "@/lib/utils";
+import { PhasePicker } from "./phase-picker";
 
-const check = "size-4 shrink-0 accent-rose";
+const rowCls = "in-left grid grid-cols-1 items-center gap-2 px-3 py-2 lg:grid-cols-[1fr_auto_auto] lg:gap-3";
+const pickCls = "w-full lg:w-[16rem]";
+const rowAt = (i: number) => cssVars({ "--i": i, "--s": "0.06s", "--d": "0.85s" });
+// the form's own button row, last in its intro so it never shows before the rows above it
+const saveIntro = "[&>div:last-child]:animate-[k-up_0.7s_var(--ease)_1.35s_backwards] motion-reduce:[&>div:last-child]:animate-none";
 
 export default async function AdminPhase() {
   const [t, s, viewer] = await Promise.all([getDict(), getSettings(), getViewer()]);
   if (!can(viewer?.roles, "phase")) forbidden();
-  const suiji = !isBGCC6();
-  const off = getFormat().sectionsOff;
-  const sections = SECTIONS.filter((k) => !off.includes(k));
-  const allDates = [
-    ["regOpensAt", t.admin.regOpens, s.regOpensAt],
-    ["regClosesAt", t.admin.regCloses, s.regClosesAt],
-    ["bookingOpensAt", t.admin.bookingOpens, s.bookingOpensAt],
-    ["bookingClosesAt", t.admin.bookingCloses, s.bookingClosesAt],
-  ] as const;
-  const dates = suiji ? allDates.filter(([k]) => !k.startsWith("booking")) : allDates;
   const row = (k: string) => s.timeline.find((e) => e.key === k);
   const states = phaseStates(s.timeline, s.phase);
 
   return (
     <>
       <PageTitle mark="timeline">{t.admin.menu.phase}</PageTitle>
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <Panel title={t.admin.phaseNow} help={t.admin.phaseHelp} className="xl:col-span-2" i={0}>
-          <ActionForm action={setPhase} submit={t.admin.applyPhase} className="space-y-4">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {PHASES.map((p, i) => (
-                <label
-                  key={p}
-                  style={{ "--i": i, "--s": "0.07s", "--d": "0.5s" } as React.CSSProperties}
-                  className="in-pop group/ph relative isolate flex min-h-14 cursor-pointer items-center gap-2.5 whitespace-nowrap px-4 text-sm font-display font-bold"
-                >
-                  <SlantBg className="-skew-x-6 border border-line transition-colors group-hover/ph:border-paper/40 group-has-[:checked]/ph:border-rose group-has-[:checked]/ph:bg-rose/10 group-has-[:checked]/ph:shadow-[4px_4px_0_0_var(--rose-deep)]" />
-                  <input type="radio" name="phase" value={p} defaultChecked={p === s.phase} className={check} />
-                  {t.admin.phases[p]}
-                </label>
-              ))}
-            </div>
-          </ActionForm>
-          {s.phase === "finished" && can(viewer?.roles, "discord") && discordReady() && (
-            <div className="mt-4 border-t border-line pt-4">
-              <ActionForm action={cleanup} submit={t.admin.dc.cleanup} confirm={t.admin.dc.confirmCleanup} ghost />
-            </div>
-          )}
+      <div className="grid grid-cols-1 gap-6">
+        <Panel title={t.admin.phaseNow} help={t.admin.phaseHelp} i={0}>
+          <PhasePicker phase={s.phase} canCleanup={can(viewer?.roles, "discord") && discordReady()} />
         </Panel>
 
-        <Panel title={t.admin.sectionsTitle} help={t.admin.sectionsHelp} i={1}>
-          <ActionForm key={s.phase} action={setSections} className="space-y-4">
-            <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-              {sections.map((k, i) => (
-                <label key={k} style={{ "--i": i, "--s": "0.035s", "--d": "0.55s" } as React.CSSProperties} className="in-left flex min-h-10 cursor-pointer items-center gap-2.5 border-b border-line text-sm font-display font-bold">
-                  <input type="checkbox" name={k} defaultChecked={s.sections[k]} className={check} />
-                  {t.admin.sections[k]}
-                </label>
-              ))}
-            </div>
-          </ActionForm>
-        </Panel>
-
-        <Panel title={t.admin.dates} help={t.admin.datesHelp} i={2}>
-          <ActionForm action={setDates} className="space-y-4">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {dates.map(([name, label, value], i) => (
-                <label key={name} style={{ "--i": i, "--s": "0.07s", "--d": "0.6s" } as React.CSSProperties} className="in-up flex min-w-0 flex-col gap-1.5 text-[0.68rem] font-display font-bold text-ash transition-colors">
-                  {label}
-                  <DateTimeField name={name} defaultValue={toSofiaInput(value)} className="w-full" />
-                </label>
-              ))}
-            </div>
-          </ActionForm>
-        </Panel>
-
-        <Panel title={t.admin.timeline} help={t.admin.timelineHelp} className="xl:col-span-2" i={3}>
-          <ActionForm key={JSON.stringify(s.timeline)} action={setTimeline} className="space-y-4">
+        <Panel title={t.admin.timeline} help={t.admin.timelineHelp} i={2}>
+          <ActionForm action={setTimeline} className={cn("space-y-4", saveIntro)}>
             <div className="divide-y divide-line border border-line">
               {TIMELINE_KEYS.map((k, i) => (
-                <div key={k} style={{ "--i": i, "--s": "0.06s", "--d": "0.7s" } as React.CSSProperties} className="in-left grid grid-cols-1 items-center gap-2 px-3 py-2 sm:grid-cols-[1fr_auto_auto] sm:gap-3">
+                <div key={k} style={rowAt(i)} className={rowCls}>
                   <span className="flex items-center gap-2 text-sm font-display font-bold">
                     {t.timeline[k]}
-                    {states[i] === "now" && (
-                      <span className="in-slam inline-flex [--d:1.1s]">
-                        <Tag>{t.admin.current}</Tag>
-                      </span>
-                    )}
+                    <span aria-hidden={states[i] !== "now"} className={cn("in-fade transition-opacity duration-300 [--d:1.15s]", states[i] === "now" ? "opacity-100" : "opacity-0")}>
+                      <Tag>{t.admin.current}</Tag>
+                    </span>
                   </span>
                   {k === "reg" ? (
-                    <span className="text-xs text-ash sm:col-span-2">{t.admin.regFromDates}</span>
+                    <>
+                      <DateTimeField name="regOpensAt" defaultValue={toSofiaInput(s.regOpensAt)} aria-label={t.admin.regOpens} className={pickCls} />
+                      <DateTimeField name="regClosesAt" defaultValue={toSofiaInput(s.regClosesAt)} aria-label={t.admin.regCloses} className={pickCls} />
+                    </>
                   ) : (
                     <>
-                      <DateTimeField kind="date" name={`from.${k}`} defaultValue={row(k)?.from ?? ""} aria-label={`${t.timeline[k]} · ${t.admin.from}`} className="w-full sm:w-[13rem]" />
-                      <DateTimeField kind="date" name={`to.${k}`} defaultValue={row(k)?.to ?? ""} aria-label={`${t.timeline[k]} · ${t.admin.to}`} className="w-full sm:w-[13rem]" />
+                      <DateTimeField kind="date" name={`from.${k}`} defaultValue={row(k)?.from ?? ""} aria-label={`${t.timeline[k]} · ${t.admin.from}`} className={pickCls} />
+                      <DateTimeField kind="date" name={`to.${k}`} defaultValue={row(k)?.to ?? ""} aria-label={`${t.timeline[k]} · ${t.admin.to}`} className={pickCls} />
                     </>
                   )}
                 </div>
               ))}
+              {isBGCC6() && (
+                <div style={rowAt(TIMELINE_KEYS.length)} className={rowCls}>
+                  <span className="text-sm font-display font-bold">{t.admin.booking}</span>
+                  <DateTimeField name="bookingOpensAt" defaultValue={toSofiaInput(s.bookingOpensAt)} aria-label={t.admin.bookingOpens} className={pickCls} />
+                  <DateTimeField name="bookingClosesAt" defaultValue={toSofiaInput(s.bookingClosesAt)} aria-label={t.admin.bookingCloses} className={pickCls} />
+                </div>
+              )}
             </div>
           </ActionForm>
         </Panel>
