@@ -11,7 +11,8 @@ export type DrawLast = { kind: "spin" | "undo" | "redo"; op: DrawOp } | null;
  * with this many teams placed into the round of 16 (two per match, in match order). `thanks`: the bracket is full and the host
  * closed the show with the overlay's "thanks for watching". any pick drops all three
  */
-export type DrawState = { pairs: DrawPair[]; redo: DrawOp[]; seq: number; last: DrawLast; ended?: boolean; bracket?: number | null; thanks?: boolean };
+/** `frozen`: the drawn players' ids in seed order, fixed at the first spin so later screening changes can't move seeds or tiers */
+export type DrawState = { pairs: DrawPair[]; redo: DrawOp[]; seq: number; last: DrawLast; ended?: boolean; bracket?: number | null; thanks?: boolean; frozen?: number[] };
 
 /** what /draw and /admin/draw show. `taken`: players already on a team made outside the draw, `redo`: a taken back pick can be put back */
 export type DrawFeed = { open: boolean; a: DrawPlayer[]; b: DrawPlayer[]; taken: number[]; pairs: { a: number; b: number | null }[]; seq: number; last: DrawLast; redo: boolean; ended: boolean; seeds: DrawSeed[] | null; bracket: DrawBracket | null; thanks: boolean; build: string };

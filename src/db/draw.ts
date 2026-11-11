@@ -3,6 +3,7 @@ import { randomInt } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { eq, ne, or } from "drizzle-orm";
 import { isTestTeam, TEST_MATCH } from "@/lib/format";
+import { snapshot } from "@/lib/snapshot";
 import { BUILD } from "@/lib/build";
 import { addPick, canRedo, drawDone, EMPTY_DRAW, setBracket, setEnded, setThanks, nextWheel, onWheel, undoPick, type DrawFeed, type DrawOp, type DrawPlayer, type DrawState } from "@/lib/draw";
 import { globalStore } from "@/lib/global-store";
@@ -36,7 +37,8 @@ async function seedOrder() {
 async function clearBracket(tx: Tx) {
   await clearMatchChildren(tx);
   await tx.delete(pickems);
-  await tx.update(matches).set({ team1Id: null, team2Id: null, score1: null, score2: null, winner: null, manual: false }).where(ne(matches.id, TEST_MATCH.id));
+  await tx.update(settings).set({ pickemsClosedAt: null }).where(eq(settings.id, 1));
+  await tx.update(matches).set({ team1Id: null, team2Id: null, score1: null, score2: null, winner: null, manual: false, ffSide: null, ffKind: null }).where(ne(matches.id, TEST_MATCH.id));
 }
 
 export async function seedBracket() {
@@ -44,6 +46,7 @@ export async function seedBracket() {
   if (isBGCC6()) return null;
   const order = await seedOrder();
   if (!order) return null;
+  await snapshot("seed-bracket");
   await db.transaction(async (tx) => {
     await clearBracket(tx);
     for (const [k, { t }] of order.entries()) await tx.update(teams).set({ seed: k + 1 }).where(eq(teams.id, t.id));
@@ -110,7 +113,8 @@ async function change(fn: (c: Ctx) => Promise<{ next: DrawState; name: string; s
     const { state, taken } = await current(tx, true);
     const r = await fn({ tx, s: state, t, taken });
     if (!r) return null;
-    await tx.update(settings).set({ draw: r.next }).where(eq(settings.id, 1));
+    const started = r.next.pairs.length > 0 || r.next.redo.length > 0;
+    await tx.update(settings).set({ draw: { ...r.next, frozen: started ? (state.frozen ?? [...t.a, ...t.b].map((p) => p.id)) : undefined } }).where(eq(settings.id, 1));
     if (r.same) teamsChange = false;
     return r.name;
   });
@@ -197,7 +201,10 @@ export const undoDraw = () =>
     if (s.thanks) return { next: setThanks(s, false), name: "thanks", same: true };
     if (s.ended) {
       if (s.bracket != null) {
-        if (s.bracket === 2 * getFormat().r1.length) await clearBracket(tx);
+        if (s.bracket === 2 * getFormat().r1.length) {
+          await snapshot("draw-undo");
+          await clearBracket(tx);
+        }
         return { next: setBracket(s, s.bracket > 0 ? s.bracket - 1 : null), name: "bracket", same: true };
       }
       return { next: setEnded(s, false), name: "teams", same: true };
