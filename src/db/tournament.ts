@@ -6,10 +6,11 @@ import { drafts, matches, mpLobbies, sponsors, teamMembers, teams, users } from 
 import { safe } from "./safe";
 import type { Match, Player, Sponsor, Team } from "@/lib/data";
 import { teamImg } from "@/lib/img";
-import { isTestTeam, TEST_MATCH } from "@/lib/format";
+import { GF, GF_RESET, isTestTeam, TEST_MATCH } from "@/lib/format";
 import { avatarCol } from "./avatar";
 import { avatarPath } from "@/lib/avatar";
 import { mpIds } from "@/lib/mp-links";
+import { isOutKind, walkoverOf } from "@/lib/out";
 
 export const getTeams = cache(async () => (await getAllTeams()).filter((t) => !isTestTeam(t.id)));
 
@@ -59,6 +60,7 @@ export const getAllTeams = cache(() =>
         avgRank: ranked.length ? Math.round(ranked.reduce((n, p) => n + p.rank, 0) / ranked.length) : 0,
         avgPp: players.length ? Math.round(players.reduce((n, p) => n + p.pp, 0) / players.length) : 0,
         seed: t.seed,
+        out: isOutKind(t.out) ? t.out : null,
       };
     });
   }, [] as Team[]),
@@ -66,7 +68,14 @@ export const getAllTeams = cache(() =>
 
 export type MatchRow = typeof matches.$inferSelect;
 
-export const getAllMatchRows = cache(() => safe(() => db.select().from(matches).orderBy(asc(matches.order)), [] as MatchRow[]));
+/** the reset is never scheduled: its time is always the grand final's plus an hour, so every reader sees the same one */
+export const getAllMatchRows = cache(() =>
+  safe(async () => {
+    const rows = await db.select().from(matches).orderBy(asc(matches.order));
+    const gf = rows.find((m) => m.id === GF)?.startsAt;
+    return rows.map((m) => (m.id === GF_RESET ? { ...m, startsAt: gf ? new Date(gf.getTime() + 36e5) : null } : m));
+  }, [] as MatchRow[]),
+);
 export const getMatchRows = cache(async () => (await getAllMatchRows()).filter((m) => m.id !== TEST_MATCH.id));
 
 export const getMatches = cache(async (): Promise<Match[]> => (await getAllMatches()).filter((m) => m.id !== TEST_MATCH.id));
@@ -90,6 +99,7 @@ export const getAllMatches = cache(async (): Promise<Match[]> => {
     team1: { id: m.team1Id ?? "", name: name(m.team1Id), score: m.score1 },
     team2: { id: m.team2Id ?? "", name: name(m.team2Id), score: m.score2 },
     winner: m.winner === 1 || m.winner === 2 ? m.winner : null,
+    walkover: walkoverOf(m),
     links: mpIds(m.mpLinks),
     round: m.round,
     bracket: m.bracket as Match["bracket"],

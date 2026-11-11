@@ -78,6 +78,8 @@ export const settings = pgTable("settings", {
   draw: jsonb("draw").$type<DrawState>(),
   // match week number → its monday (yyyy-mm-dd)
   weeks: jsonb("weeks").$type<Record<string, string>>().notNull().default({}),
+  // set once pick'ems closed; a fresh bracket (draw undo / new draw) clears it
+  pickemsClosedAt: timestamp("pickems_closed_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -240,6 +242,11 @@ export const teams = pgTable("teams", {
   image: text("image").notNull().default(""),
   seed: integer("seed").notNull().default(0),
   seeded: boolean("seeded").notNull().default(false),
+  // a team ruled out of the tournament: forfeit / dq / other (see lib/out.ts); null = playing
+  out: text("out"),
+  outReason: text("out_reason"),
+  outAt: timestamp("out_at", { withTimezone: true }),
+  outSeenBy: integer("out_seen_by").array().notNull().default(sql`'{}'::integer[]`),
 });
 
 export const teamMembers = pgTable("team_members", {
@@ -272,6 +279,9 @@ export const matches = pgTable("matches", {
   vodUrl: text("vod_url"),
   scene: text("scene"),
   manual: boolean("manual").notNull().default(false),
+  // a walkover: the side (1 | 2) that gave the match up and why (an OutKind); the other side wins without playing
+  ffSide: integer("ff_side"),
+  ffKind: text("ff_kind"),
 });
 
 export const mpLobbies = pgTable("mp_lobbies", {

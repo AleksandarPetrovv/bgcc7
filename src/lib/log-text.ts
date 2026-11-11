@@ -272,6 +272,10 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `подреди схемата: ${String(p.teams ?? "")}` : `seeded the bracket: ${String(p.teams ?? "")}`;
     case "teams.draw":
       return bg ? `изтегли отборите: ${String(p.teams ?? "")}` : `drew the teams: ${String(p.teams ?? "")}`;
+    case "bws.lock":
+      return bg ? `заключи BWS ранговете (${num(p.players)} играчи)` : `locked the BWS ranks (${num(p.players)} players)`;
+    case "bws.unlock":
+      return bg ? "отключи BWS ранговете" : "unlocked the BWS ranks";
     case "draw.spin":
       return bg ? `завъртя колелото: ${b(p.player)}` : `spun the wheel: ${b(p.player)}`;
     case "draw.undo":
@@ -300,6 +304,11 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
         : bg ? `отказа новото име и снимка на ${b(p.team)}: ${String(p.note ?? "")}` : `declined the new name and picture of ${b(p.team)}: ${String(p.note ?? "")}`;
     case "team.delete":
       return bg ? `изтри отбор ${team("id")}` : `deleted team ${team("id")}`;
+    case "team.out":
+      return bg ? `извади отбор ${team("id")} от турнира (${String(p.kind ?? "")}${p.once ? ", само един мач" : ""})${p.reason ? `: ${String(p.reason)}` : ""}` : `ruled team ${team("id")} out (${String(p.kind ?? "")}${p.once ? ", one match" : ""})${p.reason ? `: ${String(p.reason)}` : ""}`;
+    case "team.back":
+      if (p.forfeit) return bg ? `отмени отказа на отбор ${team("id")}` : `undid forfeit of team ${team("id")}`;
+      return bg ? `върна отбор ${team("id")} в турнира` : `brought team ${team("id")} back in`;
     case "team.placeMember":
       return bg ? `премести ${user()} в ${team()}` : `moved ${user()} to ${team()}`;
     case "team.removeMember":
@@ -310,6 +319,7 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `обнови мача ${match("id")}${score}` : `updated match ${match("id")}${score}`;
     }
     case "match.score.save": {
+      if (p.players != null) return bg ? `запази ${b(num(p.players))} промени в резултатите на ${match()}` : `saved ${b(num(p.players))} score changes in ${match()}`;
       const score = num(p.score).toLocaleString("en-US");
       const acc = p.acc != null ? ` · ${num(p.acc).toFixed(2)}%` : "";
       return bg ? `сложи резултат ${b(score + acc)} на ${user()} в ${match()}` : `set ${user()}'s score in ${match()} to ${b(score + acc)}`;
@@ -318,6 +328,10 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `махна резултата на ${user()} от ${match()}` : `removed ${user()}'s score from ${match()}`;
     case "match.score.undo":
       return bg ? `върна оригиналния резултат на ${user()} в ${match()}` : `undid the score edit for ${user()} in ${match()}`;
+    case "match.take":
+      return p.from
+        ? bg ? `пое мача ${match("id")} от ${b(p.from)}` : `took over match ${match("id")} from ${b(p.from)}`
+        : bg ? `взе мача ${match("id")}` : `took match ${match("id")}`;
     case "match.fillSeeds":
       return bg ? "попълни първия кръг по номерата" : "filled the first round from the seeds";
     case "match.resetAll":
@@ -413,6 +427,8 @@ const SUMMARY: Record<string, [string, string]> = {
   "staff.add": ["added staff members", "добави хора в екипа"],
   "staff.remove": ["removed staff members", "махна хора от екипа"],
   "team.update": ["edited teams", "промени отбори"],
+  "team.out": ["ruled teams out", "извади отбори от турнира"],
+  "team.back": ["brought teams back in", "върна отбори в турнира"],
   "team.request": ["reviewed team name and picture changes", "прегледа смени на име и снимка"],
   "team.placeMember": ["moved players between teams", "местеше играчи между отбори"],
   "team.removeMember": ["took players off teams", "вади играчи от отбори"],

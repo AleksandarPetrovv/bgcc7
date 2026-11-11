@@ -17,17 +17,21 @@ function lossesByTeam(results: Result[]) {
   return losses;
 }
 
-export const isKnockedOut = (teamId: string, results: Result[] | Map<string, number>) => ((results instanceof Map ? results : lossesByTeam(results)).get(teamId) ?? 0) >= KO_LOSSES;
+/** still in the tournament: not ruled out and not knocked out */
+export const isAlive = (team: Team, results: Result[] | Map<string, number>) => !team.out && ((results instanceof Map ? results : lossesByTeam(results)).get(team.id) ?? 0) < KO_LOSSES;
 
 export const teamOfPlayer = (teams: Team[], osuId: number) => teams.find((t) => t.players.some((p) => p.userId === osuId));
+
+/** players of teams ruled out of the tournament */
+export const outPlayerIds = (teams: Team[]) => new Set(teams.filter((t) => t.out).flatMap((t) => t.players.map((p) => p.userId)));
 
 export function splitAlive<T extends { osuId: number; status: string }>(rows: T[], teams: Team[], matches: Match[], phase: string) {
   const signed = rows.filter((p) => p.status !== "denied");
   const playoffs = phase === "playoffs" || phase === "finished";
   if (!playoffs) return { playoffs, players: signed, out: [] as T[] };
   const losses = lossesByTeam(matches);
-  const ids = (dead: boolean) => new Set(teams.filter((tm) => isKnockedOut(tm.id, losses) === dead).flatMap((tm) => tm.players.map((p) => p.userId)));
-  const alive = ids(false);
-  const gone = ids(true);
+  const ids = (alive: boolean) => new Set(teams.filter((tm) => isAlive(tm, losses) === alive).flatMap((tm) => tm.players.map((p) => p.userId)));
+  const alive = ids(true);
+  const gone = ids(false);
   return { playoffs, players: signed.filter((p) => alive.has(p.osuId)), out: rows.filter((p) => gone.has(p.osuId)) };
 }

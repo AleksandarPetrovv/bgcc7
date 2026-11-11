@@ -1,4 +1,5 @@
 import { nameKey } from "@/lib/names";
+import type { OutKind, Walkover } from "@/lib/out";
 export type Player = {
   userId: number;
   username: string;
@@ -20,6 +21,8 @@ export type Team = {
   avgRank: number;
   avgPp: number;
   seed: number;
+  /** set when the team is ruled out of the tournament */
+  out: OutKind | null;
 };
 
 export type Beatmap = {
@@ -48,6 +51,8 @@ export type Match = {
   team1: MatchSide;
   team2: MatchSide;
   winner: 1 | 2 | null;
+  /** a walkover: the side that gave the match up shows its tag (FF / DQ / Out) in place of a score */
+  walkover: Walkover | null;
   links: string[];
   running?: boolean;
   round: string;
