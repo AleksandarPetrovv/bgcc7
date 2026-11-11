@@ -28,6 +28,12 @@ export const owedPick = cache(async (osuId: number) => {
   return team;
 });
 
+/** the host's reason on the team's latest request when it was declined */
+export async function declinedNote(teamId: string) {
+  const [r] = await db.select({ status: teamRequests.status, note: teamRequests.note }).from(teamRequests).where(eq(teamRequests.teamId, teamId)).orderBy(desc(teamRequests.createdAt), desc(teamRequests.id)).limit(1);
+  return r?.status === "rejected" ? r.note : null;
+}
+
 export type HostReq = { id: number; team: string; teamId: string; name: string; pic: string; oldName: string; oldPic: string };
 export type CaptainNote = { id: number; ok: boolean; note: string | null; at: string };
 
@@ -66,14 +72,14 @@ export async function submitRequest(teamId: string, osuId: number, name: string 
 }
 
 export async function decideRequest(id: number, accept: boolean, note: string | null, by: number) {
-  const [r] = await db.select({ teamId: teamRequests.teamId, name: teamRequests.name, mime: teamRequests.mime, status: teamRequests.status }).from(teamRequests).where(eq(teamRequests.id, id)).limit(1);
+  const [r] = await db.select({ osuId: teamRequests.osuId, teamId: teamRequests.teamId, name: teamRequests.name, mime: teamRequests.mime, status: teamRequests.status }).from(teamRequests).where(eq(teamRequests.id, id)).limit(1);
   if (!r || r.status !== "pending") return null;
   const team = (await getTeams()).find((t) => t.id === r.teamId);
   await db.transaction(async (tx) => {
     await tx.update(teamRequests).set({ status: accept ? "accepted" : "rejected", note: accept ? null : note, decidedBy: by, decidedAt: new Date() }).where(eq(teamRequests.id, id));
     if (accept) await tx.update(teams).set({ name: r.name ?? team?.players[0]?.username ?? team?.name, image: r.mime ? teamPicPath(id) : "" }).where(eq(teams.id, r.teamId));
   });
-  return { team: team?.name ?? r.teamId, name: r.name };
+  return { team: team?.name ?? r.teamId, name: r.name, captain: r.osuId };
 }
 
 export async function teamPic(id: number) {

@@ -13,8 +13,8 @@ import { SquareCrop, type CropSrc } from "./square-crop";
 const MAX = 20 * 1024 * 1024;
 const d = (s: number) => ({ "--d": `${s}s` }) as React.CSSProperties;
 
-/** forced while the captain owes a pick: no close, an empty send keeps the captain defaults */
-export function TeamPrompt({ avatar }: { avatar: string }) {
+/** forced while the captain owes a pick: no close, an empty send keeps the current name and picture */
+export function TeamPrompt({ avatar, declined }: { avatar: string; declined: string | null }) {
   const t = useDict();
   const r = t.teamReq;
   const router = useRouter();
@@ -72,6 +72,11 @@ export function TeamPrompt({ avatar }: { avatar: string }) {
       <p className="in-up mt-1.5 text-sm text-ash" style={d(0.18)}>
         {r.text}
       </p>
+      {declined && (
+        <p className="in-up mt-3 border-l-2 border-rose pl-3 text-sm text-paper/80" style={d(0.22)}>
+          <span className="font-display font-bold text-rose-hi">{r.declined}</span> {declined}
+        </p>
+      )}
       <form
         className="mt-5 flex flex-col gap-5"
         onSubmit={(e) => {
