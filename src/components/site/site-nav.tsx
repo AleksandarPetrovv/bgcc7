@@ -41,7 +41,7 @@ function AdminCrest({ on }: { on: boolean }) {
   );
 }
 
-type Props = { user: { name: string; image: string | null; admin: string | null } | null; nav: NavItem[]; register: boolean; live: string[]; captain: boolean; match: string | null; sched: { show: boolean; dot: boolean; discord: boolean; team: boolean } | null; bell: BellFeed | null };
+type Props = { user: { name: string; image: string | null; admin: string | null; page: boolean } | null; nav: NavItem[]; register: boolean; live: string[]; captain: boolean; match: string | null; sched: { show: boolean; dot: boolean; discord: boolean; team: boolean } | null; bell: BellFeed | null };
 
 type Clock = { end: number | null; pause: boolean; offset: number };
 
@@ -208,7 +208,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
   }, [desk.length, user, register, match, tight]);
   const compact = fit === null ? "min-[1700px]:hidden" : fit ? "hidden" : "";
   return (
-    <header className="site-header sticky top-0 z-40 border-b border-line bg-field/90 backdrop-blur-md">
+    <header className="site-header sticky top-0 z-40 border-b border-line bg-ink/90 backdrop-blur-md">
       <div ref={rowRef} className="relative flex h-16 items-center gap-1.5 pr-3 sm:gap-6 lg:h-20 lg:pr-6">
         <Link href="/" className="group flex h-full items-center gap-1 pl-3 sm:pl-4 lg:pl-6" aria-label={t.nav.homeLabel}>
           <Wordmark size="md" className="text-paper max-sm:text-[1.6rem]" />
@@ -285,10 +285,10 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
             <div className="relative isolate hidden h-9 items-center md:flex">
               <SlantBg className="border border-line" />
               <Link
-                href="/me"
-                title={t.nav.me}
+                href={user.page ? "/me" : "/"}
+                title={user.page ? t.nav.me : undefined}
                 onClick={(e) => {
-                  if (!e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) setClicked({ base: "/me", from: path });
+                  if (user.page && !e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) setClicked({ base: "/me", from: path });
                 }}
                 className="relative flex h-full items-center gap-2.5 pr-3 hover:text-rose-hi">
                 {user.image && <SlantPfp src={user.image} className="h-full w-10" layer="-left-[12.5%] top-0 h-full w-[125%]" />}
@@ -371,7 +371,7 @@ export function SiteNav({ user, nav, register, live, captain, match: initialMatc
               <div className="shrink-0 border-t border-line bg-coal p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                 {user ? (
                   <div className="flex items-center gap-3">
-                    <Link href="/me" onClick={() => setOpen(false)} className="flex min-w-0 flex-1 items-center gap-3 hover:text-rose-hi">
+                    <Link href={user.page ? "/me" : "/"} onClick={() => setOpen(false)} className="flex min-w-0 flex-1 items-center gap-3 hover:text-rose-hi">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       {user.image && <img src={user.image} alt="" className="size-9 object-cover" />}
                       <span className="min-w-0 flex-1 truncate text-sm font-display font-black">{user.name}</span>

@@ -12,7 +12,7 @@ export function SubNav({ items }: { items: { href: string; label: string; hidden
   const t = useDict();
   const current = activeItem(items, path);
   return (
-    <div className="sub-nav sticky top-16 z-30 border-b border-line bg-coal/95 backdrop-blur lg:top-20">
+    <div className="sub-nav sticky top-16 z-30 border-b border-line bg-ink/95 backdrop-blur lg:top-20">
       <nav className="mx-auto flex max-w-page items-stretch gap-1 overflow-x-auto px-2 sm:gap-6 sm:px-4 lg:px-8 2xl:px-12" aria-label={t.nav.section}>
         {items.map((i) => {
           const active = i === current;
