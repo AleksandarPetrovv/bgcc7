@@ -77,6 +77,21 @@ export function beforeResult(f: Format, matches: Match[], id: string, { scored =
   });
 }
 
+/** the later matches match `id` feeds, transitively through the bracket, that already have a winner, a score or an mp link */
+export function startedAfter(f: Format, matches: Match[], id: string): Match[] {
+  const later = new Set<string>();
+  const queue = [id];
+  for (let from = queue.pop(); from; from = queue.pop()) {
+    for (const [to, srcs] of Object.entries(f.feed)) {
+      if (!later.has(to) && srcs.some((s) => s.from === from)) {
+        later.add(to);
+        queue.push(to);
+      }
+    }
+  }
+  return matches.filter((m) => later.has(m.id) && (m.winner || m.team1.score != null || m.team2.score != null || m.links.length > 0));
+}
+
 export const recentResults = (matches: Match[]) => matches.filter((m) => m.winner).sort((a, b) => (b.datetime ?? "").localeCompare(a.datetime ?? ""));
 
 export function upcomingMatches(matches: Match[]) {
@@ -86,6 +101,14 @@ export function upcomingMatches(matches: Match[]) {
 }
 
 export const wonBy = (m: Match, teamId: string) => (m.team1.id === teamId ? m.winner === 1 : m.team2.id === teamId && m.winner === 2);
+
+/** the team's first match still to play (bracket order): no winner yet, no walkover */
+export const nextMatchOf = (matches: Match[], teamId: string) =>
+  matches.find((m) => !m.winner && !m.walkover && (m.team1.id === teamId || m.team2.id === teamId));
+
+/** matches the team gave up as the walkover side */
+export const forfeitsOf = (matches: Match[], teamId: string) =>
+  matches.filter((m) => m.walkover && (m.walkover.side === 1 ? m.team1.id : m.team2.id) === teamId);
 
 export function recordOf(matches: Match[], teamId: string): [number, number] {
   const played = matches.filter((m) => m.winner && (m.team1.id === teamId || m.team2.id === teamId));

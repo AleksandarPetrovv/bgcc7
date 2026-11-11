@@ -1,9 +1,11 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { matches, teamMembers, users } from "@/db/schema";
+import { matches, mpLobbies, teamMembers, users } from "@/db/schema";
+import { staffIds } from "@/db/users";
 import { getViewer } from "./authz";
 import { can } from "./roles";
+import { offlineFor } from "./relay";
 import { siteRun } from "@/db/site-run";
 import { staffNames } from "./staff-names";
 import type { Side } from "./draft";
@@ -19,6 +21,25 @@ export async function refScope() {
   const [u] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, v.osuId)).limit(1);
   const me = u?.username.toLowerCase();
   return { host: false, runs: (referee: string | null) => !!me && staffNames(referee).some((n) => n.toLowerCase() === me) };
+}
+
+const HELPER_GONE = 5 * 60_000;
+const STARTS_SOON = 30 * 60_000;
+
+/** what the viewer may do about a refereeless or abandoned match: take it (no referee) or take it over (every named referee's helper gone); null = nothing */
+export async function takeOver(q: Pick<typeof db, "select">, m: Pick<typeof matches.$inferSelect, "id" | "referee" | "winner" | "startsAt">) {
+  const v = await getViewer();
+  if (!v || m.winner != null || !v.roles.includes("referee") || v.roles.includes("host")) return null;
+  const [me] = await q.select({ username: users.username }).from(users).where(eq(users.osuId, v.osuId)).limit(1);
+  const named = staffNames(m.referee);
+  if (!me || named.some((n) => n.toLowerCase() === me.username.toLowerCase())) return null;
+  const [lobby] = await q.select({ owner: mpLobbies.owner }).from(mpLobbies).where(and(eq(mpLobbies.matchId, m.id), eq(mpLobbies.open, true))).limit(1);
+  const out = { username: me.username, lobby: !!lobby };
+  if (!named.length) return { kind: "take" as const, ...out };
+  const ids = await staffIds(m.referee);
+  if (!ids.every((id) => (offlineFor(id) ?? 0) >= HELPER_GONE)) return null;
+  const needed = (lobby && ids.includes(Number(lobby.owner))) || (m.startsAt && m.startsAt.getTime() <= Date.now() + STARTS_SOON);
+  return needed ? { kind: "over" as const, ...out } : null;
 }
 
 export async function canRunMatch(matchId: string) {

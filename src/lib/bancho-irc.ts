@@ -314,6 +314,7 @@ async function restore(s: State, matchId: string, mpId: number, owner: number) {
 }
 
 async function rejoin(l: Live) {
+  l.active = Date.now();
   try {
     await l.lobby.channel.join();
     quiet(l.matchId);
@@ -335,7 +336,8 @@ const IDLE = 10 * 60_000;
 function sweepIdle() {
   const s = cur();
   if (!s) return;
-  for (const l of s.live.values()) if (!l.lobby.playing && Date.now() - l.active > IDLE) void handlers?.closeLobby(l.matchId).catch(() => {});
+  // a held draft keeps its lobby, and with the owner's irc down the close command would fail and wrongly mark it closed (resume and reconnect both reset `active`)
+  for (const l of s.live.values()) if (!l.lobby.playing && !l.seen?.pausedAt && s.conns.get(l.owner)?.client.isConnected() && Date.now() - l.active > IDLE) void handlers?.closeLobby(l.matchId).catch(() => {});
 }
 
 const SYNC_GAP = 10_000;

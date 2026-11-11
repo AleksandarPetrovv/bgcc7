@@ -15,8 +15,10 @@ import { dayTime, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
 import { clearCache, saveMatch } from "./actions";
+import { TakeMatch } from "./take-match";
 import { osuMp } from "@/lib/links";
 import { mpIds } from "@/lib/mp-links";
+import { walkoverOf } from "@/lib/out";
 
 const group = "relative border-t border-line pt-5";
 
@@ -29,7 +31,16 @@ function Legend({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m: MatchRow; t: Dict; locale: string; teams: { id: string; name: string; image: string }[]; refs: { referee: string[]; streamer: string[]; commentator: string[] }; host: boolean; pools: { slug: string; title: string }[]; live?: { lobby: boolean } }) {
+// a disabled fieldset disables every input, select and button inside it, custom dropdowns and date pickers included
+function Lock({ off, children }: { off: boolean; children: React.ReactNode }) {
+  return (
+    <fieldset disabled={off} className="m-0 min-w-0 border-0 p-0 transition-opacity disabled:opacity-55">
+      {children}
+    </fieldset>
+  );
+}
+
+export function MatchCard({ m, t, locale, teams, refs, host, runs, take, pools, live }: { m: MatchRow; t: Dict; locale: string; teams: { id: string; name: string; image: string }[]; refs: { referee: string[]; streamer: string[]; commentator: string[] }; host: boolean; runs: boolean; take: { kind: "take" | "over"; lobby: boolean } | null; pools: { slug: string; title: string }[]; live?: { lobby: boolean } }) {
   const f = getFormat();
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? t.common.tbd;
   const teamPic = (id: string | null) => {
@@ -97,7 +108,7 @@ export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m:
           </span>
           {/* the home match cards' scoreline and VS */}
           {scored ? (
-            <Scoreline score={[m.score1, m.score2]} winner={m.winner} className="text-3xl" />
+            <Scoreline score={[m.score1, m.score2]} winner={m.winner} walkover={walkoverOf(m)} className="text-3xl" />
           ) : (
             <span className="heading-slam w-8 text-center text-sm text-ash sm:text-lg">{t.common.vs}</span>
           )}
@@ -137,6 +148,8 @@ export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m:
       </summary>
 
       <div className="border-t border-line pb-5 pl-4 pt-6">
+        {take && <TakeMatch id={m.id} label={matchLabel(f, t, m.id)} from={m.referee ?? ""} kind={take.kind} lobby={take.lobby} />}
+        <Lock off={!runs}>
         <ActionForm key={JSON.stringify(m)} action={saveMatch.bind(null, m.id)} className="space-y-5">
           <input type="hidden" name="stamp" value={matchStamp(m)} />
           <div className="grid gap-5 lg:grid-cols-[1.25fr_1fr]">
@@ -245,6 +258,7 @@ export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m:
             </div>
           </fieldset>
         </ActionForm>
+        </Lock>
 
         {mp.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
@@ -255,7 +269,9 @@ export function MatchCard({ m, t, locale, teams, refs, host, pools, live }: { m:
               <SlantBg className="bg-balkan group-hover/ms:bg-paper" />
               {t.admin.ms.open}
             </Link>
-            <ActionForm action={clearCache.bind(null, m.id)} submit={t.admin.clearCache} ghost />
+            <Lock off={!runs}>
+              <ActionForm action={clearCache.bind(null, m.id)} submit={t.admin.clearCache} ghost />
+            </Lock>
           </div>
         )}
       </div>

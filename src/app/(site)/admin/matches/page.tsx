@@ -6,7 +6,7 @@ import { SlantBg } from "@/components/site/slant";
 import { RuleDiamond } from "@/components/site/rule";
 import { getPoolStages } from "@/db/mappools";
 import { getMatchRows, getTeams } from "@/db/tournament";
-import { refScope } from "@/lib/match-access";
+import { refScope, takeOver } from "@/lib/match-access";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { MatchCard } from "./match-card";
 import { Cascade } from "@/components/site/cascade";
@@ -21,7 +21,8 @@ export default async function AdminMatches() {
   const [t, lang, scope, all, teams, stages, refs, live] = await Promise.all([getDict(), getLang(), refScope(), getMatchRows(), getTeams(), getPoolStages(), refList(), liveList()]);
   if (!scope) forbidden();
   const bracketStages = stages.filter((s) => isBracketStage(s.slug));
-  const rows = byDistance(all.filter((m) => scope.runs(m.referee) && bracketStages.some((s) => s.slug === m.stageSlug)));
+  const rows = byDistance(all.filter((m) => bracketStages.some((s) => s.slug === m.stageSlug)));
+  const takes = new Map(await Promise.all(rows.filter((m) => !m.winner && !scope.runs(m.referee)).map(async (m) => [m.id, await takeOver(db, m)] as const)));
   const locale = localeOf(lang);
   const pools = bracketStages.filter((x) => x.pools.length).map((x) => ({ slug: x.slug, title: roundName(t, x.title) }));
   const sections = [
@@ -53,7 +54,7 @@ export default async function AdminMatches() {
               <div className="pt-8">
                 {s.list.map((m, i) => (
                   <div key={m.id} className="relative mb-12 last:mb-0">
-                    <MatchCard m={m} t={t} locale={locale} teams={teams} refs={refs} host={scope.host} pools={pools} live={m.winner ? undefined : live.get(m.id)} />
+                    <MatchCard m={m} t={t} locale={locale} teams={teams} refs={refs} host={scope.host} runs={scope.runs(m.referee)} take={takes.get(m.id) ?? null} pools={pools} live={m.winner ? undefined : live.get(m.id)} />
                     {/* on the card's bottom line, under the VS */}
                     {i < s.list.length - 1 && <RuleDiamond />}
                   </div>
