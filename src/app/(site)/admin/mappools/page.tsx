@@ -4,7 +4,7 @@ import { RuleDiamond } from "@/components/site/rule";
 import { forbidden, redirect } from "next/navigation";
 import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 import { Panel, IconAction } from "@/components/admin/form";
-import { getPoolStages, slotOf } from "@/db/mappools";
+import { earlierMapIds, getPoolStages, poolGaps, slotOf } from "@/db/mappools";
 import { getPlan, getSkillLayouts } from "@/db/format-plan";
 import { subcategoryNames } from "@/lib/format-plan";
 import { getMapChecks } from "@/lib/osu-api";
@@ -35,7 +35,8 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
   const stage = stages.find((s) => s.slug === sp.stage) ?? stages[0];
   if (!stage) return null;
   const name = (s: { title: string }) => roundName(t, s.title);
-  const [checks, layouts, plan] = await Promise.all([getMapChecks(stage.pools.flatMap((p) => p.maps.map((m) => m.id))), getSkillLayouts(), getPlan()]);
+  const [checks, layouts, plan, earlier, gaps] = await Promise.all([getMapChecks(stage.pools.flatMap((p) => p.maps.map((m) => m.id))), getSkillLayouts(), getPlan(), earlierMapIds(stage.id), poolGaps(stage.id)]);
+  const missing = [...(gaps?.empty.length ? [t.admin.pf.missingSlots(gaps.empty.join(", "))] : []), ...(gaps?.noPack ? [t.admin.pf.missingPack] : [])];
   const skill = layouts?.[stage.slug];
   const poolMaps = stage.pools.flatMap((p) => p.maps);
   const mapsOf = (mod: string) => stage.pools.find((p) => p.category === mod)?.maps ?? [];
@@ -89,7 +90,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
               simple
               stages={[{ slug: stage.slug, title: stage.title, pack: stage.pack }]}
               locale={localeOf(lang)}
-              lead={<ReleaseToggle key={`${stage.id}-${stage.released}`} stageId={stage.id} released={stage.released} className="w-full justify-center" />}
+              lead={<ReleaseToggle key={`${stage.id}-${stage.released}`} stageId={stage.id} released={stage.released} missing={missing} className="w-full justify-center" />}
             />
           </div>
         </Panel>
@@ -179,6 +180,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                               {out && <div className="text-xs font-display font-bold text-rose-hi">{t.admin.outsideLayout}</div>}
                               {tag}
                               {checks.get(m.id)?.dmca && <div className="text-xs font-display font-bold text-rose-hi">{t.admin.mapDmca}</div>}
+                              {earlier.has(m.id) && <div className="text-xs font-display font-bold text-rose-hi">{t.admin.pf.earlier}</div>}
                             </>
                           }
                         />

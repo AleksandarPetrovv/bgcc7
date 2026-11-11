@@ -8,6 +8,7 @@ import { eq } from "drizzle-orm";
 import { currentEdition, db } from "@/db";
 import { stages } from "@/db/schema";
 import { clearPack, setPack } from "@/db/mappools";
+import { later, postPool } from "@/db/discord-bot";
 import { staffFor } from "@/lib/authz";
 import { logWrite } from "@/lib/admin-action";
 import { PACK_MAX, packPath } from "@/lib/uploads";
@@ -53,6 +54,7 @@ export async function PUT(req: Request, { params }: RouteContext<"/api/admin/map
   }
   await setPack(stage.id, size);
   await logWrite(who.osuId, "pack.upload", { stage: stage.title, size });
+  later("pool", () => postPool(stage.id));
   return Response.json({ ok: true, size });
 }
 

@@ -5,14 +5,24 @@ import { Check, Eye, EyeOff } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
+import { useConfirm } from "@/components/admin/form";
 import { setReleased } from "./actions";
 
-export function ReleaseToggle({ stageId, released, className }: { stageId: number; released: boolean; className?: string }) {
+export function ReleaseToggle({ stageId, released, missing, className }: { stageId: number; released: boolean; missing: string[]; className?: string }) {
   const t = useDict();
   const [on, setOn] = useState(released);
   const [pending, start] = useTransition();
+  const [ask, dialog] = useConfirm();
   const Icon = on ? Eye : EyeOff;
+  const release = (next: boolean) => {
+    setOn(next);
+    start(async () => {
+      const r = await setReleased(stageId, next).catch(() => null);
+      if (!r?.ok) setOn(!next);
+    });
+  };
   return (
+    <>
     <label
       className={cn(
         "group/rel relative isolate flex h-10 w-fit items-center px-3.5 transition-[color,opacity] duration-200",
@@ -35,10 +45,18 @@ export function ReleaseToggle({ stageId, released, className }: { stageId: numbe
         className="sr-only"
         onChange={(e) => {
           const next = e.target.checked;
-          setOn(next);
-          start(async () => {
-            const r = await setReleased(stageId, next).catch(() => null);
-            if (!r?.ok) setOn(!next);
+          if (!next || !missing.length) return release(next);
+          ask({
+            text: t.admin.pf.releaseAsk,
+            yes: t.admin.poolReleased,
+            onYes: () => release(true),
+            body: (
+              <ul className="mt-3 space-y-1 text-sm text-rose-hi">
+                {missing.map((m) => (
+                  <li key={m}>{m}</li>
+                ))}
+              </ul>
+            ),
           });
         }}
       />
@@ -50,5 +68,7 @@ export function ReleaseToggle({ stageId, released, className }: { stageId: numbe
         {t.admin.poolReleased}
       </span>
     </label>
+    {dialog}
+    </>
   );
 }

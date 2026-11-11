@@ -13,6 +13,7 @@ import { globalStore } from "./global-store";
 import type { Edition } from "@/lib/format";
 import { maps as mapsTable, stages } from "@/db/schema";
 import { clearPack, slotOf } from "@/db/mappools";
+import { later, postPool } from "@/db/discord-bot";
 import { getSkillLayouts } from "@/db/format-plan";
 import { skillSlot } from "./format-plan";
 import { log } from "./authz";
@@ -238,6 +239,7 @@ async function build(slug: string, osuId: number, job: PackJob, ed: Edition) {
     await db.update(stages).set({ packSize: real, packAt: new Date() }).where(eq(stages.id, stage.id));
     await log(osuId, "pack.generate", { stage: stage.title, size: real, maps: sets.length });
     job.state = "done";
+    if (ed === currentEdition()) later("pool", () => postPool(stage.id));
   } catch (e) {
     job.state = "error";
     job.error = e instanceof Error ? e.message : "failed";

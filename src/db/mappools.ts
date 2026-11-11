@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, lt, ne, or } from "drizzle-orm";
 import { rm } from "node:fs/promises";
 import { currentEdition, db, dbOf } from "./index";
 import { packPath } from "@/lib/uploads";
@@ -55,6 +55,43 @@ export async function clearPack(stageId: number, ed: Edition = currentEdition())
 export const slotOf = (mod: string, i: number) => `${MODS[mod]?.short ?? mod}${mod === "Tiebreaker" ? "" : i + 1}`;
 
 export const slotsOf = (bp: Record<string, number>) => MOD_ORDER.flatMap((mod) => Array.from({ length: Math.max(0, Math.floor(bp[mod] ?? 0)) }, (_, i) => ({ mod, slot: i })));
+
+/** the one way a map enters a pool slot (the old map goes, the pack is cleared). false = that beatmap is already in another slot of the stage */
+export async function putMap(stageId: number, mod: string, slot: number, data: Omit<typeof maps.$inferInsert, "stageId" | "mod" | "order">) {
+  const [dupe] = await db
+    .select({ id: maps.id })
+    .from(maps)
+    .where(and(eq(maps.stageId, stageId), eq(maps.beatmapId, data.beatmapId), or(ne(maps.mod, mod), ne(maps.order, slot))))
+    .limit(1);
+  if (dupe) return false;
+  await db.transaction(async (tx) => {
+    await tx.delete(maps).where(and(eq(maps.stageId, stageId), eq(maps.mod, mod), eq(maps.order, slot)));
+    await tx.insert(maps).values({ stageId, mod, order: slot, ...data });
+  });
+  await clearPack(stageId);
+  return true;
+}
+
+/** beatmaps already in an earlier stage's pool (a warning, never a block) */
+export async function earlierMapIds(stageId: number) {
+  const [s] = await db.select({ order: stages.order }).from(stages).where(eq(stages.id, stageId)).limit(1);
+  if (!s) return new Set<number>();
+  const rows = await db.select({ id: maps.beatmapId }).from(maps).innerJoin(stages, eq(stages.id, maps.stageId)).where(lt(stages.order, s.order));
+  return new Set(rows.map((r) => r.id));
+}
+
+/** what a pool still lacks before it can be announced: empty slot labels and the pack. the one owner of "is this pool complete" */
+export async function poolGaps(stageId: number) {
+  const [s] = await db.select().from(stages).where(eq(stages.id, stageId)).limit(1);
+  if (!s) return null;
+  const [rows, layouts] = await Promise.all([db.select({ mod: maps.mod, order: maps.order }).from(maps).where(eq(maps.stageId, stageId)), getSkillLayouts()]);
+  const layout = layouts?.[s.slug];
+  const slots = slotsOf(layout?.blueprint ?? s.blueprint ?? {});
+  const empty = slots.filter(({ mod, slot }) => !rows.some((r) => r.mod === mod && r.order === slot)).map(({ mod, slot }) => skillSlot(layout, mod, slot)?.label ?? slotOf(mod, slot));
+  const full = slots.length > 0 && !empty.length;
+  const noPack = !s.packSize;
+  return { id: s.id, slug: s.slug, title: s.title, released: s.poolReleased, empty, full, noPack, ok: full && !noPack };
+}
 
 export const getPoolStages = cache(() =>
   safe(async () => {
