@@ -8,7 +8,7 @@ import { getAllTeams, getMatchRows, type MatchRow } from "./tournament";
 import { siteUrl } from "@/lib/links";
 import { dm, discordReady } from "@/lib/discord";
 import { isOpen, weekOf, type Proposal, type SchedStatus } from "@/lib/schedule";
-import { weekNum } from "@/lib/format";
+import { GF_RESET, weekNum } from "@/lib/format";
 import { getFormat } from "./edition";
 import type { Team } from "@/lib/data";
 
@@ -34,7 +34,7 @@ export function stageDays(weeks: Record<string, string>) {
   return out;
 }
 
-export const schedulable = (m: MatchRow) => !!m.team1Id && !!m.team2Id && m.winner == null;
+export const schedulable = (m: MatchRow) => !!m.team1Id && !!m.team2Id && m.winner == null && m.id !== GF_RESET;
 
 export type SchedMatch = {
   id: string;
@@ -73,7 +73,12 @@ export async function historyOf(ids: string[]) {
 export async function busyOf(ids: string[]) {
   const out = new Map<string, Record<number, string[]>>();
   if (!ids.length) return out;
-  for (const r of await db.select().from(availability).where(inArray(availability.matchId, ids))) out.set(r.matchId, { ...out.get(r.matchId), [r.osuId]: r.busy });
+  const [rows, teams, avail] = await Promise.all([getMatchRows(), getAllTeams(), db.select().from(availability).where(inArray(availability.matchId, ids))]);
+  const onMatch = (matchId: string, osuId: number) => {
+    const m = rows.find((x) => x.id === matchId);
+    return teams.some((t) => (t.id === m?.team1Id || t.id === m?.team2Id) && t.players.some((p) => p.userId === osuId));
+  };
+  for (const r of avail) if (onMatch(r.matchId, r.osuId)) out.set(r.matchId, { ...out.get(r.matchId), [r.osuId]: r.busy });
   return out;
 }
 

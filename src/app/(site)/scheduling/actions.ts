@@ -176,7 +176,7 @@ export async function setBusy(matchId: string, hours: string[]): Promise<Res> {
     const team = v.teamOf;
     const weeks = await matchWeeks();
     const m = (await db.select().from(matches).where(eq(matches.id, matchId)).limit(1))[0];
-    if (!m || !team || (m.team1Id !== team && m.team2Id !== team) || m.winner != null) throw new Stop("forbidden");
+    if (!m || !team || (m.team1Id !== team && m.team2Id !== team) || !schedulable(m)) throw new Stop("forbidden");
     const w = weekOf(matchWeek(weeks, m.id));
     if (!w || !isOpen(w)) throw new Stop("closed");
     const ok = new Set(hourKeys(w.min, w.max));

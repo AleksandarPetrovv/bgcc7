@@ -3,7 +3,7 @@ import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, DateTimeField, Panel } from "@/components/admin/form";
 import { labelCls } from "@/components/admin/label";
 import { getMatchRows, getTeams } from "@/db/tournament";
-import { historyOf, matchWeeks } from "@/db/schedule";
+import { historyOf, matchWeeks, schedulable } from "@/db/schedule";
 import { refScope } from "@/lib/match-access";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { dayTime, fmtSofia, toSofiaInput } from "@/lib/time";
@@ -75,7 +75,7 @@ export default async function AdminScheduling() {
             const p = hist.get(m.id)?.find((x) => x.status === "pending");
             return m.startsAt?.getTime() ?? (p ? new Date(p.at).getTime() : Infinity);
           };
-          const ms = rows.filter((m) => weekNum(format, m.id) === wn && !m.winner && m.team1Id && m.team2Id).sort((a, b) => at(a) - at(b));
+          const ms = rows.filter((m) => weekNum(format, m.id) === wn && schedulable(m)).sort((a, b) => at(a) - at(b));
           const groups = [
             { key: "pending", open: true, list: ms.filter((m) => !m.startsAt) },
             { key: "agreed", open: false, list: ms.filter((m) => m.startsAt) },

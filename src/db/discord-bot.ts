@@ -1,13 +1,16 @@
 import "server-only";
-import { and, eq, inArray, isNotNull, like, not, sql } from "drizzle-orm";
+import { and, arrayContains, eq, inArray, isNotNull, like, not, sql } from "drizzle-orm";
 import { currentEdition, db, detached, isBGCC6, withEdition } from "./index";
-import { discordState, discordTeams, drafts, users } from "./schema";
+import { discordState, discordTeams, drafts, staff, users } from "./schema";
 import { getMatchRows, getMatches, getTeams, type MatchRow } from "./tournament";
-import { getPoolStages } from "./mappools";
+import { getPoolStages, poolGaps } from "./mappools";
 import { getScoreboard } from "./scoreboards";
 import { getFormat } from "./edition";
 import { siteUrl } from "@/lib/links";
-import { matchLabel, poolMessage, resultMessage, when } from "@/lib/discord-text";
+import { matchWeek, matchWeeks, notifyCaptain, schedulable } from "./schedule";
+import { weekOf } from "@/lib/schedule";
+import { deadlineMissedMessage, deadlineSoonMessage, matchLabel, noRefMessage, poolMessage, poolOpenMessage, refAssignedMessage, resultMessage, streamMessage, walkoverMessage, when, yourTeamMessage } from "@/lib/discord-text";
+import { walkoverOf } from "@/lib/out";
 import { getSkillLayouts } from "./format-plan";
 import { MODS, MOD_ORDER } from "@/lib/mods";
 import { addRole, botUser, createChannel, createRole, deleteChannel, deleteMessage, deleteRole, discordReady, dm, editChannel, editRole, guildChannels, guildId, guildRoles, memberRoles, post, removeRole, type Overwrite } from "@/lib/discord";
@@ -27,11 +30,11 @@ const getState = async (key: string) => (await db.select().from(discordState).wh
 const setState = (key: string, v: Partial<State>) =>
   db.insert(discordState).values({ key, ...v, updatedAt: new Date() }).onConflictDoUpdate({ target: discordState.key, set: { ...v, updatedAt: new Date() } });
 
-export type DiscordCfg = { results: string; pool: string; hosts: string };
+export type DiscordCfg = { results: string; pool: string; hosts: string; staff: string };
 export async function getCfg(): Promise<DiscordCfg> {
   const rows = await db.select().from(discordState).where(like(discordState.key, "cfg:%"));
   const v = (k: string) => rows.find((r) => r.key === `cfg:${k}`)?.channelId ?? "";
-  return { results: v("results"), pool: v("pool"), hosts: v("hosts") };
+  return { results: v("results"), pool: v("pool"), hosts: v("hosts"), staff: v("staff") };
 }
 export const setCfg = (k: keyof DiscordCfg, channelId: string) => setState(`cfg:${k}`, { channelId });
 
@@ -44,7 +47,7 @@ const SPEAK = 1 << 21;
 const bits = (...p: number[]) => String(p.reduce((a, b) => a | b, 0));
 const slug = (name: string) => name.toLowerCase().replace(/[^a-z0-9Ѐ-ӿ]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 90) || "team";
 
-const dc = globalStore<{ sync?: Promise<void>; synced?: number }>("bgccDc", () => ({}));
+const dc = globalStore<{ sync?: Promise<void>; synced?: number; checked?: number }>("bgccDc", () => ({}));
 
 export function syncTeams() {
   if (!ready()) return Promise.resolve();
@@ -58,6 +61,9 @@ const dropTeam = async (r: TeamRow) => {
   for (const id of [r.channelId, r.voiceId, r.categoryId]) if (id) await deleteChannel(id);
   await deleteRole(r.roleId);
 };
+
+const playtesters = async (linked: Map<number, string>) =>
+  new Set((await db.select({ osuId: staff.osuId }).from(staff).where(arrayContains(staff.permRoles, ["playtester"]))).map((s) => linked.get(s.osuId)));
 
 async function runSync() {
   const [ts, rows, roles, chans, me] = await Promise.all([getTeams(), db.select().from(discordTeams), guildRoles(), guildChannels(), botUser()]);
@@ -106,20 +112,25 @@ async function runSync() {
   }
   const linked = new Map((await db.select({ osuId: users.osuId, discordId: users.discordId }).from(users).where(isNotNull(users.discordId))).map((u) => [u.osuId, u.discordId!]));
   const want = new Map<string, string>();
-  for (const t of ts)
+  // a team that is out keeps its section but its players lose the role
+  for (const t of ts.filter((t) => !t.out))
     for (const p of t.players) {
       const d = linked.get(p.userId);
       const r = have.get(t.id);
       if (d && r) want.set(d, r.roleId);
     }
   const ours = new Set([...have.values()].map((r) => r.roleId));
+  // the other staff roles (host, referee, mappooler) are made by hand on the server; only playtester is kept by the site, found or created by name
+  const testers = await playtesters(linked);
+  const tester = (roles.find((r) => r.name.toLowerCase() === "playtester") ?? (await createRole("Playtester"))).id;
   // only linked users are checked here; unlink/relink strips the old account first (dropTeamRoles)
   for (const d of new Set(linked.values())) {
-    const roles = await memberRoles(d);
-    if (!roles) continue;
+    const mine = await memberRoles(d);
+    if (!mine) continue;
     const w = want.get(d);
-    for (const rid of roles) if (ours.has(rid) && rid !== w) await removeRole(d, rid);
-    if (w && !roles.includes(w)) await addRole(d, w);
+    for (const rid of mine) if (ours.has(rid) && rid !== w) await removeRole(d, rid);
+    if (w && !mine.includes(w)) await addRole(d, w);
+    if (testers.has(d) !== mine.includes(tester)) await (testers.has(d) ? addRole : removeRole)(d, tester);
   }
 }
 
@@ -133,7 +144,7 @@ export async function cleanupDiscord() {
   await dc.sync;
   for (const r of await db.select().from(discordTeams)) await dropTeam(r);
   await db.delete(discordTeams);
-  await db.delete(discordState).where(not(inArray(discordState.key, ["cfg:results", "cfg:pool", "cfg:hosts"])));
+  await db.delete(discordState).where(not(inArray(discordState.key, ["cfg:results", "cfg:pool", "cfg:hosts", "cfg:staff"])));
 }
 
 
@@ -154,6 +165,7 @@ const sides = (m: Pick<MatchRow, "team1Id" | "team2Id">) =>
   ] as const;
 
 export async function tick() {
+  await checkResults().catch(log("result check"));
   if (!ready()) return;
   // shortcut: team edits/draws reach discord through this 5 min resync instead of hooks in every admin team action
   if (Date.now() - (dc.synced ?? 0) > 5 * 60_000) {
@@ -161,15 +173,20 @@ export async function tick() {
     await syncTeams();
   }
   const [rows, ts, links] = await Promise.all([getMatchRows(), getTeams(), teamLinks()]);
-  const name = (id: string) => ts.find((t) => t.id === id)?.name ?? id;
+  const name = (id: string | null) => (id ? (ts.find((t) => t.id === id)?.name ?? id) : "TBD");
   const now = Date.now();
+  await postWalkovers(rows, links, name).catch(log("walkover"));
+  await noRefNotices(rows, name).catch(log("no referee"));
+  await deadlineNotices(rows, name).catch(log("deadline"));
+  await refAssignments(rows, name).catch(log("ref assigned"));
+  await streamNotices(rows, name).catch(log("stream notice"));
   for (const m of rows) {
     if (!m.startsAt || m.winner != null || !m.team1Id || !m.team2Id) continue;
     const left = m.startsAt.getTime() - now;
     if (left <= 0 || left > 35 * 60_000) continue;
     const start = m.startsAt.toISOString();
     await refDm(m, name).catch(log("ref dm"));
-    if (await getState(`invited:${m.id}`)) continue;
+    if ((await getState(`invited:${m.id}`))?.stamp === start) continue;
     const step = left > 10 * 60_000 ? "t35" : "t10";
     for (const [mine, opp] of sides(m)) {
       const l = links.get(mine);
@@ -182,30 +199,155 @@ export async function tick() {
   }
 }
 
-async function refDm(m: MatchRow, name: (id: string) => string) {
-  const start = m.startsAt!.toISOString();
-  const key = `ref:${m.id}`;
-  if ((await getState(key))?.stamp === start) return;
-  const names = staffNames(m.referee).map((x) => x.toLowerCase());
+type Names = (id: string | null) => string;
+const STEPS = [180, 120, 60, 30, 10];
+const nameList = (field: string | null) => [...new Set(staffNames(field).map((x) => x.toLowerCase()))].sort();
+const upcoming = (m: MatchRow) => m.winner == null && m.ffSide == null && !!m.team1Id && !!m.team2Id && !!m.startsAt && m.startsAt.getTime() > Date.now();
+
+const discordIds = async (names: string[]) =>
+  names.length ? (await db.select({ id: users.discordId }).from(users).where(and(inArray(sql`lower(${users.username})`, names), isNotNull(users.discordId)))).map((r) => r.id!) : [];
+
+async function refLink(matchId: string) {
+  const [d] = await db.select({ open: drafts.open }).from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
+  return d?.open ? `Pick and ban page: <${siteUrl()}/matches/${matchId}>` : `Open it from the admin pick and ban page: <${siteUrl()}/admin/draft>`;
+}
+
+async function refDm(m: MatchRow, name: Names) {
+  const names = nameList(m.referee);
   if (!names.length) return;
-  const refs = await db.select({ discordId: users.discordId }).from(users).where(and(inArray(sql`lower(${users.username})`, names), isNotNull(users.discordId)));
-  const [d] = await db.select({ open: drafts.open }).from(drafts).where(eq(drafts.matchId, m.id)).limit(1);
-  const link = d?.open ? `Pick and ban page: <${siteUrl()}/matches/${m.id}>` : `Open it from the admin pick and ban page: <${siteUrl()}/admin/draft>`;
-  const text = `You're reffing **${name(m.team1Id!)} vs ${name(m.team2Id!)}** (${matchLabel(getFormat(), m.id, m.round)}) at **${when(m.startsAt!)}**. ${link}`;
-  for (const r of refs) await dm(r.discordId!, text);
-  await setState(key, { stamp: start });
+  const key = `ref:${m.id}`;
+  const stamp = `${m.startsAt!.toISOString()}|${names.join(",")}`;
+  if ((await getState(key))?.stamp === stamp) return;
+  const text = `You're reffing **${name(m.team1Id)} vs ${name(m.team2Id)}** (${matchLabel(getFormat(), m.id, m.round)}) at **${when(m.startsAt!)}**. ${await refLink(m.id)}`;
+  for (const id of await discordIds(names)) await dm(id, text).catch(log("ref dm"));
+  await setState(key, { stamp });
+}
+
+const hostRole = async () => (await guildRoles()).find((r) => r.name.toLowerCase() === "host");
+
+/** captains get one DM in the last 24h before a scheduling deadline with no agreed time; the hosts channel hears once when it passed. `deadline:` stamps are the deadline, so a moved week starts over */
+async function deadlineNotices(rows: MatchRow[], name: Names) {
+  const weeks = await matchWeeks();
+  const now = Date.now();
+  const due: { m: MatchRow; w: NonNullable<ReturnType<typeof weekOf>>; late: boolean; key: string }[] = [];
+  for (const m of rows) {
+    const w = schedulable(m) && !m.startsAt ? weekOf(matchWeek(weeks, m.id)) : null;
+    if (!w) continue;
+    const left = w.deadline.getTime() - now;
+    const late = left <= 0;
+    if (!late && left > 24 * 36e5) continue;
+    const key = `${late ? "deadline-late" : "deadline-soon"}:${m.id}`;
+    if ((await getState(key))?.stamp !== w.deadline.toISOString()) due.push({ m, w, late, key });
+  }
+  if (!due.length) return;
+  const [{ hosts }, role] = await Promise.all([getCfg(), hostRole()]);
+  for (const { m, w, late, key } of due) {
+    const label = matchLabel(getFormat(), m.id, m.round);
+    if (late) {
+      if (hosts) await post(hosts, deadlineMissedMessage(role ? `<@&${role.id}>` : "", label, name(m.team1Id), name(m.team2Id), w.deadline), { mentions: role ? ping(role.id) : undefined }).catch(log("deadline post"));
+    } else for (const [mine, opp] of sides(m)) await notifyCaptain(mine, (link) => deadlineSoonMessage(label, name(opp), w.deadline, link)).catch(log("deadline dm"));
+    await setState(key, { stamp: w.deadline.toISOString() });
+  }
+}
+
+/** hosts channel (pinged) + host DMs at 3h/2h/1h/30m/10m; only the latest step passed is sent, a new start time starts over */
+async function noRefNotices(rows: MatchRow[], name: Names) {
+  const due: { m: MatchRow; step: number; key: string; start: string }[] = [];
+  for (const m of rows) {
+    if (!upcoming(m) || staffNames(m.referee).length) continue;
+    const left = (m.startsAt!.getTime() - Date.now()) / 60_000;
+    const step = STEPS.filter((s) => left <= s).at(-1);
+    if (!step) continue;
+    const key = `noref:${m.id}`;
+    const start = m.startsAt!.toISOString();
+    const [at, last] = (await getState(key))?.stamp?.split("|") ?? [];
+    if (at !== start || +last > step) due.push({ m, step, key, start });
+  }
+  if (!due.length) return;
+  const [{ hosts }, role, hostIds] = await Promise.all([
+    getCfg(),
+    hostRole(),
+    db.select({ id: users.discordId }).from(staff).innerJoin(users, eq(users.osuId, staff.osuId)).where(and(arrayContains(staff.permRoles, ["host"]), isNotNull(users.discordId))),
+  ]);
+  for (const { m, step, key, start } of due) {
+    const text = (ping: string) => noRefMessage(ping, matchLabel(getFormat(), m.id, m.round), name(m.team1Id), name(m.team2Id), step, m.startsAt!);
+    if (hosts) await post(hosts, text(role ? `<@&${role.id}>` : ""), { mentions: role ? ping(role.id) : undefined }).catch(log("no referee post"));
+    for (const h of hostIds) await dm(h.id!, text("")).catch(log("no referee dm"));
+    await setState(key, { stamp: `${start}|${step}` });
+  }
+}
+
+/** DMs a referee who was added to a match; `refs:<id>` holds the sorted lowercase names as JSON. the first run only records */
+async function refAssignments(rows: MatchRow[], name: Names) {
+  const prev = new Map((await db.select().from(discordState).where(like(discordState.key, "refs:%"))).map((r) => [r.key, r.stamp]));
+  const first = prev.size === 0;
+  for (const m of rows) {
+    if (m.winner != null || m.ffSide != null) continue;
+    const names = nameList(m.referee);
+    const key = `refs:${m.id}`;
+    const stamp = JSON.stringify(names);
+    if (prev.get(key) === stamp) continue;
+    const before: string[] = JSON.parse(prev.get(key) ?? "[]");
+    const ids = first ? [] : await discordIds(names.filter((n) => !before.includes(n)));
+    if (ids.length) {
+      const text = refAssignedMessage(matchLabel(getFormat(), m.id, m.round), name(m.team1Id), name(m.team2Id), m.startsAt, await refLink(m.id));
+      for (const id of ids) await dm(id, text).catch(log("ref assigned dm"));
+    }
+    await setState(key, { stamp });
+  }
+}
+
+/** one DM to the streamer within the hour before start; `stream:<id>` stamp = start|names */
+async function streamNotices(rows: MatchRow[], name: Names) {
+  for (const m of rows) {
+    if (!upcoming(m) || m.startsAt!.getTime() - Date.now() > 60 * 60_000) continue;
+    const names = nameList(m.streamer);
+    if (!names.length) continue;
+    const key = `stream:${m.id}`;
+    const stamp = `${m.startsAt!.toISOString()}|${names.join(",")}`;
+    if ((await getState(key))?.stamp === stamp) continue;
+    const text = streamMessage(matchLabel(getFormat(), m.id, m.round), name(m.team1Id), name(m.team2Id), m.startsAt!, `<${siteUrl()}/admin/stream>`);
+    for (const id of await discordIds(names)) await dm(id, text).catch(log("stream dm"));
+    await setState(key, { stamp });
+  }
+}
+
+/** every 5 min: reading a scoreboard settles a decided match, so unopened matches still finish. runs without discord configured */
+async function checkResults() {
+  if (Date.now() - (dc.checked ?? 0) < 5 * 60_000) return;
+  dc.checked = Date.now();
+  const [all, rows, ts, pools] = await Promise.all([getMatches(), getMatchRows(), getTeams(), getPoolStages()]);
+  const walkovers = new Set(rows.filter((r) => r.ffSide != null).map((r) => r.id));
+  for (const m of all) if (m.links.length && !m.winner && !walkovers.has(m.id)) await getScoreboard(m, ts, pools).catch(log(`result check ${m.id}`));
 }
 
 export async function invitesSent(matchId: string) {
-  if (await getState(`invited:${matchId}`)) return;
-  await setState(`invited:${matchId}`, { stamp: new Date().toISOString() });
   const [rows, ts, links] = await Promise.all([getMatchRows(), getTeams(), teamLinks()]);
   const m = rows.find((x) => x.id === matchId);
   if (!m?.team1Id || !m.team2Id) return;
+  const start = m.startsAt?.toISOString() ?? "none";
+  if ((await getState(`invited:${matchId}`))?.stamp === start) return;
+  await setState(`invited:${matchId}`, { stamp: start });
   const name = (id: string) => ts.find((t) => t.id === id)?.name ?? id;
   for (const [mine, opp] of sides(m)) {
     const l = links.get(mine);
     if (l) await chain(`remind:${m.id}:${mine}`, l.channelId, `<@&${l.roleId}> Invites for your match against **${name(opp)}** have been sent in osu!`, "invites", l.roleId);
+  }
+}
+
+/** #results: a walkover is announced once its agreed start time has come; one without a time stays silent */
+async function postWalkovers(rows: MatchRow[], links: Map<string, { roleId: string }>, name: (id: string) => string) {
+  const { results } = await getCfg();
+  if (!results) return;
+  for (const m of rows) {
+    const ff = walkoverOf(m);
+    if (!ff || m.winner == null || !m.team1Id || !m.team2Id || !m.startsAt || m.startsAt.getTime() > Date.now()) continue;
+    const key = `walkover:${m.id}`;
+    if (await getState(key)) continue;
+    const [gone, on] = ff.side === 1 ? [m.team1Id, m.team2Id] : [m.team2Id, m.team1Id];
+    const tag = (id: string) => (links.get(id) ? `<@&${links.get(id)!.roleId}>` : `**${name(id)}**`);
+    const messageId = await post(results, walkoverMessage(tag(on), tag(gone), ff.kind), { mentions: { roles: [on, gone].flatMap((id) => (links.get(id) ? [links.get(id)!.roleId] : [])) } });
+    await setState(key, { channelId: results, messageId, stamp: ff.kind });
   }
 }
 
@@ -229,11 +371,22 @@ export async function postResult(matchId: string) {
   await setState(key, { channelId: results, messageId, stamp });
 }
 
+/** #staff: once per window, pings the mappooler and playtester roles that pooling for the round has started */
+export async function postPoolOpen(slug: string, title: string, closes: Date) {
+  const { staff: channel } = await getCfg();
+  const key = `poolopen:${slug}`;
+  if (!channel || (await getState(key))) return;
+  const ids = (await guildRoles()).filter((r) => ["mappooler", "playtester"].includes(r.name.toLowerCase())).map((r) => r.id);
+  const messageId = await post(channel, poolOpenMessage(ids.map((id) => `<@&${id}>`), title, closes, `${siteUrl()}/admin/mappools/sheet`), { mentions: { roles: ids } });
+  await setState(key, { channelId: channel, messageId });
+}
+
+/** the @everyone release post, once per stage, and only for a released pool that is complete and has its pack */
 export async function postPool(stageId: number) {
   const { pool } = await getCfg();
   if (!pool) return;
-  const [s, layouts] = await Promise.all([getPoolStages().then((all) => all.find((x) => x.id === stageId)), getSkillLayouts()]);
-  if (!s || (await getState(`pool:${s.slug}`))) return;
+  const [s, layouts, gaps] = await Promise.all([getPoolStages().then((all) => all.find((x) => x.id === stageId)), getSkillLayouts(), poolGaps(stageId)]);
+  if (!s || !s.released || !gaps?.ok || (await getState(`pool:${s.slug}`))) return;
   const map = (mod: string, slot: number) => s.pools.find((p) => p.category === mod)?.maps.find((m) => m.order === slot);
   const layout = layouts?.[s.slug];
   const sections = layout
@@ -243,6 +396,29 @@ export async function postPool(stageId: number) {
   const messageId = await post(pool, content, { mentions: { parse: ["everyone"] }, embeds: [embed] });
   await setState(`pool:${s.slug}`, { channelId: pool, messageId });
 }
+
+/** English DM to a player with a linked discord; detached, so it never throws into the caller */
+export const dmPlayer = (osuId: number, text: string) =>
+  later("player dm", async () => {
+    const [u] = await db.select({ id: users.discordId }).from(users).where(eq(users.osuId, osuId)).limit(1);
+    if (u?.id) await dm(u.id, text).catch(log("player dm"));
+  });
+
+/** every linked player hears their team and teammate once; `team:<osuId>` holds teamId|mateId, so only players whose team changed hear again */
+export const announceTeams = () =>
+  later("team announce", async () => {
+    const [ts, linked] = await Promise.all([getTeams(), db.select({ osuId: users.osuId, id: users.discordId }).from(users).where(isNotNull(users.discordId))]);
+    const byOsu = new Map(linked.map((u) => [u.osuId, u.id!]));
+    for (const t of ts)
+      for (const p of t.players) {
+        const id = byOsu.get(p.userId);
+        const mate = t.players.find((x) => x.userId !== p.userId);
+        const stamp = `${t.id}|${mate?.userId ?? ""}`;
+        if (!id || (await getState(`team:${p.userId}`))?.stamp === stamp) continue;
+        await dm(id, yourTeamMessage(getFormat().name, t.name, mate?.username ?? null)).catch(log("team dm"));
+        await setState(`team:${p.userId}`, { stamp });
+      }
+  });
 
 /** scheduling news in team channels, never pings */
 export async function teamNote(texts: Record<string, string>) {
