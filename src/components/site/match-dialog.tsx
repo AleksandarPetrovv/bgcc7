@@ -2,7 +2,7 @@
 
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { useMounted } from "./use-mounted";
-import { ExternalLink, Eye } from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink, Eye } from "lucide-react";
 import { Popup, PopupTitle } from "./popup";
 import { useDict, useLang } from "./lang";
 import { fmtSofia } from "@/lib/time";
@@ -29,7 +29,8 @@ const OPEN_WAIT_MS = 350;
 const TEAM = [TEAMS[1].border, TEAMS[2].border];
 const TEAM_TEXT = [TEAMS[1].text, TEAMS[2].text];
 
-function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; flip?: boolean }) {
+/** `edit` swaps the score + accuracy line of a player for the staff editor's fields */
+function Side({ players, won, flip, edit }: { players: PlayerLine[]; won: boolean; flip?: boolean; edit?: (p: PlayerLine) => React.ReactNode }) {
   const t = useDict();
   return (
     <ul className={cn("min-w-0 space-y-2", !won && "opacity-60")}>
@@ -40,10 +41,14 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
               <span className="min-w-0 truncate">{p.name}</span>
               <MeTag p={p.id} />
             </div>
-            <div className={cn("num flex flex-wrap items-baseline gap-x-1.5", flip && "flex-row-reverse")}>
-              <span className="text-sm">{fmtNum(p.score)}</span>
-              <span className="text-[0.7rem] text-ash">{pct(p.acc)}</span>
-            </div>
+            {edit ? (
+              <div className={cn("flex flex-wrap items-center gap-1.5 pt-1", flip && "flex-row-reverse")}>{edit(p)}</div>
+            ) : (
+              <div className={cn("num flex flex-wrap items-baseline gap-x-1.5", flip && "flex-row-reverse")}>
+                <span className="text-sm">{fmtNum(p.score)}</span>
+                <span className="text-[0.7rem] text-ash">{pct(p.acc)}</span>
+              </div>
+            )}
             {p.edited && <div className="text-[0.6rem] font-display font-bold text-gold-hi">{t.match.edited}</div>}
           </div>
         </PlayerRow>
@@ -52,11 +57,12 @@ function Side({ players, won, flip }: { players: PlayerLine[]; won: boolean; fli
   );
 }
 
-function ModBadge({ mods }: { mods: string[] }) {
+/** `on` fills the badge (a picked option); `d` is its intro delay */
+export function ModBadge({ mods, on, d = "0.45s", className }: { mods: readonly string[]; on?: boolean; d?: string; className?: string }) {
   const c = modHi(MOD_COLOR[mods[0] ?? "NM"] ?? "var(--ash)");
   return (
-    <span className="in-pop relative isolate px-1.5 py-0.5 text-[0.6rem] font-display font-black leading-none" style={{ color: c, ...cssVars({ "--d": "0.45s" }) }}>
-      <SlantBg className="border" style={{ borderColor: c }} />
+    <span className={cn("in-pop relative isolate px-1.5 py-0.5 text-[0.6rem] font-display font-black leading-none", className)} style={{ color: c, ...cssVars({ "--d": d }) }}>
+      <SlantBg className="border" style={{ borderColor: c, ...(on && { background: `color-mix(in srgb, ${c} 22%, transparent)` }) }} />
       {mods.join("") || "NM"}
     </span>
   );
@@ -72,34 +78,49 @@ function BarHalf({ pink, lost1, lost2 }: { pink: number; lost1: boolean; lost2: 
   );
 }
 
-// a bell curve (exp(-((x-0.5)/0.22)^2)) with no flat top: a straight ramp or a plateau leaves a visible edge; `first` stretches the cover up under the sticky header
-// drawn as an opaque popup-coloured overlay on the cover rather than a mask: a masked low-opacity layer showed a hard line at the top
+// a bell curve (exp(-((x-0.5)/0.22)^2)) with no flat top: a straight ramp or a plateau leaves a visible edge// drawn as an opaque popup-coloured overlay on the cover rather than a mask: a masked low-opacity layer showed a hard line at the top
 const COVER_FADE = `linear-gradient(to bottom, ${Array.from({ length: 21 }, (_, i) => {
   const d = (i / 20 - 0.5) / 0.27;
   return `color-mix(in srgb, var(--ink) ${(i % 20 ? (1 - Math.exp(-d * d)) * 100 : 100).toFixed(1)}%, transparent) ${i * 5}%`;
 }).join(", ")})`;
 
-export function MapCard({ m, i, className, first }: { m: MapResult; i: number; className?: string; first?: boolean }) {
+// the collapsed row of the staff editor is too short for the bottom-to-top fade: the cover shows on the right and is gone toward the title
+const COVER_FADE_SIDE = `linear-gradient(to right, ${Array.from({ length: 21 }, (_, i) => {
+  const x = Math.min(Math.max((i / 20 - 0.3) / 0.7, 0), 1);
+  return `color-mix(in srgb, var(--ink) ${((1 - x * x * (3 - 2 * x)) * 100).toFixed(1)}%, transparent) ${i * 5}%`;
+}).join(", ")})`;
+
+/** `collapsible`: the header row toggles the rest (the staff score editor); `edit` renders the player fields */
+export function MapCard({ m, i, className, collapsible, edit }: { m: MapResult; i: number; className?: string; collapsible?: boolean; edit?: (p: PlayerLine) => React.ReactNode }) {
   const t = useDict();
   const color = modHi(m.slot ? slotColor(m.slot) : m.mod ? MODS[m.mod]?.color : undefined);
   const sum = m.team1 + m.team2;
   const raw = sum ? (m.team1 / sum) * 100 : 50;
   // a split within ~8px of the tick would leave a stray sliver of the other colour beside the hole, so it snaps to the tick
   const share = Math.abs(raw - 50) < 1 ? 50 : raw;
-  return (
-    <article
-      className={cn("in-up relative border-b-2 border-dashed border-line", m.note && "opacity-50", className)}
-      style={cssVars({ "--i": Math.min(i, 6), "--s": "0.08s", "--d": "0.12s" })}
-    >
+  const root = cn("in-up relative border-b-2 border-dashed border-line", m.note && "opacity-50", collapsible && "group", className);
+  const rootStyle = cssVars({ "--i": Math.min(i, 6), "--s": "0.08s", "--d": "0.12s" });
+  // cover and diamond sit in the head so they stay painted while the details are closed
+  const head = (
+    <>
       <RuleDiamond className="z-10 left-[calc(50%-var(--sbw,0px)/2)]" />
       {m.cover && (
-        <div aria-hidden className={cn("pointer-events-none absolute inset-x-0", first ? "-top-3 h-[calc(100%+0.75rem)] sm:-top-5 sm:h-[calc(100%+1.25rem)]" : "top-0 h-full")}>
+        // the faint grain dithers the fade: it spans only a few colour levels, so without it the levels show as bands
+        <div
+          aria-hidden
+          className={cn(
+            "grain pointer-events-none absolute inset-x-0",
+            collapsible ? "top-0 h-full group-open:top-[calc(var(--up,0px)*-1)] group-open:h-[calc(100%+var(--up,0px))]" : "top-[calc(var(--up,0px)*-1)] h-[calc(100%+var(--up,0px))]",
+          )}
+          style={cssVars({ "--grain": "0.012" })}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={m.cover} alt="" loading="lazy" decoding="async" className="size-full object-cover opacity-13 dark:opacity-5" />
-          <span className="absolute inset-0" style={{ backgroundImage: COVER_FADE }} />
+          <span className={cn("absolute inset-0", collapsible && "opacity-0 transition-opacity duration-300 group-open:opacity-100")} style={{ backgroundImage: COVER_FADE }} />
+          {collapsible && <span className="absolute inset-0 transition-opacity duration-300 group-open:opacity-0" style={{ backgroundImage: COVER_FADE_SIDE }} />}
         </div>
       )}
-      <header className="relative flex items-start gap-3 pt-3">
+      <header className={cn("relative flex items-start gap-3 pt-3", collapsible && "pb-3")}>
         <span className="in-slam heading-slam shrink-0 text-2xl leading-none" style={{ color: color ?? "var(--ash)", ...cssVars({ "--d": "0.22s" }) }}>
           {m.slot ?? "—"}
         </span>
@@ -121,37 +142,54 @@ export function MapCard({ m, i, className, first }: { m: MapResult; i: number; c
             <span className={m.winner === 2 ? "text-azure-hi" : "text-ash"}>{m.running[1]}</span>
           </span>
         )}
+        {collapsible && (
+          <span className="mt-0.5 shrink-0 text-ash" aria-hidden>
+            <ChevronDown className="size-4 group-open:hidden" />
+            <ChevronUp className="hidden size-4 group-open:block" />
+          </span>
+        )}
       </header>
-      {!m.note && (
-        <div className="relative pb-4 pt-3">
-          <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-3">
-            <span className={cn("in-left justify-self-start num text-xl leading-none", m.winner === 1 ? "text-crimson-hi" : "text-ash")} style={cssVars({ "--d": "0.3s" })}>
-              {fmtNum(m.team1)}
+    </>
+  );
+  const body = !m.note && (
+    <div className={cn("relative pb-4", !collapsible && "pt-3")}>
+      <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-3">
+        <span className={cn("in-left justify-self-start num text-xl leading-none", m.winner === 1 ? "text-crimson-hi" : "text-ash")} style={cssVars({ "--d": "0.3s" })}>
+          {fmtNum(m.team1)}
+        </span>
+        <div className="flex flex-col items-center gap-1.5">
+          <ModBadge mods={m.mods} />
+          {sum > 0 && (
+            <span className="in-drop num text-[0.7rem] leading-none text-ash" style={cssVars({ "--d": "0.55s" })}>
+              {fmtNum(Math.abs(m.team1 - m.team2))}
             </span>
-            <div className="flex flex-col items-center gap-1.5">
-              <ModBadge mods={m.mods} />
-              {sum > 0 && (
-                <span className="in-drop num text-[0.7rem] leading-none text-ash" style={cssVars({ "--d": "0.55s" })}>
-                  {fmtNum(Math.abs(m.team1 - m.team2))}
-                </span>
-              )}
-            </div>
-            <span className={cn("in-right justify-self-end num text-xl leading-none", m.winner === 2 ? "text-azure-hi" : "text-ash")} style={cssVars({ "--d": "0.3s" })}>
-              {fmtNum(m.team2)}
-            </span>
-          </div>
-          {/* two halves around a 7px middle column holding the tick, so the hole and the tick are real boxes (crisp, 2px each side) */}
-          <div className="in-wipe mt-2 grid h-1 grid-cols-[minmax(0,1fr)_7px_minmax(0,1fr)]" style={cssVars({ "--d": "0.35s" })}>
-            <BarHalf pink={Math.min(share, 50) / 50} lost1={m.winner !== 1} lost2={m.winner !== 2} />
-            <span className="pointer-events-none -my-1 h-3 w-[3px] justify-self-center bg-rose" aria-hidden />
-            <BarHalf pink={Math.max(share - 50, 0) / 50} lost1={m.winner !== 1} lost2={m.winner !== 2} />
-          </div>
-          <div className="mt-3.5 grid grid-cols-2 gap-x-4">
-            <Side players={m.players[0]} won={m.winner !== 2} />
-            <Side players={m.players[1]} won={m.winner !== 1} flip />
-          </div>
+          )}
         </div>
-      )}
+        <span className={cn("in-right justify-self-end num text-xl leading-none", m.winner === 2 ? "text-azure-hi" : "text-ash")} style={cssVars({ "--d": "0.3s" })}>
+          {fmtNum(m.team2)}
+        </span>
+      </div>
+      {/* two halves around a 7px middle column holding the tick, so the hole and the tick are real boxes (crisp, 2px each side) */}
+      <div className="in-wipe mt-2 grid h-1 grid-cols-[minmax(0,1fr)_7px_minmax(0,1fr)]" style={cssVars({ "--d": "0.35s" })}>
+        <BarHalf pink={Math.min(share, 50) / 50} lost1={m.winner !== 1} lost2={m.winner !== 2} />
+        <span className="pointer-events-none -my-1 h-3 w-[3px] justify-self-center bg-rose" aria-hidden />
+        <BarHalf pink={Math.max(share - 50, 0) / 50} lost1={m.winner !== 1} lost2={m.winner !== 2} />
+      </div>
+      <div className="mt-3.5 grid grid-cols-2 gap-x-4">
+        <Side players={m.players[0]} won={m.winner !== 2} edit={edit} />
+        <Side players={m.players[1]} won={m.winner !== 1} flip edit={edit} />
+      </div>
+    </div>
+  );
+  return collapsible ? (
+    <details className={root} style={rootStyle}>
+      <summary className="block cursor-pointer list-none [&::-webkit-details-marker]:hidden">{head}</summary>
+      {body}
+    </details>
+  ) : (
+    <article className={root} style={rootStyle}>
+      {head}
+      {body}
     </article>
   );
 }
@@ -214,22 +252,34 @@ function Board({ match, data, names }: { match: Match; data: Scoreboard; names: 
   const t = useDict();
   const played = data.maps.filter((m) => !m.note);
   return (
-    <div className="min-w-0 space-y-5 py-3 pl-(--px) pr-[calc(var(--px)+var(--sbw,0px))] sm:space-y-6 sm:py-5">
-      {played.map((m, i) => (
-        <div key={`${m.lobby}-${i}`}>
-          {data.lobbies.length > 1 && (i === 0 || played[i - 1].lobby !== m.lobby) && (
-            <div className="mb-3 mt-1 flex items-center gap-3 text-xs font-display font-bold text-ash">
-              {t.match.lobby(m.lobby + 1)}
-              <LineDiamond line="border-t" />
-            </div>
-          )}
-          <MapCard m={m} i={i} first={i === 0 && data.lobbies.length <= 1} className="-ml-(--px) -mr-[calc(var(--px)+var(--sbw,0px))] pl-(--px) pr-[calc(var(--px)+var(--sbw,0px))]" />
-        </div>
-      ))}
+    <div className="min-w-0 space-y-(--gap) py-(--pad) pl-(--px) pr-[calc(var(--px)+var(--sbw,0px))] [--gap:1.25rem] [--pad:0.75rem] sm:[--gap:1.5rem] sm:[--pad:1.25rem]">
+      {played.map((m, i) => {
+        const lobbyHead = data.lobbies.length > 1 && (i === 0 || played[i - 1].lobby !== m.lobby);
+        return (
+          <div key={`${m.lobby}-${i}`}>
+            {lobbyHead && (
+              <div className="mb-3 mt-1 flex items-center gap-3 text-xs font-display font-bold text-ash">
+                {t.match.lobby(m.lobby + 1)}
+                <LineDiamond line="border-t" />
+              </div>
+            )}
+            {/* --up: how far the cover reaches above the card: to the sticky header on the first card, to the rule above on the rest; not over a lobby label */}
+            <MapCard m={m} i={i} className={cn("-ml-(--px) -mr-[calc(var(--px)+var(--sbw,0px))] pl-(--px) pr-[calc(var(--px)+var(--sbw,0px))]", !lobbyHead && (i ? "[--up:var(--gap)]" : "[--up:var(--pad)]"))} />
+          </div>
+        );
+      })}
       <Costs data={data} names={names} finished={!!match.winner} />
     </div>
   );
 }
+
+// lucide 1.x dropped brand icons, so this is the old outline youtube mark
+const VodIcon = () => (
+  <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
+    <path d="m10 15 5-3-5-3z" />
+  </svg>
+);
 
 export function MatchDialog({ match, compact, children, className }: { match: Match; compact?: boolean; children?: React.ReactNode; className?: string }) {
   const t = useDict();
@@ -349,7 +399,7 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
               {when && <span className="num text-center text-[0.7rem] italic leading-tight sm:whitespace-nowrap sm:leading-none text-paper/70 sm:text-[0.8rem]">{when}</span>}
             </span>
           </div>
-          {match.links.length > 0 && (
+          {(match.links.length > 0 || match.vodUrl) && (
             <div className="mt-2.5 flex flex-wrap gap-2">
               {match.links.map((id, i) => (
                 <a
@@ -359,9 +409,19 @@ export function MatchDialog({ match, compact, children, className }: { match: Ma
                   rel="noreferrer"
                   className="inline-flex items-center gap-1.5 border border-line px-2 py-1 text-[0.7rem] font-display font-bold text-ash transition hover:border-paper/40 hover:text-paper"
                 >
-                  {match.links.length > 1 ? t.match.lobby(i + 1) : "osu! mp"} <ExternalLink className="size-3" />
+                  {t.match.osuLobby(i + 1, match.links.length)} <ExternalLink className="size-3" />
                 </a>
               ))}
+              {match.vodUrl && (
+                <a
+                  href={match.vodUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 border border-line px-2 py-1 text-[0.7rem] font-display font-bold text-ash transition hover:border-paper/40 hover:text-paper"
+                >
+                  {t.match.vod} <VodIcon />
+                </a>
+              )}
             </div>
           )}
         </div>

@@ -155,6 +155,7 @@ export const match = {
     toDecline: "Decline",
     toRunning: (color: "Red" | "Blue") => `${color} team timeout`,
     toStartWarn: (team: string) => `${team} has requested a timeout`,
+    notOpen: "The draft opens when the referee starts it.",
     hold: "Pause",
     unhold: "Resume",
     pausedHint: "Everything is paused",
