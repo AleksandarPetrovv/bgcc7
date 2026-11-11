@@ -311,14 +311,14 @@ export default async function Home() {
                     </SlantButton>
                   )}
                 </span>
-              ) : playing ? (
+              ) : playing && !me?.noPage ? (
                 <span className="in-pop inline-flex">
                   {me ? (
                     <SlantButton href="/me" tone="paper" className={big} fill={bigFill}>
                       {t.home.myPage} <ArrowRight className="size-5" />
                     </SlantButton>
                   ) : (
-                    <form action={login.bind(null, "/me")}>
+                    <form action={login.bind(null, "/me?in=1")}>
                       <SlantButton type="submit" tone="paper" className={big} fill={bigFill}>
                         {t.home.login} <ArrowRight className="size-5" />
                       </SlantButton>

@@ -14,11 +14,14 @@ import { getLobbies } from "@/db/lobbies";
 import { getQualResults } from "@/db/qualifiers";
 import { getMatches, getTeams } from "@/db/tournament";
 import { getPoolStages } from "@/db/mappools";
-import { getPlayerSeeds } from "@/db/seeds";
+import { bwsRanking, getPlayerSeeds } from "@/db/seeds";
 import { canLinkDiscord } from "@/db/schedule";
 import { getMe, userLink } from "@/db/viewer";
 import { discordProfile } from "@/lib/discord";
 import { Connections } from "./connections";
+import { RoleChip, staffCards } from "./staff";
+import { forbidden, redirect } from "next/navigation";
+import { noDuties } from "@/lib/roles";
 import { MatchRow } from "@/components/site/match-row";
 import { avatarPath } from "@/lib/avatar";
 import { scoreboardOrNull } from "@/db/scoreboards";
@@ -26,8 +29,8 @@ import { phaseStates } from "@/lib/dates";
 import { Timeline } from "@/components/site/timeline";
 import { fmtSofia, fmtSofiaDay, fmtSofiaTime, isFuture, windowState, tzLabel } from "@/lib/time";
 import { fmtNum, type Match } from "@/lib/data";
-import { rankBws } from "@/lib/bws";
 import { cardLabels, sourceLabel, isLive, wonBy, recordOf, upcomingMatches, finalResult } from "@/lib/matches";
+import { FitLabel } from "@/components/site/fit-label";
 import { playerCount } from "@/lib/format";
 import { getFormat } from "@/db/edition";
 import { TWITCH_URL, osuMatch } from "@/lib/links";
@@ -42,7 +45,7 @@ import { localeOf } from "@/lib/i18n/locale";
 import { mpIds } from "@/lib/mp-links";
 
 
-export default async function Me() {
+export default async function Me({ searchParams }: PageProps<"/me">) {
   const [t, lang, viewer] = await Promise.all([getDict(), getLang(), getMe()]);
   if (!viewer)
     return (
@@ -50,7 +53,7 @@ export default async function Me() {
         <PageTitle mark="me">{t.me.title}</PageTitle>
         <div className="flex flex-col items-center gap-5 py-16 text-center">
           <p className="text-ash">{t.me.login}</p>
-          <form action={login.bind(null, "/me")}>
+          <form action={login.bind(null, "/me?in=1")}>
             <SlantButton type="submit" tone="paper" className="px-7 py-3.5 text-lg">
               {t.home.login}
             </SlantButton>
@@ -58,6 +61,9 @@ export default async function Me() {
         </div>
       </Container>
     );
+
+  // someone who just signed in from this page and is not in the tournament lands on the home page instead of a 403
+  if (viewer.noPage) return (await searchParams).in ? redirect("/") : forbidden();
 
   const [settings, regs, lobbies, qual, teams, matches, stages, schedule, seeds] = await Promise.all([
     getSettings(),
@@ -90,11 +96,19 @@ export default async function Me() {
   );
   const earlyConn = discord && connCard(3);
 
+  // hosts run everything from the admin panel; the staff cards are for everyone else on the crew with something to do
+  const crew = viewer.roles.includes("host") ? [] : viewer.roles.filter((r) => !noDuties(r));
+  const staff = crew.length ? await staffCards({ t, lang, locale, me, roles: crew, matches, teams, stages, settings }) : [];
+  const chips = crew.length > 0 && crew.map((r) => <RoleChip key={r} role={r} t={t} />);
 
-  const shell = (children: React.ReactNode) => (
+  // a player who is also on the crew gets the staff cards under their own
+  const shell = (children: React.ReactNode, own = false) => (
     <Container plain>
-      <PageTitle mark="me">{t.me.title}</PageTitle>
-      <div className="grid grid-cols-1 items-start gap-x-12 gap-y-14 pt-2 lg:grid-cols-2 2xl:gap-x-16">{children}</div>
+      <PageTitle mark="me" right={chips}>{t.me.title}</PageTitle>
+      <div className="grid grid-cols-1 items-start gap-x-12 gap-y-14 pt-2 lg:grid-cols-2 2xl:gap-x-16">
+        {children}
+        {!own && staff}
+      </div>
     </Container>
   );
 
@@ -104,6 +118,16 @@ export default async function Me() {
       <Timeline t={t} timeline={settings.timeline} locale={locale} states={states} d={0.3} className="mt-4" />
     </Card>
   );
+
+  if (crew.length && !reg && !team)
+    return shell(
+      <>
+        {staff}
+        {upcoming}
+        {connCard(3)}
+      </>,
+      true,
+    );
 
   if (!reg && signupPhase)
     return shell(
@@ -122,7 +146,7 @@ export default async function Me() {
     );
 
   const ff = getFormat();
-  const ranked = !isBGCC6() ? rankBws(regs.filter((r) => r.status !== "denied")).filter((r) => r.bws !== null) : [];
+  const ranked = !isBGCC6() ? await bwsRanking() : [];
   const bwsAt = ranked.findIndex((r) => r.osuId === me);
   const myBws = bwsAt >= 0 ? ranked[bwsAt] : null;
   const bwsTier = bwsAt < 0 ? 0 : bwsAt < ff.teams ? 1 : bwsAt < playerCount(ff) ? 2 : 0;
@@ -246,15 +270,22 @@ export default async function Me() {
 
   const placementCard = (i = 1) => qp && <QualifierPlacement t={t} placement={myQual} total={qual.players.length} cut={settings.qualifyCount} i={i} />;
 
+  const noTeam = teams.length >= ff.teams ? t.me.notOnTeam : t.me.noTeam;
+
   if (phase === "seeding" || !team)
     return shell(
       <>
         {!qp && !team &&
-          (myBws ? (
+          (reg?.status === "denied" ? (
+            <Card title={t.me.signup} i={1} className="lg:col-span-2">
+              <p className="text-lg leading-snug text-paper/90">{t.register.doneTexts.denied}</p>
+              {reg.note && <p className="mt-3 border-l-2 border-rose pl-3 text-sm text-paper/70">{reg.note}</p>}
+            </Card>
+          ) : myBws ? (
             <>
               {bwsCard}
               <Card title={t.me.team} i={1}>
-                <p className="text-ash">{bwsTier ? t.me.noTeam : t.me.outsideCut(playerCount(ff))}</p>
+                <p className="text-ash">{bwsTier ? noTeam : t.me.outsideCut(playerCount(ff))}</p>
               </Card>
             </>
           ) : (
@@ -268,7 +299,7 @@ export default async function Me() {
         ) : (
           qp && (
             <Card title={t.me.team} i={2}>
-              <p className="text-ash">{t.me.noTeam}</p>
+              <p className="text-ash">{noTeam}</p>
             </Card>
           )
         )}
@@ -345,7 +376,13 @@ export default async function Me() {
   }
 
   let nextCard: React.ReactNode;
-  if (path === "out" && lostIn) {
+  if (team.out) {
+    nextCard = (
+      <Card title={t.me.path.out} i={1} className="lg:col-span-2">
+        <p className="text-ash">{t.me.teamOut[team.out]}</p>
+      </Card>
+    );
+  } else if (path === "out" && lostIn) {
     nextCard = (
       <Card title={t.me.path.out} i={1} className="lg:col-span-2">
         <p className="text-ash">{t.me.outNext(roundName(t, lostIn.round))}</p>
@@ -367,7 +404,7 @@ export default async function Me() {
       <Card title={t.me.next} i={1} className="lg:col-span-2">
         <div>
           <div className="in-up in-slow flex items-center justify-center gap-3" style={at(0.15)}>
-            <span className="num truncate text-sm text-paper/75 sm:text-base">{cardLabels(getFormat(), t, m)[0]}</span>
+            <FitLabel labels={cardLabels(getFormat(), t, m)} className="num text-sm text-paper/75 sm:text-base" />
             {live && (
               <a href={TWITCH_URL} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-xs font-display font-bold text-rose-hi">
                 <span className="size-2 animate-pulse rounded-full bg-rose" /> {t.home.live}

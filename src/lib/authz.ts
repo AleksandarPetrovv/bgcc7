@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { notFound } from "next/navigation";
+import { forbidden, notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { currentOsuId } from "@/auth";
 import { currentEdition, db } from "@/db";
@@ -82,4 +82,10 @@ export async function requireSection(section: Section) {
 export async function canSee(section: Section) {
   const { sections, staff, off } = await getVisibility();
   return !off.includes(section) && (staff || !!sections[section]);
+}
+
+/** stream views (overlay, draw) stay open to signed-out browsers like OBS; a signed-in visitor without the right gets a 403. a deterrent, not a lock */
+export async function streamView(perm: Perm) {
+  const v = await getViewer();
+  if (v && !can(v.roles, perm)) forbidden();
 }

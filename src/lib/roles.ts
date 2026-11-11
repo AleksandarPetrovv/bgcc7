@@ -21,6 +21,8 @@ export const HELPER_PERMS = ["matches", "overlay"] as const satisfies readonly P
 export const can = (roles: readonly Role[] | null | undefined, perm: Perm) => !!roles?.some((r) => GRANTS[r].includes(perm));
 export const hasAdmin = (roles: readonly Role[] | null | undefined) => !!roles?.some((r) => GRANTS[r].length);
 export const titleOnly = (r: Role) => GRANTS[r].length === 0;
+/** a title with nothing to do on the site; commentators have no admin rights but are put on matches */
+export const noDuties = (r: Role) => titleOnly(r) && r !== "commentator";
 export const PLAYABLE: readonly Role[] = ["streamer", "commentator", "designer", "leadDesign"];
 export const cleanRoles = (list: unknown[]): Role[] => {
   const roles = ROLES.filter((r) => list.includes(r));

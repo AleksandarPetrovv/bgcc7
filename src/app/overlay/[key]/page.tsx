@@ -8,6 +8,7 @@ import { userPath } from "@/lib/data";
 import { isScene } from "@/lib/scenes";
 import { OverlayView } from "./overlay-view";
 import { currentEdition, ensureEdition } from "@/db";
+import { streamView } from "@/lib/authz";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ export default async function Overlay({ params, searchParams }: { params: Promis
     const stage = (await searchParams).stage;
     return wrap(<OverlayView overlayKey="demo" scene={isScene(scene) ? scene : undefined} stage={typeof stage === "string" ? stage : undefined} />);
   }
+  await streamView("overlay");
   const f = getFormat();
   const id = matchIdFromSlug(f, key);
   const match = id ? ((await getAllMatches()).find((m) => m.id === id) ?? null) : null;
