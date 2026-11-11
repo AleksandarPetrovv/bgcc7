@@ -1,4 +1,5 @@
-import { fmtSofia } from "./time";
+import { dayTime, fmtSofia, fmtSofiaTime, sofiaDate } from "./time";
+import type { OutKind } from "@/lib/out";
 import { matchNum, type Format } from "./format";
 import { dicts, roundName } from "./i18n/dict";
 import { siteUrl } from "./links";
@@ -13,6 +14,37 @@ export function matchLabel(f: Format, id: string, round: string) {
   const num = matchNum(f, id);
   return `${roundName(dicts.en, round)}${num ? `, Match ${num}` : ""}`;
 }
+
+const span = (min: number) => (min % 60 === 0 ? `${min / 60} hour${min === 60 ? "" : "s"}` : `${min} minutes`);
+
+/** `ping` is a ready-made role mention, empty for the DM copy */
+export const noRefMessage = (ping: string, label: string, t1: string, t2: string, min: number, at: Date) =>
+  `${ping ? `${ping} ` : ""}**${label}** between **${t1}** and **${t2}** has no referee and is scheduled to begin in ${span(min)} (${dayTime(`${sofiaDate(at)}T${fmtSofiaTime(at)}`, "en")}).`;
+
+export const deadlineSoonMessage = (label: string, opp: string, deadline: Date, link: string) =>
+  `No time is agreed yet for your match against **${opp}** (${label}). The scheduling deadline is **${when(deadline)}**. Propose or accept a time: ${link}`;
+
+/** `ping` is a ready-made role mention */
+export const deadlineMissedMessage = (ping: string, label: string, t1: string, t2: string, deadline: Date) =>
+  `${ping ? `${ping} ` : ""}**${label}** between **${t1}** and **${t2}** has no agreed time and the scheduling deadline (${when(deadline)}) has passed.`;
+
+export const signupDecidedMessage = (tournament: string, approved: boolean, reason: string | null) =>
+  approved ? `Your ${tournament} sign-up was approved. You're in.` : `Your ${tournament} sign-up was denied.${reason ? ` Reason: ${reason}` : ""}`;
+
+export const teamRequestDecidedMessage = (team: string, approved: boolean, reason: string | null) =>
+  approved ? `Your team name and picture request for **${team}** was approved.` : `Your team name and picture request for **${team}** was declined.${reason ? ` Reason: ${reason}` : ""}`;
+
+export const yourTeamMessage = (tournament: string, team: string, mate: string | null) =>
+  `Your ${tournament} team is **${team}**${mate ? `, with **${mate}**` : ""}.`;
+
+export const helperOfflineMessage =(match: string) =>
+  `Your BGCC7 Helper has been offline for 3 minutes while the lobby of **${match}** is open, so the match can't be run from the site. Open the helper on your PC.`;
+
+export const refAssignedMessage = (label: string, t1: string, t2: string, at: Date | null, link: string) =>
+  `You have been assigned as referee for **${label}**: **${t1}** vs **${t2}**, ${at ? when(at) : "time not set yet"}. ${link}`;
+
+export const streamMessage = (label: string, t1: string, t2: string, at: Date, link: string) =>
+  `You are streaming **${label}**: **${t1}** vs **${t2}** in 1 hour, at ${when(at)}. ${link}`;
 
 const esc = (s: string) => s.replace(/[\\*_~`|[\]<>]/g, "\\$&");
 const SQ = ["⬛", "🟥", "🟦"] as const;
@@ -48,7 +80,7 @@ export function resultMessage(f: Format, m: Match, sb: Scoreboard | null, tag: (
   };
   const team = (k: 1 | 2) => ({ name: `${SQ[k]}  ${k === 1 ? n1 : n2}${m.winner === k ? "  🏆" : ""}`, value: side(k) });
   const order: (1 | 2)[] = m.winner === 2 ? [2, 1] : [1, 2];
-  const mp = m.links.map((id, i) => `[MP${m.links.length > 1 ? ` ${i + 1}` : ""}](https://osu.ppy.sh/community/matches/${id})`);
+  const mp = m.links.map((id, i) => `[${dicts.en.match.osuLobby(i + 1, m.links.length)}](https://osu.ppy.sh/community/matches/${id})`);
   const embed: Embed = {
     author: { name: `${f.name}  ·  ${matchLabel(f, m.id, m.round)}` },
     title: `${n1}  ${m.team1.score} – ${m.team2.score}  ${n2}`,
@@ -97,3 +129,11 @@ export function poolMessage(f: Format, stage: { slug: string; title: string; fir
   };
   return { content: `@everyone The **${round}** mappool is out: <${url}>`, embed };
 }
+
+/** `pings` are ready-made role mentions */
+export const poolOpenMessage = (pings: string[], title: string, closes: Date, link: string) =>
+  `${pings.length ? `${pings.join(" ")} ` : ""}Pooling for **${roundName(dicts.en, title)}** has started. Suggestions and votes close ${when(closes)}. The sheet: <${link}>`;
+
+const WALKOVER: Record<OutKind, string> = { dq: "being disqualified", forfeit: "forfeiting", other: "being out of the tournament" };
+/** `on` and `gone` are ready-made mentions or bold names */
+export const walkoverMessage = (on: string, gone: string, kind: OutKind) => `${on} advances, due to ${gone} ${WALKOVER[kind]}.`;
