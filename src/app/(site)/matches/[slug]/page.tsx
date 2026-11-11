@@ -1,4 +1,5 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { PreDraft } from "./pre-draft";
 import { getDraft, rulesOf } from "@/db/drafts";
 import { getPoolStages } from "@/db/mappools";
 import { getSkillLayouts } from "@/db/format-plan";
@@ -22,9 +23,15 @@ export async function generateMetadata() {
 export default async function DraftPage({ params }: PageProps<"/matches/[slug]">) {
   const { slug } = await params;
   const id = matchIdFromSlug(getFormat(), slug);
-  const [access, draft] = await Promise.all([draftAccess(id), getDraft(id)]);
-  if (!access || !draft || (!draft.open && !access.staff)) notFound();
-  const [t, teams, stages, skills, all] = await Promise.all([getDict(), getAllTeams(), getPoolStages(), getSkillLayouts(), getAllMatches()]);
+  const [access, draft, teams, all] = await Promise.all([draftAccess(id), getDraft(id), getAllTeams(), getAllMatches()]);
+  if (!access || !draft || (!draft.open && !access.staff)) {
+    const m = all.find((x) => x.id === id);
+    if (!m) notFound();
+    if (m.winner) redirect(`/results/${id}`);
+    const team = (tid: string) => teams.find((x) => x.id === tid);
+    return <PreDraft id={id} startsAt={m.datetime} teams={[team(m.team1.id), team(m.team2.id)]} />;
+  }
+  const [t, stages, skills] = await Promise.all([getDict(), getPoolStages(), getSkillLayouts()]);
   const live = stages.find((s) => s.slug === draft.stageSlug);
   if (!live || !(await poolOpen(live.released))) notFound();
   const frozen = new Map((await rulesOf(id, draft.stageSlug)).maps.map((m) => [m.slot, m]));
