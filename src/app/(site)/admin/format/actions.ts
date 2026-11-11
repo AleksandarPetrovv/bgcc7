@@ -2,6 +2,7 @@
 
 import { saveSettings } from "@/db/settings";
 import { guard } from "@/lib/admin-action";
+import { snapshot } from "@/lib/snapshot";
 import { cleanPlan, DEFAULT_PLAN, type Plan } from "@/lib/format-plan";
 import { syncStages } from "@/db/format-plan";
 
@@ -21,6 +22,7 @@ export async function savePlan(input: unknown) {
 
 export async function resetPlan() {
   return guard("host", "format.reset", async () => {
+    await snapshot("format-reset");
     await store(DEFAULT_PLAN);
     return { log: { rounds: DEFAULT_PLAN.rounds.length } };
   });
