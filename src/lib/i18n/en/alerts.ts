@@ -13,8 +13,8 @@ export const alertText = {
     button: "Open match",
   },
   helperOffline: {
-    title: "Your BGCC7 Helper is offline",
-    means: "Your match lobby is open, but the site can't reach your helper, so the lobby can't be controlled from the site.",
+    title: "The referee's BGCC7 Helper is offline",
+    means: "The match lobby is open, but the site can't reach the referee's helper, so the lobby can't be controlled from the site. The referee does this:",
     steps: [
       "Open BGCC7 Helper on your PC.",
       "Check it shows connected and you're signed in.",

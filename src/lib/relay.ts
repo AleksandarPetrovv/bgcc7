@@ -8,6 +8,8 @@ import { globalStore } from "./global-store";
 import { mpLobbies, refApps, users } from "@/db/schema";
 import { alertsFor, clearWhere, describeMatch, onAlerts, ownedBy, ownerAlertId, raise } from "./alerts";
 import { ircName } from "@/lib/names";
+import { dm } from "./discord";
+import { helperOfflineMessage } from "./discord-text";
 import { SSE_HEADERS } from "@/lib/sse";
 import { APP_SEEN_MS, LINK_TTL, OFFLINE_GRACE, SSE_PING_MS, sseFrame, validState, frame, type RelayEv, type RelayFrame, type RelayMsg } from "@/lib/relay-contract";
 
@@ -148,6 +150,11 @@ export async function appOf(osuId: number) {
 }
 
 export const relayOnline = (osuId: number) => !!store().relays.get(osuId)?.push;
+
+// when each helper last disconnected; one that never connected since the app started counts from app start
+const gone = () => globalStore("bgccHelperGone", () => ({ born: Date.now(), at: new Map<number, number>() }));
+/** ms the helper has been offline, null while it is online */
+export const offlineFor = (osuId: number) => (relayOnline(osuId) ? null : Date.now() - (gone().at.get(osuId) ?? gone().born));
 export const relayName = (osuId: number) => (relayOnline(osuId) ? store().relays.get(osuId)!.ircName : null);
 export const relaySocket = (osuId: number) => new RelaySocket(store().relays.get(osuId) ?? { osuId, ircName: "" });
 
@@ -160,21 +167,30 @@ export function onRelay(fn: (osuId: number, up: boolean) => void) {
 function drop(osuId: number) {
   const r = store().relays.get(osuId);
   if (!r) return;
+  gone().at.set(osuId, Date.now());
   r.push = undefined;
   r.sock?.end("app gone");
   store().relays.delete(osuId);
   store().bus.emit("relay", osuId, false);
-  setTimeout(() => void helperGone(osuId).catch(() => {}), OFFLINE_GRACE).unref();
+  for (const wait of [OFFLINE_GRACE, HOSTS_GRACE]) setTimeout(() => void helperGone(osuId, wait).catch((e) => console.error("[relay] helper gone", e)), wait).unref();
 }
 
-async function helperGone(osuId: number) {
-  if (relayOnline(osuId)) return;
+// a short drop is the referee's own business; hosts and the referee's discord hear about it only when it lasts
+const HOSTS_GRACE = 180_000;
+
+async function helperGone(osuId: number, wait: number) {
+  // offline for less than this timer's wait: it came back in between and dropped again
+  if ((offlineFor(osuId) ?? 0) < wait - 1000) return;
+  const late = wait === HOSTS_GRACE;
   await withEdition("site", async () => {
     const open = await db.select({ matchId: mpLobbies.matchId }).from(mpLobbies).where(and(eq(mpLobbies.open, true), eq(mpLobbies.owner, String(osuId))));
     for (const { matchId } of open) {
       if (relayOnline(osuId)) return;
       const match = await describeMatch(matchId);
-      raise({ id: ownerAlertId("helperOffline", matchId, osuId), kind: "helperOffline", level: "red", match, href: "/download/helper" }, { osuIds: [osuId] });
+      raise({ id: ownerAlertId("helperOffline", matchId, osuId), kind: "helperOffline", level: "red", match, href: "/download/helper" }, { hosts: late, osuIds: [osuId] });
+      if (!late) continue;
+      const [u] = await db.select({ id: users.discordId }).from(users).where(eq(users.osuId, osuId)).limit(1);
+      if (u?.id) await dm(u.id, helperOfflineMessage(match.label));
     }
   });
 }
