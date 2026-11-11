@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Reorder, useDragControls } from "motion/react";
 import { SortableList } from "@/components/admin/sortable-list";
-import { Brush, Check, Crown, Gamepad2, Gavel, GripVertical, Lock, Map as MapIcon, Mic, Palette, Radio, TriangleAlert, Wrench } from "lucide-react";
+import { Check, GripVertical, Lock, TriangleAlert } from "lucide-react";
+import { ROLE_ICON } from "@/lib/role-icons";
 import { ActionForm } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
 import { flagUrl } from "@/lib/data";
@@ -76,8 +77,6 @@ function Row({ s, i, onDrop }: { s: StaffRow; i: number; onDrop: () => void }) {
   );
 }
 
-const PERM_ICON: Record<Role, typeof Crown> = { host: Crown, referee: Gavel, mappooler: MapIcon, playtester: Gamepad2, streamer: Radio, commentator: Mic, technical: Wrench, leadDesign: Palette, designer: Brush };
-
 function PermPicker({ initial }: { initial: string[] }) {
   const t = useDict();
   const [on, setOn] = useState(() => new Set(initial));
@@ -98,7 +97,7 @@ function PermPicker({ initial }: { initial: string[] }) {
       </legend>
       <div className="flex flex-wrap gap-2">
         {ROLES.map((r) => {
-          const Icon = PERM_ICON[r];
+          const Icon = ROLE_ICON[r];
           const checked = on.has(r);
           const blocked = host && r !== "host" && !titleOnly(r);
           return (

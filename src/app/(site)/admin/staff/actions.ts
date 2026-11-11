@@ -1,6 +1,5 @@
 "use server";
 
-import { resolveAll } from "@/db/pool-sheet";
 import { and, arrayContains, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { staff } from "@/db/schema";
@@ -32,7 +31,6 @@ export async function updateStaff(osuId: number, _: ActionResult, fd: FormData) 
     const permRoles = cleanRoles(fd.getAll("permRoles").map(String));
     if (!permRoles.includes("host") && !(await otherHost(osuId))) return { ok: false, error: "lastHost" };
     await db.update(staff).set({ permRoles }).where(eq(staff.osuId, osuId));
-    await resolveAll();
     await kickIfNoHelperRole(osuId);
     return { log: { osuId, permRoles } };
   });
@@ -49,7 +47,6 @@ export async function removeStaff(osuId: number) {
   return guard("staff", "staff.remove", async () => {
     if (!(await otherHost(osuId))) return { ok: false, error: "lastHost" };
     await db.delete(staff).where(eq(staff.osuId, osuId));
-    await resolveAll();
     await kickIfNoHelperRole(osuId);
     return { log: { osuId } };
   });

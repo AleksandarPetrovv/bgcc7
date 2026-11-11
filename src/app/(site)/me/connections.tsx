@@ -22,7 +22,7 @@ function Row({ avatar, platform, name, n, children }: { avatar: string | null; p
       ) : (
         <span className="relative flex size-14 shrink-0 items-center justify-center rounded-full bg-slate"><span className="heading-slam pr-1 text-3xl italic text-ash">?</span></span>
       )}
-      <div className="relative min-w-0 flex-1">
+      <div className="relative min-w-32 flex-1">
         <div className="flex items-center gap-1.5 text-[0.65rem] font-display font-bold text-ash">{platform}</div>
         <div className="heading-slam mt-0.5 truncate text-xl leading-tight">{name}</div>
       </div>
