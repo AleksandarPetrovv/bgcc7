@@ -20,7 +20,7 @@ function Pop({ action, slot, color, submit, tags, onClose }: Omit<Props, "icon">
   useEffect(() => {
     if (state?.ok) onClose();
   }, [state, onClose]);
-  const err = state && !state.ok ? errorText(t, state.error) : null;
+  const err = state && !state.ok ? errorText(t, state.error, state.slot) : null;
   return (
     <>
       <span className="absolute inset-x-0 top-0 h-0.5" style={{ background: color }} aria-hidden />

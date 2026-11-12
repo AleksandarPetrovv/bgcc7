@@ -8,10 +8,9 @@ import { matchWeeks } from "./schedule";
 import { getFormat } from "./edition";
 import { notifyHosts } from "./host-notes";
 import { getMatchRows, getTeams } from "./tournament";
-import { later, postPool, postPoolOpen } from "./discord-bot";
-import { placeSuggestion, slotLeader } from "./pool-sheet";
+import { later, postPool, postPoolClosed, postPoolOpen, postPoolReminder } from "./discord-bot";
+import { isBlocked, placeSuggestion, slotLeader } from "./pool-sheet";
 import { poolAccess, poolWindows } from "@/lib/pool-window";
-import { isAlive, teamOfPlayer } from "@/lib/alive";
 import { skillSlot } from "@/lib/format-plan";
 import { globalStore } from "@/lib/global-store";
 import { packJob, startPackJob } from "@/lib/pack-builder";
@@ -34,8 +33,7 @@ type Who = { osuId: number; roles: readonly Role[] | null | undefined };
 export async function sheetBlocked({ osuId, roles }: Who) {
   if (!can(roles, "mappools") || can(roles, "host")) return false;
   const [teams, rows] = await Promise.all([getTeams(), getMatchRows()]);
-  const team = teamOfPlayer(teams, osuId);
-  return !!team && isAlive(team, rows);
+  return isBlocked(teams, rows, osuId);
 }
 
 // settleStage runs once at a time per stage: a slow run must not be started again by the next minute's tick
@@ -71,6 +69,7 @@ export async function settleStage(slug: string) {
       if (r !== "same" && r.replaced) replaced.push(t.admin.pf.replaced(label(mod, slot), osuMap(r.replaced.beatmapId)));
     }
     await db.update(stages).set({ settledAt: new Date() }).where(eq(stages.id, stage.id));
+    later("pool closed", () => postPoolClosed(slug, stage.title));
     await notifyHosts({ title: t.admin.pf.settled(placed, name), lines: replaced, href: `/admin/mappools?stage=${slug}` });
     if (stuck.length) {
       await notifyHosts({ title: t.admin.pf.stuck(name), lines: stuck, href: `/admin/mappools/sheet?stage=${slug}` });
@@ -135,6 +134,7 @@ export async function poolReleased(stageId: number) {
 const checked = new Set<string>();
 
 /** every minute: settle pools whose deadline passed (catches up after downtime), ping the staff channel once for the window that is open
+ *  (and again 24 hours before it closes)
  *  (also one that opened while the site was down), and once a new window opens, build the pack of any released, full pool that has none */
 export async function poolTick() {
   const now = Date.now();
@@ -143,7 +143,10 @@ export async function poolTick() {
   if (access.open) {
     const { stage, closes } = access.open;
     const title = (await getPoolStages()).find((s) => s.slug === stage)?.title;
-    if (title) later("pool open", () => postPoolOpen(stage, title, closes));
+    if (title) {
+      later("pool open", () => postPoolOpen(stage, title, closes));
+      if (closes.getTime() - now <= 24 * 3600_000) later("pool reminder", () => postPoolReminder(stage, title, closes));
+    }
   }
   const opened = ws.filter((w) => w.opens.getTime() <= now).at(-1);
   if (!opened || checked.has(opened.stage)) return;

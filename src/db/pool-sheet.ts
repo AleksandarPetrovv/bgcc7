@@ -5,11 +5,13 @@ import { maps, poolSuggestions, poolVotes, staff, users } from "./schema";
 import { putMap, slotOf } from "./mappools";
 import { avatarCol } from "./avatar";
 import { MOD_ORDER } from "@/lib/mods";
+import { getMatchRows, getTeams } from "./tournament";
+import { isAlive, teamOfPlayer } from "@/lib/alive";
 
 export type Suggestion = typeof poolSuggestions.$inferSelect & {
   by: string;
   votes: Voter[];
-  avg: number | null;
+  pts: number | null;
   mine: number | null;
   mineNote: string;
 };
@@ -19,23 +21,35 @@ export type Pooler = { osuId: number; username: string; avatar: string | null };
 
 export type SheetSlot = { mod: string; slot: number; label: string; picked: boolean; tie: boolean; items: Suggestion[]; waitingOn: string[]; out: boolean };
 
+/** a pooler or tester whose own team is still in the tournament (hosts never) can't open the sheet */
+export const isBlocked = (teams: Awaited<ReturnType<typeof getTeams>>, rows: Awaited<ReturnType<typeof getMatchRows>>, osuId: number) => {
+  const team = teamOfPlayer(teams, osuId);
+  return !!team && isAlive(team, rows);
+};
+
+// only people who can vote right now count as waiting or as needed for the tie badge
 const poolers = async () => {
-  const rows = await db
-    .select({ osuId: staff.osuId, username: users.username, avatar: avatarCol })
-    .from(staff)
-    .innerJoin(users, eq(users.osuId, staff.osuId))
-    .where(arrayOverlaps(staff.permRoles, ["mappooler", "playtester"]));
-  return rows;
+  const [rows, teams, matches] = await Promise.all([
+    db
+      .select({ osuId: staff.osuId, username: users.username, avatar: avatarCol, roles: staff.permRoles })
+      .from(staff)
+      .innerJoin(users, eq(users.osuId, staff.osuId))
+      .where(arrayOverlaps(staff.permRoles, ["mappooler", "playtester"])),
+    getTeams(),
+    getMatchRows(),
+  ]);
+  return rows.filter((p) => p.roles.includes("host") || !isBlocked(teams, matches, p.osuId)).map(({ osuId, username, avatar }) => ({ osuId, username, avatar }));
 };
 
 const allIn = (list: { osuId: number; votes: { osuId: number }[] }[], voters: { osuId: number }[]) =>
   voters.length > 0 && list.every((s) => s.votes.length > 0 && voters.every((p) => p.osuId === s.osuId || s.votes.some((v) => v.osuId === p.osuId)));
 
-const tied = (ranked: { avg: number | null }[]) => ranked.length > 1 && ranked[0].avg !== null && Math.abs(ranked[0].avg - (ranked[1].avg ?? -1)) < 1e-9;
+const tied = (ranked: { pts: number | null }[]) => ranked.length > 1 && ranked[0].pts !== null && ranked[0].pts === (ranked[1].pts ?? -1);
 
-const avgOf = (v: { score: number }[]) => (v.length ? v.reduce((n, x) => n + x.score, 0) / v.length : null);
+// a suggestion's points are the sum of its votes
+const ptsOf = (v: { score: number }[]) => (v.length ? v.reduce((n, x) => n + x.score, 0) : null);
 
-const rank = (a: Suggestion, b: Suggestion) => (b.avg ?? 0) - (a.avg ?? 0) || b.votes.length - a.votes.length || a.createdAt.getTime() - b.createdAt.getTime();
+const rank = (a: Suggestion, b: Suggestion) => (b.pts ?? 0) - (a.pts ?? 0) || b.votes.length - a.votes.length || a.createdAt.getTime() - b.createdAt.getTime();
 
 export async function getSheet(stageId: number, viewer: number, blueprint: Record<string, number> = {}) {
   const [rows, voters] = await Promise.all([
@@ -61,7 +75,7 @@ export async function getSheet(stageId: number, viewer: number, blueprint: Recor
       .map(({ osuId, score, note, username, avatar }) => ({ osuId, score, note, username: username ?? `#${osuId}`, avatar }))
       .sort((a, b) => b.score - a.score);
     const me = v.find((x) => x.osuId === viewer);
-    return { ...s, by: by ?? `#${s.osuId}`, votes: v, avg: avgOf(v), mine: me?.score ?? null, mineNote: me?.note ?? "" };
+    return { ...s, by: by ?? `#${s.osuId}`, votes: v, pts: ptsOf(v), mine: me?.score ?? null, mineNote: me?.note ?? "" };
   });
   const slots: SheetSlot[] = [];
   for (const mod of MOD_ORDER) {
@@ -107,13 +121,13 @@ export async function resolveSlot(stageId: number, mod: string, slot: number, ch
   const ranked = list
     .map((s) => {
       const v = votes.filter((x) => x.suggestionId === s.id);
-      return { ...s, by: "", votes: v.map((x) => ({ ...x, username: "", avatar: null })), avg: avgOf(v), mine: null, mineNote: "" };
+      return { ...s, by: "", votes: v.map((x) => ({ ...x, username: "", avatar: null })), pts: ptsOf(v), mine: null, mineNote: "" };
     })
     .sort(rank);
   const win = chosen ? ranked.find((s) => s.id === chosen) : ranked[0];
   if (!win) return null;
   await db.update(poolSuggestions).set({ picked: true }).where(eq(poolSuggestions.id, win.id));
-  return { stageId, mod, slot: slot + 1, title: win.title, version: win.version, avg: win.avg };
+  return { stageId, mod, slot: slot + 1, title: win.title, version: win.version, pts: win.pts };
 }
 
 export async function sheetVersion(stageId: number) {
@@ -127,7 +141,7 @@ export async function sheetVersion(stageId: number) {
   return row?.v ?? "";
 }
 
-/** the deadline rule: an elected winner, else the best average (one suggestion wins even without votes); equal tops = tie */
+/** the deadline rule: an elected winner, else the most points (one suggestion wins even without votes); equal tops = tie */
 export async function slotLeader(stageId: number, mod: string, slot: number) {
   const list = await db
     .select()
@@ -137,8 +151,8 @@ export async function slotLeader(stageId: number, mod: string, slot: number) {
   const won = list.find((s) => s.picked);
   if (won) return { kind: "win" as const, s: won };
   const votes = await db.select().from(poolVotes).where(inArray(poolVotes.suggestionId, list.map((s) => s.id)));
-  const ranked = list.map((s) => ({ s, avg: avgOf(votes.filter((v) => v.suggestionId === s.id)) })).sort((a, b) => (b.avg ?? -1) - (a.avg ?? -1));
-  if (ranked.length > 1 && (ranked[0].avg ?? -1) === (ranked[1].avg ?? -1)) return { kind: "tie" as const };
+  const ranked = list.map((s) => ({ s, pts: ptsOf(votes.filter((v) => v.suggestionId === s.id)) })).sort((a, b) => (b.pts ?? -1) - (a.pts ?? -1));
+  if (ranked.length > 1 && (ranked[0].pts ?? -1) === (ranked[1].pts ?? -1)) return { kind: "tie" as const };
   return { kind: "win" as const, s: ranked[0].s };
 }
 

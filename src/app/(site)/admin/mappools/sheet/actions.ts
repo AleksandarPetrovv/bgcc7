@@ -1,18 +1,19 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { poolSuggestions, poolVotes } from "@/db/schema";
 import { placeSuggestion, resolveSlot, slotPicked } from "@/db/pool-sheet";
 import { poolChanged, poolState, sheetBlocked } from "@/db/pool-settle";
 import { stages } from "@/db/schema";
-import { slotBeatmapId } from "@/db/mappools";
+import { slotBeatmapId, slotOf } from "@/db/mappools";
+import { getPlan, getSkillLayouts } from "@/db/format-plan";
+import { skillSlot } from "@/lib/format-plan";
 import { guard } from "@/lib/admin-action";
 import { log, type Viewer } from "@/lib/authz";
 import { fetchMap } from "@/lib/fetch-map";
 import { can } from "@/lib/roles";
 import type { ActionResult } from "@/lib/action-result";
-import { getPlan } from "@/db/format-plan";
 
 async function settle(osuId: number, stageId: number, mod: string, slot: number, chosen?: number) {
   const res = await resolveSlot(stageId, mod, slot, chosen);
@@ -34,11 +35,17 @@ export async function suggestMap(stageId: number, mod: string, slot: number, _: 
     if (!beatmapId) return { ok: false, error: "invalid" };
     if (await slotPicked(stageId, mod, slot)) return { ok: false, error: "taken" };
     const [dupe] = await db
-      .select({ id: poolSuggestions.id })
+      .select({ mod: poolSuggestions.mod, slot: poolSuggestions.slot })
       .from(poolSuggestions)
-      .where(and(eq(poolSuggestions.stageId, stageId), eq(poolSuggestions.mod, mod), eq(poolSuggestions.slot, slot), eq(poolSuggestions.beatmapId, beatmapId)))
+      .where(and(eq(poolSuggestions.stageId, stageId), eq(poolSuggestions.beatmapId, beatmapId)))
+      .orderBy(sql`(${poolSuggestions.mod} = ${mod} and ${poolSuggestions.slot} = ${slot}) desc`)
       .limit(1);
-    if (dupe) return { ok: false, error: "taken" };
+    if (dupe?.mod === mod && dupe.slot === slot) return { ok: false, error: "taken" };
+    if (dupe) {
+      const [st] = await db.select({ slug: stages.slug }).from(stages).where(eq(stages.id, stageId)).limit(1);
+      const layout = st && (await getSkillLayouts())?.[st.slug];
+      return { ok: false, error: "dupe", slot: skillSlot(layout, dupe.mod, dupe.slot)?.label ?? slotOf(dupe.mod, dupe.slot) };
+    }
     const [mine] = await db
       .select({ id: poolSuggestions.id })
       .from(poolSuggestions)
@@ -59,7 +66,7 @@ export async function voteSuggestion(id: number, score: number, note: string) {
     const text = String(note ?? "")
       .trim()
       .slice(0, 300);
-    if (!Number.isInteger(score) || score < 1 || score > 10 || text.length < 2) return { ok: false, error: "invalid" };
+    if (!Number.isInteger(score) || score < 1 || score > 10 || text.length < 1) return { ok: false, error: "invalid" };
     const [s] = await db.select().from(poolSuggestions).where(eq(poolSuggestions.id, id)).limit(1);
     if (!s) return { ok: false, error: "notFound" };
     if (!(await inWindow({ osuId, roles }, s.stageId))) return { ok: false, error: "forbidden" };
@@ -82,17 +89,13 @@ export async function removeSuggestion(id: number) {
   });
 }
 
-export async function pickNow(stageId: number, mod: string, slot: number) {
-  return guard("host", "pool.force", async ({ osuId }) => {
-    await settle(osuId, stageId, mod, slot);
-    return { log: { stageId, mod, slot: slot + 1 } };
-  });
-}
-
 export async function pickSuggestion(id: number) {
   return guard("host", "pool.force", async ({ osuId }) => {
     const [s] = await db.select().from(poolSuggestions).where(eq(poolSuggestions.id, id)).limit(1);
     if (!s) return { ok: false, error: "notFound" };
+    // nothing is decided while suggestions and votes can still come in: a host only breaks a tie the deadline left
+    const [st] = await db.select({ slug: stages.slug }).from(stages).where(eq(stages.id, s.stageId)).limit(1);
+    if ((await poolState()).access.open?.stage === st?.slug) return { ok: false, error: "forbidden" };
     await settle(osuId, s.stageId, s.mod, s.slot, id);
     return { log: { stageId: s.stageId, mod: s.mod, slot: s.slot + 1 } };
   });
