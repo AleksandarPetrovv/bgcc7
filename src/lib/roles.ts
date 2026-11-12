@@ -6,7 +6,7 @@ export type Perm = (typeof PERMS)[number];
 
 const GRANTS: Record<Role, readonly Perm[]> = {
   host: PERMS,
-  referee: ["lobbies", "qualifiers", "matches", "stream"],
+  referee: ["lobbies", "qualifiers", "matches"],
   mappooler: ["mappools", "poolEdit", "poolVote"],
   playtester: ["mappools", "poolVote"],
   streamer: ["stream", "overlay"],
