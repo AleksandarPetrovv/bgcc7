@@ -8,7 +8,7 @@ import { isScene, type Scene } from "@/lib/scenes";
 import { can, cleanRoles } from "@/lib/roles";
 import { getLive } from "@/lib/live-scores";
 import { IPC_PLAYING } from "@/lib/relay-contract";
-import { staffNames } from "@/lib/staff-names";
+import { staffHas } from "@/lib/staff-names";
 import { globalStore } from "@/lib/global-store";
 
 const focus = () => globalStore("bgccStreamFocus", () => new Map<string, string>());
@@ -23,21 +23,19 @@ export async function overlayName(osuId: number) {
   return first?.username ?? (await usernameOf(osuId));
 }
 
-const streamersOf = (m: { streamer: string | null }) => staffNames(m.streamer).map(nameKey);
-
 export async function streamMatches(osuId: number, all: boolean) {
   const me = nameKey((await usernameOf(osuId)) ?? "");
-  // a match shows once both teams are known; finished ones stay (as past) so their after-match scenes can still be run
-  const list = (await getAllMatches()).filter((m) => m.team1.id && m.team2.id && (all || streamersOf(m).includes(me)));
+  // streamers see every match that names them (as /me does), hosts only those with both teams known; finished ones stay (as past) so their after-match scenes can still be run
+  const list = (await getAllMatches()).filter((m) => (all ? m.team1.id && m.team2.id : staffHas(m.streamer, me)));
   list.sort((a, b) => (a.datetime ? Date.parse(a.datetime) : Infinity) - (b.datetime ? Date.parse(b.datetime) : Infinity));
   const rows = list.length ? await db.select({ id: matches.id, scene: matches.scene }).from(matches).where(inArray(matches.id, list.map((m) => m.id))) : [];
   const scene = new Map(rows.map((r) => [r.id, isScene(r.scene) ? r.scene : null] as const));
-  return list.map((m) => ({ ...m, slug: m.id, scene: scene.get(m.id) ?? null, mine: streamersOf(m).includes(me), past: m.winner != null }));
+  return list.map((m) => ({ ...m, slug: m.id, scene: scene.get(m.id) ?? null, mine: staffHas(m.streamer, me), past: m.winner != null }));
 }
 
 export async function currentStreamMatch(osuId: number) {
   const me = nameKey((await usernameOf(osuId)) ?? "");
-  const list = (await getAllMatches()).filter((m) => streamersOf(m).includes(me));
+  const list = (await getAllMatches()).filter((m) => staffHas(m.streamer, me));
   const key = editionKey(osuId);
   if (!list.length) {
     focus().delete(key);
@@ -57,6 +55,10 @@ export async function currentStreamMatch(osuId: number) {
 
 export async function setMatchScene(id: string, scene: Scene | null) {
   await db.update(matches).set({ scene }).where(eq(matches.id, id));
+}
+
+export async function setMatchVod(id: string, vodUrl: string | null) {
+  await db.update(matches).set({ vodUrl }).where(eq(matches.id, id));
 }
 
 export async function overlayUser(key: string) {

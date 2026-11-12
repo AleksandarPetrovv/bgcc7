@@ -10,7 +10,8 @@ import { userPath } from "@/lib/data";
 import { fill } from "@/lib/dates";
 import { overlayUrl } from "@/lib/links";
 import { getFormat } from "@/db/edition";
-import { overlayName } from "@/db/stream";
+import { currentStreamMatch, overlayName } from "@/db/stream";
+import { matchLabel } from "@/lib/matches";
 import { HelperLink, HelperPoll, HelperStatus } from "@/components/admin/link-gate";
 import { helperView } from "@/lib/helper-sig";
 import { SlantBg } from "@/components/site/slant";
@@ -20,7 +21,7 @@ export const dynamic = "force-dynamic";
 export default async function Overlay() {
   const [t, viewer] = await Promise.all([getDict(), getViewer()]);
   if (!viewer || !can(viewer.roles, "overlay")) forbidden();
-  const [{ app, online, sig }, name] = await Promise.all([helperView(viewer.osuId), overlayName(viewer.osuId)]);
+  const [{ app, online, sig }, name, following] = await Promise.all([helperView(viewer.osuId), overlayName(viewer.osuId), currentStreamMatch(viewer.osuId)]);
   const o = t.admin.overlay;
   const url = overlayUrl(userPath(name ?? String(viewer.osuId)));
   let i = 1;
@@ -34,6 +35,7 @@ export default async function Overlay() {
         <Panel title={o.link} i={i++}>
           <div className="grid gap-4">
             <CopyLink url={url} />
+            <p className="text-sm font-display font-bold text-paper/90">{following ? o.following(`${matchLabel(getFormat(), t, following.id)}: ${following.team1.name} vs ${following.team2.name}`) : o.followingNone}</p>
             <a href="/overlay/demo" target="_blank" rel="noopener noreferrer" className="group relative isolate inline-flex w-fit items-center gap-2 px-4 py-2 text-sm font-display font-bold text-paper">
               <SlantBg className="border border-line group-hover:border-rose" /><ExternalLink className="size-4" />{o.test}
             </a>

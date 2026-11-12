@@ -1,7 +1,9 @@
 import { forbidden } from "next/navigation";
 import { CalendarClock, ChevronDown, Radio } from "lucide-react";
 import { PageTitle } from "@/components/site/page-title";
-import { Panel } from "@/components/admin/form";
+import { ActionForm, Field, Panel } from "@/components/admin/form";
+import { labelCls } from "@/components/admin/label";
+import { setVod } from "./actions";
 import { CopyLink } from "@/components/admin/copy-link";
 import { SlantBg } from "@/components/site/slant";
 import { getViewer } from "@/lib/authz";
@@ -58,6 +60,14 @@ export default async function Stream() {
         </div>
         <div data-cascade className="in-up">
           <CopyLink url={overlayUrl(m.slug)} />
+        </div>
+        <div data-cascade className="in-up">
+          <ActionForm key={m.vodUrl ?? ""} action={setVod.bind(null, m.id)} className="grid gap-3">
+            <label className={labelCls}>
+              {t.admin.vodUrl}
+              <Field name="vodUrl" maxLength={300} placeholder="https://…" defaultValue={m.vodUrl ?? ""} />
+            </label>
+          </ActionForm>
         </div>
       </div>
       </PanelFeedProvider>
