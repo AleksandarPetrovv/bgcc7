@@ -1,7 +1,7 @@
 import { bestOf, playerCount, versus, type Format } from "./format";
-import { DEADLINE, MATCH_FROM, MATCH_TO, pointLabel } from "./schedule";
+import { DEADLINE, MATCH_FROM, MATCH_TO, pointLabel, weekOf } from "./schedule";
 import { phaseKey } from "./sections";
-import { dayDate, fmtDate, sofiaDate, tzLabel } from "./time";
+import { dayDate, fmtDate, fmtSofiaDay, fmtSofiaTime, sofiaDate, tzLabel } from "./time";
 
 export type TimelineRow = { key: string; from: string | null; to: string | null };
 
@@ -34,8 +34,11 @@ export function buildTokens(opts: {
   firstTo: Record<string, number | null>;
   format?: Format;
   bans?: Record<string, number>;
+  weeks: Record<string, string>;
+  closes: Record<string, string>;
+  weekTitle: (n: number) => string;
 }) {
-  const { locale, timeline, regClosesAt, qualifyCount, firstTo } = opts;
+  const { locale, timeline, regClosesAt, qualifyCount, firstTo, weeks, closes, weekTitle } = opts;
   const n = opts.teams ?? Math.floor(qualifyCount / 3);
   const tokens: Record<string, string> = {};
   for (const r of timeline) tokens[r.key] = fmtRange(locale, r.from, r.to);
@@ -52,7 +55,16 @@ export function buildTokens(opts: {
   tokens.teams2p2 = String(2 * n + 2);
   tokens.matchFrom = pointLabel(locale, MATCH_FROM);
   tokens.matchTo = pointLabel(locale, MATCH_TO);
-  tokens.deadline = pointLabel(locale, DEADLINE);
+  tokens.deadline = Object.keys(closes).length
+    ? Object.keys(weeks)
+        .sort((a, b) => +a - +b)
+        .map((n) => {
+          const d = weekOf(weeks[n], closes[n])?.deadline;
+          return d ? `${weekTitle(+n)}: ${fmtSofiaDay(d, locale)} ${fmtSofiaTime(d)}` : null;
+        })
+        .filter(Boolean)
+        .join(", ")
+    : `${pointLabel(locale, DEADLINE)} ${locale.startsWith("bg") ? "същата седмица" : "of that week"}`;
   for (const [slug, ft] of Object.entries(firstTo)) if (ft) tokens[`bo.${slug}`] = String(bestOf(ft));
   const bg = locale.startsWith("bg");
   for (const [slug, n] of Object.entries(opts.bans ?? {})) tokens[`bans.${slug}`] = `${n} ${bg ? (n === 1 ? "бан" : "бана") : n === 1 ? "ban" : "bans"}`;

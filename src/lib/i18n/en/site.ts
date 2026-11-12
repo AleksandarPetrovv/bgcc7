@@ -309,7 +309,7 @@ export const site = {
       "All matches use [[Team VS]] and [[ScoreV2]]",
       "All times are in [[EET / EEST (UTC+2 / UTC+3)]]",
       "Matches are played between [[%matchFrom%]] and [[%matchTo%]] of their week",
-      "Captains agree on a time on the [[scheduling page]] before [[%deadline%]] of that week. One proposes, the other accepts or counters, and the bot DMs you on {{Discord}}, so link it on your page",
+      "Captains agree on a time on the [[scheduling page]] before [[%deadline%]]. One proposes, the other accepts or counters, and the bot DMs you on {{Discord}}, so link it on your page",
       "Streamers, commentators and designers can also play. Referees and playtesters can only help out once they're knocked out, and every other staff role can't play at all",
     ],
     prizes: "Prizes",
