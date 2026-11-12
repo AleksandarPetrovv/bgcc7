@@ -3,8 +3,8 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { registrations, teamMembers } from "@/db/schema";
-import { getBwsLock, isStatus, removeRegistration as dropRegistration, setRegistrationStatus, snapshotBws } from "@/db/registrations";
-import { refreshUsers, resolveOsuUser, saveOsuUser } from "@/db/users";
+import { admitPlayer, isStatus, removeRegistration as dropRegistration, setRegistrationStatus } from "@/db/registrations";
+import { refreshUsers, resolveOsuUser } from "@/db/users";
 import { guard } from "@/lib/admin-action";
 import { snapshot } from "@/lib/snapshot";
 import { dmPlayer } from "@/db/discord-bot";
@@ -52,14 +52,7 @@ export async function addPlayer(_: ActionResult, fd: FormData) {
   return guard("screening", "screening.add", async ({ osuId: by }) => {
     const u = await resolveOsuUser(fd.get("q"));
     if (!u) return { ok: false, error: "notFound" };
-    await saveOsuUser(u);
-    const set = { status: "approved", decidedBy: by, decidedAt: new Date() };
-    await db
-      .insert(registrations)
-      .values({ osuId: u.id, ...set })
-      .onConflictDoUpdate({ target: registrations.osuId, set });
-    // added after the bws lock: freeze this player's rank like everyone else's
-    if (await getBwsLock()) await snapshotBws(u.id);
+    await admitPlayer(u, by);
     return { log: { osuId: u.id, username: u.username } };
   });
 }

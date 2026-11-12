@@ -2,14 +2,15 @@
 
 import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { availability, teamMembers, teams, users } from "@/db/schema";
+import { availability, registrations, teamMembers, teams, users } from "@/db/schema";
 import { getFormat } from "@/db/edition";
 import { bringBack, ruleOut, undoForfeit as takeBack } from "@/db/team-out";
 import { guard } from "@/lib/admin-action";
 import type { ActionResult } from "@/lib/action-result";
 import { isOutKind, type OutKind } from "@/lib/out";
 import { snapshot } from "@/lib/snapshot";
-import { lockBws as lock, unlockBws as unlock } from "@/db/registrations";
+import { admitPlayer, lockBws as lock, unlockBws as unlock } from "@/db/registrations";
+import { resolveOsuUser } from "@/db/users";
 import { frozenSeeds } from "@/db/seeds";
 
 /** seeds are frozen from the first spin, so the ranks can't change after it */
@@ -83,10 +84,14 @@ export async function updateTeam(id: string, _: ActionResult, fd: FormData) {
 }
 
 export async function placeMember(_: ActionResult, fd: FormData) {
-  return guard("host", "team.placeMember", async () => {
-    const osuId = Number(fd.get("osuId"));
+  return guard("host", "team.placeMember", async ({ osuId: by }) => {
     const teamId = String(fd.get("teamId") ?? "");
+    // `q`: an osu! id typed by a host, anyone on osu!; whoever isn't an approved player yet becomes one
+    const typed = fd.has("q") ? await resolveOsuUser(fd.get("q")) : null;
+    if (fd.has("q") && !typed) return { ok: false, error: "notFound" };
+    const osuId = typed?.id ?? Number(fd.get("osuId"));
     if (!Number.isInteger(osuId) || !teamId) return { ok: false, error: "invalid" };
+    if (typed && (await db.select({ status: registrations.status }).from(registrations).where(eq(registrations.osuId, osuId)).limit(1))[0]?.status !== "approved") await admitPlayer(typed, by);
     const [old] = await db.select().from(teamMembers).where(eq(teamMembers.osuId, osuId)).limit(1);
     const mates = await db.select().from(teamMembers).where(eq(teamMembers.teamId, teamId));
     if (mates.filter((m) => m.osuId !== osuId).length >= getFormat().teamSize) return { ok: false, error: "invalid" };

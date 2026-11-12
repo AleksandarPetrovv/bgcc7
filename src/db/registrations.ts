@@ -3,9 +3,20 @@ import { desc, eq, sql } from "drizzle-orm";
 import { db } from "./index";
 import { lobbyBookings, registrations, settings, users } from "./schema";
 import { safe } from "./safe";
-import { refreshUsers } from "./users";
+import { refreshUsers, saveOsuUser } from "./users";
 import { saveSettings } from "./settings";
 import { avatarCol } from "./avatar";
+
+/** a host puts a player in by hand: the account is saved and approved, its rank frozen like everyone's once bws is locked */
+export async function admitPlayer(u: Parameters<typeof saveOsuUser>[0], by: number) {
+  await saveOsuUser(u);
+  const set = { status: "approved", decidedBy: by, decidedAt: new Date() };
+  await db
+    .insert(registrations)
+    .values({ osuId: u.id, ...set })
+    .onConflictDoUpdate({ target: registrations.osuId, set });
+  if (await getBwsLock()) await snapshotBws(u.id);
+}
 
 export const STATUSES = ["pending", "approved", "denied"] as const;
 export type Status = (typeof STATUSES)[number];

@@ -4,7 +4,6 @@ import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { labelCls } from "@/components/admin/label";
-import { getQualResults } from "@/db/qualifiers";
 import { getBwsLock, getRegistrations } from "@/db/registrations";
 import { getSettings } from "@/db/settings";
 import { getMatches, getTeams } from "@/db/tournament";
@@ -32,24 +31,15 @@ import { bwsRanking, frozenSeeds, getPlayerSeeds } from "@/db/seeds";
 
 const bwsGrid = "grid grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_4rem] items-center gap-x-2 px-2 sm:gap-x-3 sm:px-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_3.5rem_6rem_4rem_6rem]";
 export default async function AdminTeams() {
-  const [t, viewer, teams, results, regs, settings, f, matches, bwsLock, frozen] = await Promise.all([getDict(), getViewer(), getTeams(), getQualResults(), getRegistrations(), getSettings(), getFormat(), getMatches(), getBwsLock(), frozenSeeds()]);
+  const [t, viewer, teams, regs, settings, f, matches, bwsLock, frozen] = await Promise.all([getDict(), getViewer(), getTeams(), getRegistrations(), getSettings(), getFormat(), getMatches(), getBwsLock(), frozenSeeds()]);
   const drawn = frozen.length > 0;
   if (!can(viewer?.roles, "teams")) forbidden();
   const host = can(viewer?.roles, "host");
   const suiji = !isBGCC6();
   const need = f.teams * f.teamSize;
   const ranked = drawn ? await bwsRanking() : rankBws(regs.filter((r) => r.status === "approved"));
-  const taken = new Set(teams.flatMap((x) => x.players.map((p) => p.userId)));
   const seedOf = await getPlayerSeeds();
   const tag = suiji ? "B#" : "Q#";
-  const pool = (
-    suiji
-      ? ranked.map((p) => ({ osuId: p.osuId, username: p.username }))
-      : [
-          ...results.players.map((p) => ({ osuId: p.id, username: p.username })),
-          ...regs.filter((r) => r.status === "approved" && !seedOf.has(r.osuId)).map((r) => ({ osuId: r.osuId, username: r.username })),
-        ]
-  ).filter((p) => !taken.has(p.osuId));
   const avg = (ids: number[]) => {
     const v = ids.map((id) => seedOf.get(id)).filter((x): x is number => typeof x === "number");
     return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
@@ -141,7 +131,7 @@ export default async function AdminTeams() {
           const gaveUp = forfeitsOf(matches, team.id);
           const forfeit = team.out || !gaveUp.length ? null : gaveUp.some((m) => !m.winner) ? "next" : "done";
           return (
-          <section key={team.id} className="in-up relative border-b border-line" style={{ "--i": Math.min(n, 16), "--s": "0.07s", "--d": "0.2s" } as React.CSSProperties}>
+          <section key={team.id} className="in-up relative border-b border-line" style={{ "--i": Math.min(n, 16), "--s": "0.08s", "--d": "0.6s" } as React.CSSProperties}>
             <RuleDiamond />
             <details className="group/team">
             <summary className="group/sum flex cursor-pointer list-none items-center gap-3 pb-3 [&::-webkit-details-marker]:hidden">
@@ -218,13 +208,11 @@ export default async function AdminTeams() {
               </ul>
 
               <div className={cn("flex flex-wrap items-end gap-3", short ? "justify-between" : "justify-center")}>
-                {!short ? null : pool.length > 0 ? (
+                {short && (
                   <ActionForm action={placeMember} submit={t.admin.add} ghost className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                     <input type="hidden" name="teamId" value={team.id} />
-                    <Dropdown name="osuId" required placeholder={t.admin.addToTeam} aria-label={t.admin.addToTeam} className="w-full sm:w-56" options={pool.map((p) => ({ value: String(p.osuId), label: p.username, hint: seedOf.has(p.osuId) ? `${tag}${seedOf.get(p.osuId)}` : undefined }))} />
+                    <Field name="q" required inputMode="numeric" pattern="[0-9]+" maxLength={12} autoComplete="off" placeholder={t.admin.osuId} aria-label={t.admin.addToTeam} className="w-full sm:w-56" />
                   </ActionForm>
-                ) : (
-                  <span />
                 )}
                 <TeamOut id={team.id} name={team.name} out={team.out} askOnce={nextMatchOf(matches, team.id)?.bracket === "winners"} forfeit={forfeit} />
               </div>
