@@ -5,7 +5,9 @@ import { forbidden } from "next/navigation";
 import { Download } from "lucide-react";
 import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { getRegistrations, STATUSES, isStatus } from "@/db/registrations";
+import { getSettings } from "@/db/settings";
 import { getViewer } from "@/lib/authz";
+import { screeningPhase } from "@/lib/sections";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { can } from "@/lib/roles";
 import { fmtSofia } from "@/lib/time";
@@ -13,10 +15,18 @@ import { addPlayer, approveAllPending, refreshStats } from "./actions";
 import { ScreeningRow } from "./screening-row";
 import { localeOf } from "@/lib/i18n/locale";
 import { SlantBg } from "@/components/site/slant";
+import { DrawNote } from "@/components/site/draw/draw-stage";
 
 export default async function AdminScreening({ searchParams }: PageProps<"/admin/screening">) {
-  const [t, lang, viewer, rows, sp] = await Promise.all([getDict(), getLang(), getViewer(), getRegistrations(), searchParams]);
+  const [t, lang, viewer, rows, sp, { phase }] = await Promise.all([getDict(), getLang(), getViewer(), getRegistrations(), searchParams, getSettings()]);
   if (!can(viewer?.roles, "screening")) forbidden();
+  if (!screeningPhase(phase))
+    return (
+      <>
+        <PageTitle mark="screen">{t.admin.menu.screening}</PageTitle>
+        <DrawNote>{t.admin.phaseLocked(t.admin.phases.playoffs)}</DrawNote>
+      </>
+    );
   const filter = isStatus(sp.status) ? sp.status : null;
   const shown = filter ? rows.filter((r) => r.status === filter) : rows;
   const count = (s: string | null) => (s ? rows.filter((r) => r.status === s).length : rows.length);

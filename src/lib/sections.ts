@@ -36,6 +36,10 @@ const PRESETS: Record<Phase, Section[]> = {
 
 export const presetSections = (p: Phase) => Object.fromEntries(SECTIONS.map((s) => [s, PRESETS[p].includes(s)])) as Record<Section, boolean>;
 
+/** the draw runs only in the team draw phase; screening only before the playoffs */
+export const drawPhase = (p: string) => p === "seeding";
+export const screeningPhase = (p: string) => PHASES.indexOf(p as Phase) < PHASES.indexOf("playoffs");
+
 export const TIMELINE_KEYS = ["reg", "scr", "qual", "seed", "play", "done"] as const;
 export const phaseKey = (p: string): string | undefined => TIMELINE_KEYS[PHASES.indexOf(p as Phase)];
 export const keyPhase = (k: string): Phase | undefined => PHASES[TIMELINE_KEYS.indexOf(k as (typeof TIMELINE_KEYS)[number])];

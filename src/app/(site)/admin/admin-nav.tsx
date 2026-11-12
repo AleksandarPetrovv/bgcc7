@@ -34,11 +34,11 @@ const ICONS: Record<AdminKey, React.ComponentType<{ className?: string }>> = {
 
 const spring = { type: "spring", stiffness: 520, damping: 42 } as const;
 
-export function AdminNav({ items }: { items: { key: AdminKey; href: string; label: string }[] }) {
+export function AdminNav({ items }: { items: { key: AdminKey; href: string; label: string; locked: boolean }[] }) {
   const path = usePathname();
   return (
-    <nav className="grid grid-cols-8 gap-x-0.5 gap-y-1.5 py-2 lg:flex lg:flex-col lg:justify-start lg:gap-1 lg:py-3" aria-label="Admin">
-      {items.map((i) => {
+    <nav className="grid grid-cols-7 gap-x-0.5 gap-y-1.5 py-2 lg:flex lg:flex-col lg:justify-start lg:gap-1 lg:py-3" aria-label="Admin">
+      {items.map((i, n) => {
         const key = i.key;
         const Icon = ICONS[key];
         const active = path.startsWith(i.href);
@@ -52,7 +52,12 @@ export function AdminNav({ items }: { items: { key: AdminKey; href: string; labe
             className={cn(
               "group relative flex min-w-0 flex-1 items-center justify-center gap-3 whitespace-nowrap py-2 lg:flex-none lg:justify-start lg:whitespace-normal lg:px-2.5 text-[0.8rem] font-display font-bold transition-colors duration-200",
               active ? "text-paper" : key === "helper" ? "text-balkan-hi hover:text-paper" : "text-ash hover:text-paper",
+              // phones can't run the helper: no icon there, the page still opens
+              key === "helper" && "hidden lg:flex",
               key === "helper" && !active && "lg:mb-2",
+              // closed by the phase: set apart from the rest by one row's height (phones: a row of their own)
+              i.locked && "max-lg:mt-2",
+              i.locked && !items[n - 1]?.locked && "max-lg:col-start-1 lg:mt-11",
             )}
           >
             {active && (

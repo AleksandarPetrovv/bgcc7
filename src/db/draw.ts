@@ -13,6 +13,7 @@ import { clearMatchChildren, realTeams } from "./match";
 import { getFormat } from "./edition";
 import { bwsRanking, getPlayerSeeds } from "./seeds";
 import { getSettings } from "./settings";
+import { drawPhase } from "@/lib/sections";
 import { resetPickems } from "./pickems";
 
 export const newTeamId = () => `team_${crypto.randomUUID().slice(0, 8)}`;
@@ -62,7 +63,7 @@ export function onDraw(fn: () => void) {
 }
 
 /** the draw runs only in the team draw phase of bgcc7 (two tiers, pairs of two) */
-export const drawOpen = async () => !isBGCC6() && (await getSettings()).phase === "seeding";
+export const drawOpen = async () => !isBGCC6() && drawPhase((await getSettings()).phase);
 
 async function tiers() {
   const f = getFormat();

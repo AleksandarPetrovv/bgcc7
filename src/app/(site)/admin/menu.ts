@@ -1,5 +1,6 @@
 import { isBGCC6 } from "@/db";
 import { can, HELPER_PERMS, type Perm, type Role } from "@/lib/roles";
+import { drawPhase, screeningPhase } from "@/lib/sections";
 
 const SECTIONS = [
   { key: "helper", perm: HELPER_PERMS },
@@ -25,6 +26,13 @@ const SECTIONS = [
 
 export type AdminKey = (typeof SECTIONS)[number]["key"];
 
+/** sections the current phase has closed: they stay in the menu, last */
+const phaseLocked = (phase: string): AdminKey[] => [...(screeningPhase(phase) ? [] : ["screening" as const]), ...(drawPhase(phase) ? [] : ["draw" as const])];
+
 /** `hide`: sections closed for this viewer for now (mappools once the last pool settled, for poolers and testers) */
-export const adminMenu = (roles: readonly Role[] | null | undefined, hide: readonly AdminKey[] = []) =>
-  SECTIONS.filter((s) => (!("bgcc6" in s) || isBGCC6()) && (!("bgcc7" in s) || !isBGCC6()) && s.perm.some((p) => can(roles, p)) && !hide.includes(s.key)).map((s) => ({ key: s.key as AdminKey, href: `/admin/${s.key}` }));
+export function adminMenu(roles: readonly Role[] | null | undefined, phase: string, hide: readonly AdminKey[] = []) {
+  const locked = phaseLocked(phase);
+  return SECTIONS.filter((s) => (!("bgcc6" in s) || isBGCC6()) && (!("bgcc7" in s) || !isBGCC6()) && s.perm.some((p) => can(roles, p)) && !hide.includes(s.key))
+    .map((s) => ({ key: s.key as AdminKey, href: `/admin/${s.key}`, locked: locked.includes(s.key) }))
+    .sort((a, b) => +a.locked - +b.locked);
+}

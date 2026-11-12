@@ -27,7 +27,7 @@ import type { BellFeed } from "@/components/site/team-bell";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [viewer, vis, teams, matches, settings, dict] = await Promise.all([getMe(), getVisibility(), getTeams(), getMatches(), getSettings(), getDict()]);
-  const user = viewer?.name ? { name: viewer.name, image: avatarPath(viewer.osuId, true), page: !viewer.noPage, admin: hasAdmin(viewer.roles) ? (adminMenu(viewer.roles, await menuHidden(viewer))[0]?.href ?? "/admin") : null } : null;
+  const user = viewer?.name ? { name: viewer.name, image: avatarPath(viewer.osuId, true), page: !viewer.noPage, admin: hasAdmin(viewer.roles) ? (adminMenu(viewer.roles, settings.phase, await menuHidden(viewer))[0]?.href ?? "/admin") : null } : null;
   const [captain, twitch, sched] = await Promise.all([viewer ? isPlayer(viewer.osuId) : false, vis.sections.streams || vis.staff ? getLive().then(Boolean) : false, schedNav().catch(() => null)]);
   const match = captain && viewer ? await myOpenDraft(viewer.osuId).catch(() => null) : null;
   const bell: BellFeed | null = viewer
