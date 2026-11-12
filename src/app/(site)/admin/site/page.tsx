@@ -22,7 +22,7 @@ export default async function AdminSite() {
 
       <Cascade className="grid grid-cols-1 gap-6 xl:grid-cols-2" step={0.06}>
         <div className="space-y-6">
-          <Panel title={t.admin.packs} help={t.admin.packsHelp}>
+          <Panel title={t.admin.packs}>
             <PackUploader stages={stages.map((s) => ({ slug: s.slug, title: s.title, pack: s.pack }))} locale={localeOf(lang)} />
           </Panel>
         </div>

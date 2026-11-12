@@ -1,7 +1,6 @@
 import { db } from "@/db";
 import { forbidden } from "next/navigation";
 import { PageTitle } from "@/components/site/page-title";
-import { Words } from "@/components/site/rich";
 import { drafts } from "@/db/schema";
 import { timers, toView } from "@/db/drafts";
 import { getPoolStages, poolMaps } from "@/db/mappools";
@@ -60,9 +59,6 @@ export default async function AdminDraft() {
   return (
     <>
       <PageTitle mark="draft">{t.admin.menu.draft}</PageTitle>
-      <p className="-mt-4 mb-8 max-w-2xl text-sm text-ash">
-        <Words text={t.admin.dr.help} d={0.15} s={0.012} />
-      </p>
       <DraftAdmin rows={list} pools={pools.map((p) => ({ slug: p.slug, title: roundName(t, p.title) }))} />
     </>
   );

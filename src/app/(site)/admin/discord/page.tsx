@@ -38,7 +38,7 @@ export default async function AdminDiscord() {
     <>
       <PageTitle mark="discord">{t.admin.menu.discord}</PageTitle>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 xl:items-start">
-        <Panel title={d.channels} help={d.channelsHelp} i={0}>
+        <Panel title={d.channels} i={0}>
           {chans ? (
             <ActionForm action={saveChannels} submit={t.admin.save} className="space-y-4">
               <label className={labelCls}>

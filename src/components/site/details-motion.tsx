@@ -4,6 +4,8 @@ import { useEffect } from "react";
 
 const DUR = 450;
 const EASING = "cubic-bezier(0.4, 0, 0.2, 1)";
+// seconds between the first and the last row of an opened box starting their intro
+const STAGGER = 0.45;
 // the intro classes from motion.css
 const INTRO = ".in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spin, .in-wipe, .in-wipe-r, .in-grow, .in-draw, .in-left-far, .in-right-far, .in-slam, .in-launch, .in-grow-y, .in-stitch, .in-sweep";
 
@@ -39,6 +41,15 @@ export function DetailsMotion() {
       // replay the content's intros on every open (they already ran while it was collapsed)
       if (opening && !prev) {
         const els = [...d.querySelectorAll<HTMLElement>(INTRO)].filter((el) => !summary.contains(el));
+        // a page cascade numbered these down the whole page (or skipped them as off screen): count again from the box's first row, the last one starting within STAGGER
+        const rows = els.filter((el) => el.hasAttribute("data-cascade"));
+        rows.forEach((el, n) => {
+          el.classList.remove("no-intro");
+          el.style.setProperty("--i", String(n));
+          el.style.setProperty("--s", `${Math.min(0.04, STAGGER / rows.length)}s`);
+        });
+        // the page's own lead-in delay (a panel's) is long over: the rows start with the click
+        for (const el of d.children) if (el !== summary) (el as HTMLElement).style.setProperty("--d", "0s");
         for (const el of els) el.style.animation = "none";
         void d.offsetHeight;
         for (const el of els) el.style.animation = "";

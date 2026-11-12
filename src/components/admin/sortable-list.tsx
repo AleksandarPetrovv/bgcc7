@@ -36,8 +36,7 @@ export function SortableList<T>({ rows, id, save, hint, className, wrap = (l) =>
 
   const note = (
     <p className={cn(hint === "top" ? "mb-2" : "mt-2", "text-xs text-ash")}>
-      {t.admin.dragHint}
-      {saved && !pending && <Flash className="ml-2 font-display font-bold text-balkan-hi">{t.admin.saved}</Flash>}
+      {saved && !pending && <Flash className="font-display font-bold text-balkan-hi">{t.admin.saved}</Flash>}
     </p>
   );
 
