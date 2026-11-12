@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import { forbidden } from "next/navigation";
 import { Check, Hourglass, Scale, Trash2 } from "lucide-react";
 import { LinkTabs } from "@/components/site/tabs";
+import { DrawNote } from "@/components/site/draw/draw-stage";
 import { ActionForm, IconAction } from "@/components/admin/form";
 import { earlierMapIds, getPoolStages } from "@/db/mappools";
 import { getPlan, getSkillLayouts } from "@/db/format-plan";
@@ -17,7 +18,7 @@ import { can } from "@/lib/roles";
 import { modHi } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
-import { pickIntoPool, pickNow, pickSuggestion, removeSuggestion, suggestMap } from "./actions";
+import { pickIntoPool, pickSuggestion, removeSuggestion, suggestMap } from "./actions";
 import { VoteCell } from "./vote-cell";
 import { SlotPop } from "../slot-pop";
 import { SheetView, SlotBox } from "./sheet-view";
@@ -26,18 +27,19 @@ import { MapMeta, ModChip } from "../map-meta";
 import { roundName } from "@/lib/i18n/dict";
 import { MOD_ORDER, MODS } from "@/lib/mods";
 
-const places = (items: { picked: boolean; avg: number | null }[]) => {
+const places = (items: { picked: boolean; pts: number | null }[]) => {
   const out: number[] = [];
   items.forEach((m, i) => {
     const prev = items[i - 1];
-    out.push(i === 0 ? 1 : prev.picked !== m.picked || prev.avg === null || m.avg === null || Math.abs(prev.avg - m.avg) > 1e-9 ? out[i - 1] + 1 : out[i - 1]);
+    out.push(i === 0 ? 1 : prev.picked !== m.picked || prev.pts === null || m.pts === null || prev.pts !== m.pts ? out[i - 1] + 1 : out[i - 1]);
   });
   return out;
 };
 
 export default async function PoolSheet({ searchParams }: PageProps<"/admin/mappools/sheet">) {
   const [t, lang, viewer, stages, sp, { now: at, ws, access }] = await Promise.all([getDict(), getLang(), getViewer(), getPoolStages(), searchParams, poolState()]);
-  if (!viewer || !can(viewer.roles, "mappools") || (await sheetBlocked(viewer))) forbidden();
+  if (!viewer || !can(viewer.roles, "mappools")) forbidden();
+  if (await sheetBlocked(viewer)) return <DrawNote>{t.admin.pf.teamIn}</DrawNote>;
   const host = can(viewer.roles, "host");
   // poolers and testers reach one stage at a time, inside its window; after the last pool settles, nothing
   if (!host && access.done) forbidden();
@@ -48,9 +50,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
   if (!host && !open) {
     const next = stages.find((s) => s.slug === access.next?.stage);
     const opens = access.next?.opens;
-    return (
-      next && <PoolClock big title={t.admin.pf.nextIn(name(next))} when={opens ? when(opens) : ""} to={opens?.getTime() ?? null} at={at} />
-    );
+    return next ? <PoolClock big title={t.admin.pf.nextIn(name(next))} when={opens ? when(opens) : ""} to={opens?.getTime() ?? null} at={at} /> : <DrawNote>{t.admin.pf.noWindow}</DrawNote>;
   }
   const stage = stages.find((s) => s.slug === (host ? sp.stage : open)) ?? (host ? stages[0] : undefined);
   if (!stage) return null;
@@ -65,8 +65,8 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
     const win = s.items.find((x) => x.picked);
     return !!win && stage.pools.find((p) => p.category === s.mod)?.maps.find((m) => m.order === s.slot)?.id !== win.beatmapId;
   };
-  // decided slots (a host's Pick), whether or not they are in the pool yet
-  const won = sheet.slots.filter((s) => s.picked && !s.out).map((s) => s.items[0]);
+  // the map each slot would get right now: the decided one, else the one leading on points
+  const won = sheet.slots.filter((s) => !s.out && s.items[0] && (s.picked || s.items[0].pts !== null)).map((s) => s.items[0]);
   const slots = skill ? [...sheet.slots].sort((a, b) => (info.get(`${a.mod}-${a.slot}`)?.at ?? 1e6) - (info.get(`${b.mod}-${b.slot}`)?.at ?? 1e6)) : sheet.slots;
 
   // the round tabs stay mounted; everything under them is keyed by stage so it plays its intro again
@@ -75,16 +75,11 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
       <LinkTabs
         className="in-left mb-6 [--d:0.15s]"
         label={t.admin.menu.mappools}
-        items={stages.map((s, i) => ({
+        items={stages.map((s) => ({
           href: `/admin/mappools/sheet?stage=${s.slug}`,
           active: s.id === stage.id,
           disabled: !reach(s.slug),
-          label: (
-            <>
-              {name(s)}
-              {vote && sheets[i].owed > 0 && <span className="num grid min-w-5 place-items-center bg-rose px-1 text-xs text-white">{sheets[i].owed}</span>}
-            </>
-          ),
+          label: name(s),
         }))}
       />
 
@@ -100,12 +95,11 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
         sr={{ target: plan.rounds.find((r) => r.slug === stage.slug)?.sr ?? null, now: won.length ? won.reduce((n, m) => n + m.sr, 0) / won.length : null }}
         mods={
           skill
-            ? skill.groups.map((g) => ({ key: g.id, short: g.name, color: g.color, count: g.slots.length }))
+            ? skill.groups.map((g) => ({ key: g.id, short: g.name, color: g.color }))
             : MOD_ORDER.filter((k) => sheet.slots.some((s) => s.mod === k)).map((k) => ({
                 key: k,
                 short: MODS[k].label,
                 color: MODS[k].color,
-                count: sheet.slots.filter((s) => s.mod === k).length,
               }))
         }
       >
@@ -134,7 +128,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                     <span className="in-pop relative isolate flex items-center px-2.5 py-1 text-xs font-display font-bold text-rose-hi [--d:0.3s]">
                       <SlantBg className="border border-rose/70 bg-rose/15" />
                       <span className="flex items-center gap-1.5">
-                        <Scale className="size-3.5" /> {host ? t.admin.tieHost : t.admin.tie}
+                        <Scale className="size-3.5" /> {host && !win ? t.admin.tieHost : t.admin.tie}
                       </span>
                     </span>
                   ) : s.waitingOn.length ? (
@@ -145,9 +139,6 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                     </span>
                   ) : null}
                   <span className="ml-auto flex items-center gap-3">
-                    {host && !s.picked && !s.tie && s.items.some((i) => i.votes.length) && (
-                      <ActionForm action={pickNow.bind(null, stage.id, s.mod, s.slot)} submit={t.admin.pickNow} ghost confirm={t.admin.confirmPickNow} />
-                    )}
                     {edit && !s.picked && !s.out && (
                       <SlotPop action={suggestMap.bind(null, stage.id, s.mod, s.slot)} title={t.admin.suggestForSlot} slot={label} color={color} submit={t.admin.suggest} tags={sk ? { groups: plan.subcategories, preset: sk.ids } : undefined} />
                     )}
@@ -158,9 +149,9 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
               <ul className="divide-y divide-line">
                 {s.items.map((m, i) => {
                   const place = places(s.items)[i];
-                  const tops = s.items.filter((x, k) => !x.picked && places(s.items)[k] === 1 && x.avg !== null).length;
+                  const tops = s.items.filter((x, k) => !x.picked && places(s.items)[k] === 1 && x.pts !== null).length;
                   const tiedWin = s.tie && place === 1;
-                  const lead = !s.picked && !s.tie && place === 1 && tops === 1 && m.avg !== null;
+                  const lead = !s.picked && !s.tie && place === 1 && tops === 1 && m.pts !== null;
                   const green = m.picked || tiedWin;
                   const own = m.osuId === viewer.osuId;
                   return (
@@ -194,7 +185,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                         </MapMeta>
                         <TagChips names={subcategoryNames(plan.subcategories, m.subcategoryIds)} color={color} filled className="mt-1.5" />
                       </div>
-                      <div className="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
+                      <div className="flex w-full flex-wrap items-start justify-end gap-3 sm:w-auto">
                         <VoteCell
                           key={m.id}
                           id={m.id}
@@ -209,13 +200,13 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                           votes={m.votes}
                           waiting={s.picked ? [] : sheet.poolers.filter((p) => p.osuId !== m.osuId && !m.votes.some((v) => v.osuId === p.osuId))}
                         />
-                        {host && s.tie && m.avg === s.items[0].avg && (
+                        {host && !win && s.tie && m.pts === s.items[0].pts && (
                           <IconAction action={pickSuggestion.bind(null, m.id)} label={t.admin.pickThis} confirm={t.admin.confirmPickThis}>
                             <Check className="size-4 transition-transform group-hover:-translate-y-px" strokeWidth={3} />
                           </IconAction>
                         )}
                         {edit && !m.picked && (own || host) ? (
-                          <IconAction action={removeSuggestion.bind(null, m.id)} label={t.admin.remove} confirm={t.admin.confirmRemoveSuggestion} danger bare>
+                          <IconAction action={removeSuggestion.bind(null, m.id)} label={t.admin.remove} confirm={t.admin.confirmRemoveSuggestion(m.votes.length)} danger bare>
                             <Trash2 className="size-4 transition-transform group-hover:-translate-y-px" />
                           </IconAction>
                         ) : (

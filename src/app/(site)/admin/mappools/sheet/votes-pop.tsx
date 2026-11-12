@@ -9,7 +9,7 @@ import { scoreColor, scoreText } from "@/lib/score-color";
 import { SlantBg } from "@/components/site/slant";
 
 
-export function VotesPop({ label, votes, waiting, avg }: { label: string; votes: Voter[]; waiting: Pooler[]; avg: number | null }) {
+export function VotesPop({ label, votes, waiting, pts }: { label: string; votes: Voter[]; waiting: Pooler[]; pts: number | null }) {
   const t = useDict();
   const btn = useRef<HTMLButtonElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -51,7 +51,7 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
         onFocus={show}
         onClick={() => (open ? close() : show())}
         aria-expanded={open}
-        className="num block cursor-help border-b border-dashed border-ash/60 text-[0.68rem] font-display font-bold uppercase text-ash transition-colors hover:border-paper hover:text-paper"
+        className="num block cursor-help border-b border-dashed border-ash/60 text-[0.68rem] font-display font-bold text-ash transition-colors hover:border-paper hover:text-paper"
       >
         {label}
       </button>
@@ -71,10 +71,10 @@ export function VotesPop({ label, votes, waiting, avg }: { label: string; votes:
             <div className="vote-pop border border-line bg-coal shadow-[5px_5px_0_0_var(--rose-deep)]">
               <div className="flex items-center justify-between gap-3 border-b border-line bg-ink/60 px-3 py-2">
                 <span className="text-[0.68rem] font-display font-bold text-ash">{t.admin.whoVoted}</span>
-                {avg !== null && (
-                  <span className="num text-sm font-display font-black" style={{ color: scoreText(avg) }}>
-                    {avg.toFixed(1)}
-                    <span className="text-[0.65rem] text-ash">/10</span>
+                {pts !== null && (
+                  <span className="num text-sm font-display font-black text-paper">
+                    {pts}
+                    <span className="text-[0.65rem] text-ash"> {t.admin.ptsUnit}</span>
                   </span>
                 )}
               </div>

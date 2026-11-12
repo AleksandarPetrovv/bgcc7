@@ -9,8 +9,9 @@ import { useDict } from "@/components/site/lang";
 import { modHi } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
-type Mod = { key: string; short: string; color: string; count: number };
+type Mod = { key: string; short: string; color: string };
 
 const Ctx = createContext<{ mod: string; order: string[] }>({ mod: "all", order: [] });
 
@@ -37,7 +38,7 @@ export function SheetView({ stageId, version, mods, order, sr, clock, children }
     "visible",
   );
 
-  const chips = [{ key: "all", short: t.admin.allMods, color: "var(--paper)", count: mods.reduce((n, m) => n + m.count, 0) }, ...mods];
+  const chips = [{ key: "all", short: t.admin.allMods, color: "var(--paper)" }, ...mods];
 
   return (
     <Ctx.Provider value={{ mod, order }}>
@@ -65,7 +66,6 @@ export function SheetView({ stageId, version, mods, order, sr, clock, children }
                   </>
                 )}
                 {c.short}
-                <span className="num text-xs text-ash">{c.count}</span>
               </button>
             );
           })}
@@ -76,7 +76,21 @@ export function SheetView({ stageId, version, mods, order, sr, clock, children }
               <span className="num text-base text-gold-hi [text-shadow:0_0_10px_color-mix(in_srgb,var(--gold)_45%,transparent)]">{sr.target != null ? `${sr.target.toFixed(2)}★` : "?"}</span>
             </span>
             <span className="h-4 w-px bg-line" aria-hidden />
-            <span className="flex items-baseline gap-1.5">
+            <span className="relative flex items-baseline gap-1.5">
+              <HoverCard>
+                <HoverCardTrigger
+                  delay={0}
+                  closeDelay={0}
+                  render={
+                    <button type="button" aria-label={t.admin.currentSrHelp} className="absolute -top-3.5 left-0 grid size-3.5 place-items-center rounded-full border border-line text-[0.55rem] leading-none text-ash transition-colors hover:border-paper/40 hover:text-paper">
+                      ?
+                    </button>
+                  }
+                />
+                <HoverCardContent side="bottom" align="start" className="w-56 rounded-none border border-line bg-coal p-2.5 text-xs font-display font-bold text-paper ring-0">
+                  {t.admin.currentSrHelp}
+                </HoverCardContent>
+              </HoverCard>
               {t.admin.currentSr}
               <span className="num text-base text-paper">{sr.now != null ? `${sr.now.toFixed(2)}★` : "?"}</span>
             </span>

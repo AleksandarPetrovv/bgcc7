@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Crown } from "lucide-react";
+import { Crown, User } from "lucide-react";
 import { useDict } from "@/components/site/lang";
 import type { Pooler, Voter } from "@/db/pool-sheet";
-import { scoreColor } from "@/lib/score-color";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
 import { VotePicker } from "./vote-picker";
@@ -35,7 +34,7 @@ export function VoteCell({ id, viewer, mine, mineNote, canVote, own, picked, won
   const others = votes.filter((v) => v.osuId !== viewer).map((v) => v.score);
   const mineNow = draft.n;
   const all = mineNow === null ? others : [...others, mineNow];
-  const avg = all.length ? all.reduce((a, b) => a + b, 0) / all.length : null;
+  const pts = all.length ? all.reduce((a, b) => a + b, 0) : null;
   const preview = draft.n !== null && draft.n !== draft.saved;
 
   return (
@@ -43,9 +42,12 @@ export function VoteCell({ id, viewer, mine, mineNote, canVote, own, picked, won
       {canVote &&
         !picked &&
         (own ? (
-          <span className="relative isolate px-2.5 py-1 text-xs font-display font-bold uppercase tracking-wider text-white">
-            <SlantBg className="bg-rose shadow-[2px_2px_0_0_var(--rose-deep)]" />
-            {t.admin.yourSuggestion}
+          <span className="relative isolate flex min-h-10 w-24 shrink-0 cursor-default items-center justify-center text-xs font-display font-bold text-ash">
+            <SlantBg className="border border-rose/30" />
+            <span className="flex items-center gap-1.5">
+              <User className="size-3.5" />
+              {t.admin.yourSuggestion}
+            </span>
           </span>
         ) : (
           <VotePicker id={id} mine={mine} mineNote={mineNote} onDraft={(n, saved) => setDraft({ n, saved })} />
@@ -61,23 +63,22 @@ export function VoteCell({ id, viewer, mine, mineNote, canVote, own, picked, won
                   ? "border-balkan shadow-[3px_3px_0_0_var(--balkan-deep)]"
                   : lead && !picked
                     ? "border-rose shadow-[3px_3px_0_0_var(--rose-deep)]"
-                    : "border-line",
+                    : "border-paper/30",
             )}
           />
-          {avg !== null && <SlantBg className="inset-px border-b-[3px] opacity-80 transition-colors duration-200" style={{ borderColor: scoreColor(avg) }} />}
           {lead && !picked && (
             <span className="absolute -left-1.5 -top-2.5 isolate grid size-6 place-items-center text-white">
               <SlantBg className="bg-rose shadow-[2px_2px_0_0_var(--rose-deep)]" />
               <Crown className="size-3.5" />
             </span>
           )}
-          <span className={cn("heading-slam text-[1.7rem] leading-none tabular-nums", avg === null ? "text-ash" : "text-paper")}>
-            {avg === null ? (
+          <span className={cn("heading-slam text-[1.7rem] leading-none tabular-nums", pts === null ? "text-paper/70" : "text-paper")}>
+            {pts === null ? (
               "?"
             ) : (
               <>
-                {avg.toFixed(1)}
-                <span className="text-[0.65rem] font-display font-bold text-ash">/10</span>
+                {pts}
+                <span className="text-[0.65rem] font-display font-bold text-paper/70"> {t.admin.ptsUnit}</span>
               </>
             )}
           </span>
@@ -86,7 +87,7 @@ export function VoteCell({ id, viewer, mine, mineNote, canVote, own, picked, won
           {preview ? (
             <span className="text-[0.68rem] font-display font-bold text-ash">{t.admin.withYours}</span>
           ) : (
-            <VotesPop label={t.admin.votesIn(votes.length)} votes={votes} waiting={waiting} avg={avg} />
+            <VotesPop label={t.admin.votesIn(votes.length)} votes={votes} waiting={waiting} pts={pts} />
           )}
         </span>
       </div>
