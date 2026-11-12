@@ -6,7 +6,7 @@ import type { Perm } from "./roles";
 import type { ActionName } from "./action-names";
 import type { ActionError, ActionResult } from "./action-result";
 
-export type Outcome = void | { ok: false; error?: ActionError } | typeof unchanged | { log: Record<string, unknown> };
+export type Outcome = void | { ok: false; error?: ActionError; slot?: string } | typeof unchanged | { log: Record<string, unknown> };
 export const unchanged = { ok: true } as const;
 
 export async function logWrite(osuId: number, action: ActionName, payload?: Record<string, unknown>) {

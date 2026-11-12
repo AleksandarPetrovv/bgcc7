@@ -209,6 +209,9 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
         : bg ? `смени стрийм сцената за ${match()}` : `changed the stream scene for ${match()}`;
     }
 
+    case "stream.vod":
+      return bg ? `зададе VOD линк за ${match()}` : `set the VOD link for ${match()}`;
+
     case "stream.zoom":
       return bg ? `приближи схемата на стрийма за ${match()}` : `zoomed the stream bracket for ${match()}`;
 
