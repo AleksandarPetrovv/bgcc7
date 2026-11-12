@@ -43,8 +43,11 @@ export async function deleteMessage(channelId: string, messageId: string) {
 }
 
 export const botUser = () => call<{ id: string }>("/users/@me");
-export const guildChannels = () => call<{ id: string; name: string; type: number; parent_id: string | null; position: number }[]>(`/guilds/${guild()}/channels`);
-export const guildRoles = () => call<{ id: string; name: string }[]>(`/guilds/${guild()}/roles`);
+export const guildChannels = () =>
+  call<{ id: string; name: string; type: number; parent_id: string | null; position: number; permission_overwrites?: Required<Overwrite>[] }[]>(`/guilds/${guild()}/channels`);
+export const guildRoles = () => call<{ id: string; name: string; position: number; managed: boolean }[]>(`/guilds/${guild()}/roles`);
+/** highest position first in the member list; roles left out keep their place */
+export const moveRoles = (order: { id: string; position: number }[]) => call(`/guilds/${guild()}/roles`, { method: "PATCH", body: JSON.stringify(order) });
 
 // one member's roles; null when they left the server. works without the Server Members intent (listing all members needs it)
 export const memberRoles = (userId: string) =>
@@ -56,8 +59,8 @@ export const memberRoles = (userId: string) =>
     },
   );
 
-export const createRole = (name: string) =>
-  call<{ id: string }>(`/guilds/${guild()}/roles`, { method: "POST", body: JSON.stringify({ name, mentionable: true, permissions: "0" }) });
+export const createRole = (name: string, look: { color?: number; hoist?: boolean } = {}) =>
+  call<{ id: string }>(`/guilds/${guild()}/roles`, { method: "POST", body: JSON.stringify({ name, mentionable: true, permissions: "0", ...look }) });
 export const editRole = (id: string, name: string) => call(`/guilds/${guild()}/roles/${id}`, { method: "PATCH", body: JSON.stringify({ name }) });
 export const deleteRole = (id: string) =>
   call(`/guilds/${guild()}/roles/${id}`, { method: "DELETE" }).catch((e) => {

@@ -9,7 +9,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getViewer } from "@/lib/authz";
 import { canLinkDiscord } from "@/db/schedule";
-import { dropTeamRoles, later, syncTeams } from "@/db/discord-bot";
+import { dropTeamRoles, later, roleNotices, syncTeams } from "@/db/discord-bot";
 import { discordProfile, dm, findMember } from "@/lib/discord";
 
 type Fail = "notFound" | "taken" | "failed" | "forbidden" | "dm" | "wait";
@@ -77,6 +77,7 @@ export async function confirmDiscord(code: string): Promise<{ ok: true; name: st
     if (old && old !== p.id) later("relink roles", () => dropTeamRoles(old));
     await discordProfile(p.id, true);
     later("sync", syncTeams);
+    later("role notice", roleNotices);
     revalidatePath("/", "layout");
     return { ok: true, name: p.name };
   } catch (e) {

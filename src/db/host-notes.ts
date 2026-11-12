@@ -8,12 +8,13 @@ import { post } from "@/lib/discord";
 
 export type HostNote = { id: number; title: string; lines: string[]; href: string };
 
-export async function notifyHosts(n: { title: string; lines?: string[]; href: string }) {
+/** `pingRole` is a discord role id to mention in the hosts channel post */
+export async function notifyHosts(n: { title: string; lines?: string[]; href: string; pingRole?: string }) {
   const lines = n.lines ?? [];
   await db.insert(notes).values({ title: n.title, lines, href: n.href });
   try {
     const { hosts } = await getCfg();
-    if (hosts) await post(hosts, [`**${n.title}**`, ...lines, `${siteUrl()}${n.href}`].join("\n"));
+    if (hosts) await post(hosts, [`${n.pingRole ? `<@&${n.pingRole}> ` : ""}**${n.title}**`, ...lines, `${siteUrl()}${n.href}`].join("\n"), n.pingRole ? { mentions: { roles: [n.pingRole] } } : undefined);
   } catch (e) {
     console.error("[discord] host note", e);
   }

@@ -4,6 +4,7 @@ import { matchNum, type Format } from "./format";
 import { dicts, roundName } from "./i18n/dict";
 import { siteUrl } from "./links";
 import { matchCosts } from "./match-cost";
+import type { Role } from "./roles";
 import type { Embed } from "./discord";
 import type { Beatmap, Match } from "./data";
 import type { Scoreboard } from "./scoreboard";
@@ -24,10 +25,6 @@ export const noRefMessage = (ping: string, label: string, t1: string, t2: string
 export const deadlineSoonMessage = (label: string, opp: string, deadline: Date, link: string) =>
   `No time is agreed yet for your match against **${opp}** (${label}). The scheduling deadline is **${when(deadline)}**. Propose or accept a time: ${link}`;
 
-/** `ping` is a ready-made role mention */
-export const deadlineMissedMessage = (ping: string, label: string, t1: string, t2: string, deadline: Date) =>
-  `${ping ? `${ping} ` : ""}**${label}** between **${t1}** and **${t2}** has no agreed time and the scheduling deadline (${when(deadline)}) has passed.`;
-
 export const signupDecidedMessage = (tournament: string, approved: boolean, reason: string | null) =>
   approved ? `Your ${tournament} sign-up was approved. You're in.` : `Your ${tournament} sign-up was denied.${reason ? ` Reason: ${reason}` : ""}`;
 
@@ -43,8 +40,23 @@ export const helperOfflineMessage =(match: string) =>
 export const refAssignedMessage = (label: string, t1: string, t2: string, at: Date | null, link: string) =>
   `You have been assigned as referee for **${label}**: **${t1}** vs **${t2}**, ${at ? when(at) : "time not set yet"}. ${link}`;
 
+export const refRemovedMessage = (label: string, t1: string, t2: string) => `You are no longer the referee of **${label}**: **${t1}** vs **${t2}**.`;
+
+export const commentMessage = (label: string, t1: string, t2: string, at: Date, link: string) =>
+  `You are commenting on **${label}**: **${t1}** vs **${t2}** in 1 hour, at ${when(at)}. ${link}`;
+
+export const staffTimeMessage = (label: string, t1: string, t2: string, at: Date) => `The time of **${label}**: **${t1}** vs **${t2}** changed. It is now **${when(at)}**.`;
+
+const roleNames = (roles: Role[]) => roles.map((r) => dicts.en.admin.roles[r]);
+
+export const rolesGivenMessage = (tournament: string, roles: Role[]) =>
+  roles.length === 1 ? `You have been assigned as a ${roleNames(roles)[0].toLowerCase()} for ${tournament}!` : `You have been assigned the following roles for ${tournament}: ${roleNames(roles).join(", ")}!`;
+
+export const rolesTakenMessage = (tournament: string, roles: Role[]) =>
+  roles.length === 1 ? `Your ${roleNames(roles)[0].toLowerCase()} role for ${tournament} has been revoked.` : `The following roles for ${tournament} have been revoked: ${roleNames(roles).join(", ")}.`;
+
 export const streamMessage = (label: string, t1: string, t2: string, at: Date, link: string) =>
-  `You are streaming **${label}**: **${t1}** vs **${t2}** in 1 hour, at ${when(at)}. ${link}`;
+  `You are streaming **${label}**: **${t1}** vs **${t2}** in 1 hour, at ${when(at)}. Open the tourney client only after the referee has made the lobby. ${link}`;
 
 const esc = (s: string) => s.replace(/[\\*_~`|[\]<>]/g, "\\$&");
 const SQ = ["⬛", "🟥", "🟦"] as const;
@@ -133,6 +145,12 @@ export function poolMessage(f: Format, stage: { slug: string; title: string; fir
 /** `pings` are ready-made role mentions */
 export const poolOpenMessage = (pings: string[], title: string, closes: Date, link: string) =>
   `${pings.length ? `${pings.join(" ")} ` : ""}Pooling for **${roundName(dicts.en, title)}** has started. Suggestions and votes close ${when(closes)}. The sheet: <${link}>`;
+
+export const poolReminderMessage = (pings: string[], title: string) =>
+  `${pings.length ? `${pings.join(" ")} ` : ""}you have exactly **24 hours** left to send suggestions and votes for the **${roundName(dicts.en, title)}** mappool.`;
+
+export const poolClosedMessage = (pings: string[], title: string) =>
+  `${pings.length ? `${pings.join(" ")} ` : ""}Suggestions for the **${roundName(dicts.en, title)}** mappool are closed, and the leading map of every slot has been submitted.`;
 
 const WALKOVER: Record<OutKind, string> = { dq: "being disqualified", forfeit: "forfeiting", other: "being out of the tournament" };
 /** `on` and `gone` are ready-made mentions or bold names */

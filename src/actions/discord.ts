@@ -22,7 +22,9 @@ export async function saveChannels(_: ActionResult, fd: FormData) {
     await setCfg("hosts", hosts);
     const staff = pick("staff");
     await setCfg("staff", staff);
-    return { log: { results, pool, hosts, staff } };
+    const mappooling = pick("mappooling");
+    await setCfg("mappooling", mappooling);
+    return { log: { results, pool, hosts, staff, mappooling } };
   });
 }
 
