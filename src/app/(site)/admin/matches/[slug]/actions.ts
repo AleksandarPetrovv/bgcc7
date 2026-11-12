@@ -12,7 +12,7 @@ import { guard } from "@/lib/admin-action";
 import { multiPick, validPick } from "@/lib/mods";
 import { MAX_SCORE } from "@/lib/result";
 import { editsStamp } from "@/lib/scoreboard";
-import { editLocked } from "./edit-lock";
+import { editLocked } from "@/lib/edit-lock";
 
 /** `mods` is null when the player's mods were not touched; `side` is the row's scoreboard team (non-roster players are placed there by lobby colour) */
 export type ScoreChange = { gameId: number; osuId: number; side: 1 | 2; score: number; mods: string[] | null };

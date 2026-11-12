@@ -16,7 +16,7 @@ import { matchIdFromSlug } from "@/lib/format";
 import { getFormat } from "@/db/edition";
 import { multiPick } from "@/lib/mods";
 import { editsStamp, type MapResult, type PlayerLine } from "@/lib/scoreboard";
-import { editLocked } from "./edit-lock";
+import { editLocked } from "@/lib/edit-lock";
 import { ScoreEditor } from "./score-editor";
 
 export default async function MatchScores({ params }: { params: Promise<{ slug: string }> }) {

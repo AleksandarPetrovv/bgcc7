@@ -6,6 +6,7 @@ import { timers, toView } from "@/db/drafts";
 import { getPoolStages, poolMaps } from "@/db/mappools";
 import { getAllMatchRows, getAllTeams } from "@/db/tournament";
 import { refScope } from "@/lib/match-access";
+import { siteRun } from "@/db/site-run";
 import { pickableSlots, turnOf } from "@/lib/draft";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { dayTime, toSofiaInput } from "@/lib/time";
@@ -39,6 +40,7 @@ export default async function AdminDraft() {
   const live = rows
     .filter((m) => scope.runs(m.referee) && m.team1Id && m.team2Id && (!m.winner || all.some((d) => d.matchId === m.id && d.open)))
     .sort((a, b) => time(a.startsAt) - time(b.startsAt) || a.order - b.order);
+  const onSite = new Map(await Promise.all(live.map(async (m) => [m.id, (await siteRun(m)).onSite] as const)));
   const list: DraftRow[] = live.map((m) => {
     const raw = all.find((d) => d.matchId === m.id);
     const d = raw ? toView(raw, cfg) : null;
@@ -48,6 +50,7 @@ export default async function AdminDraft() {
     return {
       id: m.id,
       slug: m.id,
+      onSite: onSite.get(m.id)!,
       round: matchLabel(f, t, m.id),
       stage: m.poolSlug ?? m.stageSlug,
       when: m.startsAt ? dayTime(toSofiaInput(m.startsAt), locale.startsWith("bg") ? "bg" : "en") : null,

@@ -20,6 +20,7 @@ type TeamLite = { name: string; image: string } | null;
 export type DraftRow = {
   id: string;
   slug: string;
+  onSite: boolean;
   round: string;
   stage: string;
   when: string | null;
@@ -189,6 +190,7 @@ function Row({ r, pools, i }: { r: DraftRow; pools: { slug: string; title: strin
           </>
         )}
       </div>
+      {open && !r.onSite && <p className="border-t border-line px-5 py-2 text-xs font-display font-bold text-gold-hi">{t.admin.dr.noHelper}</p>}
       <AnimatePresence>
       {ask && (
       <Popup key="ask" onClose={() => setAsk(null)} shadow={6} className="p-5 sm:p-6">
