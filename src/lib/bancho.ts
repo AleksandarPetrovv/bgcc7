@@ -265,18 +265,19 @@ export async function sendChat(matchId: string, by: number, raw: string) {
   return "ok" as const;
 }
 
-export async function closeLobby(matchId: string) {
+export async function closeLobby(matchId: string, note?: string) {
   const s = await ensureBot().catch(() => null);
   try {
     if (s?.live.has(matchId)) {
       const { lb } = await lobbyAs(matchId);
+      if (note) await within(lb.channel.sendMessage(note), CLOSE_WAIT);
       await within(lb.channel.sendMessage("!mp close"), CLOSE_WAIT);
     } else {
       const [row] = await db.select().from(mpLobbies).where(eq(mpLobbies.matchId, matchId)).limit(1);
       if (row?.open) {
         const c = await online(ownerOf(row.owner));
         const ch = c.client.getChannel(`#mp_${row.mpId}`);
-        await within(ch.join().then(() => ch.sendMessage("!mp close")), CLOSE_WAIT);
+        await within(ch.join().then(async () => (note && (await ch.sendMessage(note)), ch.sendMessage("!mp close"))), CLOSE_WAIT);
       }
     }
   } catch {}

@@ -118,7 +118,8 @@ export async function POST(req: Request, ctx: Ctx) {
     }
   } catch (e) {
     console.error("[lobby]", act, e);
-    return Response.json({ ok: false, error: "failed" }, { status: 500 });
+    const msg = e instanceof Error ? e.message : "";
+    return Response.json({ ok: false, error: msg === "irc off" ? "ircOff" : msg === "teams missing" ? "noTeams" : msg === "no lobby" ? "noLobby" : "failed" }, { status: 500 });
   }
   if (act !== "refresh") void log(osuId, LOBBY_ACTS[act], { slot: b?.slot, to: b?.to, team: b?.team, secs: b?.secs, text: b?.text, open: b?.open, matchId: id });
   return Response.json({ ok: true });

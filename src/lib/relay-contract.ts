@@ -136,7 +136,7 @@ export function parseScore(b: unknown): ScorePacket | null {
 }
 
 /** raised by the site, sent on /me and the stream's alerts frame */
-export const ALERT_KINDS = ["ircLost", "helperOffline", "finishFailed", "bracketBlocked", "scoresStale", "overlayFailing"] as const;
+export const ALERT_KINDS = ["ircLost", "helperOffline", "helperOfflineHost", "finishFailed", "bracketBlocked", "scoresStale", "overlayFailing", "lobbyClosed", "streamerOffline"] as const;
 export type AlertKind = (typeof ALERT_KINDS)[number];
 /** the helper adds its own siteDown alert (id and kind "siteDown") when it can't reach the site */
 export const HELPER_ALERT_KINDS = [...ALERT_KINDS, "siteDown"] as const;

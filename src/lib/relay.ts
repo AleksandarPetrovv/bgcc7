@@ -6,6 +6,7 @@ import { and, eq } from "drizzle-orm";
 import { db, withEdition } from "@/db";
 import { globalStore } from "./global-store";
 import { mpLobbies, refApps, users } from "@/db/schema";
+import { currentStreamMatch } from "@/db/stream";
 import { alertsFor, clearWhere, describeMatch, onAlerts, ownedBy, ownerAlertId, raise } from "./alerts";
 import { ircName } from "@/lib/names";
 import { dm } from "./discord";
@@ -187,10 +188,16 @@ async function helperGone(osuId: number, wait: number) {
     for (const { matchId } of open) {
       if (relayOnline(osuId)) return;
       const match = await describeMatch(matchId);
-      raise({ id: ownerAlertId("helperOffline", matchId, osuId), kind: "helperOffline", level: "red", match, href: "/download/helper" }, { hosts: late, osuIds: [osuId] });
+      raise({ id: ownerAlertId("helperOffline", matchId, osuId), kind: "helperOffline", level: "red", match, href: "/download/helper" }, { osuIds: [osuId] });
       if (!late) continue;
+      raise({ id: ownerAlertId("helperOfflineHost", matchId, osuId), kind: "helperOfflineHost", level: "red", match, href: `/admin/matches/${match.slug}` }, { hosts: true });
       const [u] = await db.select({ id: users.discordId }).from(users).where(eq(users.osuId, osuId)).limit(1);
       if (u?.id) await dm(u.id, helperOfflineMessage(match.label));
+    }
+    // a streamer owns no lobby; their helper dropping mid-match stops the live scores
+    const streaming = await currentStreamMatch(osuId);
+    if (streaming?.running && streaming.winner === null && !relayOnline(osuId)) {
+      raise({ id: ownerAlertId("streamerOffline", streaming.id, osuId), kind: "streamerOffline", level: "red", match: await describeMatch(streaming.id), href: "/download/helper" }, { hosts: late, osuIds: [osuId] });
     }
   });
 }
@@ -227,7 +234,8 @@ export function relayStream(req: Request, osuId: number, ircName: string, host =
       push(frame.hello(ircName, osuId));
       void db.update(refApps).set({ seenAt: new Date() }).where(eq(refApps.osuId, osuId)).catch(() => {});
       bus.emit("relay", osuId, true);
-      clearWhere(ownedBy("helperOffline", osuId));
+      clearWhere((a) => ownedBy("helperOffline", osuId)(a) || ownedBy("helperOfflineHost", osuId)(a));
+      clearWhere(ownedBy("streamerOffline", osuId));
       const pushAlerts = () => {
         const alerts = alertsFor(osuId, host);
         const json = JSON.stringify(alerts);

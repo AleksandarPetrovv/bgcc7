@@ -32,7 +32,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
   const format = useFormat();
   const [v, setV] = useState<LobbyView | null>(null);
   const [pending, start] = useTransition();
-  const [err, setErr] = useState(false);
+  const [err, setErr] = useState<string | false>(false);
   const [copied, setCopied] = useState(false);
   const [picking, setPicking] = useState<{ slot: number; mode: "swap" | "move" } | null>(null);
   const [ask, setAsk] = useState<"start" | "abort" | "close" | null>(null);
@@ -66,7 +66,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
       setErr(false);
       const res = await lobbyPost(slug, body);
       if (!res?.ok) {
-        setErr(true);
+        setErr(res?.error ?? "failed");
         if (body.act === "make" && streams) setOrder(true);
       }
     });
@@ -89,7 +89,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
       for (const [i, w] of wrong.entries()) {
         if (i > 0) await new Promise((r) => setTimeout(r, TEAM_MOVE_GAP_MS));
         const res = await lobbyPost(slug, { act: "team", slot: w.slot, team: w.team });
-        if (!res?.ok) setErr(true);
+        if (!res?.ok) setErr(res?.error ?? "failed");
       }
     });
   const sideCol = (side: 1 | 2) => {
@@ -316,7 +316,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
             {t.lobby.password} <span className="text-paper">{v.password}</span> {copied ? <Check className="size-3 text-balkan-hi" /> : <Copy className="size-3" />}
           </button>
         )}
-        {err && <span className="text-xs font-black text-rose-hi">{t.lobby.failed}</span>}
+        {err && <span className="text-xs font-black text-rose-hi">{t.lobby.failWhy[err] ?? t.lobby.failed}</span>}
         {v.past.length > 0 && (
           <span className="num order-last flex basis-full flex-wrap items-center gap-x-2 text-[0.7rem] font-display font-bold text-ash/70">
             {t.lobby.earlier}

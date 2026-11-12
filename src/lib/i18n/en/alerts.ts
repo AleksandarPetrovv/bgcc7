@@ -22,6 +22,15 @@ export const alertText = {
     ],
     button: "Download helper",
   },
+  helperOfflineHost: {
+    title: "The referee's BGCC7 Helper is offline",
+    means: "The site lost contact with the referee's helper while this match's lobby is open, so the lobby can't be controlled from the site. The match may stall. You can:",
+    steps: [
+      "Message the referee and ask them to open BGCC7 Helper and check it shows connected.",
+      "No answer? Pick another referee for the match in Admin → Matches, or let a backup referee press Take Over there.",
+    ],
+    button: "Open match admin",
+  },
   finishFailed: {
     title: "Match result wasn't saved",
     means: "The match reached its winning score, but saving the result failed, so the bracket didn't move on.",
@@ -49,5 +58,17 @@ export const alertText = {
     means: "The overlay's data feed has been failing for over a minute, so the stream may show old info.",
     steps: ["Refresh the browser source in OBS.", "Check the scene in Admin → Stream."],
     button: "Open stream admin",
+  },
+  lobbyClosed: {
+    title: "Lobby closed",
+    means: "A team was forfeited or disqualified, so the match lobby was closed and the lobby was told.",
+    steps: ["Nothing else to do for this match."],
+    button: "Open match",
+  },
+  streamerOffline: {
+    title: "The streamer's BGCC7 Helper is offline",
+    means: "Live scores for the stream have stopped because the streamer's helper dropped. The streamer does this:",
+    steps: ["Open BGCC7 Helper on your PC.", "Check it shows connected and you're signed in.", "Not installed? Download it with the button below."],
+    button: "Download helper",
   },
 } satisfies Record<AlertKind, { title: string; means: string; steps: string[]; button: string }>;

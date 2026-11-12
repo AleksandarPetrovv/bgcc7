@@ -37,10 +37,13 @@ const site = (kind: AlertKind, button: string) => ({ ...alertText[kind], button 
 export const ALERT_TEXT: Record<HelperAlertKind, { title: string; means: string; steps: string[]; button?: string }> = {
   ircLost: site("ircLost", "Open match"),
   helperOffline: site("helperOffline", "Download helper"),
+  helperOfflineHost: site("helperOfflineHost", "Open match admin"),
   finishFailed: site("finishFailed", "Open match admin"),
   bracketBlocked: site("bracketBlocked", "Open matches"),
   scoresStale: site("scoresStale", "Open match admin"),
   overlayFailing: site("overlayFailing", "Open stream admin"),
+  lobbyClosed: site("lobbyClosed", "Open match"),
+  streamerOffline: site("streamerOffline", "Download helper"),
   siteDown: {
     title: "Can't reach the site",
     means: `The helper hasn't reached the site for over ${downFor}.`,

@@ -1,7 +1,7 @@
 {
   "errors": { "invalid": 400, "unpaired": 401, "wrongname": 403, "noref": 403, "nostream": 403, "noroles": 403, "norelay": 409, "nomatch": 409, "busy": 503 },
   "liveRejects": ["noplayers", "players", "swapped", "map"],
-  "alertKinds": ["ircLost", "helperOffline", "finishFailed", "bracketBlocked", "scoresStale", "overlayFailing", "siteDown"],
+  "alertKinds": ["ircLost", "helperOffline", "helperOfflineHost", "finishFailed", "bracketBlocked", "scoresStale", "overlayFailing", "lobbyClosed", "streamerOffline", "siteDown"],
   "limits": {
     "stateBytes": 32,
     "linkTtlMs": 600000,
@@ -47,10 +47,13 @@
       "t": "alerts",
       "alerts": [
         { "id": "ircLost:bgcc7:winners-r1-3:11283745", "kind": "ircLost", "level": "red", "since": 1793462460000, "match": { "id": "winners-r1-3", "slug": "winners-r1-3", "label": "Round of 16 · Sofia Smokers vs Plovdiv Pandas" }, "href": "/matches/winners-r1-3", "detail": "Connection closed" },
+        { "id": "helperOfflineHost:bgcc7:winners-r1-3:11283745", "kind": "helperOfflineHost", "level": "red", "since": 1793462380000, "match": { "id": "winners-r1-3", "slug": "winners-r1-3", "label": "Round of 16 · Sofia Smokers vs Plovdiv Pandas" }, "href": "/admin/matches/winners-r1-3" },
         { "id": "finishFailed:bgcc7:winners-r1-2", "kind": "finishFailed", "level": "red", "since": 1793461800000, "match": { "id": "winners-r1-2", "slug": "winners-r1-2", "label": "Round of 16 · Varna Wavers vs Burgas Blitz" }, "href": "/admin/matches", "detail": "write conflict on matches" },
         { "id": "bracketBlocked:bgcc7:bracket", "kind": "bracketBlocked", "level": "gold", "since": 1793460000000, "href": "/admin/matches", "blocked": ["Quarterfinals · Sofia Smokers vs Ruse Rapids"] },
         { "id": "scoresStale:bgcc7:winners-r1-4", "kind": "scoresStale", "level": "gold", "since": 1793462100000, "match": { "id": "winners-r1-4", "slug": "winners-r1-4", "label": "Round of 16 · Stara Zagora Stars vs Pleven Pulse" }, "href": "/admin/matches", "detail": "osu! api 502" },
-        { "id": "overlayFailing:bgcc7:k7d2pq", "kind": "overlayFailing", "level": "gold", "since": 1793462200000, "href": "/admin/stream", "detail": "feed build failed" }
+        { "id": "overlayFailing:bgcc7:k7d2pq", "kind": "overlayFailing", "level": "gold", "since": 1793462200000, "href": "/admin/stream", "detail": "feed build failed" },
+        { "id": "lobbyClosed:bgcc7:winners-r1-3", "kind": "lobbyClosed", "level": "gold", "since": 1793462300000, "match": { "id": "winners-r1-3", "slug": "winners-r1-3", "label": "Round of 16 · Sofia Smokers vs Plovdiv Pandas" }, "href": "/matches/winners-r1-3" },
+        { "id": "streamerOffline:bgcc7:winners-r1-3:11283745", "kind": "streamerOffline", "level": "red", "since": 1793462350000, "match": { "id": "winners-r1-3", "slug": "winners-r1-3", "label": "Round of 16 · Sofia Smokers vs Plovdiv Pandas" }, "href": "/download/helper" }
       ]
     }
   ],

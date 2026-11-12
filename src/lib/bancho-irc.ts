@@ -331,7 +331,7 @@ async function dropIfGone(matchId: string, e: unknown) {
   if (/no such channel/i.test(e instanceof Error ? e.message : String(e))) await markClosed(matchId);
 }
 
-const IDLE = 10 * 60_000;
+const IDLE = 30 * 60_000;
 
 function sweepIdle() {
   const s = cur();
@@ -419,6 +419,7 @@ export function attach(l: Live) {
     const quiet = Date.now() < (synced.get(l.matchId)?.quietUntil ?? 0);
     if (quiet && (msg.self ? shown === "!mp settings" : msg.user.ircUsername === "BanchoBot" && SETTINGS_LINE.test(msg.message))) return;
     const line: ChatLine = { at: Date.now(), from: msg.user.ircUsername, text: shown.slice(0, 1000) };
+    if (line.from !== "BanchoBot" && !msg.message.startsWith("!mp settings")) l.active = line.at; // people talking keep the lobby; the site's own sync polling doesn't
     l.chat.push(line);
     void db
       .insert(mpChat)
@@ -479,7 +480,7 @@ export async function markClosed(matchId: string) {
   const l = s?.live.get(matchId);
   if (l) retire(l);
   await db.update(mpLobbies).set({ open: false, closedAt: new Date() }).where(and(eq(mpLobbies.matchId, matchId), eq(mpLobbies.open, true)));
-  clearWhere((a) => a.match?.id === matchId && (a.kind === "ircLost" || a.kind === "helperOffline"));
+  clearWhere((a) => a.match?.id === matchId && (a.kind === "ircLost" || a.kind === "helperOffline" || a.kind === "helperOfflineHost"));
   ping(matchId);
 }
 

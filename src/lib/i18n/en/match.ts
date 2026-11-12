@@ -64,6 +64,13 @@ export const match = {
     abortBody: "Scores from this play won't count.",
     password: "Pass",
     failed: "That didn't go through",
+    failWhy: {
+      forbidden: "Another referee runs this lobby",
+      empty: "That slot is empty",
+      ircOff: "The lobby connection is off, try again in a moment",
+      noTeams: "Both teams must be set first",
+      noLobby: "There's no open lobby",
+    } as Record<string, string>,
     empty: "Empty",
     map: "Map",
     playing: "Playing",
