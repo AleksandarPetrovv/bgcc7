@@ -84,12 +84,6 @@ const COVER_FADE = `linear-gradient(to bottom, ${Array.from({ length: 21 }, (_, 
   return `color-mix(in srgb, var(--ink) ${(i % 20 ? (1 - Math.exp(-d * d)) * 100 : 100).toFixed(1)}%, transparent) ${i * 5}%`;
 }).join(", ")})`;
 
-// the collapsed row of the staff editor is too short for the bottom-to-top fade: the cover shows on the right and is gone toward the title
-const COVER_FADE_SIDE = `linear-gradient(to right, ${Array.from({ length: 21 }, (_, i) => {
-  const x = Math.min(Math.max((i / 20 - 0.3) / 0.7, 0), 1);
-  return `color-mix(in srgb, var(--ink) ${((1 - x * x * (3 - 2 * x)) * 100).toFixed(1)}%, transparent) ${i * 5}%`;
-}).join(", ")})`;
-
 /** `collapsible`: the header row toggles the rest (the staff score editor); `edit` renders the player fields */
 export function MapCard({ m, i, className, collapsible, edit }: { m: MapResult; i: number; className?: string; collapsible?: boolean; edit?: (p: PlayerLine) => React.ReactNode }) {
   const t = useDict();
@@ -108,16 +102,12 @@ export function MapCard({ m, i, className, collapsible, edit }: { m: MapResult; 
         // the faint grain dithers the fade: it spans only a few colour levels, so without it the levels show as bands
         <div
           aria-hidden
-          className={cn(
-            "grain pointer-events-none absolute inset-x-0",
-            collapsible ? "top-0 h-full group-open:top-[calc(var(--up,0px)*-1)] group-open:h-[calc(100%+var(--up,0px))]" : "top-[calc(var(--up,0px)*-1)] h-[calc(100%+var(--up,0px))]",
-          )}
+          className="grain pointer-events-none absolute inset-x-0 top-[calc(var(--up,0px)*-1)] h-[calc(100%+var(--up,0px))]"
           style={cssVars({ "--grain": "0.012" })}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={m.cover} alt="" loading="lazy" decoding="async" className="size-full object-cover opacity-13 dark:opacity-5" />
-          <span className={cn("absolute inset-0", collapsible && "opacity-0 transition-opacity duration-300 group-open:opacity-100")} style={{ backgroundImage: COVER_FADE }} />
-          {collapsible && <span className="absolute inset-0 transition-opacity duration-300 group-open:opacity-0" style={{ backgroundImage: COVER_FADE_SIDE }} />}
+          <span className="absolute inset-0" style={{ backgroundImage: COVER_FADE }} />
         </div>
       )}
       <header className={cn("relative flex items-start gap-3 pt-3", collapsible && "pb-3")}>

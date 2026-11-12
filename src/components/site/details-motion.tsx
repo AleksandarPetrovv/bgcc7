@@ -9,7 +9,7 @@ const INTRO = ".in-up, .in-left, .in-right, .in-drop, .in-pop, .in-flip, .in-spi
 
 export function DetailsMotion() {
   useEffect(() => {
-    const running = new WeakMap<HTMLDetailsElement, { a: Animation; opening: boolean }>();
+    const running = new WeakMap<HTMLDetailsElement, { a: Animation; opening: boolean; out: Animation[] }>();
     const click = (e: MouseEvent) => {
       if (e.defaultPrevented || e.button !== 0) return;
       const target = e.target as Element | null;
@@ -24,12 +24,18 @@ export function DetailsMotion() {
       const prev = running.get(d);
       const opening = prev ? !prev.opening : !d.open;
       prev?.a.cancel();
+      prev?.out.forEach((x) => x.cancel());
       d.open = true;
       const cs = getComputedStyle(d);
       const closed = summary.getBoundingClientRect().height + (d.offsetHeight - d.clientHeight) + parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-      const to = opening ? d.scrollHeight + (d.offsetHeight - d.clientHeight) : closed;
-      // height only: clipping x too cut the slanted edges that poke past the sides
-      d.style.overflowY = "clip";
+      // the open box itself: scrollHeight would add whatever hangs below it (a rule's diamond) and end in a jump
+      const to = opening ? d.getBoundingClientRect().height : closed;
+      // cut only below the box and what hangs under it: slanted edges poke past the sides, a map cover reaches above the top
+      d.style.clipPath = `inset(-100vh -100vw ${d.clientHeight - d.scrollHeight}px)`;
+      // clip-path makes the box its own layer: without this the next sibling paints over what hangs below
+      d.style.zIndex = "1";
+      // the content fades out ahead of the closing edge instead of being wiped by it
+      const out = opening ? [] : [...d.children].filter((el) => el !== summary).map((el) => el.animate({ opacity: [1, 0] }, { duration: DUR * 0.6, easing: EASING, fill: "forwards" }));
       // replay the content's intros on every open (they already ran while it was collapsed)
       if (opening && !prev) {
         const els = [...d.querySelectorAll<HTMLElement>(INTRO)].filter((el) => !summary.contains(el));
@@ -38,10 +44,12 @@ export function DetailsMotion() {
         for (const el of els) el.style.animation = "";
       }
       const a = d.animate({ height: [`${from}px`, `${to}px`] }, { duration: DUR, easing: EASING });
-      running.set(d, { a, opening });
+      running.set(d, { a, opening, out });
       a.onfinish = () => {
         if (!opening) d.open = false;
-        d.style.overflowY = "";
+        out.forEach((x) => x.cancel());
+        d.style.clipPath = "";
+        d.style.zIndex = "";
         running.delete(d);
       };
     };

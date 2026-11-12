@@ -1,16 +1,15 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Pencil, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { ActionForm, Btn, Field } from "@/components/admin/form";
 import { useDict } from "@/components/site/lang";
-import { MapCard, ModBadge } from "@/components/site/match-dialog";
+import { MapCard } from "@/components/site/match-dialog";
 import { Popup } from "@/components/site/popup";
 import { errorText, type ActionError } from "@/lib/action-result";
 import { EASE } from "@/lib/ease";
 import { slotColor } from "@/lib/format-plan";
-import { validPick } from "@/lib/mods";
 import { decideWinner, mapWinner, MAX_SCORE, tally } from "@/lib/result";
 import type { MapResult, PlayerLine } from "@/lib/scoreboard";
 import { modHi } from "@/lib/theme";
@@ -34,7 +33,6 @@ export function ScoreEditor({ id, stamp, firstTo, names, maps, wiped }: { id: st
     setSeen(stamp);
     setDraft({});
   }
-  const [pick, setPick] = useState<{ open: boolean; k: string; multi: boolean; sel: string[]; name: string } | null>(null);
   const [ask, setAsk] = useState<"maps" | "match" | null>(null);
   const [fail, setFail] = useState<{ error?: ActionError } | null>(null);
   const [pending, start] = useTransition();
@@ -103,16 +101,7 @@ export function ScoreEditor({ id, stamp, firstTo, names, maps, wiped }: { id: st
           className={cn("adm-tight w-28 shrink-0", p.score !== o.score && "before:!border-gold")}
           inputClassName="num text-right"
         />
-        <button
-          type="button"
-          disabled={!played}
-          aria-label={t.admin.ms.modsOf(p.name)}
-          onClick={() => setPick({ open: true, k, multi, sel: validPick(p.mods, multi) ? p.mods : [], name: p.name })}
-          className="group/mod inline-flex shrink-0 items-center gap-1 p-0.5 disabled:opacity-40"
-        >
-          <ModBadge mods={p.mods} d="0s" className="px-2 py-1 text-[0.7rem]" />
-          <Pencil className="size-3 text-ash transition-colors group-hover/mod:text-paper group-disabled/mod:hidden" aria-hidden />
-        </button>
+        <ModPick mods={p.mods} multi={multi} disabled={!played} label={t.admin.ms.modsOf(p.name)} onDone={(mods) => setMods(k, mods)} />
         {!played && <span className="text-[0.6rem] font-display font-bold text-rose-hi">{t.admin.ms.noScore}</span>}
         {o.edited && changes.length === 0 && <ActionForm action={undoScore.bind(null, id, m.gameId, p.id)} submit={t.admin.ms.undo} ghost />}
       </>
@@ -127,7 +116,7 @@ export function ScoreEditor({ id, stamp, firstTo, names, maps, wiped }: { id: st
 
   return (
     <>
-      <div className="in-up mx-auto w-full min-w-0 max-w-4xl space-y-(--gap) border border-line bg-ink py-(--pad) pl-(--px) pr-(--px) [--gap:1.25rem] [--pad:0.75rem] [--px:0.75rem] sm:[--gap:1.5rem] sm:[--pad:1.25rem] sm:[--px:1.25rem]">
+      <div className="in-up mx-auto w-full min-w-0 max-w-4xl space-y-(--gap) border border-line bg-ink pt-(--pad) pl-(--px) pr-(--px) [--gap:1.25rem] [--pad:0.75rem] [--px:0.75rem] sm:[--gap:1.5rem] sm:[--pad:1.25rem] sm:[--px:1.25rem]">
         {maps.map(({ m, multi }, n) => (
           <MapCard
             key={m.gameId}
@@ -135,7 +124,7 @@ export function ScoreEditor({ id, stamp, firstTo, names, maps, wiped }: { id: st
             i={n}
             collapsible
             edit={(p) => fields(n, multi, p)}
-            className={cn("-mx-(--px) px-(--px)", n ? "[--up:var(--gap)]" : "[--up:var(--pad)]")}
+            className={cn("-mx-(--px) px-(--px) last:border-b-0 [&:last-child>summary>span:first-child]:hidden", n ? "[--up:var(--gap)]" : "[--up:var(--pad)]")}
           />
         ))}
       </div>
@@ -161,21 +150,6 @@ export function ScoreEditor({ id, stamp, firstTo, names, maps, wiped }: { id: st
           </motion.div>
         )}
       </AnimatePresence>
-
-      {pick && (
-        <ModPick
-          open={pick.open}
-          label={t.admin.ms.modsOf(pick.name)}
-          sel={pick.sel}
-          multi={pick.multi}
-          onSel={(sel) => setPick({ ...pick, sel })}
-          onDone={(mods) => {
-            setMods(pick.k, mods);
-            setPick({ ...pick, open: false });
-          }}
-          onClose={() => setPick({ ...pick, open: false })}
-        />
-      )}
 
       <Popup open={ask === "maps"} onClose={() => setAsk(null)} tone="gold" shadow={6} className="p-5 sm:p-6">
         <p className="pr-8 text-base font-display font-black leading-snug text-paper">{t.admin.ms.flipMaps(mapFlips.length)}</p>
