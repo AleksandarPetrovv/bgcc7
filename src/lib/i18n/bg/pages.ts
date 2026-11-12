@@ -176,6 +176,7 @@ export const pages: typeof en = {
   },
   staff: {
     title: "Екип",
+    groups: { host: "Организатори", referee: "Рефери", mappooler: "Мапулъри", streamer: "Стриймъри", playtester: "Тестери", commentator: "Коментатори", technical: "Техническа част", leadDesign: "Главен дизайнер", designer: "Дизайнери" },
     openRoles: "Свободни роли",
     openText: "Искаш да помогнеш? Пиши в Discord.",
     sponsorsTitle: "Спонсори",

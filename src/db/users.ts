@@ -1,12 +1,12 @@
 import "server-only";
-import { eq, ilike, inArray, or, sql } from "drizzle-orm";
+import { eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { db, dbOf } from "./index";
 import { lobbies, matches, refApps, userNames, users } from "./schema";
 import { getUser, type OsuUserFull } from "@/lib/osu-api";
 import { tourneyBadges } from "@/lib/bws";
 import { EDITIONS } from "@/lib/format";
-import { ircName } from "@/lib/names";
-import { joinStaff, staffNames } from "@/lib/staff-names";
+import { ircName, nameKey } from "@/lib/names";
+import { joinStaff, staffHas, staffNames } from "@/lib/staff-names";
 
 export async function staffIds(field: string | null | undefined) {
   const names = staffNames(field).map((n) => n.toLowerCase());
@@ -59,12 +59,29 @@ export async function saveOsuUser(u: OsuUserIn) {
   await db.insert(userNames).values({ osuId: u.id, username: u.username }).onConflictDoNothing();
 }
 
+/** a staff field with one person's name swapped for `to`, or dropped when `to` is null */
+const withoutName = (list: string | null, name: string, to: string | null) =>
+  list && (joinStaff(staffNames(list).flatMap((x) => (nameKey(x) === nameKey(name) ? (to ? [to] : []) : [x]))) || null);
+
+type StaffField = "referee" | "streamer" | "commentators";
+
+/** takes a person out of the given staff fields of every match without a winner, so a missing referee shows up as an alert again */
+export async function dropStaffNames(osuId: number, fields: StaffField[]) {
+  const [u] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, osuId)).limit(1);
+  if (!u || !fields.length) return;
+  const rows = await db.select({ id: matches.id, referee: matches.referee, streamer: matches.streamer, commentators: matches.commentators }).from(matches).where(isNull(matches.winner));
+  for (const r of rows) {
+    const set = Object.fromEntries(fields.filter((f) => staffHas(r[f], nameKey(u.username))).map((f) => [f, withoutName(r[f], u.username, null)]));
+    if (Object.keys(set).length) await db.update(matches).set(set).where(eq(matches.id, r.id));
+  }
+}
+
 /** staff slots and the helper's irc login are stored by name; call before saving the new username */
 async function carryRename(osuId: number, name: string) {
   const [old] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, osuId)).limit(1);
   if (!old || old.username === name) return;
   const was = old.username.toLowerCase();
-  const swap = (list: string | null) => list && joinStaff(staffNames(list).map((x) => (x.toLowerCase() === was ? name : x)));
+  const swap = (list: string | null) => withoutName(list, was, name);
   for (const d of EDITIONS.map(dbOf)) {
     for (const t of [matches, lobbies]) {
       const refs = await d.select({ id: t.id, referee: t.referee }).from(t).where(ilike(t.referee, `%${old.username}%`));

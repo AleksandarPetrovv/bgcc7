@@ -174,6 +174,7 @@ export const pages = {
   },
   staff: {
     title: "Staff",
+    groups: { host: "Hosts", referee: "Referees", mappooler: "Mappoolers", streamer: "Streamers", playtester: "Playtesters", commentator: "Commentators", technical: "Technical", leadDesign: "Lead Design", designer: "Designers" },
     openRoles: "Open roles",
     openText: "Want to help? Ask in the Discord.",
     sponsorsTitle: "Sponsors",

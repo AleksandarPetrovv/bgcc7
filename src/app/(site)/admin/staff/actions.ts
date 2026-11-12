@@ -4,12 +4,15 @@ import { and, arrayContains, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { staff } from "@/db/schema";
 import { writeOrder } from "@/db/reorder";
-import { resolveOsuUser, saveOsuUser } from "@/db/users";
+import { dropStaffNames, resolveOsuUser, saveOsuUser } from "@/db/users";
 import { guard } from "@/lib/admin-action";
-import { cleanRoles } from "@/lib/roles";
+import { cleanRoles, type Role } from "@/lib/roles";
 import type { ActionResult } from "@/lib/action-result";
 import { relayAccess } from "@/lib/authz";
 import { relayKick } from "@/lib/relay";
+
+// the match field each role fills; hosts fill all of them
+const NAME_FIELDS = [["referee", "referee"], ["streamer", "streamer"], ["commentators", "commentator"]] as const satisfies readonly (readonly [string, Role])[];
 
 // a helper whose account lost both helper roles is cut off at once instead of at its next request
 const kickIfNoHelperRole = async (osuId: number) => {
@@ -31,6 +34,7 @@ export async function updateStaff(osuId: number, _: ActionResult, fd: FormData) 
     const permRoles = cleanRoles(fd.getAll("permRoles").map(String));
     if (!permRoles.includes("host") && !(await otherHost(osuId))) return { ok: false, error: "lastHost" };
     await db.update(staff).set({ permRoles }).where(eq(staff.osuId, osuId));
+    await dropStaffNames(osuId, NAME_FIELDS.filter(([, role]) => !permRoles.includes("host") && !permRoles.includes(role)).map(([field]) => field));
     await kickIfNoHelperRole(osuId);
     return { log: { osuId, permRoles } };
   });
@@ -47,6 +51,7 @@ export async function removeStaff(osuId: number) {
   return guard("staff", "staff.remove", async () => {
     if (!(await otherHost(osuId))) return { ok: false, error: "lastHost" };
     await db.delete(staff).where(eq(staff.osuId, osuId));
+    await dropStaffNames(osuId, NAME_FIELDS.map(([field]) => field));
     await kickIfNoHelperRole(osuId);
     return { log: { osuId } };
   });

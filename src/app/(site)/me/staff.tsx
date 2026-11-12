@@ -25,7 +25,7 @@ import { cardLabels, sourceLabel } from "@/lib/matches";
 import { nameKey } from "@/lib/names";
 import { ROLE_ICON } from "@/lib/role-icons";
 import { can, type Role } from "@/lib/roles";
-import { staffNames } from "@/lib/staff-names";
+import { staffHas, staffNames } from "@/lib/staff-names";
 import { dayTime, fmtSofiaDay, fmtSofiaTime, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { Card, Stat, label } from "./cards";
@@ -70,7 +70,7 @@ export async function staffCards({ t, lang, locale, me, roles, matches, teams, s
   if (duties.length) {
     const key = nameKey((await userLink(me))?.username ?? "");
     const mine = matches
-      .filter((m) => m.winner === null && duties.some((d) => staffNames(m[d.field]).some((n) => nameKey(n) === key)))
+      .filter((m) => m.winner === null && duties.some((d) => staffHas(m[d.field], key)))
       .sort((a, b) => (a.datetime ? Date.parse(a.datetime) : Infinity) - (b.datetime ? Date.parse(b.datetime) : Infinity));
     // commentators only matter to the people commentating
     const shown = DUTIES.filter((d) => d.role !== "commentator" || roles.includes("commentator"));

@@ -4,6 +4,8 @@ import { Words } from "@/components/site/rich";
 import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, Panel, Field } from "@/components/admin/form";
 import { getStaff } from "@/db/admin";
+import { getMatchRows, getTeams } from "@/db/tournament";
+import { isAlive, teamOfPlayer } from "@/lib/alive";
 import { getViewer } from "@/lib/authz";
 import { getDict } from "@/lib/i18n/server";
 import { can, PLAYABLE, type Role } from "@/lib/roles";
@@ -11,9 +13,14 @@ import { addStaff } from "./actions";
 import { StaffList } from "./staff-list";
 
 export default async function AdminStaff() {
-  const [t, viewer, rows, regs] = await Promise.all([getDict(), getViewer(), getStaff(), getRegistrations()]);
+  const [t, viewer, rows, regs, teams, results] = await Promise.all([getDict(), getViewer(), getStaff(), getRegistrations(), getTeams(), getMatchRows()]);
   const playing = new Set(regs.filter((r) => r.status !== "denied").map((r) => r.osuId));
-  const clash = (s: (typeof rows)[number]) => playing.has(s.osuId) && s.permRoles.some((r) => !PLAYABLE.includes(r as Role));
+  // a knocked out player may help out, so no warning once their team is out
+  const out = (osuId: number) => {
+    const team = teamOfPlayer(teams, osuId);
+    return !!team && !isAlive(team, results);
+  };
+  const clash = (s: (typeof rows)[number]) => playing.has(s.osuId) && !out(s.osuId) && s.permRoles.some((r) => !PLAYABLE.includes(r as Role));
   if (!can(viewer?.roles, "staff")) forbidden();
   return (
     <>

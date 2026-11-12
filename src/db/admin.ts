@@ -34,6 +34,7 @@ export type StaffRow = {
   username: string;
   avatarUrl: string | null;
   country: string | null;
+  discordName: string | null;
   permRoles: string[];
   order: number;
 };
@@ -47,6 +48,7 @@ export const getStaff = () =>
           username: users.username,
           avatarUrl: avatarCol,
           country: users.country,
+          discordName: users.discordName,
           permRoles: staff.permRoles,
           order: staff.order,
         })
