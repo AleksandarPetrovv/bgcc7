@@ -37,6 +37,8 @@ const week = weekOf("2026-10-19");
 assert.equal(week.from.toISOString(), "2026-10-23T15:00:00.000Z");
 assert.equal(week.to.toISOString(), "2026-10-25T19:00:00.000Z");
 assert.equal(week.deadline.toISOString(), "2026-10-21T20:59:59.999Z");
+// a host-picked closing day keeps the time of day
+assert.equal(weekOf("2026-10-19", "2026-10-22").deadline.toISOString(), "2026-10-22T20:59:59.999Z");
 console.log("ok: week of 2026-10-19 window and wednesday deadline");
 
 const realNow = Date.now;

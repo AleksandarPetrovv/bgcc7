@@ -17,8 +17,17 @@ export const captainOf = (t: Team | undefined) => t?.players[0]?.userId ?? null;
 /** match week number → its monday */
 export const matchWeeks = cache(() => safe(async () => (await db.select({ weeks: settings.weeks }).from(settings).where(eq(settings.id, 1)).limit(1))[0]?.weeks ?? {}, {} as Record<string, string>));
 
-/** the monday of the week a match is played in */
+/** match week number → the day its scheduling closes, where a host set one */
+export const weekCloses = cache(() => safe(async () => (await db.select({ closes: settings.weekCloses }).from(settings).where(eq(settings.id, 1)).limit(1))[0]?.closes ?? {}, {} as Record<string, string>));
+
+/** the monday of the week a match is played in (or, given the closes map, the day its scheduling closes) */
 export const matchWeek = (weeks: Record<string, string>, matchId: string) => weeks[String(weekNum(getFormat(), matchId))] ?? null;
+
+/** looks up a match's week: its play window and its scheduling deadline */
+export async function weekFinder() {
+  const [weeks, closes] = await Promise.all([matchWeeks(), weekCloses()]);
+  return (matchId: string) => weekOf(matchWeek(weeks, matchId), matchWeek(closes, matchId));
+}
 
 /** first and last day a pool stage is played: the span of its rounds' weeks */
 export function stageDays(weeks: Record<string, string>) {
@@ -42,6 +51,8 @@ export type SchedMatch = {
   round: string;
   stage: string;
   week: string | null;
+  /** the day scheduling closes, when set for this week */
+  closes: string | null;
   startsAt: string | null;
   mine: string;
   opp: string;
@@ -84,7 +95,7 @@ export async function busyOf(ids: string[]) {
 
 export const mySchedule = cache(async (team: string | null): Promise<SchedMatch[]> => {
   if (!team) return [];
-  const [rows, weeks] = await Promise.all([getMatchRows(), matchWeeks()]);
+  const [rows, weeks, closes] = await Promise.all([getMatchRows(), matchWeeks(), weekCloses()]);
   const mine = rows.filter((m) => schedulable(m) && (m.team1Id === team || m.team2Id === team));
   const [hist, busy] = await Promise.all([safe(() => historyOf(mine.map((m) => m.id)), new Map<string, Proposal[]>()), safe(() => busyOf(mine.map((m) => m.id)), new Map<string, Record<number, string[]>>())]);
   return mine.map((m) => ({
@@ -93,6 +104,7 @@ export const mySchedule = cache(async (team: string | null): Promise<SchedMatch[
     round: m.round,
     stage: m.stageSlug,
     week: matchWeek(weeks, m.id),
+    closes: matchWeek(closes, m.id),
     startsAt: m.startsAt?.toISOString() ?? null,
     mine: team,
     opp: m.team1Id === team ? m.team2Id! : m.team1Id!,
@@ -101,10 +113,10 @@ export const mySchedule = cache(async (team: string | null): Promise<SchedMatch[
   }));
 });
 
-export const waitingOnMe = (m: SchedMatch) => isOpen(weekOf(m.week)) && m.history.some((p) => p.status === "pending" && p.teamId === m.opp);
+export const waitingOnMe = (m: SchedMatch) => isOpen(weekOf(m.week, m.closes)) && m.history.some((p) => p.status === "pending" && p.teamId === m.opp);
 
 const soon = (m: SchedMatch, now = Date.now()) => {
-  const w = weekOf(m.week);
+  const w = weekOf(m.week, m.closes);
   return !!w && isOpen(w, now) && !m.startsAt && w.from.getTime() - now <= 14 * 864e5;
 };
 export const needsTime = (m: SchedMatch) => soon(m) && !m.history.some((p) => p.status === "pending" && p.teamId === m.mine);

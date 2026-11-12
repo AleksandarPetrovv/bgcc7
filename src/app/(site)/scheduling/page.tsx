@@ -21,7 +21,7 @@ export default async function Scheduling() {
   };
   const rows = list
     .map((m) => {
-      const w = weekOf(m.week);
+      const w = weekOf(m.week, m.closes);
       return { m, w, open: isOpen(w) };
     })
     .sort((a, b) => (a.w?.deadline.getTime() ?? Infinity) - (b.w?.deadline.getTime() ?? Infinity));

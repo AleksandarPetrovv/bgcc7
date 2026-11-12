@@ -93,7 +93,6 @@ export const schedule = {
       missing: "Link your Discord",
     },
     admin: {
-      week: "Match week (pick any day of it)",
       weekTitle: (n: number) => `Week ${n}`,
       deadline: (d: string) => `Scheduling closes ${d}`,
       at: "Set time (BG time)",
@@ -102,7 +101,7 @@ export const schedule = {
       groups: { pending: "Pending", agreed: "Agreed" } as Record<string, string>,
       state: { tbd: "TBD", proposed: "Proposed", agreed: "Agreed", waiting: "Teams not known", staff: "Needs staff time" } as Record<string, string>,
       history: (n: number) => `History (${n})`,
-      help: "Captains propose and accept times on their scheduling page. Setting a time here overrides theirs and cancels any open proposal. Leave it empty to clear.",
+      help: "A time set here overrides the captains' and cancels open proposals.",
     },
   },
 };

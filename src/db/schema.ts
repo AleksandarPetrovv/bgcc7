@@ -78,6 +78,8 @@ export const settings = pgTable("settings", {
   draw: jsonb("draw").$type<DrawState>(),
   // match week number → its monday (yyyy-mm-dd)
   weeks: jsonb("weeks").$type<Record<string, string>>().notNull().default({}),
+  // match week number → the day scheduling closes (yyyy-mm-dd); unset = the week's own default day
+  weekCloses: jsonb("week_closes").$type<Record<string, string>>().notNull().default({}),
   // set once pick'ems closed; a fresh bracket (draw undo / new draw) clears it
   pickemsClosedAt: timestamp("pickems_closed_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

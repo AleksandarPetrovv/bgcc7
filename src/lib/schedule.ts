@@ -38,11 +38,12 @@ export function pointLabel(locale: string, p: WeekPoint, short = false) {
 
 export type Week = { deadline: Date; from: Date; to: Date; min: string; max: string };
 
-export function weekOf(monday: string | null | undefined): Week | null {
+/** `closes`: the day scheduling closes when a host set one for this week; otherwise the week's DEADLINE day */
+export function weekOf(monday: string | null | undefined, closes?: string | null): Week | null {
   if (!monday) return null;
   const fri = pointOf(monday, MATCH_FROM);
   const sun = pointOf(monday, MATCH_TO);
-  const deadline = fromSofiaInput(pointOf(monday, DEADLINE));
+  const deadline = fromSofiaInput(closes ? `${closes}T${DEADLINE.time}` : pointOf(monday, DEADLINE));
   const from = fromSofiaInput(fri);
   const to = fromSofiaInput(sun);
   if (!deadline || !from || !to) return null;

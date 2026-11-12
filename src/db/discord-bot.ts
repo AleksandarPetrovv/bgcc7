@@ -7,8 +7,8 @@ import { getPoolStages, poolGaps } from "./mappools";
 import { getScoreboard } from "./scoreboards";
 import { getFormat } from "./edition";
 import { siteUrl } from "@/lib/links";
-import { matchWeek, matchWeeks, notifyCaptain, schedulable } from "./schedule";
-import { weekOf } from "@/lib/schedule";
+import { notifyCaptain, schedulable, weekFinder } from "./schedule";
+import type { Week } from "@/lib/schedule";
 import { deadlineMissedMessage, deadlineSoonMessage, matchLabel, noRefMessage, poolMessage, poolOpenMessage, refAssignedMessage, resultMessage, streamMessage, walkoverMessage, when, yourTeamMessage } from "@/lib/discord-text";
 import { walkoverOf } from "@/lib/out";
 import { getSkillLayouts } from "./format-plan";
@@ -227,11 +227,11 @@ const hostRole = async () => (await guildRoles()).find((r) => r.name.toLowerCase
 
 /** captains get one DM in the last 24h before a scheduling deadline with no agreed time; the hosts channel hears once when it passed. `deadline:` stamps are the deadline, so a moved week starts over */
 async function deadlineNotices(rows: MatchRow[], name: Names) {
-  const weeks = await matchWeeks();
+  const weekAt = await weekFinder();
   const now = Date.now();
-  const due: { m: MatchRow; w: NonNullable<ReturnType<typeof weekOf>>; late: boolean; key: string }[] = [];
+  const due: { m: MatchRow; w: Week; late: boolean; key: string }[] = [];
   for (const m of rows) {
-    const w = schedulable(m) && !m.startsAt ? weekOf(matchWeek(weeks, m.id)) : null;
+    const w = schedulable(m) && !m.startsAt ? weekAt(m.id) : null;
     if (!w) continue;
     const left = w.deadline.getTime() - now;
     const late = left <= 0;

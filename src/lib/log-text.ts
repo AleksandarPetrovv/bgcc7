@@ -352,7 +352,16 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
     case "reschedule.deny":
       return bg ? `отказа смяната на часа за ${match()}` : `denied the reschedule for ${match()}`;
     case "schedule.week":
-      // older entries name a pool stage, newer ones the week number
+      // older entries name a pool stage or one week number; the match weeks form saves every changed week at once
+      if (p.weeks || p.closes) {
+        const part = (v: unknown, of: (n: string, d: unknown) => string) => Object.entries((v ?? {}) as Record<string, unknown>).map(([n, d]) => of(n, d));
+        const day = (d: unknown) => (d ? b(h.date(String(d))) : bg ? "без дата" : "no date");
+        const list = [
+          ...part(p.weeks, (n, d) => (bg ? `седмица ${n}: ${day(d)}` : `week ${n}: ${day(d)}`)),
+          ...part(p.closes, (n, d) => (bg ? `край на насрочването за седмица ${n}: ${day(d)}` : `week ${n} scheduling closes: ${day(d)}`)),
+        ].join(", ");
+        return bg ? `промени седмиците на мачовете (${list})` : `changed the match weeks (${list})`;
+      }
       {
         const wk = p.n != null ? b(bg ? `седмица ${num(p.n)}` : `week ${num(p.n)}`) : stage();
         return p.week

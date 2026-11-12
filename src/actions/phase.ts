@@ -15,8 +15,8 @@ import { isBGCC6 } from "@/db";
 
 const isPhase = (v: string): v is Phase => (PHASES as readonly string[]).includes(v);
 
-/** the registration (and bgcc6 lobby booking) windows are the dates the timeline rows edit; sign-ups read these exact values */
-const WINDOWS = ["regOpensAt", "regClosesAt", "bookingOpensAt", "bookingClosesAt"] as const;
+/** the bgcc6 lobby booking window, edited on its own timeline row; booking reads these exact values */
+const WINDOWS = ["bookingOpensAt", "bookingClosesAt"] as const;
 
 async function applyPhase(p: Phase) {
   if ((await getSettings()).phase === p) return false;
@@ -50,8 +50,11 @@ export async function setTimeline(_: ActionResult, fd: FormData) {
       return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null;
     };
     const timeline = TIMELINE_KEYS.filter((k) => k !== "reg").map((key) => ({ key, from: date(`from.${key}`), to: date(`to.${key}`) }));
-    await saveSettings({ timeline, ...windows });
-    return { log: { timeline, ...windows } };
+    // sign-ups read these exact values: open from 00:00 on the first day, closed after 23:59 on the last
+    const [opens, closes] = [date("from.reg"), date("to.reg")];
+    const reg = { regOpensAt: opens ? fromSofiaInput(`${opens}T00:00`) : null, regClosesAt: closes ? fromSofiaInput(`${closes}T23:59`) : null };
+    await saveSettings({ timeline, ...reg, ...windows });
+    return { log: { timeline, ...reg, ...windows } };
   });
 }
 

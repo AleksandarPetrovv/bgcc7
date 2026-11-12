@@ -407,6 +407,13 @@
       "when": 1794477405081,
       "tag": "0057_pickems_closed",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1794477405082,
+      "tag": "0058_week_closes",
+      "breakpoints": true
     }
   ]
 }

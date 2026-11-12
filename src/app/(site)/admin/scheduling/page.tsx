@@ -3,16 +3,14 @@ import { PageTitle } from "@/components/site/page-title";
 import { ActionForm, DateTimeField, Panel } from "@/components/admin/form";
 import { labelCls } from "@/components/admin/label";
 import { getMatchRows, getTeams } from "@/db/tournament";
-import { historyOf, matchWeeks, schedulable } from "@/db/schedule";
+import { historyOf, matchWeeks, schedulable, weekCloses } from "@/db/schedule";
 import { refScope } from "@/lib/match-access";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { dayTime, fmtSofia, toSofiaInput } from "@/lib/time";
 import { historyLabel, isOpen, weekOf } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
 import { Cascade } from "@/components/site/cascade";
-import { setTime, setWeek } from "./actions";
-import { WeekGuard } from "./week-guard";
-import { poolState } from "@/db/pool-settle";
+import { setTime } from "./actions";
 import { localeOf } from "@/lib/i18n/locale";
 import { roundName } from "@/lib/i18n/dict";
 import { weekNum, weekNums } from "@/lib/format";
@@ -32,13 +30,11 @@ const TONE: Record<string, { bar: string; edge: string }> = {
 };
 
 export default async function AdminScheduling() {
-  const [t, lang, scope, all, teams, weeks, pools] = await Promise.all([getDict(), getLang(), refScope(), getMatchRows(), getTeams(), matchWeeks(), poolState()]);
+  const [t, lang, scope, all, teams, weeks, closes] = await Promise.all([getDict(), getLang(), refScope(), getMatchRows(), getTeams(), matchWeeks(), weekCloses()]);
   if (!scope) forbidden();
   const rows = all.filter((m) => scope.runs(m.referee));
   const s = t.sched;
   const format = getFormat();
-  // reversed so a stage takes its first (winners) round's name
-  const stageNames = Object.fromEntries(Object.values(format.rounds).map((r) => [r.stage, roundName(t, r.name)]).reverse());
   const locale = localeOf(lang);
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? "—";
   const captain = (osuId: number | null) => (osuId == null ? s.staffName : (teams.flatMap((x) => x.players).find((p) => p.userId === osuId)?.username ?? s.staffName));
@@ -70,7 +66,7 @@ export default async function AdminScheduling() {
       <Cascade className="space-y-8" step={0.035}>
         {!list.length && <p data-cascade className="in-up text-sm font-bold text-ash">{t.admin.stream.none}</p>}
         {list.map((wn, n) => {
-          const wk = weekOf(weeks[wn]);
+          const wk = weekOf(weeks[wn], closes[wn]);
           const at = (m: (typeof rows)[number]) => {
             const p = hist.get(m.id)?.find((x) => x.status === "pending");
             return m.startsAt?.getTime() ?? (p ? new Date(p.at).getTime() : Infinity);
@@ -136,15 +132,6 @@ export default async function AdminScheduling() {
           };
           return (
             <Panel key={wn} i={n < 3 ? n + 1 : 0} title={`${s.admin.weekTitle(wn)} · ${[...new Set(Object.values(format.rounds).filter((r) => r.week === wn).map((r) => roundName(t, r.name)))].join(", ")}`} help={wk ? s.admin.deadline(fmtSofia(wk.deadline, locale)) : undefined}>
-              {scope.host && (
-                <ActionForm action={setWeek.bind(null, wn)} className="mb-6 flex flex-wrap items-end gap-3" ghost>
-                  <label className={labelCls}>
-                    {s.admin.week}
-                    <DateTimeField kind="date" name="week" defaultValue={weeks[wn] ?? ""} className="w-[18rem]" />
-                  </label>
-                  <WeekGuard n={wn} weeks={weeks} rounds={format.rounds} settled={[...pools.settled]} names={stageNames} />
-                </ActionForm>
-              )}
               {groups.length ? (
                 <div className="space-y-6">
                   {groups.map((g) => (
