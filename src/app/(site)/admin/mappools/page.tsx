@@ -55,6 +55,8 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
         items: [...Array.from({ length: countOf(mod) }, (_, slot) => ({ mod, slot, out: false })), ...extras(mod)],
       }));
 
+  const starts = sections.map((_, k) => sections.slice(0, k).reduce((n, s) => n + s.items.length, 0));
+
   // the round tabs stay mounted; everything under them is keyed by stage so it plays its intro again
   return (
     <>
@@ -119,8 +121,8 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                 <RuleDiamond />
               </div>
             )}
-            <section className="in-up relative overflow-x-clip" style={{ "--d": `${at}s` } as React.CSSProperties}>
-              <h2 className="flex items-center gap-3 border-b border-line pb-2 pl-1 text-sm font-display font-bold" style={{ color: modHi(accent) }}>
+            <section className="relative overflow-x-clip">
+              <h2 className="in-up flex items-center gap-3 border-b border-line pb-2 pl-1 text-sm font-display font-bold" style={{ color: modHi(accent), "--d": `${at}s` } as React.CSSProperties}>
                 <span className="size-2 shrink-0 rotate-45" style={{ background: accent }} aria-hidden />
                 <span className="in-wipe inline-block" style={{ "--d": `${at + 0.1}s` } as React.CSSProperties}>{title}</span>
                 {total > 0 && (
@@ -142,8 +144,8 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                     return (
                       <SwapRow
                         key={`empty-${mod}-${slot}`}
-                        style={{ "--i": i, "--s": "0.04s", "--d": `${at + 0.1}s` } as React.CSSProperties}
-                        className="in-left flex flex-wrap items-center gap-3 bg-[repeating-linear-gradient(135deg,transparent_0_10px,color-mix(in_srgb,var(--rose)_5%,transparent)_10px_20px)] px-3 py-2.5"
+                        style={{ "--i": Math.min(starts[pi] + i, 12), "--s": "0.07s", "--d": "0.4s" } as React.CSSProperties}
+                        className="in-up flex flex-wrap items-center gap-3 bg-[repeating-linear-gradient(135deg,transparent_0_10px,color-mix(in_srgb,var(--rose)_5%,transparent)_10px_20px)] px-3 py-2.5"
                       >
                         <span className={cn("heading-slam shrink-0 whitespace-nowrap text-xl opacity-60", skill ? "w-20" : "w-12")} style={{ color: modHi(color) }}>
                           {tagLabel ?? slotOf(mod, slot)}
@@ -158,18 +160,18 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                   return (
                     <SwapRow
                       key={m.rowId}
-                      style={{ "--i": i, "--s": "0.04s", "--d": `${at + 0.1}s` } as React.CSSProperties}
-                      className={cn("in-left relative isolate flex flex-wrap items-center gap-3 overflow-hidden px-3 py-2", out && "bg-rose/[0.06]")}
+                      style={{ "--i": Math.min(starts[pi] + i, 12), "--s": "0.07s", "--d": "0.4s" } as React.CSSProperties}
+                      className={cn("in-up relative isolate flex flex-wrap items-center gap-3 overflow-hidden px-3 py-2", out && "bg-rose/[0.06]")}
                     >
                       {/* the same cover backdrop as the sheet's suggestion rows */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={m.cover} alt="" className="pointer-events-none absolute inset-0 -z-10 size-full object-cover opacity-[0.09] dark:opacity-[0.06]" />
-                      <span className={cn("in-slam heading-slam shrink-0 whitespace-nowrap text-xl", skill ? "w-20" : "w-12")} style={{ color: modHi(color), "--d": `${at + 0.15}s` } as React.CSSProperties}>
+                      <span className={cn("in-slam heading-slam shrink-0 whitespace-nowrap text-xl", skill ? "w-20" : "w-12")} style={{ color: modHi(color), "--d": "0.45s" } as React.CSSProperties}>
                         {m.slot}
                       </span>
                       {chip}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={cardCover(m.cover)} alt="" loading="lazy" decoding="async" className="in-wipe hidden h-10 w-24 object-cover sm:block" style={{ "--d": `${at + 0.2}s` } as React.CSSProperties} />
+                      <img src={cardCover(m.cover)} alt="" loading="lazy" decoding="async" className="in-wipe hidden h-10 w-24 object-cover sm:block" style={{ "--d": "0.5s" } as React.CSSProperties} />
                       <div className="min-w-0 basis-full max-sm:order-last sm:flex-1 sm:basis-0">
                         <MapMeta
                           id={m.id}
