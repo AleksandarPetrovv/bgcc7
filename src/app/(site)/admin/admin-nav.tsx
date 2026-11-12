@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
@@ -37,27 +38,28 @@ const spring = { type: "spring", stiffness: 520, damping: 42 } as const;
 export function AdminNav({ items }: { items: { key: AdminKey; href: string; label: string; locked: boolean }[] }) {
   const path = usePathname();
   return (
-    <nav className="grid grid-cols-7 gap-x-0.5 gap-y-1.5 py-2 lg:flex lg:flex-col lg:justify-start lg:gap-1 lg:py-3" aria-label="Admin">
+    <nav className="flex flex-wrap justify-center gap-y-1.5 py-2 lg:flex-col lg:flex-nowrap lg:justify-start lg:gap-1 lg:py-3" aria-label="Admin">
       {items.map((i, n) => {
         const key = i.key;
         const Icon = ICONS[key];
         const active = path.startsWith(i.href);
         return (
+          <Fragment key={i.href}>
+          {/* phones: sections closed by the phase start a row of their own */}
+          {i.locked && !items[n - 1]?.locked && <span className="basis-full lg:hidden" aria-hidden />}
           <Link
-            key={i.href}
             href={i.href}
             aria-current={active ? "page" : undefined}
             aria-label={i.label}
             title={i.label}
             className={cn(
-              "group relative flex min-w-0 flex-1 items-center justify-center gap-3 whitespace-nowrap py-2 lg:flex-none lg:justify-start lg:whitespace-normal lg:px-2.5 text-[0.8rem] font-display font-bold transition-colors duration-200",
+              "group relative flex min-w-0 flex-none basis-[calc(100%/7)] items-center justify-center gap-3 whitespace-nowrap py-2 lg:basis-auto lg:justify-start lg:whitespace-normal lg:px-2.5 text-[0.8rem] font-display font-bold transition-colors duration-200",
               active ? "text-paper" : key === "helper" ? "text-balkan-hi hover:text-paper" : "text-ash hover:text-paper",
               // phones can't run the helper: no icon there, the page still opens
               key === "helper" && "hidden lg:flex",
               key === "helper" && !active && "lg:mb-2",
-              // closed by the phase: set apart from the rest by one row's height (phones: a row of their own)
-              i.locked && "max-lg:mt-2",
-              i.locked && !items[n - 1]?.locked && "max-lg:col-start-1 lg:mt-11",
+              // closed by the phase: set apart from the rest by one row's height
+              i.locked && !items[n - 1]?.locked && "lg:mt-11",
             )}
           >
             {active && (
@@ -79,6 +81,7 @@ export function AdminNav({ items }: { items: { key: AdminKey; href: string; labe
             <span className="relative hidden min-w-0 flex-1 leading-tight transition-transform duration-300 group-hover:translate-x-0.5 lg:block">{i.label}</span>
             {!active && <ChevronRight className="relative hidden size-3.5 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-70 lg:block" aria-hidden />}
           </Link>
+          </Fragment>
         );
       })}
     </nav>
