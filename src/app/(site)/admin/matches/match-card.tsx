@@ -13,12 +13,14 @@ import { matchLabel, matchStamp } from "@/lib/matches";
 import { Pic } from "@/components/site/pfp";
 import { dayTime, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
+import { nameKey } from "@/lib/names";
 import { SlantBg } from "@/components/site/slant";
 import { clearCache, saveMatch } from "./actions";
 import { TakeMatch } from "./take-match";
 import { osuMp } from "@/lib/links";
 import { mpIds } from "@/lib/mp-links";
 import { walkoverOf } from "@/lib/out";
+import { REF_EDIT_DAYS } from "@/lib/edit-lock";
 
 const group = "relative border-t border-line pt-5";
 
@@ -40,9 +42,10 @@ function Lock({ off, children }: { off: boolean; children: React.ReactNode }) {
   );
 }
 
-export function MatchCard({ m, t, locale, teams, refs, host, runs, take, pools, live }: { m: MatchRow; t: Dict; locale: string; teams: { id: string; name: string; image: string }[]; refs: { referee: string[]; streamer: string[]; commentator: string[] }; host: boolean; runs: boolean; take: { kind: "take" | "over"; lobby: boolean } | null; pools: { slug: string; title: string }[]; live?: { lobby: boolean } }) {
+export function MatchCard({ m, t, locale, teams, refs, plays, host, runs, locked, take, pools, live }: { m: MatchRow; t: Dict; locale: string; teams: { id: string; name: string; image: string }[]; refs: { referee: string[]; streamer: string[]; commentator: string[] }; plays: string[]; host: boolean; runs: boolean; locked: boolean; take: { kind: "take" | "over"; lobby: boolean } | null; pools: { slug: string; title: string }[]; live?: { lobby: boolean } }) {
   const f = getFormat();
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? t.common.tbd;
+  const staffOpt = (r: string) => ({ value: r, label: r, hint: plays.includes(nameKey(r)) ? t.admin.staffPlaysHere : undefined });
   const teamPic = (id: string | null) => {
     const src = teams.find((x) => x.id === id)?.image;
     return src ? <Pic src={src} className="size-7 shrink-0 rounded-full object-cover" /> : <span className="size-7 shrink-0 rounded-full bg-slate" aria-hidden />;
@@ -149,7 +152,8 @@ export function MatchCard({ m, t, locale, teams, refs, host, runs, take, pools, 
 
       <div className="border-t border-line pb-5 pl-4 pt-6">
         {take && <TakeMatch id={m.id} label={matchLabel(f, t, m.id)} from={m.referee ?? ""} kind={take.kind} lobby={take.lobby} />}
-        <Lock off={!runs}>
+        {locked && <p className="mb-4 text-xs font-display font-bold text-gold-hi">{t.admin.tooOld(REF_EDIT_DAYS)}</p>}
+        <Lock off={!runs || locked}>
         <ActionForm key={JSON.stringify(m)} action={saveMatch.bind(null, m.id)} className="space-y-5">
           <input type="hidden" name="stamp" value={matchStamp(m)} />
           <div className="grid gap-5 lg:grid-cols-[1.25fr_1fr]">
@@ -218,7 +222,7 @@ export function MatchCard({ m, t, locale, teams, refs, host, runs, take, pools, 
                   {host ? (
                     <>
                       <RefSwapGuard live={!!live} lobby={!!live?.lobby} from={m.referee ?? ""} />
-                      <Dropdown name="referee" defaultValue={m.referee ?? ""} options={[{ value: "", label: t.common.tbd }, ...refs.referee.map((r) => ({ value: r, label: r }))]} />
+                      <Dropdown name="referee" defaultValue={m.referee ?? ""} options={[{ value: "", label: t.common.tbd }, ...refs.referee.map(staffOpt)]} />
                     </>
                   ) : (
                     <Field value={m.referee ?? ""} disabled />
@@ -227,7 +231,7 @@ export function MatchCard({ m, t, locale, teams, refs, host, runs, take, pools, 
                 <label className={labelCls}>
                   {t.admin.streamer}
                   {host ? (
-                    <Dropdown name="streamer" multiple placeholder={t.common.tbd} defaultValue={m.streamer ?? ""} options={refs.streamer.map((r) => ({ value: r, label: r }))} />
+                    <Dropdown name="streamer" multiple placeholder={t.common.tbd} defaultValue={m.streamer ?? ""} options={refs.streamer.map(staffOpt)} />
                   ) : (
                     <Field value={m.streamer ?? ""} placeholder={t.common.tbd} disabled />
                   )}
@@ -235,7 +239,7 @@ export function MatchCard({ m, t, locale, teams, refs, host, runs, take, pools, 
                 <label className={cn(labelCls, "col-span-2")}>
                   {t.admin.commentators}
                   {host ? (
-                    <Dropdown name="commentators" multiple placeholder={t.common.tbd} defaultValue={m.commentators ?? ""} options={refs.commentator.map((r) => ({ value: r, label: r }))} />
+                    <Dropdown name="commentators" multiple placeholder={t.common.tbd} defaultValue={m.commentators ?? ""} options={refs.commentator.map(staffOpt)} />
                   ) : (
                     <Field value={m.commentators ?? ""} placeholder={t.common.tbd} disabled />
                   )}
@@ -260,7 +264,7 @@ export function MatchCard({ m, t, locale, teams, refs, host, runs, take, pools, 
         </ActionForm>
         </Lock>
 
-        {mp.length > 0 && (
+        {mp.length > 0 && !locked && (
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
             <Link
               href={`/admin/matches/${m.id}`}

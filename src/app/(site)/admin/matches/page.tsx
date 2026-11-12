@@ -7,8 +7,10 @@ import { RuleDiamond } from "@/components/site/rule";
 import { getPoolStages } from "@/db/mappools";
 import { getMatchRows, getTeams } from "@/db/tournament";
 import { refScope, takeOver } from "@/lib/match-access";
+import { playersOf } from "@/lib/staff-names";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { MatchCard } from "./match-card";
+import { editLocked } from "@/lib/edit-lock";
 import { Cascade } from "@/components/site/cascade";
 import { db } from "@/db";
 import { drafts, mpLobbies, staff, users } from "@/db/schema";
@@ -54,7 +56,7 @@ export default async function AdminMatches() {
               <div className="pt-8">
                 {s.list.map((m, i) => (
                   <div key={m.id} className="relative mb-12 last:mb-0">
-                    <MatchCard m={m} t={t} locale={locale} teams={teams} refs={refs} host={scope.host} runs={scope.runs(m.referee)} take={takes.get(m.id) ?? null} pools={pools} live={m.winner ? undefined : live.get(m.id)} />
+                    <MatchCard m={m} t={t} locale={locale} teams={teams} refs={refs} plays={[...playersOf(teams, m)]} host={scope.host} runs={scope.runs(m.referee)} locked={editLocked(scope.host ? ["host"] : [], m.startsAt?.toISOString() ?? null)} take={takes.get(m.id) ?? null} pools={pools} live={m.winner ? undefined : live.get(m.id)} />
                     {/* on the card's bottom line, under the VS */}
                     {i < s.list.length - 1 && <RuleDiamond />}
                   </div>

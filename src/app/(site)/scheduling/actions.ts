@@ -12,7 +12,7 @@ import { when } from "@/lib/discord-text";
 import { busyOf, lockMatch, mySchedule, notifyCaptain, pendingOf, schedulable, weekFinder } from "@/db/schedule";
 import { getMe } from "@/db/viewer";
 import { siteUrl } from "@/lib/links";
-import { teamNote } from "@/db/discord-bot";
+import { dmStaffTime, teamNote } from "@/db/discord-bot";
 import { fromSofiaInput } from "@/lib/time";
 import { hourKeys, hourOf, inWindow, isOpen, offHours, type Week } from "@/lib/schedule";
 
@@ -114,6 +114,7 @@ export async function accept(matchId: string, proposalId: number): Promise<Res> 
     });
     const [from, to] = [await teamName(team), await teamName(by)];
     return async () => {
+      dmStaffTime(matchId, at);
       await notifyCaptain(by, (link) => `${from} accepted **${when(at)}**. Your match is set. ${link}`);
       await teamNote({ [team]: `Your match against **${to}** is set for **${when(at)}**.`, [by]: `Your match against **${from}** is set for **${when(at)}**.` });
     };

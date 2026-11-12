@@ -6,6 +6,7 @@ import { getFormat } from "@/db/edition";
 import { resetPickems } from "@/db/pickems";
 import { matches, stages, teams } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
+import { editLocked } from "@/lib/edit-lock";
 import type { ActionResult } from "@/lib/action-result";
 import { fromSofiaInput } from "@/lib/time";
 import { advance } from "@/db/bracket";
@@ -20,6 +21,9 @@ import { takeOver } from "@/lib/match-access";
 import { later, postResult } from "@/db/discord-bot";
 import { isBracketStage } from "@/lib/format";
 import { mpIds, mpCsv } from "@/lib/mp-links";
+import { nameKey } from "@/lib/names";
+import { playersOf, staffHas, staffNames } from "@/lib/staff-names";
+import { getTeams } from "@/db/tournament";
 
 const text = (fd: FormData, k: string, max = 120) => String(fd.get(k) ?? "").trim().slice(0, max) || null;
 const num = (fd: FormData, k: string) => {
@@ -34,6 +38,7 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     const f = getFormat();
     const [m] = await db.select().from(matches).where(eq(matches.id, id)).limit(1);
     if (!m) return { ok: false, error: "notFound" };
+    if (editLocked(roles, m.startsAt?.toISOString() ?? null)) return { ok: false, error: "tooOld" };
     const score1 = num(fd, "score1");
     const score2 = num(fd, "score2");
     if (score1 === undefined || score2 === undefined) return { ok: false, error: "invalid" };
@@ -74,6 +79,11 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
       manual,
       poolSlug,
     };
+    if (host) {
+      const playing = playersOf(await getTeams(), base);
+      const fresh = (k: "referee" | "streamer" | "commentators") => staffNames(base[k]).filter((n) => !staffHas(m[k], nameKey(n)));
+      if ((["referee", "streamer", "commentators"] as const).some((k) => fresh(k).some((n) => playing.has(nameKey(n))))) return { ok: false, error: "playsHere" };
+    }
     let patch: typeof base & { startsAt?: Date | null } = base;
     let cacheStale = false;
     const gone = await db.transaction(async (tx) => {
@@ -96,7 +106,7 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
     if (cacheStale) await forgetScoreboard(id);
     if (patch.referee !== m.referee) await handOff(id, patch.referee).catch((e) => console.error("[handoff]", id, e));
     if (winner && (winner !== m.winner || score1 !== m.score1 || score2 !== m.score2)) later("result", () => postResult(id));
-    if (patch.startsAt && patch.startsAt.getTime() !== m.startsAt?.getTime()) announceMatchTime([patch.team1Id, patch.team2Id], patch.startsAt, { dm: false });
+    if (patch.startsAt && patch.startsAt.getTime() !== m.startsAt?.getTime()) announceMatchTime({ id, team1Id: patch.team1Id, team2Id: patch.team2Id }, patch.startsAt, { dm: false });
     if (patch.team1Id !== m.team1Id || patch.team2Id !== m.team2Id) await resetPickems();
     return { log: { id, ...patch } };
   }, { match: id });

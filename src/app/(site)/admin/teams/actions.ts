@@ -1,8 +1,10 @@
 "use server";
 
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, isNotNull, ne, or } from "drizzle-orm";
 import { db } from "@/db";
-import { availability, registrations, teamMembers, teams, users } from "@/db/schema";
+import { availability, matches, mpLobbies, registrations, teamMembers, teams, users } from "@/db/schema";
+import { clear, describeMatch, ownerAlertId, raise } from "@/lib/alerts";
+import { closeLobby } from "@/lib/bancho";
 import { getFormat } from "@/db/edition";
 import { bringBack, ruleOut, undoForfeit as takeBack } from "@/db/team-out";
 import { guard } from "@/lib/admin-action";
@@ -31,6 +33,21 @@ export async function unlockBws() {
 
 const resync = () => void import("@/db/discord-bot").then((d) => d.syncTeams());
 
+/** a walkover ends the match, so its open lobby is closed with a word in the lobby and the owning referee is told */
+async function closeForfeitLobbies(teamId: string, kind: OutKind) {
+  const open = await db
+    .select({ matchId: mpLobbies.matchId, owner: mpLobbies.owner })
+    .from(mpLobbies)
+    .innerJoin(matches, eq(matches.id, mpLobbies.matchId))
+    .where(and(eq(mpLobbies.open, true), isNotNull(matches.ffSide), or(eq(matches.team1Id, teamId), eq(matches.team2Id, teamId))));
+  for (const { matchId, owner } of open) {
+    await closeLobby(matchId, `This match is over: a team ${kind === "dq" ? "was disqualified" : kind === "forfeit" ? "forfeited" : "is out of the tournament"}. The lobby closes now.`);
+    const id = ownerAlertId("lobbyClosed", matchId, Number(owner));
+    raise({ id, kind: "lobbyClosed", level: "gold", match: await describeMatch(matchId), href: `/matches/${matchId}` }, { osuIds: [Number(owner)] });
+    setTimeout(() => clear(id), 10 * 60_000).unref(); // nothing clears a one-off notice, so it goes by itself
+  }
+}
+
 /** `once`: a forfeit of the next match only. a reason is required for dq and other */
 export async function disableTeam(id: string, kind: OutKind, reason: string, once: boolean) {
   return guard("host", "team.out", async () => {
@@ -39,6 +56,7 @@ export async function disableTeam(id: string, kind: OutKind, reason: string, onc
     if (!isOutKind(kind) || (kind !== "forfeit" && !why)) return { ok: false, error: "invalid" };
     if (!single) await snapshot("team-out");
     if (!(await ruleOut(id, kind, kind === "forfeit" ? null : why, single))) return { ok: false, error: "invalid" };
+    await closeForfeitLobbies(id, kind);
     resync();
     return { log: { id, kind, reason: why, once: single } };
   });

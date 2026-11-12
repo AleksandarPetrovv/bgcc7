@@ -84,7 +84,7 @@ export async function setTime(id: string, _: ActionResult, fd: FormData) {
       return { ...m, same: false };
     });
     if (!out) return { ok: false, error: "notFound" };
-    if (!out.same && at) announceMatchTime([out.team1Id, out.team2Id], at, { dm: true });
+    if (!out.same && at) announceMatchTime(out, at, { dm: true });
     return { log: { match: id, at: at?.toISOString() ?? null } };
   }, { match: id });
 }

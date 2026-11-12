@@ -53,9 +53,10 @@ export async function setMatchTime(tx: Tx, m: { id: string; team1Id: string | nu
   if (at && m.team1Id) await tx.insert(reschedules).values({ matchId: m.id, teamId: m.team1Id, requestedBy: by, proposedAt: at, status: "staff", decidedBy: by });
 }
 
-export function announceMatchTime(teams: [string | null, string | null], at: Date, { dm }: { dm: boolean }) {
-  const [t1, t2] = teams;
+export function announceMatchTime(m: { id: string; team1Id: string | null; team2Id: string | null }, at: Date, { dm }: { dm: boolean }) {
+  const [t1, t2] = [m.team1Id, m.team2Id];
   detached("schedule", async () => {
+    (await import("./discord-bot")).dmStaffTime(m.id, at);
     if (dm) await Promise.all([t1, t2].filter((t): t is string => !!t).map((t) => notifyCaptain(t, (link) => `Staff set your match to **${when(at)}**. ${link}`).catch((e) => console.error("[dm] match time", t, e))));
     if (!t1 || !t2) return;
     const ts = await getAllTeams();
