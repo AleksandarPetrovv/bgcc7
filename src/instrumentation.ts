@@ -1,10 +1,11 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs" || !process.env.DATABASE_URL) return;
   const { default: postgres } = await import("postgres");
-  const { bootEdition, tickKey } = await import("./lib/boot");
+  const { bootEdition, restartDraftClocks, tickKey } = await import("./lib/boot");
   const sql = postgres(process.env.DATABASE_URL, { max: 1 });
   try {
     await bootEdition(sql);
+    await restartDraftClocks(sql).catch((e) => console.error("[boot] draft clocks", e));
   } catch (e) {
     // db/index.ts asks again on first use
     console.error("[boot] edition", e);

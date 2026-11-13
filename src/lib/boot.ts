@@ -16,5 +16,11 @@ export async function bootEdition(sql: Sql) {
   slot.bgccEdition = normEdition(row?.edition);
 }
 
+/** a running draft's turn clock restarts when the app starts, so downtime never skips a turn (paused clocks are frozen already) */
+export async function restartDraftClocks(sql: Sql) {
+  const schema = bootedEdition() === "bgcc6" ? "public" : "bgcc7";
+  await sql`update ${sql(schema)}.drafts set turn_at = now(), rev = rev + 1, updated_at = now() where open and paused_at is null`;
+}
+
 /** the header value that proves a /api/discord/tick call came from inside the container */
 export const tickKey = (secret: string) => createHash("sha256").update(`discord-tick:${secret}`).digest("hex");
