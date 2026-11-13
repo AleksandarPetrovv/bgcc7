@@ -565,12 +565,15 @@ export async function invitesSent(matchId: string) {
   if (!m?.team1Id || !m.team2Id) return;
   const start = m.startsAt?.toISOString() ?? "none";
   if ((await getState(`invited:${matchId}`))?.stamp === start) return;
-  await setState(`invited:${matchId}`, { stamp: start });
   const name = (id: string) => ts.find((t) => t.id === id)?.name ?? id;
+  let ok = true;
   for (const [mine, opp] of sides(m)) {
     const l = links.get(mine);
-    if (l) await chain(`remind:${m.id}:${mine}`, l.channelId, `<@&${l.roleId}> Invites for your match against **${name(opp)}** have been sent in osu!`, "invites", l.roleId);
+    const key = `remind:${m.id}:${mine}`;
+    if (!l || (await getState(key))?.stamp === "invites") continue;
+    ok = (await attempt(chain(key, l.channelId, `<@&${l.roleId}> Invites for your match against **${name(opp)}** have been sent in osu!`, "invites", l.roleId), "invites post")) && ok;
   }
+  if (ok) await setState(`invited:${matchId}`, { stamp: start });
 }
 
 /** #results: a walkover is announced once its agreed start time has come; one without a time stays silent */
