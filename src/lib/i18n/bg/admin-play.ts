@@ -73,6 +73,7 @@ export const adminPlay: typeof en = {
   matchesMine: "Твоите мачове",
   matchesScheduled: "Предстоящи",
   matchesNoDate: "Без дата",
+  matchesNone: "В момента тук няма мачове",
   matchesPlayed: "Изиграни",
   prompt: {
     kicker: "Проверка на етапа",

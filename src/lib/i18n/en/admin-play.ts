@@ -71,6 +71,7 @@ export const adminPlay = {
   matchesMine: "Your Matches",
   matchesScheduled: "Scheduled",
   matchesNoDate: "No Date",
+  matchesNone: "No matches here right now",
   matchesPlayed: "Played",
   prompt: {
     kicker: "Stage check",

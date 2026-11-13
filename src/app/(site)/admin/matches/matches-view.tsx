@@ -21,7 +21,6 @@ import { eq } from "drizzle-orm";
 import { localeOf } from "@/lib/i18n/locale";
 import { roundName } from "@/lib/i18n/dict";
 import { isBracketStage } from "@/lib/format";
-import { cn } from "@/lib/utils";
 
 /** the matches list; `take` = the match whose take popup opens with the page (/admin/matches/take/<match>) */
 export async function MatchesView({ take }: { take?: string }) {
@@ -70,15 +69,14 @@ export async function MatchesView({ take }: { take?: string }) {
               </span>
             </summary>
             {s.list.length === 0 ? (
-              <p className="pt-3 text-sm font-bold text-ash">{t.admin.stream.none}</p>
+              <p className="pt-3 text-sm font-bold text-ash">{t.admin.matchesNone}</p>
             ) : (
-              <div className="pt-8">
+              <div className={s.id === "mine" ? "relative isolate mt-8 px-5 py-8 sm:px-8" : "pt-8"}>
+                {s.id === "mine" && <MinePanel />}
                 {s.list.map((m, i) => {
                   const kind = m.winner ? undefined : kindOf(m.id, m.referee);
                   return (
-                    <CardSlot key={m.id} id={m.id} className={cn("relative mb-12 last:mb-0", kind === "drop" && "isolate")}>
-                      {/* your matches: a soft gold glow with no edges */}
-                      {kind === "drop" && <span className="pointer-events-none absolute -inset-x-6 -inset-y-8 -z-10 blur-2xl" style={{ background: GOLD_HAZE }} aria-hidden />}
+                    <CardSlot key={m.id} id={m.id} className="relative mb-12 last:mb-0">
                       {kind && (
                         <div className="mb-2 flex justify-center">
                           <TakeButton id={m.id} kind={kind} />
@@ -86,7 +84,7 @@ export async function MatchesView({ take }: { take?: string }) {
                       )}
                       <MatchCard m={m} t={t} locale={locale} teams={teams} refs={refs} plays={[...playersOf(teams, m)]} host={scope.host} runs={scope.runs(m.referee)} locked={editLocked(scope.host ? ["host"] : [], m.startsAt?.toISOString() ?? null)} pools={pools} live={m.winner ? undefined : live.get(m.id)} />
                       {/* on the card's bottom line, under the VS */}
-                      {i < s.list.length - 1 && <RuleDiamond />}
+                      {i < s.list.length - 1 && <RuleDiamond className={s.id === "mine" ? "bg-gold" : undefined} />}
                     </CardSlot>
                   );
                 })}
@@ -99,14 +97,10 @@ export async function MatchesView({ take }: { take?: string }) {
   );
 }
 
-// a few offset patches of gold so the glow has no shape of its own
-const gold = (p: number) => `color-mix(in oklab, var(--gold) ${p}%, transparent)`;
-const GOLD_HAZE = [
-  `radial-gradient(38% 70% at 22% 62%, ${gold(13)}, transparent)`,
-  `radial-gradient(30% 55% at 58% 30%, ${gold(10)}, transparent)`,
-  `radial-gradient(26% 80% at 81% 66%, ${gold(9)}, transparent)`,
-  `radial-gradient(20% 45% at 44% 85%, ${gold(7)}, transparent)`,
-].join(", ");
+/** your matches sit together on one gold-edged panel with the house hard shadow */
+function MinePanel() {
+  return <span className="pointer-events-none absolute inset-0 -z-10 border-2 border-gold bg-coal shadow-[8px_8px_0_0_var(--gold-deep)]" aria-hidden />;
+}
 
 function byDistance<T extends { startsAt: Date | null }>(list: T[]) {
   const now = Date.now();
