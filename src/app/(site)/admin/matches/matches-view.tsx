@@ -6,7 +6,7 @@ import { SlantBg } from "@/components/site/slant";
 import { RuleDiamond } from "@/components/site/rule";
 import { getPoolStages } from "@/db/mappools";
 import { getMatchRows, getTeams } from "@/db/tournament";
-import { refScope, takeOver } from "@/lib/match-access";
+import { refScope, canTake } from "@/lib/match-access";
 import { playersOf } from "@/lib/staff-names";
 import { getDict, getLang } from "@/lib/i18n/server";
 import { getFormat } from "@/db/edition";
@@ -30,7 +30,7 @@ export async function MatchesView({ take }: { take?: string }) {
   const bracketStages = stages.filter((s) => isBracketStage(s.slug));
   // referees don't see matches with neither team known yet
   const rows = byDistance(all.filter((m) => bracketStages.some((s) => s.slug === m.stageSlug) && (scope.host || m.team1Id || m.team2Id)));
-  const takes = new Map(await Promise.all(rows.filter((m) => !m.winner && m.startsAt && !scope.runs(m.referee)).map(async (m) => [m.id, await takeOver(db, m)] as const)));
+  const takes = new Set((await Promise.all(rows.filter((m) => !m.winner && m.startsAt && !scope.mine(m.referee)).map(async (m) => ((await canTake(db, m)) ? m.id : null)))).filter((id) => id !== null));
   const locale = localeOf(lang);
   const pools = bracketStages.filter((x) => x.pools.length).map((x) => ({ slug: x.slug, title: roundName(t, x.title) }));
   const open = rows.filter((m) => !m.winner);
@@ -42,12 +42,12 @@ export async function MatchesView({ take }: { take?: string }) {
     { id: "nodate", title: t.admin.matchesNoDate, list: rest.filter((m) => !m.startsAt), open: false },
     { id: "played", title: t.admin.matchesPlayed, list: rows.filter((m) => m.winner), open: false },
   ].filter((s) => s.id !== "mine" || s.list.length);
-  const kindOf = (id: string, referee: string | null) => (scope.mine(referee) ? ("drop" as const) : takes.get(id)?.kind);
+  const kindOf = (id: string, referee: string | null) => (scope.mine(referee) ? ("drop" as const) : takes.has(id) ? ("take" as const) : undefined);
   const pic = (id: string | null) => teams.find((x) => x.id === id);
   const infos: TakeInfo[] = open.flatMap((m) => {
     const kind = kindOf(m.id, m.referee) ?? (m.id === take ? "gone" : null);
     if (!kind) return [];
-    return [{ id: m.id, kind, label: matchLabel(f, t, m.id), teams: [m.team1Id, m.team2Id].map((id) => ({ name: pic(id)?.name ?? t.common.tbd, image: pic(id)?.image || null })), at: m.startsAt?.toISOString() ?? null, from: m.referee ?? "", lobby: takes.get(m.id)?.lobby ?? false }];
+    return [{ id: m.id, kind, label: matchLabel(f, t, m.id), teams: [m.team1Id, m.team2Id].map((id) => ({ name: pic(id)?.name ?? t.common.tbd, image: pic(id)?.image || null })), at: m.startsAt?.toISOString() ?? null }];
   });
 
   return (

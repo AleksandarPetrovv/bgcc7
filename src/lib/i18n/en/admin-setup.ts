@@ -136,11 +136,9 @@ export const adminSetup = {
     no: "Cancel",
   },
   take: {
-    take: "Take Match",
-    over: "Take Over",
+    take: "Take",
     becomes: (match: string) => `You become the referee of ${match}.`,
-    removed: (from: string) => `${from} is removed.`,
-    lobby: "Their lobby is closed and you make a new one.",
+    helperOff: "Open BGCC7 Helper first, then take the match.",
     abandon: "Abandon",
     askTake: "Do you want to take this match?",
     askAbandon: "Are you sure you don't want to ref this match?",

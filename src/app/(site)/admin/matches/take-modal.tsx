@@ -12,8 +12,8 @@ import { fullDayTime } from "@/lib/time";
 import { errorText, type ActionError } from "@/lib/action-result";
 import { dropMatch, takeMatch } from "./actions";
 
-export type TakeKind = "take" | "over" | "drop" | "gone";
-export type TakeInfo = { id: string; kind: TakeKind; label: string; teams: { name: string; image: string | null }[]; at: string | null; from: string; lobby: boolean };
+export type TakeKind = "take" | "drop" | "gone";
+export type TakeInfo = { id: string; kind: TakeKind; label: string; teams: { name: string; image: string | null }[]; at: string | null };
 
 const LIST = "/admin/matches";
 const Ctx = createContext<(id: string) => void>(() => {});
@@ -79,11 +79,6 @@ function TakePopup({ info, onClose }: { info: TakeInfo; onClose: () => void }) {
         {info.at ? fullDayTime(new Date(info.at), lang) : t.common.tbd}
       </p>
       <p className="mt-1.5 text-center text-xs font-display font-bold text-ash">{info.label}</p>
-      {info.kind === "over" && (
-        <p className="mt-4 text-sm text-paper/75">
-          {tk.removed(info.from)} {info.lobby && tk.lobby}
-        </p>
-      )}
 
       {info.kind === "gone" ? (
         <div className="mt-8 flex justify-center">
@@ -118,7 +113,7 @@ export function TakeButton({ id, kind }: { id: string; kind: Exclude<TakeKind, "
   return (
     <Btn type="button" small tone={kind === "drop" ? "outline" : "rose"} onClick={() => show(id)} className="min-h-8 px-3 text-[0.7rem]">
       <Icon className="size-3.5" />
-      {kind === "drop" ? t.admin.take.abandon : kind === "over" ? t.admin.take.over : t.admin.take.take}
+      {kind === "drop" ? t.admin.take.abandon : t.admin.take.take}
     </Btn>
   );
 }

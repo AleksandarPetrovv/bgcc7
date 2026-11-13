@@ -27,7 +27,7 @@ export const alertText = {
     means: "The site lost contact with the referee's helper while this match's lobby is open, so the lobby can't be controlled from the site. The match may stall. You can:",
     steps: [
       "Message the referee and ask them to open BGCC7 Helper and check it shows connected.",
-      "No answer? Pick another referee for the match in Admin → Matches, or let a backup referee press Take Over there.",
+      "No answer? Pick another referee for the match in Admin → Matches.",
     ],
     button: "Open match admin",
   },

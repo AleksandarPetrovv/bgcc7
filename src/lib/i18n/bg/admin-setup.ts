@@ -137,11 +137,9 @@ export const adminSetup: typeof en = {
     no: "Отказ",
   },
   take: {
-    take: "Вземи мача",
-    over: "Поеми мача",
+    take: "Вземи",
     becomes: (match: string) => `Ставаш рефер на ${match}.`,
-    removed: (from: string) => `${from} е махнат.`,
-    lobby: "Лобито му се затваря и ти правиш ново.",
+    helperOff: "Първо отвори BGCC7 Helper, после вземи мача.",
     abandon: "Откажи се",
     askTake: "Искаш ли да вземеш този мач?",
     askAbandon: "Сигурен ли си, че не искаш да реферираш този мач?",
