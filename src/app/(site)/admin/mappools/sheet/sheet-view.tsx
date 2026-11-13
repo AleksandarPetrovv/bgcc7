@@ -148,7 +148,7 @@ export function SlotBox({
           <div className="pb-7">
             <section
               className={cn("in-up relative overflow-x-clip border-b", picked ? "border-balkan/50" : "border-line")}
-              style={{ "--i": Math.min(place, 12), "--s": "0.07s", "--d": "0.4s" } as React.CSSProperties}
+              style={{ "--i": Math.min(place, 12), "--s": "0.12s", "--d": "0.4s" } as React.CSSProperties}
             >
               <RuleDiamond />
               <span className="in-grow absolute inset-x-0 top-0 h-0.5 [--d:0.55s]" style={{ background: color }} aria-hidden />

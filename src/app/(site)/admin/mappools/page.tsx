@@ -56,6 +56,8 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
       }));
 
   const starts = sections.map((_, k) => sections.slice(0, k).reduce((n, s) => n + s.items.length, 0));
+  // slots come in one after another top to bottom; each heading just before its first slot
+  const rowAt = (n: number) => 0.4 + Math.min(n, 12) * 0.12;
 
   // the round tabs stay mounted; everything under them is keyed by stage so it plays its intro again
   return (
@@ -112,8 +114,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
         {sections.map(({ key, title, color: accent, items }, pi) => {
           const filled = items.filter((x) => !x.out && mapsOf(x.mod).some((m) => m.order === x.slot)).length;
           const total = items.filter((x) => !x.out).length;
-          // sections start once the "done with this pool" panel above has played
-          const at = 0.55 + Math.min(pi, 12) * 0.12;
+          const at = rowAt(starts[pi]) - 0.05;
           return (
             <Fragment key={key}>
             {pi > 0 && (
@@ -144,7 +145,7 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                     return (
                       <SwapRow
                         key={`empty-${mod}-${slot}`}
-                        style={{ "--i": Math.min(starts[pi] + i, 12), "--s": "0.07s", "--d": "0.4s" } as React.CSSProperties}
+                        style={{ "--d": `${rowAt(starts[pi] + i)}s` } as React.CSSProperties}
                         className="in-up flex flex-wrap items-center gap-3 bg-[repeating-linear-gradient(135deg,transparent_0_10px,color-mix(in_srgb,var(--rose)_5%,transparent)_10px_20px)] px-3 py-2.5"
                       >
                         <span className={cn("heading-slam shrink-0 whitespace-nowrap text-xl opacity-60", skill ? "w-20" : "w-12")} style={{ color: modHi(color) }}>
@@ -160,18 +161,18 @@ export default async function AdminMappools({ searchParams }: PageProps<"/admin/
                   return (
                     <SwapRow
                       key={m.rowId}
-                      style={{ "--i": Math.min(starts[pi] + i, 12), "--s": "0.07s", "--d": "0.4s" } as React.CSSProperties}
+                      style={{ "--d": `${rowAt(starts[pi] + i)}s` } as React.CSSProperties}
                       className={cn("in-up relative isolate flex flex-wrap items-center gap-3 overflow-hidden px-3 py-2", out && "bg-rose/[0.06]")}
                     >
                       {/* the same cover backdrop as the sheet's suggestion rows */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={m.cover} alt="" className="pointer-events-none absolute inset-0 -z-10 size-full object-cover opacity-[0.09] dark:opacity-[0.06]" />
-                      <span className={cn("in-slam heading-slam shrink-0 whitespace-nowrap text-xl", skill ? "w-20" : "w-12")} style={{ color: modHi(color), "--d": "0.45s" } as React.CSSProperties}>
+                      <span className={cn("in-slam heading-slam shrink-0 whitespace-nowrap text-xl", skill ? "w-20" : "w-12")} style={{ color: modHi(color), "--d": `${rowAt(starts[pi] + i) + 0.05}s` } as React.CSSProperties}>
                         {m.slot}
                       </span>
                       {chip}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={cardCover(m.cover)} alt="" loading="lazy" decoding="async" className="in-wipe hidden h-10 w-24 object-cover sm:block" style={{ "--d": "0.5s" } as React.CSSProperties} />
+                      <img src={cardCover(m.cover)} alt="" loading="lazy" decoding="async" className="in-wipe hidden h-10 w-24 object-cover sm:block" style={{ "--d": `${rowAt(starts[pi] + i) + 0.1}s` } as React.CSSProperties} />
                       <div className="min-w-0 basis-full max-sm:order-last sm:flex-1 sm:basis-0">
                         <MapMeta
                           id={m.id}
