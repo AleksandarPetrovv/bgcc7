@@ -55,6 +55,8 @@ export const rolesGivenMessage = (tournament: string, roles: Role[]) =>
 export const rolesTakenMessage = (tournament: string, roles: Role[]) =>
   roles.length === 1 ? `Your ${roleNames(roles)[0].toLowerCase()} role for ${tournament} has been revoked.` : `The following roles for ${tournament} have been revoked: ${roleNames(roles).join(", ")}.`;
 
+export const staffLeftMessage = (name: string, roles: Role[]) => `**${name}** (${roleNames(roles).join(", ")}) left the server.`;
+
 export const streamMessage = (label: string, t1: string, t2: string, at: Date, link: string) =>
   `You are streaming **${label}**: **${t1}** vs **${t2}** in 1 hour, at ${when(at)}. Open the tourney client only after the referee has made the lobby. ${link}`;
 

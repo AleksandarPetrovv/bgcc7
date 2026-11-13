@@ -9,7 +9,7 @@ import { getFormat } from "./edition";
 import { siteUrl } from "@/lib/links";
 import { notifyCaptain, schedulable, weekFinder } from "./schedule";
 import type { Week } from "@/lib/schedule";
-import { deadlineSoonMessage, matchLabel, noRefMessage, poolClosedMessage, poolMessage, poolOpenMessage, poolReminderMessage, commentMessage, refAssignedMessage, refRemovedMessage, resultMessage, rolesGivenMessage, rolesTakenMessage, staffTimeMessage, streamMessage, walkoverMessage, when, yourTeamMessage } from "@/lib/discord-text";
+import { deadlineSoonMessage, matchLabel, noRefMessage, poolClosedMessage, poolMessage, poolOpenMessage, poolReminderMessage, commentMessage, refAssignedMessage, refRemovedMessage, resultMessage, rolesGivenMessage, rolesTakenMessage, staffLeftMessage, staffTimeMessage, streamMessage, walkoverMessage, when, yourTeamMessage } from "@/lib/discord-text";
 import { walkoverOf } from "@/lib/out";
 import { getSkillLayouts } from "./format-plan";
 import { MODS, MOD_ORDER } from "@/lib/mods";
@@ -182,13 +182,37 @@ async function runSync() {
     if (d) held.set(d, new Set(s.permRoles.flatMap((r) => staffRoles.get(r as Role) ?? [])));
   }
   // only linked users are checked here (so a removed staff member loses their roles); unlink/relink strips the old account first (dropTeamRoles)
+  const inServer = new Map<string, boolean>();
   for (const d of new Set(linked.values())) {
     const mine = await memberRoles(d);
+    inServer.set(d, !!mine);
     if (!mine) continue;
     const w = want.get(d);
     for (const rid of mine) if (ours.has(rid) && rid !== w) await removeRole(d, rid);
     if (w && !mine.includes(w)) await addRole(d, w);
     for (const rid of staffRoles.values()) if ((held.get(d)?.has(rid) ?? false) !== mine.includes(rid)) await (mine.includes(rid) ? removeRole : addRole)(d, rid).catch(log("staff role")); // a role above the bot's own can't be managed: the team sync must still finish
+  }
+  await staffLeft(inServer).catch(log("staff left"));
+}
+
+/** #hosts hears once when a linked staff member who was in the server is gone; `in:<osuId>` marks them as seen there, so someone who never joined is never reported */
+async function staffLeft(inServer: Map<string, boolean>) {
+  const { hosts } = await getCfg();
+  const rows = await db
+    .select({ osuId: staff.osuId, permRoles: staff.permRoles, discordId: users.discordId, name: users.username })
+    .from(staff)
+    .innerJoin(users, eq(users.osuId, staff.osuId))
+    .where(isNotNull(users.discordId));
+  for (const s of rows) {
+    const here = inServer.get(s.discordId!);
+    if (here === undefined) continue;
+    const key = `in:${s.osuId}`;
+    const was = !!(await getState(key));
+    if (here && !was) await setState(key, { stamp: "" });
+    if (!here && was) {
+      if (hosts) await post(hosts, staffLeftMessage(s.name, ROLES.filter((r) => s.permRoles.includes(r))));
+      await db.delete(discordState).where(eq(discordState.key, key));
+    }
   }
 }
 
