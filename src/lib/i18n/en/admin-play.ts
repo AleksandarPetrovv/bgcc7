@@ -68,7 +68,9 @@ export const adminPlay = {
   },
   matchesHelp: "Lock a match's teams to pick them by hand.",
   firstToShort: (n: number) => `First to ${n}`,
+  matchesMine: "Your Matches",
   matchesScheduled: "Scheduled",
+  matchesNoDate: "No Date",
   matchesPlayed: "Played",
   prompt: {
     kicker: "Stage check",

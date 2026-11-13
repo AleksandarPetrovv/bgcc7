@@ -201,6 +201,7 @@ export const pages = {
     title: "No access",
     text: "You don't have access to this page.",
     admin: "This part of the admin panel isn't part of your role.",
+    signedOut: "Sign in to see this page.",
     home: "Back home",
   },
   error: {

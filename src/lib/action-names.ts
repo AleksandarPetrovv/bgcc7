@@ -12,7 +12,7 @@ const GROUPS = {
   qualifiers: ["qual.clearPlayer", "qual.deleteScore", "qual.import", "qual.importAll", "qual.setScore"],
   mappools: ["map.add", "map.delete", "map.move", "pack.delete", "pack.generate", "pack.upload", "pool.force", "pool.pick", "pool.suggest", "pool.unsuggest", "pool.vote", "stage.blueprint", "stage.refreshMaps", "stage.rename", "stage.update"],
   teams: ["bws.lock", "bws.unlock", "draw.end", "draw.redo", "draw.spin", "draw.undo", "team.back", "team.create", "team.delete", "team.out", "team.placeMember", "team.removeMember", "team.request", "team.update", "teams.draw", "teams.generate", "teams.seed"],
-  matches: ["match.clearCache", "match.fillSeeds", "match.resetAll", "match.retryFinish", "match.save", "match.score.remove", "match.score.save", "match.score.undo", "match.take", "reschedule.approve", "reschedule.deny"],
+  matches: ["match.clearCache", "match.drop", "match.fillSeeds", "match.resetAll", "match.retryFinish", "match.save", "match.score.remove", "match.score.save", "match.score.undo", "match.take", "reschedule.approve", "reschedule.deny"],
   staff: ["staff.add", "staff.remove", "staff.reorder", "staff.update"],
   site: [
     "discord.channels", "discord.cleanup", "discord.sync", "edition.clear", "edition.seed", "edition.switch", "format.reset", "format.save", "helper.link", "helper.unlink", "info.edit",

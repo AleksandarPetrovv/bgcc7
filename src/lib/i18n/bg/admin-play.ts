@@ -70,7 +70,9 @@ export const adminPlay: typeof en = {
   },
   matchesHelp: "Заключи отборите на мач, за да ги избереш на ръка.",
   firstToShort: (n: number) => `До ${n}`,
+  matchesMine: "Твоите мачове",
   matchesScheduled: "Предстоящи",
+  matchesNoDate: "Без дата",
   matchesPlayed: "Изиграни",
   prompt: {
     kicker: "Проверка на етапа",

@@ -16,11 +16,13 @@ import { matchIdFromSlug } from "./format";
 export async function refScope() {
   const v = await getViewer();
   if (!v) return null;
-  if (v.roles.includes("host")) return { host: true, runs: (() => true) as (referee: string | null) => boolean };
-  if (!can(v.roles, "matches")) return null;
+  const host = v.roles.includes("host");
+  if (!host && !can(v.roles, "matches")) return null;
   const [u] = await db.select({ username: users.username }).from(users).where(eq(users.osuId, v.osuId)).limit(1);
   const me = u?.username.toLowerCase();
-  return { host: false, runs: (referee: string | null) => !!me && staffNames(referee).some((n) => n.toLowerCase() === me) };
+  /** the viewer is named as this match's referee */
+  const mine = (referee: string | null) => !!me && staffNames(referee).some((n) => n.toLowerCase() === me);
+  return { host, mine, runs: host ? () => true : mine };
 }
 
 const HELPER_GONE = 5 * 60_000;

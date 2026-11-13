@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Scoreline } from "@/components/site/match-row";
-import { CalendarClock, ChevronDown, Gavel, Link2, Radio, Video } from "lucide-react";
+import { CalendarClock, ChevronDown, Link2, Video } from "lucide-react";
 import { ActionForm, DateTimeField, Field } from "@/components/admin/form";
 import { labelCls } from "@/components/admin/label";
 import { Dropdown } from "@/components/admin/dropdown";
@@ -14,9 +14,10 @@ import { Pic } from "@/components/site/pfp";
 import { dayTime, toSofiaInput } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { nameKey } from "@/lib/names";
+import { staffNames } from "@/lib/staff-names";
+import { ROLE_ICON } from "@/lib/role-icons";
 import { SlantBg } from "@/components/site/slant";
 import { clearCache, saveMatch } from "./actions";
-import { TakeMatch } from "./take-match";
 import { osuMp } from "@/lib/links";
 import { mpIds } from "@/lib/mp-links";
 import { walkoverOf } from "@/lib/out";
@@ -42,7 +43,7 @@ function Lock({ off, children }: { off: boolean; children: React.ReactNode }) {
   );
 }
 
-export function MatchCard({ m, t, locale, teams, refs, plays, host, runs, locked, take, pools, live }: { m: MatchRow; t: Dict; locale: string; teams: { id: string; name: string; image: string }[]; refs: { referee: string[]; streamer: string[]; commentator: string[] }; plays: string[]; host: boolean; runs: boolean; locked: boolean; take: { kind: "take" | "over"; lobby: boolean } | null; pools: { slug: string; title: string }[]; live?: { lobby: boolean } }) {
+export function MatchCard({ m, t, locale, teams, refs, plays, host, runs, locked, pools, live }: { m: MatchRow; t: Dict; locale: string; teams: { id: string; name: string; image: string }[]; refs: { referee: string[]; streamer: string[]; commentator: string[] }; plays: string[]; host: boolean; runs: boolean; locked: boolean; pools: { slug: string; title: string }[]; live?: { lobby: boolean } }) {
   const f = getFormat();
   const name = (id: string | null) => teams.find((x) => x.id === id)?.name ?? t.common.tbd;
   const staffOpt = (r: string) => ({ value: r, label: r, hint: plays.includes(nameKey(r)) ? t.admin.staffPlaysHere : undefined });
@@ -51,8 +52,8 @@ export function MatchCard({ m, t, locale, teams, refs, plays, host, runs, locked
     return src ? <Pic src={src} className="size-7 shrink-0 rounded-full object-cover" /> : <span className="size-7 shrink-0 rounded-full bg-slate" aria-hidden />;
   };
   const mp = mpIds(m.mpLinks);
+  const crew = (["referee", "streamer", "commentator"] as const).flatMap((role) => staffNames(role === "commentator" ? m.commentators : m[role]).map((who) => [role, who] as const));
   const status = m.winner ? "done" : mp.length ? "live" : m.startsAt ? "soon" : "tbd";
-  const tone = { done: "bg-balkan", live: "bg-crimson", soon: "bg-azure", tbd: "bg-line" }[status];
   const side = (n: 1 | 2) => {
     const won = m.winner === n;
     const lost = !!m.winner && !won;
@@ -73,7 +74,6 @@ export function MatchCard({ m, t, locale, teams, refs, plays, host, runs, locked
     >
       {/* equal side columns and a fixed-width middle keep the teams centred in the row */}
       <summary className="relative grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] [&::-webkit-details-marker]:hidden">
-        <span className={cn("absolute inset-y-0 left-0 w-1", tone)} aria-hidden />
         <span className="hidden min-w-0 flex-col gap-1 sm:flex">
           <span className="hidden flex-col gap-1 md:flex">
           <span className="text-[0.65rem] font-display font-bold leading-tight text-ash">{matchLabel(f, t, m.id)}</span>
@@ -127,13 +127,15 @@ export function MatchCard({ m, t, locale, teams, refs, plays, host, runs, locked
             <CalendarClock className="size-3.5 text-ash" />
             {m.startsAt ? dayTime(toSofiaInput(m.startsAt), locale.startsWith("bg") ? "bg" : "en") : t.common.tbd}
           </span>
-          <span className="flex items-center gap-3 text-ash">
-            {m.referee && (
-              <span className="flex max-w-28 items-center gap-1 truncate" title={t.admin.referee}>
-                <Gavel className="size-3 shrink-0" /> <span className="truncate">{m.referee}</span>
+          {crew.map(([role, who]) => {
+            const Icon = ROLE_ICON[role];
+            return (
+              <span key={role + who} className="flex max-w-36 items-center gap-1 text-ash" title={t.admin.roles[role]}>
+                <Icon className="size-3 shrink-0" /> <span className="truncate">{who}</span>
               </span>
-            )}
-            {m.streamer && <Radio className="size-3.5 shrink-0" aria-label={t.admin.streamer} />}
+            );
+          })}
+          <span className="flex items-center gap-3 text-ash empty:hidden">
             {mp.length > 0 && (
               <span className="num flex items-center gap-1">
                 <Link2 className="size-3" /> {mp.length}
@@ -151,7 +153,6 @@ export function MatchCard({ m, t, locale, teams, refs, plays, host, runs, locked
       </summary>
 
       <div className="border-t border-line pb-5 pl-4 pt-6">
-        {take && <TakeMatch id={m.id} label={matchLabel(f, t, m.id)} from={m.referee ?? ""} kind={take.kind} lobby={take.lobby} />}
         {locked && <p className="mb-4 text-xs font-display font-bold text-gold-hi">{t.admin.tooOld(REF_EDIT_DAYS)}</p>}
         <Lock off={!runs || locked}>
         <ActionForm key={JSON.stringify(m)} action={saveMatch.bind(null, m.id)} className="space-y-5">

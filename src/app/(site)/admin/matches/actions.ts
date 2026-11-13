@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { getFormat } from "@/db/edition";
 import { resetPickems } from "@/db/pickems";
-import { matches, stages, teams } from "@/db/schema";
+import { matches, stages, teams, users } from "@/db/schema";
 import { guard } from "@/lib/admin-action";
 import { editLocked } from "@/lib/edit-lock";
 import type { ActionResult } from "@/lib/action-result";
@@ -22,7 +22,8 @@ import { later, postResult } from "@/db/discord-bot";
 import { isBracketStage } from "@/lib/format";
 import { mpIds, mpCsv } from "@/lib/mp-links";
 import { nameKey } from "@/lib/names";
-import { playersOf, staffHas, staffNames } from "@/lib/staff-names";
+import { joinStaff, playersOf, staffHas, staffNames } from "@/lib/staff-names";
+import { getViewer } from "@/lib/authz";
 import { getTeams } from "@/db/tournament";
 
 const text = (fd: FormData, k: string, max = 120) => String(fd.get(k) ?? "").trim().slice(0, max) || null;
@@ -126,6 +127,24 @@ export async function takeMatch(id: string) {
     if (typeof out === "string") return { ok: false, error: out };
     await handOff(id, out.username).catch((e) => console.error("[handoff]", id, e));
     return { log: { id, from: out.from } };
+  });
+}
+
+/** a referee steps off a match they're named on; the match goes back to needing one */
+export async function dropMatch(id: string) {
+  return guard("matches", "match.drop", async () => {
+    const v = await getViewer();
+    const [me] = v ? await db.select({ username: users.username }).from(users).where(eq(users.osuId, v.osuId)).limit(1) : [];
+    const out = await db.transaction(async (tx) => {
+      const cur = await lockMatch(tx, id);
+      if (!cur || !me) return "notFound" as const;
+      const names = staffNames(cur.referee);
+      const rest = names.filter((n) => n.toLowerCase() !== me.username.toLowerCase());
+      if (cur.winner != null || rest.length === names.length) return "forbidden" as const;
+      await tx.update(matches).set({ referee: rest.length ? joinStaff(rest) : null }).where(eq(matches.id, id));
+    });
+    if (out) return { ok: false, error: out };
+    return { log: { id } };
   });
 }
 

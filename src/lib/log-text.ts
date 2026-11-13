@@ -331,6 +331,8 @@ export function describe(action: string, payload: unknown, c: LogCtx, h: LogHelp
       return bg ? `махна резултата на ${user()} от ${match()}` : `removed ${user()}'s score from ${match()}`;
     case "match.score.undo":
       return bg ? `върна оригиналния резултат на ${user()} в ${match()}` : `undid the score edit for ${user()} in ${match()}`;
+    case "match.drop":
+      return bg ? `се отказа от мача ${match("id")}` : `stepped off match ${match("id")}`;
     case "match.take":
       return p.from
         ? bg ? `пое мача ${match("id")} от ${b(p.from)}` : `took over match ${match("id")} from ${b(p.from)}`
