@@ -68,7 +68,7 @@ const keep = globalStore<Keep>("bgccIrcKeep", () => ({ synced: new Map(), paceQ:
 const { synced, paceQ } = keep;
 export const { lastSent, typed, playStart } = keep;
 
-type Handlers = { closeLobby: (matchId: string) => Promise<void>; react: (matchId: string) => void };
+type Handlers = { closeLobby: (matchId: string) => Promise<void>; react: (matchId: string) => void; resync: (matchId: string) => Promise<void> };
 let handlers: Handlers | null = null;
 
 /** bancho.ts hands over its lobby actions once on load, before any lobby event can fire */
@@ -310,6 +310,7 @@ async function restore(s: State, matchId: string, mpId: number, owner: number) {
   s.live.set(matchId, l);
   quiet(matchId);
   await ch.lobby.updateSettings();
+  await handlers?.resync(matchId).catch((e) => console.error("[bancho] resync", matchId, e));
   ping(matchId);
 }
 
@@ -319,6 +320,7 @@ async function rejoin(l: Live) {
     await l.lobby.channel.join();
     quiet(l.matchId);
     await l.lobby.updateSettings();
+    await handlers?.resync(l.matchId).catch((e) => console.error("[bancho] resync", l.matchId, e));
   } catch (e) {
     await dropIfGone(l.matchId, e);
   }

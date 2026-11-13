@@ -22,7 +22,7 @@ import { mpIds, mpCsv } from "@/lib/mp-links";
 export { canLobby, ensureBot, lobbyOwner, onLobby, sayLocal, type LobbySlot, type LobbyView } from "./bancho-irc";
 export type { ChatLine } from "./lobby-chat";
 
-init({ closeLobby, react });
+init({ closeLobby, react, resync });
 
 // bancho can be slow to answer !mp close; stop waiting after this
 const CLOSE_WAIT = 8000;
@@ -353,6 +353,13 @@ export async function spareSlot(matchId: string, by: number, open: boolean) {
   const { lb } = await lobbyAs(matchId);
   const base = lobbySize(getFormat());
   await lb.channel.sendMessage(`!mp size ${open ? base + 1 : base}`);
+}
+
+// a reattached lobby missed the picks made while it was offline: put the open pick's map and mods back
+async function resync(matchId: string) {
+  const d = await getDraft(matchId);
+  const pick = d?.open ? d.steps.findLast((s) => s.kind === "pick" && !s.skip && !s.winner) : undefined;
+  if (d && pick && !liveLobby(matchId)?.lobby.playing) await lobbyPick(matchId, d.stageSlug, pick.slot);
 }
 
 async function lobbyPick(matchId: string, stageSlug: string, slot: string) {
