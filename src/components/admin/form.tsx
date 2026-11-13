@@ -206,14 +206,14 @@ export function IconAction({
         disabled={pending}
         onClick={() => (confirm ? ask({ text: confirm, yes: label, onYes: run }) : run())}
         className={cn(
-          "group relative isolate inline-flex size-10 items-center justify-center transition-[color,translate] duration-200 hover:-translate-y-0.5 disabled:opacity-50",
+          "group/ib relative isolate inline-flex size-10 items-center justify-center transition-[color,translate] duration-200 hover:-translate-y-0.5 disabled:opacity-50",
           danger ? "text-rose-hi hover:text-white" : "text-ash hover:text-paper",
         )}
       >
         <SlantBg
           className={cn(
             "border transition-[border-color,background-color] duration-200",
-            danger ? "border-rose/50 group-hover:border-rose group-hover:bg-rose" : "border-line group-hover:border-paper/40 group-hover:bg-slate",
+            danger ? "border-rose/50 group-hover/ib:border-rose group-hover/ib:bg-rose" : "border-line group-hover/ib:border-paper/40 group-hover/ib:bg-slate",
             bare && "border-transparent",
           )}
         />

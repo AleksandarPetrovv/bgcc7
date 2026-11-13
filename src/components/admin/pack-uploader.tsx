@@ -225,12 +225,12 @@ export function PackUploader({ stages, locale, simple, lead }: { stages: StageIn
           }}
           data-cascade
           className={cn(
-            "in-up group relative flex w-full flex-col items-center justify-center gap-2 overflow-hidden border-2 border-dashed px-4 py-8 text-center transition-colors",
+            "in-up group/up relative flex w-full flex-col items-center justify-center gap-2 overflow-hidden border-2 border-dashed px-4 py-8 text-center transition-colors",
             over ? "border-rose bg-rose/10" : "border-line hover:border-paper/40",
           )}
         >
           <motion.span animate={over ? { y: -4 } : { y: 0 }} transition={{ type: "spring", stiffness: 400, damping: 20 }}>
-            <UploadCloud className={cn("size-8 transition-colors", over ? "text-rose-hi" : "text-ash group-hover:text-paper")} />
+            <UploadCloud className={cn("size-8 transition-colors", over ? "text-rose-hi" : "text-ash group-hover/up:text-paper")} />
           </motion.span>
           <span className="text-sm font-display font-bold">{pack ? t.admin.packReplace(name(stage)) : t.admin.packDrop(name(stage))}</span>
           <span className="text-xs text-ash">{t.admin.packHint}</span>

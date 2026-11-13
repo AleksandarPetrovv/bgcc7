@@ -120,13 +120,13 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
         onClick={() => toggle(!open)}
         onKeyDown={key}
         className={cn(
-          "group relative isolate flex h-10 w-full min-w-0 items-center px-3 text-left text-sm normal-case tracking-normal outline-none disabled:cursor-not-allowed disabled:opacity-50",
+          "group/dd relative isolate flex h-10 w-full min-w-0 items-center px-3 text-left text-sm normal-case tracking-normal outline-none disabled:cursor-not-allowed disabled:opacity-50",
         )}
       >
         <SlantBg
           className={cn(
-            "border border-b-2 bg-field transition-[border-color,background-color,box-shadow] duration-200 group-focus-visible:ring-2 group-focus-visible:ring-rose",
-            open ? "border-rose bg-rose/10 shadow-[4px_4px_0_0_var(--rose-deep)]" : "border-line group-hover:border-paper/40",
+            "border border-b-2 bg-field transition-[border-color,background-color,box-shadow] duration-200 group-focus-visible/dd:ring-2 group-focus-visible/dd:ring-rose",
+            open ? "border-rose bg-rose/10 shadow-[4px_4px_0_0_var(--rose-deep)]" : "border-line group-hover/dd:border-paper/40",
           )}
         />
         <span className="flex min-w-0 flex-1 items-center gap-2">
@@ -144,7 +144,7 @@ export function Dropdown({ options, name, value, defaultValue, onChange, placeho
               {sel?.label ?? placeholder ?? "—"}
             </motion.span>
           </AnimatePresence>
-          <ChevronDown className={cn("size-4 shrink-0 transition-transform duration-300", open ? "rotate-180 text-rose-hi" : "text-ash group-hover:text-paper")} />
+          <ChevronDown className={cn("size-4 shrink-0 transition-transform duration-300", open ? "rotate-180 text-rose-hi" : "text-ash group-hover/dd:text-paper")} />
         </span>
       </button>
       {name && !disabled && (

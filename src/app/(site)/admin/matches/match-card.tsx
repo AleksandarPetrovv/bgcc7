@@ -73,7 +73,7 @@ export function MatchCard({ m, t, locale, teams, refs, plays, host, runs, locked
       className="adm-match group in-left relative border-b border-line transition-colors duration-200 hover:border-paper/25 open:border-paper/30"
     >
       {/* equal side columns and a fixed-width middle keep the teams centred in the row */}
-      <summary className="relative grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] [&::-webkit-details-marker]:hidden">
+      <summary className="group/sum relative grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] [&::-webkit-details-marker]:hidden">
         <span className="hidden min-w-0 flex-col gap-1 sm:flex">
           <span className="hidden flex-col gap-1 md:flex">
           <span className="text-[0.65rem] font-display font-bold leading-tight text-ash">{matchLabel(f, t, m.id)}</span>
@@ -145,8 +145,8 @@ export function MatchCard({ m, t, locale, teams, refs, plays, host, runs, locked
           </span>
         </span>
 
-        <span className="relative isolate grid size-8 shrink-0 place-items-center text-ash transition-colors group-hover:text-paper group-open:text-white">
-          <SlantBg className="border border-line transition-colors group-hover:border-paper/40 group-open:border-rose group-open:bg-rose" />
+        <span className="relative isolate grid size-8 shrink-0 place-items-center text-ash transition-colors group-hover/sum:text-paper group-open:text-white">
+          <SlantBg className="border border-line transition-colors group-hover/sum:border-paper/40 group-open:border-rose group-open:bg-rose" />
           <ChevronDown className="size-4 transition-transform duration-300 group-open:rotate-180" aria-hidden />
         </span>
         </span>
