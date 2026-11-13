@@ -1,6 +1,8 @@
 import { currentEdition, siteEdition } from "@/db";
 import { log } from "@/lib/authz";
 import { abortLobby, canLobby, closeLobby, lobbyOwner, ensureBot, inviteMissing, kickSlot, lobbyView, makeLobby, moveSlot, onLobby, refreshLobby, sayLocal, sendChat, abortTimer, spareSlot, startLobby, teamSlot } from "@/lib/bancho";
+import { staffIds } from "@/db/users";
+import { relayOnline } from "@/lib/relay";
 import { sse } from "@/lib/sse";
 import { visibleChatLine } from "@/lib/chat-visibility";
 import { withMatch } from "@/lib/match-access";
@@ -73,7 +75,9 @@ export async function POST(req: Request, ctx: Ctx) {
   if (!a?.admin) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
   const { osuId } = a;
   const owner = await lobbyOwner(id);
-  if (act === "make" ? (owner !== null && owner !== osuId) || !canLobby(osuId) : owner !== osuId) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+  // a named referee (or host) may take over a lobby whose owner is another named referee with the helper offline
+  const mine = owner === osuId || (owner !== null && (await staffIds(a.match.referee)).includes(owner) && !relayOnline(owner));
+  if (act === "make" ? (owner !== null && !mine) || !canLobby(osuId) : !mine) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
   if (!isLobbyAct(act)) return Response.json({ ok: false, error: "invalid" }, { status: 400 });
   try {
     switch (act) {
