@@ -9,7 +9,8 @@ import { getFormat } from "./edition";
 import { siteUrl } from "@/lib/links";
 import { notifyCaptain, schedulable, weekFinder } from "./schedule";
 import type { Week } from "@/lib/schedule";
-import { deadlineSoonMessage, matchLabel, noRefMessage, poolClosedMessage, poolMessage, poolOpenMessage, poolReminderMessage, commentMessage, refAssignedMessage, refRemovedMessage, refTakenMessage, refWantedMessage, resultMessage, rolesGivenMessage, rolesTakenMessage, staffLeftMessage, staffTimeMessage, streamMessage, walkoverMessage, when, yourTeamMessage } from "@/lib/discord-text";
+import { offlineFor } from "@/lib/relay";
+import { deadlineSoonMessage, matchLabel, noRefMessage, refGoneMessage, poolClosedMessage, poolMessage, poolOpenMessage, poolReminderMessage, commentMessage, refAssignedMessage, refRemovedMessage, refTakenMessage, refWantedMessage, resultMessage, rolesGivenMessage, rolesTakenMessage, staffLeftMessage, staffTimeMessage, streamMessage, walkoverMessage, when, yourTeamMessage } from "@/lib/discord-text";
 import { walkoverOf } from "@/lib/out";
 import { getSkillLayouts } from "./format-plan";
 import { MODS, MOD_ORDER } from "@/lib/mods";
@@ -375,8 +376,7 @@ async function refDm(m: MatchRow, name: Names) {
   const stamp = `${m.startsAt!.toISOString()}|${names.join(",")}`;
   if ((await getState(key))?.stamp === stamp) return;
   const text = `You're reffing **${name(m.team1Id)} vs ${name(m.team2Id)}** (${matchLabel(getFormat(), m.id, m.round)}) at **${when(m.startsAt!)}**. ${await refLink(m.id)}`;
-  for (const id of await discordIds(names)) await dm(id, text).catch(log("ref dm"));
-  await setState(key, { stamp });
+  if (await dmAll(await discordIds(names), text, "ref dm")) await setState(key, { stamp });
 }
 
 const hostRole = async () => (await guildRoles()).find((r) => r.name.toLowerCase() === "host");
@@ -473,12 +473,9 @@ async function refAssignments(rows: MatchRow[], name: Names) {
     const before: string[] = JSON.parse(prev.get(key) ?? "[]");
     const [added, removed] = first ? [[], []] : await Promise.all([discordIds(names.filter((n) => !before.includes(n))), discordIds(before.filter((n) => !names.includes(n)))]);
     const label = matchLabel(getFormat(), m.id, m.round);
-    if (added.length) {
-      const text = refAssignedMessage(label, name(m.team1Id), name(m.team2Id), m.startsAt);
-      for (const id of added) await dm(id, text).catch(log("ref assigned dm"));
-    }
-    for (const id of removed) await dm(id, refRemovedMessage(label, name(m.team1Id), name(m.team2Id))).catch(log("ref removed dm"));
-    await setState(key, { stamp });
+    const gave = await dmAll(added, refAssignedMessage(label, name(m.team1Id), name(m.team2Id), m.startsAt), "ref assigned dm");
+    const took = await dmAll(removed, refRemovedMessage(label, name(m.team1Id), name(m.team2Id)), "ref removed dm");
+    if (gave && took) await setState(key, { stamp });
   }
 }
 
