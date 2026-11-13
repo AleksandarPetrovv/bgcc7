@@ -347,5 +347,11 @@ export const adminSetup: typeof en = {
     teamRoles: "Роли на отбори за даване",
     staffRoles: "Роли на екипа за даване",
     sync: "Синхронизирай",
+    server: "Сървър",
+    down: "Discord не отговаря: %why%, %ago%.",
+    why: { token: "лош токен", perm: "липсва право", rate: "твърде много заявки", down: "грешка на Discord", network: "няма връзка" },
+    agoNow: "току-що",
+    agoMin: "преди %n% мин",
+    agoHour: "преди %n% ч",
   },
 };

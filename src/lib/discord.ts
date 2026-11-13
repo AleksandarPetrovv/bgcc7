@@ -7,18 +7,34 @@ const guild = () => process.env.DISCORD_GUILD_ID ?? "";
 
 export const discordReady = () => !!token() && !!guild();
 
+export type DiscordFailure = { at: number; status: number; why: "token" | "perm" | "rate" | "down" | "network" };
+const failure = globalStore("bgccDcFailure", () => ({ last: null as DiscordFailure | null }));
+/** the last REST failure, cleared by the next success; other 4xx (a 404 on a deleted thing) are normal answers and aren't counted */
+export const discordFailure = () => failure.last;
+const fail = (status: number) => {
+  const why = status === 0 ? "network" : status === 401 ? "token" : status === 403 ? "perm" : status === 429 ? "rate" : status >= 500 ? "down" : null;
+  if (why) failure.last = { at: Date.now(), status, why };
+};
+
 async function call<T>(path: string, init?: RequestInit, tries = 3): Promise<T> {
   const res = await fetch(`${API}${path}`, {
     ...init,
     headers: { Authorization: `Bot ${token()}`, "Content-Type": "application/json", ...init?.headers },
     signal: AbortSignal.timeout(8000),
+  }).catch((e) => {
+    fail(0);
+    throw e;
   });
   if (res.status === 429 && tries > 1) {
     const wait = Number((await res.json().catch(() => ({}))).retry_after ?? 1);
     await new Promise((r) => setTimeout(r, Math.min(10, wait) * 1000 + 100));
     return call(path, init, tries - 1);
   }
-  if (!res.ok) throw new Error(`discord ${res.status} ${path.split("?")[0]}`);
+  if (!res.ok) {
+    fail(res.status);
+    throw new Error(`discord ${res.status} ${path.split("?")[0]}`);
+  }
+  failure.last = null;
   return (res.status === 204 ? null : res.json()) as Promise<T>;
 }
 
@@ -118,4 +134,17 @@ export async function discordProfile(id: string, fresh = false): Promise<Profile
     .catch(() => hit?.p ?? null);
   profiles.set(id, { at: Date.now(), p });
   return p;
+}
+
+type GuildInfo = { name: string; icon: string | null };
+const guildCache = globalStore("bgccDcGuild", () => ({ at: 0, g: null as GuildInfo | null }));
+
+// the server's name + icon, cached an hour; a failed fetch keeps the last good one
+export async function discordGuild(): Promise<GuildInfo | null> {
+  if (guildCache.g && Date.now() - guildCache.at < PROFILE_TTL) return guildCache.g;
+  const g = await call<{ name: string; icon: string | null }>(`/guilds/${guild()}`)
+    .then((r) => ({ name: r.name, icon: r.icon ? `https://cdn.discordapp.com/icons/${guild()}/${r.icon}.png?size=64` : null }))
+    .catch(() => null);
+  if (g) Object.assign(guildCache, { at: Date.now(), g });
+  return guildCache.g;
 }

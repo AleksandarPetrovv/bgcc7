@@ -346,5 +346,11 @@ export const adminSetup = {
     teamRoles: "Team Roles To Give",
     staffRoles: "Staff Roles To Give",
     sync: "Sync",
+    server: "Server",
+    down: "Discord isn't answering: %why%, %ago%.",
+    why: { token: "bad token", perm: "missing permission", rate: "rate limited", down: "Discord error", network: "no connection" },
+    agoNow: "just now",
+    agoMin: "%n% min ago",
+    agoHour: "%n% h ago",
   },
 };
