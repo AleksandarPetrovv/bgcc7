@@ -37,8 +37,12 @@ const spring = { type: "spring", stiffness: 520, damping: 42 } as const;
 
 export function AdminNav({ items }: { items: { key: AdminKey; href: string; label: string; locked: boolean }[] }) {
   const path = usePathname();
+  // phones: up to 7 a row, rows balanced, so a few sections spread out and get bigger
+  const open = items.filter((i) => i.key !== "helper" && !i.locked).length || 1;
+  const cols = Math.ceil(open / Math.ceil(open / 7));
+  const big = cols <= 5;
   return (
-    <nav className="flex flex-wrap justify-center gap-y-1.5 py-2 lg:flex-col lg:flex-nowrap lg:justify-start lg:gap-1 lg:py-3" aria-label="Admin">
+    <nav style={{ "--cols": cols } as React.CSSProperties} className="flex flex-wrap justify-center gap-y-1.5 py-2 lg:flex-col lg:flex-nowrap lg:justify-start lg:gap-1 lg:py-3" aria-label="Admin">
       {items.map((i, n) => {
         const key = i.key;
         const Icon = ICONS[key];
@@ -53,7 +57,7 @@ export function AdminNav({ items }: { items: { key: AdminKey; href: string; labe
             aria-label={i.label}
             title={i.label}
             className={cn(
-              "group relative flex min-w-0 flex-none basis-[calc(100%/7)] items-center justify-center gap-3 whitespace-nowrap py-2 lg:basis-auto lg:justify-start lg:whitespace-normal lg:px-2.5 text-[0.8rem] font-display font-bold transition-colors duration-200",
+              "group relative flex min-w-0 flex-none basis-[calc(100%/var(--cols))] items-center justify-center gap-3 whitespace-nowrap py-2 lg:basis-auto lg:justify-start lg:whitespace-normal lg:px-2.5 text-[0.8rem] font-display font-bold transition-colors duration-200",
               active ? "text-paper" : key === "helper" ? "text-balkan-hi hover:text-paper" : "text-ash hover:text-paper",
               // phones can't run the helper: no icon there, the page still opens
               key === "helper" && "hidden lg:flex",
@@ -72,11 +76,12 @@ export function AdminNav({ items }: { items: { key: AdminKey; href: string; labe
             )}
             <span
               className={cn(
-                "relative flex size-7 shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform,translate,scale,rotate] duration-300",
+                "relative flex shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform,translate,scale,rotate] duration-300 lg:size-7",
+                big ? "size-10" : "size-7",
                 active ? "bg-rose/20 text-rose-hi" : key === "helper" ? "bg-balkan/20 group-hover:-translate-y-0.5" : "bg-slate group-hover:-translate-y-0.5 group-hover:bg-rose/20 group-hover:text-rose-hi",
               )}
             >
-              <Icon className="size-3.5" />
+              <Icon className={cn("lg:size-3.5", big ? "size-[1.15rem]" : "size-3.5")} />
             </span>
             <span className="relative hidden min-w-0 flex-1 leading-tight transition-transform duration-300 group-hover:translate-x-0.5 lg:block">{i.label}</span>
             {!active && <ChevronRight className="relative hidden size-3.5 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-70 lg:block" aria-hidden />}
