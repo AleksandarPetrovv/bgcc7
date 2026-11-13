@@ -675,8 +675,7 @@ export const announceTeams = () =>
         const mate = t.players.find((x) => x.userId !== p.userId);
         const stamp = `${t.id}|${mate?.userId ?? ""}`;
         if (!id || (await getState(`team:${p.userId}`))?.stamp === stamp) continue;
-        await dm(id, yourTeamMessage(getFormat().name, t.name, mate?.username ?? null)).catch(log("team dm"));
-        await setState(`team:${p.userId}`, { stamp });
+        if (await dmAll([id], yourTeamMessage(getFormat().name, t.name, mate?.username ?? null), "team dm")) await setState(`team:${p.userId}`, { stamp });
       }
   });
 
