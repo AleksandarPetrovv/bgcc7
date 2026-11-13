@@ -317,7 +317,6 @@ const sides = (m: Pick<MatchRow, "team1Id" | "team2Id">) =>
   ] as const;
 
 export async function tick() {
-  await checkResults().catch(log("result check"));
   if (!ready()) return;
   // shortcut: role changes reach discord through this 5 min resync instead of hooks in every admin action
   if (Date.now() - (dc.synced ?? 0) > 5 * 60_000) {
@@ -549,7 +548,7 @@ export async function roleNotices() {
 }
 
 /** every 5 min: reading a scoreboard settles a decided match, so unopened matches still finish. runs without discord configured */
-async function checkResults() {
+export async function checkResults() {
   if (Date.now() - (dc.checked ?? 0) < 5 * 60_000) return;
   dc.checked = Date.now();
   const [all, rows, ts, pools] = await Promise.all([getMatches(), getMatchRows(), getTeams(), getPoolStages()]);
