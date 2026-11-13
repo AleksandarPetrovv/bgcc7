@@ -90,13 +90,13 @@ export async function updateTeam(id: string, _: ActionResult, fd: FormData) {
       const [member] = await db.select({ osuId: teamMembers.osuId }).from(teamMembers).where(and(eq(teamMembers.teamId, id), eq(teamMembers.osuId, captain))).limit(1);
       if (!member) return { ok: false, error: "invalid" };
     }
-    await db.update(teams).set({ name, image }).where(eq(teams.id, id));
-    if (setCaptain) {
-      await db.transaction(async (tx) => {
+    await db.transaction(async (tx) => {
+      await tx.update(teams).set({ name, image }).where(eq(teams.id, id));
+      if (setCaptain) {
         await tx.update(teamMembers).set({ isCaptain: false }).where(and(eq(teamMembers.teamId, id), ne(teamMembers.osuId, captain)));
         await tx.update(teamMembers).set({ isCaptain: true }).where(and(eq(teamMembers.teamId, id), eq(teamMembers.osuId, captain)));
-      });
-    }
+      }
+    });
     return { log: { id, name, image, captain } };
   });
 }
@@ -110,36 +110,40 @@ export async function placeMember(_: ActionResult, fd: FormData) {
     const osuId = typed?.id ?? Number(fd.get("osuId"));
     if (!Number.isInteger(osuId) || !teamId) return { ok: false, error: "invalid" };
     if (typed && (await db.select({ status: registrations.status }).from(registrations).where(eq(registrations.osuId, osuId)).limit(1))[0]?.status !== "approved") await admitPlayer(typed, by);
-    const [old] = await db.select().from(teamMembers).where(eq(teamMembers.osuId, osuId)).limit(1);
-    const mates = await db.select().from(teamMembers).where(eq(teamMembers.teamId, teamId));
-    if (mates.filter((m) => m.osuId !== osuId).length >= getFormat().teamSize) return { ok: false, error: "invalid" };
-    const lead = !mates.some((m) => m.isCaptain && m.osuId !== osuId);
-    await db
-      .insert(teamMembers)
-      .values({ osuId, teamId, isCaptain: lead })
-      .onConflictDoUpdate({ target: teamMembers.osuId, set: { teamId, isCaptain: lead } });
-    if (old && old.teamId !== teamId) await db.delete(availability).where(eq(availability.osuId, osuId));
-    if (old?.isCaptain && old.teamId !== teamId) await promote(old.teamId);
+    const full = await db.transaction(async (tx) => {
+      const [old] = await tx.select().from(teamMembers).where(eq(teamMembers.osuId, osuId)).limit(1);
+      const mates = await tx.select().from(teamMembers).where(eq(teamMembers.teamId, teamId));
+      if (mates.filter((m) => m.osuId !== osuId).length >= getFormat().teamSize) return true;
+      const lead = !mates.some((m) => m.isCaptain && m.osuId !== osuId);
+      await tx
+        .insert(teamMembers)
+        .values({ osuId, teamId, isCaptain: lead })
+        .onConflictDoUpdate({ target: teamMembers.osuId, set: { teamId, isCaptain: lead } });
+      if (old && old.teamId !== teamId) await tx.delete(availability).where(eq(availability.osuId, osuId));
+      if (old?.isCaptain && old.teamId !== teamId) await promote(tx, old.teamId);
+      return false;
+    });
+    if (full) return { ok: false, error: "invalid" };
     return { log: { osuId, teamId } };
   });
 }
 
-async function promote(teamId: string, heir?: number) {
-  const rest = await db
+async function promote(q: Pick<typeof db, "select" | "update">, teamId: string, heir?: number) {
+  const rest = await q
     .select({ osuId: teamMembers.osuId, isCaptain: teamMembers.isCaptain, pp: users.pp })
     .from(teamMembers)
     .innerJoin(users, eq(users.osuId, teamMembers.osuId))
     .where(eq(teamMembers.teamId, teamId));
   if (!rest.length || rest.some((m) => m.isCaptain)) return;
   const pick = rest.find((m) => m.osuId === heir) ?? [...rest].sort((a, b) => (b.pp ?? 0) - (a.pp ?? 0))[0];
-  await db.update(teamMembers).set({ isCaptain: true }).where(eq(teamMembers.osuId, pick.osuId));
+  await q.update(teamMembers).set({ isCaptain: true }).where(eq(teamMembers.osuId, pick.osuId));
 }
 
 export async function removeMember(osuId: number, heir?: number) {
   return guard("host", "team.removeMember", async () => {
     const [row] = await db.delete(teamMembers).where(eq(teamMembers.osuId, osuId)).returning();
     if (row) await db.delete(availability).where(eq(availability.osuId, osuId));
-    if (row?.isCaptain) await promote(row.teamId, heir);
+    if (row?.isCaptain) await promote(db, row.teamId, heir);
     return { log: { osuId, heir: row?.isCaptain ? (heir ?? null) : undefined } };
   });
 }
