@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::tcp::OwnedWriteHalf;
@@ -77,6 +77,10 @@ impl Status {
 }
 
 const IN_TIMEOUT: Duration = Duration::from_secs(15);
+// the site pings the stream every 15s (SSE_PING_MS in relay-contract.ts); this is a dead connection after two missed pings
+const STREAM_IDLE: Duration = Duration::from_secs(40);
+// a session that lasted this long reconnects at once instead of showing the site as down
+const STABLE_SESSION: Duration = Duration::from_secs(5);
 
 /// one client for every site call; each request sets its own timeout, the /stream SSE has none
 pub fn http() -> &'static reqwest::Client {
@@ -242,7 +246,9 @@ impl Irc {
 
 pub async fn run(sh: Arc<Shared>, token: String, name: String, pass: String, mut stop: watch::Receiver<bool>) {
     let mut wait = 2;
+    let mut quick;
     loop {
+        quick = false;
         if *stop.borrow() || !sh.status().can_ref || !sh.status().linked {
             break;
         }
@@ -264,19 +270,22 @@ pub async fn run(sh: Arc<Shared>, token: String, name: String, pass: String, mut
             }
             Ok(r) if r.status().is_success() => {
                 wait = 2;
+                let up = Instant::now();
                 session(&sh, &token, &name, &pass, r, &mut stop).await;
+                quick = up.elapsed() >= STABLE_SESSION;
             }
             _ => {}
         }
         if *stop.borrow() { return; }
         sh.set(|s| {
-            s.site = s.idle_site();
+            s.site = if quick { "connecting" } else { s.idle_site() };
             s.irc = "idle";
             s.lobbies.clear();
         });
         if *stop.borrow() || !sh.status().can_ref || !sh.status().linked {
             break;
         }
+        if quick { continue; }
         tokio::select! {
             _ = sleep(Duration::from_secs(wait)) => {}
             _ = stop.changed() => break,
@@ -303,7 +312,7 @@ async fn session(sh: &Arc<Shared>, token: &str, name: &str, pass: &str, resp: re
     let mut buf: Vec<u8> = Vec::new();
     'outer: loop {
         let chunk = tokio::select! {
-            c = stream.next() => c,
+            c = timeout(STREAM_IDLE, stream.next()) => c.unwrap_or(None),
             _ = stop.changed() => None,
             _ = denied_rx.changed() => None,
         };
