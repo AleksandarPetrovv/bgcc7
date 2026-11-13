@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import { forbidden } from "next/navigation";
-import { Check, Hourglass, Scale, Trash2 } from "lucide-react";
+import { Check, Hourglass, Trash2 } from "lucide-react";
 import { LinkTabs } from "@/components/site/tabs";
 import { DrawNote } from "@/components/site/draw/draw-stage";
 import { ActionForm, IconAction } from "@/components/admin/form";
@@ -124,14 +124,7 @@ export default async function PoolSheet({ searchParams }: PageProps<"/admin/mapp
                   </span>
                   {sk && s.mod !== "Tiebreaker" && <ModChip mod={s.mod} />}
                   {sk && <TagChips names={subcategoryNames(plan.subcategories, sk.ids)} color={color} />}
-                  {s.picked ? null : s.tie ? (
-                    <span className="in-pop relative isolate flex items-center px-2.5 py-1 text-xs font-display font-bold text-rose-hi [--d:0.3s]">
-                      <SlantBg className="border border-rose/70 bg-rose/15" />
-                      <span className="flex items-center gap-1.5">
-                        <Scale className="size-3.5" /> {host && !win ? t.admin.tieHost : t.admin.tie}
-                      </span>
-                    </span>
-                  ) : s.waitingOn.length ? (
+                  {!s.picked && s.waitingOn.length ? (
                     <span className="in-drop flex min-w-0 items-center gap-1.5 text-xs text-ash [--d:0.3s]">
                       <Hourglass className="size-3.5 shrink-0" />
                       <span className="font-display font-bold">{t.admin.waitingOn}</span>

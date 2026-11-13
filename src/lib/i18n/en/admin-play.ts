@@ -209,8 +209,6 @@ export const adminPlay = {
   collapse: "Collapse",
   expand: "Expand",
   noSuggestions: "No suggestions for this stage yet.",
-  tie: "Tie · a host decides",
-  tieHost: "Tie · pick one",
   pickThis: "Pick this one",
   confirmPickThis: "Make this map the winner of the slot?",
   confirmRemoveSuggestion: (votes: number) => (votes ? `Remove this suggestion? Its ${votes} ${votes === 1 ? "vote" : "votes"} will be deleted with it.` : "Remove this suggestion?"),

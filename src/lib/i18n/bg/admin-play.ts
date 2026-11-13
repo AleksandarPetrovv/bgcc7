@@ -211,8 +211,6 @@ export const adminPlay: typeof en = {
   collapse: "Свий",
   expand: "Разгъни",
   noSuggestions: "Още няма предложения за този етап.",
-  tie: "Равенство · организатор решава",
-  tieHost: "Равенство · избери един",
   pickThis: "Избери този",
   confirmPickThis: "Този мап да спечели слота?",
   confirmRemoveSuggestion: (votes: number) => (votes ? `Да махнем ли предложението? ${votes} ${votes === 1 ? "глас" : "гласа"} ще бъдат изтрити с него.` : "Да махнем ли предложението?"),
