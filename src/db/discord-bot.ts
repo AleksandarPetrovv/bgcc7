@@ -23,6 +23,17 @@ import { drawDone } from "@/lib/sections";
 
 const ready = () => discordReady() && !isBGCC6();
 const log = (what: string) => (e: unknown) => console.error(`[discord] ${what}`, e);
+/** true when the send went through (a promise resolving to false counts as failed); a failure is logged, so callers stamp only on true */
+const attempt = (p: Promise<unknown>, what: string) =>
+  p.then(
+    (v) => v !== false,
+    (e) => (log(what)(e), false),
+  );
+const dmAll = async (ids: string[], text: string, what: string) => {
+  let ok = true;
+  for (const id of ids) ok = (await attempt(dm(id, text), what)) && ok;
+  return ok;
+};
 
 export const later = (what: string, fn: () => Promise<unknown>) => {
   if (ready()) detached(`discord ${what}`, fn);
