@@ -22,7 +22,10 @@ const span = (min: number) => (min % 60 === 0 ? `${min / 60} hour${min === 60 ? 
 export const noRefMessage = (ping: string, label: string, t1: string, t2: string, min: number, at: Date) =>
   `${ping ? `${ping} ` : ""}**${label}** between **${t1}** and **${t2}** has no referee and is scheduled to begin in ${span(min)} (${dayTime(`${sofiaDate(at)}T${fmtSofiaTime(at)}`, "en")}).`;
 
-export const refWantedMessage = (ping: string, label: string, t1: string, t2: string, at: Date, hours: number, link: string) =>
+export const refGoneMessage = (ping: string, label: string, t1: string, t2: string, refs: string[], min: number) =>
+  `${ping ? `${ping} ` : ""}**${label}** (${t1} vs ${t2}) started ${min} minutes ago and the referee **${refs.join(", ")}**'s helper is offline.`;
+
+export const refWantedMessage =(ping: string, label: string, t1: string, t2: string, at: Date, hours: number, link: string) =>
   `${ping ? `${ping} ` : ""}**${label}** · **${t1}** vs **${t2}** · ${fullDayTime(at, "en")} BG time (in ${hours} hours) has no referee. Take it: ${link}`;
 
 export const refTakenMessage = (label: string, t1: string, t2: string, at: Date, by: string) => `~~**${label}** · **${t1}** vs **${t2}** · ${fullDayTime(at, "en")} BG time~~ taken by **${by}**.`;

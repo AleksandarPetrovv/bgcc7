@@ -328,6 +328,7 @@ export async function tick() {
   const now = Date.now();
   await postWalkovers(rows, links, name).catch(log("walkover"));
   await noRefNotices(rows, name).catch(log("no referee"));
+  await refGoneNotices(rows, name).catch(log("referee gone"));
   await refWanted(rows, name).catch(log("referee wanted"));
   await deadlineNotices(rows, name).catch(log("deadline"));
   await refAssignments(rows, name).catch(log("ref assigned"));
@@ -454,8 +455,33 @@ async function noRefNotices(rows: MatchRow[], name: Names) {
   const [{ hosts }, role] = await Promise.all([getCfg(), hostRole()]);
   for (const { m, step, key, start } of due) {
     const text = (ping: string) => noRefMessage(ping, matchLabel(getFormat(), m.id, m.round), name(m.team1Id), name(m.team2Id), step, m.startsAt!);
-    if (hosts) await post(hosts, text(role ? `<@&${role.id}>` : ""), { mentions: role ? ping(role.id) : undefined }).catch(log("no referee post"));
+    if (hosts && !(await attempt(post(hosts, text(role ? `<@&${role.id}>` : ""), { mentions: role ? ping(role.id) : undefined }), "no referee post"))) continue;
     await setState(key, { stamp: `${start}|${step}` });
+  }
+}
+
+const REF_GONE_MIN = 15;
+const REF_GONE_STALE_MIN = 180;
+
+/** #hosts (Host ping) once when a match began 15 min ago, isn't finished, has a referee, and every named referee's helper has been offline for those 15 min. `refgone:<id>` stamp = start; a match started over 3 hours ago is left alone */
+async function refGoneNotices(rows: MatchRow[], name: Names) {
+  const { hosts } = await getCfg();
+  if (!hosts) return;
+  const now = Date.now();
+  let role: Awaited<ReturnType<typeof hostRole>>;
+  for (const m of rows) {
+    if (!m.startsAt || m.winner != null || m.ffSide != null || !m.team1Id || !m.team2Id) continue;
+    const age = (now - m.startsAt.getTime()) / 60_000;
+    const names = nameList(m.referee);
+    if (age < REF_GONE_MIN || age > REF_GONE_STALE_MIN || !names.length) continue;
+    const key = `refgone:${m.id}`;
+    const start = m.startsAt.toISOString();
+    if ((await getState(key))?.stamp === start) continue;
+    const refs = await db.select({ osuId: users.osuId, name: users.username }).from(users).where(inArray(sql`lower(${users.username})`, names));
+    if (!refs.length || !refs.every((r) => (offlineFor(r.osuId) ?? 0) >= REF_GONE_MIN * 60_000)) continue;
+    role ??= await hostRole();
+    const text = refGoneMessage(role ? `<@&${role.id}>` : "", matchLabel(getFormat(), m.id, m.round), name(m.team1Id), name(m.team2Id), refs.map((r) => r.name), REF_GONE_MIN);
+    if (await attempt(post(hosts, text, { mentions: role ? ping(role.id) : undefined }), "referee gone post")) await setState(key, { stamp: start });
   }
 }
 
