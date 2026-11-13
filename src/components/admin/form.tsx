@@ -108,7 +108,7 @@ export function ActionForm({ action, children, className, submit, ghost, confirm
     >
       <input ref={answer} type="hidden" name="confirm" />
       <GuardSlot.Provider value={register}>{children}</GuardSlot.Provider>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="in-up flex flex-wrap items-center gap-3">
         <Btn type="submit" disabled={pending} tone={tone ?? (ghost ? "outline" : "rose")} small={ghost}>
           {icon}
           {pending ? t.admin.saving : (submit ?? t.admin.save)}
