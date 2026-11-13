@@ -426,6 +426,11 @@ fn quit(app: &AppHandle) {
     app.exit(0);
 }
 
+#[tauri::command]
+fn quit_app(app: AppHandle) {
+    quit(&app);
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _, _| show(app)))
@@ -462,7 +467,16 @@ fn main() {
             Ok(())
         })
         .on_window_event(|w, e| match e {
-            WindowEvent::CloseRequested { .. } => quit(w.app_handle()),
+            WindowEvent::CloseRequested { api, .. } => {
+                let app = w.app_handle();
+                if app.state::<Ctl>().shared.status().lobbies.is_empty() {
+                    quit(app);
+                } else {
+                    api.prevent_close();
+                    show(app);
+                    let _ = app.emit("confirm_quit", ());
+                }
+            }
             WindowEvent::Resized(_) => {
                 if w.is_minimized().unwrap_or(false) {
                     let _ = w.hide();
@@ -470,7 +484,7 @@ fn main() {
             }
             _ => {}
         })
-        .invoke_handler(tauri::generate_handler![status, alerts, logs, saved_name, link, cancel_link, unlink, open, autostart, set_streaming, save_irc_password, recheck_roles])
+        .invoke_handler(tauri::generate_handler![status, alerts, logs, saved_name, link, cancel_link, unlink, open, autostart, set_streaming, save_irc_password, recheck_roles, quit_app])
         .run(tauri::generate_context!())
         .expect("error while running BGCC7 Helper");
 }

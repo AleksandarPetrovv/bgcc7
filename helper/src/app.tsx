@@ -133,8 +133,76 @@ const Value = ({ dot, text }: { dot: string; text: React.ReactNode }) => (
   </span>
 );
 
+// a brief reconnect must not flash "Disconnected"
+function useSettledSite(site: string) {
+  const [shown, setShown] = useState(site);
+  useEffect(() => {
+    if (site !== "off") {
+      setShown(site);
+      return;
+    }
+    const id = setTimeout(() => setShown(site), 4000);
+    return () => clearTimeout(id);
+  }, [site]);
+  return shown;
+}
+
+function QuitConfirm({ open, onCancel, onQuit }: { open: boolean; onCancel: () => void; onQuit: () => void }) {
+  const [mounted, setMounted] = useState(false);
+  const [shown, setShown] = useState(false);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      setBusy(false);
+      const id = requestAnimationFrame(() => setShown(true));
+      return () => cancelAnimationFrame(id);
+    }
+    setShown(false);
+    const id = setTimeout(() => setMounted(false), 200);
+    return () => clearTimeout(id);
+  }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onCancel();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onCancel]);
+  if (!mounted) return null;
+  return (
+    <div
+      className={cn("fixed inset-0 z-20 grid place-items-center bg-ink/75 p-5 transition-opacity duration-200", shown ? "opacity-100" : "opacity-0")}
+      onMouseDown={(e) => e.target === e.currentTarget && onCancel()}
+    >
+      <div
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="quit-title"
+        className={cn("w-full max-w-[340px] border-2 border-line bg-coal p-[18px] shadow-[6px_6px_0_var(--rose-deep)] transition-[translate] duration-200", shown ? "translate-y-0" : "translate-y-2")}
+      >
+        <h2 id="quit-title" className="text-balance font-display text-base font-black leading-[1.35]">You're in a match. Quit BGCC7 Helper?</h2>
+        <div className="mt-4 flex flex-wrap justify-end gap-2.5 px-[3px] pb-[3px]">
+          <Btn size="sm" autoFocus onClick={onCancel}>Cancel</Btn>
+          <Btn
+            kind="rose"
+            size="sm"
+            disabled={busy}
+            onClick={() => {
+              setBusy(true);
+              onQuit();
+            }}
+          >
+            Quit
+          </Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function App() {
   const [status, setStatus] = useState<Status | null>(null);
+  const [confirmQuit, setConfirmQuit] = useState(false);
   const [screen, setScreen] = useState<Screen>("s-login");
   const [visits, setVisits] = useState(0);
   const [word, setWord] = useState("····");
@@ -204,6 +272,7 @@ export function App() {
     (async () => {
       try {
         offs.push(await listen<Status>("status", (e) => setStatus(e.payload)));
+        offs.push(await listen("confirm_quit", () => setConfirmQuit(true)));
         offs.push(await listen<Entry>("log", (e) => setLogs((l) => [e.payload, ...l].slice(0, 60))));
         offs.push(
           await listen("alerts", (e) => {
@@ -250,8 +319,9 @@ export function App() {
   const s = status;
   const tabs = !s?.roles_ready ? [] : (["ref", "stream"] as const).filter((t) => (t === "ref" ? s.can_ref : s.can_stream));
   const current: Tab | undefined = tab && tabs.includes(tab) ? tab : tabs[0];
-  const [siteText, siteDot] = SITE[s?.site ?? "off"] ?? SITE.off;
-  const [ircText, ircDot] = s?.irc === "idle" && s?.site === "online" ? (["Ready", "ok"] as const) : (IRC[s?.irc ?? "idle"] ?? IRC.idle);
+  const site = useSettledSite(s?.site ?? "off");
+  const [siteText, siteDot] = SITE[site] ?? SITE.off;
+  const [ircText, ircDot] = s?.irc === "idle" && site === "online" ? (["Ready", "ok"] as const) : (IRC[s?.irc ?? "idle"] ?? IRC.idle);
   const [streamText, streamDot, streamNote] = STREAM[s?.stream_state ?? ""] ?? ["Status unavailable", "bad", "Check the activity log"];
   const avatar = s?.id ? `https://a.ppy.sh/${s.id}` : "";
   const [avatarFor, setAvatarFor] = useState("");
@@ -551,6 +621,7 @@ export function App() {
       </div>
 
       <Alerts alerts={alerts} />
+      <QuitConfirm open={confirmQuit} onCancel={() => setConfirmQuit(false)} onQuit={() => invoke("quit_app").catch(() => setConfirmQuit(false))} />
     </>
   );
 }
