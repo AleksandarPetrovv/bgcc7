@@ -137,12 +137,15 @@ export const pendingOf = (tx: Tx, id: string) =>
   tx.select().from(reschedules).where(and(eq(reschedules.matchId, id), eq(reschedules.status, "pending")));
 
 export async function notifyCaptain(teamId: string, text: (link: string) => string) {
-  if (!discordReady()) return;
+  if (!discordReady()) return true;
   const t = (await getAllTeams()).find((x) => x.id === teamId);
   const cap = captainOf(t);
-  if (!cap) return;
+  if (!cap) return true;
   const [u] = await db.select({ discordId: users.discordId }).from(users).where(eq(users.osuId, cap)).limit(1);
-  if (!u?.discordId) return;
-  await dm(u.discordId, text(`<${siteUrl()}/scheduling>`)).catch((e) => console.error("[discord] dm", e));
+  if (!u?.discordId) return true;
+  return dm(u.discordId, text(`<${siteUrl()}/scheduling>`)).then(
+    () => true,
+    (e) => (console.error("[discord] dm", e), false),
+  );
 }
 

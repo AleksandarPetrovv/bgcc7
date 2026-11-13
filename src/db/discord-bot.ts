@@ -399,11 +399,13 @@ async function deadlineNotices(rows: MatchRow[], name: Names) {
   const role = await hostRole();
   for (const { m, w, late, key } of due) {
     const label = matchLabel(getFormat(), m.id, m.round);
+    let ok = true;
     if (late) {
       const { notifyHosts } = await import("./host-notes");
-      await notifyHosts({ title: dicts.en.admin.deadlineMissed(label, name(m.team1Id), name(m.team2Id), when(w.deadline)), href: "/admin/scheduling", pingRole: role?.id }).catch(log("deadline post"));
-    } else for (const [mine, opp] of sides(m)) await notifyCaptain(mine, (link) => deadlineSoonMessage(label, name(opp), w.deadline, link)).catch(log("deadline dm"));
-    await setState(key, { stamp: w.deadline.toISOString() });
+      ok = await attempt(notifyHosts({ title: dicts.en.admin.deadlineMissed(label, name(m.team1Id), name(m.team2Id), when(w.deadline)), href: "/admin/scheduling", pingRole: role?.id }), "deadline post");
+    } else
+      for (const [mine, opp] of sides(m)) ok = (await attempt(notifyCaptain(mine, (link) => deadlineSoonMessage(label, name(opp), w.deadline, link)), "deadline dm")) && ok;
+    if (ok) await setState(key, { stamp: w.deadline.toISOString() });
   }
 }
 
