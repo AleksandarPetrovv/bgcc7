@@ -102,10 +102,12 @@ export const snapshotBws = (osuId?: number) =>
 
 export async function lockBws() {
   const ids = (await db.select({ osuId: registrations.osuId }).from(registrations)).map((r) => r.osuId);
-  await refreshUsers(ids);
-  await snapshotBws();
-  await saveSettings({ bwsLockedAt: new Date() });
-  return ids.length;
+  const failed = ids.length - (await refreshUsers(ids));
+  if (!failed) {
+    await snapshotBws();
+    await saveSettings({ bwsLockedAt: new Date() });
+  }
+  return { total: ids.length, failed };
 }
 
 export async function unlockBws() {

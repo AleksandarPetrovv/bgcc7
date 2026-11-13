@@ -16,7 +16,7 @@ export function BwsLock({ locked, host, drawn }: { locked: boolean; host: boolea
   const l = t.admin.bwsLock;
   const router = useRouter();
   const [pending, start] = useTransition();
-  const [fail, setFail] = useState<{ error?: ActionError } | null>(null);
+  const [fail, setFail] = useState<{ error?: ActionError; slot?: string } | null>(null);
   const [ask, dialog] = useConfirm();
   const label = locked ? l.unlock : l.lock;
 
@@ -26,7 +26,7 @@ export function BwsLock({ locked, host, drawn }: { locked: boolean; host: boolea
       try {
         const res = await (locked ? unlockBws : lockBws)();
         if (res?.ok) router.refresh();
-        else setFail({ error: res?.error });
+        else setFail({ error: res?.error, slot: res?.slot });
       } catch {
         setFail({});
       }
@@ -34,7 +34,7 @@ export function BwsLock({ locked, host, drawn }: { locked: boolean; host: boolea
 
   return (
     <>
-      {fail && !pending && <ErrorNote>{fail.error === "locked" ? l.drawn : errorText(t, fail.error)}</ErrorNote>}
+      {fail && !pending && <ErrorNote>{fail.error === "locked" ? l.drawn : errorText(t, fail.error, fail.slot)}</ErrorNote>}
       <button
         type="button"
         aria-label={label}

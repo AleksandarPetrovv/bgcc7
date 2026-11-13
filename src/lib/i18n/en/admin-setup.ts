@@ -321,6 +321,7 @@ export const adminSetup = {
     lockText: "Lock the BWS ranks? Ranks are frozen as they are now.",
     unlockText: "Unlock the BWS ranks? Seeds follow live ranks again until you lock.",
     drawn: "The draw has started, so the ranks can't change anymore.",
+    refreshFailed: (failed: number, total: number) => `Couldn't update ${failed} of ${total} players from osu!. Try again.`,
   },
   edition: "Edition",
   dc: {

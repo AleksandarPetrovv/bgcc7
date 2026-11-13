@@ -19,7 +19,9 @@ import { frozenSeeds } from "@/db/seeds";
 export async function lockBws() {
   return guard("host", "bws.lock", async () => {
     if ((await frozenSeeds()).length) return { ok: false, error: "locked" };
-    return { log: { players: await lock() } };
+    const { total, failed } = await lock();
+    if (failed) return { ok: false, error: "refreshFailed", slot: `${failed}/${total}` };
+    return { log: { players: total } };
   });
 }
 

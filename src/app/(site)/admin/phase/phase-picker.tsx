@@ -77,7 +77,7 @@ export function PhasePicker({ phase }: { phase: Phase }) {
       setError(null);
       try {
         const res = await acceptPhase(ask.to);
-        if (!res?.ok) return setError(errorText(t, res?.error));
+        if (!res?.ok) return setError(errorText(t, res?.error, res?.slot));
         setCur(ask.to);
         setOpen(false);
         router.refresh();

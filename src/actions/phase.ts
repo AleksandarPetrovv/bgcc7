@@ -18,15 +18,16 @@ const isPhase = (v: string): v is Phase => (PHASES as readonly string[]).include
 /** the bgcc6 lobby booking window, edited on its own timeline row; booking reads these exact values */
 const WINDOWS = ["bookingOpensAt", "bookingClosesAt"] as const;
 
-async function applyPhase(p: Phase) {
+async function applyPhase(p: Phase): Promise<boolean | { failed: number; total: number }> {
   if ((await getSettings()).phase === p) return false;
-  await saveSettings({ phase: p, sections: presetSections(p) });
-  if (isBGCC6()) return true;
-  // only before the draw: afterwards the locked ranks are what seeds and tiers were built on
-  if (p === "registration") {
-    if (!(await getTeams()).length) await unlockBws();
+  // lock before switching: a phase past registration without locked ranks would seed on live ones
+  if (!isBGCC6() && p !== "registration" && !(await getBwsLock())) {
+    const r = await lockBws();
+    if (r.failed) return r;
   }
-  else if (!(await getBwsLock())) await lockBws();
+  await saveSettings({ phase: p, sections: presetSections(p) });
+  // only before the draw: afterwards the locked ranks are what seeds and tiers were built on
+  if (!isBGCC6() && p === "registration" && !(await getTeams()).length) await unlockBws();
   return true;
 }
 
@@ -61,7 +62,9 @@ export async function setTimeline(_: ActionResult, fd: FormData) {
 export async function acceptPhase(phase: string) {
   return guard("phase", "phase.set", async () => {
     if (!isPhase(phase)) return { ok: false, error: "invalid" };
-    if (!(await applyPhase(phase))) return unchanged;
+    const done = await applyPhase(phase);
+    if (!done) return unchanged;
+    if (typeof done === "object") return { ok: false, error: "refreshFailed", slot: `${done.failed}/${done.total}` };
     if (phase === "playoffs") announceTeams();
     return { log: { phase } };
   });
