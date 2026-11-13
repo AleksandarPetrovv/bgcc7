@@ -9,6 +9,7 @@ import { buildScoreboard, playoffPools, SCOREBOARD_V, type ScoreEdit, type Score
 import { isLive } from "@/lib/matches";
 import { alertId, clear, describeMatch, failingFor, raise } from "@/lib/alerts";
 import { staffIds } from "./users";
+import { fillWinner } from "./drafts";
 import { decideWinner } from "@/lib/result";
 import { within } from "@/lib/utils";
 import { SCORES_STALE_AFTER } from "@/lib/relay-contract";
@@ -65,6 +66,7 @@ export async function getScoreboard(match: Match, teams: Team[], stages: PoolSta
   try {
     const data = await buildScoreboard(match, teams, playoffPools([...stages].sort((x, y) => +(y.slug === match.stage) - +(x.slug === match.stage))), await getEdits(match.id));
     clear(staleId);
+    await fillWinner(match.id, data.maps).catch((e) => console.error("[draft] fill winner", e));
     if (decided(data.score) || match.winner) {
       if (!match.winner && !(await settleResult(match, data.score, firstTo))) {
         live.set(key, { at: Date.now(), data });

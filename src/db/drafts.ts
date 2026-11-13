@@ -311,6 +311,15 @@ export async function applyDraft(matchId: string, side: Side, a: DraftAct) {
   return res;
 }
 
+/** fallback for a missed irc finish: the osu! match history's last finished game on the last pick's map decides an undecided pick */
+export async function fillWinner(matchId: string, maps: { slot: string | null; winner: 0 | 1 | 2; note: string | null }[]) {
+  const [row] = await db.select({ open: drafts.open, steps: drafts.steps }).from(drafts).where(eq(drafts.matchId, matchId)).limit(1);
+  const pick = row?.open ? row.steps.findLast((s) => s.kind === "pick" && !s.skip) : undefined;
+  if (!pick || pick.winner) return;
+  const hit = maps.findLast((m) => m.slot === pick.slot && !m.note && m.winner);
+  if (hit) await setResult(matchId, pick.slot, hit.winner as Side);
+}
+
 export async function setResult(matchId: string, slot: string, winner: Side | null, redo: DraftUndo[] = []) {
   const c = await timers();
   const res = await db.transaction(async (tx) => {
