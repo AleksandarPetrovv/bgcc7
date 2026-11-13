@@ -7,8 +7,8 @@ export const alertText = {
     means: "The site can't talk to the match lobby, so picks, bans and scores won't reach osu!. The lobby itself is still open in osu!.",
     steps: [
       "Close the osu! tournament client, it blocks the helper's login.",
-      "Press Make lobby on the match page. It reconnects to the same lobby.",
-      "Open the tournament client again once the lobby is back.",
+      "Press Make lobby on the match page. It reconnects the same lobby, it doesn't create a new one.",
+      "Open the tournament client again once the lobby shows its number instead of Reconnecting.",
     ],
     button: "Open match",
   },

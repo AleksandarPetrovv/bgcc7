@@ -10,7 +10,7 @@ import { other, rollWinner, scoreOf, turnOf, type DraftView } from "@/lib/draft"
 import { getUser } from "@/lib/osu-api";
 import { lobbySize } from "@/lib/format";
 
-import { attach, canLobby, conn, coolingDown, ensureBot, init, lastSent, liveConns, liveLobby, lobbyOwner, markClosed, membersOf, online, ownerOf, ping, playStart, retire, state, swapSlots, syncOf, target, typed, type Live, type LobbySlot, type LobbyView } from "./bancho-irc";
+import { attach, canLobby, conn, coolingDown, ensureBot, init, lastSent, liveConns, liveLobby, lobbyOwner, markClosed, membersOf, online, ownerOf, ping, playStart, restoreOwner, retire, state, swapSlots, syncOf, target, typed, type Live, type LobbySlot, type LobbyView } from "./bancho-irc";
 import { CHAT_SHOWN, cleanChat } from "./lobby-chat";
 import { MOD_LOBBY } from "./mods";
 import { nameKey } from "@/lib/names";
@@ -164,7 +164,15 @@ export async function makeLobby(matchId: string, by: number) {
   const s = await ensureBot();
   if (!s) throw new Error("irc off");
   const [cur] = await db.select().from(mpLobbies).where(eq(mpLobbies.matchId, matchId)).limit(1);
-  if (cur?.open && s.live.has(matchId)) return { mpId: cur.mpId };
+  if (cur?.open) {
+    // open lobby: bring its irc back (a live one rejoins on connect) or reattach it; never a second lobby
+    if (s.live.has(matchId)) await online(by);
+    else await restoreOwner(by);
+    if (await lobbyOwner(matchId) !== null) {
+      if (!s.live.has(matchId)) throw new Error("lobby unreachable");
+      return { mpId: cur.mpId };
+    }
+  }
   const { match, teams, map, seats, names, seen } = await membersOf(matchId);
   if (!match?.team1Id || !match.team2Id) throw new Error("teams missing");
   const c = await online(by);

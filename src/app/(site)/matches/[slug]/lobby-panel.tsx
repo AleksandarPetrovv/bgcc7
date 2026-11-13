@@ -327,7 +327,7 @@ export function LobbyPanel({ slug, maps, onOpen, readOnly: viewOnly, streams = f
             ))}
           </span>
         )}
-        {!open && !readOnly && (
+        {(!open || offline) && !readOnly && (
           <span className="ml-auto">
             <Btn tone="go" onClick={() => (v.helper === false ? setNoHelper(true) : run({ act: "make" }))} disabled={pending}>
               <Plus className="size-3.5" strokeWidth={3} /> {v.state === "closed" ? t.lobby.again : t.lobby.make}

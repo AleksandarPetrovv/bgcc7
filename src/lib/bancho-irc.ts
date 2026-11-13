@@ -249,7 +249,7 @@ export async function ensureBot() {
   return s;
 }
 
-async function restoreOwner(owner: number) {
+export async function restoreOwner(owner: number) {
   const s = state();
   if (!s) return;
   ping();
