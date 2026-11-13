@@ -494,8 +494,7 @@ async function streamNotices(rows: MatchRow[], name: Names) {
       const key = `${prefix}:${m.id}`;
       const stamp = `${m.startsAt!.toISOString()}|${names.join(",")}`;
       if ((await getState(key))?.stamp === stamp) continue;
-      for (const id of await discordIds(names)) await dm(id, text).catch(log(`${prefix} dm`));
-      await setState(key, { stamp });
+      if (await dmAll(await discordIds(names), text, `${prefix} dm`)) await setState(key, { stamp });
     }
   }
 }
