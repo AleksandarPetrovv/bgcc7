@@ -170,10 +170,12 @@ fn apply_me(sh: &Shared, token: &str, result: Result<Roles, MeErr>, failed_since
         }
         _ => *failed_since = None,
     }
+    // one failed poll is not an outage: keep the status until the next poll fails too
+    let brief = matches!(result, Err(MeErr::Net | MeErr::Status(500..=599))) && failed_since.is_some_and(|(start, _)| start.elapsed() < ME_TIMEOUT);
     match result {
         Ok(roles) if sh.status().roles_ready => {
             let before = sh.status();
-            sh.set(|s| { s.can_ref = roles.can_ref; s.can_stream = roles.can_stream; s.site = if s.can_ref && matches!(s.irc, "connecting" | "online") { "online" } else { s.idle_site() }; });
+            sh.set(|s| { s.can_ref = roles.can_ref; s.can_stream = roles.can_stream; if !s.can_ref { s.site = s.idle_site(); } });
             apply_roles(&sh.app.state::<Ctl>(), &before, &roles);
         }
         Ok(roles) => {
@@ -195,7 +197,8 @@ fn apply_me(sh: &Shared, token: &str, result: Result<Roles, MeErr>, failed_since
             start_streaming(&ctl);
         }
         Err(MeErr::Status(401)) => { invalidate(sh, token); return false; }
-        _ => sh.set(|s| { s.site = "off"; s.stream_state = if s.streaming { "error" } else { "off" }.into(); }),
+        _ if brief => {}
+        _ => sh.set(|s| { if !s.can_ref { s.site = "off"; } s.stream_state = if s.streaming { "error" } else { "off" }.into(); }),
     }
     true
 }
