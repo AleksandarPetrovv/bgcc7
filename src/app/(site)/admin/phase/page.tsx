@@ -14,7 +14,6 @@ import { isBGCC6 } from "@/db";
 import { getFormat } from "@/db/edition";
 import { matchWeeks, weekCloses } from "@/db/schedule";
 import { poolState } from "@/db/pool-settle";
-import { discordReady } from "@/lib/discord";
 import { weekNums } from "@/lib/format";
 import { roundName } from "@/lib/i18n/dict";
 import { localeOf } from "@/lib/i18n/locale";
@@ -67,7 +66,7 @@ export default async function AdminPhase() {
       <PageTitle mark="timeline">{t.admin.menu.phase}</PageTitle>
       <div className="grid grid-cols-1 gap-6">
         <Panel title={t.admin.phaseNow} help={t.admin.phaseHelp} i={0}>
-          <PhasePicker phase={s.phase} canCleanup={can(viewer?.roles, "discord") && discordReady()} />
+          <PhasePicker phase={s.phase} />
         </Panel>
 
         {nums.length > 0 && can(viewer?.roles, "host") && (

@@ -9,7 +9,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getViewer } from "@/lib/authz";
 import { canLinkDiscord } from "@/db/schedule";
-import { dropTeamRoles, later, roleNotices, syncTeams } from "@/db/discord-bot";
+import { dropTeamRoles, later, roleNotices, syncRoles } from "@/db/discord-bot";
 import { discordProfile, dm, findMember } from "@/lib/discord";
 
 type Fail = "notFound" | "taken" | "failed" | "forbidden" | "dm" | "wait";
@@ -76,7 +76,7 @@ export async function confirmDiscord(code: string): Promise<{ ok: true; name: st
     await db.update(users).set({ discordId: p.id, discordName: p.name }).where(eq(users.osuId, osuId));
     if (old && old !== p.id) later("relink roles", () => dropTeamRoles(old));
     await discordProfile(p.id, true);
-    later("sync", syncTeams);
+    later("sync", syncRoles);
     later("role notice", roleNotices);
     revalidatePath("/", "layout");
     return { ok: true, name: p.name };
@@ -94,7 +94,7 @@ export async function unlinkDiscord(): Promise<{ ok: boolean }> {
     const old = await linkedId(v.osuId);
     await db.update(users).set({ discordId: null, discordName: null }).where(eq(users.osuId, v.osuId));
     if (old) later("unlink roles", () => dropTeamRoles(old));
-    later("sync", syncTeams);
+    later("sync", syncRoles);
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {

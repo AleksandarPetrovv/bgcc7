@@ -38,6 +38,7 @@ export const presetSections = (p: Phase) => Object.fromEntries(SECTIONS.map((s) 
 
 /** the draw runs only in the team draw phase; screening only before the playoffs */
 export const drawPhase = (p: string) => p === "seeding";
+export const drawDone = (p: string) => PHASES.indexOf(p as Phase) > PHASES.indexOf("seeding");
 export const screeningPhase = (p: string) => PHASES.indexOf(p as Phase) < PHASES.indexOf("playoffs");
 
 export const TIMELINE_KEYS = ["reg", "scr", "qual", "seed", "play", "done"] as const;

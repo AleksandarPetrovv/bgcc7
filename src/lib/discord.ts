@@ -36,6 +36,9 @@ export async function post(channelId: string, content: string, opts: { mentions?
   return m.id;
 }
 
+export const editMessage = (channelId: string, messageId: string, content: string) =>
+  call(`/channels/${channelId}/messages/${messageId}`, { method: "PATCH", body: JSON.stringify({ content, allowed_mentions: { parse: [] } }) });
+
 export async function deleteMessage(channelId: string, messageId: string) {
   await call(`/channels/${channelId}/messages/${messageId}`, { method: "DELETE" }).catch((e) => {
     if (!isMissing(e)) throw e;

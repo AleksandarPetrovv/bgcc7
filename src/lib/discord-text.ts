@@ -1,4 +1,4 @@
-import { dayTime, fmtSofia, fmtSofiaTime, sofiaDate } from "./time";
+import { dayTime, fmtSofia, fmtSofiaTime, fullDayTime, sofiaDate } from "./time";
 import type { OutKind } from "@/lib/out";
 import { matchNum, type Format } from "./format";
 import { dicts, roundName } from "./i18n/dict";
@@ -21,6 +21,11 @@ const span = (min: number) => (min % 60 === 0 ? `${min / 60} hour${min === 60 ? 
 /** `ping` is a ready-made role mention, empty for the DM copy */
 export const noRefMessage = (ping: string, label: string, t1: string, t2: string, min: number, at: Date) =>
   `${ping ? `${ping} ` : ""}**${label}** between **${t1}** and **${t2}** has no referee and is scheduled to begin in ${span(min)} (${dayTime(`${sofiaDate(at)}T${fmtSofiaTime(at)}`, "en")}).`;
+
+export const refWantedMessage = (ping: string, label: string, t1: string, t2: string, at: Date, hours: number, link: string) =>
+  `${ping ? `${ping} ` : ""}**${label}** · **${t1}** vs **${t2}** · ${fullDayTime(at, "en")} BG time (in ${hours} hours) has no referee. Take it: ${link}`;
+
+export const refTakenMessage = (label: string, t1: string, t2: string, at: Date, by: string) => `~~**${label}** · **${t1}** vs **${t2}** · ${fullDayTime(at, "en")} BG time~~ taken by **${by}**.`;
 
 export const deadlineSoonMessage = (label: string, opp: string, deadline: Date, link: string) =>
   `No time is agreed yet for your match against **${opp}** (${label}). The scheduling deadline is **${when(deadline)}**. Propose or accept a time: ${link}`;

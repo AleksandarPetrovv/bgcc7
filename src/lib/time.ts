@@ -73,4 +73,9 @@ export const dayHead = (date: string, lang: string) => {
 export const dayMonth = (date: string, lang: string) => `${+date.slice(8, 10)} ${dayFmt(date, lang, { month: "short" })}`;
 export const dayTime = (v: string, lang: string, weekday: "long" | "short" = "long") => `${dayMonth(v, lang)}, ${dayFmt(v, lang, { weekday })}, ${v.slice(11, 16)}`;
 export const fmtSofiaTime =(d: Date) => d.toLocaleTimeString("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+/** everything written out, Sofia time: "Saturday, 15 November, 18:00" */
+export const fullDayTime = (d: Date, lang: string) => {
+  const v = `${sofiaDate(d)}T${fmtSofiaTime(d)}`;
+  return `${dayFmt(v, lang, { weekday: "long" })}, ${+v.slice(8, 10)} ${dayFmt(v, lang, { month: "long" })}, ${v.slice(11, 16)}`;
+};
 export const nextHour = () => new Date(Math.ceil(Date.now() / 3_600_000) * 3_600_000);

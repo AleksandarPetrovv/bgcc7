@@ -1,45 +1,22 @@
 "use server";
 
 import { guard } from "@/lib/admin-action";
-import { snapshot } from "@/lib/snapshot";
-import { cleanupDiscord, setCfg, syncTeams } from "@/db/discord-bot";
-import { getSettings } from "@/db/settings";
+import { CFG_KEYS, CFG_VOICE, setCfg, syncDiscord } from "@/db/discord-bot";
 import { guildChannels } from "@/lib/discord";
 import type { ActionResult } from "@/lib/action-result";
 
-export async function saveChannels(_: ActionResult, fd: FormData) {
-  return guard("discord", "discord.channels", async () => {
-    const ids = new Set((await guildChannels()).filter((c) => c.type === 0 || c.type === 5).map((c) => c.id));
-    const pick = (k: string) => {
-      const v = String(fd.get(k) ?? "");
-      return ids.has(v) ? v : "";
-    };
-    const results = pick("results");
-    const pool = pick("pool");
-    await setCfg("results", results);
-    await setCfg("pool", pool);
-    const hosts = pick("hosts");
-    await setCfg("hosts", hosts);
-    const staff = pick("staff");
-    await setCfg("staff", staff);
-    const mappooling = pick("mappooling");
-    await setCfg("mappooling", mappooling);
-    return { log: { results, pool, hosts, staff, mappooling } };
-  });
-}
-
-export async function syncNow() {
+/** saves the picked channels, then applies access to them and builds the team sections (once the draw is done) */
+export async function syncChannels(_: ActionResult, fd: FormData) {
   return guard("discord", "discord.sync", async () => {
-    await syncTeams();
-    return;
-  });
-}
-
-export async function cleanup() {
-  return guard("discord", "discord.cleanup", async () => {
-    await snapshot("discord-cleanup");
-    if ((await getSettings()).phase !== "finished") return { ok: false, error: "invalid" };
-    await cleanupDiscord();
-    return;
+    const chans = await guildChannels();
+    const picked: Record<string, string> = {};
+    for (const k of CFG_KEYS) {
+      const v = String(fd.get(k) ?? "");
+      const ok = chans.some((c) => c.id === v && (CFG_VOICE.includes(k) ? c.type === 2 : c.type === 0 || c.type === 5));
+      picked[k] = ok ? v : "";
+      await setCfg(k, picked[k]);
+    }
+    await syncDiscord();
+    return { log: picked };
   });
 }

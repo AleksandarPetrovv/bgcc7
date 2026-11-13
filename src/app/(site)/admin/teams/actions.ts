@@ -31,7 +31,7 @@ export async function unlockBws() {
   });
 }
 
-const resync = () => void import("@/db/discord-bot").then((d) => d.syncTeams());
+const resync = () => void import("@/db/discord-bot").then((d) => d.syncRoles());
 
 /** a walkover ends the match, so its open lobby is closed with a word in the lobby and the owning referee is told */
 async function closeForfeitLobbies(teamId: string, kind: OutKind) {

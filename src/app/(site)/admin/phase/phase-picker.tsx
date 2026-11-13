@@ -2,14 +2,13 @@
 
 import { useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ActionForm, Btn, ErrorNote } from "@/components/admin/form";
+import { Btn, ErrorNote } from "@/components/admin/form";
 import { PhaseWarningList, usePhaseWarnings } from "@/components/site/phase-prompt";
 import { Popup, PopupTitle } from "@/components/site/popup";
 import { SlantBg } from "@/components/site/slant";
 import { TabMark } from "@/components/site/tabs";
 import { useDict } from "@/components/site/lang";
 import { acceptPhase } from "@/actions/phase";
-import { cleanup } from "@/actions/discord";
 import { errorText } from "@/lib/action-result";
 import { PHASES, type Phase } from "@/lib/sections";
 import { cn, cssVars } from "@/lib/utils";
@@ -51,7 +50,7 @@ function PhaseConfirm({ ask, open, pending, error, onYes, onClose }: { ask: Ask 
   );
 }
 
-export function PhasePicker({ phase, canCleanup }: { phase: Phase; canCleanup: boolean }) {
+export function PhasePicker({ phase }: { phase: Phase }) {
   const t = useDict();
   const router = useRouter();
   const mark = useId();
@@ -87,7 +86,6 @@ export function PhasePicker({ phase, canCleanup }: { phase: Phase; canCleanup: b
       }
     });
 
-  const showCleanup = canCleanup && cur === "finished";
   return (
     <>
       <div role="radiogroup" aria-label={t.admin.phaseNow} className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
@@ -119,15 +117,6 @@ export function PhasePicker({ phase, canCleanup }: { phase: Phase; canCleanup: b
           );
         })}
       </div>
-      {canCleanup && (
-        <div inert={!showCleanup} className={cn("grid transition-[grid-template-rows,opacity] duration-300 ease-out", showCleanup ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")}>
-          <div className="overflow-hidden">
-            <div className="in-up mt-4 border-t border-line pt-4 [--d:0.95s]">
-              <ActionForm action={cleanup} submit={t.admin.dc.cleanup} confirm={t.admin.dc.confirmCleanup} ghost />
-            </div>
-          </div>
-        </div>
-      )}
       <PhaseConfirm ask={ask} open={open} pending={pending} error={error} onYes={confirm} onClose={() => setOpen(false)} />
     </>
   );
