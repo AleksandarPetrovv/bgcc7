@@ -17,7 +17,8 @@ import { forgetScoreboard } from "@/db/scoreboards";
 import { decideWinner } from "@/lib/result";
 import { handOff } from "@/lib/bancho";
 import { matchStamp } from "@/lib/matches";
-import { takeOver } from "@/lib/match-access";
+import { canTake } from "@/lib/match-access";
+import { relayOnline } from "@/lib/relay";
 import { later, postResult } from "@/db/discord-bot";
 import { isBracketStage } from "@/lib/format";
 import { mpIds, mpCsv } from "@/lib/mp-links";
@@ -113,20 +114,21 @@ export async function saveMatch(id: string, _: ActionResult, fd: FormData) {
   }, { match: id });
 }
 
-// no `match` option: the taker doesn't run the match yet, takeOver is the access check
+// no `match` option: the taker doesn't run the match yet, canTake is the access check
 export async function takeMatch(id: string) {
-  return guard("matches", "match.take", async () => {
+  return guard("matches", "match.take", async ({ osuId }) => {
     const out = await db.transaction(async (tx) => {
       const cur = await lockMatch(tx, id);
       if (!cur) return "notFound" as const;
-      const take = await takeOver(tx, cur);
-      if (!take) return "forbidden" as const;
-      await tx.update(matches).set({ referee: take.username }).where(eq(matches.id, id));
-      return { from: cur.referee, username: take.username };
+      const username = await canTake(tx, cur);
+      if (!username) return "forbidden" as const;
+      if (!relayOnline(osuId)) return "helperOff" as const;
+      await tx.update(matches).set({ referee: username }).where(eq(matches.id, id));
+      return { username };
     });
     if (typeof out === "string") return { ok: false, error: out };
     await handOff(id, out.username).catch((e) => console.error("[handoff]", id, e));
-    return { log: { id, from: out.from } };
+    return { log: { id } };
   });
 }
 
