@@ -463,7 +463,7 @@ async function refAssignments(rows: MatchRow[], name: Names) {
     const [added, removed] = first ? [[], []] : await Promise.all([discordIds(names.filter((n) => !before.includes(n))), discordIds(before.filter((n) => !names.includes(n)))]);
     const label = matchLabel(getFormat(), m.id, m.round);
     if (added.length) {
-      const text = refAssignedMessage(label, name(m.team1Id), name(m.team2Id), m.startsAt, await refLink(m.id));
+      const text = refAssignedMessage(label, name(m.team1Id), name(m.team2Id), m.startsAt);
       for (const id of added) await dm(id, text).catch(log("ref assigned dm"));
     }
     for (const id of removed) await dm(id, refRemovedMessage(label, name(m.team1Id), name(m.team2Id))).catch(log("ref removed dm"));

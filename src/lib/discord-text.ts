@@ -42,8 +42,9 @@ export const yourTeamMessage = (tournament: string, team: string, mate: string |
 export const helperOfflineMessage =(match: string) =>
   `Your BGCC7 Helper has been offline for 3 minutes while the lobby of **${match}** is open, so the match can't be run from the site. Open the helper on your PC.`;
 
-export const refAssignedMessage = (label: string, t1: string, t2: string, at: Date | null, link: string) =>
-  `You have been assigned as referee for **${label}**: **${t1}** vs **${t2}**, ${at ? when(at) : "time not set yet"}. ${link}`;
+/** no pick and ban link here: the DM 35 minutes before the match carries it */
+export const refAssignedMessage = (label: string, t1: string, t2: string, at: Date | null) =>
+  `You have been assigned as referee for **${label}**: **${t1}** vs **${t2}**, ${at ? when(at) : "time not set yet"}.`;
 
 export const refRemovedMessage = (label: string, t1: string, t2: string) => `You are no longer the referee of **${label}**: **${t1}** vs **${t2}**.`;
 
