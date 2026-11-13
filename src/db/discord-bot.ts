@@ -107,7 +107,7 @@ const sameAccess = (c: Chan | undefined, want: Overwrite[]) => {
 };
 
 async function syncStaffChannels(cfg: DiscordCfg, chans: Chan[], staffRoles: Map<Role, string>, hidden: Overwrite, bot: Overwrite, open: string) {
-  const access = (roles: readonly Role[]): Overwrite[] => [hidden, bot, ...[...new Set<Role>(["host", ...roles])].map((r) => ({ id: staffRoles.get(r)!, type: 0 as const, allow: open }))];
+  const access = (roles: readonly Role[]): Overwrite[] => [hidden, bot, ...[...new Set<Role>(["host", ...roles])].flatMap((r) => (staffRoles.has(r) ? [{ id: staffRoles.get(r)!, type: 0 as const, allow: open }] : []))];
   for (const [k, roles] of Object.entries(STAFF_ACCESS) as [CfgKey, readonly Role[]][]) {
     const c = chans.find((x) => x.id === cfg[k]);
     const want = access(roles);
@@ -121,7 +121,8 @@ async function ensureStaffRoles(roles: Awaited<ReturnType<typeof guildRoles>>, b
   const made: string[] = [];
   for (const r of ROLES) {
     const found = roles.find((x) => x.name.toLowerCase() === staffRoleName(r).toLowerCase());
-    const id = found?.id ?? (await createRole(staffRoleName(r), { color: STAFF_COLOR[r], hoist: true })).id;
+    const id = found?.id ?? (await createRole(staffRoleName(r), { color: STAFF_COLOR[r], hoist: true }).catch((e) => (log("staff role create")(e), null)))?.id;
+    if (!id) continue;
     if (!found) made.push(id);
     staffRoles.set(r, id);
   }
@@ -181,10 +182,7 @@ async function runRoles() {
   const roleName = new Map(roles.map((r) => [r.id, r.name]));
   await renameSections(ts, rows, roleName, new Map(chans.map((c) => [c.id, c.name]))).catch(log("rename"));
   const { ops, inServer } = await rolePlan(ts, rows, new Set(roleName.keys()), staffRoles);
-  for (const o of ops) {
-    const run = (o.add ? addRole : removeRole)(o.d, o.rid);
-    await (o.staff ? run.catch(log("staff role")) : run); // a role above the bot's own can't be managed: the team roles must still go through
-  }
+  for (const o of ops) await (o.add ? addRole : removeRole)(o.d, o.rid).catch(log(o.staff ? "staff role" : "team role")); // one role the bot can't manage must not stop the rest
   await staffLeft(inServer).catch(log("staff left"));
 }
 
@@ -215,7 +213,7 @@ async function runChannels() {
 /** a category with a text and a voice channel per team; the only channels the bot ever makes, and only from the Sync button */
 async function teamSections(ts: Teams, rows: TeamRow[], roles: Awaited<ReturnType<typeof guildRoles>>, chans: Chan[], staffRoles: Map<Role, string>, hidden: Overwrite, bot: Overwrite, open: string) {
   // hosts + refs see every team section
-  const seers: Overwrite[] = (["host", "referee"] as const).map((r) => ({ id: staffRoles.get(r)!, type: 0, allow: open }));
+  const seers: Overwrite[] = (["host", "referee"] as const).flatMap((r) => (staffRoles.has(r) ? [{ id: staffRoles.get(r)!, type: 0 as const, allow: open }] : []));
   const perms = (roleId: string): Overwrite[] => [hidden, { id: roleId, type: 0, allow: open }, ...seers, bot];
   const roleIds = new Set(roles.map((r) => r.id));
   const chanName = new Map(chans.map((c) => [c.id, c.name]));
