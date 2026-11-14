@@ -20,7 +20,6 @@ export const match: typeof en = {
     close: "Затвори",
     noSlot: "Няма такъв мап/слот в пула",
     noUser: "Няма osu! играч с това име",
-    blocked: "Това съобщение не е позволено",
     help: "Помощ",
     helpTitle: "Бутоните на лобито",
     streamTitle: "Рефираш и стриймваш с един акаунт?",

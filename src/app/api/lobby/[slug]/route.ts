@@ -69,7 +69,7 @@ export async function POST(req: Request, ctx: Ctx) {
   const { id, access: a } = await withMatch((await ctx.params).slug);
   if (act === "say") {
     if (!a || (!a.team && !a.admin)) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
-    const r = await sayLocal(a.match.id, a.osuId, String(b?.text ?? ""), a.team);
+    const r = await sayLocal(a.match.id, a.osuId, String(b?.text ?? ""), a.team, !a.host);
     return r === "ok" ? Response.json({ ok: true }) : Response.json({ ok: false, error: r }, { status: 429 });
   }
   if (!a?.admin) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });

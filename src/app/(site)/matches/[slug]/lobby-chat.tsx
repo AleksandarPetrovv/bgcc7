@@ -44,7 +44,7 @@ function ChatSession({
   const [until, setUntil] = useState(0);
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
-  const [fail, setFail] = useState<boolean | "noslot" | "nouser" | "blocked">(false);
+  const [fail, setFail] = useState<boolean | "noslot" | "nouser">(false);
   const { box, entries, page, loadMore, onScroll } = useChatHistory(slug, mpId, lines);
 
   useEffect(() => {
@@ -67,7 +67,7 @@ function ChatSession({
       setNow(t0);
       setUntil(t0 + CHAT_GAP);
       if (inputRef.current?.value === sent) setText("");
-    } else setFail(res?.error === "noslot" || res?.error === "nouser" || res?.error === "blocked" ? res.error : true);
+    } else setFail(res?.error === "noslot" || res?.error === "nouser" ? res.error : true);
     inputRef.current?.focus();
   }
 
@@ -95,8 +95,8 @@ function ChatSession({
           <p className="py-6 text-center text-xs font-display font-bold text-ash">{t.lobby.quiet}</p>
         )}
       </div>
-      {(fail === "noslot" || fail === "nouser" || fail === "blocked") && (
-        <p className="border-t border-line bg-rose/10 px-3 py-1.5 text-xs font-display font-bold text-rose-hi">{fail === "noslot" ? t.lobby.noSlot : fail === "nouser" ? t.lobby.noUser : t.lobby.blocked}</p>
+      {(fail === "noslot" || fail === "nouser") && (
+        <p className="border-t border-line bg-rose/10 px-3 py-1.5 text-xs font-display font-bold text-rose-hi">{fail === "noslot" ? t.lobby.noSlot : t.lobby.noUser}</p>
       )}
       {canSay && (
       <form onSubmit={send} className="flex gap-2 border-t border-line px-3 py-2">

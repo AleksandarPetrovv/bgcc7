@@ -19,7 +19,6 @@ export const match = {
     close: "Close",
     noSlot: "Map/slot not found in this pool",
     noUser: "No osu! player with that name",
-    blocked: "That message isn't allowed",
     help: "Help",
     helpTitle: "Lobby buttons",
     streamTitle: "Ref and stream on one account?",
