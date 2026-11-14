@@ -213,7 +213,7 @@ export const adminSetup = {
     delay: "Last update %seconds%s ago",
     zoomIn: "Zoom In",
     zoomOut: "Zoom Out",
-    scenes: { auto: "Auto", soon: "Starting soon", intro: "Teams", mappool: "Mappool", gameplay: "Gameplay", winner: "Winner", brb: "Be right back", end: "Thanks for watching", schedule: "Schedule", bracket: "Bracket" } as Record<string, string>,
+    scenes: { auto: "Auto", soon: "Starting Soon", intro: "Teams", mappool: "Mappool", gameplay: "Gameplay", winner: "Winner", brb: "Be Right Back", end: "Thanks for Watching", schedule: "Schedule", bracket: "Bracket" } as Record<string, string>,
   },
   staffHelp: "Permission is what someone can do in admin. Public roles are what the staff page shows.",
   addStaff: "Add someone",
