@@ -38,6 +38,9 @@ function OverlaySubscription({ url, onPick }: { url: string; onPick?: (scene: Sc
   const reducedMotion = useReducedMotion();
   const build = useRef<string | undefined>(undefined);
   const expiry = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // the demo picker re-picked the scene on screen: it remounts (plays from its start) once the restarted stream's first frame is in
+  const restartNext = useRef(false);
+  const [restart, setRestart] = useState(0);
 
   useEffect(() => () => clearTimeout(expiry.current), []);
   useSSE(url, (data) => {
@@ -47,6 +50,10 @@ function OverlaySubscription({ url, onPick }: { url: string; onPick?: (scene: Sc
         // new deploy: OBS has nobody to click, so pick up the new bundle on its own
         if (build.current && build.current !== next.build) return window.location.reload();
         build.current = next.build;
+      }
+      if (restartNext.current) {
+        restartNext.current = false;
+        setRestart((r) => r + 1);
       }
       clearTimeout(expiry.current);
       if (!next?.live) {
@@ -102,13 +109,22 @@ function OverlaySubscription({ url, onPick }: { url: string; onPick?: (scene: Sc
     <>
     <StageFrame>
       {view && (
-        <div key={shown} className={styles.scene}>
+        <div key={`${shown}:${restart}`} className={styles.scene}>
           {scene === "gameplay" ? <GameplayScene feed={view} /> : scene === "mappool" ? <MappoolScene feed={view} /> : scene === "schedule" ? <ScheduleScene feed={view} /> : scene === "bracket" ? <BracketScene feed={view} /> : <CalmScene feed={view} />}
         </div>
       )}
       <AnimatePresence>{wipe > 0 && <Wipe key={wipe} />}</AnimatePresence>
     </StageFrame>
-    {onPick && feed?.demo && <DemoPicker scenes={feed.demo} scene={feed.scene} onPick={onPick} />}
+    {onPick && feed?.demo && (
+      <DemoPicker
+        scenes={feed.demo}
+        scene={feed.scene}
+        onPick={(s) => {
+          if (s === feed.scene) restartNext.current = true;
+          onPick(s);
+        }}
+      />
+    )}
     </>
   );
 }
