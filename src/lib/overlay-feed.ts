@@ -67,7 +67,7 @@ export function streamChat(lines: ChatLine[], people: Map<string, { avatar: stri
     .slice(-STREAM_CHAT)
     .map((l) => {
       const who = people.get(nameKey(l.from));
-      return { key: `${l.at}:${l.from}:${l.text}`, at: l.at, name: l.from.replace(/_/g, " "), avatar: who?.avatar ?? null, side: l.side ?? who?.side ?? null, ref: !!l.ref, bot: l.from === "BanchoBot", text: l.text };
+      return { key: `${l.at}:${l.from}:${l.text}`, at: l.at, name: l.from.replace(/_/g, " "), avatar: who?.avatar ?? null, side: l.side ?? who?.side ?? null, ref: !!l.ref, text: l.text };
     });
 }
 

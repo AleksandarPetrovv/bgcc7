@@ -1,6 +1,7 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { useLayoutEffect, useRef } from "react";
+import { animate, motion, useMotionValue } from "motion/react";
 import type { FeedChat } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
 import { Pfp } from "@/components/site/pfp";
@@ -8,53 +9,66 @@ import { EASE } from "@/lib/ease";
 import { TEAM } from "./chrome";
 
 const SIZE = {
-  full: { row: 42, pfp: 28, name: "text-[18px]", text: "text-[18px]", gap: "gap-3", pad: "px-4" },
-  compact: { row: 26, pfp: 20, name: "text-[15px]", text: "text-[15px]", gap: "gap-2", pad: "px-2" },
+  full: { row: 42, pfp: 28, name: "text-[18px]", text: "text-[18px]", gap: "gap-3" },
+  compact: { row: 26, pfp: 20, name: "text-[15px]", text: "text-[15px]", gap: "gap-2" },
 } as const;
 
-const nameColor = (l: FeedChat) => (l.bot ? "var(--gold-hi)" : l.ref ? "var(--balkan-hi)" : l.side ? TEAM[l.side - 1].hi : "var(--paper)");
+// chat scrolls with a slow in-out curve instead of the house ease-out, which reads as a jump at the start of each scroll
+const SCROLL = { duration: 0.9, ease: [0.45, 0, 0.25, 1] } as const;
 
-/** the lobby chat on stream: the newest `rows` lines, bottom-anchored, new lines rise in.
- *  one extra line sits clipped above the box so the oldest slides out instead of popping */
+const nameColor = (l: FeedChat) => (l.ref ? "var(--balkan-hi)" : l.side ? TEAM[l.side - 1].hi : "var(--paper)");
+
+/** the lobby chat on stream: the newest `rows` lines, bottom-anchored. new lines push the whole list up in one slide that
+ *  starts from wherever the list is, so lines never snap first; one extra line sits above the box and fades out under the top mask */
 export function StreamChat({ lines, rows, size = "full", className, delay = 0 }: { lines: FeedChat[]; rows: number; size?: keyof typeof SIZE; className?: string; delay?: number }) {
   const s = SIZE[size];
   const shown = lines.slice(-(rows + 1));
-  const framed = size === "full";
+  const keys = shown.map((l) => l.key).join("\n");
+  const seen = useRef<Set<string> | null>(null);
+  const y = useMotionValue(0);
+
+  // runs before paint: the list is pushed back down by the new lines' height, then slides up to rest
+  useLayoutEffect(() => {
+    const now = new Set(keys.split("\n").filter(Boolean));
+    const before = seen.current;
+    seen.current = now;
+    if (!before) return;
+    const added = [...now].filter((k) => !before.has(k)).length;
+    if (!added) return;
+    const run = animate(y, [y.get() + Math.min(added, rows + 1) * s.row, 0], SCROLL);
+    return () => run.stop();
+  }, [keys, rows, s.row, y]);
+
   return (
     <motion.div
-      className={cn("relative", framed && "isolate py-2", className)}
+      className={className}
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 24 }}
+      exit={{ opacity: 0, y: 24, transition: { duration: 0.25, ease: EASE } }}
       transition={{ duration: 0.6, delay, ease: EASE }}
     >
-      {framed && (
-        <span
-          className="absolute inset-0 -z-10 border-2 border-line bg-ink/85"
-          style={{ boxShadow: "4px 4px 0 0 color-mix(in srgb, var(--rose-deep) 42%, transparent)" }}
-          aria-hidden
-        />
-      )}
-      <div className="flex flex-col justify-end overflow-hidden" style={{ height: rows * s.row }}>
-        <AnimatePresence initial={false}>
+      <div
+        className="flex flex-col justify-end overflow-hidden"
+        style={{ height: rows * s.row, maskImage: `linear-gradient(to bottom, transparent, #000 ${s.row * 0.5}px)` }}
+      >
+        <motion.div style={{ y }}>
           {shown.map((l) => (
             <motion.div
               key={l.key}
-              layout="position"
-              initial={{ opacity: 0, y: 18, filter: "blur(4px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{ duration: 0.35, ease: EASE }}
-              className={cn("flex shrink-0 items-center", s.gap, s.pad)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={SCROLL}
+              className={cn("flex items-center", s.gap)}
               style={{ height: s.row }}
             >
               <Pfp src={l.avatar} className="shrink-0" style={{ width: s.pfp, height: s.pfp }} />
               <span className={cn("shrink-0 font-display leading-none", l.ref ? "font-black" : "font-bold", s.name)} style={{ color: nameColor(l) }}>
                 {l.name}
               </span>
-              <span className={cn("min-w-0 truncate font-bold leading-none", s.text, l.bot ? "text-paper/70" : "text-paper")}>{l.text}</span>
+              <span className={cn("min-w-0 truncate font-bold leading-none text-paper", s.text)}>{l.text}</span>
             </motion.div>
           ))}
-        </AnimatePresence>
+        </motion.div>
       </div>
     </motion.div>
   );

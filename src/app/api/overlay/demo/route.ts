@@ -92,15 +92,14 @@ const TIMELINE: [Scene, number][] = [
 ];
 const CYCLE = TIMELINE.reduce((n, [, d]) => n + d, 0);
 
-// a demo referee and bancho, plus the four players, for chat pictures and colours
+// a demo referee plus the four players, for chat pictures and colours
 const REF = { name: "werkzu", avatar: "https://a.ppy.sh/23913323" };
 const PEOPLE = new Map<string, { avatar: string; side: 1 | 2 | null }>([
   [nameKey(REF.name), { avatar: REF.avatar, side: null }],
-  [nameKey("BanchoBot"), { avatar: "https://a.ppy.sh/3", side: null }],
   ...TEAMS.flatMap((t, i) => t.players.map((p) => [nameKey(p.name), { avatar: p.avatar, side: (i + 1) as 1 | 2 }] as const)),
 ]);
 
-// [seconds into the scene, who, text]. commands, bancho's settings dump and the flagged line never reach the stream
+// [seconds into the scene, who, text]. commands, every BanchoBot line and the flagged ones never reach the stream
 type Say = [number, string, string];
 const CHAT: Partial<Record<Scene, Say[]>> = {
   intro: [
@@ -199,11 +198,19 @@ const CHAT: Partial<Record<Scene, Say[]>> = {
   ],
 };
 
+/** the lobby chat so far: this scene's lines up to now plus every earlier scene's, like a real lobby that keeps its history */
 function demoChat(scene: Scene, local: number, now: number) {
-  const lines = (CHAT[scene] ?? [])
-    .filter(([t]) => t <= local)
-    .map(([t, from, text]): ChatLine => ({ at: Math.round(now - (local - t) * 1000), from, text, ...(from === REF.name ? { ref: true } : {}) }));
-  return streamChat(lines, PEOPLE);
+  const here = TIMELINE.findIndex(([sc]) => sc === scene);
+  let start = now - local * 1000;
+  const lines: ChatLine[] = [];
+  for (let i = here; i >= 0; i--) {
+    if (i < here) start -= TIMELINE[i][1] * 1000;
+    for (const [t, from, text] of CHAT[TIMELINE[i][0]] ?? []) {
+      if (i === here && t > local) continue;
+      lines.push({ at: Math.round(start + t * 1000), from, text, ...(from === REF.name ? { ref: true } : {}) });
+    }
+  }
+  return streamChat(lines.sort((a, b) => a.at - b.at), PEOPLE);
 }
 
 const STEPS: FeedStep[] = [

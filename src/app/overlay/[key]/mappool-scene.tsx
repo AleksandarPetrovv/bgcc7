@@ -196,7 +196,7 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
       </div>
       {!!feed.chat?.length && (
         <div className="absolute bottom-[40px] right-[72px] flex">
-          <StreamChat lines={feed.chat} rows={6} className="w-[696px]" delay={0.8} />
+          <StreamChat lines={feed.chat} rows={5} className="w-[696px]" delay={0.8} />
         </div>
       )}
     </div>

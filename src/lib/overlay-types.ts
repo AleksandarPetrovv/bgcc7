@@ -27,8 +27,8 @@ export type FeedGroup = { name: string; color: string; slots: string[] };
 
 export type FeedStep = { team: 1 | 2; kind: "ban" | "pick"; slot: string; winner: 1 | 2 | null };
 
-/** a lobby chat line on stream, already filtered (no commands, no bancho noise, nothing the slur filter flagged) */
-export type FeedChat = { key: string; at: number; name: string; avatar: string | null; side: 1 | 2 | null; ref: boolean; bot: boolean; text: string };
+/** a lobby chat line on stream, already filtered (no BanchoBot, no commands, nothing the slur filter flagged) */
+export type FeedChat = { key: string; at: number; name: string; avatar: string | null; side: 1 | 2 | null; ref: boolean; text: string };
 
 export type FeedTurn ={ kind: "pick" | "ban"; team: 1 | 2 } | { kind: "tb" } | null;
 

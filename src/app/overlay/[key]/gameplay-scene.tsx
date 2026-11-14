@@ -116,6 +116,10 @@ function Player({ c, p, side, reduced }: { c?: LiveClient; p?: OverlayFeed["team
   );
 }
 
+// the footer eases between full map info and compact info beside the chat; font-size transitions keep the text crisp.
+// going back to full waits for the chat to fade out first (--morph-delay)
+const MORPH = "transition-[padding,gap,font-size] duration-[900ms] ease-[var(--ease)] [transition-delay:var(--morph-delay)]";
+
 const still = () => () => {};
 const len = (s: number) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.floor(Math.max(0, s)) % 60).padStart(2, "0")}`;
 
@@ -243,28 +247,33 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
         animate={{ y: 0 }}
         transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
       >
-        <div className="flex h-full items-center gap-6 px-[var(--gp-side)] pt-[4px]">
-          <AnimatePresence>{talk && <StreamChat key="chat" lines={feed.chat ?? []} rows={3} size="compact" className="w-[820px] shrink-0" />}</AnimatePresence>
+        <div className="relative h-full px-[var(--gp-side)] pt-[4px]" style={{ "--morph-delay": talk ? "0ms" : "220ms" } as React.CSSProperties}>
+          <AnimatePresence>
+            {talk && (
+              <div key="chat" className="absolute inset-y-0 left-[var(--gp-side)] flex items-center pt-[4px]">
+                <StreamChat lines={feed.chat ?? []} rows={3} size="compact" className="w-[820px]" delay={0.25} />
+              </div>
+            )}
+          </AnimatePresence>
           <motion.div
             key={current?.id ?? "none"}
-            layout="position"
-            className={cn("flex min-w-0 flex-1 items-center", talk ? "gap-3" : "gap-4")}
+            className={cn("flex h-full min-w-0 items-center", MORPH, talk ? "gap-3 pl-[844px]" : "gap-4 pl-0")}
             initial={{ x: -60, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.5, ease: EASE }}
           >
             {current ? (
               <>
-                <Slant className={talk ? "px-2 py-0.5" : "px-3 py-1"} style={{ background: slotC, boxShadow: "4px 4px 0 0 color-mix(in srgb, var(--rose-deep) 42%, transparent)" }}>
-                  <span className={cn("font-display font-black italic leading-none", talk ? "text-[24px]" : "text-[34px]")} style={{ color: modOn(slotC) }}>{current.slot}</span>
+                <Slant className={cn(MORPH, talk ? "px-2 py-0.5" : "px-3 py-1")} style={{ background: slotC, boxShadow: "4px 4px 0 0 color-mix(in srgb, var(--rose-deep) 42%, transparent)" }}>
+                  <span className={cn("font-display font-black italic leading-none", MORPH, talk ? "text-[24px]" : "text-[34px]")} style={{ color: modOn(slotC) }}>{current.slot}</span>
                 </Slant>
                 <div className="min-w-0 flex-1">
-                  <h3 className={cn("truncate font-black leading-tight", talk ? "text-[18px]" : "text-[24px]")}>{current.title}</h3>
-                  <p className={cn("truncate font-bold text-ash", talk ? "text-[12px]" : "text-[14px]")}>
+                  <h3 className={cn("truncate font-black leading-tight", MORPH, talk ? "text-[18px]" : "text-[24px]")}>{current.title}</h3>
+                  <p className={cn("truncate font-bold text-ash", MORPH, talk ? "text-[12px]" : "text-[14px]")}>
                     [{current.version}] · {current.creator}
                   </p>
                 </div>
-                <dl className={cn("flex shrink-0 items-baseline", talk ? "gap-3" : "gap-5")}>
+                <dl className={cn("flex shrink-0 items-baseline", MORPH, talk ? "gap-3" : "gap-5")}>
                   {[
                     ["★", current.sr.toFixed(2)],
                     ["BPM", integer.format(current.bpm)],
@@ -275,7 +284,7 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
                   ].map(([k, v]) => (
                     <div key={k} className="flex items-baseline gap-1">
                       <dt className={cn("text-[11px] font-display font-bold", k === "★" ? "text-gold-hi" : "text-ash")}>{k}</dt>
-                      <dd className={cn("num font-black", talk ? "text-[15px]" : "text-[18px]")}>{v}</dd>
+                      <dd className={cn("num font-black", MORPH, talk ? "text-[15px]" : "text-[18px]")}>{v}</dd>
                     </div>
                   ))}
                 </dl>
@@ -284,7 +293,7 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
               <span className="text-[14px] font-display font-bold text-ash">{feed.match.round}</span>
             )}
             {/* mb lifts the wordmark ~3.5px so its letters (not the taller 7) centre on the stat numbers */}
-            <Lockup num={editionNum(feed)} size={talk ? 18 : 22} className="mb-[7px] ml-auto shrink-0 pl-3" />
+            <Lockup num={editionNum(feed)} size={22} className="mb-[7px] ml-auto shrink-0 pl-3" />
           </motion.div>
         </div>
       </motion.footer>

@@ -6,5 +6,5 @@ const SHOW_CMD = /^!mp (start|timer|aborttimer|abort)\b/i;
 export const visibleChatLine = (line: ChatLine) =>
   line.text.startsWith("!") ? SHOW_CMD.test(line.text) : !!(line.local || line.ref || line.from !== "BanchoBot" || KEEP.test(line.text));
 
-/** the stream overlay: what players see, minus every command and anything the slur filter flagged */
-export const streamChatLine = (line: ChatLine) => !line.text.startsWith("!") && !line.flagged && visibleChatLine(line);
+/** the stream overlay: only what people typed, no BanchoBot, no commands, nothing the slur filter flagged */
+export const streamChatLine = (line: ChatLine) => line.from !== "BanchoBot" && !line.text.startsWith("!") && !line.flagged;
