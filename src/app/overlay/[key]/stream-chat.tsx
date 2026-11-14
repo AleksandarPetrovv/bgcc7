@@ -5,7 +5,7 @@ import { animate, motion, useMotionValue } from "motion/react";
 import type { FeedChat } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
 import { Pfp } from "@/components/site/pfp";
-import { EASE } from "@/lib/ease";
+import { CALM, EASE } from "@/lib/ease";
 import { TEAM } from "./chrome";
 
 const SIZE = {
@@ -14,7 +14,6 @@ const SIZE = {
 } as const;
 
 // chat scrolls with a slow in-out curve instead of the house ease-out, which reads as a jump at the start of each scroll
-const SCROLL = { duration: 0.9, ease: [0.45, 0, 0.25, 1] } as const;
 
 const nameColor = (l: FeedChat) => (l.ref ? "var(--balkan-hi)" : l.side ? TEAM[l.side - 1].hi : "var(--paper)");
 
@@ -35,7 +34,7 @@ export function StreamChat({ lines, rows, size = "full", className, delay = 0 }:
     if (!before) return;
     const added = [...now].filter((k) => !before.has(k)).length;
     if (!added) return;
-    const run = animate(y, [y.get() + Math.min(added, rows + 1) * s.row, 0], SCROLL);
+    const run = animate(y, [y.get() + Math.min(added, rows + 1) * s.row, 0], CALM);
     return () => run.stop();
   }, [keys, rows, s.row, y]);
 
@@ -57,7 +56,7 @@ export function StreamChat({ lines, rows, size = "full", className, delay = 0 }:
               key={l.key}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={SCROLL}
+              transition={CALM}
               className={cn("flex items-center", s.gap)}
               style={{ height: s.row }}
             >

@@ -8,7 +8,7 @@ import { Glyph } from "@/components/site/graphics";
 import type { FeedTeam, OverlayFeed } from "@/lib/overlay-types";
 import { cn } from "@/lib/utils";
 import { Backdrop, Blend, Echo, editionNum, Lockup, PlayerCard, Rule, ScoreNum, TEAM, TeamPic, TeamPlate, TopBar, Versus } from "./chrome";
-import { EASE } from "@/lib/ease";
+import { CALM, EASE } from "@/lib/ease";
 import { ROLL_REVEAL_MS, ROLL_SPIN_MS } from "@/lib/draft";
 import { StreamChat } from "./stream-chat";
 
@@ -113,25 +113,31 @@ function Roll({ value, state, below }: { value: number | null; state: "wait" | "
   const { shown, spinning } = useSpin(value);
   const won = state === "won" && !spinning;
   const tie = state === "tie" && !spinning;
+  // the number stays drawn while it fades out to "?" after a tie
+  const [last, setLast] = useState(shown);
+  if (shown != null && shown !== last) setLast(shown);
   return (
     <div className="flex flex-col items-center gap-3">
       <span
         className={cn("relative flex h-[84px] min-w-[150px] items-center justify-center border-b-4 transition-[border-color,opacity] duration-500", state === "lost" && !spinning && "opacity-45", tie && "opacity-60")}
         style={{ borderColor: won ? "var(--gold)" : "var(--line)" }}
       >
-        {/* one element from first spin to settle: when the number lands only its colour changes */}
-        <AnimatePresence initial={false} mode="popLayout">
+        {/* number and "?" share one spot and only crossfade; when the number lands only its colour changes */}
+        <span className="grid place-items-center">
           <motion.span
-            key={shown == null ? "q" : "n"}
-            className={cn("num text-[68px] italic leading-none transition-colors duration-500", shown == null || tie ? "text-ash/50" : won ? "text-gold-hi" : spinning ? "text-paper/70" : "text-paper")}
-            initial={{ opacity: 0 }}
-            animate={shown == null ? { opacity: [0.35, 0.8, 0.35] } : { opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.3 } }}
-            transition={shown == null ? { opacity: { duration: 1.6, repeat: Infinity } } : { duration: 0.3 }}
+            className={cn("num text-[68px] italic leading-none transition-colors duration-500 [grid-area:1/1]", shown == null || tie ? "text-ash/50" : won ? "text-gold-hi" : spinning ? "text-paper/70" : "text-paper")}
+            initial={false}
+            animate={{ opacity: shown == null ? 0 : 1 }}
+            transition={CALM}
           >
-            {shown ?? "?"}
+            {shown ?? last ?? ""}
           </motion.span>
-        </AnimatePresence>
+          <motion.span className="[grid-area:1/1]" initial={false} animate={{ opacity: shown == null ? 1 : 0 }} transition={CALM}>
+            <motion.span className="num block text-[68px] italic leading-none text-ash/50" animate={{ opacity: [0.35, 0.8, 0.35] }} transition={{ duration: 1.6, repeat: Infinity }}>
+              ?
+            </motion.span>
+          </motion.span>
+        </span>
       </span>
       <span className="relative h-[30px] w-full">
         <AnimatePresence initial={false}>
