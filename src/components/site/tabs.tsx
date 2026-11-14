@@ -35,6 +35,7 @@ export function Tabs({
   locked = [],
   label,
   className,
+  spark,
 }: {
   options: React.ReactNode[];
   index: number;
@@ -42,6 +43,7 @@ export function Tabs({
   locked?: number[];
   label?: string;
   className?: string;
+  spark?: boolean;
 }) {
   const id = useId();
   return (
@@ -56,7 +58,7 @@ export function Tabs({
           onClick={() => onChange(i)}
           className={item(i === index, "disabled:cursor-not-allowed disabled:opacity-35")}
         >
-          <TabMark id={id} active={i === index} />
+          <TabMark id={id} active={i === index} spark={spark} />
           <span className="relative inline-flex items-center gap-2">{o}</span>
         </button>
       ))}

@@ -5,7 +5,8 @@ import { AnimatePresence, motion, MotionGlobalConfig, useReducedMotion } from "m
 import type { OverlayFeed } from "@/lib/overlay-types";
 import type { Scene } from "@/lib/scenes";
 import { useSSE } from "@/components/site/use-sse";
-import { DemoBar } from "@/components/site/demo-bar";
+import { DemoScenes } from "@/components/site/demo-scenes";
+import { useDict } from "@/components/site/lang";
 import { CalmScene } from "./calm-scenes";
 import { MappoolScene } from "./mappool-scene";
 import { GameplayScene } from "./gameplay-scene";
@@ -13,26 +14,26 @@ import { BracketScene, ScheduleScene } from "./schedule-scenes";
 import styles from "./overlay-view.module.css";
 
 export function OverlayView({ overlayKey, scene, stage }: { overlayKey: string; scene?: Scene; stage?: string }) {
-  // the demo bar's last seek; `n` makes a repeat of the same spot reconnect too
-  const [seek, setSeek] = useState<{ ms: number; n: number } | null>(null);
+  // the demo's scene picker: plays the loop from that scene (instead of a ?scene= pin); `n` restarts a repeat pick too
+  const [from, setFrom] = useState<{ scene: Scene; n: number } | null>(null);
   const demo = overlayKey === "demo";
   const q = new URLSearchParams();
-  if (demo && scene) q.set("scene", scene);
+  if (demo && scene && !from) q.set("scene", scene);
   if (demo && stage) q.set("stage", stage);
-  if (demo && seek) {
-    q.set("t", (seek.ms / 1000).toFixed(1));
-    q.set("n", String(seek.n));
+  if (demo && from) {
+    q.set("from", from.scene);
+    q.set("n", String(from.n));
   }
   const query = q.size ? `?${q}` : "";
   const url = `/api/overlay/${encodeURIComponent(overlayKey)}${query}`;
 
-  return <OverlaySubscription key={JSON.stringify([overlayKey, scene, stage])} url={url} onSeek={demo ? (ms) => setSeek((s) => ({ ms, n: (s?.n ?? 0) + 1 })) : undefined} />;
+  return <OverlaySubscription key={JSON.stringify([overlayKey, scene, stage])} url={url} onPick={demo ? (s) => setFrom((f) => ({ scene: s, n: (f?.n ?? 0) + 1 })) : undefined} />;
 }
 
 const WIPE_S = 1.05;
 const SWAP_MS = 520;
 
-function OverlaySubscription({ url, onSeek }: { url: string; onSeek?: (ms: number) => void }) {
+function OverlaySubscription({ url, onPick }: { url: string; onPick?: (scene: Scene) => void }) {
   const [feed, setFeed] = useState<OverlayFeed | null>(null);
   const reducedMotion = useReducedMotion();
   const build = useRef<string | undefined>(undefined);
@@ -107,9 +108,14 @@ function OverlaySubscription({ url, onSeek }: { url: string; onSeek?: (ms: numbe
       )}
       <AnimatePresence>{wipe > 0 && <Wipe key={wipe} />}</AnimatePresence>
     </StageFrame>
-    {onSeek && feed?.demo && <DemoBar t={feed.demo.t} len={feed.demo.len} onSeek={onSeek} />}
+    {onPick && feed?.demo && <DemoPicker scenes={feed.demo} scene={feed.scene} onPick={onPick} />}
     </>
   );
+}
+
+function DemoPicker({ scenes, scene, onPick }: { scenes: Scene[]; scene: Scene; onPick: (scene: Scene) => void }) {
+  const t = useDict();
+  return <DemoScenes options={scenes.map((s) => t.admin.stream.scenes[s])} index={scenes.indexOf(scene)} onPick={(i) => onPick(scenes[i])} />;
 }
 
 const SWEEP = [

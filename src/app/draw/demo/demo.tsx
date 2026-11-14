@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { addPick, EMPTY_DRAW, nextWheel, onWheel, type DrawFeed, type DrawPlayer, type DrawState } from "@/lib/draw";
 import { DrawStage } from "@/components/site/draw/draw-stage";
-import { DemoBar } from "@/components/site/demo-bar";
+import { DemoScenes } from "@/components/site/demo-scenes";
+import { useDict } from "@/components/site/lang";
 import { useFormat } from "@/components/site/tournament";
 import { DrawThanks } from "../thanks";
 
@@ -31,8 +32,8 @@ const TEAMS_MS = 10000;
 const REVEAL_MS = 1100;
 const THANKS_AFTER_MS = 4000;
 const RESTART_MS = 10000;
-// shortcut: how long the stage plays one pick, measured on /draw/demo (2026-11-14). only the demo bar's times lean on it: the run
-// still waits for the stage to go idle before the next pick. re-measure if the stage's timings change
+// how long the stage plays one pick, measured on /draw/demo (2026-11-14); it only spaces the planned picks, each one still waits
+// for the stage to go idle
 const playMs = (w: "a" | "b", pace: number, first: boolean, both: boolean) => (both ? 3220 : pace > 1 ? (w === "a" ? 305 : 335) : w === "b" ? 9720 : first ? 7530 : 8520);
 
 const feedOf = (s: DrawState): DrawFeed => ({ open: true, a: PA, b: PB, taken: [], pairs: s.pairs.map(({ a, b }) => ({ a, b })), seq: s.seq, last: s.last, redo: false, ended: false, seeds: null, bracket: null, thanks: false, build: "" });
@@ -43,6 +44,7 @@ const now = () => performance.now();
 /** one moment of the run: from `at` ms the stage shows `feed`; a `pick` waits for the stage to finish the one before */
 type Beat = { at: number; feed: DrawFeed; speed: number; pick: boolean };
 type Run = { beats: Beat[]; len: number };
+const sceneOf = (f: DrawFeed) => (f.thanks ? 3 : f.bracket ? 2 : f.ended ? 1 : 0);
 
 /** a whole demo run laid out in time: random picks like a real draw, then End, the bracket reveal and "thanks for watching" */
 function plan(r1: [number, number][]): Run {
@@ -93,22 +95,20 @@ export function DrawDemo() {
   const { r1 } = useFormat();
   const [first] = useState(() => plan(r1));
   const run = useRef(first);
-  // `mount`: a seek or a new run remounts the stage, so it shows that spot at once instead of playing out what it has queued
-  const [view, setView] = useState({ beat: first.beats[0], len: first.len, mount: 0 });
-  const [t, setT] = useState(0);
+  // `mount`: a scene pick or a new run remounts the stage, so it shows that spot at once instead of playing out what it has queued
+  const [view, setView] = useState({ beat: first.beats[0], mount: 0 });
+  const t = useDict();
   const origin = useRef(0);
   const idle = useRef(true);
   const waiting = useRef<number | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // the demo clock; while a pick waits for the stage, it waits too
-  const clock = () => Math.min(run.current.len, waiting.current != null ? run.current.beats[waiting.current].at : now() - origin.current);
   // `still`: the stage was just remounted on this beat, so it shows it without playing anything
   const apply = (i: number, still = false) => {
     waiting.current = null;
     const beat = run.current.beats[i];
     if (beat.pick && !still) idle.current = false;
-    setView((v) => ({ ...v, beat, len: run.current.len }));
+    setView((v) => ({ ...v, beat }));
     schedule(i + 1);
   };
   const schedule = (i: number) => {
@@ -141,17 +141,17 @@ export function DrawDemo() {
   useEffect(() => {
     origin.current = now();
     schedule(1);
-    const bar = setInterval(() => setT(clock()), 100);
-    return () => {
-      clearTimeout(timer.current);
-      clearInterval(bar);
-    };
+    return () => clearTimeout(timer.current);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // the picker's scenes: the spins (a fresh run), the final teams, the bracket reveal, "thanks for watching"
+  const scenes = [t.admin.wheel.spin, t.admin.wheel.end, t.admin.wheel.bracket, t.admin.stream.scenes.end];
+  const pick = (i: number) => (i ? jump(run.current.beats.find((b) => sceneOf(b.feed) === i)!.at) : jump(0, plan(r1)));
 
   return (
     <>
       <DrawStage key={view.mount} feed={view.beat.feed} onIdle={onIdle} wordmark speed={view.beat.speed} thanks={<DrawThanks />} />
-      <DemoBar t={t} len={view.len} onSeek={(ms) => jump(ms)} />
+      <DemoScenes options={scenes} index={sceneOf(view.beat.feed)} onPick={pick} />
     </>
   );
 }

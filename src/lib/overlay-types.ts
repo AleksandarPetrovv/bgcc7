@@ -65,8 +65,8 @@ export type OverlayFeed = {
   chat?: FeedChat[];
   scene: Scene;
   sceneAuto: boolean;
-  /** /overlay/demo only: ms into the demo loop and the loop's length, for the demo bar */
-  demo?: { t: number; len: number };
+  /** /overlay/demo only: its scenes in play order, for the scene picker */
+  demo?: Scene[];
   /** bracket scene only, once its reveal is over and the match has a box: the manual zoom toggle. `settled` = the overlay finished zooming */
   zoom?: { on: boolean; settled: boolean } | null;
   at: number;
