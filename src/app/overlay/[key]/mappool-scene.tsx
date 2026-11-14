@@ -26,34 +26,20 @@ function groupFor(map: FeedMap) {
 
 const SWAP = { initial: { opacity: 0, y: 14, filter: "blur(4px)" }, animate: { opacity: 1, y: 0, filter: "blur(0px)" }, exit: { opacity: 0, y: -14, filter: "blur(4px)" }, transition: { duration: 0.4, ease: EASE } } as const;
 
-/** the draft clock under the turn: the pick/ban countdown, the wait after a map result, a team timeout or the ref's pause */
+/** the draft clock under the turn: the pick/ban countdown, the wait before it starts, or a team timeout's time left */
 function Clock({ feed }: { feed: OverlayFeed }) {
   const c = feed.clock ?? null;
   const until = c && "until" in c ? c.until : null;
   const now = useNow(until != null);
   const left = until == null ? 0 : Math.max(0, Math.ceil((until - Math.max(feed.at, now ?? feed.at)) / 1000));
   const time = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
-  const key = !c ? "none" : c.kind === "timeout" ? `timeout${c.team}` : c.kind === "paused" ? "paused" : `${c.kind}${c.until}`;
+  const key = !c ? "none" : c.kind === "timeout" ? `timeout${c.team}` : `${c.kind}${"until" in c ? c.until : ""}`;
   return (
     <div className="absolute inset-x-0 top-full mt-4 flex justify-center">
       <AnimatePresence mode="popLayout" initial={false}>
-        {c && (
-          <motion.div key={key} {...SWAP} className="flex items-center gap-3 font-display font-bold leading-none">
-            {c.kind === "paused" ? (
-              <>
-                <Pause className="size-[22px] fill-current text-gold-hi" strokeWidth={0} />
-                <span className="text-[24px] text-gold-hi">Paused</span>
-              </>
-            ) : (
-              <>
-                {c.kind === "timeout" && (
-                  <span className="text-[22px]" style={{ color: TEAM[c.team - 1].hi }}>
-                    {c.team === 1 ? "Red" : "Blue"} Timeout
-                  </span>
-                )}
-                <span className={cn("num text-[30px] font-black transition-colors duration-300", c.kind === "turn" && left <= 10 ? "text-gold-hi" : "text-paper")}>{time}</span>
-              </>
-            )}
+        {c && c.kind !== "paused" && (
+          <motion.div key={key} {...SWAP} className="font-display font-bold leading-none">
+            <span className={cn("num text-[30px] font-black transition-colors duration-300", c.kind === "turn" && left <= 10 ? "text-gold-hi" : "text-paper")}>{time}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -63,14 +49,32 @@ function Clock({ feed }: { feed: OverlayFeed }) {
 
 function Turn({ feed }: { feed: OverlayFeed }) {
   const t = feed.turn;
-  const gap = feed.clock?.kind === "gap";
-  const key = t ? (t.kind === "tb" ? "tb" : `${t.kind}${t.team}${feed.steps.length}${gap ? "gap" : ""}`) : feed.current ? `now${feed.current.slot}` : "none";
+  const c = feed.clock;
+  const gap = c?.kind === "gap";
+  // a team timeout or the ref's pause takes the turn's place
+  const key =
+    c?.kind === "paused" ? "paused" : c?.kind === "timeout" ? `timeout${c.team}` : t ? (t.kind === "tb" ? "tb" : `${t.kind}${t.team}${feed.steps.length}${gap ? "gap" : ""}`) : feed.current ? `now${feed.current.slot}` : "none";
   return (
     <div className="relative flex h-full items-center justify-center">
       <Clock feed={feed} />
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.div key={key} {...SWAP} className="flex flex-col items-center gap-1.5">
-          {t && t.kind !== "tb" ? (
+          {c?.kind === "paused" ? (
+            <span className="flex items-center gap-4 text-gold-hi">
+              <Pause className="size-[44px] fill-current" strokeWidth={0} />
+              <span className="heading-slam text-[56px] leading-none">Paused</span>
+            </span>
+          ) : c?.kind === "timeout" ? (
+            <>
+              <span className="heading-slam text-[56px] leading-none" style={{ color: TEAM[c.team - 1].hi }}>
+                {c.team === 1 ? "Red" : "Blue"}
+              </span>
+              <span className="relative px-1 text-[20px] font-display font-bold text-paper">
+                timeout
+                <motion.span className="absolute inset-x-0 -bottom-1.5 h-[3px] origin-center" style={{ background: TEAM[c.team - 1].c }} initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.5, delay: 0.15, ease: EASE }} />
+              </span>
+            </>
+          ) : t && t.kind !== "tb" ? (
             <>
               <span className="relative" style={{ color: TEAM[t.team - 1].hi }}>
                 <span className="heading-slam text-[56px] leading-none">{t.team === 1 ? "Red" : "Blue"}</span>
@@ -79,7 +83,8 @@ function Turn({ feed }: { feed: OverlayFeed }) {
                 </motion.span>
               </span>
               <span className="relative px-1 text-[20px] font-display font-bold text-paper">
-                {t.kind === "pick" ? (gap ? "picks next in" : "picks") : "bans"}
+                {t.kind === "pick" ? "picks" : "bans"}
+                {gap && " next in"}
                 <motion.span className="absolute inset-x-0 -bottom-1.5 h-[3px] origin-center" style={{ background: TEAM[t.team - 1].c }} initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.5, delay: 0.15, ease: EASE }} />
               </span>
             </>

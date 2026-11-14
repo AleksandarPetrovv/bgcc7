@@ -20,7 +20,7 @@ import type { ChatLine } from "./lobby-chat";
 import { flagChat } from "./chat-filter";
 import { streamChatLine } from "./chat-visibility";
 import { nameKey } from "./names";
-import { deadline, scoreOf, tbDue, turnOf, type DraftView } from "@/lib/draft";
+import { CHOICE_GAP_MS, deadline, scoreOf, tbDue, turnOf, type DraftView } from "@/lib/draft";
 import { avatarPath } from "@/lib/avatar";
 import { TEST_MATCH, isGfId } from "@/lib/format";
 import { bracketZoom, zoomPause } from "@/lib/overlay-zoom";
@@ -37,7 +37,6 @@ function settleSometimes(matchId: string) {
   return settle(matchId);
 }
 
-const CHOICE_HOLD = 20_000;
 const RESULTS_HOLD = 15_000;
 // on auto, after the last map: the winner, the bracket playing the result (paused while zoomed by hand), the schedule, then "thanks for watching"
 const WINNER_HOLD = 30_000;
@@ -234,9 +233,9 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
 
   const now = Date.now();
   const rolled = draft?.roll1 != null && draft?.roll2 != null && draft.roll1 !== draft.roll2;
-  const chosenAt = rolled && draft.choice ? rolledSince(matchId, `${draft.roll1}:${draft.roll2}:${draft.choice}`, draft.steps.length ? 0 : Date.parse(draft.turnAt ?? "") || now) : null;
+  const chosenAt = rolled && draft.choice ? rolledSince(matchId, `${draft.roll1}:${draft.roll2}:${draft.choice}`, draft.steps.length ? 0 : Date.parse(draft.turnAt ?? "") - CHOICE_GAP_MS || now) : null;
   if (rolled && !draft.choice) rolledSince(matchId, `${draft.roll1}:${draft.roll2}`, now);
-  const introDone = (chosenAt !== null && now - chosenAt >= CHOICE_HOLD) || !!draft?.steps.length;
+  const introDone = (chosenAt !== null && now - chosenAt >= CHOICE_GAP_MS) || !!draft?.steps.length;
 
   const cue = currentEdition() === siteEdition() ? getCue(matchId) : null;
   if (live && live.ipcState === IPC_PLAYING) lastLive.set(editionKey(matchId), live);
