@@ -11,7 +11,6 @@ import { getHosts } from "@/db/admin";
 import { getFormat } from "@/db/edition";
 import { getDraft, lobbyTimer, onDraft, rulesOf, setResult } from "@/db/drafts";
 import type { DraftView } from "@/lib/draft";
-import { censor } from "@/lib/chat-filter";
 import { onRelay, relayName, relayOnline, relaySocket } from "@/lib/relay";
 import { clearWhere, describeMatch, ownedBy, ownerAlertId, raise } from "@/lib/alerts";
 import { cueAbort, cueCountdown, cueFinish, cuePlay } from "@/lib/overlay-cues";
@@ -282,9 +281,8 @@ async function history(mpId: number): Promise<ChatLine[]> {
   return rows.reverse().map(chatLine);
 }
 
-/** `filtered`: run the slur filter (everyone but hosts) */
-export async function sayLocal(matchId: string, by: number, raw: string, side: 1 | 2 | null, filtered: boolean) {
-  const text = filtered ? censor(cleanChat(raw)) : cleanChat(raw);
+export async function sayLocal(matchId: string, by: number, raw: string, side: 1 | 2 | null) {
+  const text = cleanChat(raw);
   if (!text) return "empty" as const;
   if (coolingDown(by)) return "cooldown" as const;
   const l = cur()?.live.get(matchId);

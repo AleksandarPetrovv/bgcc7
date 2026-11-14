@@ -13,7 +13,7 @@ export function isChatHistoryPage(value: unknown): value is ChatHistoryPage {
   return (page.mpId === null || positiveId(page.mpId)) && (page.before === null || positiveId(page.before)) && typeof page.hasMore === "boolean" && Array.isArray(page.lines) && page.lines.every((value: unknown) => {
     if (!value || typeof value !== "object") return false;
     const line = value as Record<string, unknown>;
-    return typeof line.at === "number" && Number.isFinite(line.at) && typeof line.from === "string" && typeof line.text === "string" && (line.id === undefined || positiveId(line.id)) && (line.ref === undefined || typeof line.ref === "boolean") && (line.local === undefined || typeof line.local === "boolean") && (line.side === undefined || line.side === 1 || line.side === 2);
+    return typeof line.at === "number" && Number.isFinite(line.at) && typeof line.from === "string" && typeof line.text === "string" && (line.id === undefined || positiveId(line.id)) && (line.ref === undefined || typeof line.ref === "boolean") && (line.local === undefined || typeof line.local === "boolean") && (line.flagged === undefined || typeof line.flagged === "boolean") && (line.side === undefined || line.side === 1 || line.side === 2);
   });
 }
 

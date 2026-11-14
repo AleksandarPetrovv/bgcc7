@@ -59,5 +59,5 @@ export async function draftAccess(matchId: string) {
   const side = team && mem?.isCaptain ? team : null;
   if (!staff && !(team && onSite)) return null;
   const streams = host || (v.roles.includes("referee") && v.roles.includes("streamer"));
-  return { osuId: v.osuId, admin, host, staff, streams, side, team, match: m };
+  return { osuId: v.osuId, admin, staff, streams, side, team, match: m };
 }

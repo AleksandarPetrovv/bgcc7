@@ -5,6 +5,7 @@ import { mpChat, mpLobbies } from "@/db/schema";
 import { lobbyRefNames } from "./bancho";
 import { chatLine, type ChatLine } from "./lobby-chat";
 import { visibleChatLine } from "./chat-visibility";
+import { flagChat } from "./chat-filter";
 import { nameKey } from "@/lib/names";
 
 export type ChatHistoryPage = { mpId: number | null; lines: ChatLine[]; before: number | null; hasMore: boolean };
@@ -27,7 +28,7 @@ export async function lobbyChatHistory(matchId: string, admin: boolean, before?:
 
   return {
     mpId: lobby.mpId,
-    lines: admin ? lines : lines.filter(visibleChatLine),
+    lines: flagChat(admin ? lines : lines.filter(visibleChatLine)),
     before: page.at(-1)?.id ?? null,
     hasMore: rows.length > PAGE_SIZE,
   };

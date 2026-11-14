@@ -12,7 +12,6 @@ import { lobbySize } from "@/lib/format";
 
 import { attach, canLobby, conn, coolingDown, ensureBot, init, lastSent, liveConns, liveLobby, lobbyOwner, markClosed, membersOf, online, ownerOf, ping, playStart, restoreOwner, retire, state, swapSlots, syncOf, target, typed, type Live, type LobbySlot, type LobbyView } from "./bancho-irc";
 import { CHAT_SHOWN, cleanChat } from "./lobby-chat";
-import { censor } from "./chat-filter";
 import { MOD_LOBBY } from "./mods";
 import { nameKey } from "@/lib/names";
 import { within } from "./utils";
@@ -258,11 +257,10 @@ async function poolMap(matchId: string, text: string) {
 const modArgs = (mod: string) => (MOD_LOBBY[mod] ? [MOD_LOBBY[mod], false] : ["NF", true]) as [string, boolean];
 
 
-/** `filtered`: run the slur filter on plain messages (refs); "!" commands and hosts skip it */
-export async function sendChat(matchId: string, by: number, raw: string, filtered: boolean) {
+export async function sendChat(matchId: string, by: number, raw: string) {
   const hit = await poolMap(matchId, cleanChat(raw));
   if (typeof hit === "string") return hit;
-  const text = filtered && !hit.text.startsWith("!") ? censor(hit.text) : hit.text;
+  const text = hit.text;
   if (!text) return "empty" as const;
   if (coolingDown(by)) return "cooldown" as const;
   lastSent.set(by, Date.now());

@@ -1,6 +1,7 @@
 import type { mpChat } from "@/db/schema";
 
-export type ChatLine = { id?: number; at: number; from: string; text: string; ref?: boolean; local?: boolean; side?: 1 | 2 };
+/** `flagged`: the slur filter caught it (lib/chat-filter.ts), set when the line is served */
+export type ChatLine = { id?: number; at: number; from: string; text: string; ref?: boolean; local?: boolean; side?: 1 | 2; flagged?: boolean };
 
 export const CHAT_KEEP = 150;
 export const CHAT_SHOWN = 100;

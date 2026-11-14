@@ -5,6 +5,7 @@ import { staffIds } from "@/db/users";
 import { relayOnline } from "@/lib/relay";
 import { sse } from "@/lib/sse";
 import { visibleChatLine } from "@/lib/chat-visibility";
+import { flagChat } from "@/lib/chat-filter";
 import { withMatch } from "@/lib/match-access";
 import type { ActionName } from "@/lib/action-names";
 
@@ -33,9 +34,12 @@ export async function GET(req: Request, ctx: Ctx) {
         checked = Date.now();
         admin = !!(await withMatch(slug)).access?.admin;
       }
-      if (admin) return lobbyView(id, a.osuId);
+      if (admin) {
+        const v = await lobbyView(id, a.osuId);
+        return { ...v, chat: flagChat(v.chat) };
+      }
       const v = await lobbyView(id);
-      return { ...v, password: "", chat: v.chat.filter(visibleChatLine) };
+      return { ...v, password: "", chat: flagChat(v.chat.filter(visibleChatLine)) };
     },
     onLobby,
   );
@@ -69,7 +73,7 @@ export async function POST(req: Request, ctx: Ctx) {
   const { id, access: a } = await withMatch((await ctx.params).slug);
   if (act === "say") {
     if (!a || (!a.team && !a.admin)) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
-    const r = await sayLocal(a.match.id, a.osuId, String(b?.text ?? ""), a.team, !a.host);
+    const r = await sayLocal(a.match.id, a.osuId, String(b?.text ?? ""), a.team);
     return r === "ok" ? Response.json({ ok: true }) : Response.json({ ok: false, error: r }, { status: 429 });
   }
   if (!a?.admin) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
@@ -82,7 +86,7 @@ export async function POST(req: Request, ctx: Ctx) {
   try {
     switch (act) {
       case "chat": {
-        const r = await sendChat(id, osuId, String(b?.text ?? ""), !a.host);
+        const r = await sendChat(id, osuId, String(b?.text ?? ""));
         if (r !== "ok") return Response.json({ ok: false, error: r }, { status: r === "noslot" || r === "nouser" ? 404 : r === "forbidden" ? 403 : 429 });
         break;
       }

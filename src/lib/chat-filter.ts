@@ -1,5 +1,6 @@
 import "server-only";
 import { asteriskCensorStrategy, DataSet, englishDataset, englishRecommendedTransformers, RegExpMatcher, TextCensor } from "obscenity";
+import type { ChatLine } from "./lobby-chat";
 
 // slurs, hate and self-harm only. plain swearing passes: twitch allows it, it bans hate speech
 
@@ -87,7 +88,11 @@ const SPLIT_MIN = 5;
 
 type Word = { idx: number[]; raw: string; single: boolean };
 
-export function censor(raw: string) {
+/** chat is never changed: a flagged line shows on the site in red and never on stream. commands and BanchoBot are never flagged */
+export const flagChat = (lines: ChatLine[]): ChatLine[] =>
+  lines.map((l) => (l.from !== "BanchoBot" && !l.text.startsWith("!") && censor(l.text) !== l.text ? { ...l, flagged: true } : l));
+
+function censor(raw: string) {
   const out = text.applyTo(raw, matcher.getAllMatches(raw));
   const parts = out.split(/(\s+)/);
   const words: Word[] = [];

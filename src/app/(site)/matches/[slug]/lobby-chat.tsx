@@ -87,7 +87,7 @@ function ChatSession({
               <p key={m.key} data-chat-key={m.key} className={cn("break-words py-0.5 leading-snug", m.ref && !bancho && "-mx-3 border-l-2 border-balkan-deep bg-balkan/20 px-3")}>
                 <span className="num mr-2 text-xs text-ash">{new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                 <span className={cn("font-display font-black", bancho ? "text-gold-hi" : m.ref ? "text-balkan-hi" : side === "red" ? "text-crimson-hi" : side === "blue" ? "text-azure-hi" : "text-paper")}>{m.from.replace(/_/g, " ")}</span>
-                <span className={cn("ml-2", bancho ? "text-paper/70" : "text-paper")}>{m.text}</span>
+                <span className={cn("ml-2", bancho ? "text-paper/70" : m.flagged ? "text-rose-hi" : "text-paper")}>{m.text}</span>
               </p>
             );
           })
