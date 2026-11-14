@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { animate, motion, useMotionValue, useTransform } from "motion/react";
+import { animate, motion, useMotionValue } from "motion/react";
 import { ChevronRight, Crown } from "lucide-react";
 import type { Match } from "@/lib/data";
 import { TWITCH_URL } from "@/lib/links";
@@ -73,12 +73,16 @@ function Line({ m, slot, live, slim, moved, quiet, out }: { m: Match; slot: 1 | 
       {(won || leads) && <span className={cn("absolute inset-y-1 left-0 w-0.5", won ? "bg-balkan" : "bg-rose/60")} aria-hidden />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {!slim && <img src={team.image} alt="" className={cn("size-4 shrink-0 rounded-full object-cover", moved ? "outline-1 outline-gold" : "in-pop")} style={cssVars({ "--d": "0.45s" })} />}
-      <span title={team.name} className={cn("min-w-0 flex-1 truncate text-[12.8px] font-display font-bold", moved ? "text-gold-hi" : "in-wipe", won && "font-display font-black", team.out ? OUT_TEXT : cn(won && "text-paper", leads && "font-display font-black text-rose-hi"))} style={cssVars({ "--d": "0.5s" })}>
-        {team.name}
+      {/* bold and black are stacked and crossfade: the font only has fixed weights, so the weight itself can't animate */}
+      <span title={team.name} className={cn("grid min-w-0 flex-1 text-[12.8px] font-display transition-colors duration-700", moved ? "text-gold-hi" : "in-wipe", team.out ? OUT_TEXT : cn(won && "text-paper", leads && "text-rose-hi"))} style={cssVars({ "--d": "0.5s" })}>
+        <span className={cn("min-w-0 truncate font-bold transition-opacity duration-700 [grid-area:1/1]", (won || leads) && "opacity-0")}>{team.name}</span>
+        <span className={cn("min-w-0 truncate font-black transition-opacity duration-700 [grid-area:1/1]", !(won || leads) && "opacity-0")} aria-hidden>
+          {team.name}
+        </span>
       </span>
       <MeTag t={team.id} className="me-tag-plain me-tag-px -mx-1" />
       {(tag || score !== null) && (
-        <span className={cn("num ml-2 shrink-0 text-right text-base leading-none", !moved && "in-slam", tag ? cn(OUT_TEXT, "opacity-80") : won ? "text-balkan-hi" : leads || tie ? "text-rose-hi" : "text-paper/80")} style={cssVars({ "--d": play ? "0s" : "0.65s" })}>
+        <span className={cn("num ml-2 shrink-0 text-right text-base leading-none transition-colors duration-700", !moved && "in-slam", tag ? cn(OUT_TEXT, "opacity-80") : won ? "text-balkan-hi" : leads || tie ? "text-rose-hi" : "text-paper/80")} style={cssVars({ "--d": play ? "0s" : "0.65s" })}>
           {tag ?? score}
         </span>
       )}
@@ -252,7 +256,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
     const clamp = (v: number, lo: number) => Math.min(0, Math.max(lo, v));
     return { scale: z, x: clamp(width / 2 - ((x0 + x1) / 2) * z, width - width * z), y: clamp(height / 2 - ((y0 + y1) / 2) * z, height - height * z) };
   })();
-  // the zoom uses css zoom, not a scale transform: safari draws a scaled layer as a stretched bitmap (blurry) once anything inside it animates
+  // the zoom is a scale transform, like zooming into a picture: css zoom re-laid the bracket out at every in-between size, so names shifted and changed weight
   const manual = useRef({ play: !!play, zoomed: !!zoomed });
   useEffect(() => {
     manual.current = { play: !!play, zoomed: !!zoomed };
@@ -260,8 +264,6 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   const zoomZ = useMotionValue(1);
   const zoomX = useMotionValue(0);
   const zoomY = useMotionValue(0);
-  const zoomLeft = useTransform(() => zoomX.get() / zoomZ.get());
-  const zoomTop = useTransform(() => zoomY.get() / zoomZ.get());
   useEffect(() => {
     const o = { duration: ZOOM_S, ease: EASE_IO };
     const runs = [animate(zoomZ, zoom.scale, o), animate(zoomX, zoom.x, o), animate(zoomY, zoom.y, o)];
@@ -302,9 +304,11 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
   return (
     <div className="relative">
     <div ref={box} onScroll={onScroll} className="snap-x snap-mandatory overflow-x-auto overflow-y-hidden pb-4 md:snap-none">
+      {/* the overlay (maxH) draws it only once its width is measured: a first pass at a guessed width would shift and re-size */}
+      {(seen > 0 || !maxH) && (
       <div className="mx-auto mt-4" style={fit.outer}>
       <div ref={inner} className={cn("relative [--spacing:4px] [--text-xs:12px] [--text-base:16px] [--text-xl:20px] [--text-3xl:30px]", scale === 1 && "mx-auto", reveal && "overflow-hidden")} style={fit.inner}>
-      <motion.div className="absolute" style={{ width, height, zoom: zoomZ, left: zoomLeft, top: zoomTop }}>
+      <motion.div className="absolute left-0 top-0 origin-top-left" style={{ width, height, scale: zoomZ, x: zoomX, y: zoomY }}>
         <svg className="pointer-events-none absolute inset-0 overflow-visible" width={width} height={height} aria-hidden>
           {Object.entries(WIN).map(([a, b]) => {
             const done = !!byId.get(a)?.winner;
@@ -414,6 +418,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
       </motion.div>
       </div>
       </div>
+      )}
     </div>
       {seen > 0 && width * scale > seen + 1 && (
         <div className={cn("pointer-events-none absolute inset-y-0 right-0 flex w-12 items-center justify-end bg-gradient-to-l from-ink to-transparent transition-opacity duration-300", end && "opacity-0")} aria-hidden>
