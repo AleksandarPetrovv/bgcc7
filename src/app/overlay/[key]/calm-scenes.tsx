@@ -108,38 +108,42 @@ function useAfter(on: boolean, ms: number) {
 // after the roll is revealed, "Picking…" waits this long so the gold winner outline gets its moment first
 const PICKING_DELAY_MS = 1000;
 
-function Roll({ value, state, label }: { value: number | null; state: "wait" | "won" | "lost" | "tie"; label: string }) {
+/** `below` = the label under the roll line: "Roll", then "Picking…" for the winner, then what each side got first */
+function Roll({ value, state, below }: { value: number | null; state: "wait" | "won" | "lost" | "tie"; below: string }) {
   const { shown, spinning } = useSpin(value);
   const won = state === "won" && !spinning;
   const tie = state === "tie" && !spinning;
   return (
-    <div className="flex flex-col items-center gap-2">
-      <AnimatePresence initial={false} mode="popLayout">
-        <motion.span
-          key={label}
-          className={cn("text-[16px] font-display font-bold transition-colors duration-500", won ? "text-gold-hi" : label !== "Roll" ? "text-paper" : "text-ash")}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.45, ease: EASE }}
-        >
-          {label}
-        </motion.span>
-      </AnimatePresence>
+    <div className="flex flex-col items-center gap-3">
       <span
         className={cn("relative flex h-[84px] min-w-[150px] items-center justify-center border-b-4 transition-[border-color,opacity] duration-500", state === "lost" && !spinning && "opacity-45", tie && "opacity-60")}
         style={{ borderColor: won ? "var(--gold)" : "var(--line)" }}
       >
+        {/* one element from first spin to settle: when the number lands only its colour changes */}
         <AnimatePresence initial={false} mode="popLayout">
           <motion.span
-            key={spinning ? "s" : `f${shown}`}
+            key={shown == null ? "q" : "n"}
             className={cn("num text-[68px] italic leading-none transition-colors duration-500", shown == null || tie ? "text-ash/50" : won ? "text-gold-hi" : spinning ? "text-paper/70" : "text-paper")}
-            initial={spinning || shown == null ? { opacity: 0 } : { scale: 1.4, opacity: 0 }}
-            animate={shown == null ? { scale: 1, opacity: [0.35, 0.8, 0.35] } : { scale: 1, opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: shown == null || spinning ? 0.12 : 0.4 } }}
-            transition={shown == null ? { opacity: { duration: 1.6, repeat: Infinity } } : spinning ? { duration: 0.08 } : { duration: 0.45, ease: EASE }}
+            initial={{ opacity: 0 }}
+            animate={shown == null ? { opacity: [0.35, 0.8, 0.35] } : { opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.3 } }}
+            transition={shown == null ? { opacity: { duration: 1.6, repeat: Infinity } } : { duration: 0.3 }}
           >
             {shown ?? "?"}
+          </motion.span>
+        </AnimatePresence>
+      </span>
+      <span className="relative h-[30px] w-full">
+        <AnimatePresence initial={false}>
+          <motion.span
+            key={below}
+            className={cn("absolute inset-x-0 top-0 whitespace-nowrap text-center font-display font-bold leading-[30px] transition-colors duration-500", below === "Roll" ? "text-[18px]" : "text-[22px]", won ? "text-gold-hi" : below === "Roll" ? "text-ash" : "text-paper")}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.45, ease: EASE }}
+          >
+            {below}
           </motion.span>
         </AnimatePresence>
       </span>
@@ -176,9 +180,10 @@ function Intro({ feed }: { feed: OverlayFeed }) {
   const decided = revealed && a !== b;
   const picking = useAfter(decided, PICKING_DELAY_MS) && !feed.choice;
   const state = (i: 0 | 1) => (!revealed || a == null || b == null ? "wait" : a === b ? "tie" : (i === 0 ? a > b : b > a) ? "won" : "lost");
-  // once the roll winner chooses, each side's label says what it got first
-  const label = (i: 0 | 1) => (!decided || !feed.choice ? "Roll" : (state(i) === "won") === (feed.choice === "pick") ? "First Pick" : "First Ban");
-  const roll = (i: 0 | 1) => (feed.rolls ? <Roll value={feed.rolls[i]} state={state(i)} label={label(i)} /> : null);
+  // under the roll: "Roll", then "Picking…" for the winner until it chooses, then what each side got first
+  const below = (i: 0 | 1) =>
+    !decided ? "Roll" : feed.choice ? ((state(i) === "won") === (feed.choice === "pick") ? "First Pick" : "First Ban") : picking && state(i) === "won" ? "Picking…" : "Roll";
+  const roll = (i: 0 | 1) => (feed.rolls ? <Roll value={feed.rolls[i]} state={state(i)} below={below(i)} /> : null);
   return (
     <>
       <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, ease: EASE }}>
@@ -203,20 +208,6 @@ function Intro({ feed }: { feed: OverlayFeed }) {
         <TeamSide team={feed.teams[1]} side={1} roll={roll(1)} />
         <span className="absolute -bottom-[8px] left-1/2 size-3.5 -translate-x-1/2 rotate-45 bg-rose" aria-hidden />
       </motion.div>
-      <AnimatePresence>
-        {picking && (
-          <motion.span
-            key="picking"
-            className="absolute inset-x-0 top-[676px] text-center text-[30px] font-display font-bold text-gold-hi"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.5, ease: EASE }}
-          >
-            Picking…
-          </motion.span>
-        )}
-      </AnimatePresence>
     </>
   );
 }
