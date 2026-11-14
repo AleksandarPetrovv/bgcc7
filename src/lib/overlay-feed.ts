@@ -9,18 +9,19 @@ import { getFormat } from "@/db/edition";
 import { firstToOf, getPoolStages, type PoolStage } from "@/db/mappools";
 import { getSkillLayouts } from "@/db/format-plan";
 import { bySkill } from "@/lib/format-plan";
-import { nowPlaying } from "@/lib/bancho";
+import { liveChat, nowPlaying } from "@/lib/bancho";
 import { getLive } from "@/lib/live-scores";
 import { IPC_PLAYING } from "@/lib/relay-contract";
 import { overlayUser, currentStreamMatch } from "@/db/stream";
 import { isScene, type Scene } from "@/lib/scenes";
 import { getCue, PLAY_LEAD } from "@/lib/overlay-cues";
-import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup, FeedMatch, FeedTurn, FeedChat, LiveScore } from "./overlay-types";
+import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup, FeedMatch, FeedTurn, FeedClock, FeedChat, LiveScore } from "./overlay-types";
 import type { ChatLine } from "./lobby-chat";
 import { flagChat } from "./chat-filter";
 import { streamChatLine } from "./chat-visibility";
 import { nameKey } from "./names";
-import { scoreOf, tbDue, turnOf, type DraftView } from "@/lib/draft";
+import { deadline, scoreOf, tbDue, turnOf, type DraftView } from "@/lib/draft";
+import { avatarPath } from "@/lib/avatar";
 import { TEST_MATCH, isGfId } from "@/lib/format";
 import { bracketZoom, zoomPause } from "@/lib/overlay-zoom";
 import { canSee } from "@/lib/authz";
@@ -62,7 +63,8 @@ const STREAM_CHAT = 12;
 
 /** lobby chat as the stream shows it: no commands, no bancho noise, nothing the slur filter flags; `people` (by nameKey) gives pictures and sides */
 export function streamChat(lines: ChatLine[], people: Map<string, { avatar: string; side: 1 | 2 | null }>): FeedChat[] {
-  return flagChat(lines)
+  // only the tail gets the slur check: feeds rebuild several times a second
+  return flagChat(lines.slice(-STREAM_CHAT * 4))
     .filter(streamChatLine)
     .slice(-STREAM_CHAT)
     .map((l) => {
@@ -137,14 +139,30 @@ function feedTurn(draft: DraftView | null | undefined, pool: FeedMap[]): FeedTur
   return t.kind === "pick" || t.kind === "ban" ? { kind: t.kind, team: t.team } : null;
 }
 
+function feedClock(draft: DraftView | null | undefined, pool: FeedMap[]): FeedClock {
+  if (!draft?.open) return null;
+  if (draft.pausedAt) {
+    const on = draft.timeouts.on;
+    return on && draft.pauseUntil ? { kind: "timeout", team: on, until: Date.parse(draft.pauseUntil) } : { kind: "paused" };
+  }
+  const slots = pool.map((p) => p.slot);
+  const t = turnOf(draft, slots);
+  if (t.kind !== "pick" && t.kind !== "ban") return null;
+  const at = draft.turnAt ? Date.parse(draft.turnAt) : 0;
+  if (at > Date.now()) return { kind: "gap", until: at };
+  const until = deadline(draft, slots);
+  return until == null ? null : { kind: "turn", until };
+}
+
 export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
   const f = getFormat();
-  const [allMatches, allTeams, draft, stages, sceneRow] = await Promise.all([
+  const [allMatches, allTeams, draft, stages, sceneRow, talk] = await Promise.all([
     getAllMatches(),
     getAllTeams(),
     settleSometimes(matchId),
     getPoolStages(),
     db.select({ scene: matches.scene }).from(matches).where(eq(matches.id, matchId)).limit(1),
+    liveChat(matchId),
   ]);
 
   const m = allMatches.find((m) => m.id === matchId);
@@ -237,6 +255,10 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
 
   const o = sceneRow[0]?.scene;
   const scene: Scene = isScene(o) ? o : auto;
+  const teams: OverlayFeed["teams"] = [team(m.team1), team(m.team2)];
+  const people = new Map<string, { avatar: string; side: 1 | 2 | null }>();
+  for (const [k, id] of talk.refs) if (id) people.set(k, { avatar: avatarPath(id), side: null });
+  teams.forEach((t, i) => t.players.forEach((p) => people.set(nameKey(p.name), { avatar: p.avatar, side: (i + 1) as 1 | 2 })));
   const sceneAuto = !isScene(o);
   const zoom = bracketZoom(matchId, scene === "bracket", sceneAuto && winner !== null,matchId in f.layout.pos || isGfId(matchId), now);
 
@@ -254,7 +276,7 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
       streamer: m.streamer,
       commentators: m.commentators,
     },
-    teams: [team(m.team1), team(m.team2)],
+    teams,
     pool,
     groups,
     schedule: await scheduleFeed(),
@@ -262,8 +284,10 @@ export async function buildFeed(matchId: string): Promise<OverlayFeed | null> {
     rolls: [draft?.roll1 ?? null, draft?.roll2 ?? null],
     choice: draft?.choice === "pick" || draft?.choice === "ban" ? draft.choice : null,
     turn: stage?.released ? feedTurn(draft, pool) : null,
+    clock: stage?.released ? feedClock(draft, pool) : null,
     current,
     live: stage?.released ? shownLive : null,
+    chat: streamChat(talk.lines, people),
     scene,
     sceneAuto,
     zoom,

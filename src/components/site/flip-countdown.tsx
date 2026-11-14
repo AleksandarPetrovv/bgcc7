@@ -15,7 +15,8 @@ const tickEverySecond = (cb: () => void) => {
 };
 const still = () => () => {};
 
-function useNow(active: boolean) {
+/** the browser clock, ticking each second while `active` (null otherwise and on the server) */
+export function useNow(active: boolean) {
   const now = useSyncExternalStore(active ? tickEverySecond : still, () => clock, () => null);
   return active ? now : null;
 }

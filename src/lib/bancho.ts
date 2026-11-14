@@ -11,7 +11,7 @@ import { getUser } from "@/lib/osu-api";
 import { lobbySize } from "@/lib/format";
 
 import { attach, canLobby, conn, coolingDown, ensureBot, init, lastSent, liveConns, liveLobby, lobbyOwner, markClosed, membersOf, online, ownerOf, ping, playStart, restoreOwner, retire, state, swapSlots, syncOf, target, typed, type Live, type LobbySlot, type LobbyView } from "./bancho-irc";
-import { CHAT_SHOWN, cleanChat } from "./lobby-chat";
+import { CHAT_SHOWN, cleanChat, type ChatLine } from "./lobby-chat";
 import { MOD_LOBBY } from "./mods";
 import { nameKey } from "@/lib/names";
 import { within } from "./utils";
@@ -131,17 +131,18 @@ export async function lobbyView(matchId: string, viewer?: number): Promise<Lobby
   };
 }
 
-let refCache: { at: number; names: Set<string> } | null = null;
+let refCache: { at: number; names: Map<string, number | null> } | null = null;
 
+/** hosts, referees and the bot accounts that run lobbies, by nameKey, with their osu! id (null for a bot account) */
 export async function lobbyRefNames() {
   if (refCache && Date.now() - refCache.at < 60_000) return refCache.names;
   const rows = await db
-    .select({ username: users.username, roles: staff.permRoles })
+    .select({ osuId: users.osuId, username: users.username, roles: staff.permRoles })
     .from(staff)
     .innerJoin(users, eq(users.osuId, staff.osuId))
     .catch(() => []);
-  const names = new Set(rows.filter((r) => r.roles.some((x) => x === "host" || x === "referee")).map((r) => nameKey(r.username)));
-  for (const c of liveConns()) names.add(nameKey(c.client.getSelf().ircUsername));
+  const names = new Map<string, number | null>(rows.filter((r) => r.roles.some((x) => x === "host" || x === "referee")).map((r) => [nameKey(r.username), r.osuId]));
+  for (const c of liveConns()) if (!names.has(nameKey(c.client.getSelf().ircUsername))) names.set(nameKey(c.client.getSelf().ircUsername), null);
   refCache = { at: Date.now(), names };
   return names;
 }
@@ -224,6 +225,14 @@ export async function abortLobby(matchId: string) {
   await lb.abortMatch();
 }
 
+
+/** the open lobby's chat with ref lines marked, for the stream overlay; empty when no lobby is live */
+export async function liveChat(matchId: string): Promise<{ lines: ChatLine[]; refs: Map<string, number | null> }> {
+  const l = currentEdition() === siteEdition() ? liveLobby(matchId) : null;
+  if (!l) return { lines: [], refs: new Map() };
+  const refs = await lobbyRefNames();
+  return { lines: l.chat.map((c) => (refs.has(nameKey(c.from)) ? { ...c, ref: true } : c)), refs };
+}
 
 export function nowPlaying(matchId: string) {
   // live lobbies only exist for the site edition; an archived edition shares match ids

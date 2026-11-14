@@ -86,38 +86,57 @@ function useSpin(value: number | null) {
   return { shown, spinning };
 }
 
-function useReveal(both: boolean) {
-  const was = useRef(both);
-  const [ready, setReady] = useState(both);
-  const [prev, setPrev] = useState(both);
-  if (both !== prev) {
-    setPrev(both);
-    if (!both) setReady(false);
+/** true once `on` has held for `ms` (true straight away if it was already on at mount); false as soon as it turns off */
+function useAfter(on: boolean, ms: number) {
+  const was = useRef(on);
+  const [ready, setReady] = useState(on);
+  const [prev, setPrev] = useState(on);
+  if (on !== prev) {
+    setPrev(on);
+    if (!on) setReady(false);
   }
   useEffect(() => {
-    if (both === was.current) return;
-    was.current = both;
-    if (!both) return;
-    const id = setTimeout(() => setReady(true), ROLL_REVEAL_MS);
+    if (on === was.current) return;
+    was.current = on;
+    if (!on) return;
+    const id = setTimeout(() => setReady(true), ms);
     return () => clearTimeout(id);
-  }, [both]);
+  }, [on, ms]);
   return ready;
 }
 
-function Roll({ value, state }: { value: number | null; state: "wait" | "won" | "lost" }) {
+// after the roll is revealed, "Picking…" waits this long so the gold winner outline gets its moment first
+const PICKING_DELAY_MS = 1000;
+
+function Roll({ value, state, label }: { value: number | null; state: "wait" | "won" | "lost" | "tie"; label: string }) {
   const { shown, spinning } = useSpin(value);
   const won = state === "won" && !spinning;
+  const tie = state === "tie" && !spinning;
   return (
-    <div className={cn("flex flex-col items-center gap-2 transition-opacity duration-500", state === "lost" && !spinning && "opacity-45")}>
-      <span className={cn("text-[16px] font-display font-bold transition-colors duration-500", won ? "text-gold-hi" : "text-ash")}>Roll</span>
-      <span className="relative flex h-[84px] min-w-[150px] items-center justify-center border-b-4 transition-colors duration-500" style={{ borderColor: won ? "var(--gold)" : "var(--line)" }}>
+    <div className="flex flex-col items-center gap-2">
+      <AnimatePresence initial={false} mode="popLayout">
+        <motion.span
+          key={label}
+          className={cn("text-[16px] font-display font-bold transition-colors duration-500", won ? "text-gold-hi" : label !== "Roll" ? "text-paper" : "text-ash")}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.45, ease: EASE }}
+        >
+          {label}
+        </motion.span>
+      </AnimatePresence>
+      <span
+        className={cn("relative flex h-[84px] min-w-[150px] items-center justify-center border-b-4 transition-[border-color,opacity] duration-500", state === "lost" && !spinning && "opacity-45", tie && "opacity-60")}
+        style={{ borderColor: won ? "var(--gold)" : "var(--line)" }}
+      >
         <AnimatePresence initial={false} mode="popLayout">
           <motion.span
             key={spinning ? "s" : `f${shown}`}
-            className={cn("num text-[68px] italic leading-none", shown == null ? "text-ash/50" : won ? "text-gold-hi" : spinning ? "text-paper/70" : "text-paper")}
-            initial={spinning ? { opacity: 0 } : { scale: 1.4, opacity: 0 }}
+            className={cn("num text-[68px] italic leading-none transition-colors duration-500", shown == null || tie ? "text-ash/50" : won ? "text-gold-hi" : spinning ? "text-paper/70" : "text-paper")}
+            initial={spinning || shown == null ? { opacity: 0 } : { scale: 1.4, opacity: 0 }}
             animate={shown == null ? { scale: 1, opacity: [0.35, 0.8, 0.35] } : { scale: 1, opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.12 } }}
+            exit={{ opacity: 0, transition: { duration: shown == null || spinning ? 0.12 : 0.4 } }}
             transition={shown == null ? { opacity: { duration: 1.6, repeat: Infinity } } : spinning ? { duration: 0.08 } : { duration: 0.45, ease: EASE }}
           >
             {shown ?? "?"}
@@ -153,9 +172,13 @@ function TeamSide({ team, side, roll }: { team: FeedTeam; side: 0 | 1; roll?: Re
 
 function Intro({ feed }: { feed: OverlayFeed }) {
   const [a, b] = feed.rolls ?? [null, null];
-  const revealed = useReveal(a != null && b != null && a !== b);
-  const state = (i: 0 | 1) => (!revealed || a == null || b == null ? "wait" : (i === 0 ? a > b : b > a) ? "won" : "lost");
-  const roll = (i: 0 | 1) => (feed.rolls ? <Roll value={feed.rolls[i]} state={state(i)} /> : null);
+  const revealed = useAfter(a != null && b != null, ROLL_REVEAL_MS);
+  const decided = revealed && a !== b;
+  const picking = useAfter(decided, PICKING_DELAY_MS) && !feed.choice;
+  const state = (i: 0 | 1) => (!revealed || a == null || b == null ? "wait" : a === b ? "tie" : (i === 0 ? a > b : b > a) ? "won" : "lost");
+  // once the roll winner chooses, each side's label says what it got first
+  const label = (i: 0 | 1) => (!decided || !feed.choice ? "Roll" : (state(i) === "won") === (feed.choice === "pick") ? "First Pick" : "First Ban");
+  const roll = (i: 0 | 1) => (feed.rolls ? <Roll value={feed.rolls[i]} state={state(i)} label={label(i)} /> : null);
   return (
     <>
       <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, ease: EASE }}>
@@ -180,6 +203,20 @@ function Intro({ feed }: { feed: OverlayFeed }) {
         <TeamSide team={feed.teams[1]} side={1} roll={roll(1)} />
         <span className="absolute -bottom-[8px] left-1/2 size-3.5 -translate-x-1/2 rotate-45 bg-rose" aria-hidden />
       </motion.div>
+      <AnimatePresence>
+        {picking && (
+          <motion.span
+            key="picking"
+            className="absolute inset-x-0 top-[676px] text-center text-[30px] font-display font-bold text-gold-hi"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.5, ease: EASE }}
+          >
+            Picking…
+          </motion.span>
+        )}
+      </AnimatePresence>
     </>
   );
 }

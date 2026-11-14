@@ -1,13 +1,13 @@
 import "server-only";
 import { isScene, type Scene } from "@/lib/scenes";
-import { type OverlayFeed, type FeedStep, type FeedTurn, type LiveScore } from "@/lib/overlay-types";
+import { type OverlayFeed, type FeedClock, type FeedStep, type FeedTurn, type LiveScore } from "@/lib/overlay-types";
 import { sse } from "@/lib/sse";
 import { getPoolStages } from "@/db/mappools";
 import { poolFeed, scheduleFeed, streamChat } from "@/lib/overlay-feed";
 import type { ChatLine } from "@/lib/lobby-chat";
 import { nameKey } from "@/lib/names";
 import { IPC_PLAYING } from "@/lib/relay-contract";
-import { TB } from "@/lib/draft";
+import { TB, TIE_HOLD_MS } from "@/lib/draft";
 import { DEMO_MATCH } from "@/lib/demo-bracket";
 import { getFormat } from "@/db/edition";
 import { roundOf } from "@/lib/format";
@@ -81,8 +81,8 @@ const AFTER = 5;
 
 const TIMELINE: [Scene, number][] = [
   ["soon", 8],
-  ["intro", 15],
-  ["mappool", 22],
+  ["intro", 18],
+  ["mappool", 32],
   ["gameplay", PRE + PLAY + AFTER],
   ["winner", 10],
   ["bracket", 26],
@@ -104,30 +104,35 @@ type Say = [number, string, string];
 const CHAT: Partial<Record<Scene, Say[]>> = {
   intro: [
     [0.3, "werkzu", "ok captains !roll aide"],
-    [0.9, "peppy", "!roll"],
-    [1.1, "BanchoBot", "peppy rolls 73 point(s)"],
-    [1.6, "Cookiezi", "73 lets gooo"],
-    [2.2, "mrekk", "!roll"],
-    [2.4, "BanchoBot", "mrekk rolls 41 point(s)"],
-    [2.9, "mrekk", "41 bro what"],
-    [3.4, "WhiteCat", "xd"],
-    [4.1, "peppy", "ez"],
-    [4.8, "werkzu", "red won the roll, pick or ban first?"],
-    [5.4, "mrekk", "rigged roll ngl"],
-    [6, "Cookiezi", "cope"],
-    [6.6, "peppy", "we ban first"],
-    [7.2, "werkzu", "!mp settings"],
-    [7.4, "BanchoBot", "Room name: BGCC7: (Shopska Salad) vs (Banitsa Gang)"],
-    [8, "werkzu", "ok red bans first, blue picks first"],
-    [8.7, "WhiteCat", "aide brat"],
-    [9.3, "mrekk", "kys lol"],
-    [10, "Cookiezi", "gl hf"],
-    [10.6, "mrekk", "glhf"],
-    [11.4, "WhiteCat", "lets have a good one"],
-    [12.2, "werkzu", "bans in 2 min"],
-    [13, "peppy", "ok"],
-    [13.8, "Cookiezi", "kvo shte banvame"],
-    [14.5, "peppy", "hr2 obviously"],
+    [1, "peppy", "!roll"],
+    [1.2, "BanchoBot", "peppy rolls 50 point(s)"],
+    [2.4, "mrekk", "!roll"],
+    [2.6, "BanchoBot", "mrekk rolls 50 point(s)"],
+    [3.3, "WhiteCat", "no way"],
+    [4, "Cookiezi", "TIE XD"],
+    [4.6, "mrekk", "ebasi"],
+    [5.3, "werkzu", "tie, roll again"],
+    [6.2, "peppy", "bruh"],
+    [8.2, "peppy", "!roll"],
+    [8.4, "BanchoBot", "peppy rolls 73 point(s)"],
+    [9, "Cookiezi", "73 lets gooo"],
+    [9.4, "mrekk", "!roll"],
+    [9.6, "BanchoBot", "mrekk rolls 41 point(s)"],
+    [10.2, "mrekk", "41 bro what"],
+    [10.8, "WhiteCat", "xd"],
+    [11.4, "werkzu", "red won the roll, pick or ban first?"],
+    [12, "mrekk", "rigged roll ngl"],
+    [12.6, "Cookiezi", "cope"],
+    [13.2, "peppy", "we ban first"],
+    [13.4, "werkzu", "!mp settings"],
+    [13.5, "BanchoBot", "Room name: BGCC7: (Shopska Salad) vs (Banitsa Gang)"],
+    [14.2, "werkzu", "ok red bans first, blue picks first"],
+    [14.8, "WhiteCat", "aide brat"],
+    [15.3, "mrekk", "kys lol"],
+    [15.9, "Cookiezi", "gl hf"],
+    [16.4, "mrekk", "glhf"],
+    [17, "werkzu", "bans in 2 min"],
+    [17.5, "Cookiezi", "kvo shte banvame"],
   ],
   mappool: [
     [0.4, "werkzu", "red, ban"],
@@ -145,21 +150,33 @@ const CHAT: Partial<Record<Scene, Say[]>> = {
     [8.2, "BanchoBot", "Changed beatmap to https://osu.ppy.sh/b/1000001"],
     [9.4, "WhiteCat", "gg that one"],
     [10, "mrekk", "close tho"],
-    [10.6, "werkzu", "blue, pick"],
-    [11.2, "mrekk", "hd1"],
-    [12.4, "Cookiezi", "ebasi aim map"],
-    [13, "peppy", "ne e fer"],
-    [13.6, "werkzu", "red 1 | 1 blue"],
-    [14.4, "werkzu", "red, pick"],
-    [15, "Cookiezi", "dt1"],
-    [15.6, "mrekk", "oh no"],
-    [16.2, "WhiteCat", "we're cooked"],
-    [17, "peppy", "xd"],
-    [17.8, "werkzu", "ready up"],
-    [18.6, "mrekk", "readyyy"],
-    [19.4, "Cookiezi", "aide"],
-    [20.2, "WhiteCat", "gl"],
-    [21, "peppy", "gl"],
+    [10.8, "werkzu", "blue picks in 30"],
+    [11.6, "mrekk", "hmm"],
+    [12.6, "WhiteCat", "wait timeout"],
+    [13.4, "mrekk", "ye we need a sec"],
+    [14.2, "werkzu", "blue timeout, 1 min"],
+    [15, "Cookiezi", "xd scared"],
+    [16, "peppy", "take ur time"],
+    [17.2, "mrekk", "ok whitecat drink water"],
+    [18.2, "WhiteCat", "bruh"],
+    [19.2, "werkzu", "quick pause, peppy dc"],
+    [20, "peppy", "sry internet"],
+    [21, "Cookiezi", "ebasi"],
+    [22.4, "peppy", "back"],
+    [23.2, "werkzu", "blue, pick"],
+    [24, "mrekk", "hd1"],
+    [25, "WhiteCat", "hd1"],
+    [25.6, "werkzu", "!mp map 1000006 8"],
+    [25.8, "BanchoBot", "Changed beatmap to https://osu.ppy.sh/b/1000006"],
+    [26.6, "Cookiezi", "ebasi aim map"],
+    [27.2, "peppy", "ne e fer"],
+    [27.8, "werkzu", "red 1 | 1 blue"],
+    [28.6, "Cookiezi", "dt1"],
+    [29.4, "mrekk", "oh no"],
+    [30, "WhiteCat", "we're cooked"],
+    [30.6, "werkzu", "ready up"],
+    [31.2, "mrekk", "readyyy"],
+    [31.7, "peppy", "gl"],
   ],
   gameplay: [
     [0.2, "werkzu", "!mp start 5"],
@@ -221,6 +238,24 @@ const STEPS: FeedStep[] = [
   { team: 1, kind: "pick", slot: "DT1", winner: null },
 ];
 
+// rolls: a 50-50 tie that clears after TIE_HOLD_MS, then the real rolls and red's choice
+const TIE = { a: 1.2, b: 2.6 };
+const ROLLED = { a: 8.4, b: 9.6, choice: 13.6 };
+
+// the mappool scene: [from second, steps done, clock]; seconds in a clock are how long it runs from that second
+type PoolBeat = [number, number, { kind: "turn" | "gap"; secs: number } | { kind: "timeout"; team: 1 | 2; secs: number } | { kind: "paused" } | null];
+const POOL_BEATS: PoolBeat[] = [
+  [0, 0, { kind: "turn", secs: 45 }],
+  [3, 1, { kind: "turn", secs: 45 }],
+  [6, 2, { kind: "turn", secs: 60 }],
+  [9, 3, { kind: "gap", secs: 30 }],
+  [14, 3, { kind: "timeout", team: 2, secs: 60 }],
+  [19, 3, { kind: "paused" }],
+  [23, 3, { kind: "turn", secs: 60 }],
+  [26, 4, { kind: "gap", secs: 30 }],
+  [29, 5, null],
+];
+
 function demo(pin: Scene | null, startedAt: number): OverlayFeed {
   const now = Date.now();
   const elapsed = Math.max(0, now - startedAt) / 1000;
@@ -253,11 +288,17 @@ function demo(pin: Scene | null, startedAt: number): OverlayFeed {
   let choice: "pick" | "ban" | null = "pick";
   let turn: FeedTurn = null;
 
+  let clock: FeedClock = null;
+
   if (scene === "intro") {
-    rolls = [local >= 2 ? 73 : null, local >= 4.5 ? 41 : null];
-    choice = null;
+    const tied = local < TIE.b + TIE_HOLD_MS / 1000;
+    rolls = tied ? [local >= TIE.a ? 50 : null, local >= TIE.b ? 50 : null] : [local >= ROLLED.a ? 73 : null, local >= ROLLED.b ? 41 : null];
+    choice = local >= ROLLED.choice ? "ban" : null;
   } else if (scene === "mappool") {
-    steps = STEPS.slice(0, Math.min(STEPS.length, Math.floor(local / 3))).map((x) => ({ ...x }));
+    const [from, done, c] = POOL_BEATS.findLast(([at]) => at <= local)!;
+    const sceneStart = now - local * 1000;
+    clock = !c ? null : c.kind === "paused" ? c : { ...c, until: Math.round(sceneStart + (from + c.secs) * 1000) };
+    steps = STEPS.slice(0, done).map((x) => ({ ...x }));
     const last = steps.at(-1);
     if (last?.kind === "pick" && last.winner === null) current = POOL.find((m) => m.slot === last.slot) ?? null;
     score = [steps.filter((x) => x.winner === 1).length, steps.filter((x) => x.winner === 2).length];
@@ -297,6 +338,7 @@ function demo(pin: Scene | null, startedAt: number): OverlayFeed {
     rolls,
     choice,
     turn,
+    clock,
     current,
     live,
     chat: demoChat(scene, local, now),

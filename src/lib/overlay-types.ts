@@ -32,6 +32,10 @@ export type FeedChat = { key: string; at: number; name: string; avatar: string |
 
 export type FeedTurn ={ kind: "pick" | "ban"; team: 1 | 2 } | { kind: "tb" } | null;
 
+/** the draft clock under the turn on stream. `until` is server time (compare with `OverlayFeed.at`):
+ *  turn = the pick/ban clock, gap = the wait after a map result, timeout = an accepted team timeout, paused = the ref's pause */
+export type FeedClock = { kind: "turn" | "gap"; until: number } | { kind: "timeout"; team: 1 | 2; until: number } | { kind: "paused" } | null;
+
 export type OverlayFeed = {
   edition: string;
   tournament: string;
@@ -54,6 +58,7 @@ export type OverlayFeed = {
   rolls: [number | null, number | null];
   choice: "pick" | "ban" | null;
   turn?: FeedTurn;
+  clock?: FeedClock;
   current: FeedMap | null;
   live: LiveScore | null;
   /** newest last; shown in the rolls, mappool, winner scenes and between maps */
