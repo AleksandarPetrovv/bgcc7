@@ -91,9 +91,13 @@ function Turn({ feed }: { feed: OverlayFeed }) {
           ) : t?.kind === "tb" ? (
             <span className="heading-slam text-[48px] leading-none text-gold-hi">Tiebreaker</span>
           ) : feed.current ? (
+            // laid out like "Red picks": the slot in its colour, "Up Next" underlined in the slot colour
             <>
-              <span className={LABEL}>Up next</span>
-              <span className="heading-slam text-[48px] leading-none" style={{ color: modHi(slotColor(feed.current.slot.toUpperCase())) }}>{feed.current.slot}</span>
+              <span className="heading-slam text-[56px] leading-none" style={{ color: modHi(slotColor(feed.current.slot.toUpperCase())) }}>{feed.current.slot}</span>
+              <span className="relative px-1 text-[20px] font-display font-bold text-paper">
+                Up Next
+                <motion.span className="absolute inset-x-0 -bottom-1.5 h-[3px] origin-center" style={{ background: slotColor(feed.current.slot.toUpperCase()) }} initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.5, delay: 0.15, ease: EASE }} />
+              </span>
             </>
           ) : null}
         </motion.div>
