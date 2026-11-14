@@ -321,8 +321,8 @@ export function CalmScene({ feed }: { feed: OverlayFeed }) {
       {s === "winner" && <Winner feed={feed} />}
       {s === "brb" && <Break feed={feed} />}
       {!!feed.chat?.length && (s === "intro" || s === "winner") && (
-        <div className={cn("absolute flex", s === "intro" ? "inset-x-0 bottom-[76px] justify-center" : "bottom-[300px] right-[72px]")}>
-          <StreamChat lines={feed.chat} rows={s === "intro" ? 6 : 5} className={s === "intro" ? "w-[640px]" : "w-[560px]"} delay={1.2} />
+        <div className={cn("absolute flex", s === "intro" ? "inset-x-0 bottom-[76px] justify-center" : "bottom-[258px] right-[72px]")}>
+          <StreamChat lines={feed.chat} rows={6} className={s === "intro" ? "w-[640px]" : "w-[560px]"} delay={1.2} />
         </div>
       )}
     </div>
