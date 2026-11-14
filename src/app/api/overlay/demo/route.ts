@@ -3,7 +3,10 @@ import { isScene, type Scene } from "@/lib/scenes";
 import { type OverlayFeed, type FeedStep, type FeedTurn, type LiveScore } from "@/lib/overlay-types";
 import { sse } from "@/lib/sse";
 import { getPoolStages } from "@/db/mappools";
-import { poolFeed, scheduleFeed } from "@/lib/overlay-feed";
+import { poolFeed, scheduleFeed, streamChat } from "@/lib/overlay-feed";
+import type { ChatLine } from "@/lib/lobby-chat";
+import { nameKey } from "@/lib/names";
+import { IPC_PLAYING } from "@/lib/relay-contract";
 import { TB } from "@/lib/draft";
 import { DEMO_MATCH } from "@/lib/demo-bracket";
 import { getFormat } from "@/db/edition";
@@ -71,11 +74,16 @@ const POOL = Array.from({ length: 13 }, (_, i) => {
   };
 });
 
+// gameplay: pictures only before the map, then the map, then its results
+const PRE = 5;
+const PLAY = 22;
+const AFTER = 5;
+
 const TIMELINE: [Scene, number][] = [
   ["soon", 8],
   ["intro", 15],
   ["mappool", 22],
-  ["gameplay", 26],
+  ["gameplay", PRE + PLAY + AFTER],
   ["winner", 10],
   ["bracket", 26],
   ["end", 7],
@@ -83,6 +91,120 @@ const TIMELINE: [Scene, number][] = [
   ["schedule", 8],
 ];
 const CYCLE = TIMELINE.reduce((n, [, d]) => n + d, 0);
+
+// a demo referee and bancho, plus the four players, for chat pictures and colours
+const REF = { name: "werkzu", avatar: "https://a.ppy.sh/23913323" };
+const PEOPLE = new Map<string, { avatar: string; side: 1 | 2 | null }>([
+  [nameKey(REF.name), { avatar: REF.avatar, side: null }],
+  [nameKey("BanchoBot"), { avatar: "https://a.ppy.sh/3", side: null }],
+  ...TEAMS.flatMap((t, i) => t.players.map((p) => [nameKey(p.name), { avatar: p.avatar, side: (i + 1) as 1 | 2 }] as const)),
+]);
+
+// [seconds into the scene, who, text]. commands, bancho's settings dump and the flagged line never reach the stream
+type Say = [number, string, string];
+const CHAT: Partial<Record<Scene, Say[]>> = {
+  intro: [
+    [0.3, "werkzu", "ok captains !roll aide"],
+    [0.9, "peppy", "!roll"],
+    [1.1, "BanchoBot", "peppy rolls 73 point(s)"],
+    [1.6, "Cookiezi", "73 lets gooo"],
+    [2.2, "mrekk", "!roll"],
+    [2.4, "BanchoBot", "mrekk rolls 41 point(s)"],
+    [2.9, "mrekk", "41 bro what"],
+    [3.4, "WhiteCat", "xd"],
+    [4.1, "peppy", "ez"],
+    [4.8, "werkzu", "red won the roll, pick or ban first?"],
+    [5.4, "mrekk", "rigged roll ngl"],
+    [6, "Cookiezi", "cope"],
+    [6.6, "peppy", "we ban first"],
+    [7.2, "werkzu", "!mp settings"],
+    [7.4, "BanchoBot", "Room name: BGCC7: (Shopska Salad) vs (Banitsa Gang)"],
+    [8, "werkzu", "ok red bans first, blue picks first"],
+    [8.7, "WhiteCat", "aide brat"],
+    [9.3, "mrekk", "kys lol"],
+    [10, "Cookiezi", "gl hf"],
+    [10.6, "mrekk", "glhf"],
+    [11.4, "WhiteCat", "lets have a good one"],
+    [12.2, "werkzu", "bans in 2 min"],
+    [13, "peppy", "ok"],
+    [13.8, "Cookiezi", "kvo shte banvame"],
+    [14.5, "peppy", "hr2 obviously"],
+  ],
+  mappool: [
+    [0.4, "werkzu", "red, ban"],
+    [1, "Cookiezi", "hr2 rn"],
+    [1.6, "peppy", "yea"],
+    [2.4, "peppy", "hr2"],
+    [3.4, "werkzu", "blue, ban"],
+    [4, "mrekk", "dt3 they farm dt"],
+    [4.6, "WhiteCat", "true"],
+    [5.4, "mrekk", "dt3"],
+    [6.4, "werkzu", "red, pick"],
+    [7, "Cookiezi", "nm1 brat"],
+    [7.6, "peppy", "nm1"],
+    [8, "werkzu", "!mp map 1000001 0"],
+    [8.2, "BanchoBot", "Changed beatmap to https://osu.ppy.sh/b/1000001"],
+    [9.4, "WhiteCat", "gg that one"],
+    [10, "mrekk", "close tho"],
+    [10.6, "werkzu", "blue, pick"],
+    [11.2, "mrekk", "hd1"],
+    [12.4, "Cookiezi", "ebasi aim map"],
+    [13, "peppy", "ne e fer"],
+    [13.6, "werkzu", "red 1 | 1 blue"],
+    [14.4, "werkzu", "red, pick"],
+    [15, "Cookiezi", "dt1"],
+    [15.6, "mrekk", "oh no"],
+    [16.2, "WhiteCat", "we're cooked"],
+    [17, "peppy", "xd"],
+    [17.8, "werkzu", "ready up"],
+    [18.6, "mrekk", "readyyy"],
+    [19.4, "Cookiezi", "aide"],
+    [20.2, "WhiteCat", "gl"],
+    [21, "peppy", "gl"],
+  ],
+  gameplay: [
+    [0.2, "werkzu", "!mp start 5"],
+    [0.4, "BanchoBot", "Queued the match to start in 5 seconds"],
+    [1, "mrekk", "gl"],
+    [1.5, "Cookiezi", "gl"],
+    [2.1, "WhiteCat", "dont choke pls"],
+    [2.8, "peppy", "no promises"],
+    [3.4, "mrekk", "aide"],
+    [4.6, "BanchoBot", "The match has started!"],
+    [27.2, "BanchoBot", "The match has finished!"],
+    [27.7, "Cookiezi", "LETS GOOO"],
+    [28.2, "mrekk", "gg"],
+    [28.7, "werkzu", "red 2 | 1 blue"],
+    [29.2, "WhiteCat", "ugh 20k"],
+    [29.8, "peppy", "dt diff"],
+    [30.4, "werkzu", "blue, pick"],
+    [31, "mrekk", "4akai"],
+    [31.6, "WhiteCat", "this is so retarded"],
+  ],
+  winner: [
+    [0.4, "werkzu", "gg red wins 5-2"],
+    [0.9, "Cookiezi", "GGGG"],
+    [1.4, "peppy", "ggs"],
+    [1.9, "mrekk", "gg wp"],
+    [2.5, "WhiteCat", "ggwp next time"],
+    [3.1, "Cookiezi", "ez clap"],
+    [3.7, "mrekk", "rematch?"],
+    [4.3, "peppy", "nope xd"],
+    [5, "werkzu", "thanks for playing, results on the site in a sec"],
+    [5.7, "WhiteCat", "ty ref"],
+    [6.3, "mrekk", "ty"],
+    [7, "Cookiezi", "aide chao"],
+    [7.8, "peppy", "o7"],
+    [8.6, "werkzu", "o7"],
+  ],
+};
+
+function demoChat(scene: Scene, local: number, now: number) {
+  const lines = (CHAT[scene] ?? [])
+    .filter(([t]) => t <= local)
+    .map(([t, from, text]): ChatLine => ({ at: Math.round(now - (local - t) * 1000), from, text, ...(from === REF.name ? { ref: true } : {}) }));
+  return streamChat(lines, PEOPLE);
+}
 
 const STEPS: FeedStep[] = [
   { team: 1, kind: "ban", slot: "HR2", winner: null },
@@ -138,7 +260,7 @@ function demo(pin: Scene | null, startedAt: number): OverlayFeed {
     steps = STEPS;
     score = [1, 1];
     current = POOL.find((m) => m.slot === "DT1") ?? null;
-    live = gameplay(local, now);
+    live = local < PRE ? null : gameplay(local - PRE, now);
   } else if (scene === "winner" || scene === "bracket" || scene === "end") {
     steps = STEPS.map((x) => (x.winner === null && x.kind === "pick" ? { ...x, winner: 1 } : x));
     score = [5, 2];
@@ -170,6 +292,7 @@ function demo(pin: Scene | null, startedAt: number): OverlayFeed {
     turn,
     current,
     live,
+    chat: demoChat(scene, local, now),
     scene,
     sceneAuto: !pin,
     at: now,
@@ -177,7 +300,7 @@ function demo(pin: Scene | null, startedAt: number): OverlayFeed {
 }
 
 function gameplay(t: number, now: number): LiveScore {
-  const run = Math.min(t, 22);
+  const run = Math.min(t, PLAY);
   const rate = [12_400, 13_600, 12_900, 13_300];
   const players = [...TEAMS[0].players, ...TEAMS[1].players];
   const clients = players.map((p, i) => {
@@ -199,7 +322,7 @@ function gameplay(t: number, now: number): LiveScore {
   return {
     matchId: "DEMO",
     mapId: 1000010,
-    ipcState: t >= 22 ? 4 : 3,
+    ipcState: t >= PLAY ? 4 : IPC_PLAYING,
     clients,
     totals: [clients[0].score + clients[1].score, clients[2].score + clients[3].score],
     at: now,

@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Backdrop, Blend, Echo, editionNum, Lockup, PlayerCard, Rule, ScoreNum, TEAM, TeamPic, TeamPlate, TopBar, Versus } from "./chrome";
 import { EASE } from "@/lib/ease";
 import { ROLL_REVEAL_MS, ROLL_SPIN_MS } from "@/lib/draft";
+import { StreamChat } from "./stream-chat";
 
 
 function Matchup({ feed, score }: { feed: OverlayFeed; score?: boolean }) {
@@ -162,7 +163,7 @@ function Intro({ feed }: { feed: OverlayFeed }) {
       </motion.div>
       <TopBar feed={feed} />
       <motion.div
-        className="absolute inset-x-[72px] bottom-[100px] top-[140px] grid grid-cols-[minmax(0,1fr)_220px_minmax(0,1fr)] border-b border-line"
+        className="absolute inset-x-[72px] bottom-[52px] top-[140px] grid grid-cols-[minmax(0,1fr)_220px_minmax(0,1fr)] border-b border-line"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, ease: EASE }}
@@ -291,6 +292,11 @@ export function CalmScene({ feed }: { feed: OverlayFeed }) {
       {s === "intro" && <Intro feed={feed} />}
       {s === "winner" && <Winner feed={feed} />}
       {s === "brb" && <Break feed={feed} />}
+      {!!feed.chat?.length && (s === "intro" || s === "winner") && (
+        <div className={cn("absolute flex", s === "intro" ? "inset-x-0 bottom-[76px] justify-center" : "bottom-[300px] right-[72px]")}>
+          <StreamChat lines={feed.chat} rows={s === "intro" ? 6 : 5} className={s === "intro" ? "w-[640px]" : "w-[560px]"} delay={1.2} />
+        </div>
+      )}
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Backdrop, editionNum, HeaderSide, LABEL, Lockup, Rule, Slant, TEAM } from "./chrome";
 import { MOD_ORDER, MODS } from "@/lib/mods";
 import { EASE } from "@/lib/ease";
+import { StreamChat } from "./stream-chat";
 
 const GROUPS = MOD_ORDER;
 const norm = (v: string) => v.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -193,6 +194,11 @@ export function MappoolScene({ feed }: { feed: OverlayFeed }) {
           </section>
         ))}
       </div>
+      {!!feed.chat?.length && (
+        <div className="absolute bottom-[40px] right-[72px] flex">
+          <StreamChat lines={feed.chat} rows={6} className="w-[696px]" delay={0.8} />
+        </div>
+      )}
     </div>
   );
 }

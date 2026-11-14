@@ -1,7 +1,9 @@
 "use client";
 
 import { memo, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { IPC_PLAYING } from "@/lib/relay-contract";
+import { StreamChat } from "./stream-chat";
 import { slotColor } from "@/lib/format-plan";
 import { modOn } from "@/lib/theme";
 import type { LiveClient, OverlayFeed } from "@/lib/overlay-types";
@@ -124,7 +126,9 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
   const diff = live ? live.totals[0] - live.totals[1] : 0;
   const lead = Math.max(-1, Math.min(1, diff / 300_000));
   const share = total > 0 ? 0.5 + 0.48 * Math.sign(lead) * Math.abs(lead) ** 0.6 : 0.5;
-  const slotC = current ? slotColor(current.slot.toUpperCase()) : "var(--paper)";
+  // lobby chat sits in the footer only between maps: before one starts and on the results
+  const talk = !!feed.chat?.length && live?.ipcState !== IPC_PLAYING;
+  const slotC = current ?slotColor(current.slot.toUpperCase()) : "var(--paper)";
   const setup = useSyncExternalStore(still, () => new URLSearchParams(window.location.search).has("setup"), () => false);
   const clients = (side: 0 | 1) => (live?.clients ?? []).filter((c) => c.team === (side === 0 ? "left" : "right")).sort((a, b) => a.ipcId - b.ipcId);
   const holes = BOXES.map((b) => `M${b.x} ${b.y}h${CW}v${CH}h-${CW}Z`).join("");
@@ -239,46 +243,50 @@ export function GameplayScene({ feed }: { feed: OverlayFeed }) {
         animate={{ y: 0 }}
         transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
       >
-        <motion.div
-          key={current?.id ?? "none"}
-          className="flex h-full items-center gap-4 px-[var(--gp-side)] pt-[4px]"
-          initial={{ x: -60, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5, ease: EASE }}
-        >
-          {current ? (
-            <>
-              <Slant className="px-3 py-1" style={{ background: slotC, boxShadow: "4px 4px 0 0 color-mix(in srgb, var(--rose-deep) 42%, transparent)" }}>
-                <span className="font-display text-[34px] font-black italic leading-none" style={{ color: modOn(slotC) }}>{current.slot}</span>
-              </Slant>
-              <div className="min-w-0 flex-1">
-                <h3 className="truncate text-[24px] font-black leading-tight">{current.title}</h3>
-                <p className="truncate text-[14px] font-bold text-ash">
-                  [{current.version}] · {current.creator}
-                </p>
-              </div>
-              <dl className="flex shrink-0 items-baseline gap-5">
-                {[
-                  ["★", current.sr.toFixed(2)],
-                  ["BPM", integer.format(current.bpm)],
-                  ["CS", current.cs.toFixed(1)],
-                  ["AR", current.ar.toFixed(1)],
-                  ["OD", current.od.toFixed(1)],
-                  ["Length", len(current.length)],
-                ].map(([k, v]) => (
-                  <div key={k} className="flex items-baseline gap-1.5">
-                    <dt className={cn("text-[11px] font-display font-bold", k === "★" ? "text-gold-hi" : "text-ash")}>{k}</dt>
-                    <dd className="num text-[18px] font-black">{v}</dd>
-                  </div>
-                ))}
-              </dl>
-            </>
-          ) : (
-            <span className="text-[14px] font-display font-bold text-ash">{feed.match.round}</span>
-          )}
-          {/* mb lifts the wordmark ~3.5px so its letters (not the taller 7) centre on the stat numbers */}
-          <Lockup num={editionNum(feed)} size={22} className="mb-[7px] ml-auto shrink-0 pl-3" />
-        </motion.div>
+        <div className="flex h-full items-center gap-6 px-[var(--gp-side)] pt-[4px]">
+          <AnimatePresence>{talk && <StreamChat key="chat" lines={feed.chat ?? []} rows={3} size="compact" className="w-[820px] shrink-0" />}</AnimatePresence>
+          <motion.div
+            key={current?.id ?? "none"}
+            layout="position"
+            className={cn("flex min-w-0 flex-1 items-center", talk ? "gap-3" : "gap-4")}
+            initial={{ x: -60, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.5, ease: EASE }}
+          >
+            {current ? (
+              <>
+                <Slant className={talk ? "px-2 py-0.5" : "px-3 py-1"} style={{ background: slotC, boxShadow: "4px 4px 0 0 color-mix(in srgb, var(--rose-deep) 42%, transparent)" }}>
+                  <span className={cn("font-display font-black italic leading-none", talk ? "text-[24px]" : "text-[34px]")} style={{ color: modOn(slotC) }}>{current.slot}</span>
+                </Slant>
+                <div className="min-w-0 flex-1">
+                  <h3 className={cn("truncate font-black leading-tight", talk ? "text-[18px]" : "text-[24px]")}>{current.title}</h3>
+                  <p className={cn("truncate font-bold text-ash", talk ? "text-[12px]" : "text-[14px]")}>
+                    [{current.version}] · {current.creator}
+                  </p>
+                </div>
+                <dl className={cn("flex shrink-0 items-baseline", talk ? "gap-3" : "gap-5")}>
+                  {[
+                    ["★", current.sr.toFixed(2)],
+                    ["BPM", integer.format(current.bpm)],
+                    ["CS", current.cs.toFixed(1)],
+                    ["AR", current.ar.toFixed(1)],
+                    ["OD", current.od.toFixed(1)],
+                    ["Length", len(current.length)],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex items-baseline gap-1">
+                      <dt className={cn("text-[11px] font-display font-bold", k === "★" ? "text-gold-hi" : "text-ash")}>{k}</dt>
+                      <dd className={cn("num font-black", talk ? "text-[15px]" : "text-[18px]")}>{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </>
+            ) : (
+              <span className="text-[14px] font-display font-bold text-ash">{feed.match.round}</span>
+            )}
+            {/* mb lifts the wordmark ~3.5px so its letters (not the taller 7) centre on the stat numbers */}
+            <Lockup num={editionNum(feed)} size={talk ? 18 : 22} className="mb-[7px] ml-auto shrink-0 pl-3" />
+          </motion.div>
+        </div>
       </motion.footer>
     </div>
   );

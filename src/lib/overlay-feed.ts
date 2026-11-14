@@ -15,7 +15,11 @@ import { IPC_PLAYING } from "@/lib/relay-contract";
 import { overlayUser, currentStreamMatch } from "@/db/stream";
 import { isScene, type Scene } from "@/lib/scenes";
 import { getCue, PLAY_LEAD } from "@/lib/overlay-cues";
-import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup, FeedMatch, FeedTurn, LiveScore } from "./overlay-types";
+import type { OverlayFeed, FeedTeam, FeedMap, FeedStep, FeedGroup, FeedMatch, FeedTurn, FeedChat, LiveScore } from "./overlay-types";
+import type { ChatLine } from "./lobby-chat";
+import { flagChat } from "./chat-filter";
+import { streamChatLine } from "./chat-visibility";
+import { nameKey } from "./names";
 import { scoreOf, tbDue, turnOf, type DraftView } from "@/lib/draft";
 import { TEST_MATCH, isGfId } from "@/lib/format";
 import { bracketZoom, zoomPause } from "@/lib/overlay-zoom";
@@ -53,6 +57,19 @@ function sinceStore(name: string) {
 }
 const rolledSince = sinceStore("bgccRolledAt");
 const wonSince = sinceStore("bgccWonAt");
+
+const STREAM_CHAT = 12;
+
+/** lobby chat as the stream shows it: no commands, no bancho noise, nothing the slur filter flags; `people` (by nameKey) gives pictures and sides */
+export function streamChat(lines: ChatLine[], people: Map<string, { avatar: string; side: 1 | 2 | null }>): FeedChat[] {
+  return flagChat(lines)
+    .filter(streamChatLine)
+    .slice(-STREAM_CHAT)
+    .map((l) => {
+      const who = people.get(nameKey(l.from));
+      return { key: `${l.at}:${l.from}:${l.text}`, at: l.at, name: l.from.replace(/_/g, " "), avatar: who?.avatar ?? null, side: l.side ?? who?.side ?? null, ref: !!l.ref, bot: l.from === "BanchoBot", text: l.text };
+    });
+}
 
 export async function scheduleFeed(): Promise<FeedMatch[]> {
   if (!(await canSee("schedule"))) return [];

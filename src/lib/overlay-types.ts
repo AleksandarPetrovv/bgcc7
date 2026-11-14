@@ -27,7 +27,10 @@ export type FeedGroup = { name: string; color: string; slots: string[] };
 
 export type FeedStep = { team: 1 | 2; kind: "ban" | "pick"; slot: string; winner: 1 | 2 | null };
 
-export type FeedTurn = { kind: "pick" | "ban"; team: 1 | 2 } | { kind: "tb" } | null;
+/** a lobby chat line on stream, already filtered (no commands, no bancho noise, nothing the slur filter flagged) */
+export type FeedChat = { key: string; at: number; name: string; avatar: string | null; side: 1 | 2 | null; ref: boolean; bot: boolean; text: string };
+
+export type FeedTurn ={ kind: "pick" | "ban"; team: 1 | 2 } | { kind: "tb" } | null;
 
 export type OverlayFeed = {
   edition: string;
@@ -53,6 +56,8 @@ export type OverlayFeed = {
   turn?: FeedTurn;
   current: FeedMap | null;
   live: LiveScore | null;
+  /** newest last; shown in the rolls, mappool, winner scenes and between maps */
+  chat?: FeedChat[];
   scene: Scene;
   sceneAuto: boolean;
   /** bracket scene only, once its reveal is over and the match has a box: the manual zoom toggle. `settled` = the overlay finished zooming */
