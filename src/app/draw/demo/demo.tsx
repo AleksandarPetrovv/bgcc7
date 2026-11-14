@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { addPick, EMPTY_DRAW, nextWheel, onWheel, type DrawFeed, type DrawPlayer, type DrawState } from "@/lib/draw";
 import { DrawStage } from "@/components/site/draw/draw-stage";
+import { DemoBar } from "@/components/site/demo-bar";
 import { useFormat } from "@/components/site/tournament";
 import { DrawThanks } from "../thanks";
 
@@ -30,72 +31,127 @@ const TEAMS_MS = 10000;
 const REVEAL_MS = 1100;
 const THANKS_AFTER_MS = 4000;
 const RESTART_MS = 10000;
+// shortcut: how long the stage plays one pick, measured on /draw/demo (2026-11-14). only the demo bar's times lean on it: the run
+// still waits for the stage to go idle before the next pick. re-measure if the stage's timings change
+const playMs = (w: "a" | "b", pace: number, first: boolean, both: boolean) => (both ? 3220 : pace > 1 ? (w === "a" ? 305 : 335) : w === "b" ? 9720 : first ? 7530 : 8520);
 
 const feedOf = (s: DrawState): DrawFeed => ({ open: true, a: PA, b: PB, taken: [], pairs: s.pairs.map(({ a, b }) => ({ a, b })), seq: s.seq, last: s.last, redo: false, ended: false, seeds: null, bracket: null, thanks: false, build: "" });
 
-export function DrawDemo() {
-  const [run, setRun] = useState(0);
-  return <DemoRun key={run} restart={() => setRun((r) => r + 1)} />;
-}
+// read in handlers and timers only, never during render
+const now = () => performance.now();
 
-function DemoRun({ restart }: { restart: () => void }) {
-  const state = useRef(EMPTY_DRAW);
-  const [feed, setFeed] = useState(() => feedOf(EMPTY_DRAW));
-  const [speed, setSpeed] = useState(1);
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const ended = useRef(false);
-  const { r1 } = useFormat();
-  useEffect(() => () => clearTimeout(timer.current), []);
+/** one moment of the run: from `at` ms the stage shows `feed`; a `pick` waits for the stage to finish the one before */
+type Beat = { at: number; feed: DrawFeed; speed: number; pick: boolean };
+type Run = { beats: Beat[]; len: number };
 
-  const onIdle = (idle: boolean) => {
-    // once the draw is done the timers below run the rest; the stage going idle after each step must not cancel them
-    if (!idle || ended.current) return;
-    clearTimeout(timer.current);
-    const s = state.current;
+/** a whole demo run laid out in time: random picks like a real draw, then End, the bracket reveal and "thanks for watching" */
+function plan(r1: [number, number][]): Run {
+  let s = EMPTY_DRAW;
+  let t = 0;
+  const beats: Beat[] = [{ at: 0, feed: feedOf(s), speed: 1, pick: false }];
+  for (;;) {
     const w = nextWheel(s.pairs);
     const pool = onWheel(w === "a" ? PA : PB, s.pairs, []);
-    if (!pool.length) {
-      // the demo ends like a real draw: the last team waits in the middle, End shows the final teams, then a new run
-      ended.current = true;
-      // then the bracket opens and fills one team at a time, seeded like the real one (average seed of the pair)
-      const seeds = s.pairs.map((p, pair) => ({ pair, avg: (seedOf(p.a) + seedOf(p.b!)) / 2, best: Math.min(seedOf(p.a), seedOf(p.b!)) })).sort((x, y) => x.avg - y.avg || x.best - y.best);
-      const slots: [number, number][] = r1.map(([s1, s2]) => [seeds[s1 - 1].pair, seeds[s2 - 1].pair]);
-      const total = 2 * slots.length;
-      const step = (shown: number) => {
-        setFeed((f) => ({ ...f, seq: f.seq + 1, last: null, bracket: { shown, r1: slots } }));
-        if (shown < total) {
-          const slow = shown < SLOW_SLOTS || shown >= total - SLOW_SLOTS;
-          timer.current = setTimeout(() => step(shown + 1), slow ? REVEAL_MS : REVEAL_MS / FAST);
-          return;
-        }
-        // like the host's End: the overlay's "thanks for watching", then a new run
-        timer.current = setTimeout(() => {
-          setFeed((f) => ({ ...f, seq: f.seq + 1, last: null, thanks: true }));
-          timer.current = setTimeout(restart, RESTART_MS);
-        }, THANKS_AFTER_MS);
-      };
-      timer.current = setTimeout(() => {
-        setSpeed(1);
-        setFeed((f) => ({ ...f, ended: true, seeds: seeds.map(({ pair, avg }) => ({ pair, avg })), seq: f.seq + 1, last: null }));
-        timer.current = setTimeout(() => step(0), TEAMS_MS);
-      }, END_MS);
-      return;
-    }
+    if (!pool.length) break;
     // the team this spin works on (a tier B spin finishes the one in the box)
     const team = w === "a" ? s.pairs.length + 1 : s.pairs.length;
     const pace = team <= SLOW_TEAMS || team > PA.length - SLOW_TEAMS ? 1 : FAST_SPINS;
-    timer.current = setTimeout(() => {
-      setSpeed(pace);
-      // like the admin's last-team button: one player left on each wheel, both are placed at once
-      if (pool.length === 1 && w === "a") {
-        const b = onWheel(PB, s.pairs, []);
-        const withA = addPick(s, { w, id: pool[0].id }, "spin");
-        state.current = b.length === 1 ? addPick(withA, { w: "b", id: b[0].id }, "spin") : withA;
-      } else state.current = addPick(s, { w, id: pool[Math.floor(Math.random() * pool.length)].id }, "spin");
-      setFeed(feedOf(state.current));
-    }, (s.seq ? GAP_MS : GAP_MS * 2) / pace);
+    t += (s.seq ? GAP_MS : GAP_MS * 2) / pace;
+    const first = !s.seq;
+    let both = false;
+    // like the admin's last-team button: one player left on each wheel, both are placed at once
+    if (pool.length === 1 && w === "a") {
+      const b = onWheel(PB, s.pairs, []);
+      const withA = addPick(s, { w, id: pool[0].id }, "spin");
+      both = b.length === 1;
+      s = both ? addPick(withA, { w: "b", id: b[0].id }, "spin") : withA;
+    } else s = addPick(s, { w, id: pool[Math.floor(Math.random() * pool.length)].id }, "spin");
+    beats.push({ at: t, feed: feedOf(s), speed: pace, pick: true });
+    t += playMs(w, pace, first, both);
+  }
+  // the demo ends like a real draw: End shows the final teams, then the bracket opens and fills one team at a time,
+  // seeded like the real one (average seed of the pair), then the overlay's "thanks for watching" and a new run
+  const done = feedOf(s);
+  const seeds = s.pairs.map((p, pair) => ({ pair, avg: (seedOf(p.a) + seedOf(p.b!)) / 2, best: Math.min(seedOf(p.a), seedOf(p.b!)) })).sort((x, y) => x.avg - y.avg || x.best - y.best);
+  const ended: DrawFeed = { ...done, ended: true, seeds: seeds.map(({ pair, avg }) => ({ pair, avg })), seq: done.seq + 1, last: null };
+  t += END_MS;
+  beats.push({ at: t, feed: ended, speed: 1, pick: false });
+  const slots: [number, number][] = r1.map(([s1, s2]) => [seeds[s1 - 1].pair, seeds[s2 - 1].pair]);
+  const total = 2 * slots.length;
+  t += TEAMS_MS;
+  for (let shown = 0; shown <= total; shown++) {
+    beats.push({ at: t, feed: { ...ended, seq: ended.seq + 1 + shown, bracket: { shown, r1: slots } }, speed: 1, pick: false });
+    if (shown < total) t += shown < SLOW_SLOTS || shown >= total - SLOW_SLOTS ? REVEAL_MS : REVEAL_MS / FAST;
+  }
+  t += THANKS_AFTER_MS;
+  const full = beats.at(-1)!.feed;
+  beats.push({ at: t, feed: { ...full, seq: full.seq + 1, thanks: true }, speed: 1, pick: false });
+  return { beats, len: t + RESTART_MS };
+}
+
+export function DrawDemo() {
+  const { r1 } = useFormat();
+  const [first] = useState(() => plan(r1));
+  const run = useRef(first);
+  // `mount`: a seek or a new run remounts the stage, so it shows that spot at once instead of playing out what it has queued
+  const [view, setView] = useState({ beat: first.beats[0], len: first.len, mount: 0 });
+  const [t, setT] = useState(0);
+  const origin = useRef(0);
+  const idle = useRef(true);
+  const waiting = useRef<number | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // the demo clock; while a pick waits for the stage, it waits too
+  const clock = () => Math.min(run.current.len, waiting.current != null ? run.current.beats[waiting.current].at : now() - origin.current);
+  // `still`: the stage was just remounted on this beat, so it shows it without playing anything
+  const apply = (i: number, still = false) => {
+    waiting.current = null;
+    const beat = run.current.beats[i];
+    if (beat.pick && !still) idle.current = false;
+    setView((v) => ({ ...v, beat, len: run.current.len }));
+    schedule(i + 1);
+  };
+  const schedule = (i: number) => {
+    clearTimeout(timer.current);
+    const { beats, len } = run.current;
+    timer.current = setTimeout(
+      () => {
+        if (i >= beats.length) return jump(0, plan(r1));
+        if (beats[i].pick && !idle.current) waiting.current = i;
+        else apply(i);
+      },
+      Math.max(0, (i < beats.length ? beats[i].at : len) - (now() - origin.current)),
+    );
+  };
+  const jump = (ms: number, next?: Run) => {
+    if (next) run.current = next;
+    origin.current = now() - ms;
+    idle.current = true;
+    setView((v) => ({ ...v, mount: v.mount + 1 }));
+    apply(run.current.beats.findLastIndex((b) => b.at <= ms), true);
+  };
+  const onIdle = (v: boolean) => {
+    idle.current = v;
+    const w = waiting.current;
+    if (!v || w == null) return;
+    origin.current = now() - run.current.beats[w].at;
+    apply(w);
   };
 
-  useEffect(() => onIdle(true), []); // eslint-disable-line react-hooks/exhaustive-deps
-  return <DrawStage feed={feed} onIdle={onIdle} wordmark speed={speed} thanks={<DrawThanks />} />;
+  useEffect(() => {
+    origin.current = now();
+    schedule(1);
+    const bar = setInterval(() => setT(clock()), 100);
+    return () => {
+      clearTimeout(timer.current);
+      clearInterval(bar);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <>
+      <DrawStage key={view.mount} feed={view.beat.feed} onIdle={onIdle} wordmark speed={view.beat.speed} thanks={<DrawThanks />} />
+      <DemoBar t={t} len={view.len} onSeek={(ms) => jump(ms)} />
+    </>
+  );
 }

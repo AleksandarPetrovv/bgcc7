@@ -5,6 +5,7 @@ import { AnimatePresence, motion, MotionGlobalConfig, useReducedMotion } from "m
 import type { OverlayFeed } from "@/lib/overlay-types";
 import type { Scene } from "@/lib/scenes";
 import { useSSE } from "@/components/site/use-sse";
+import { DemoBar } from "@/components/site/demo-bar";
 import { CalmScene } from "./calm-scenes";
 import { MappoolScene } from "./mappool-scene";
 import { GameplayScene } from "./gameplay-scene";
@@ -12,19 +13,26 @@ import { BracketScene, ScheduleScene } from "./schedule-scenes";
 import styles from "./overlay-view.module.css";
 
 export function OverlayView({ overlayKey, scene, stage }: { overlayKey: string; scene?: Scene; stage?: string }) {
+  // the demo bar's last seek; `n` makes a repeat of the same spot reconnect too
+  const [seek, setSeek] = useState<{ ms: number; n: number } | null>(null);
+  const demo = overlayKey === "demo";
   const q = new URLSearchParams();
-  if (overlayKey === "demo" && scene) q.set("scene", scene);
-  if (overlayKey === "demo" && stage) q.set("stage", stage);
+  if (demo && scene) q.set("scene", scene);
+  if (demo && stage) q.set("stage", stage);
+  if (demo && seek) {
+    q.set("t", (seek.ms / 1000).toFixed(1));
+    q.set("n", String(seek.n));
+  }
   const query = q.size ? `?${q}` : "";
   const url = `/api/overlay/${encodeURIComponent(overlayKey)}${query}`;
 
-  return <OverlaySubscription key={JSON.stringify([overlayKey, scene, stage])} url={url} />;
+  return <OverlaySubscription key={JSON.stringify([overlayKey, scene, stage])} url={url} onSeek={demo ? (ms) => setSeek((s) => ({ ms, n: (s?.n ?? 0) + 1 })) : undefined} />;
 }
 
 const WIPE_S = 1.05;
 const SWAP_MS = 520;
 
-function OverlaySubscription({ url }: { url: string }) {
+function OverlaySubscription({ url, onSeek }: { url: string; onSeek?: (ms: number) => void }) {
   const [feed, setFeed] = useState<OverlayFeed | null>(null);
   const reducedMotion = useReducedMotion();
   const build = useRef<string | undefined>(undefined);
@@ -90,6 +98,7 @@ function OverlaySubscription({ url }: { url: string }) {
   const view = base && shown ? { ...base, scene } : null;
 
   return (
+    <>
     <StageFrame>
       {view && (
         <div key={shown} className={styles.scene}>
@@ -98,6 +107,8 @@ function OverlaySubscription({ url }: { url: string }) {
       )}
       <AnimatePresence>{wipe > 0 && <Wipe key={wipe} />}</AnimatePresence>
     </StageFrame>
+    {onSeek && feed?.demo && <DemoBar t={feed.demo.t} len={feed.demo.len} onSeek={onSeek} />}
+    </>
   );
 }
 

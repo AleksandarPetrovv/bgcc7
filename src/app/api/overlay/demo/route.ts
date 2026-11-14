@@ -262,9 +262,9 @@ function demo(pin: Scene | null, startedAt: number): OverlayFeed {
   let scene: Scene = pin ?? "soon";
   let local = 0;
   let cycleStart = startedAt;
+  const loop = pin ? (TIMELINE.find(([sc]) => sc === pin)?.[1] ?? 10) : CYCLE;
   if (pin) {
-    const len = TIMELINE.find(([sc]) => sc === pin)?.[1] ?? 10;
-    local = elapsed % len;
+    local = elapsed % loop;
     cycleStart = now - local * 1000;
   } else {
     let t = elapsed % CYCLE;
@@ -344,6 +344,7 @@ function demo(pin: Scene | null, startedAt: number): OverlayFeed {
     chat: demoChat(scene, local, now),
     scene,
     sceneAuto: !pin,
+    demo: { t: Math.round((elapsed % loop) * 1000), len: loop * 1000 },
     at: now,
   };
 }
@@ -383,7 +384,9 @@ export async function GET(req: Request) {
   const sceneParam = url.searchParams.get("scene");
   const pin = isScene(sceneParam) ? sceneParam : null;
 
-  const startedAt = Date.now();
+  // ?t= seconds: the demo bar's seek, the loop starts that far in
+  const seek = Number(url.searchParams.get("t"));
+  const startedAt = Date.now() - (Number.isFinite(seek) && seek > 0 ? Math.min(seek, CYCLE) * 1000 : 0);
   const stageSlug = url.searchParams.get("stage");
   const stages = await getPoolStages();
   const stage = stageSlug ? stages.find((s) => s.slug === stageSlug) : stages.find((s) => s.released);
