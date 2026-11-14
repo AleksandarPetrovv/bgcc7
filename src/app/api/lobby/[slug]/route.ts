@@ -82,7 +82,7 @@ export async function POST(req: Request, ctx: Ctx) {
   try {
     switch (act) {
       case "chat": {
-        const r = await sendChat(id, osuId, String(b?.text ?? ""));
+        const r = await sendChat(id, osuId, String(b?.text ?? ""), !a.host);
         if (r !== "ok") return Response.json({ ok: false, error: r }, { status: r === "noslot" || r === "nouser" ? 404 : r === "forbidden" ? 403 : 429 });
         break;
       }
