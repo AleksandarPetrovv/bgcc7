@@ -92,6 +92,9 @@ export const pickableSlots = (maps: { slot: string }[]) => maps.map((m) => m.slo
 
 export const limitOf = (d: Pick<DraftView, "banSecs" | "pickSecs">, kind: Turn["kind"]) => (kind === "ban" ? d.banSecs : kind === "pick" ? d.pickSecs : 0);
 
+/** once a map's winner is in, the next pick's clock starts this much later (the draft shows a countdown meanwhile) */
+export const RESULT_GAP_MS = 30_000;
+
 export function deadline(d: DraftView, slots: string[]) {
   const turn = turnOf(d, slots);
   const limit = limitOf(d, turn.kind);

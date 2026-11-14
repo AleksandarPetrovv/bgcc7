@@ -203,6 +203,7 @@ export const match: typeof en = {
     choosing: (team: string) => `${team} избира`,
     chose: (team: string, what: "pick" | "ban") => (what === "pick" ? `${team} пикват първи` : `${team} банват първи`),
     turn: (team: string, what: "ban" | "pick") => (what === "ban" ? `${team} банват` : `${team} пикват`),
+    pickSoon: (team: string) => `${team} пикват след`,
     yours: (what: "ban" | "pick") => (what === "ban" ? "Твой бан" : "Твой пик"),
     tapMap: (what: "ban" | "pick") => (what === "ban" ? "Натисни мап, за да го баннеш" : "Натисни мап, за да го пикнеш"),
     banned: "Банат",
