@@ -10,7 +10,7 @@ import { getSkillLayouts } from "./format-plan";
 import { siteRun } from "./site-run";
 import { globalStore } from "@/lib/global-store";
 import { getFormat } from "./edition";
-import { deadline, pickableSlots, RESULT_GAP_MS, scoreOf, TB, tbDue, TIE_HOLD_MS, turnOf, type DraftView, type Side } from "@/lib/draft";
+import { CHOICE_GAP_MS, deadline, pickableSlots, RESULT_GAP_MS, scoreOf, TB, tbDue, TIE_HOLD_MS, turnOf, type DraftView, type Side } from "@/lib/draft";
 
 const bus = globalStore("draftBus", () => new EventEmitter().setMaxListeners(0));
 
@@ -307,7 +307,7 @@ export async function applyDraft(matchId: string, side: Side, a: DraftAct) {
     }
     const [next] = await tx
       .update(drafts)
-      .set({ ...patch, redo: [], turnAt: new Date(), ...bumpDraft() })
+      .set({ ...patch, redo: [], turnAt: new Date(Date.now() + (patch.choice ? CHOICE_GAP_MS : 0)), ...bumpDraft() })
       .where(eq(drafts.matchId, matchId))
       .returning();
     return toView(next, c);

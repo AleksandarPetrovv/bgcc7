@@ -134,7 +134,7 @@ export const match = {
     choosing: (team: string) => `${team} is choosing`,
     chose: (team: string, what: "pick" | "ban") => (what === "pick" ? `${team} picks first` : `${team} bans first`),
     turn: (team: string, what: "ban" | "pick") => (what === "ban" ? `${team} bans` : `${team} picks`),
-    pickSoon: (team: string) => `${team} picks next in`,
+    soon: (team: string, what: "ban" | "pick") => (what === "ban" ? `${team} bans next in` : `${team} picks next in`),
     yours: (what: "ban" | "pick"): string => (what === "ban" ? "Your ban" : "Your pick"),
     tapMap: (what: "ban" | "pick"): string => (what === "ban" ? "Tap a map to ban it" : "Tap a map to pick it"),
     banned: "Banned",

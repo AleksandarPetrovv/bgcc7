@@ -9,7 +9,7 @@ import { useDict } from "@/components/site/lang";
 import { EASE } from "@/lib/ease";
 import type { Match } from "@/lib/data";
 import { Confetti } from "@/components/site/confetti";
-import { deadline, limitOf, pickable, RESULT_GAP_MS, ROLL_REVEAL_MS, rollWinner, scoreOf, turnOf, type DraftView, type Side, type Turn } from "@/lib/draft";
+import { CHOICE_GAP_MS, deadline, limitOf, pickable, RESULT_GAP_MS, ROLL_REVEAL_MS, rollWinner, scoreOf, turnOf, type DraftView, type Side, type Turn } from "@/lib/draft";
 import { cn } from "@/lib/utils";
 import { SlantBg } from "@/components/site/slant";
 import { TEAM } from "@/lib/theme";
@@ -237,8 +237,8 @@ export function DraftRoom({
   const limit = limitOf(d, turn.kind) * 1000;
   const left = dl == null ? null : Math.max(0, dl - (paused ? new Date(d.pausedAt!).getTime() : now));
   const pauseLeft = paused && d.pauseUntil ? Math.max(0, new Date(d.pauseUntil).getTime() - now) : 0;
-  // the gap after a map result: the pick clock hasn't started yet
-  const gapLeft = !paused && turn.kind === "pick" && d.turnAt ? new Date(d.turnAt).getTime() - now : 0;
+  // the gap after the first pick/ban choice or a map result: the clock hasn't started yet
+  const gapLeft = !paused && (turn.kind === "pick" || turn.kind === "ban") && d.turnAt ? new Date(d.turnAt).getTime() - now : 0;
   const playMap = d.playing ? pools.flatMap((p) => p.maps).find((m) => m.id === d.playing!.mapId) : undefined;
   const playTotal = playMap ? playMap.length * 1000 : 0;
   const playLeft = d.playing ? (playTotal ? Math.max(0, d.playing.at + playTotal - now) : Math.max(0, now - d.playing.at)) : 0;
@@ -406,7 +406,7 @@ export function DraftRoom({
           ) : d.playing ? (
             <TimerDock key="play" calm left={playLeft} total={playTotal} color={TEAM[playTeam]} label={playMap ? `${t.lobby.mapPlaying} · ${playMap.slot}` : t.lobby.mapPlaying} />
           ) : gapLeft > 0 && "team" in turn ? (
-            <TimerDock key="gap" calm left={gapLeft} total={RESULT_GAP_MS} color={TEAM[turn.team]} label={t.draft.pickSoon(name(turn.team))} raised={!!sel && mine} />
+            <TimerDock key="gap" calm left={gapLeft} total={d.steps.length ? RESULT_GAP_MS : CHOICE_GAP_MS} color={TEAM[turn.team]} label={t.draft.soon(name(turn.team), turn.kind === "ban" ? "ban" : "pick")} raised={!!sel && mine} />
           ) : (
             left != null && "team" in turn && <TimerDock key="turn" left={left} total={limit} color={TEAM[turn.team]} label={headline} raised={!!sel && mine} />
           )}

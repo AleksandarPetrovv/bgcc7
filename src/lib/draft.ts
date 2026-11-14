@@ -96,6 +96,8 @@ export const limitOf = (d: Pick<DraftView, "banSecs" | "pickSecs">, kind: Turn["
 
 /** once a map's winner is in, the next pick's clock starts this much later (the draft shows a countdown meanwhile) */
 export const RESULT_GAP_MS = 30_000;
+/** after the roll winner chooses first pick/ban, the first clock starts this much later (the overlay holds the rolls scene for it) */
+export const CHOICE_GAP_MS = 15_000;
 
 export function deadline(d: DraftView, slots: string[]) {
   const turn = turnOf(d, slots);
