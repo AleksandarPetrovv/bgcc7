@@ -10,7 +10,7 @@ import { getSkillLayouts } from "./format-plan";
 import { siteRun } from "./site-run";
 import { globalStore } from "@/lib/global-store";
 import { getFormat } from "./edition";
-import { deadline, pickableSlots, RESULT_GAP_MS, scoreOf, TB, tbDue, turnOf, type DraftView, type Side } from "@/lib/draft";
+import { deadline, pickableSlots, RESULT_GAP_MS, scoreOf, TB, tbDue, TIE_HOLD_MS, turnOf, type DraftView, type Side } from "@/lib/draft";
 
 const bus = globalStore("draftBus", () => new EventEmitter().setMaxListeners(0));
 
@@ -147,7 +147,10 @@ export async function getDraft(matchId: string) {
   return row ? toView(row, c) : null;
 }
 
+const tieOver = (d: { roll1: number | null; roll2: number | null }, turnAt: number, now: number) => d.roll1 != null && d.roll1 === d.roll2 && now >= turnAt + TIE_HOLD_MS;
+
 function due(d: DraftView, slots: string[], now: number) {
+  if (d.turnAt && tieOver(d, new Date(d.turnAt).getTime(), now)) return true;
   if (d.pausedAt) return !!d.pauseUntil && now >= new Date(d.pauseUntil).getTime();
   const dl = deadline(d, slots);
   return dl != null && now >= dl;
@@ -168,6 +171,8 @@ export async function settle(matchId: string) {
     let pauseUntil = row.pauseUntil;
     let timeouts = row.timeouts;
     const steps = [...row.steps];
+    const tie = tieOver(row, turnAt, now);
+    if (tie) turnAt = now;
     if (pausedAt && pauseUntil && now >= pauseUntil.getTime()) {
       turnAt += pauseUntil.getTime() - pausedAt.getTime();
       pausedAt = null;
@@ -186,7 +191,7 @@ export async function settle(matchId: string) {
     }
     const [out] = await tx
       .update(drafts)
-      .set({ steps, ...(steps.length !== row.steps.length ? { redo: [] } : {}), turnAt: new Date(turnAt), pausedAt, pauseUntil, timeouts, ...bumpDraft() })
+      .set({ steps, ...(steps.length !== row.steps.length ? { redo: [] } : {}), ...(tie ? { roll1: null, roll2: null } : {}), turnAt: new Date(turnAt), pausedAt, pauseUntil, timeouts, ...bumpDraft() })
       .where(eq(drafts.matchId, matchId))
       .returning();
     return toView(out, c);
@@ -289,8 +294,8 @@ export async function applyDraft(matchId: string, side: Side, a: DraftAct) {
     const turn = turnOf(d, slots);
     const patch: Partial<Row> = {};
     if (a.act === "roll") {
+      // a tie can't be rerolled until settle clears it after TIE_HOLD_MS
       if (turn.kind === "roll" && (side === 1 ? d.roll1 : d.roll2) == null) patch[side === 1 ? "roll1" : "roll2"] = randomInt(1, 101);
-      else if (turn.kind === "tie") Object.assign(patch, side === 1 ? { roll1: randomInt(1, 101), roll2: null } : { roll2: randomInt(1, 101), roll1: null });
       else return "turn" as const;
     } else if (a.act === "choose") {
       if (turn.kind !== "choose" || turn.team !== side || (a.value !== "pick" && a.value !== "ban")) return "turn" as const;

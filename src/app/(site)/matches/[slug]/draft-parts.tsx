@@ -341,7 +341,7 @@ export function Rolls({
           <div className="grid grid-cols-2 gap-3 pt-6 sm:gap-6">
             {([1, 2] as const).map((s) => {
               const val = s === 1 ? d.roll1 : d.roll2;
-              const canRoll = me === s && (turn.kind === "tie" || (turn.kind === "roll" && val == null));
+              const canRoll = me === s && turn.kind === "roll" && val == null;
               return (
                 <motion.div
                   key={s}
