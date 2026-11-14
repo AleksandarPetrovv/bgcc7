@@ -82,7 +82,7 @@ function Line({ m, slot, live, slim, moved, quiet, out }: { m: Match; slot: 1 | 
       </span>
       <MeTag t={team.id} className="me-tag-plain me-tag-px -mx-1" />
       {(tag || score !== null) && (
-        <span className={cn("num ml-2 shrink-0 text-right text-base leading-none transition-colors duration-700", !moved && "in-slam", tag ? cn(OUT_TEXT, "opacity-80") : won ? "text-balkan-hi" : leads || tie ? "text-rose-hi" : "text-paper/80")} style={cssVars({ "--d": play ? "0s" : "0.65s" })}>
+        <span className={cn("num ml-2 shrink-0 text-right text-base leading-none transition-colors duration-700", !moved && "in-fade", tag ? cn(OUT_TEXT, "opacity-80") : won ? "text-balkan-hi" : leads || tie ? "text-rose-hi" : "text-paper/80")} style={cssVars({ "--d": play ? "0s" : "0.65s" })}>
           {tag ?? score}
         </span>
       )}
@@ -308,7 +308,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
       {(seen > 0 || !maxH) && (
       <div className="mx-auto mt-4" style={fit.outer}>
       <div ref={inner} className={cn("relative [--spacing:4px] [--text-xs:12px] [--text-base:16px] [--text-xl:20px] [--text-3xl:30px]", scale === 1 && "mx-auto", reveal && "overflow-hidden")} style={fit.inner}>
-      <motion.div className="absolute left-0 top-0 origin-top-left" style={{ width, height, scale: zoomZ, x: zoomX, y: zoomY }}>
+      <motion.div className="absolute left-0 top-0 origin-top-left" style={{ width, height, scale: zoomZ, x: zoomX, y: zoomY }} transformTemplate={(_, t) => `translateZ(0) ${t === "none" ? "" : t}`}>
         <svg className="pointer-events-none absolute inset-0 overflow-visible" width={width} height={height} aria-hidden>
           {Object.entries(WIN).map(([a, b]) => {
             const done = !!byId.get(a)?.winner;
@@ -386,7 +386,7 @@ export function MatchBracket({ live = {} }: { live?: Record<string, [number, num
               out={id === play?.id && play.loser ? knocked : undefined}
               onEnter={() => setHover(id)}
               onLeave={() => setHover(null)}
-              className={cn("in-left-far absolute", gf ? "border-gold/70" : "border-line hover:border-paper/30", linked.has(id) && "z-10 border-rose shadow-[0_0_14px_-3px_var(--rose)]", id === outlined && "z-10 border-gold shadow-[0_0_0_1px_var(--gold),0_0_18px_-4px_var(--gold)]")}
+              className={cn("in-wipe absolute", gf ? "border-gold/70" : "border-line hover:border-paper/30", linked.has(id) && "z-10 border-rose shadow-[0_0_14px_-3px_var(--rose)]", id === outlined && "z-10 border-gold shadow-[0_0_0_1px_var(--gold),0_0_18px_-4px_var(--gold)]")}
               style={{ left: col(c), top: top(id), width: W, height: H, ...cssVars({ "--i": c, "--s": "0.14s", "--d": `${(POS[id][2] === "u" ? 0.2 : 0.5) + POS[id][1] / 2500}s` }) }}
             />
           );
